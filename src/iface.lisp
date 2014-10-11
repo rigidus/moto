@@ -144,10 +144,10 @@
            (result (find-user :name (getf p :name) :password (getf p :password))))
       (if (null result)
           "RESULT: Wrong!!"
-          (progn
+          (prog1
+              (login-user (id (car result)))
             (setf (hunchentoot:session-value 'current-user)
-                  (id (car result)))
-            "RESULT: Auth ok")))))
+                  (id (car result))))))))
 
 ;; Страница логаута
 (in-package #:moto)

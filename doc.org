@@ -377,7 +377,14 @@ _____________________
 
      (in-package #:moto)
 
+     ;; Создание пользователя
      <<create-user>>
+
+     ;; Логин пользователя
+     <<login-user>>
+
+     ;; Логаут пользователя
+     <<logout-user>>
    #+END_SRC
 
 
@@ -395,16 +402,21 @@ _____________________
          user-id))
    #+END_SRC
 
-** Выход пользователя из системы
-   #+NAME: create-user
+** Вход пользователя в систему
+   #+NAME: login-user
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+     (defun login-user (id)
+       (takt (get-user id) :logged))
+   #+END_SRC
+
+** Выход пользователя из системы
+   #+NAME: logout-user
+   #+BEGIN_SRC lisp
      (defun logout-user (current-user)
        (takt (get-user current-user) :unlogged))
    #+END_SRC
-
-
 
 * Use cases
 ** Маршруты логина и логаута и путь пользователя по сайту при выполнении этого сценария
@@ -578,10 +590,10 @@ _____________________
                 (result (find-user :name (getf p :name) :password (getf p :password))))
            (if (null result)
                "RESULT: Wrong!!"
-               (progn
+               (prog1
+                   (login-user (id (car result)))
                  (setf (hunchentoot:session-value 'current-user)
-                       (id (car result)))
-                 "RESULT: Auth ok")))))
+                       (id (car result))))))))
    #+END_SRC
 
 ** Выход из системы

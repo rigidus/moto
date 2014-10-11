@@ -74,10 +74,6 @@
      (upd-user (get-user user-id) (list :state ":logged"))
      ;; Возвращаем user-id
      user-id))
- (in-package #:moto)
- 
- (defun logout-user (current-user)
-   (takt (get-user current-user) :unlogged))
 
 ;; Веб-интерфейс
 
