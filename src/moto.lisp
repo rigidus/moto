@@ -3,8 +3,6 @@
 
 (in-package #:moto)
 
-(closure-template:compile-template :common-lisp-backend #P"/home/rigidus/repo/moto/src/templates.htm")
-
 ;; Подключим глобальные определения
 ;;;; entity.lisp
 

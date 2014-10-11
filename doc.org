@@ -869,109 +869,18 @@ _____________________
                                         )))))))
    #+END_SRC
 
-* Сборка
-** Предустановки
+* Модули
+** Cущности, автоматы и их тесты
 
-  #+CAPTION: Необходимые предустановки проекта:
-  #+NAME: prs
-  | name        | moto                                                                                                                               |
-  | version     | 0.0.3                                                                                                                              |
-  | author      | rigidus                                                                                                                            |
-  | description | site for bikers                                                                                                                    |
-  | license     | GPLv3                                                                                                                              |
-  | depends-on  | closer-mop postmodern anaphora cl-ppcre restas restas-directory-publisher closure-template cl-json cl-base64 drakma split-sequence |
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
 
-** Утилиты
-   #+NAME: utility-file
-   #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code
-     ;;;; util.lisp
-
-     (in-package #:moto)
-
-     <<get-obj-data>>
-
-     <<make-clause-list>>
-
-     <<err-bprint-macro>>
-
-     <<dbgout>>
-
-     <<alist_plist>>
-
-     <<with_wrapper>>
-   #+END_SRC
-
-   #+NAME: get-obj-data
+   #+NAME: mod-entity
    #+BEGIN_SRC lisp
-     ;; Превращает инициализированные поля объекта в plist
-     (defun get-obj-data (obj)
-       (let ((class (find-class (type-of obj)))
-             (result))
-         (loop :for slot :in (closer-mop:class-direct-slots class) :collect
-            (let ((slot-name (closer-mop:slot-definition-name slot)))
-              (when (slot-boundp obj slot-name)
-                (setf result
-                      (append result (list (intern (symbol-name slot-name) :keyword)
-                                           (funcall slot-name obj)))))))
-         result))
+     (:module "entity"
+              :serial t
+              :pathname "mod"
+              :components ((:file "entity")))
    #+END_SRC
-
-   #+NAME: make-clause-list
-   #+BEGIN_SRC lisp
-     ;; Assembly WHERE clause
-     (defun make-clause-list (glob-rel rel args)
-       (append (list glob-rel)
-               (loop
-                  :for i
-                  :in args
-                  :when (and (symbolp i)
-                             (getf args i)
-                             (not (symbolp (getf args i))))
-                  :collect (list rel i (getf args i)))))
-   #+END_SRC
-
-   #+NAME: err-bprint-macro
-   #+BEGIN_SRC lisp
-     ;; Макросы для корректного вывода ошибок
-     (defmacro bprint (var)
-       `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
-
-     (defmacro err (var)
-       `(error (format nil "ERR:[~A]" (bprint ,var))))
-   #+END_SRC
-
-   #+NAME: dbgout
-   #+BEGIN_SRC lisp
-     ;; Отладочный вывод
-     (defparameter *dbg-enable* t)
-     (defparameter *dbg-indent* 1)
-
-     (defun dbgout (out)
-       (when *dbg-enable*
-         (format t (format nil "~~%~~~AT~~A" *dbg-indent*) out)))
-
-     (defmacro dbg (frmt &rest params)
-       `(dbgout (format nil ,frmt ,@params)))
-
-     ;; (macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))
-   #+END_SRC
-
-   #+NAME: alist_plist
-   #+BEGIN_SRC lisp
-     (defun anything-to-keyword (item)
-       (intern (string-upcase (format nil "~a" item)) :keyword))
-
-     (defun alist-to-plist (alist)
-       (if (not (equal (type-of alist) 'cons))
-           alist
-           ;;else
-           (loop
-              :for (key . value)
-              :in alist
-              :nconc (list (anything-to-keyword key) value))))
-   #+END_SRC
-
-** Сущности, автоматы и их тесты
 
    В этом разделе мы напишем код, который развернет все описания
    сущностей в исполняемый код.
@@ -980,7 +889,7 @@ _____________________
    могли поддерживать [[http://is.ifmo.ru/books/_book.pdf][Автоматное программирование]]:
 
    #+NAME: entity-file
-   #+BEGIN_SRC lisp :tangle src/entity.lisp :noweb tangle :exports code
+   #+BEGIN_SRC lisp :tangle src/mod/entity.lisp :noweb tangle :exports code
      ;;;; entity.lisp
 
      (in-package #:moto)
@@ -1463,6 +1372,98 @@ _____________________
 
     Теперь мы можем быть уверенными, что автоматы работают нормально.
 
+
+* Сборка
+** Утилиты
+   #+NAME: utility-file
+   #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code
+     ;;;; util.lisp
+
+     (in-package #:moto)
+
+     <<get-obj-data>>
+
+     <<make-clause-list>>
+
+     <<err-bprint-macro>>
+
+     <<dbgout>>
+
+     <<alist_plist>>
+
+     <<with_wrapper>>
+   #+END_SRC
+
+   #+NAME: get-obj-data
+   #+BEGIN_SRC lisp
+     ;; Превращает инициализированные поля объекта в plist
+     (defun get-obj-data (obj)
+       (let ((class (find-class (type-of obj)))
+             (result))
+         (loop :for slot :in (closer-mop:class-direct-slots class) :collect
+            (let ((slot-name (closer-mop:slot-definition-name slot)))
+              (when (slot-boundp obj slot-name)
+                (setf result
+                      (append result (list (intern (symbol-name slot-name) :keyword)
+                                           (funcall slot-name obj)))))))
+         result))
+   #+END_SRC
+
+   #+NAME: make-clause-list
+   #+BEGIN_SRC lisp
+     ;; Assembly WHERE clause
+     (defun make-clause-list (glob-rel rel args)
+       (append (list glob-rel)
+               (loop
+                  :for i
+                  :in args
+                  :when (and (symbolp i)
+                             (getf args i)
+                             (not (symbolp (getf args i))))
+                  :collect (list rel i (getf args i)))))
+   #+END_SRC
+
+   #+NAME: err-bprint-macro
+   #+BEGIN_SRC lisp
+     ;; Макросы для корректного вывода ошибок
+     (defmacro bprint (var)
+       `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
+
+     (defmacro err (var)
+       `(error (format nil "ERR:[~A]" (bprint ,var))))
+   #+END_SRC
+
+   #+NAME: dbgout
+   #+BEGIN_SRC lisp
+     ;; Отладочный вывод
+     (defparameter *dbg-enable* t)
+     (defparameter *dbg-indent* 1)
+
+     (defun dbgout (out)
+       (when *dbg-enable*
+         (format t (format nil "~~%~~~AT~~A" *dbg-indent*) out)))
+
+     (defmacro dbg (frmt &rest params)
+       `(dbgout (format nil ,frmt ,@params)))
+
+     ;; (macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))
+   #+END_SRC
+
+   #+NAME: alist_plist
+   #+BEGIN_SRC lisp
+     (defun anything-to-keyword (item)
+       (intern (string-upcase (format nil "~a" item)) :keyword))
+
+     (defun alist-to-plist (alist)
+       (if (not (equal (type-of alist) 'cons))
+           alist
+           ;;else
+           (loop
+              :for (key . value)
+              :in alist
+              :nconc (list (anything-to-keyword key) value))))
+   #+END_SRC
+
 ** Шаблоны
 
    Шаблоны будем вставлять в отдельный файл =src/templates.htm=
@@ -1524,9 +1525,6 @@ _____________________
 
      (in-package #:moto)
 
-     ;; Базовый путь, от которого будем все считать
-     (defparameter *base-path* "/home/rigidus/repo/moto/src/")
-
      ;; Подключение к базе данных
      (defvar *db-name* "ylg_new")
      (defvar *db-user* "ylg")
@@ -1548,77 +1546,7 @@ _____________________
             (rmtbl tblname))))
    #+END_SRC
 
-** Пакеты
-
-  #+NAME: pkg-base
-  | name                  | moto                     |
-  | nicknames             |                          |
-  | docstring             |                          |
-  | use                   | cl closer-mop postmodern |
-  | shadow                |                          |
-  | shadowing-import-from |                          |
-  | import-from           |                          |
-  | export                |                          |
-  | intern                |                          |
-  | size                  |                          |
-
-** Файлы и каталоги
-
-   Файл =prepare= должен идти до файла =util= и остальных, так как в нем компилируются
-   шаблоны, от которых зависит =util=
-
-   Файл =globals= должен идти до файла =entity= так как в нем происходит подключение к базе
-   данных, которое используют тесты сущностей и автоматов.
-
-   #+CAPTION: Список файлов и их состав:
-   #+NAME: files
-   | package | файл пакетов                   |
-   | prepare | подготовка к старту            |
-   | util    | файл с утилитами               |
-   | globals | файл с глобальными определеями |
-   | entity  | сущности, автоматы и их тесты  |
-   | moto    | стартовый файл                 |
-
-   Общая структура файлов и каталогов:
-   #+BEGIN_SRC ditaa :file img/dir-and-files.png :cmdline -r
-     css
-      |
-      \-...
-     doc
-      |
-      \-...
-     img
-      |
-      \-...
-     src
-      |
-      \--package.lisp
-
-      |
-      \--prepare.lisp
-
-      |
-      \--util.lisp
-
-      |
-      \--globals.lisp
-
-      |
-      \--entity.lisp
-
-      |
-      \--moto.lisp
-
-      |
-      \--templates.htm
-
-     README.txt
-     doc.org
-     doc.html
-     moto.asd
-   #+END_SRC
-
-** Генерация каркаса проекта
+** Каркас проекта
 
    Для генерации "с чистого листа" необходимы функции генерации сущностей, они лежат в
    файле =generators.el=
@@ -1629,56 +1557,61 @@ _____________________
    соответствующем разделе этого файла. Для успешной генерации сущностей, они должны быть
    загружены в emacs.
 
-   Соберем все компоненты: Cгенерируем =asd=-файл и =package.lisp= из предустановок и
-   списка файлов проекта (NB: генерируется при экспорте а не с помощью =tangle=):
+   Файл =prepare= должен идти до файла =util= и остальных, так как в нем компилируются
+   шаблоны, от которых зависит =util=
 
-   #+NAME: defsystem-gen
-   #+BEGIN_SRC emacs-lisp :var prs=prs files=files :results output :exports results :file moto.asd
-     ;; intern prs
-     (mapcar #'(lambda (x)
-                 (set (intern (concat "*prj-" (first x) "*"))
-                      (second x)))
-             prs)
-     (princ (format ";;;; %s.asd\n\n(asdf:defsystem #:%s\n  :serial t\n  :pathname \"src\"  \n"
-                    ,*prj-name* *prj-name*))
-     (let ((deps (split-string *prj-depends-on*)))
-       (princ (format "  :depends-on (#:%s\n" (car deps)))
-       (mapcar #'(lambda (x)
-                   (princ (format "               #:%s\n" x)))
-               (cdr (butlast deps)))
-       (princ (format "               #:%s)\n" (car (last deps)))))
-     (princ (format "  :%s \"%s\"\n" "description" *prj-description*))
-     (princ (format "  :%s \"%s\"\n" "author" *prj-author*))
-     (princ (format "  :%s \"%s\"\n" "version" *prj-version*))
-     (princ (format "  :%s \"%s\"\n" "license" *prj-license*))
-     (princ (format "  :components ((:file \"%s\")\n" (caar files)))
-     (mapcar #'(lambda (x)
-                 (princ (format "               (:file \"%s\")\n" (first x))))
-             (cdr (butlast files)))
-     (princ (format "               (:file \"%s\")))\n" (caar (last files))))
+   Файл =globals= должен идти до файла =entity= так как в нем происходит подключение к базе
+   данных, которое используют тесты сущностей и автоматов.
+
+   #+NAME: defsystem
+   #+BEGIN_SRC lisp :tangle moto.asd :noweb tangle :exports code
+     ;;;; moto.asd
+
+     (asdf:defsystem #:moto
+       :serial t
+       :pathname "src"
+       :depends-on (#:closer-mop
+                    #:postmodern
+                    #:anaphora
+                    #:cl-ppcre
+                    #:restas
+                    #:restas-directory-publisher
+                    #:closure-template
+                    #:cl-json
+                    #:cl-base64
+                    #:drakma
+                    #:split-sequence)
+       :description "site for bikers"
+       :author "rigidus"
+       :version "0.0.3"
+       :license "GPLv3"
+       :components ((:file "package")    ;; файл пакетов
+                    (:file "prepare")    ;; подготовка к старту
+                    (:file "util")       ;; файл с утилитами
+                    (:file "globals")    ;; файл с глобальными определеями
+                    ;; Модуль сущностей, автоматов и их тестов
+                    <<mod-entity>>
+                    (:file "moto")))     ;; стартовый файл
    #+END_SRC
 
-   #+NAME: defpackage-gen
-   #+BEGIN_SRC emacs-lisp :var pkg=pkg-base :results output :exports results :file package.lisp
-     ;; intern pkg
-     (princ (format ";;;; package.lisp\n\n(restas:define-module #:%s"
-                    (cadr (car pkg))))
-     (mapcar #'(lambda (x)
-                 (unless (equal 0 (length (second x)))
-                   (princ (format "\n  (:%s " (car x)))
-                   (mapcar #'(lambda (y)
-                               (princ (format " #:%s" y)))
-                           (split-string (cadr x)))
-                   (princ (format ")"))))
-             (cdr pkg))
-     (princ "\n  (:shadowing-import-from #:closer-mop\n")
-     (princ "                          #:defclass\n")
-     (princ "                          #:defmethod\n")
-     (princ "                          #:standard-class\n")
-     (princ "                          #:ensure-generic-function\n")
-     (princ "                          #:defgeneric\n")
-     (princ "                          #:standard-generic-function\n")
-     (princ "                          #:class-name))")
+** Пакеты
+
+   Соберем весь код в пакет:
+
+   #+NAME: package
+   #+BEGIN_SRC lisp :tangle src/package.lisp :noweb tangle :exports code
+     ;;;; package.lisp
+
+     (restas:define-module #:moto
+       (:use  #:cl #:closer-mop #:postmodern)
+       (:shadowing-import-from #:closer-mop
+                               #:defclass
+                               #:defmethod
+                               #:standard-class
+                               #:ensure-generic-function
+                               #:defgeneric
+                               #:standard-generic-function
+                               #:class-name))
    #+END_SRC
 
 ** Подготовка к старту
@@ -1689,6 +1622,9 @@ _____________________
    #+NAME: prepare
    #+BEGIN_SRC lisp :tangle src/prepare.lisp :noweb tangle :exports code :exports none
      ;;;; prepare.lisp
+
+     ;; Базовый путь, от которого будем все считать
+     (defparameter *base-path* "/home/rigidus/repo/moto/src/")
 
      (closure-template:compile-template
       :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))

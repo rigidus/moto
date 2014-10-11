@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="site"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-11T21:08+0400"/>
+<meta name="generated" content="2014-10-11T23:07+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -165,28 +165,29 @@ for the JavaScript code in this tag.
 <li><a href="#sec-6-7">6.7 Страничка пользователя</a></li>
 </ul>
 </li>
-<li><a href="#sec-7">7 Сборка</a>
+<li><a href="#sec-7">7 Модули</a>
 <ul>
-<li><a href="#sec-7-1">7.1 Предустановки</a></li>
-<li><a href="#sec-7-2">7.2 Утилиты</a></li>
-<li><a href="#sec-7-3">7.3 Сущности, автоматы и их тесты</a>
+<li><a href="#sec-7-1">7.1 Cущности, автоматы и их тесты</a>
 <ul>
-<li><a href="#sec-7-3-1">7.3.1 Сущности</a></li>
-<li><a href="#sec-7-3-2">7.3.2 Тесты сущностей</a></li>
-<li><a href="#sec-7-3-3">7.3.3 Автоматы</a></li>
-<li><a href="#sec-7-3-4">7.3.4 Тесты автоматов</a></li>
+<li><a href="#sec-7-1-1">7.1.1 Сущности</a></li>
+<li><a href="#sec-7-1-2">7.1.2 Тесты сущностей</a></li>
+<li><a href="#sec-7-1-3">7.1.3 Автоматы</a></li>
+<li><a href="#sec-7-1-4">7.1.4 Тесты автоматов</a></li>
+</ul></li>
 </ul>
 </li>
-<li><a href="#sec-7-4">7.4 Шаблоны</a></li>
-<li><a href="#sec-7-5">7.5 Глобальные определения</a></li>
-<li><a href="#sec-7-6">7.6 Пакеты</a></li>
-<li><a href="#sec-7-7">7.7 Файлы и каталоги</a></li>
-<li><a href="#sec-7-8">7.8 Генерация каркаса проекта</a></li>
-<li><a href="#sec-7-9">7.9 Подготовка к старту</a></li>
-<li><a href="#sec-7-10">7.10 Точка входа</a></li>
+<li><a href="#sec-8">8 Сборка</a>
+<ul>
+<li><a href="#sec-8-1">8.1 Утилиты</a></li>
+<li><a href="#sec-8-2">8.2 Шаблоны</a></li>
+<li><a href="#sec-8-3">8.3 Глобальные определения</a></li>
+<li><a href="#sec-8-4">8.4 Каркас проекта</a></li>
+<li><a href="#sec-8-5">8.5 Пакеты</a></li>
+<li><a href="#sec-8-6">8.6 Подготовка к старту</a></li>
+<li><a href="#sec-8-7">8.7 Точка входа</a></li>
 </ul>
 </li>
-<li><a href="#sec-8">8 Идеи</a></li>
+<li><a href="#sec-9">9 Идеи</a></li>
 </ul>
 </div>
 </div>
@@ -1394,138 +1395,28 @@ _____________________
 </div>
 
 <div id="outline-container-7" class="outline-2">
-<h2 id="sec-7"><span class="section-number-2">7</span> Сборка</h2>
+<h2 id="sec-7"><span class="section-number-2">7</span> Модули</h2>
 <div class="outline-text-2" id="text-7">
 
 
 </div>
 
 <div id="outline-container-7-1" class="outline-3">
-<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Предустановки</h3>
+<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Cущности, автоматы и их тесты</h3>
 <div class="outline-text-3" id="text-7-1">
 
 
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption>Необходимые предустановки проекта:</caption>
-<colgroup><col class="left" /><col class="left" />
-</colgroup>
-<tbody>
-<tr><td class="left">name</td><td class="left">moto</td></tr>
-<tr><td class="left">version</td><td class="left">0.0.3</td></tr>
-<tr><td class="left">author</td><td class="left">rigidus</td></tr>
-<tr><td class="left">description</td><td class="left">site for bikers</td></tr>
-<tr><td class="left">license</td><td class="left">GPLv3</td></tr>
-<tr><td class="left">depends-on</td><td class="left">closer-mop postmodern anaphora cl-ppcre restas restas-directory-publisher closure-template cl-json cl-base64 drakma split-sequence</td></tr>
-</tbody>
-</table>
-
-
-</div>
-
-</div>
-
-<div id="outline-container-7-2" class="outline-3">
-<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Утилиты</h3>
-<div class="outline-text-3" id="text-7-2">
+<p>
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+</p>
 
 
 
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">util.lisp</span>
-
-(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-&lt;&lt;get-obj-data&gt;&gt;
-
-&lt;&lt;make-clause-list&gt;&gt;
-
-&lt;&lt;err-bprint-macro&gt;&gt;
-
-&lt;&lt;dbgout&gt;&gt;
-
-&lt;&lt;alist_plist&gt;&gt;
-
-&lt;&lt;with_wrapper&gt;&gt;
+<pre class="src src-lisp">(<span style="color: #0000ee; font-weight: bold;">:module</span> <span style="color: #00cd00;">"entity"</span>
+         <span style="color: #0000ee; font-weight: bold;">:serial</span> t
+         <span style="color: #0000ee; font-weight: bold;">:pathname</span> <span style="color: #00cd00;">"lib"</span>
+         <span style="color: #0000ee; font-weight: bold;">:components</span> ((<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"entity"</span>)))
 </pre>
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1077;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; &#1080;&#1085;&#1080;&#1094;&#1080;&#1072;&#1083;&#1080;&#1079;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1103; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072; &#1074; plist</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-obj-data</span> (obj)
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((class (find-class (type-of obj)))
-        (result))
-    (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> slot <span style="color: #0000ee; font-weight: bold;">:in</span> (closer-mop:class-direct-slots class) <span style="color: #0000ee; font-weight: bold;">:collect</span>
-       (<span style="color: #00cdcd; font-weight: bold;">let</span> ((slot-name (closer-mop:slot-definition-name slot)))
-         (<span style="color: #00cdcd; font-weight: bold;">when</span> (slot-boundp obj slot-name)
-           (setf result
-                 (append result (list (intern (symbol-name slot-name) <span style="color: #0000ee; font-weight: bold;">:keyword</span>)
-                                      (funcall slot-name obj)))))))
-    result))
-</pre>
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">Assembly WHERE clause</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">make-clause-list</span> (glob-rel rel args)
-  (append (list glob-rel)
-          (<span style="color: #00cdcd; font-weight: bold;">loop</span>
-             <span style="color: #0000ee; font-weight: bold;">:for</span> i
-             <span style="color: #0000ee; font-weight: bold;">:in</span> args
-             <span style="color: #0000ee; font-weight: bold;">:when</span> (and (symbolp i)
-                        (getf args i)
-                        (not (symbolp (getf args i))))
-             <span style="color: #0000ee; font-weight: bold;">:collect</span> (list rel i (getf args i)))))
-</pre>
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1072;&#1082;&#1088;&#1086;&#1089;&#1099; &#1076;&#1083;&#1103; &#1082;&#1086;&#1088;&#1088;&#1077;&#1082;&#1090;&#1085;&#1086;&#1075;&#1086; &#1074;&#1099;&#1074;&#1086;&#1076;&#1072; &#1086;&#1096;&#1080;&#1073;&#1086;&#1082;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">bprint</span> (var)
-  `(subseq (<span style="color: #00cdcd; font-weight: bold;">with-output-to-string</span> (*standard-output*)  (pprint ,var)) 1))
-
-(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">err</span> (var)
-  `(<span style="color: #cd0000; font-weight: bold;">error</span> (format nil <span style="color: #00cd00;">"ERR:[~A]"</span> (bprint ,var))))
-</pre>
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1083;&#1072;&#1076;&#1086;&#1095;&#1085;&#1099;&#1081; &#1074;&#1099;&#1074;&#1086;&#1076;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*dbg-enable*</span> t)
-(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*dbg-indent*</span> 1)
-
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">dbgout</span> (out)
-  (<span style="color: #00cdcd; font-weight: bold;">when</span> *dbg-enable*
-    (format t (format nil <span style="color: #00cd00;">"~~%~~~AT~~A"</span> *dbg-indent*) out)))
-
-(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">dbg</span> (frmt <span style="color: #00cd00;">&amp;rest</span> params)
-  `(dbgout (format nil ,frmt ,@params)))
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))</span>
-</pre>
-
-
-
-<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">anything-to-keyword</span> (item)
-  (intern (string-upcase (format nil <span style="color: #00cd00;">"~a"</span> item)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
-
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">alist-to-plist</span> (alist)
-  (<span style="color: #00cdcd; font-weight: bold;">if</span> (not (equal (type-of alist) 'cons))
-      alist
-      <span style="color: #cd0000;">;;</span><span style="color: #cd0000;">else</span>
-      (<span style="color: #00cdcd; font-weight: bold;">loop</span>
-         <span style="color: #0000ee; font-weight: bold;">:for</span> (key . value)
-         <span style="color: #0000ee; font-weight: bold;">:in</span> alist
-         <span style="color: #0000ee; font-weight: bold;">:nconc</span> (list (anything-to-keyword key) value))))
-</pre>
-
-
-</div>
-
-</div>
-
-<div id="outline-container-7-3" class="outline-3">
-<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Сущности, автоматы и их тесты</h3>
-<div class="outline-text-3" id="text-7-3">
 
 
 <p>
@@ -1554,11 +1445,12 @@ _____________________
 
 
 
+
 </div>
 
-<div id="outline-container-7-3-1" class="outline-4">
-<h4 id="sec-7-3-1"><span class="section-number-4">7.3.1</span> Сущности</h4>
-<div class="outline-text-4" id="text-7-3-1">
+<div id="outline-container-7-1-1" class="outline-4">
+<h4 id="sec-7-1-1"><span class="section-number-4">7.1.1</span> Сущности</h4>
+<div class="outline-text-4" id="text-7-1-1">
 
 
 <p>
@@ -1783,9 +1675,9 @@ _____________________
 
 </div>
 
-<div id="outline-container-7-3-2" class="outline-4">
-<h4 id="sec-7-3-2"><span class="section-number-4">7.3.2</span> Тесты сущностей</h4>
-<div class="outline-text-4" id="text-7-3-2">
+<div id="outline-container-7-1-2" class="outline-4">
+<h4 id="sec-7-1-2"><span class="section-number-4">7.1.2</span> Тесты сущностей</h4>
+<div class="outline-text-4" id="text-7-1-2">
 
 
 <p>
@@ -1933,9 +1825,9 @@ _____________________
 
 </div>
 
-<div id="outline-container-7-3-3" class="outline-4">
-<h4 id="sec-7-3-3"><span class="section-number-4">7.3.3</span> Автоматы</h4>
-<div class="outline-text-4" id="text-7-3-3">
+<div id="outline-container-7-1-3" class="outline-4">
+<h4 id="sec-7-1-3"><span class="section-number-4">7.1.3</span> Автоматы</h4>
+<div class="outline-text-4" id="text-7-1-3">
 
 
 <p>
@@ -1983,9 +1875,9 @@ _____________________
 
 </div>
 
-<div id="outline-container-7-3-4" class="outline-4">
-<h4 id="sec-7-3-4"><span class="section-number-4">7.3.4</span> Тесты автоматов</h4>
-<div class="outline-text-4" id="text-7-3-4">
+<div id="outline-container-7-1-4" class="outline-4">
+<h4 id="sec-7-1-4"><span class="section-number-4">7.1.4</span> Тесты автоматов</h4>
+<div class="outline-text-4" id="text-7-1-4">
 
 
 <p>
@@ -2121,18 +2013,126 @@ _____________________
 <p>
     Теперь мы можем быть уверенными, что автоматы работают нормально.
 </p>
+
+</div>
 </div>
 </div>
 
 </div>
 
-<div id="outline-container-7-4" class="outline-3">
-<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Шаблоны</h3>
-<div class="outline-text-3" id="text-7-4">
+<div id="outline-container-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Сборка</h2>
+<div class="outline-text-2" id="text-8">
+
+
+</div>
+
+<div id="outline-container-8-1" class="outline-3">
+<h3 id="sec-8-1"><span class="section-number-3">8.1</span> Утилиты</h3>
+<div class="outline-text-3" id="text-8-1">
+
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">util.lisp</span>
+
+(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;get-obj-data&gt;&gt;
+
+&lt;&lt;make-clause-list&gt;&gt;
+
+&lt;&lt;err-bprint-macro&gt;&gt;
+
+&lt;&lt;dbgout&gt;&gt;
+
+&lt;&lt;alist_plist&gt;&gt;
+
+&lt;&lt;with_wrapper&gt;&gt;
+</pre>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1077;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; &#1080;&#1085;&#1080;&#1094;&#1080;&#1072;&#1083;&#1080;&#1079;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1103; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072; &#1074; plist</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-obj-data</span> (obj)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((class (find-class (type-of obj)))
+        (result))
+    (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> slot <span style="color: #0000ee; font-weight: bold;">:in</span> (closer-mop:class-direct-slots class) <span style="color: #0000ee; font-weight: bold;">:collect</span>
+       (<span style="color: #00cdcd; font-weight: bold;">let</span> ((slot-name (closer-mop:slot-definition-name slot)))
+         (<span style="color: #00cdcd; font-weight: bold;">when</span> (slot-boundp obj slot-name)
+           (setf result
+                 (append result (list (intern (symbol-name slot-name) <span style="color: #0000ee; font-weight: bold;">:keyword</span>)
+                                      (funcall slot-name obj)))))))
+    result))
+</pre>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">Assembly WHERE clause</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">make-clause-list</span> (glob-rel rel args)
+  (append (list glob-rel)
+          (<span style="color: #00cdcd; font-weight: bold;">loop</span>
+             <span style="color: #0000ee; font-weight: bold;">:for</span> i
+             <span style="color: #0000ee; font-weight: bold;">:in</span> args
+             <span style="color: #0000ee; font-weight: bold;">:when</span> (and (symbolp i)
+                        (getf args i)
+                        (not (symbolp (getf args i))))
+             <span style="color: #0000ee; font-weight: bold;">:collect</span> (list rel i (getf args i)))))
+</pre>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1072;&#1082;&#1088;&#1086;&#1089;&#1099; &#1076;&#1083;&#1103; &#1082;&#1086;&#1088;&#1088;&#1077;&#1082;&#1090;&#1085;&#1086;&#1075;&#1086; &#1074;&#1099;&#1074;&#1086;&#1076;&#1072; &#1086;&#1096;&#1080;&#1073;&#1086;&#1082;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">bprint</span> (var)
+  `(subseq (<span style="color: #00cdcd; font-weight: bold;">with-output-to-string</span> (*standard-output*)  (pprint ,var)) 1))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">err</span> (var)
+  `(<span style="color: #cd0000; font-weight: bold;">error</span> (format nil <span style="color: #00cd00;">"ERR:[~A]"</span> (bprint ,var))))
+</pre>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1083;&#1072;&#1076;&#1086;&#1095;&#1085;&#1099;&#1081; &#1074;&#1099;&#1074;&#1086;&#1076;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*dbg-enable*</span> t)
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*dbg-indent*</span> 1)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">dbgout</span> (out)
+  (<span style="color: #00cdcd; font-weight: bold;">when</span> *dbg-enable*
+    (format t (format nil <span style="color: #00cd00;">"~~%~~~AT~~A"</span> *dbg-indent*) out)))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">dbg</span> (frmt <span style="color: #00cd00;">&amp;rest</span> params)
+  `(dbgout (format nil ,frmt ,@params)))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))</span>
+</pre>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">anything-to-keyword</span> (item)
+  (intern (string-upcase (format nil <span style="color: #00cd00;">"~a"</span> item)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">alist-to-plist</span> (alist)
+  (<span style="color: #00cdcd; font-weight: bold;">if</span> (not (equal (type-of alist) 'cons))
+      alist
+      <span style="color: #cd0000;">;;</span><span style="color: #cd0000;">else</span>
+      (<span style="color: #00cdcd; font-weight: bold;">loop</span>
+         <span style="color: #0000ee; font-weight: bold;">:for</span> (key . value)
+         <span style="color: #0000ee; font-weight: bold;">:in</span> alist
+         <span style="color: #0000ee; font-weight: bold;">:nconc</span> (list (anything-to-keyword key) value))))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-8-2" class="outline-3">
+<h3 id="sec-8-2"><span class="section-number-3">8.2</span> Шаблоны</h3>
+<div class="outline-text-3" id="text-8-2">
 
 
 <p>
-   Шаблоны будем вставлять в отдельный файл <code>templates.htm</code>
+   Шаблоны будем вставлять в отдельный файл <code>src/templates.htm</code>
 </p>
 
 
@@ -2189,9 +2189,9 @@ _____________________
 
 </div>
 
-<div id="outline-container-7-5" class="outline-3">
-<h3 id="sec-7-5"><span class="section-number-3">7.5</span> Глобальные определения</h3>
-<div class="outline-text-3" id="text-7-5">
+<div id="outline-container-8-3" class="outline-3">
+<h3 id="sec-8-3"><span class="section-number-3">8.3</span> Глобальные определения</h3>
+<div class="outline-text-3" id="text-8-3">
 
 
 
@@ -2200,6 +2200,9 @@ _____________________
 <pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">entity.lisp</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1041;&#1072;&#1079;&#1086;&#1074;&#1099;&#1081; &#1087;&#1091;&#1090;&#1100;, &#1086;&#1090; &#1082;&#1086;&#1090;&#1086;&#1088;&#1086;&#1075;&#1086; &#1073;&#1091;&#1076;&#1077;&#1084; &#1074;&#1089;&#1077; &#1089;&#1095;&#1080;&#1090;&#1072;&#1090;&#1100;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*base-path*</span> <span style="color: #00cd00;">"/home/rigidus/repo/moto/src/"</span>)
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1076;&#1082;&#1083;&#1102;&#1095;&#1077;&#1085;&#1080;&#1077; &#1082; &#1073;&#1072;&#1079;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defvar</span> <span style="color: #cdcd00;">*db-name*</span> <span style="color: #00cd00;">"ylg_new"</span>)
@@ -2227,75 +2230,9 @@ _____________________
 
 </div>
 
-<div id="outline-container-7-6" class="outline-3">
-<h3 id="sec-7-6"><span class="section-number-3">7.6</span> Пакеты</h3>
-<div class="outline-text-3" id="text-7-6">
-
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<colgroup><col class="left" /><col class="left" />
-</colgroup>
-<tbody>
-<tr><td class="left">name</td><td class="left">moto</td></tr>
-<tr><td class="left">nicknames</td><td class="left"></td></tr>
-<tr><td class="left">docstring</td><td class="left"></td></tr>
-<tr><td class="left">use</td><td class="left">cl closer-mop postmodern</td></tr>
-<tr><td class="left">shadow</td><td class="left"></td></tr>
-<tr><td class="left">shadowing-import-from</td><td class="left"></td></tr>
-<tr><td class="left">import-from</td><td class="left"></td></tr>
-<tr><td class="left">export</td><td class="left"></td></tr>
-<tr><td class="left">intern</td><td class="left"></td></tr>
-<tr><td class="left">size</td><td class="left"></td></tr>
-</tbody>
-</table>
-
-
-</div>
-
-</div>
-
-<div id="outline-container-7-7" class="outline-3">
-<h3 id="sec-7-7"><span class="section-number-3">7.7</span> Файлы и каталоги</h3>
-<div class="outline-text-3" id="text-7-7">
-
-
-<p>
-   Файл <code>prepare</code> должен идти до файла <code>util</code> и остальных, так как в нем компилируются
-   шаблоны, от которых зависит <code>util</code>
-</p>
-<p>
-   Файл <code>globals</code> должен идти до файла <code>entity</code> так как в нем происходит подключение к базе
-   данных, которое используют тесты сущностей и автоматов.
-</p>
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption>Список файлов и их состав:</caption>
-<colgroup><col class="left" /><col class="left" />
-</colgroup>
-<tbody>
-<tr><td class="left">package</td><td class="left">файл пакетов</td></tr>
-<tr><td class="left">prepare</td><td class="left">подготовка к старту</td></tr>
-<tr><td class="left">util</td><td class="left">файл с утилитами</td></tr>
-<tr><td class="left">globals</td><td class="left">файл с глобальными определеями</td></tr>
-<tr><td class="left">entity</td><td class="left">сущности, автоматы и их тесты</td></tr>
-<tr><td class="left">moto</td><td class="left">стартовый файл</td></tr>
-</tbody>
-</table>
-
-
-<p>
-   Общая структура файлов и каталогов:
-</p>
-
-<p>
-   <img src="img/dir-and-files.png"  alt="img/dir-and-files.png" />
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-7-8" class="outline-3">
-<h3 id="sec-7-8"><span class="section-number-3">7.8</span> Генерация каркаса проекта</h3>
-<div class="outline-text-3" id="text-7-8">
+<div id="outline-container-8-4" class="outline-3">
+<h3 id="sec-8-4"><span class="section-number-3">8.4</span> Каркас проекта</h3>
+<div class="outline-text-3" id="text-8-4">
 
 
 <p>
@@ -2311,26 +2248,84 @@ _____________________
    загружены в emacs.
 </p>
 <p>
-   Соберем все компоненты: Cгенерируем <code>asd</code>-файл и <code>package.lisp</code> из предустановок и
-   списка файлов проекта (NB: генерируется при экспорте а не с помощью <code>tangle</code>):
+   Файл <code>prepare</code> должен идти до файла <code>util</code> и остальных, так как в нем компилируются
+   шаблоны, от которых зависит <code>util</code>
 </p>
-
-
 <p>
-   <a href="moto.asd">moto.asd</a>
+   Файл <code>globals</code> должен идти до файла <code>entity</code> так как в нем происходит подключение к базе
+   данных, которое используют тесты сущностей и автоматов.
 </p>
 
 
-<p>
-   <a href="package.lisp">package.lisp</a>
-</p>
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">moto.asd</span>
+
+(asdf:defsystem #<span style="color: #0000ee; font-weight: bold;">:moto</span>
+  <span style="color: #0000ee; font-weight: bold;">:serial</span> t
+  <span style="color: #0000ee; font-weight: bold;">:pathname</span> <span style="color: #00cd00;">"src"</span>
+  <span style="color: #0000ee; font-weight: bold;">:depends-on</span> (#<span style="color: #0000ee; font-weight: bold;">:closer-mop</span>
+               #<span style="color: #0000ee; font-weight: bold;">:postmodern</span>
+               #<span style="color: #0000ee; font-weight: bold;">:anaphora</span>
+               #<span style="color: #0000ee; font-weight: bold;">:cl-ppcre</span>
+               #<span style="color: #0000ee; font-weight: bold;">:restas</span>
+               #<span style="color: #0000ee; font-weight: bold;">:restas-directory-publisher</span>
+               #<span style="color: #0000ee; font-weight: bold;">:closure-template</span>
+               #<span style="color: #0000ee; font-weight: bold;">:cl-json</span>
+               #<span style="color: #0000ee; font-weight: bold;">:cl-base64</span>
+               #<span style="color: #0000ee; font-weight: bold;">:drakma</span>
+               #<span style="color: #0000ee; font-weight: bold;">:split-sequence</span>)
+  <span style="color: #0000ee; font-weight: bold;">:description</span> <span style="color: #00cd00;">"site for bikers"</span>
+  <span style="color: #0000ee; font-weight: bold;">:author</span> <span style="color: #00cd00;">"rigidus"</span>
+  <span style="color: #0000ee; font-weight: bold;">:version</span> <span style="color: #00cd00;">"0.0.3"</span>
+  <span style="color: #0000ee; font-weight: bold;">:license</span> <span style="color: #00cd00;">"GPLv3"</span>
+  <span style="color: #0000ee; font-weight: bold;">:components</span> ((<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"package"</span>)    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1092;&#1072;&#1081;&#1083; &#1087;&#1072;&#1082;&#1077;&#1090;&#1086;&#1074;</span>
+               (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"prepare"</span>)    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1087;&#1086;&#1076;&#1075;&#1086;&#1090;&#1086;&#1074;&#1082;&#1072; &#1082; &#1089;&#1090;&#1072;&#1088;&#1090;&#1091;</span>
+               (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"util"</span>)       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1092;&#1072;&#1081;&#1083; &#1089; &#1091;&#1090;&#1080;&#1083;&#1080;&#1090;&#1072;&#1084;&#1080;</span>
+               (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"globals"</span>)    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1092;&#1072;&#1081;&#1083; &#1089; &#1075;&#1083;&#1086;&#1073;&#1072;&#1083;&#1100;&#1085;&#1099;&#1084;&#1080; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1077;&#1103;&#1084;&#1080;</span>
+               <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1086;&#1076;&#1091;&#1083;&#1100; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1080; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1086;&#1074;</span>
+               &lt;&lt;mod-entity&gt;&gt;
+               (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"entity"</span>)     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1080;, &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1099; &#1080; &#1080;&#1093; &#1090;&#1077;&#1089;&#1090;&#1099;</span>
+               (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"moto"</span>)))     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1089;&#1090;&#1072;&#1088;&#1090;&#1086;&#1074;&#1099;&#1081; &#1092;&#1072;&#1081;&#1083;</span>
+</pre>
+
+
 </div>
 
 </div>
 
-<div id="outline-container-7-9" class="outline-3">
-<h3 id="sec-7-9"><span class="section-number-3">7.9</span> Подготовка к старту</h3>
-<div class="outline-text-3" id="text-7-9">
+<div id="outline-container-8-5" class="outline-3">
+<h3 id="sec-8-5"><span class="section-number-3">8.5</span> Пакеты</h3>
+<div class="outline-text-3" id="text-8-5">
+
+
+<p>
+   Соберем весь код в пакет:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">package.lisp</span>
+
+(restas:define-module #<span style="color: #0000ee; font-weight: bold;">:moto</span>
+  (<span style="color: #0000ee; font-weight: bold;">:use</span>  #<span style="color: #0000ee; font-weight: bold;">:cl</span> #<span style="color: #0000ee; font-weight: bold;">:closer-mop</span> #<span style="color: #0000ee; font-weight: bold;">:postmodern</span>)
+  (<span style="color: #0000ee; font-weight: bold;">:shadowing-import-from</span> #<span style="color: #0000ee; font-weight: bold;">:closer-mop</span>
+                          #<span style="color: #0000ee; font-weight: bold;">:defclass</span>
+                          #<span style="color: #0000ee; font-weight: bold;">:defmethod</span>
+                          #<span style="color: #0000ee; font-weight: bold;">:standard-class</span>
+                          #<span style="color: #0000ee; font-weight: bold;">:ensure-generic-function</span>
+                          #<span style="color: #0000ee; font-weight: bold;">:defgeneric</span>
+                          #<span style="color: #0000ee; font-weight: bold;">:standard-generic-function</span>
+                          #<span style="color: #0000ee; font-weight: bold;">:class-name</span>))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-8-6" class="outline-3">
+<h3 id="sec-8-6"><span class="section-number-3">8.6</span> Подготовка к старту</h3>
+<div class="outline-text-3" id="text-8-6">
 
 
 <p>
@@ -2343,9 +2338,9 @@ _____________________
 
 </div>
 
-<div id="outline-container-7-10" class="outline-3">
-<h3 id="sec-7-10"><span class="section-number-3">7.10</span> Точка входа</h3>
-<div class="outline-text-3" id="text-7-10">
+<div id="outline-container-8-7" class="outline-3">
+<h3 id="sec-8-7"><span class="section-number-3">8.7</span> Точка входа</h3>
+<div class="outline-text-3" id="text-8-7">
 
 
 
@@ -2353,8 +2348,6 @@ _____________________
 <pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">moto.lisp</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-(closure-template:compile-template <span style="color: #0000ee; font-weight: bold;">:common-lisp-backend</span> #P<span style="color: #00cd00;">"/home/rigidus/repo/moto/templates.htm"</span>)
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1076;&#1082;&#1083;&#1102;&#1095;&#1080;&#1084; &#1075;&#1083;&#1086;&#1073;&#1072;&#1083;&#1100;&#1085;&#1099;&#1077; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1077;&#1085;&#1080;&#1103;</span>
 &lt;&lt;globals&gt;&gt;
@@ -2376,9 +2369,9 @@ _____________________
 
 </div>
 
-<div id="outline-container-8" class="outline-2">
-<h2 id="sec-8"><span class="section-number-2">8</span> Идеи</h2>
-<div class="outline-text-2" id="text-8">
+<div id="outline-container-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> Идеи</h2>
+<div class="outline-text-2" id="text-9">
 
 <p>  <a href="http://www.motobratan.ru/motoprogress/230.html">http://www.motobratan.ru/motoprogress/230.html</a>
 </p></div>
@@ -2386,7 +2379,7 @@ _____________________
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-11T21:08+0400</p>
+<p class="date">Date: 2014-10-11T23:07+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

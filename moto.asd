@@ -1,8 +1,9 @@
+
 ;;;; moto.asd
 
 (asdf:defsystem #:moto
   :serial t
-  :pathname "src"  
+  :pathname "src"
   :depends-on (#:closer-mop
                #:postmodern
                #:anaphora
@@ -18,9 +19,13 @@
   :author "rigidus"
   :version "0.0.3"
   :license "GPLv3"
-  :components ((:file "package")
-               (:file "prepare")
-               (:file "util")
-               (:file "globals")
-               (:file "entity")
-               (:file "moto")))
+  :components ((:file "package")    ;; файл пакетов
+               (:file "prepare")    ;; подготовка к старту
+               (:file "util")       ;; файл с утилитами
+               (:file "globals")    ;; файл с глобальными определеями
+               ;; Модуль сущностей, автоматов и их тестов
+               (:module "entity"
+                        :serial t
+                        :pathname "mod"
+                        :components ((:file "entity")))
+               (:file "moto")))     ;; стартовый файл

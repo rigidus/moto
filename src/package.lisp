@@ -1,3 +1,4 @@
+
 ;;;; package.lisp
 
 (restas:define-module #:moto
