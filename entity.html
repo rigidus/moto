@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Модуль сущностей, автоматов и их тесты</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="Модуль сущностей, автоматов и их тесты"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2014-10-11T23:23+0400"/>
+<meta name="author" content="rigidus"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">Модуль сущностей, автоматов и их тесты</h1>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Ведение</a></li>
+<li><a href="#sec-2">2 Сущности</a></li>
+<li><a href="#sec-3">3 Тесты сущностей</a></li>
+<li><a href="#sec-4">4 Автоматы</a></li>
+<li><a href="#sec-5">5 Тесты автоматов</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Ведение</h2>
+<div class="outline-text-2" id="text-1">
+
+<p>  Здесь напишем код, который развернет все описания сущностей в
+  исполняемый код.
+</p>
+<p>
+  Начнем с определения сущностей системы, а потом расширим их поддержку так, чтобы они
+  могли поддерживать <a href="http://is.ifmo.ru/books/_book.pdf">Автоматное программирование</a>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">entity.lisp</span>
+
+(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;entity&gt;&gt;
+
+&lt;&lt;automat&gt;&gt;
+
+&lt;&lt;entity-test&gt;&gt;
+
+&lt;&lt;automat-test&gt;&gt;
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Сущности</h2>
+<div class="outline-text-2" id="text-2">
+
+
+<p>
+  Этот макрос генерирует код, который обслуживает все сущности. Мне
+  хотелось, чтобы когда я определяю сущность, автоматически
+  создавались функции, которые ее обслуживают:
+</p>
+<ul>
+<li><code>{entity}-class</code>: Определение класса
+</li>
+<li><code>make-{entity}-table</code>: функция создания таблицы в бд, если она еще не создана
+</li>
+<li><code>make-{entity}</code>: конструктор сущности, который создает ее и записывает в базу данных
+</li>
+<li><code>upd-{entity}</code>: метод, который обновляет поля сущности (в т.ч. в базе данных)
+</li>
+<li><code>del-{entity}</code>: деструктор, который удаляет сущность, в т.ч. и из базы данных
+</li>
+<li><code>all-{entity}</code>: функция для получения коллекции сущностей
+</li>
+<li><code>get-{entity}</code>: функция для получения сущности по ее идентификтору
+</li>
+<li><code>find-{entity}</code>: функция для получения сущности по ее идентификтору
+</li>
+<li><code>show-{entity}</code>: функция для показа сущности (переопределить при необходимости)
+</li>
+</ul>
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-entity</span> (name desc <span style="color: #00cd00;">&amp;rest</span> tail)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((*package* (symbol-package name)))
+    `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
+       &lt;&lt;entity-class&gt;&gt;
+       &lt;&lt;make_entity-table&gt;&gt;
+       &lt;&lt;make_entity&gt;&gt;
+       &lt;&lt;upd_entity&gt;&gt;
+       &lt;&lt;del_entity&gt;&gt;
+       &lt;&lt;all_entity&gt;&gt;
+       &lt;&lt;get_entity&gt;&gt;
+       &lt;&lt;find_entity&gt;&gt;
+       &lt;&lt;show_entity&gt;&gt;
+       )))
+</pre>
+
+
+<p>
+  Генерируем <code>entity-class</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">entity-class</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defclass</span> ,name ()
+    ,(mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                 (list
+                  (car x)
+                  <span style="color: #0000ee; font-weight: bold;">:col-type</span> (cadr x)
+                  <span style="color: #0000ee; font-weight: bold;">:initarg</span>  (intern (symbol-name (car x)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>)
+                  <span style="color: #0000ee; font-weight: bold;">:accessor</span> (car x)))
+             (car tail))
+    (<span style="color: #0000ee; font-weight: bold;">:metaclass</span> dao-class)
+    (<span style="color: #0000ee; font-weight: bold;">:table-name</span> ,table)
+    (<span style="color: #0000ee; font-weight: bold;">:keys</span> ,(caaar tail))))
+</pre>
+
+
+<p>
+  Генерируем <code>make_entity-table</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">make-entity-table</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"MAKE-"</span> (symbol-name name) <span style="color: #00cd00;">"-TABLE"</span>)) ()
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (<span style="color: #00cdcd; font-weight: bold;">unless</span> (table-exists-p ',table)
+        (execute (dao-table-definition ',table))))))
+</pre>
+
+
+<p>
+  Генерируем <code>make_entity</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">make-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"MAKE-"</span> (symbol-name name))) (<span style="color: #00cd00;">&amp;rest</span> initargs)
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (apply #'make-dao (list* ',table initargs)))))
+</pre>
+
+
+<p>
+  Генерируем <code>update_entity</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">upd-entity</span>
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"UPD-"</span> (symbol-name name))) ((obj ,name) <span style="color: #00cd00;">&amp;optional</span> args)
+  (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+    ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> for accessor in (car tail) <span style="color: #0000ee; font-weight: bold;">:collect</span>
+           `(setf (,(car accessor) obj)
+                  (or (getf args ,(intern (symbol-name (car accessor)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
+                      (,(car accessor) obj))))
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (update-dao obj))))
+</pre>
+
+
+<p>
+  Генерируем <code>del_entity</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">del-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"DEL-"</span> (symbol-name name))) (id)
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (delete-dao (get-dao ',table id)))))
+</pre>
+
+
+<p>
+  Генерируем <code>all_entity</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">all-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"ALL-"</span> (symbol-name name))) ()
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (select-dao ',table))))
+</pre>
+
+
+<p>
+  Генерируем <code>get_entity</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">get-entity (by id)</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table      (intern (symbol-name name)))
+       (get-entity (intern (concatenate 'string <span style="color: #00cd00;">"GET-"</span> (symbol-name name)))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,get-entity (id <span style="color: #00cd00;">&amp;rest</span> flds)
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> (not (typep id 'integer))
+      (err 'param-get-entity-is-not-integer))
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((obj (select-dao ',table (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:id</span> id)))
+            (rs))
+        (<span style="color: #00cdcd; font-weight: bold;">when</span> (null obj)
+          (<span style="color: #00cdcd; font-weight: bold;">return-from</span> ,get-entity nil))
+        (setf obj (car obj))
+        (<span style="color: #00cdcd; font-weight: bold;">when</span> (null obj)
+          (<span style="color: #00cdcd; font-weight: bold;">return-from</span> ,get-entity nil))
+        (<span style="color: #00cdcd; font-weight: bold;">when</span> (null flds)
+          (<span style="color: #00cdcd; font-weight: bold;">return-from</span> ,get-entity obj))
+        (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> fld <span style="color: #0000ee; font-weight: bold;">:in</span> flds <span style="color: #0000ee; font-weight: bold;">:collect</span>
+           (setf (getf rs (intern (symbol-name fld) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
+                 (funcall (intern (symbol-name fld) (find-package ,(symbol-name name)))
+                          obj)))
+        rs))))
+</pre>
+
+
+<p>
+  Генерируем <code>find_entity</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">find-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"FIND-"</span> (symbol-name name))) (<span style="color: #00cd00;">&amp;rest</span> args)
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (query-dao ',table
+                 (sql-compile
+                  (list <span style="color: #0000ee; font-weight: bold;">:select</span> <span style="color: #0000ee; font-weight: bold;">:*</span> <span style="color: #0000ee; font-weight: bold;">:from</span> ',table
+                        <span style="color: #0000ee; font-weight: bold;">:where</span> (make-clause-list '<span style="color: #0000ee; font-weight: bold;">:and</span> '<span style="color: #0000ee; font-weight: bold;">:=</span> args)))))))
+</pre>
+
+
+<p>
+  Генерируем <code>show_entity</code>:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">show-entity</span>
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,(intern <span style="color: #00cd00;">"TO-HTML"</span>) ((obj ,name) <span style="color: #00cd00;">&amp;optional</span> <span style="color: #00cd00;">&amp;key</span> filter)
+  (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+    (concatenate 'string
+                 <span style="color: #00cd00;">"&lt;form id='"</span>
+                 ,(string-downcase (symbol-name name))
+                 <span style="color: #00cd00;">"-form'&gt;"</span>
+                 ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> (fld-name fld-type) <span style="color: #0000ee; font-weight: bold;">:in</span> (car tail) <span style="color: #0000ee; font-weight: bold;">:collect</span>
+                      (list
+                       (intern (concatenate 'string
+                                            <span style="color: #00cd00;">"SHOW-FLD-"</span>
+                                            (<span style="color: #00cdcd; font-weight: bold;">if</span> (symbolp fld-type)
+                                                (symbol-name fld-type)
+                                                (format nil <span style="color: #00cd00;">"~{~A~^-~}"</span>
+                                                        (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                                                    (symbol-name x))
+                                                                fld-type)))))
+                       (list fld-name 'obj)))
+                 <span style="color: #00cd00;">"&lt;/form&gt;"</span>)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Тесты сущностей</h2>
+<div class="outline-text-2" id="text-3">
+
+
+<p>
+  Теперь у нас есть генератор всех необходимых функций для обслуживания любых
+  сущностей. Мы можем это протестировать, для этого сформируем тест:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1080;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">entity-test</span> ()
+  &lt;&lt;entity-test_contents&gt;&gt;
+  (dbg <span style="color: #00cd00;">"passed: entity-test~%"</span>))
+(entity-test)
+</pre>
+
+
+<p>
+  Придумаем имя новой сущности и таблицы в которую она отображается. Пусть для простоты это
+  будет <code>entity123</code>.
+</p>
+<p>
+  Сначала убедимся, что тестовой таблицы в базе нет. Если она все-таки есть - удалим.
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">when</span> (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+          (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                          (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"entity123"</span>)))))
+  (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+    (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'entity123))))
+</pre>
+
+
+<p>
+  Определим новыю сущность и вызовем создание таблицы средствами наших сгенерированных
+  функций. Проверим, что таблица успешно создана.
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> entity123 <span style="color: #00cd00;">"&#1058;&#1077;&#1089;&#1090;&#1086;&#1074;&#1072;&#1103; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100;"</span>
+  ((id serial)
+   (email varchar)
+   (name (or db-null varchar))))
+
+(make-entity123-table)
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                     (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                     (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                           (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"entity123"</span>))))))))
+</pre>
+
+
+
+<p>
+  Сформируем сущность и проверим, что она появилась в таблице:
+</p>
+
+
+
+<pre class="src src-lisp">(make-entity123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-1"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-1"</span>)
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                     (query (<span style="color: #0000ee; font-weight: bold;">:select</span> '* <span style="color: #0000ee; font-weight: bold;">:from</span> 'entity123))))))
+</pre>
+
+
+<p>
+  Проверим, что ее можно получить из <code>get-{entity}</code>
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (get-entity123 1))))
+</pre>
+
+
+<p>
+  Попробуем изменить в ней некоторые поля и проверим, что меняется сущность и ее
+  отображение в таблице:
+</p>
+
+
+
+<pre class="src src-lisp">(upd-entity123 (get-entity123 1) (list <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"new-name"</span>))
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"new-name"</span> (name (get-entity123 1))))
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"new-name"</span>
+               (caar
+                (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                  (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'name <span style="color: #0000ee; font-weight: bold;">:from</span> 'entity123 <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'id 1)))))))
+</pre>
+
+
+<p>
+  Попробуем удалить сущность
+</p>
+
+
+
+<pre class="src src-lisp">(del-entity123 1)
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                (query (<span style="color: #0000ee; font-weight: bold;">:select</span> '* <span style="color: #0000ee; font-weight: bold;">:from</span> 'entity123 <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'id 1))))))
+</pre>
+
+
+<p>
+  Создадим еще парочку разных сущностей проверим получение всех сущностей и проверим что
+  по сущностям работает поиск.
+</p>
+
+
+
+<pre class="src src-lisp">(make-entity123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-2"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-2"</span>)
+(make-entity123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-3"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-3"</span>)
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal 2 (length (all-entity123))))
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"test-email-3"</span>
+               (email (car (find-entity123 <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-3"</span>)))))
+</pre>
+
+
+<p>
+  Подчистим за собой - удалим таблицу
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+  (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'entity123)))
+</pre>
+
+
+<p>
+  Теперь мы можем быть уверенными, что сущности работают нормально.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Автоматы</h2>
+<div class="outline-text-2" id="text-4">
+
+
+<p>
+  Чтобы добавить состояние к нашим сущностям, мы должны обернуть их макросом, который
+  добавит в сущность еще одно поле - <code>state</code> и создаст специализированные методы <code>trans</code>
+  для каждого перехода между состояниями. Внутри себя <code>trans</code> вызывает функцию,
+  одноименную с действием перехода - таким образом воплощаются действия на переходах.
+</p>
+<p>
+  Эти методы будут вызываться из метода <code>takt</code>, который принимает объект сущности и его
+  новое состояние. Если переход из старого состояния в новое не описан - это закономерно
+  вызывает ошибку.
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-automat</span> (name desc <span style="color: #00cd00;">&amp;rest</span> tail)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((package (symbol-package name)))
+    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((upd-entity (intern (concatenate 'string <span style="color: #00cd00;">"UPD-"</span> (symbol-name name))))
+          (fields (append (car tail) '((state (or db-null varchar)))))
+          (state  (intern <span style="color: #00cd00;">"STATE"</span> package))
+          (trans  (intern <span style="color: #00cd00;">"TRANS"</span> package))
+          (takt   (intern <span style="color: #00cd00;">"TAKT"</span> package))
+          (make-table (intern (concatenate 'string <span style="color: #00cd00;">"MAKE-"</span>  (symbol-name name) <span style="color: #00cd00;">"-TABLE"</span>))))
+      `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
+         (<span style="color: #00cdcd; font-weight: bold;">define-entity</span> ,name ,desc ,fields)
+         (,make-table)
+         ,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((all-states (cadr tail)))
+               `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
+                  ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> (from-state to-state event) <span style="color: #0000ee; font-weight: bold;">:in</span> (caddr tail) <span style="color: #0000ee; font-weight: bold;">:collect</span>
+                       (<span style="color: #00cdcd; font-weight: bold;">if</span> (or (null (find from-state all-states))
+                               (null (find to-state all-states)))
+                           (err (format nil <span style="color: #00cd00;">"unknown state: ~A -&gt; ~A"</span> from-state to-state))
+                           `(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,trans ((obj ,name)
+                                               (from-state (eql ,from-state))
+                                               (to-state (eql ,to-state)))
+                              (<span style="color: #00cdcd; font-weight: bold;">prog1</span> (,(intern (symbol-name event) *package*))
+                                (,upd-entity obj (list <span style="color: #0000ee; font-weight: bold;">:state</span> ,(bprint to-state)))))))
+                  (<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,takt ((obj ,name) new-state)
+                    (,trans obj (read-from-string (,state obj)) new-state))))))))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Тесты автоматов</h2>
+<div class="outline-text-2" id="text-5">
+
+
+<p>
+    Чтобы протестировать автоматы - формируем тест:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1099;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">automat-test</span> ()
+  &lt;&lt;automat-test_contents&gt;&gt;
+  (dbg <span style="color: #00cd00;">"passed: automat-test~%"</span>))
+(automat-test)
+</pre>
+
+
+<p>
+    Придумаем имя новому автомату и таблицы в которую он отображается. Пусть для простоты
+    это будет <code>automat123</code>.
+</p>
+<p>
+    Сначала убедимся, что тестовой таблицы в базе нет. Если она все-таки есть - удалим.
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">when</span> (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+          (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                          (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"automat123"</span>)))))
+  (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+    (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'automat123))))
+</pre>
+
+
+<p>
+    Определим новыю сущность и вызовем создание таблицы средствами наших сгенерированных
+    функций. Проверим, что таблица успешно создана. Проверим, что в таблице есть поле <code>state</code>.
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> automat123 <span style="color: #00cd00;">"&#1058;&#1077;&#1089;&#1090;&#1086;&#1074;&#1099;&#1081; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;"</span>
+  ((id serial)
+   (email varchar)
+   (name (or db-null varchar)))
+  (<span style="color: #0000ee; font-weight: bold;">:on</span> <span style="color: #0000ee; font-weight: bold;">:off</span> <span style="color: #0000ee; font-weight: bold;">:broken</span>)
+  ((<span style="color: #0000ee; font-weight: bold;">:on</span>      <span style="color: #0000ee; font-weight: bold;">:off</span>     <span style="color: #0000ee; font-weight: bold;">:switch-off</span>)
+   (<span style="color: #0000ee; font-weight: bold;">:off</span>     <span style="color: #0000ee; font-weight: bold;">:on</span>      <span style="color: #0000ee; font-weight: bold;">:switch-on</span>)
+   (<span style="color: #0000ee; font-weight: bold;">:on</span>      <span style="color: #0000ee; font-weight: bold;">:broken</span>  <span style="color: #0000ee; font-weight: bold;">:fault</span>)
+   (<span style="color: #0000ee; font-weight: bold;">:broken</span>  <span style="color: #0000ee; font-weight: bold;">:off</span>     <span style="color: #0000ee; font-weight: bold;">:stop</span>)))
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                     (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                     (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                           (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"automat123"</span>))))))))
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null
+              (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'column_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.columns <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema  <span style="color: #00cd00;">"public"</span>)
+                                      (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name    <span style="color: #00cd00;">"automat123"</span>)
+                                      (<span style="color: #0000ee; font-weight: bold;">:=</span> 'column_name   <span style="color: #00cd00;">"state"</span>))))))))
+</pre>
+
+
+<p>
+    Сформируем автомат, установим начальное состояние и определим функции
+    перехода. Протестируем все верные переходы и убедимся, что в конце теста состояние
+    внутри таблицы верно.
+</p>
+
+
+
+<pre class="src src-lisp">(make-automat123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-1"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-1"</span>)
+
+(upd-automat123 (get-automat123 1) (list <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":off"</span>))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">switch-off</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:switch-off</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">switch-on</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:switch-on</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">fault</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:fault</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">stop</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:stop</span>)
+
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal '((<span style="color: #0000ee; font-weight: bold;">:SWITCH-ON</span> <span style="color: #00cd00;">":ON"</span>) (<span style="color: #0000ee; font-weight: bold;">:SWITCH-OFF</span> <span style="color: #00cd00;">":OFF"</span>) (<span style="color: #0000ee; font-weight: bold;">:SWITCH-ON</span> <span style="color: #00cd00;">":ON"</span>)
+                 (<span style="color: #0000ee; font-weight: bold;">:FAULT</span> <span style="color: #00cd00;">":BROKEN"</span>) (<span style="color: #0000ee; font-weight: bold;">:STOP</span> <span style="color: #00cd00;">":OFF"</span>))
+               (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> new-state <span style="color: #0000ee; font-weight: bold;">:in</span> '(<span style="color: #0000ee; font-weight: bold;">:on</span> <span style="color: #0000ee; font-weight: bold;">:off</span> <span style="color: #0000ee; font-weight: bold;">:on</span> <span style="color: #0000ee; font-weight: bold;">:broken</span> <span style="color: #0000ee; font-weight: bold;">:off</span>) <span style="color: #0000ee; font-weight: bold;">:collect</span>
+                  (list (takt (get-automat123 1) new-state)
+                        (state (get-automat123 1))))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null
+              (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'state <span style="color: #0000ee; font-weight: bold;">:from</span> 'automat123 <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                (<span style="color: #0000ee; font-weight: bold;">:and</span>
+                                 (<span style="color: #0000ee; font-weight: bold;">:=</span> 'id 1)
+                                 (<span style="color: #0000ee; font-weight: bold;">:=</span> 'state <span style="color: #00cd00;">":OFF"</span>))))))))
+</pre>
+
+
+<p>
+    Протестируем выброс ошибки в случае попытки неразрешенного перехода
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">let</span> ((test t) (err nil))
+  (<span style="color: #00cdcd; font-weight: bold;">handler-case</span>
+      (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+        (takt (get-automat123 1) <span style="color: #0000ee; font-weight: bold;">:broken</span>)
+        (setf test nil))
+    (simple-error ()
+      (setf err t))
+    (<span style="color: #cd0000; font-weight: bold;">assert</span> (and test err))))
+</pre>
+
+
+<p>
+    Подчистим за собой - удалим таблицу
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+  (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'automat123)))
+</pre>
+
+
+<p>
+    Теперь мы можем быть уверенными, что автоматы работают нормально.
+</p></div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2014-10-11T23:23+0400</p>
+<p class="author">Author: rigidus</p>
+<p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

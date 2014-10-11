@@ -1,0 +1,499 @@
+#+HTML_HEAD: -*- fill-column: 92 -*-
+
+#+TITLE: Модуль сущностей, автоматов и их тесты
+
+#+NAME:css
+#+BEGIN_HTML
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+#+END_HTML
+
+* Ведение
+  Здесь напишем код, который развернет все описания сущностей в
+  исполняемый код.
+
+  Начнем с определения сущностей системы, а потом расширим их поддержку так, чтобы они
+  могли поддерживать [[http://is.ifmo.ru/books/_book.pdf][Автоматное программирование]]:
+
+  #+NAME: entity-file
+  #+BEGIN_SRC lisp :tangle src/mod/entity.lisp :noweb tangle :exports code
+    ;;;; entity.lisp
+
+    (in-package #:moto)
+
+    <<entity>>
+
+    <<automat>>
+
+    <<entity-test>>
+
+    <<automat-test>>
+  #+END_SRC
+
+* Сущности
+
+  Этот макрос генерирует код, который обслуживает все сущности. Мне
+  хотелось, чтобы когда я определяю сущность, автоматически
+  создавались функции, которые ее обслуживают:
+
+    + ={entity}-class=: Определение класса
+    + =make-{entity}-table=: функция создания таблицы в бд, если она еще не создана
+    + =make-{entity}=: конструктор сущности, который создает ее и записывает в базу данных
+    + =upd-{entity}=: метод, который обновляет поля сущности (в т.ч. в базе данных)
+    + =del-{entity}=: деструктор, который удаляет сущность, в т.ч. и из базы данных
+    + =all-{entity}=: функция для получения коллекции сущностей
+    + =get-{entity}=: функция для получения сущности по ее идентификтору
+    + =find-{entity}=: функция для получения сущности по ее идентификтору
+    + =show-{entity}=: функция для показа сущности (переопределить при необходимости)
+
+  #+NAME: entity
+  #+BEGIN_SRC lisp
+    (defmacro define-entity (name desc &rest tail)
+      (let ((*package* (symbol-package name)))
+        `(progn
+           <<entity-class>>
+           <<make_entity-table>>
+           <<make_entity>>
+           <<upd_entity>>
+           <<del_entity>>
+           <<all_entity>>
+           <<get_entity>>
+           <<find_entity>>
+           <<show_entity>>
+           )))
+  #+END_SRC
+
+  Генерируем =entity-class=:
+
+  #+NAME: entity-class
+  #+BEGIN_SRC lisp
+
+    ;; entity-class
+    ,(let ((table (intern (symbol-name name))))
+      `(defclass ,name ()
+        ,(mapcar #'(lambda (x)
+                     (list
+                      (car x)
+                      :col-type (cadr x)
+                      :initarg  (intern (symbol-name (car x)) :keyword)
+                      :accessor (car x)))
+                 (car tail))
+        (:metaclass dao-class)
+        (:table-name ,table)
+        (:keys ,(caaar tail))))
+  #+END_SRC
+
+  Генерируем =make_entity-table=:
+
+  #+NAME:make_entity-table
+  #+BEGIN_SRC lisp
+
+    ;; make-entity-table
+    ,(let ((table (intern (symbol-name name))))
+      `(defun ,(intern (concatenate 'string "MAKE-" (symbol-name name) "-TABLE")) ()
+        (with-connection *db-spec*
+          (unless (table-exists-p ',table)
+            (execute (dao-table-definition ',table))))))
+  #+END_SRC
+
+  Генерируем =make_entity=:
+
+  #+NAME:make_entity
+  #+BEGIN_SRC lisp
+
+    ;; make-entity
+    ,(let ((table (intern (symbol-name name))))
+      `(defun ,(intern (concatenate 'string "MAKE-" (symbol-name name))) (&rest initargs)
+        (with-connection *db-spec*
+          (apply #'make-dao (list* ',table initargs)))))
+  #+END_SRC
+
+  Генерируем =update_entity=:
+
+  #+NAME:upd_entity
+  #+BEGIN_SRC lisp
+
+    ;; upd-entity
+    (defmethod ,(intern (concatenate 'string "UPD-" (symbol-name name))) ((obj ,name) &optional args)
+      (progn
+        ,@(loop for accessor in (car tail) :collect
+               `(setf (,(car accessor) obj)
+                      (or (getf args ,(intern (symbol-name (car accessor)) :keyword))
+                          (,(car accessor) obj))))
+        (with-connection *db-spec*
+          (update-dao obj))))
+  #+END_SRC
+
+  Генерируем =del_entity=:
+
+  #+NAME:del_entity
+  #+BEGIN_SRC lisp
+
+    ;; del-entity
+    ,(let ((table (intern (symbol-name name))))
+      `(defun ,(intern (concatenate 'string "DEL-" (symbol-name name))) (id)
+        (with-connection *db-spec*
+          (delete-dao (get-dao ',table id)))))
+  #+END_SRC
+
+  Генерируем =all_entity=:
+
+  #+NAME:all_entity
+  #+BEGIN_SRC lisp
+
+    ;; all-entity
+    ,(let ((table (intern (symbol-name name))))
+      `(defun ,(intern (concatenate 'string "ALL-" (symbol-name name))) ()
+        (with-connection *db-spec*
+          (select-dao ',table))))
+  #+END_SRC
+
+  Генерируем =get_entity=:
+
+  #+NAME:get_entity
+  #+BEGIN_SRC lisp
+
+    ;; get-entity (by id)
+    ,(let ((table      (intern (symbol-name name)))
+           (get-entity (intern (concatenate 'string "GET-" (symbol-name name)))))
+      `(defun ,get-entity (id &rest flds)
+        (when (not (typep id 'integer))
+          (err 'param-get-entity-is-not-integer))
+        (with-connection *db-spec*
+          (let ((obj (select-dao ',table (:= :id id)))
+                (rs))
+            (when (null obj)
+              (return-from ,get-entity nil))
+            (setf obj (car obj))
+            (when (null obj)
+              (return-from ,get-entity nil))
+            (when (null flds)
+              (return-from ,get-entity obj))
+            (loop :for fld :in flds :collect
+               (setf (getf rs (intern (symbol-name fld) :keyword))
+                     (funcall (intern (symbol-name fld) (find-package ,(symbol-name name)))
+                              obj)))
+            rs))))
+  #+END_SRC
+
+  Генерируем =find_entity=:
+
+  #+NAME:find_entity
+  #+BEGIN_SRC lisp
+
+    ;; find-entity
+    ,(let ((table (intern (symbol-name name))))
+      `(defun ,(intern (concatenate 'string "FIND-" (symbol-name name))) (&rest args)
+        (with-connection *db-spec*
+          (query-dao ',table
+                     (sql-compile
+                      (list :select :* :from ',table
+                            :where (make-clause-list ':and ':= args)))))))
+  #+END_SRC
+
+  Генерируем =show_entity=:
+
+  #+NAME:show_entity
+  #+BEGIN_SRC lisp
+
+    ;; show-entity
+    (defmethod ,(intern "TO-HTML") ((obj ,name) &optional &key filter)
+      (with-connection *db-spec*
+        (concatenate 'string
+                     "<form id='"
+                     ,(string-downcase (symbol-name name))
+                     "-form'>"
+                     ,@(loop :for (fld-name fld-type) :in (car tail) :collect
+                          (list
+                           (intern (concatenate 'string
+                                                "SHOW-FLD-"
+                                                (if (symbolp fld-type)
+                                                    (symbol-name fld-type)
+                                                    (format nil "~{~A~^-~}"
+                                                            (mapcar #'(lambda (x)
+                                                                        (symbol-name x))
+                                                                    fld-type)))))
+                           (list fld-name 'obj)))
+                     "</form>")))
+  #+END_SRC
+
+* Тесты сущностей
+
+  Теперь у нас есть генератор всех необходимых функций для обслуживания любых
+  сущностей. Мы можем это протестировать, для этого сформируем тест:
+
+  #+NAME:entity-test
+  #+BEGIN_SRC lisp
+
+    ;; Тестируем сущности
+    (defun entity-test ()
+      <<entity-test_contents>>
+      (dbg "passed: entity-test~%"))
+    (entity-test)
+  #+END_SRC
+
+  Придумаем имя новой сущности и таблицы в которую она отображается. Пусть для простоты это
+  будет =entity123=.
+
+  Сначала убедимся, что тестовой таблицы в базе нет. Если она все-таки есть - удалим.
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (when (with-connection *db-spec*
+              (query (:select 'table_name :from 'information_schema.tables :where
+                              (:and (:= 'table_schema "public")
+                                    (:= 'table_name "entity123")))))
+      (with-connection *db-spec*
+        (query (:drop-table 'entity123))))
+  #+END_SRC
+
+  Определим новыю сущность и вызовем создание таблицы средствами наших сгенерированных
+  функций. Проверим, что таблица успешно создана.
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (define-entity entity123 "Тестовая сущность"
+      ((id serial)
+       (email varchar)
+       (name (or db-null varchar))))
+
+    (make-entity123-table)
+
+    (assert (not (null (with-connection *db-spec*
+                         (query (:select 'table_name :from 'information_schema.tables :where
+                                         (:and (:= 'table_schema "public")
+                                               (:= 'table_name "entity123"))))))))
+  #+END_SRC
+
+
+  Сформируем сущность и проверим, что она появилась в таблице:
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (make-entity123 :email "test-email-1" :name "test-name-1")
+
+    (assert (not (null (with-connection *db-spec*
+                         (query (:select '* :from 'entity123))))))
+  #+END_SRC
+
+  Проверим, что ее можно получить из =get-{entity}=
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (assert (not (null (get-entity123 1))))
+  #+END_SRC
+
+  Попробуем изменить в ней некоторые поля и проверим, что меняется сущность и ее
+  отображение в таблице:
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (upd-entity123 (get-entity123 1) (list :name "new-name"))
+
+    (assert (equal "new-name" (name (get-entity123 1))))
+
+    (assert (equal "new-name"
+                   (caar
+                    (with-connection *db-spec*
+                      (query (:select 'name :from 'entity123 :where (:= 'id 1)))))))
+  #+END_SRC
+
+  Попробуем удалить сущность
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (del-entity123 1)
+
+    (assert (null (with-connection *db-spec*
+                    (query (:select '* :from 'entity123 :where (:= 'id 1))))))
+  #+END_SRC
+
+  Создадим еще парочку разных сущностей проверим получение всех сущностей и проверим что
+  по сущностям работает поиск.
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (make-entity123 :email "test-email-2" :name "test-name-2")
+    (make-entity123 :email "test-email-3" :name "test-name-3")
+
+    (assert (equal 2 (length (all-entity123))))
+
+    (assert (equal "test-email-3"
+                   (email (car (find-entity123 :name "test-name-3")))))
+  #+END_SRC
+
+  Подчистим за собой - удалим таблицу
+
+  #+NAME:entity-test_contents
+  #+BEGIN_SRC lisp
+
+    (with-connection *db-spec*
+      (query (:drop-table 'entity123)))
+  #+END_SRC
+
+  Теперь мы можем быть уверенными, что сущности работают нормально.
+
+* Автоматы
+
+  Чтобы добавить состояние к нашим сущностям, мы должны обернуть их макросом, который
+  добавит в сущность еще одно поле - =state= и создаст специализированные методы =trans=
+  для каждого перехода между состояниями. Внутри себя =trans= вызывает функцию,
+  одноименную с действием перехода - таким образом воплощаются действия на переходах.
+
+  Эти методы будут вызываться из метода =takt=, который принимает объект сущности и его
+  новое состояние. Если переход из старого состояния в новое не описан - это закономерно
+  вызывает ошибку.
+
+  #+NAME:automat
+  #+BEGIN_SRC lisp
+    (defmacro define-automat (name desc &rest tail)
+      (let ((package (symbol-package name)))
+        (let ((upd-entity (intern (concatenate 'string "UPD-" (symbol-name name))))
+              (fields (append (car tail) '((state (or db-null varchar)))))
+              (state  (intern "STATE" package))
+              (trans  (intern "TRANS" package))
+              (takt   (intern "TAKT" package))
+              (make-table (intern (concatenate 'string "MAKE-"  (symbol-name name) "-TABLE"))))
+          `(progn
+             (define-entity ,name ,desc ,fields)
+             (,make-table)
+             ,(let ((all-states (cadr tail)))
+                   `(progn
+                      ,@(loop :for (from-state to-state event) :in (caddr tail) :collect
+                           (if (or (null (find from-state all-states))
+                                   (null (find to-state all-states)))
+                               (err (format nil "unknown state: ~A -> ~A" from-state to-state))
+                               `(defmethod ,trans ((obj ,name)
+                                                   (from-state (eql ,from-state))
+                                                   (to-state (eql ,to-state)))
+                                  (prog1 (,(intern (symbol-name event) *package*))
+                                    (,upd-entity obj (list :state ,(bprint to-state)))))))
+                      (defmethod ,takt ((obj ,name) new-state)
+                        (,trans obj (read-from-string (,state obj)) new-state))))))))
+  #+END_SRC
+
+* Тесты автоматов
+
+    Чтобы протестировать автоматы - формируем тест:
+
+    #+NAME:automat-test
+    #+BEGIN_SRC lisp
+
+      ;; Тестируем автоматы
+      (defun automat-test ()
+        <<automat-test_contents>>
+        (dbg "passed: automat-test~%"))
+      (automat-test)
+    #+END_SRC
+
+    Придумаем имя новому автомату и таблицы в которую он отображается. Пусть для простоты
+    это будет =automat123=.
+
+    Сначала убедимся, что тестовой таблицы в базе нет. Если она все-таки есть - удалим.
+
+    #+NAME:automat-test_contents
+    #+BEGIN_SRC lisp
+
+      (when (with-connection *db-spec*
+                (query (:select 'table_name :from 'information_schema.tables :where
+                                (:and (:= 'table_schema "public")
+                                      (:= 'table_name "automat123")))))
+        (with-connection *db-spec*
+          (query (:drop-table 'automat123))))
+    #+END_SRC
+
+    Определим новыю сущность и вызовем создание таблицы средствами наших сгенерированных
+    функций. Проверим, что таблица успешно создана. Проверим, что в таблице есть поле =state=.
+
+    #+NAME:automat-test_contents
+    #+BEGIN_SRC lisp
+
+      (define-automat automat123 "Тестовый автомат"
+        ((id serial)
+         (email varchar)
+         (name (or db-null varchar)))
+        (:on :off :broken)
+        ((:on      :off     :switch-off)
+         (:off     :on      :switch-on)
+         (:on      :broken  :fault)
+         (:broken  :off     :stop)))
+
+      (assert (not (null (with-connection *db-spec*
+                           (query (:select 'table_name :from 'information_schema.tables :where
+                                           (:and (:= 'table_schema "public")
+                                                 (:= 'table_name "automat123"))))))))
+
+      (assert (not (null
+                    (with-connection *db-spec*
+                      (query (:select 'column_name :from 'information_schema.columns :where
+                                      (:and (:= 'table_schema  "public")
+                                            (:= 'table_name    "automat123")
+                                            (:= 'column_name   "state"))))))))
+    #+END_SRC
+
+    Сформируем автомат, установим начальное состояние и определим функции
+    перехода. Протестируем все верные переходы и убедимся, что в конце теста состояние
+    внутри таблицы верно.
+
+    #+NAME:automat-test_contents
+    #+BEGIN_SRC lisp
+
+      (make-automat123 :email "test-email-1" :name "test-name-1")
+
+      (upd-automat123 (get-automat123 1) (list :state ":off"))
+
+      (defun switch-off ()
+        :switch-off)
+
+      (defun switch-on ()
+        :switch-on)
+
+      (defun fault ()
+        :fault)
+
+      (defun stop ()
+        :stop)
+
+      (assert (equal '((:SWITCH-ON ":ON") (:SWITCH-OFF ":OFF") (:SWITCH-ON ":ON")
+                       (:FAULT ":BROKEN") (:STOP ":OFF"))
+                     (loop :for new-state :in '(:on :off :on :broken :off) :collect
+                        (list (takt (get-automat123 1) new-state)
+                              (state (get-automat123 1))))))
+      (assert (not (null
+                    (with-connection *db-spec*
+                      (query (:select 'state :from 'automat123 :where
+                                      (:and
+                                       (:= 'id 1)
+                                       (:= 'state ":OFF"))))))))
+    #+END_SRC
+
+    Протестируем выброс ошибки в случае попытки неразрешенного перехода
+
+    #+NAME:automat-test_contents
+    #+BEGIN_SRC lisp
+      (let ((test t) (err nil))
+        (handler-case
+            (progn
+              (takt (get-automat123 1) :broken)
+              (setf test nil))
+          (simple-error ()
+            (setf err t))
+          (assert (and test err))))
+    #+END_SRC
+
+    Подчистим за собой - удалим таблицу
+
+    #+NAME:automat-test_contents
+    #+BEGIN_SRC lisp
+
+      (with-connection *db-spec*
+        (query (:drop-table 'automat123)))
+    #+END_SRC
+
+    Теперь мы можем быть уверенными, что автоматы работают нормально.
