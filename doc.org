@@ -366,155 +366,47 @@ _____________________
        )
    #+END_SRC
 
-* Use cases
-** Авторизация
+* События
 
-   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
-   закрытому от неавторизованных пользователей функционалу.
+  Мы используем события, чтобы отслеживать и логгировать изменения в системе, которые
+  происходят в ответ на действия внешних сил.
 
-   Как пользователь, я хочу иметь возможность выйти из авторизованной сессии.
+   #+NAME: events
+   #+BEGIN_SRC lisp :tangle src/events.lisp :noweb tangle :exports code
+     ;;;; events.lisp
 
-   Как разработчик, я хочу конфигурировать url-ы, на которые попадает пользователь при
-   выполнении этого сценария и навешивать свои обработчики на события логина и логаута.
-
-   Что нам для этого нужно?
-
-   - Сущность =User=, имеющая поля =login= и =password=
-
-   Как это работает?
-
-   Пользователь вводит логин и пароль, который передается контроллеру логина. Контроллер
-   логина извлекает (=get-auth-data=) логин и пароль, проверяет их (=check-auth-data=) и в
-   случае успеха устанавливает переменную сессии =current-user= и вызывает
-   =auth-success=. В случае неудачи вызывает =auth-fail=.
-
-   Проверим на стадии сборки, что у нас есть сущность пользователя и поля логина и пароля в
-   ней.
-
-   #+NAME: verify-exists-user-entity-with-fields-login-and-password
-   #+BEGIN_SRC emacs-lisp :exports code
-     (verify-exist-entity "user")
-     (verify-exist-fields "user" '("login" "password"))
-   #+END_SRC
-
-   Соберем шаблоны логина и логаута
-
-   #+NAME: auth-tpl
-   #+BEGIN_SRC closure-template-html :tangle auth-templates.htm :noweb tangle :exports code
-     // -*- mode: closure-template-html; fill-column: 140 -*-
-     {namespace authtpl}
-
-     {template logintpl}
-       <<loginform-tpl>>
-     {/template}
-
-     {template logouttpl}
-       <<logoutform-tpl>>
-     {/template}
-   #+END_SRC
-
-   Соберем контроллеры и все функции, которые контроллеры вызывают
-
-   #+NAME: auth-fn
-   #+BEGIN_SRC lisp :tangle auth-fn.lisp :noweb tangle :exports code
      (in-package #:moto)
 
-     <<user-entity>>
-
-     <<login-ctrl>>
-
-     <<logout-ctrl>>
-
-     <<check-auth-data>>
-
-     <<get-auth-data>>
-
-     <<is-logged>>
-
-     <<auth-success>
-
-     <<auth-fail>>
+     <<create-user>>
    #+END_SRC
 
- мы вводим:
 
-*** Шаблон логина
+** Создание пользователя
 
-    #+NAME: loginform-tpl
-    #+BEGIN_SRC html :exports code
-      <form method="POST" name="loginform">
-          <input type="text" id="login" name="login" />
-          <input type="password" id="password" name="password" />
-          <input type="submit" />
-      </form>
-    #+END_SRC
-
-*** Шаблон логаута
-
-    #+NAME: logoutform-tpl
-    #+BEGIN_SRC html :exports code
-      <form method="POST" name="logoutform">
-          <input type="hidden" name="logout" value="logout" />
-          <input type="submit" value="logout" />
-      </form>
-    #+END_SRC
-
-*** Контроллер логина
-
-    Контроллер логина использует обобщенный метод =get-auth-data= для извлечения данных
-    авторизации и функцию их проверки =check-auth-data=.
-
-    При успешной проверке устанавливает переменную сессии =current-user= с помощью функции
-    =set-session= и выполняет =auth-success=.
-
-    При неупехе выполняет =auth-fail=.
-
-    #+NAME: login-ctrl
-    #+BEGIN_SRC lisp :exports code
-      (defun loginform-ctrl (request)
-        (aif (check-auth-data (get-auth-data request))
-             (progn
-               (setf (session-value current-user) it)
-               (auth-success))
-             (auth-fail)))
-    #+END_SRC
-
-*** Контроллер логаута
-
-    Контроллер логаута удаляет переменную сессии =current-user= и выполняет =logout=
-
-    #+NAME: logout-ctrl
-    #+BEGIN_SRC lisp :exports code
-      (defun logout-ctrl (request)
-        (delete-session-value current-user)
-        (logout))
-    #+END_SRC
-
-*** Функцию проверки авторизационных данных - в простейшем случае логина и пароля
-*** Обобщенный метод извлечения авторизационных данных
-    В простейшем случае данные из объекта =request=, но возможны и другие варианты,
-    поэтому этот обобщенный метод специфицируется объектом, из которого извлекаются данные.
-*** Javascript для форм, необязательно
-*** Функцию проверки залогинен ли пользователь
-*** Функцию проверки прав пользователя на доступ к какому-то объекту
-    в зависимости от его роли и.т.п
-
-   Создадим шаблон формы ввода пароля
-
-
-   Создадим контроллер для обработки того, что пришло от формы
-
-
-   Создадим функцию, которая проверяет залогинен ли пользователь
-
-   #+NAME: is-logged
-   #+BEGIN_SRC lisp :exports code
-     (defun is-logged (request)
-       ( (session-value current-user
-
-
+   #+NAME: create-user
+   #+BEGIN_SRC lisp
+     (defun create-user (name password email)
+       "Создание пользователя. Возвращает id пользователя"
+       (let ((user-id (id (make-user :name name :password password :email email))))
+         (dbg "Создан пользователь: ~A" user-id)
+         ;; Делаем его залогиненным
+         (upd-user (get-user user-id) (list :state ":logged"))
+         ;; Возвращаем user-id
+         user-id))
    #+END_SRC
 
+** Выход пользователя из системы
+   #+NAME: create-user
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun logout-user (current-user)
+       (takt (get-user current-user) :unlogged))
+   #+END_SRC
+
+
+
+* Use cases
 ** Маршруты логина и логаута и путь пользователя по сайту при выполнении этого сценария
 * Interface
 ** Инфраструктура веб-интерфейса
@@ -525,7 +417,7 @@ _____________________
 
    Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
 
-   #+NAME: with_wrapper
+   #+NAME: with-wrapper
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -626,15 +518,13 @@ _____________________
 
      (restas:define-route main ("/")
        (with-wrapper
-         (let ((lnk "~%<a href=\"/~A\">~:*~A</a>")
-               (pgs '("reg" "auth" "users" "user/1" "order/1" "quot")))
-           (loop :for p :in pgs :do
-              (dbg lnk p))
-           (dbg "~%~A" (all-queues))
-           "main")))
+         "main"))
    #+END_SRC
 
 ** Регистрация
+
+   Страница регистрации использует движок форм для показа формы пользователю и при
+   выполнении регистрации вызывает событие =create-user=.
 
    #+NAME: regpage
    #+BEGIN_SRC lisp
@@ -660,9 +550,7 @@ _____________________
            (setf (hunchentoot:session-value 'current-user)
                  (create-user (getf p :name)
                               (getf p :password)
-                              (getf p :email)
-                              "USD"
-                              "USD")))))
+                              (getf p :email))))))
    #+END_SRC
 
 ** Авторизация
@@ -716,7 +604,10 @@ _____________________
 
      (restas:define-route logout-ctrl ("/logout" :method :post)
        (with-wrapper
-         (setf (hunchentoot:session-value 'current-user) nil)))
+         (prog1
+             (format nil "~A" (logout-user *current-user*))
+           (setf (hunchentoot:session-value 'current-user) nil))))
+
    #+END_SRC
 
 ** Список пользователей
@@ -883,6 +774,22 @@ _____________________
    #+END_SRC
 
    Собственно описание модуля вынесено в файл [[file:entity.org]]
+
+** Авторизация
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod-auth
+   #+BEGIN_SRC lisp
+     (:module "auth"
+              :serial t
+              :pathname "mod/auth"
+              :components ((:static-file "auth-tpl.htm")
+                           (:file "auth")))
+   #+END_SRC
+
+   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
+   закрытому от неавторизованных пользователей функционалу.
 
 * Сборка
 ** Утилиты
@@ -1102,7 +1009,12 @@ _____________________
                     (:file "globals")    ;; файл с глобальными определеями
                     ;; Модуль сущностей, автоматов и их тестов
                     <<mod-entity>>
-                    (:file "moto")))     ;; стартовый файл
+                    ;; Модуль авторизации
+                    <<mod-auth>>
+                    (:file "moto")       ;; стартовый файл
+                    (:file "events")     ;; события системы
+                    (:file "iface")      ;; файл веб-интерфейса
+                    ))
    #+END_SRC
 
 ** Пакеты
@@ -1134,6 +1046,8 @@ _____________________
    #+BEGIN_SRC lisp :tangle src/prepare.lisp :noweb tangle :exports code :exports none
      ;;;; prepare.lisp
 
+     (in-package #:moto)
+
      ;; Базовый путь, от которого будем все считать
      (defparameter *base-path* "/home/rigidus/repo/moto/src/")
 
@@ -1162,5 +1076,39 @@ _____________________
      ;; (restas:debug-mode-off)
      (setf hunchentoot:*catch-errors-p* t)
    #+END_SRC
+
+** Веб-интерфейс
+
+   #+NAME: iface
+   #+BEGIN_SRC lisp :tangle src/iface.lisp :noweb tangle :exports code
+     ;;;; iface.lisp
+
+     (in-package #:moto)
+
+     ;; Враппер веб-интерфейса
+     <<with-wrapper>>
+
+     ;; Хелпер форм
+     <<frm>>
+
+     ;; Главная страница
+     <<mainpage>>
+
+     ;; Страница регистрации
+     <<regpage>>
+
+     ;; Страница авторизации
+     <<authpage>>
+
+     ;; Страница логаута
+     <<logoutpage>>
+
+     ;; Список пользователей
+     <<alluserspage>>
+
+     ;; Страничка пользователя
+     <<userpage>>
+   #+END_SRC
+
 * Идеи
   http://www.motobratan.ru/motoprogress/230.html

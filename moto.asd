@@ -28,4 +28,13 @@
                         :serial t
                         :pathname "mod"
                         :components ((:file "entity")))
-               (:file "moto")))     ;; стартовый файл
+               ;; Модуль авторизации
+               (:module "auth"
+                        :serial t
+                        :pathname "mod/auth"
+                        :components ((:static-file "auth-tpl.htm")
+                                     (:file "auth")))
+               (:file "moto")       ;; стартовый файл
+               (:file "events")     ;; события системы
+               (:file "iface")      ;; файл веб-интерфейса
+               ))

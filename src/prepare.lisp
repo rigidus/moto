@@ -1,6 +1,8 @@
 
 ;;;; prepare.lisp
 
+(in-package #:moto)
+
 ;; Базовый путь, от которого будем все считать
 (defparameter *base-path* "/home/rigidus/repo/moto/src/")
 

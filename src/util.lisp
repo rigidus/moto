@@ -57,25 +57,3 @@
          :for (key . value)
          :in alist
          :nconc (list (anything-to-keyword key) value))))
-
-(in-package #:moto)
-
-(defmacro with-wrapper (&body body)
-  `(progn
-     (hunchentoot:start-session)
-     (let* ((*current-user* (hunchentoot:session-value 'current-user))
-            (retval)
-            (output (with-output-to-string (*standard-output*)
-                      (setf retval ,@body))))
-       (declare (special *current-user*))
-       (tpl:root
-        (list
-         :title "title"
-         :content (format nil "~{~A~}"
-                          (list
-                           (tpl:dbgblock  (list :dbgout output))
-                           (tpl:userblock (list :currentuser
-                                                (if (null *current-user*)
-                                                    "none"
-                                                    *current-user*)))
-                           (tpl:retvalblock (list :retval retval)))))))))

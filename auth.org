@@ -1,0 +1,151 @@
+#+HTML_HEAD: -*- fill-column: 92 -*-
+
+#+TITLE: Модуль сущностей, автоматов и их тесты
+
+#+NAME:css
+#+BEGIN_HTML
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+#+END_HTML
+
+* Введение
+  Как пользователь, я хочу иметь возможность выйти из авторизованной сессии.
+
+  Как разработчик, я хочу конфигурировать url-ы, на которые попадает пользователь при
+  выполнении этого сценария и навешивать свои обработчики на события логина и логаута.
+
+  Что нам для этого нужно?
+  - Сущность =User=, имеющая поля =email= и =password=
+
+  Как это работает?
+
+  Пользователь вводит email и пароль, который передается контроллеру логина. Контроллер
+  логина извлекает (=get-auth-data=) email и пароль, проверяет их (=check-auth-data=) и в
+  случае успеха устанавливает переменную сессии =current-user= и вызывает =auth-success=. В
+  случае неудачи вызывает =auth-fail=.
+
+  Соберем шаблоны логина и логаута
+
+  #+NAME: auth-tpl
+  #+BEGIN_SRC closure-template-html :tangle src/mod/auth/auth-tpl.htm :noweb tangle :exports code
+    // -*- mode: closure-template-html; fill-column: 140 -*-
+    {namespace authtpl}
+
+    {template logintpl}
+      <<loginform-tpl>>
+    {/template}
+
+    {template logouttpl}
+      <<logoutform-tpl>>
+    {/template}
+  #+END_SRC
+
+  Соберем контроллеры и все функции, которые контроллеры вызывают
+
+  #+NAME: auth-fn
+  #+BEGIN_SRC lisp :tangle src/mod/auth/auth.lisp :noweb tangle :exports code
+    (in-package #:moto)
+
+    ;; Скомпилируем шаблон
+    (closure-template:compile-template
+     :common-lisp-backend
+     (pathname
+      (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
+
+    ;; Контроллер логина
+    <<login-ctrl>>
+
+    ;; Контроллер логаута
+    <<logout-ctrl>>
+
+    ;; Функция проверки авторизационных данных
+    <<check-auth-data>>
+
+    ;; Обобщенный метод извлечения авторизационных данных
+    <<get-auth-data>>
+
+    ;; Функция проверки, залогинен ли пользователь
+    <<is-logged>>
+
+    ;; Хук успешной авторизации
+    <<auth-success>>
+
+    ;; Хук неуспешной авторизации
+    <<auth-fail>>
+  #+END_SRC
+
+  Мы вводим:
+
+** Шаблон логина
+
+   #+NAME: loginform-tpl
+   #+BEGIN_SRC html :exports code
+     <form method="POST" name="loginform">
+         <input type="text" id="login" name="login" />
+         <input type="password" id="password" name="password" />
+         <input type="submit" />
+     </form>
+   #+END_SRC
+
+** Шаблон логаута
+
+   #+NAME: logoutform-tpl
+   #+BEGIN_SRC html :exports code
+     <form method="POST" name="logoutform">
+         <input type="hidden" name="logout" value="logout" />
+         <input type="submit" value="logout" />
+     </form>
+   #+END_SRC
+
+** Контроллер логина
+
+   Контроллер логина использует обобщенный метод =get-auth-data= для извлечения данных
+   авторизации и функцию их проверки =check-auth-data=.
+
+   При успешной проверке устанавливает переменную сессии =current-user= с помощью функции
+   =set-session= и выполняет =auth-success=.
+
+   При неупехе выполняет =auth-fail=.
+
+   #+NAME: login-ctrl
+   #+BEGIN_SRC lisp :exports code
+     (defun loginform-ctrl (request)
+       (aif (check-auth-data (get-auth-data request))
+            (progn
+              (setf (session-value current-user) it)
+              (auth-success))
+            (auth-fail)))
+   #+END_SRC
+
+** Контроллер логаута
+
+   Контроллер логаута удаляет переменную сессии =current-user= и выполняет =logout=
+
+   #+NAME: logout-ctrl
+   #+BEGIN_SRC lisp :exports code
+     (defun logout-ctrl (request)
+       (delete-session-value current-user)
+       (logout))
+   #+END_SRC
+
+** Функцию проверки авторизационных данных - в простейшем случае логина и пароля
+** Обобщенный метод извлечения авторизационных данных
+   В простейшем случае данные из объекта =request=, но возможны и другие варианты,
+   поэтому этот обобщенный метод специфицируется объектом, из которого извлекаются данные.
+** Javascript для форм, необязательно
+** Функцию проверки залогинен ли пользователь
+** Функцию проверки прав пользователя на доступ к какому-то объекту
+   в зависимости от его роли и.т.п
+
+   Создадим шаблон формы ввода пароля
+
+
+   Создадим контроллер для обработки того, что пришло от формы
+
+
+   Создадим функцию, которая проверяет залогинен ли пользователь
+
+   #+NAME: is-logged
+   #+BEGIN_SRC lisp :exports code
+     ;; (defun is-logged (request)
+     ;;   ( (session-value current-user
+   #+END_SRC
