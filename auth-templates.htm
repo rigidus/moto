@@ -1,0 +1,18 @@
+
+// -*- mode: closure-template-html; fill-column: 140 -*-
+{namespace authtpl}
+
+{template logintpl}
+  <form method="POST" name="loginform">
+      <input type="text" id="login" name="login" />
+      <input type="password" id="password" name="password" />
+      <input type="submit" />
+  </form>
+{/template}
+
+{template logouttpl}
+  <form method="POST" name="logoutform">
+      <input type="hidden" name="logout" value="logout" />
+      <input type="submit" value="logout" />
+  </form>
+{/template}

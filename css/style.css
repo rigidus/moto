@@ -1,0 +1,309 @@
+body, html { height: 100%; }
+body {
+font-family: Tahoma, Arial, Helvetica, sans-serif;
+font-size: 76%;
+margin: 0;
+padding: 0;
+background: #000 url(../img/bg.jpg) repeat-x 50% 0;
+text-align: center;
+color: #fff;
+}
+
+/* headers */
+h2, h3, h4, h5, h6 {  color: #ffc; margin: 0; font-weight: normal;  }
+h2 { font-size: 2.5em; padding: 0 0; }
+h3 { font-size: 1.9em; padding: 25px 0; text-align: center; }
+h4 { font-size: 1.7em; padding: 20px 0; }
+h5 { font-size: 1.4em; padding: 15px 0; text-align: center; }
+h6 { font-size: 1.2em; padding: 10px 0 0; }
+
+/* text */
+p { font-size: 1.2em; line-height: 1.5em; margin: 0 20px 20px 0;
+text-indent: 20px; width: 720px; }
+acronym { cursor: help; }
+code { font-size: 1.5em !important; margin: 0 0 20px; border: 1px dashed #333; padding: 10px; display: block; background-color: #111; color: #ffc; }
+blockquote { font-family: Georgia, "Times New Roman", Times, serif; margin: 0 0 20px; border: 1px solid #333; padding: 15px 15px 0 15px; display: block; background-color: #111; }
+blockquote p { margin-bottom: 15px; }
+
+/* links */
+a { text-decoration: none; color: #ff9; }
+a:hover { text-decoration: underline; }
+
+/* images */
+img { border: 5px solid #2F1C07; margin: 0 10px 10px 0; }
+a img { border: 5px solid #2F1C07; }
+a :hover img { border-color: #50300C; }
+img.right { margin-left: 10px; }
+
+/* lists */
+ul, ol, dl, table, blockquote, code { font-size: 1.2em; }
+ul, ol, dl { margin: 0 0 30px; padding: 0 0 0 25px; }
+ul ul { font-size: 1em; margin: 0; }
+ol ol { font-size: 1em; margin: 0; }
+dl { padding: 0; }
+dl dt { font-weight: bold; }
+
+/* tables */
+table { margin: 0 0 30px; width: 720px; }
+table th, table td { padding: 10px; text-align: center; color: #fff; }
+table th { background-color: #222; }
+
+/* forms */
+fieldset { border: 1px solid #333; background-color: #222; padding: 20px; margin: 30px 0; }
+fieldset legend { display: none; }
+fieldset form p { clear: both; }
+fieldset form p label { float: left; display: block; width: 47%; margin-right: 20px; }
+fieldset form p input,
+fieldset form p select,
+fieldset form p textarea { border: 3px solid #ccc; background-color: #999; padding: 5px; width: 50%; font-family: Tahoma, Arial, Helvetica, sans-serif; }
+fieldset form p select { width: 52.5%; }
+fieldset form ul.fieldlist { margin: 0 0 20px 46%; padding: 0; list-style-type: none; }
+fieldset form ul.fieldlist li { padding: 0 30px 5px 0; white-space: nowrap; }
+fieldset form input.btn { width: auto; border-color: #000; background-color: #111; padding: 10px; cursor: pointer; color: #ffc; font-weight: bold; }
+
+/* horizontal rule */
+hr { border: 0; height: 1px; background-color: #333; color: #333; margin: 30px 0 0; }
+
+/* classes */
+.left { float: left; }
+.right {float: right; }
+
+/*------------------------------------------------------------*
+** Container
+**------------------------------------------------------------*/
+#container {
+margin: 0 auto;
+width: 1000px;
+text-align: justify;
+min-height: 100%;
+height: auto !important;
+height: 100%;
+}
+
+/*------------------------------------------------------------*
+** Header
+**------------------------------------------------------------*/
+#header {
+position: relative;
+padding: 0 0;
+}
+
+/* logo */
+#header h1 {
+font-size: 3.2em;
+font-weight: normal;
+margin: 0;
+}
+#header h1 a { color: #ffc; }
+#header h1 a:hover { text-decoration: none; }
+
+/* Search */
+#header form {
+position: absolute;
+top: 45px;
+right: 0;
+margin: 0;
+}
+#header form p { margin: 0; }
+#header form input {
+padding: 11px 5px;
+font-size: 1.2em;
+background-color: #000;
+color: #ccc;
+border: 0;
+width: 225px;
+}
+#header form input.btn {
+width: auto;
+padding: 7px 5px;
+border: 3px solid #000;
+background-color: #333;
+line-height: 16px;
+}
+
+/*------------------------------------------------------------*
+** Navigation
+**------------------------------------------------------------*/
+#header ul {
+background-color: #2F1C07;
+list-style-type: none;
+margin: 0 0 0;
+padding: 0;
+width: 100%;
+padding: 10px 0;
+}
+#header ul:after {
+content: ".";
+display: block;
+height: 0;
+visibility: hidden;
+clear: both;
+}
+#header ul li {
+float: left;
+margin: 0 9px;
+font-size: 1.2em;
+}
+#header ul li a {
+display: block;
+padding: 10px 20px;
+}
+#header ul li a.on {
+text-decoration: none;
+background-color: #50300C;
+}
+
+/*------------------------------------------------------------*
+** Content
+**------------------------------------------------------------*/
+#content {
+background-color: #000;
+padding: 0 10px 120px 30px;
+height: 1%;
+}
+#content:after {
+content: ".";
+display: block;
+height: 0;
+visibility: hidden;
+clear: both;
+}
+/* the following enables you to add content
+directly into the content div for a one
+column layout while still adding the
+correct margins. */
+#content * { margin-right: 20px; }
+#content div { margin-right: 0; }
+#content div * { margin-right: 0; }
+span, em, strong, acronym, del, label, input, select, textarea, a { margin: 0 !important; }
+
+/* left column formatting */
+#content #left {
+width: 720px;
+margin-right: 40px;
+float: left;
+}
+#content #left a { font-size: 14px; }
+#content #left p { width: 720px; }
+
+
+.colLeft{
+    width:215px;
+    float:left;
+    position:relative;
+    z-index:1;
+    top:360px
+}
+
+.colLeft ul.links {
+margin: 0 0 30px;
+padding: 0;
+list-style-type: none;
+font-size: 1.2em;
+}
+
+.colLeft ul.links li a {
+display: block;
+height: 1%;
+padding: 12px;
+}
+.colLeft ul.links li a:hover {
+background-color: #111;
+}
+
+.colRightContainer{
+    float:right;
+    width:100%;
+    margin-left:-220px;
+}
+.colRight{
+    margin-left:220px;
+}
+
+/* right column formatting */
+#content #right {
+float: right;
+width: 210px;
+min-height: 322px;
+margin-top: 10px;
+padding: 0 20px 20px;
+position: relative;
+left: -750px;
+}
+* html #content #right { height: 322px; }
+#content #right h3 { align: justify; }
+
+/* generic content */
+#content p.info {
+border-top: 1px solid #333;
+border-bottom: 1px solid #333;
+padding: 10px 0;
+position: relative;
+height: 1%;
+}
+#content p.info a.cmt {
+position: absolute;
+right: 0;
+top: 10px;
+}
+#content p.info a.cmt br { display: none; }
+
+
+#content ul.images {
+margin: 0 0 20px;
+padding: 0;
+list-style-type: none;
+height: 1%;
+}
+#content ul.images:after {
+content: ".";
+display: block;
+height: 0;
+visibility: hidden;
+clear: both;
+}
+#content ul.images li {
+float: left;
+margin: 0 11px 11px 0;
+}
+
+#thumbs { padding-top: 10px; overflow: hidden; }
+#thumbs img, #largeImage {
+ border: 1px solid gray;
+ padding: 4px;
+ background-color: white;
+ cursor: pointer;
+}
+#thumbs img {
+ float: left;
+ margin-right: 6px;
+}
+#description {
+ background: black;
+ color: white;
+ position: absolute;
+ bottom: 0;
+ padding: 10px 20px;
+ width: 525px;
+ margin: 5px;
+}
+#panel { position: relative; }
+
+/*------------------------------------------------------------*
+** Footer
+**------------------------------------------------------------*/
+#footer {
+margin-top: -83px;
+text-align: center;
+}
+#footer div {
+color: #ACA47D;
+background-color: #2F1C07;
+margin: 0 auto;
+width: 720px;
+padding-top: 20px;
+padding-bottom: 5px;
+}
+#footer p { margin: 0; position: relative; }
+#footer p span{ position: absolute; right: 0; }
+* html #footer p span { right: 30px; }
