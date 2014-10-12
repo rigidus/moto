@@ -2,7 +2,7 @@
 
 #+TITLE: Модуль сущностей, автоматов и их тесты
 
-#+NAME:css
+#+NAME: css
 #+BEGIN_HTML
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
@@ -14,7 +14,7 @@
   Начнем с определения сущностей системы, а потом расширим их поддержку так, чтобы они
   могли поддерживать [[http://is.ifmo.ru/books/_book.pdf][Автоматное программирование]]:
 
-  #+NAME: entity-file
+  #+NAME: entity_file
   #+BEGIN_SRC lisp :tangle src/mod/entity.lisp :noweb tangle :exports code
     ;;;; entity.lisp
 
@@ -24,9 +24,9 @@
 
     <<automat>>
 
-    <<entity-test>>
+    <<entity_test>>
 
-    <<automat-test>>
+    <<automat_test>>
   #+END_SRC
 
 * Сущности
@@ -50,8 +50,8 @@
     (defmacro define-entity (name desc &rest tail)
       (let ((*package* (symbol-package name)))
         `(progn
-           <<entity-class>>
-           <<make_entity-table>>
+           <<entity_class>>
+           <<make_entity_table>>
            <<make_entity>>
            <<upd_entity>>
            <<del_entity>>
@@ -64,7 +64,7 @@
 
   Генерируем =entity-class=:
 
-  #+NAME: entity-class
+  #+NAME: entity_class
   #+BEGIN_SRC lisp
 
     ;; entity-class
@@ -84,7 +84,7 @@
 
   Генерируем =make_entity-table=:
 
-  #+NAME:make_entity-table
+  #+NAME: make_entity_table
   #+BEGIN_SRC lisp
 
     ;; make-entity-table
@@ -97,7 +97,7 @@
 
   Генерируем =make_entity=:
 
-  #+NAME:make_entity
+  #+NAME: make_entity
   #+BEGIN_SRC lisp
 
     ;; make-entity
@@ -109,7 +109,7 @@
 
   Генерируем =update_entity=:
 
-  #+NAME:upd_entity
+  #+NAME: upd_entity
   #+BEGIN_SRC lisp
 
     ;; upd-entity
@@ -125,7 +125,7 @@
 
   Генерируем =del_entity=:
 
-  #+NAME:del_entity
+  #+NAME: del_entity
   #+BEGIN_SRC lisp
 
     ;; del-entity
@@ -137,7 +137,7 @@
 
   Генерируем =all_entity=:
 
-  #+NAME:all_entity
+  #+NAME: all_entity
   #+BEGIN_SRC lisp
 
     ;; all-entity
@@ -149,7 +149,7 @@
 
   Генерируем =get_entity=:
 
-  #+NAME:get_entity
+  #+NAME: get_entity
   #+BEGIN_SRC lisp
 
     ;; get-entity (by id)
@@ -177,7 +177,7 @@
 
   Генерируем =find_entity=:
 
-  #+NAME:find_entity
+  #+NAME: find_entity
   #+BEGIN_SRC lisp
 
     ;; find-entity
@@ -192,7 +192,7 @@
 
   Генерируем =show_entity=:
 
-  #+NAME:show_entity
+  #+NAME: show_entity
   #+BEGIN_SRC lisp
 
     ;; show-entity
@@ -221,12 +221,12 @@
   Теперь у нас есть генератор всех необходимых функций для обслуживания любых
   сущностей. Мы можем это протестировать, для этого сформируем тест:
 
-  #+NAME:entity-test
+  #+NAME: entity_test
   #+BEGIN_SRC lisp
 
     ;; Тестируем сущности
     (defun entity-test ()
-      <<entity-test_contents>>
+      <<entity_test_contents>>
       (dbg "passed: entity-test~%"))
     (entity-test)
   #+END_SRC
@@ -236,7 +236,7 @@
 
   Сначала убедимся, что тестовой таблицы в базе нет. Если она все-таки есть - удалим.
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (when (with-connection *db-spec*
@@ -250,7 +250,7 @@
   Определим новыю сущность и вызовем создание таблицы средствами наших сгенерированных
   функций. Проверим, что таблица успешно создана.
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (define-entity entity123 "Тестовая сущность"
@@ -269,7 +269,7 @@
 
   Сформируем сущность и проверим, что она появилась в таблице:
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (make-entity123 :email "test-email-1" :name "test-name-1")
@@ -280,7 +280,7 @@
 
   Проверим, что ее можно получить из =get-{entity}=
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (assert (not (null (get-entity123 1))))
@@ -289,7 +289,7 @@
   Попробуем изменить в ней некоторые поля и проверим, что меняется сущность и ее
   отображение в таблице:
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (upd-entity123 (get-entity123 1) (list :name "new-name"))
@@ -304,7 +304,7 @@
 
   Попробуем удалить сущность
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (del-entity123 1)
@@ -316,7 +316,7 @@
   Создадим еще парочку разных сущностей проверим получение всех сущностей и проверим что
   по сущностям работает поиск.
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (make-entity123 :email "test-email-2" :name "test-name-2")
@@ -330,7 +330,7 @@
 
   Подчистим за собой - удалим таблицу
 
-  #+NAME:entity-test_contents
+  #+NAME: entity_test_contents
   #+BEGIN_SRC lisp
 
     (with-connection *db-spec*
@@ -350,7 +350,7 @@
   новое состояние. Если переход из старого состояния в новое не описан - это закономерно
   вызывает ошибку.
 
-  #+NAME:automat
+  #+NAME: automat
   #+BEGIN_SRC lisp
     (defmacro define-automat (name desc &rest tail)
       (let ((package (symbol-package name)))
@@ -382,12 +382,12 @@
 
     Чтобы протестировать автоматы - формируем тест:
 
-    #+NAME:automat-test
+    #+NAME: automat_test
     #+BEGIN_SRC lisp
 
       ;; Тестируем автоматы
       (defun automat-test ()
-        <<automat-test_contents>>
+        <<automat_test_contents>>
         (dbg "passed: automat-test~%"))
       (automat-test)
     #+END_SRC
@@ -397,7 +397,7 @@
 
     Сначала убедимся, что тестовой таблицы в базе нет. Если она все-таки есть - удалим.
 
-    #+NAME:automat-test_contents
+    #+NAME: automat_test_contents
     #+BEGIN_SRC lisp
 
       (when (with-connection *db-spec*
@@ -411,7 +411,7 @@
     Определим новыю сущность и вызовем создание таблицы средствами наших сгенерированных
     функций. Проверим, что таблица успешно создана. Проверим, что в таблице есть поле =state=.
 
-    #+NAME:automat-test_contents
+    #+NAME: automat_test_contents
     #+BEGIN_SRC lisp
 
       (define-automat automat123 "Тестовый автомат"
@@ -441,7 +441,7 @@
     перехода. Протестируем все верные переходы и убедимся, что в конце теста состояние
     внутри таблицы верно.
 
-    #+NAME:automat-test_contents
+    #+NAME: automat_test_contents
     #+BEGIN_SRC lisp
 
       (make-automat123 :email "test-email-1" :name "test-name-1")
@@ -475,7 +475,7 @@
 
     Протестируем выброс ошибки в случае попытки неразрешенного перехода
 
-    #+NAME:automat-test_contents
+    #+NAME: automat_test_contents
     #+BEGIN_SRC lisp
       (let ((test t) (err nil))
         (handler-case
@@ -489,7 +489,7 @@
 
     Подчистим за собой - удалим таблицу
 
-    #+NAME:automat-test_contents
+    #+NAME: automat_test_contents
     #+BEGIN_SRC lisp
 
       (with-connection *db-spec*

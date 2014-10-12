@@ -2,7 +2,7 @@
 
 #+TITLE: moto
 
-#+NAME:css
+#+NAME: css
 #+BEGIN_HTML
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
@@ -178,7 +178,7 @@ _____________________
 
    Начнем с генерации кода из таблицы полей:
 
-   #+NAME: gen-fields
+   #+NAME: gen_fields
    #+BEGIN_SRC emacs-lisp
      (defun gen-fields (table)
        (let ((rows (nthcdr 2 table)))
@@ -191,7 +191,7 @@ _____________________
 
    Теперь напишем код, который генерирует код для состояний конечного автомата:
 
-   #+NAME: gen-states
+   #+NAME: gen_states
    #+BEGIN_SRC emacs-lisp
      (defun gen-states (table)
        (let ((rows (nthcdr 2 table))
@@ -211,7 +211,7 @@ _____________________
 
    И добавим к этом генератор действий - т.е. переходов между состояниями:
 
-   #+NAME: gen-actions
+   #+NAME: gen_actions
    #+BEGIN_SRC emacs-lisp
      (defun gen-actions (table)
        (let ((rows (nthcdr 2 table)))
@@ -232,11 +232,11 @@ _____________________
 
    #+NAME: generators
    #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code
-     <<gen-fields>>
+     <<gen_fields>>
 
-     <<gen-states>>
+     <<gen_states>>
 
-     <<gen-actions>>
+     <<gen_actions>>
    #+END_SRC
 
    И загрузим его:
@@ -252,7 +252,7 @@ _____________________
    сохранить данные в =PostgreSQL=
 
    #+CAPTION: Данные пользователя
-   #+NAME: user-data
+   #+NAME: user_data
      | field name | field type | note              |
      |------------+------------+-------------------|
      | id         | serial     | идентификатор     |
@@ -274,7 +274,7 @@ _____________________
    Все эти переходы и состояния сведем в единую таблицу:
 
    #+CAPTION: Состояния конечного автомата пользователя
-   #+NAME:user-state
+   #+NAME: user_state
      | action         | from        | to          |
      |----------------+-------------+-------------|
      | registration   | unregistred | logged      |
@@ -286,7 +286,7 @@ _____________________
 
    Теперь мы можем полностью описать поведение пользователя как конечный автомат:
 
-   #+NAME:user-state-graph
+   #+NAME: user_state_graph
    #+BEGIN_SRC emacs-lisp :var table=user-state :results output :exports none
      (mapcar #'(lambda (x)
                  (princ (format "%s -> %s [label =\"%s\"];\n"
@@ -304,42 +304,42 @@ _____________________
    Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
    в коде:
 
-   #+NAME: user-automat
+   #+NAME: user_automat
    #+BEGIN_SRC lisp
      (define-automat user "Автомат пользователя"
-       <<user-fields()>>
-       <<user-states()>>
-       <<user-actions()>>)
+       <<user_fields()>>
+       <<user_states()>>
+       <<user_actions()>>)
 
-      <<user-actions-func>>
+      <<user_actions_func>>
 
-      <<create-user>>
+      <<create_user>>
    #+END_SRC
 
    Где =user-fields= (поля данных) определим как:
 
-   #+NAME: user-fields
-   #+BEGIN_SRC emacs-lisp :var table=user-data :results output :exports results :tangle no
+   #+NAME: user_fields
+   #+BEGIN_SRC emacs-lisp :var table=user_data :results output :exports results :tangle no
      (gen-fields table)
    #+END_SRC
 
    А =user-states= т.е. состояния пользователя определим так:
 
-   #+NAME: user-states
-   #+BEGIN_SRC emacs-lisp :var table=user-state :results output :exports results :tangle no
+   #+NAME: user_states
+   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports results :tangle no
      (gen-states table)
    #+END_SRC
 
    И, наконец, определим =user-actions= переходы между состояниями:
 
-   #+NAME: user-actions
-   #+BEGIN_SRC emacs-lisp :var table=user-state :results output :exports results :tangle no
+   #+NAME: user_actions
+   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports results :tangle no
      (gen-actions table)
    #+END_SRC
 
    Теперь определим функции, которые вызываются на переходах
 
-   #+NAME: user-actions-func
+   #+NAME: user_actions_func
    #+BEGIN_SRC lisp
      (defun registration ()
        "unregistred -> logged"
@@ -452,7 +452,7 @@ _____________________
 
    Опишем из чего состоит модуль, это описание станет частью asd-файла:
 
-   #+NAME: mod-entity
+   #+NAME: mod_entity
    #+BEGIN_SRC lisp
      (:module "entity"
               :serial t
@@ -466,7 +466,7 @@ _____________________
 
    Опишем из чего состоит модуль, это описание станет частью asd-файла:
 
-   #+NAME: mod-auth
+   #+NAME: mod_auth
    #+BEGIN_SRC lisp
      (:module "auth"
               :serial t
@@ -482,17 +482,17 @@ _____________________
 
 * Сборка
 ** Утилиты
-   #+NAME: utility-file
+   #+NAME: utility_file
    #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code
      ;;;; util.lisp
 
      (in-package #:moto)
 
-     <<get-obj-data>>
+     <<get_obj_data>>
 
-     <<make-clause-list>>
+     <<make_clause_list>>
 
-     <<err-bprint-macro>>
+     <<err_bprint_macro>>
 
      <<dbgout>>
 
@@ -503,7 +503,7 @@ _____________________
      <<frm>>
    #+END_SRC
 
-   #+NAME: get-obj-data
+   #+NAME: get_obj_data
    #+BEGIN_SRC lisp
      ;; Превращает инициализированные поля объекта в plist
      (defun get-obj-data (obj)
@@ -518,7 +518,7 @@ _____________________
          result))
    #+END_SRC
 
-   #+NAME: make-clause-list
+   #+NAME: make_clause_list
    #+BEGIN_SRC lisp
      ;; Assembly WHERE clause
      (defun make-clause-list (glob-rel rel args)
@@ -532,7 +532,7 @@ _____________________
                   :collect (list rel i (getf args i)))))
    #+END_SRC
 
-   #+NAME: err-bprint-macro
+   #+NAME: err_bprint_macro
    #+BEGIN_SRC lisp
      ;; Макросы для корректного вывода ошибок
      (defmacro bprint (var)
@@ -796,9 +796,9 @@ _____________________
                     (:file "util")       ;; файл с утилитами
                     (:file "globals")    ;; файл с глобальными определеями
                     ;; Модуль сущностей, автоматов и их тестов
-                    <<mod-entity>>
+                    <<mod_entity>>
                     ;; Модуль авторизации
-                    <<mod-auth>>
+                    <<mod_auth>>
                     (:file "moto")       ;; стартовый файл
                     (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
@@ -854,7 +854,7 @@ _____________________
      <<globals>>
 
      ;; Описания автоматов и сущностей
-     <<user-automat>>
+     <<user_automat>>
 
      ;; Веб-интерфейс
 
@@ -874,22 +874,13 @@ _____________________
      (in-package #:moto)
 
      ;; Враппер веб-интерфейса
-     <<with-wrapper>>
+     <<with_wrapper>>
 
      ;; Хелпер форм
      <<frm>>
 
      ;; Главная страница
      <<mainpage>>
-
-     ;; Страница регистрации
-     <<regpage>>
-
-     ;; Страница авторизации
-     <<authpage>>
-
-     ;; Страница логаута
-     <<logoutpage>>
 
      ;; Список пользователей
      <<alluserspage>>

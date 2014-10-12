@@ -2,7 +2,7 @@
 ;;;; package.lisp
 
 (restas:define-module #:moto
-  (:use  #:cl #:closer-mop #:postmodern #:anaphora)
+  (:use  #:cl #:closer-mop #:postmodern #:anaphora #:hunchentoot)
   (:shadowing-import-from #:closer-mop
                           #:defclass
                           #:defmethod
