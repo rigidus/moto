@@ -377,59 +377,205 @@ _____________________
 
      (in-package #:moto)
 
-     ;; Создание пользователя
-     <<create-user>>
-
-     ;; Логин пользователя
-     <<login-user>>
-
-     ;; Логаут пользователя
-     <<logout-user>>
-   #+END_SRC
-
-
-** Создание пользователя
-
-   #+NAME: create-user
-   #+BEGIN_SRC lisp
-     (defun create-user (name password email)
-       "Создание пользователя. Возвращает id пользователя"
-       (let ((user-id (id (make-user :name name :password password :email email))))
-         (dbg "Создан пользователь: ~A" user-id)
-         ;; Делаем его залогиненным
-         (upd-user (get-user user-id) (list :state ":logged"))
-         ;; Возвращаем user-id
-         user-id))
-   #+END_SRC
-
-** Вход пользователя в систему
-   #+NAME: login-user
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defun login-user (id)
-       (takt (get-user id) :logged))
-   #+END_SRC
-
-** Выход пользователя из системы
-   #+NAME: logout-user
-   #+BEGIN_SRC lisp
-     (defun logout-user (current-user)
-       (takt (get-user current-user) :unlogged))
    #+END_SRC
 
 * Use cases
 ** Маршруты логина и логаута и путь пользователя по сайту при выполнении этого сценария
 * Interface
-** Инфраструктура веб-интерфейса
+** Главная страница
 
-   Для прототипа будем делать типа MVC, причем Model и View можно генерировать. Для этого
-   можно написать хелперы чтобы генерить формочки и макрос-враппер, который оборачивает все,
-   что выводится на веб-страничку.
+   #+NAME: mainpage
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route main ("/")
+       (with-wrapper
+         "main"))
+   #+END_SRC
+
+** Список пользователей
+
+   #+NAME: alluserspage
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route allusers ("/users")
+       (with-wrapper
+         (tbl
+          (loop :for i :in (all-user) :collect
+             (tr
+              (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
+              (td (name i))
+              (td (password i))
+              (td (email i))))
+          :border 1)))
+
+     (restas:define-route allusers-ctrl ("/users" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           "TODO")))
+   #+END_SRC
+
+** Страничка пользователя
+
+   #+NAME: userpage
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route user ("/user/:userid")
+       (with-wrapper
+         (let* ((i (parse-integer userid))
+                (u (get-user i)))
+           (if (null u)
+               "Нет такого пользователя"
+               (format nil "~{~A~}"
+                       (list
+                        (format nil "<h1>Страница пользователя ~A</h1>" (id u))
+                        (format nil "<h2>Данные пользователя ~A</h2>" (name u))
+                        (tbl (list
+                              (row "Имя пользователя" (name u))
+                              (row "Пароль" (password u))
+                              (row "Email" (email u)))
+                             :border 1)
+                        ))))))
+
+     (restas:define-route user-ctrl ("/user/:userid" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (cond ((getf p :addsum)   )
+                 ((getf p :follow)   )
+                 ((getf p :neworder) )))))
+   #+END_SRC
+
+* Модули
+** Cущности, автоматы и их тесты
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod-entity
+   #+BEGIN_SRC lisp
+     (:module "entity"
+              :serial t
+              :pathname "mod"
+              :components ((:file "entity")))
+   #+END_SRC
+
+   Собственно описание модуля вынесено в файл [[file:entity.org]]
+
+** Авторизация
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod-auth
+   #+BEGIN_SRC lisp
+     (:module "auth"
+              :serial t
+              :pathname "mod/auth"
+              :components ((:static-file "auth-tpl.htm")
+                           (:file "auth")))
+   #+END_SRC
+
+   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
+   закрытому от неавторизованных пользователей функционалу.
+
+   Собственно описание модуля вынесено в файл [[file:auth.org]]
+
+* Сборка
+** Утилиты
+   #+NAME: utility-file
+   #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code
+     ;;;; util.lisp
+
+     (in-package #:moto)
+
+     <<get-obj-data>>
+
+     <<make-clause-list>>
+
+     <<err-bprint-macro>>
+
+     <<dbgout>>
+
+     <<alist_plist>>
+
+     <<with_wrapper>>
+
+     <<frm>>
+   #+END_SRC
+
+   #+NAME: get-obj-data
+   #+BEGIN_SRC lisp
+     ;; Превращает инициализированные поля объекта в plist
+     (defun get-obj-data (obj)
+       (let ((class (find-class (type-of obj)))
+             (result))
+         (loop :for slot :in (closer-mop:class-direct-slots class) :collect
+            (let ((slot-name (closer-mop:slot-definition-name slot)))
+              (when (slot-boundp obj slot-name)
+                (setf result
+                      (append result (list (intern (symbol-name slot-name) :keyword)
+                                           (funcall slot-name obj)))))))
+         result))
+   #+END_SRC
+
+   #+NAME: make-clause-list
+   #+BEGIN_SRC lisp
+     ;; Assembly WHERE clause
+     (defun make-clause-list (glob-rel rel args)
+       (append (list glob-rel)
+               (loop
+                  :for i
+                  :in args
+                  :when (and (symbolp i)
+                             (getf args i)
+                             (not (symbolp (getf args i))))
+                  :collect (list rel i (getf args i)))))
+   #+END_SRC
+
+   #+NAME: err-bprint-macro
+   #+BEGIN_SRC lisp
+     ;; Макросы для корректного вывода ошибок
+     (defmacro bprint (var)
+       `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
+
+     (defmacro err (var)
+       `(error (format nil "ERR:[~A]" (bprint ,var))))
+   #+END_SRC
+
+   #+NAME: dbgout
+   #+BEGIN_SRC lisp
+     ;; Отладочный вывод
+     (defparameter *dbg-enable* t)
+     (defparameter *dbg-indent* 1)
+
+     (defun dbgout (out)
+       (when *dbg-enable*
+         (format t (format nil "~~%~~~AT~~A" *dbg-indent*) out)))
+
+     (defmacro dbg (frmt &rest params)
+       `(dbgout (format nil ,frmt ,@params)))
+
+     ;; (macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))
+   #+END_SRC
+
+   #+NAME: alist_plist
+   #+BEGIN_SRC lisp
+     (defun anything-to-keyword (item)
+       (intern (string-upcase (format nil "~a" item)) :keyword))
+
+     (defun alist-to-plist (alist)
+       (if (not (equal (type-of alist) 'cons))
+           alist
+           ;;else
+           (loop
+              :for (key . value)
+              :in alist
+              :nconc (list (anything-to-keyword key) value))))
+   #+END_SRC
 
    Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
 
-   #+NAME: with-wrapper
+   #+NAME: with_wrapper
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -522,377 +668,6 @@ _____________________
      ;; (frm (tbl (list (row "username" (fld "user")))))
    #+END_SRC
 
-** Главная страница
-
-   #+NAME: mainpage
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (restas:define-route main ("/")
-       (with-wrapper
-         "main"))
-   #+END_SRC
-
-** Регистрация
-
-   Страница регистрации использует движок форм для показа формы пользователю и при
-   выполнении регистрации вызывает событие =create-user=.
-
-   #+NAME: regpage
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (restas:define-route reg ("/reg")
-       (with-wrapper
-         (concatenate
-          'string
-          "<h1>Страница регистрации</h1>"
-          (if *current-user*
-              "Регистрация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
-              (frm (tbl
-                    (list
-                     (row "Имя пользователя" (fld "name"))
-                     (row "Пароль" (fld "password"))
-                     (row "Email" (fld "email"))
-                     (row "" (submit "Зарегистрироваться")))))))))
-
-     (restas:define-route reg-ctrl ("/reg" :method :post)
-       (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           (setf (hunchentoot:session-value 'current-user)
-                 (create-user (getf p :name)
-                              (getf p :password)
-                              (getf p :email))))))
-   #+END_SRC
-
-** Авторизация
-
-   #+NAME: authpage
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (restas:define-route auth ("/auth")
-       (with-wrapper
-         (concatenate
-          'string
-          "<h1>Страница авторизации</h1>"
-          (if *current-user*
-              "Авторизация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
-              (frm (tbl
-                    (list
-                     (row "Имя пользователя" (fld "name"))
-                     (row "Пароль" (fld "password"))
-                     (row "" (submit "Войти")))))))))
-
-     (restas:define-route auth-ctrl ("/auth" :method :post)
-       (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*)))
-                (result (find-user :name (getf p :name) :password (getf p :password))))
-           (if (null result)
-               "RESULT: Wrong!!"
-               (prog1
-                   (login-user (id (car result)))
-                 (setf (hunchentoot:session-value 'current-user)
-                       (id (car result))))))))
-   #+END_SRC
-
-** Выход из системы
-
-   #+NAME: logoutpage
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (restas:define-route logout ("/logout")
-       (with-wrapper
-         (concatenate
-          'string
-          "<h1>Страница выхода из системы</h1>"
-          (if *current-user*
-              (frm (tbl
-                    (list
-                     (row "" (submit "Выйти")))))
-              "Выход невозможен - никто не залогинен"
-              ))))
-
-     (restas:define-route logout-ctrl ("/logout" :method :post)
-       (with-wrapper
-         (prog1
-             (format nil "~A" (logout-user *current-user*))
-           (setf (hunchentoot:session-value 'current-user) nil))))
-
-   #+END_SRC
-
-** Список пользователей
-
-   #+NAME: alluserspage
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (restas:define-route allusers ("/users")
-       (with-wrapper
-         (tbl
-          (loop :for i :in (all-user) :collect
-             (tr
-              (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
-              (td (name i))
-              (td (password i))
-              (td (email i))))
-          :border 1)))
-
-     (restas:define-route allusers-ctrl ("/users" :method :post)
-       (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           "TODO")))
-   #+END_SRC
-
-** Страничка пользователя
-
-   #+NAME: userpage
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (restas:define-route user ("/user/:userid")
-       (with-wrapper
-         (let* ((i (parse-integer userid))
-                (u (get-user i)))
-           (if (null u)
-               "Нет такого пользователя"
-               (format nil "~{~A~}"
-                       (list
-                        (format nil "<h1>Страница пользователя ~A</h1>" (id u))
-                        (format nil "<h2>Данные пользователя ~A</h2>" (name u))
-                        (tbl (list
-                              (row "Имя пользователя" (name u))
-                              (row "Пароль" (password u))
-                              (row "Email" (email u)))
-                             :border 1)
-                        "<h2>Аккаунты пользователя</h2>"
-                        (format nil "~{~A~}"
-                                (loop :for a :in (find-account :user-id (id u)) :collect
-                                   (show-account i a)))))))))
-
-     (defun show-account (i a)
-       (format nil "<div style=\"background-color: #CCCCCC; padding: 2px 20px 2px 20px;\">~{~A~}</div><br />"
-               (list
-                (format nil "<h3>Аккаунт ~A</h3>" (id a))
-                (addsum a)
-                (follow i a)
-                (neworder a)
-                ;; ORDERS
-                (format nil "<h4>Ордера аккаунта ~A</h4>" (id a))
-                (let ((orders (find-order :account_id (id a))))
-                  (if (null orders)
-                      (format nil "нет ордеров~%")
-                      (format nil "~{~A ~}"
-                              (loop :for o :in orders :collect
-                                 (tbl
-                                  (list
-                                   (tr
-                                    (td (format nil "<a href=\"/order/~A\">id: ~A</a>" (id o) (id o)))
-                                    (td (format nil "price_open: ~A</a>" (price_open o)))
-                                    (td (format nil "state: ~A</a>" (state o)))
-                                    (td (format nil "stop_loss: ~A</a>" (stop_loss o)))
-                                    (td (format nil "take_profit: ~A</a>" (take_profit o)))
-                                    (td (format nil "currency: ~A</a>" (currency o)))))
-                                  :border 1))))))))
-
-     (defun addsum (a)
-       (frm
-        (list
-         (tbl
-          (list
-           (row "id" (id a))
-           (row "type"(account_type a))
-           (row "sum" (sum a))
-           (row (fld "add") (submit "Добавить денег на аккаунт" )))
-          :border 1)
-         (hid "account_id" (id a))
-         (hid "addsum"))))
-
-     (defun follow (i a)
-       (frm
-        (list
-         (if (null *current-user*)
-             (tpl:followblock (list :following "Нет залогиненного пользователя, поэтому фолловинг невозможен"))
-             (if (equal *current-user* i)
-                 (tpl:followblock (list :following "Нельзя зафолловить самого себя"))
-                 (tpl:followblock (list :following "Надо выбрать аккаунт"))
-                 ))
-
-                 ;; "wefwef")))))
-                 ;; (format nil "OPEN-ORDERS-QUEUE-FOR-ACCOUNT-~A - ~A" 1 2))))))1
-                 ;; (if ;; (find-in-queue (format nil "OPEN-ORDERS-QUEUE-FOR-ACCOUNT-~A" (id a) (id i)))
-                 ;;  nil
-                 ;;     "Фолловинг: этот пользователь уже зафолловен. Расфолловить?"
-                 ;;     (tbl
-                 ;;      (list
-                 ;;       (row "В данный момент не зафоловлен текущим пользователем" (submit "Зафолловить" )))
-                 ;;      :border 1))))
-         (hid "account_id" (id a))
-         (hid "follow"))))
-
-     (defun neworder (a)
-       (format nil "<div style=\"background-color: #FFFFFF; padding: 2px 20px 2px 20px;\">~%Создать новый ордер на аккаунте ~A:~A</div>"
-               (id a)
-               (frm
-                (list
-                 (hid "neworder")
-                 (hid "account_id" (id a))
-                 (tbl
-                  (list
-                   (row "symbol_id" (fld "symbol_id" "EURUSD"))
-                   (row "order_type" (fld "order_type" 1))
-                   (row "risk-level" (fld "risk_level"))
-                   (row "leverage" (fld "leverage"))
-                   (row "lots" (fld "lots"))
-                   (row "sum" (fld "sum"))
-                   (row "stop_loss"  (fld "stop_loss"))
-                   (row "take_profit" (fld "take_profit"))
-                   (row "" (submit "Создать ордер"))))))))
-
-     (restas:define-route user-ctrl ("/user/:userid" :method :post)
-       (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           (cond ((getf p :addsum)   (add-balance (parse-integer (getf p :account_id)) (parse-integer (getf p :add))))
-                 ((getf p :follow)   (dbg "~A" (bprint p)))
-                 ((getf p :neworder) (progn
-                                       (create-order
-                                        (parse-integer (getf p :account_id))
-                                        (let ((s (find-symb :symb "EURUSD")))
-                                          (if (null s)
-                                              (err "unknown symb")
-                                              (id (car s))))
-                                        t ;; order-type
-                                        t  ;; risk-level
-                                        (parse-integer (getf p :leverage))
-                                        (parse-integer (getf p :lots))
-                                        (parse-integer (getf p :sum))
-                                        (parse-integer (getf p :stop_loss))
-                                        (parse-integer (getf p :take_profit))
-                                        )))))))
-   #+END_SRC
-
-* Модули
-** Cущности, автоматы и их тесты
-
-   Опишем из чего состоит модуль, это описание станет частью asd-файла:
-
-   #+NAME: mod-entity
-   #+BEGIN_SRC lisp
-     (:module "entity"
-              :serial t
-              :pathname "mod"
-              :components ((:file "entity")))
-   #+END_SRC
-
-   Собственно описание модуля вынесено в файл [[file:entity.org]]
-
-** Авторизация
-
-   Опишем из чего состоит модуль, это описание станет частью asd-файла:
-
-   #+NAME: mod-auth
-   #+BEGIN_SRC lisp
-     (:module "auth"
-              :serial t
-              :pathname "mod/auth"
-              :components ((:static-file "auth-tpl.htm")
-                           (:file "auth")))
-   #+END_SRC
-
-   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
-   закрытому от неавторизованных пользователей функционалу.
-
-* Сборка
-** Утилиты
-   #+NAME: utility-file
-   #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code
-     ;;;; util.lisp
-
-     (in-package #:moto)
-
-     <<get-obj-data>>
-
-     <<make-clause-list>>
-
-     <<err-bprint-macro>>
-
-     <<dbgout>>
-
-     <<alist_plist>>
-
-     <<with_wrapper>>
-   #+END_SRC
-
-   #+NAME: get-obj-data
-   #+BEGIN_SRC lisp
-     ;; Превращает инициализированные поля объекта в plist
-     (defun get-obj-data (obj)
-       (let ((class (find-class (type-of obj)))
-             (result))
-         (loop :for slot :in (closer-mop:class-direct-slots class) :collect
-            (let ((slot-name (closer-mop:slot-definition-name slot)))
-              (when (slot-boundp obj slot-name)
-                (setf result
-                      (append result (list (intern (symbol-name slot-name) :keyword)
-                                           (funcall slot-name obj)))))))
-         result))
-   #+END_SRC
-
-   #+NAME: make-clause-list
-   #+BEGIN_SRC lisp
-     ;; Assembly WHERE clause
-     (defun make-clause-list (glob-rel rel args)
-       (append (list glob-rel)
-               (loop
-                  :for i
-                  :in args
-                  :when (and (symbolp i)
-                             (getf args i)
-                             (not (symbolp (getf args i))))
-                  :collect (list rel i (getf args i)))))
-   #+END_SRC
-
-   #+NAME: err-bprint-macro
-   #+BEGIN_SRC lisp
-     ;; Макросы для корректного вывода ошибок
-     (defmacro bprint (var)
-       `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
-
-     (defmacro err (var)
-       `(error (format nil "ERR:[~A]" (bprint ,var))))
-   #+END_SRC
-
-   #+NAME: dbgout
-   #+BEGIN_SRC lisp
-     ;; Отладочный вывод
-     (defparameter *dbg-enable* t)
-     (defparameter *dbg-indent* 1)
-
-     (defun dbgout (out)
-       (when *dbg-enable*
-         (format t (format nil "~~%~~~AT~~A" *dbg-indent*) out)))
-
-     (defmacro dbg (frmt &rest params)
-       `(dbgout (format nil ,frmt ,@params)))
-
-     ;; (macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))
-   #+END_SRC
-
-   #+NAME: alist_plist
-   #+BEGIN_SRC lisp
-     (defun anything-to-keyword (item)
-       (intern (string-upcase (format nil "~a" item)) :keyword))
-
-     (defun alist-to-plist (alist)
-       (if (not (equal (type-of alist) 'cons))
-           alist
-           ;;else
-           (loop
-              :for (key . value)
-              :in alist
-              :nconc (list (anything-to-keyword key) value))))
-   #+END_SRC
 
 ** Шаблоны
 
@@ -964,7 +739,7 @@ _____________________
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; clear db
-     (let ((tables '("account" "order" "quot" "symb" "user")))
+     (let ((tables '("user")))
        (flet ((rmtbl (tblname)
                 (when (with-connection *db-spec*
                         (query (:select 'table_name :from 'information_schema.tables :where
@@ -1016,6 +791,7 @@ _____________________
        :version "0.0.3"
        :license "GPLv3"
        :components ((:file "package")    ;; файл пакетов
+                    (:static-file "templates.htm")
                     (:file "prepare")    ;; подготовка к старту
                     (:file "util")       ;; файл с утилитами
                     (:file "globals")    ;; файл с глобальными определеями
@@ -1038,7 +814,7 @@ _____________________
      ;;;; package.lisp
 
      (restas:define-module #:moto
-       (:use  #:cl #:closer-mop #:postmodern)
+       (:use  #:cl #:closer-mop #:postmodern #:anaphora #:hunchentoot)
        (:shadowing-import-from #:closer-mop
                                #:defclass
                                #:defmethod

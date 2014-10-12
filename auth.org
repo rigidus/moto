@@ -8,10 +8,21 @@
 #+END_HTML
 
 * Введение
-  Как пользователь, я хочу иметь возможность выйти из авторизованной сессии.
+
+  Как пользователь я хочу иметь возможность зарегистрироваться на сайте. Сразу после
+  регистрации я хочу быть залогиненным в авторизованную сессию.
+
+  Как пользователь, я хочу иметь возможность выйти из авторизованной сессии после окончания
+  работы.
+
+  Как пользователь, я хочу войти в авторизованную сессию по своему емейлу и паролю.
 
   Как разработчик, я хочу конфигурировать url-ы, на которые попадает пользователь при
-  выполнении этого сценария и навешивать свои обработчики на события логина и логаута.
+  выполнении этого сценария и навешивать свои обработчики на события:
+  - регистрация пользователя
+  - успешный вход пользователя
+  - неуспешный вход пользователя
+  - выход пользователя
 
   Что нам для этого нужно?
   - Сущность =User=, имеющая поля =email= и =password=
@@ -25,23 +36,23 @@
 
   Соберем шаблоны логина и логаута
 
-  #+NAME: auth-tpl
+  #+NAME: auth_tpl
   #+BEGIN_SRC closure-template-html :tangle src/mod/auth/auth-tpl.htm :noweb tangle :exports code
     // -*- mode: closure-template-html; fill-column: 140 -*-
     {namespace authtpl}
 
     {template logintpl}
-      <<loginform-tpl>>
+      <<loginform_tpl>>
     {/template}
 
     {template logouttpl}
-      <<logoutform-tpl>>
+      <<logoutform_tpl>>
     {/template}
   #+END_SRC
 
   Соберем контроллеры и все функции, которые контроллеры вызывают
 
-  #+NAME: auth-fn
+  #+NAME: auth_fn
   #+BEGIN_SRC lisp :tangle src/mod/auth/auth.lisp :noweb tangle :exports code
     (in-package #:moto)
 
@@ -51,33 +62,41 @@
      (pathname
       (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
 
-    ;; Контроллер логина
-    <<login-ctrl>>
+    ;; Страница регистрации и ее контроллер
+    <<reg_page>>
 
-    ;; Контроллер логаута
-    <<logout-ctrl>>
+    ;; Событие создания пользователя, которые вызывает контроллер регистрации
+    <<create_user>>
 
-    ;; Функция проверки авторизационных данных
-    <<check-auth-data>>
+    ;; Страница выхода из системы и ее контроллер
+    <<logout_page>>
+
+    ;; Событие выхода пользователя из системы
+    <<logout_user>>
+
+    ;; Страница логина и ее контроллер
+    <<login_page>>
 
     ;; Обобщенный метод извлечения авторизационных данных
-    <<get-auth-data>>
+    <<get_auth_data>>
 
-    ;; Функция проверки, залогинен ли пользователь
-    <<is-logged>>
+    ;; Функция проверки авторизационных данных
+    <<check_auth_data>>
 
-    ;; Хук успешной авторизации
-    <<auth-success>>
 
-    ;; Хук неуспешной авторизации
-    <<auth-fail>>
+    ;; Событие успешного входа пользователя в систему
+    <<login_user_success>>
+
+    ;; Событие неуспешного входа пользователя в систему
+    <<login_user_fail>>
+
   #+END_SRC
 
   Мы вводим:
 
 ** Шаблон логина
 
-   #+NAME: loginform-tpl
+   #+NAME: loginform_tpl
    #+BEGIN_SRC html :exports code
      <form method="POST" name="loginform">
          <input type="text" id="login" name="login" />
@@ -88,7 +107,7 @@
 
 ** Шаблон логаута
 
-   #+NAME: logoutform-tpl
+   #+NAME: logoutform_tpl
    #+BEGIN_SRC html :exports code
      <form method="POST" name="logoutform">
          <input type="hidden" name="logout" value="logout" />
@@ -96,51 +115,175 @@
      </form>
    #+END_SRC
 
-** Контроллер логина
+** Страница регистрации и ее контроллер
+
+   Страница регистрации использует движок форм для показа формы пользователю и при
+   выполнении регистрации вызывает событие =create-user=.
+
+   #+NAME: reg_page
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route reg ("/reg")
+       (with-wrapper
+         (concatenate
+          'string
+          "<h1>Страница регистрации</h1>"
+          (if *current-user*
+              "Регистрация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
+              (frm (tbl
+                    (list
+                     (row "Имя пользователя" (fld "name"))
+                     (row "Пароль" (fld "password"))
+                     (row "Email" (fld "email"))
+                     (row "" (submit "Зарегистрироваться")))))))))
+
+     (restas:define-route reg-ctrl ("/reg" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (setf (hunchentoot:session-value 'current-user)
+                 (create-user (getf p :name)
+                              (getf p :password)
+                              (getf p :email))))))
+   #+END_SRC
+
+** Событие создания пользователя
+
+   #+NAME: create_user
+   #+BEGIN_SRC lisp
+     (defun create-user (name password email)
+       "Создание пользователя. Возвращает id пользователя"
+       (let ((user-id (id (make-user :name name :password password :email email))))
+         (dbg "Создан пользователь: ~A" user-id)
+         ;; Делаем его залогиненным
+         (upd-user (get-user user-id) (list :state ":logged"))
+         ;; Возвращаем user-id
+         user-id))
+   #+END_SRC
+
+** Страница выхода из системы и ее контроллер
+
+   #+NAME: logout_page
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route logout ("/logout")
+       (with-wrapper
+         (concatenate
+          'string
+          "<h1>Страница выхода из системы</h1>"
+          (if *current-user*
+              (frm (tbl
+                    (list
+                     (row "" (submit "Выйти")))))
+              "Выход невозможен - никто не залогинен"
+              ))))
+
+     (restas:define-route logout-ctrl ("/logout" :method :post)
+       (with-wrapper
+         (prog1
+             (format nil "~A" (logout-user *current-user*))
+           (setf (hunchentoot:session-value 'current-user) nil))))
+   #+END_SRC
+
+** Событие выхода пользователя из системы
+
+   #+NAME: logout_user
+   #+BEGIN_SRC lisp
+     (defun logout-user (current-user)
+       (takt (get-user current-user) :unlogged))
+   #+END_SRC
+
+** Страница логина и ее контроллер
 
    Контроллер логина использует обобщенный метод =get-auth-data= для извлечения данных
    авторизации и функцию их проверки =check-auth-data=.
 
    При успешной проверке устанавливает переменную сессии =current-user= с помощью функции
-   =set-session= и выполняет =auth-success=.
+   =set-session= и выполняет =login-user-success=.
 
-   При неупехе выполняет =auth-fail=.
+   При неуcпехе выполняет =login-user-fail=.
 
-   #+NAME: login-ctrl
-   #+BEGIN_SRC lisp :exports code
-     (defun loginform-ctrl (request)
-       (aif (check-auth-data (get-auth-data request))
-            (progn
-              (setf (session-value current-user) it)
-              (auth-success))
-            (auth-fail)))
+   #+NAME: login_page
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route login ("/login")
+       (with-wrapper
+         (concatenate
+          'string
+          "<h1>Страница авторизации</h1>"
+          (if *current-user*
+              "Авторизация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
+              (frm (tbl
+                    (list
+                     (row "Email" (fld "email"))
+                     (row "Пароль" (fld "password"))
+                     (row "" (submit "Войти")))))))))
+
+     (restas:define-route login-ctrl ("/login" :method :post)
+       (with-wrapper
+         (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
+              (progn
+                (setf (hunchentoot:session-value 'current-user) it)
+                (login-user-success it))
+              (login-user-fail))))
    #+END_SRC
 
-** Контроллер логаута
-
-   Контроллер логаута удаляет переменную сессии =current-user= и выполняет =logout=
-
-   #+NAME: logout-ctrl
-   #+BEGIN_SRC lisp :exports code
-     (defun logout-ctrl (request)
-       (delete-session-value current-user)
-       (logout))
-   #+END_SRC
-
-** Функцию проверки авторизационных данных - в простейшем случае логина и пароля
 ** Обобщенный метод извлечения авторизационных данных
+
    В простейшем случае данные из объекта =request=, но возможны и другие варианты,
    поэтому этот обобщенный метод специфицируется объектом, из которого извлекаются данные.
-** Javascript для форм, необязательно
-** Функцию проверки залогинен ли пользователь
-** Функцию проверки прав пользователя на доступ к какому-то объекту
-   в зависимости от его роли и.т.п
 
-   Создадим шаблон формы ввода пароля
+   #+NAME: get_auth_data
+   #+BEGIN_SRC lisp
+     (defmethod get-auth-data ((request list))
+       (alist-to-plist request))
 
+     ;; (get-auth-data (list (cons 'a 'b) (cons 'c 'd)))
+   #+END_SRC
 
-   Создадим контроллер для обработки того, что пришло от формы
+** Функция проверки авторизационных данных - в простейшем случае логина и пароля
 
+   Функция принимает в качестве параметра plist, который должен содержать =email= и
+   =password= введенный пользователем.
+
+   Функция проверяет, есть ли пользователь с этим email-ом и паролем и если есть -
+   возвращает его id. Если нет - возвращает nil.
+
+   #+NAME: check_auth_data
+   #+BEGIN_SRC lisp
+     (defun check-auth-data (auth-data)
+       (let ((result (find-user :email (getf auth-data :email) :password (getf auth-data :password))))
+         (if (null result)
+             nil
+             (id (car result)))))
+   #+END_SRC
+
+** Событие успешного входа пользователя в систему
+
+   #+NAME: login_user_success
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun login-user-success (id)
+       (takt (get-user id) :logged))
+   #+END_SRC
+
+** Событие неуспешного входа пользователя в систему
+
+   #+NAME: login_user_fail
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun login-user-fail ()
+       "Wrong auth"
+       )
+   #+END_SRC
+
+** TODO Забыл пароль
+** TODO Javascript для форм, необязательно
+** TODO Функцию проверки залогинен ли пользователь
 
    Создадим функцию, которая проверяет залогинен ли пользователь
 
@@ -149,3 +292,5 @@
      ;; (defun is-logged (request)
      ;;   ( (session-value current-user
    #+END_SRC
+
+** TODO Функцию проверки прав пользователя на доступ к какому-то объекту

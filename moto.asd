@@ -20,6 +20,7 @@
   :version "0.0.3"
   :license "GPLv3"
   :components ((:file "package")    ;; файл пакетов
+               (:static-file "templates.htm")
                (:file "prepare")    ;; подготовка к старту
                (:file "util")       ;; файл с утилитами
                (:file "globals")    ;; файл с глобальными определеями

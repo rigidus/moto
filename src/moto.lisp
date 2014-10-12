@@ -17,7 +17,7 @@
 (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
 ;; clear db
-(let ((tables '("account" "order" "quot" "symb" "user")))
+(let ((tables '("user")))
   (flet ((rmtbl (tblname)
            (when (with-connection *db-spec*
                    (query (:select 'table_name :from 'information_schema.tables :where
@@ -66,14 +66,7 @@
    "sended -> logged"
    )
 
- (defun create-user (name password email)
-   "Создание пользователя. Возвращает id пользователя"
-   (let ((user-id (id (make-user :name name :password password :email email))))
-     (dbg "Создан пользователь: ~A" user-id)
-     ;; Делаем его залогиненным
-     (upd-user (get-user user-id) (list :state ":logged"))
-     ;; Возвращаем user-id
-     user-id))
+ 
 
 ;; Веб-интерфейс
 
