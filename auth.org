@@ -26,6 +26,7 @@
 
   Что нам для этого нужно?
   - Сущность =User=, имеющая поля =email= и =password=
+  - Движок создания форм, функции которого определены не здесь
 
   Как это работает?
 
@@ -34,6 +35,7 @@
   случае успеха устанавливает переменную сессии =current-user= и вызывает =auth-success=. В
   случае неудачи вызывает =auth-fail=.
 
+* Шаблоны
   Соберем шаблоны логина и логаута
 
   #+NAME: auth_tpl
@@ -50,6 +52,8 @@
     {/template}
   #+END_SRC
 
+* Функционал
+
   Соберем контроллеры и все функции, которые контроллеры вызывают
 
   #+NAME: auth_fn
@@ -62,34 +66,9 @@
      (pathname
       (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
 
-    ;; Страница регистрации и ее контроллер
-    <<reg_page>>
+    <<auth_fn_contents>>
 
-    ;; Событие создания пользователя, которые вызывает контроллер регистрации
-    <<create_user>>
-
-    ;; Страница выхода из системы и ее контроллер
-    <<logout_page>>
-
-    ;; Событие выхода пользователя из системы
-    <<logout_user>>
-
-    ;; Страница логина и ее контроллер
-    <<login_page>>
-
-    ;; Обобщенный метод извлечения авторизационных данных
-    <<get_auth_data>>
-
-    ;; Функция проверки авторизационных данных
-    <<check_auth_data>>
-
-
-    ;; Событие успешного входа пользователя в систему
-    <<login_user_success>>
-
-    ;; Событие неуспешного входа пользователя в систему
-    <<login_user_fail>>
-
+    <<auth_test>>
   #+END_SRC
 
   Мы вводим:
@@ -120,10 +99,10 @@
    Страница регистрации использует движок форм для показа формы пользователю и при
    выполнении регистрации вызывает событие =create-user=.
 
-   #+NAME: reg_page
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
-     (in-package #:moto)
 
+     ;; Страница регистрации
      (restas:define-route reg ("/reg")
        (with-wrapper
          (concatenate
@@ -138,6 +117,7 @@
                      (row "Email" (fld "email"))
                      (row "" (submit "Зарегистрироваться")))))))))
 
+     ;; Контроллер страницы регистрации
      (restas:define-route reg-ctrl ("/reg" :method :post)
        (with-wrapper
          (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
@@ -149,24 +129,26 @@
 
 ** Событие создания пользователя
 
-   #+NAME: create_user
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
+
+     ;; Событие создания пользователя
      (defun create-user (name password email)
        "Создание пользователя. Возвращает id пользователя"
        (let ((user-id (id (make-user :name name :password password :email email))))
          (dbg "Создан пользователь: ~A" user-id)
          ;; Делаем его залогиненным
-         (upd-user (get-user user-id) (list :state ":logged"))
+         (upd-user (get-user user-id) (list :state ":LOGGED"))
          ;; Возвращаем user-id
          user-id))
    #+END_SRC
 
 ** Страница выхода из системы и ее контроллер
 
-   #+NAME: logout_page
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
-     (in-package #:moto)
 
+     ;; Страница выхода из системы
      (restas:define-route logout ("/logout")
        (with-wrapper
          (concatenate
@@ -179,6 +161,7 @@
               "Выход невозможен - никто не залогинен"
               ))))
 
+     ;; Контроллер страницы выхода из системы
      (restas:define-route logout-ctrl ("/logout" :method :post)
        (with-wrapper
          (prog1
@@ -188,8 +171,10 @@
 
 ** Событие выхода пользователя из системы
 
-   #+NAME: logout_user
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
+
+     ;; Событие выхода
      (defun logout-user (current-user)
        (takt (get-user current-user) :unlogged))
    #+END_SRC
@@ -204,10 +189,10 @@
 
    При неуcпехе выполняет =login-user-fail=.
 
-   #+NAME: login_page
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
-     (in-package #:moto)
 
+     ;; Страница логина
      (restas:define-route login ("/login")
        (with-wrapper
          (concatenate
@@ -221,6 +206,7 @@
                      (row "Пароль" (fld "password"))
                      (row "" (submit "Войти")))))))))
 
+     ;; Контроллер страницы логина
      (restas:define-route login-ctrl ("/login" :method :post)
        (with-wrapper
          (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
@@ -235,12 +221,12 @@
    В простейшем случае данные из объекта =request=, но возможны и другие варианты,
    поэтому этот обобщенный метод специфицируется объектом, из которого извлекаются данные.
 
-   #+NAME: get_auth_data
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
+
+     ;; Извлечение авторизационных данных
      (defmethod get-auth-data ((request list))
        (alist-to-plist request))
-
-     ;; (get-auth-data (list (cons 'a 'b) (cons 'c 'd)))
    #+END_SRC
 
 ** Функция проверки авторизационных данных - в простейшем случае логина и пароля
@@ -251,8 +237,10 @@
    Функция проверяет, есть ли пользователь с этим email-ом и паролем и если есть -
    возвращает его id. Если нет - возвращает nil.
 
-   #+NAME: check_auth_data
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
+
+     ;; Проверка авторизационных данных
      (defun check-auth-data (auth-data)
        (let ((result (find-user :email (getf auth-data :email) :password (getf auth-data :password))))
          (if (null result)
@@ -262,20 +250,20 @@
 
 ** Событие успешного входа пользователя в систему
 
-   #+NAME: login_user_success
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
-     (in-package #:moto)
 
+     ;; Событие успешного входа
      (defun login-user-success (id)
        (takt (get-user id) :logged))
    #+END_SRC
 
 ** Событие неуспешного входа пользователя в систему
 
-   #+NAME: login_user_fail
+   #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
-     (in-package #:moto)
 
+     ;; Событие неуспешного входа
      (defun login-user-fail ()
        "Wrong auth"
        )
@@ -294,3 +282,56 @@
    #+END_SRC
 
 ** TODO Функцию проверки прав пользователя на доступ к какому-то объекту
+* Тесты
+
+  Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
+  протестировать, для этого сформируем тест:
+
+  #+NAME: auth_test
+  #+BEGIN_SRC lisp
+
+    ;; Тестируем авторизацию
+    (defun auth-test ()
+      <<auth_test_contents>>
+      (dbg "passed: auth-test~%"))
+    (auth-test)
+  #+END_SRC
+
+  #+NAME: auth_test_contents
+  #+BEGIN_SRC lisp
+    ;; Зарегистрируем пользователя
+    (let* ((name "test-name")
+           (password "test-password")
+           (email "test-email")
+           (new-user-id (create-user name password email)))
+      ;; Проверим что он существует
+      (assert (get-user new-user-id))
+      ;; Проверим, что он залогинен
+      (assert (equal ":LOGGED" (state (get-user new-user-id))))
+      ;; Выход пользователя из системы
+      (logout-user new-user-id)
+      ;; Проверим, что он разлогинен
+      (assert (equal ":UNLOGGED" (state (get-user new-user-id))))
+      ;; Логин пользователя в систему
+      (let ((logged-user-id))
+        (aif (check-auth-data (get-auth-data (list (cons 'email email)
+                                                   (cons 'password password))))
+             (progn
+               (login-user-success it)
+               (setf logged-user-id it))
+             (login-user-fail))
+        ;; Проверим, что успешно залогинился
+        (assert (equal ":LOGGED" (state (get-user logged-user-id))))
+        ;; Сновa выход
+        (logout-user logged-user-id))
+      ;; Попытка логина с неверными credentials
+      (let ((logged-user-id))
+        (aif (check-auth-data (get-auth-data (list (cons 'email email)
+                                                   (cons 'password "wrong-password"))))
+             (progn
+               (login-user-success it)
+               (setf logged-user-id it))
+             (login-user-fail))
+        ;; Проверим, что не удалось успешно залогиниться
+        (assert (equal nil logged-user-id))))
+  #+END_SRC
