@@ -72,8 +72,8 @@
 ;; Автомат сообщения
 (define-automat msg "Автомат сообщения"
   ((id serial)
-   (snd_id integer)
-   (rcv_id integer)
+   (snd-id integer)
+   (rcv-id integer)
    (msg varchar))
   (:delivered :undelivered)
   ((:undelivered :delivered :delivery))

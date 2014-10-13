@@ -32,29 +32,53 @@
 ;;                          (getf p :password)
 ;;                          (getf p :email))))))
 
+;; Событие отправки сообщения
+(defun create-msg (snd-id rcv-id msg)
+  (let ((msg-id (id (make-msg :snd-id snd-id :rcv-id rcv-id :msg msg))))
+    (dbg "Создано сообщение: ~A" msg-id)
+    ;; Делаем его недоставленным
+    (upd-msg (get-msg msg-id) (list :state ":UNDELIVERED"))
+    ;; Возвращаем msg-id
+    msg-id))
+
+;; Функция получения кол-ва непрочитанных сообщений
+(defun get-undelivered-msg-cnt (snd-id rcv-id)
+  (length (find-msg :snd-id snd-id :rcv-id rcv-id :state ":UNDELIVERED")))
+
+;; Функция получения идентификторов непрочитанных сообщений
+(defun get-undelivered-msg-ids (snd-id rcv-id)
+  (mapcar #'id (find-msg :snd-id snd-id :rcv-id rcv-id :state ":UNDELIVERED")))
+
+;; Функция получения идентификторов непрочитанных сообщений
+(defun delivery-msg (msg-id)
+  (get-msg msg-id))
+
 
 ;; Тестируем сообщения
 (defun msg-test ()
+  (in-package #:moto)
+  
   ;; Зарегистрируем двух пользователей
-  ;; (let ((user-id-1 (create-user "name-1" "password-1" "email-1"))
-  ;;       (user-id-2 (create-user "name-2" "password-2" "email-2")))
-  ;;   ;; Пусть первый пользователь пошлет второму сообщение
-  ;;   (let ((msg-id (snd user-id-1 user-id-2 "message-1")))
-  ;;     ;; Проверим, что сообщение существует
-  ;;     (assert (get-msg msg-id))
-  ;;     ;; Проверим, что оно находится в статусе "недоставлено"
-  ;;     (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
-  ;;     ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
-  ;;     (let ((unread-msg-cnt (get-unread-msg-cnt user-id-2)))
-  ;;       ;; Проверим, что там одно непрочитанное сообщение
-  ;;       (assert (equal 1 unread-msg-cnt))
-  ;;       ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
-  ;;       (let ((unread-msg-ids (get-unread-msg-ids user-id)))
-  ;;         ;; Проверим, что в списке идентификторов непрочитанных сообщений один элемент
-  ;;         (assert (equal 1 (length unread-msgs)))
-  ;;         ;; Получим это сообщение
-  ;;         (let ((read-msg (car unread-msg-ids)))
-  ;;           ;; Проверим, что это именно то сообщение, которое послал первый пользователь
-  ;;           (assert (equal "message-1" (msg red-msg))))))))
+  (let ((user-id-1 (create-user "name-1" "password-1" "email-1"))
+        (user-id-2 (create-user "name-2" "password-2" "email-2")))
+    ;; Пусть первый пользователь пошлет второму сообщение
+    (let ((msg-id (create-msg user-id-1 user-id-2 "message-1")))
+      ;; Проверим, что сообщение существует
+      (assert (get-msg msg-id))
+      ;; Проверим, что оно находится в статусе "недоставлено"
+      (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
+      ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
+      (let ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-1 user-id-2)))
+        ;; Проверим, что там одно непрочитанное сообщение
+        (assert (equal 1 undelivered-msg-cnt))
+        ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
+        (let ((undelivered-msg-ids (get-undelivered-msg-ids user-id-1 user-id-2)))
+          ;; Проверим, что в списке идентификторов непрочитанных сообщений один элемент
+          (assert (equal 1 (length undelivered-msg-ids)))
+          ;; Получим это сообщение
+          (let* ((read-msg-id (car undelivered-msg-ids))
+                 (read-msg (delivery-msg read-msg-id)))
+            ;; Проверим, что это именно то сообщение, которое послал первый пользователь
+            (assert (equal "message-1" (msg read-msg))))))))
   (dbg "passed: msg-test~%"))
 (msg-test)

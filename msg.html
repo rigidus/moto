@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Модуль сообщений их тесты</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="Модуль сообщений их тесты"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2014-10-13T17:49+0400"/>
+<meta name="author" content="rigidus"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">Модуль сообщений их тесты</h1>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Введение</a></li>
+<li><a href="#sec-2">2 Шаблоны</a></li>
+<li><a href="#sec-3">3 Функционал</a>
+<ul>
+<li><a href="#sec-3-1">3.1 Шаблон</a></li>
+<li><a href="#sec-3-2">3.2 Страница сообщений ее контроллер</a></li>
+<li><a href="#sec-3-3">3.3 Событие отправки сообщения</a></li>
+<li><a href="#sec-3-4">3.4 Функция получения кол-ва непрочитанных сообщений</a></li>
+<li><a href="#sec-3-5">3.5 Функция получения идентификторов непрочитанных сообщений</a></li>
+<li><a href="#sec-3-6">3.6 Событие доставки сообщения</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4 Тесты</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Введение</h2>
+<div class="outline-text-2" id="text-1">
+
+
+<p>
+  Как залогиненный пользователь я хочу иметь возможность послать сообщение другому
+  зарегистрированному на сайте пользователю.
+</p>
+<p>
+  Как залогиненный пользователь я хочу иметь возможность читать свои отправленные другим
+  пользователям сообщения. Также я хочу знать, доставлены они или нет (т.е. были ли
+  прочитаны адресатом).
+</p>
+<p>
+  Как залогиненный пользователь я хочу иметь возможность читать пришедшие мне от других
+  пользователей сообщения.
+</p>
+<p>
+  Как зарегистрированный пользователь я хочу получать email-уведомления о новых сообщениях
+  и отключить эту функцию при необходимости.
+</p>
+<p>
+  Как администратор сайта я хочу запрещать пользователю писать сообщения некоторым или всем
+  зарегистрированным пользователям
+</p>
+<p>
+  Иногда еще хочется получать уведомления о доставке сообщения
+</p>
+<p>
+  Как модератор кармы я хочу регулировать кол-во отосланных пользователем сообщений в
+  зависимости от его кармы, чтобы избежать рассылок спама.
+</p>
+<p>
+  Что нам для этого нужно?
+</p><ul>
+<li>Сущность <code>User</code>, имеющая поле <code>id</code>
+</li>
+<li>Сущность <code>Msg</code>, имеющая поля <code>snd_id</code>, <code>rcv_id</code>, <code>msg</code>
+</li>
+<li>Движок создания форм, функции которого определены не здесь
+</li>
+</ul>
+
+
+<p>
+  Как это работает?
+</p>
+<p>
+  <code>При отправке сообщения</code> пользователь вводит адресата сообщения и текст сообщения, которые
+  передаются контроллеру отправки сообщения. Контроллер отправки извлекает эти данные
+  (<code>get-msg-data</code>), проверяет возможность отсылки сообщения (<code>check-msg-data</code>) и, в случае
+  успеха, вызывает событие <code>crete-msg</code>, которое создает сообщение. В случае неудачи
+  возбуждает ошибку, которую перехватит интерфейс сообщений.
+</p>
+<p>
+  Залогиненный пользователь в любой момент может запросить:
+</p><ul>
+<li>кол-во непрочитанных сообщений (<code>get-undelivered-msg-cnt</code>)
+</li>
+<li>все идентификторы непрочитанных сообщения (<code>get-undelivered-msg-idss</code>)
+</li>
+<li>все идентификаторы прочитанных сообщений (<code>get-read   - всю переписку с каким-либо адресатом (=get-msgs</code>)
+</li>
+</ul>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Шаблоны</h2>
+<div class="outline-text-2" id="text-2">
+
+
+<p>
+  Соберем шаблоны сообщения
+</p>
+
+
+
+<pre class="src src-closure-template-html"><span style="color: #cd0000;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
+{<span style="color: #00cd00; font-weight: bold;">namespace</span> <span style="color: #0000ee; font-weight: bold;">msgtpl</span>}
+
+{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">sometpl}</span>
+  &lt;&lt;<span style="color: #0000ee; font-weight: bold;">some_tpl</span>&gt;&gt;
+{<span style="color: #00cd00; font-weight: bold;">/template</span>}
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Функционал</h2>
+<div class="outline-text-2" id="text-3">
+
+
+<p>
+  Соберем контроллеры и все функции, которые контроллеры вызывают
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
+(closure-template:compile-template
+ <span style="color: #0000ee; font-weight: bold;">:common-lisp-backend</span>
+ (pathname
+  (concatenate 'string *base-path* <span style="color: #00cd00;">"mod/msg/msg-tpl.htm"</span>)))
+
+&lt;&lt;msg_fn_contents&gt;&gt;
+
+&lt;&lt;msg_test&gt;&gt;
+</pre>
+
+
+<p>
+  Мы вводим:
+</p>
+
+</div>
+
+<div id="outline-container-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Шаблон</h3>
+<div class="outline-text-3" id="text-3-1">
+
+
+
+
+
+<pre class="src src-html">this is some tpl
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Страница сообщений ее контроллер</h3>
+<div class="outline-text-3" id="text-3-2">
+
+
+<p>
+   Страница регистрации использует движок форм для показа формы пользователю и при
+   выполнении регистрации вызывает событие <code>create-user</code>.
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(restas:define-route msgs ("/user/:id/msgs")</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(with-wrapper</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(concatenate</span>
+<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">'string</span>
+<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;&lt;/h1&gt;"</span>
+<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">(if *current-user*</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">"&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/logout\"&gt;Logout&lt;/a&gt;"</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">(frm (tbl</span>
+<span style="color: #cd0000;">;;                </span><span style="color: #cd0000;">(list</span>
+<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;" (fld "name"))</span>
+<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;" (fld "password"))</span>
+<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "Email" (fld "email"))</span>
+<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "" (submit "&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;&#1089;&#1103;")))))))))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">;; &#1050;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(restas:define-route msgs-ctrl ("/user/:id/msgs" :method :post)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(with-wrapper</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(let* ((p (alist-to-plist (hunchentoot:post-parameters*))))</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(setf (hunchentoot:session-value 'current-user)</span>
+<span style="color: #cd0000;">;;             </span><span style="color: #cd0000;">(create-user (getf p :name)</span>
+<span style="color: #cd0000;">;;                          </span><span style="color: #cd0000;">(getf p :password)</span>
+<span style="color: #cd0000;">;;                          </span><span style="color: #cd0000;">(getf p :email))))))</span>
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Событие отправки сообщения</h3>
+<div class="outline-text-3" id="text-3-3">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1086;&#1090;&#1087;&#1088;&#1072;&#1074;&#1082;&#1080; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">create-msg</span> (snd-id rcv-id msg)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((msg-id (id (make-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> snd-id <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> rcv-id <span style="color: #0000ee; font-weight: bold;">:msg</span> msg))))
+    (dbg <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;: ~A"</span> msg-id)
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1077;&#1083;&#1072;&#1077;&#1084; &#1077;&#1075;&#1086; &#1085;&#1077;&#1076;&#1086;&#1089;&#1090;&#1072;&#1074;&#1083;&#1077;&#1085;&#1085;&#1099;&#1084;</span>
+    (upd-msg (get-msg msg-id) (list <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>))
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1084; msg-id</span>
+    msg-id))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Функция получения кол-ва непрочитанных сообщений</h3>
+<div class="outline-text-3" id="text-3-4">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1103; &#1082;&#1086;&#1083;-&#1074;&#1072; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-undelivered-msg-cnt</span> (snd-id rcv-id)
+  (length (find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 1 <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> 2 <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Функция получения идентификторов непрочитанных сообщений</h3>
+<div class="outline-text-3" id="text-3-5">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1103; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1090;&#1086;&#1088;&#1086;&#1074; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-undelivered-msg-ids</span> (snd-id rcv-id)
+  (mapcar #'id (find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 1 <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> 2 <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-6" class="outline-3">
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Событие доставки сообщения</h3>
+<div class="outline-text-3" id="text-3-6">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1103; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1090;&#1086;&#1088;&#1086;&#1074; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">delievery-msg</span> (msg-id)
+  (mapcar #'id (find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 1 <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> 2 <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
+</pre>
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Тесты</h2>
+<div class="outline-text-2" id="text-4">
+
+
+<p>
+  Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
+  протестировать, для этого сформируем тест:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">msg-test</span> ()
+  &lt;&lt;msg_test_contents&gt;&gt;
+  (dbg <span style="color: #00cd00;">"passed: msg-test~%"</span>))
+(msg-test)
+</pre>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 2)
+
+(snd-id (car (all-msg)))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1091;&#1077;&#1084; &#1076;&#1074;&#1091;&#1093; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;</span>
+(<span style="color: #00cdcd; font-weight: bold;">let</span> ((user-id-1 (create-user <span style="color: #00cd00;">"name-1"</span> <span style="color: #00cd00;">"password-1"</span> <span style="color: #00cd00;">"email-1"</span>))
+      (user-id-2 (create-user <span style="color: #00cd00;">"name-2"</span> <span style="color: #00cd00;">"password-2"</span> <span style="color: #00cd00;">"email-2"</span>)))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1091;&#1089;&#1090;&#1100; &#1087;&#1077;&#1088;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1087;&#1086;&#1096;&#1083;&#1077;&#1090; &#1074;&#1090;&#1086;&#1088;&#1086;&#1084;&#1091; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((msg-id (create-msg user-id-1 user-id-2 <span style="color: #00cd00;">"message-1"</span>)))
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077; &#1089;&#1091;&#1097;&#1077;&#1089;&#1090;&#1074;&#1091;&#1077;&#1090;</span>
+    (<span style="color: #cd0000; font-weight: bold;">assert</span> (get-msg msg-id))
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1086;&#1085;&#1086; &#1085;&#1072;&#1093;&#1086;&#1076;&#1080;&#1090;&#1089;&#1103; &#1074; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089;&#1077; "&#1085;&#1077;&#1076;&#1086;&#1089;&#1090;&#1072;&#1074;&#1083;&#1077;&#1085;&#1086;"</span>
+    (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">":UNDELIVERED"</span> (state (get-msg msg-id))))
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1091;&#1089;&#1090;&#1100; &#1074;&#1090;&#1086;&#1088;&#1086;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1090; &#1082;&#1086;&#1083;-&#1074;&#1086; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-1 user-id-2)))
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1090;&#1072;&#1084; &#1086;&#1076;&#1085;&#1086; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1086;&#1077; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</span>
+      (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal 1 undelivered-msg-cnt))
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1091;&#1089;&#1090;&#1100; &#1074;&#1090;&#1086;&#1088;&#1086;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1090; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;&#1086;&#1088;&#1099; &#1074;&#1089;&#1077;&#1093; &#1089;&#1074;&#1086;&#1080;&#1093; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((undelivered-msg-ids (get-undelivered-msg-ids user-id-1 user-id-2)))
+        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1074; &#1089;&#1087;&#1080;&#1089;&#1082;&#1077; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1090;&#1086;&#1088;&#1086;&#1074; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081; &#1086;&#1076;&#1080;&#1085; &#1101;&#1083;&#1077;&#1084;&#1077;&#1085;&#1090;</span>
+        (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal 1 (length undelivered-msg-ids)))
+        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1080;&#1084; &#1101;&#1090;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</span>
+        (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((read-msg-id (car undelivered-msg-ids))
+               (read-msg (delivery-msg read-msg-id)))
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1101;&#1090;&#1086; &#1080;&#1084;&#1077;&#1085;&#1085;&#1086; &#1090;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1086;&#1077; &#1087;&#1086;&#1089;&#1083;&#1072;&#1083; &#1087;&#1077;&#1088;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;</span>
+          (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"message-1"</span> (msg read-msg))))))))
+</pre>
+
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2014-10-13T17:49+0400</p>
+<p class="author">Author: rigidus</p>
+<p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>
