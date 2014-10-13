@@ -75,12 +75,12 @@
    (snd_id integer)
    (rcv_id integer)
    (msg varchar))
-  (:sended :unsended)
-  ((:unsended :sended :delivery))
+  (:delivered :undelivered)
+  ((:undelivered :delivered :delivery))
   )
 
  (defun delivery ()
-   "unsended -> sended"
+   "undelivered -> delivered"
    )
 
  

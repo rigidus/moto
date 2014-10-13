@@ -71,7 +71,7 @@
 
 * Что улучшать
   - Типы для полей state нужно задавать как перечисления
-  - Для всех таблиц добавить дату/время (регистрации пользователя, отправки сообщения)
+  - Для всех таблиц добавить дату/время (регистрации пользователя, отправки/доставки сообщения)
 * Определения сущностей
 ** Функции для кодогенерации сущностей
 
@@ -289,9 +289,9 @@
 
    #+CAPTION: Состояния конечного автомата пользователя
    #+NAME: msg_state
-     | action         | from     | to          |
-     |----------------+----------+-------------|
-     | delivery       | unsended | sended      |
+     | action   | from        | to        |
+     |----------+-------------+-----------|
+     | delivery | undelivered | delivered |
 
    Сводя вместе, все что нам известно о сообщении (его поведение и поля) опишем все это в
    коде:
@@ -335,11 +335,9 @@
    #+NAME: msg_actions_func
    #+BEGIN_SRC lisp
      (defun delivery ()
-       "unsended -> sended"
+       "undelivered -> delivered"
        )
    #+END_SRC
-
-
 
 * События
 
@@ -354,8 +352,6 @@
 
    #+END_SRC
 
-* Use cases
-** Маршруты логина и логаута и путь пользователя по сайту при выполнении этого сценария
 * Interface
 ** Главная страница
 
@@ -834,7 +830,9 @@
      (in-package #:moto)
 
      ;; Базовый путь, от которого будем все считать
-     (defparameter *base-path* "/home/rigidus/repo/moto/src/")
+     (defparameter *base-path* (format nil "~A~A"
+                                       (namestring (user-homedir-pathname))
+                                       "repo/moto/src"))
 
      (closure-template:compile-template
       :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))

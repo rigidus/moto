@@ -1,0 +1,181 @@
+#+HTML_HEAD: -*- fill-column: 92 -*-
+
+#+TITLE: Модуль сообщений их тесты
+
+#+NAME:css
+#+BEGIN_HTML
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+#+END_HTML
+
+* Введение
+
+  Как залогиненный пользователь я хочу иметь возможность послать сообщение другому
+  зарегистрированному на сайте пользователю.
+
+  Как залогиненный пользователь я хочу иметь возможность читать свои отправленные другим
+  пользователям сообщения. Также я хочу знать, доставлены они или нет (т.е. были ли
+  прочитаны адресатом).
+
+  Как залогиненный пользователь я хочу иметь возможность читать пришедшие мне от других
+  пользователей сообщения.
+
+  Как зарегистрированный пользователь я хочу получать email-уведомления о новых сообщениях
+  и отключить эту функцию при необходимости.
+
+  Как администратор сайта я хочу запрещать пользователю писать сообщения некоторым или всем
+  зарегистрированным пользователям
+
+  Иногда еще хочется получать уведомления о доставке сообщения
+
+  Как модератор кармы я хочу регулировать кол-во отосланных пользователем сообщений в
+  зависимости от его кармы, чтобы избежать рассылок спама.
+
+  Что нам для этого нужно?
+  - Сущность =User=, имеющая поле =id=
+  - Сущность =Msg=, имеющая поля =snd_id=, =rcv_id=, =msg=
+  - Движок создания форм, функции которого определены не здесь
+
+  Как это работает?
+
+  Пользователь вводит адресата сообщения и текст сообщения, которые передаются контроллеру
+  отправки сообщения. Контроллер отправки извлекает эти данные (=get-msg-data=), проверяет возможность отсылки
+  сообщения (=check-msg-data=)  и в случае успеха заносит сообщение в базу данных. В случае
+  неудачи возбуждает ошибку, которую перехватит интерфейс сообщений
+
+  Залогиненный пользователь в любой момент может запросить кол-во непрочитанных сообщений
+  (=get-unread-msg-cnt=) все непрочитанные сообщения (=get-unread-msgs=) всю переписку с
+  каким-либо адресатом (=get-msgs=)
+
+* Шаблоны
+
+  Соберем шаблоны сообщения
+
+  #+NAME: msg_tpl
+  #+BEGIN_SRC closure-template-html :tangle src/mod/msg/msg-tpl.htm :noweb tangle :exports code
+    // -*- mode: closure-template-html; fill-column: 140 -*-
+    {namespace msgtpl}
+
+    {template sometpl}
+      <<some_tpl>>
+    {/template}
+  #+END_SRC
+
+* Функционал
+
+  Соберем контроллеры и все функции, которые контроллеры вызывают
+
+  #+NAME: msg_fn
+  #+BEGIN_SRC lisp :tangle src/mod/msg/msg.lisp :noweb tangle :exports code
+    (in-package #:moto)
+
+    ;; Скомпилируем шаблон
+    (closure-template:compile-template
+     :common-lisp-backend
+     (pathname
+      (concatenate 'string *base-path* "mod/auth/msg-tpl.htm")))
+
+    <<msg_fn_contents>>
+
+    <<msg_test>>
+  #+END_SRC
+
+  Мы вводим:
+
+** Шаблон
+
+   #+NAME: some_tpl
+   #+BEGIN_SRC html :exports code
+     this is some tpl
+   #+END_SRC
+
+** Страница сообщений ее контроллер
+
+   Страница регистрации использует движок форм для показа формы пользователю и при
+   выполнении регистрации вызывает событие =create-user=.
+
+   #+NAME: msg_fn_contents
+   #+BEGIN_SRC lisp
+
+     ;; Страница сообщений
+     (restas:define-route msgs ("/user/:id/msgs")
+       (with-wrapper
+         (concatenate
+          'string
+          "<h1>Страница сообщений</h1>"
+          (if *current-user*
+              "Регистрация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
+              (frm (tbl
+                    (list
+                     (row "Имя пользователя" (fld "name"))
+                     (row "Пароль" (fld "password"))
+                     (row "Email" (fld "email"))
+                     (row "" (submit "Зарегистрироваться")))))))))
+
+     ;; Контроллер страницы регистрации
+     (restas:define-route msgs-ctrl ("/user/:id/msgs" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (setf (hunchentoot:session-value 'current-user)
+                 (create-user (getf p :name)
+                              (getf p :password)
+                              (getf p :email))))))
+   #+END_SRC
+
+** Событие создания сообщения
+
+   #+NAME: auth_fn_contents
+   #+BEGIN_SRC lisp
+
+     ;; Событие создания сообщения
+     (defun create-msg (name password email)
+       "Создание пользователя. Возвращает id пользователя"
+       ;; (let ((user-id (id (make-user :name name :password password :email email))))
+       ;;   (dbg "Создан пользователь: ~A" user-id)
+       ;;   ;; Делаем его залогиненным
+       ;;   (upd-user (get-user user-id) (list :state ":LOGGED"))
+       ;;   ;; Возвращаем user-id
+       ;;   user-id)
+       )
+   #+END_SRC
+
+** Событие доставки сообщения
+   ...
+* Тесты
+
+  Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
+  протестировать, для этого сформируем тест:
+
+  #+NAME: msg_test
+  #+BEGIN_SRC lisp
+
+    ;; Тестируем сообщения
+    (defun msg-test ()
+      <<msg_test_contents>>
+      (dbg "passed: msg-test~%"))
+    (msg-test)
+  #+END_SRC
+
+  #+NAME: msg_test_contents
+  #+BEGIN_SRC lisp
+    ;; Зарегистрируем двух пользователей
+    (let ((user-id-1 (create-user "name-1" "password-1" "email-1"))
+          (user-id-2 (create-user "name-2" "password-2" "email-2")))
+      ;; Пусть первый пользователь пошлет второму сообщение
+      (let ((msg-id (snd user-id-1 user-id-2 "message-1")))
+        ;; Проверим, что сообщение существует
+        (assert (get-msg msg-id))
+        ;; Проверим, что оно находится в статусе "недоставлено"
+        (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
+        ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
+        (let ((unread-msg-cnt (get-unread-msg-cnt user-id-2)))
+          ;; Проверим, что там одно непрочитанное сообщение
+          (assert (equal 1 unread-msg-cnt))
+          ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
+          (let ((unread-msg-ids (get-unread-msg-ids user-id)))
+            ;; Проверим, что в списке идентификторов непрочитанных сообщений один элемент
+            (assert (equal 1 (length unread-msgs)))
+            ;; Получим это сообщение
+            (let ((read-msg (car unread-msg-ids)))
+              ;; Проверим, что это именно то сообщение, которое послал первый пользователь
+              (assert (equal "message-1" (msg red-msg))))))))
+  #+END_SRC
