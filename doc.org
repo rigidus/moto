@@ -832,7 +832,7 @@
      ;; Базовый путь, от которого будем все считать
      (defparameter *base-path* (format nil "~A~A"
                                        (namestring (user-homedir-pathname))
-                                       "repo/moto/src"))
+                                       "repo/moto/src/"))
 
      (closure-template:compile-template
       :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
