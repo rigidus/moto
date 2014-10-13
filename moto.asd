@@ -36,6 +36,12 @@
                         :pathname "mod/auth"
                         :components ((:static-file "auth-tpl.htm")
                                      (:file "auth")))
+               ;; Модуль сообщений
+               (:module "msg"
+                        :serial t
+                        :pathname "mod/msg"
+                        :components ((:static-file "msg-tpl.htm")
+                                     (:file "msg")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ))

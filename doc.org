@@ -69,6 +69,9 @@
     - привлекать людей к оценке сколько дать за какое действие
   - Связь с админами
 
+* Что улучшать
+  - Типы для полей state нужно задавать как перечисления
+  - Для всех таблиц добавить дату/время (регистрации пользователя, отправки сообщения)
 * Определения сущностей
 ** Функции для кодогенерации сущностей
 
@@ -205,6 +208,7 @@
 
    #+NAME: user_automat
    #+BEGIN_SRC lisp
+     ;; Автомат пользователя
      (define-automat user "Автомат пользователя"
        <<user_fields()>>
        <<user_states()>>
@@ -264,6 +268,78 @@
        "sended -> logged"
        )
    #+END_SRC
+
+** Сообщения (msg)
+
+   О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
+   сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
+   может удалить сообщение (пометить как удаленное), для этого мы используем отдельные
+   флаги.
+
+   #+CAPTION: Данные сообщения
+   #+NAME: msg_data
+     | field name | field type | note                                     |
+     |------------+------------+------------------------------------------|
+     | id         | serial     | идентификатор                            |
+     | snd_id     | integer    | пользователь, который послал сообщение   |
+     | rcv_id     | integer    | пользователь, который получает сообщение |
+     | msg        | varchar    | сообщение                                |
+
+   Еще сообщение может быть доставлено или недоставлено.
+
+   #+CAPTION: Состояния конечного автомата пользователя
+   #+NAME: msg_state
+     | action         | from     | to          |
+     |----------------+----------+-------------|
+     | delivery       | unsended | sended      |
+
+   Сводя вместе, все что нам известно о сообщении (его поведение и поля) опишем все это в
+   коде:
+
+   #+NAME: msg_automat
+   #+BEGIN_SRC lisp
+     ;; Автомат сообщения
+     (define-automat msg "Автомат сообщения"
+       <<msg_fields()>>
+       <<msg_states()>>
+       <<msg_actions()>>)
+
+      <<msg_actions_func>>
+
+      <<create_msg>>
+   #+END_SRC
+
+   Где =user-fields= (поля данных) определим как:
+
+   #+NAME: msg_fields
+   #+BEGIN_SRC emacs-lisp :var table=msg_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
+   А =msg-states= т.е. состояния пользователя определим так:
+
+   #+NAME: msg_states
+   #+BEGIN_SRC emacs-lisp :var table=msg_state :results output :exports results :tangle no
+     (gen-states table)
+   #+END_SRC
+
+   И, наконец, определим =msg-actions= переходы между состояниями:
+
+   #+NAME: msg_actions
+   #+BEGIN_SRC emacs-lisp :var table=msg_state :results output :exports results :tangle no
+     (gen-actions table)
+   #+END_SRC
+
+   Теперь определим функции, которые вызываются на переходах
+
+   #+NAME: msg_actions_func
+   #+BEGIN_SRC lisp
+     (defun delivery ()
+       "unsended -> sended"
+       )
+   #+END_SRC
+
+
 
 * События
 
@@ -379,6 +455,27 @@
 
    Собственно описание модуля вынесено в файл [[file:auth.org]]
 
+** Сообщения
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_msg
+   #+BEGIN_SRC lisp
+     (:module "msg"
+              :serial t
+              :pathname "mod/msg"
+              :components ((:static-file "msg-tpl.htm")
+                           (:file "msg")))
+   #+END_SRC
+
+   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
+   закрытому от неавторизованных пользователей функционалу.
+
+   Собственно описание модуля вынесено в файл [[file:msg.org]]
+
+** TODO Посты
+** TODO Багзилла
+** TODO Шаринг
 * Сборка
 ** Утилиты
    #+NAME: utility_file
@@ -637,7 +734,7 @@
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; clear db
-     (let ((tables '("user")))
+     (let ((tables '("user" "msg")))
        (flet ((rmtbl (tblname)
                 (when (with-connection *db-spec*
                         (query (:select 'table_name :from 'information_schema.tables :where
@@ -698,6 +795,8 @@
                     (:file "moto")       ;; стартовый файл
                     ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)
                     <<mod_auth>>
+                    ;; Модуль сообщений
+                    <<mod_msg>>
                     (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
                     ))
@@ -753,6 +852,8 @@
 
      ;; Описания автоматов и сущностей
      <<user_automat>>
+
+     <<msg_automat>>
 
      ;; Веб-интерфейс
 
