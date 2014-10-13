@@ -70,6 +70,15 @@
   - Связь с админами
   - Система исправления орфографических (и не только) ошибок сначала для себя, а при
     подтверждении автором - и для других. С наглядностью диффа.
+  - Заметки по юзерам:
+    http://vk.com/ekaterina.klochkova
+    На всякий пожарный.
+    Ближайшую неделю меня не будет вконтактике.
+    У меня есть телефон: +79218857023
+    и почта: kait.klochkova@gmail.com.
+  - Поиск друзей с кем покататься
+    Вводишь время, место и радиус, система находит друзей, и пишешь им - давай катать!
+
 * Стартап
   идея. жизнь на пракачку, или как из омеги заальфаться для задротов.
   приложение на мобилку, которое раздает тебе очки за то что ты делаешь что-то
@@ -630,7 +639,11 @@
                                                      (if (null *current-user*)
                                                          "none"
                                                          ,*current-user*)))
-                                (tpl:retvalblock (list :retval retval)))))))))
+                                (tpl:retvalblock (list :retval retval))
+                                (if *current-user*
+                                    (tpl:msgblock
+                                     (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
+                                    ""))))))))
    #+END_SRC
 
    Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
@@ -747,9 +760,9 @@
          </div>
      {/template}
 
-     {template followblock}
+     {template msgblock}
          <div style="border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;">
-             Фолловинг: {$follow | noAutoescape}
+             Сообщения ({$msgcnt | noAutoescape})
          </div>
      {/template}
    #+END_SRC

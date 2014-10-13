@@ -41,13 +41,16 @@
   передаются контроллеру отправки сообщения. Контроллер отправки извлекает эти данные
   (=get-msg-data=), проверяет возможность отсылки сообщения (=check-msg-data=) и, в случае
   успеха, вызывает событие =crete-msg=, которое создает сообщение. В случае неудачи
-  возбуждает ошибку, которую перехватит интерфейс сообщений.
+  возбуждает ошибку, которую перехватит интерфейс сообщений. Сообщение создается
+  недоставленным.
 
-  Залогиненный пользователь в любой момент может запросить:
-  - кол-во непрочитанных сообщений (=get-undelivered-msg-cnt=)
-  - все идентификторы непрочитанных сообщения (=get-undelivered-msg-idss=)
-  - все идентификаторы прочитанных сообщений (=get-read
-  - всю переписку с каким-либо адресатом (=get-msgs=)
+  Когда адресат сообщения (reciver) хочет узнать кол-во своих новых сообщений - он
+  запрашивает функцию =get-undelivered-msg-cnt=.
+
+  Если он хочет получить все идентификаторы непрочитанных сообщений, он вызывает
+  =get-undelivered-msg-ids=
+
+  Чтобы получить конкретное сообщение, адресат должен вызвать событие =delivery-msg=
 
 * Шаблоны
 
@@ -145,8 +148,8 @@
    #+BEGIN_SRC lisp
 
      ;; Функция получения кол-ва непрочитанных сообщений
-     (defun get-undelivered-msg-cnt (snd-id rcv-id)
-       (length (find-msg :snd-id snd-id :rcv-id rcv-id :state ":UNDELIVERED")))
+     (defun get-undelivered-msg-cnt (rcv-id)
+       (length (find-msg :rcv-id rcv-id :state ":UNDELIVERED")))
    #+END_SRC
 
 ** Функция получения идентификторов непрочитанных сообщений
@@ -161,12 +164,18 @@
 
 ** Событие доставки сообщения
 
+   Если сообщение ранее не доставлялось - делаем его доставленным
+
    #+NAME: msg_fn_contents
    #+BEGIN_SRC lisp
 
      ;; Функция получения идентификторов непрочитанных сообщений
      (defun delivery-msg (msg-id)
-       (get-msg msg-id))
+       (let ((msg (get-msg msg-id)))
+         (if (equal ":UNDELIVERED" (state msg))
+             (takt (get-msg msg-id) :delivered))
+         msg))
+
    #+END_SRC
 
 * Тесты
@@ -197,7 +206,7 @@
         ;; Проверим, что оно находится в статусе "недоставлено"
         (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
         ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
-        (let ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-1 user-id-2)))
+        (let ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-2)))
           ;; Проверим, что там одно непрочитанное сообщение
           (assert (equal 1 undelivered-msg-cnt))
           ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
@@ -208,5 +217,8 @@
             (let* ((read-msg-id (car undelivered-msg-ids))
                    (read-msg (delivery-msg read-msg-id)))
               ;; Проверим, что это именно то сообщение, которое послал первый пользователь
-              (assert (equal "message-1" (msg read-msg))))))))
+              (assert (equal "message-1" (msg read-msg)))
+              ;; Проверим, что сообщение теперь доставлено
+              (assert (equal ":DELIVERED" (state (get-msg read-msg-id))))
+              )))))
   #+END_SRC

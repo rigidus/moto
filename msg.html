@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Модуль сообщений их тесты"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-13T17:49+0400"/>
+<meta name="generated" content="2014-10-13T21:21+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -197,20 +197,20 @@ for the JavaScript code in this tag.
   передаются контроллеру отправки сообщения. Контроллер отправки извлекает эти данные
   (<code>get-msg-data</code>), проверяет возможность отсылки сообщения (<code>check-msg-data</code>) и, в случае
   успеха, вызывает событие <code>crete-msg</code>, которое создает сообщение. В случае неудачи
-  возбуждает ошибку, которую перехватит интерфейс сообщений.
+  возбуждает ошибку, которую перехватит интерфейс сообщений. Сообщение создается
+  недоставленным.
 </p>
 <p>
-  Залогиненный пользователь в любой момент может запросить:
-</p><ul>
-<li>кол-во непрочитанных сообщений (<code>get-undelivered-msg-cnt</code>)
-</li>
-<li>все идентификторы непрочитанных сообщения (<code>get-undelivered-msg-idss</code>)
-</li>
-<li>все идентификаторы прочитанных сообщений (<code>get-read   - всю переписку с каким-либо адресатом (=get-msgs</code>)
-</li>
-</ul>
-
-
+  Когда адресат сообщения (reciver) хочет узнать кол-во своих новых сообщений - он
+  запрашивает функцию <code>get-undelivered-msg-cnt</code>.
+</p>
+<p>
+  Если он хочет получить все идентификаторы непрочитанных сообщений, он вызывает
+  <code>get-undelivered-msg-ids</code>
+</p>
+<p>
+  Чтобы получить конкретное сообщение, адресат должен вызвать событие <code>delivery-msg</code>
+</p>
 </div>
 
 </div>
@@ -360,8 +360,8 @@ for the JavaScript code in this tag.
 
 
 <pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1103; &#1082;&#1086;&#1083;-&#1074;&#1072; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-undelivered-msg-cnt</span> (snd-id rcv-id)
-  (length (find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 1 <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> 2 <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-undelivered-msg-cnt</span> (rcv-id)
+  (length (find-msg <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> rcv-id <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
 </pre>
 
 
@@ -379,7 +379,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1103; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1090;&#1086;&#1088;&#1086;&#1074; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-undelivered-msg-ids</span> (snd-id rcv-id)
-  (mapcar #'id (find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 1 <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> 2 <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
+  (mapcar #'id (find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> snd-id <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> rcv-id <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
 </pre>
 
 
@@ -392,12 +392,19 @@ for the JavaScript code in this tag.
 <div class="outline-text-3" id="text-3-6">
 
 
+<p>
+   Если сообщение ранее не доставлялось - делаем его доставленным
+</p>
 
 
 
 <pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1103; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1090;&#1086;&#1088;&#1086;&#1074; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">delievery-msg</span> (msg-id)
-  (mapcar #'id (find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 1 <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> 2 <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>)))
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">delivery-msg</span> (msg-id)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((msg (get-msg msg-id)))
+    (<span style="color: #00cdcd; font-weight: bold;">if</span> (equal <span style="color: #00cd00;">":UNDELIVERED"</span> (state msg))
+        (takt (get-msg msg-id) <span style="color: #0000ee; font-weight: bold;">:delivered</span>))
+    msg))
+
 </pre>
 
 
@@ -427,13 +434,7 @@ for the JavaScript code in this tag.
 
 
 
-<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-(find-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> 2)
-
-(snd-id (car (all-msg)))
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1091;&#1077;&#1084; &#1076;&#1074;&#1091;&#1093; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;</span>
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1091;&#1077;&#1084; &#1076;&#1074;&#1091;&#1093; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;</span>
 (<span style="color: #00cdcd; font-weight: bold;">let</span> ((user-id-1 (create-user <span style="color: #00cd00;">"name-1"</span> <span style="color: #00cd00;">"password-1"</span> <span style="color: #00cd00;">"email-1"</span>))
       (user-id-2 (create-user <span style="color: #00cd00;">"name-2"</span> <span style="color: #00cd00;">"password-2"</span> <span style="color: #00cd00;">"email-2"</span>)))
   <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1091;&#1089;&#1090;&#1100; &#1087;&#1077;&#1088;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1087;&#1086;&#1096;&#1083;&#1077;&#1090; &#1074;&#1090;&#1086;&#1088;&#1086;&#1084;&#1091; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</span>
@@ -443,7 +444,7 @@ for the JavaScript code in this tag.
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1086;&#1085;&#1086; &#1085;&#1072;&#1093;&#1086;&#1076;&#1080;&#1090;&#1089;&#1103; &#1074; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089;&#1077; "&#1085;&#1077;&#1076;&#1086;&#1089;&#1090;&#1072;&#1074;&#1083;&#1077;&#1085;&#1086;"</span>
     (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">":UNDELIVERED"</span> (state (get-msg msg-id))))
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1091;&#1089;&#1090;&#1100; &#1074;&#1090;&#1086;&#1088;&#1086;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1090; &#1082;&#1086;&#1083;-&#1074;&#1086; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
-    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-1 user-id-2)))
+    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-2)))
       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1090;&#1072;&#1084; &#1086;&#1076;&#1085;&#1086; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1086;&#1077; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</span>
       (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal 1 undelivered-msg-cnt))
       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1091;&#1089;&#1090;&#1100; &#1074;&#1090;&#1086;&#1088;&#1086;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1090; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;&#1086;&#1088;&#1099; &#1074;&#1089;&#1077;&#1093; &#1089;&#1074;&#1086;&#1080;&#1093; &#1085;&#1077;&#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
@@ -454,7 +455,10 @@ for the JavaScript code in this tag.
         (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((read-msg-id (car undelivered-msg-ids))
                (read-msg (delivery-msg read-msg-id)))
           <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1101;&#1090;&#1086; &#1080;&#1084;&#1077;&#1085;&#1085;&#1086; &#1090;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1086;&#1077; &#1087;&#1086;&#1089;&#1083;&#1072;&#1083; &#1087;&#1077;&#1088;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;</span>
-          (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"message-1"</span> (msg read-msg))))))))
+          (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"message-1"</span> (msg read-msg)))
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077; &#1090;&#1077;&#1087;&#1077;&#1088;&#1100; &#1076;&#1086;&#1089;&#1090;&#1072;&#1074;&#1083;&#1077;&#1085;&#1086;</span>
+          (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">":DELIVERED"</span> (state (get-msg read-msg-id))))
+          )))))
 </pre>
 
 </div>
@@ -462,7 +466,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-13T17:49+0400</p>
+<p class="date">Date: 2014-10-13T21:21+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

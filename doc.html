@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="moto"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-13T17:49+0400"/>
+<meta name="generated" content="2014-10-13T21:21+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -310,7 +310,18 @@ for the JavaScript code in this tag.
 <li>Система исправления орфографических (и не только) ошибок сначала для себя, а при
     подтверждении автором - и для других. С наглядностью диффа.
 </li>
+<li>Заметки по юзерам:
+    <a href="http://vk.com/ekaterina.klochkova">http://vk.com/ekaterina.klochkova</a>
+    На всякий пожарный.
+    Ближайшую неделю меня не будет вконтактике.
+    У меня есть телефон: +79218857023
+    и почта: kait.klochkova@gmail.com.
+</li>
+<li>Поиск друзей с кем покататься
+    Вводишь время, место и радиус, система находит друзей, и пишешь им - давай катать!
+</li>
 </ul>
+
 
 </div>
 
@@ -1140,7 +1151,11 @@ for the JavaScript code in this tag.
                                                 (<span style="color: #00cdcd; font-weight: bold;">if</span> (null *current-user*)
                                                     <span style="color: #00cd00;">"none"</span>
                                                     *current-user*)))
-                           (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval)))))))))
+                           (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval))
+                           (<span style="color: #00cdcd; font-weight: bold;">if</span> *current-user*
+                               (tpl:msgblock
+                                (list <span style="color: #0000ee; font-weight: bold;">:msgcnt</span> (get-undelivered-msg-cnt *current-user*)))
+                               <span style="color: #00cd00;">""</span>))))))))
 </pre>
 
 
@@ -1270,9 +1285,9 @@ for the JavaScript code in this tag.
     &lt;/<span style="color: #0000ee; font-weight: bold;">div</span>&gt;
 {<span style="color: #00cd00; font-weight: bold;">/template</span>}
 
-{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">followblock}</span>
+{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">msgblock}</span>
     &lt;<span style="color: #0000ee; font-weight: bold;">div</span> <span style="color: #cdcd00;">style</span>=<span style="color: #00cd00;">"border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;"</span>&gt;
-        &#1060;&#1086;&#1083;&#1083;&#1086;&#1074;&#1080;&#1085;&#1075;: {$<span style="color: #cdcd00;">follow</span> | noAutoescape}
+        &#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103; ({$<span style="color: #cdcd00;">msgcnt</span> | noAutoescape})
     &lt;/<span style="color: #0000ee; font-weight: bold;">div</span>&gt;
 {<span style="color: #00cd00; font-weight: bold;">/template</span>}
 </pre>
@@ -1512,7 +1527,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-13T17:49+0400</p>
+<p class="date">Date: 2014-10-13T21:21+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

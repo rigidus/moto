@@ -42,8 +42,8 @@
     msg-id))
 
 ;; Функция получения кол-ва непрочитанных сообщений
-(defun get-undelivered-msg-cnt (snd-id rcv-id)
-  (length (find-msg :snd-id snd-id :rcv-id rcv-id :state ":UNDELIVERED")))
+(defun get-undelivered-msg-cnt (rcv-id)
+  (length (find-msg :rcv-id rcv-id :state ":UNDELIVERED")))
 
 ;; Функция получения идентификторов непрочитанных сообщений
 (defun get-undelivered-msg-ids (snd-id rcv-id)
@@ -51,12 +51,15 @@
 
 ;; Функция получения идентификторов непрочитанных сообщений
 (defun delivery-msg (msg-id)
-  (get-msg msg-id))
+  (let ((msg (get-msg msg-id)))
+    (if (equal ":UNDELIVERED" (state msg))
+        (takt (get-msg msg-id) :delivered))
+    msg))
+
 
 
 ;; Тестируем сообщения
 (defun msg-test ()
-  (in-package #:moto)
   
   ;; Зарегистрируем двух пользователей
   (let ((user-id-1 (create-user "name-1" "password-1" "email-1"))
@@ -68,7 +71,7 @@
       ;; Проверим, что оно находится в статусе "недоставлено"
       (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
       ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
-      (let ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-1 user-id-2)))
+      (let ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-2)))
         ;; Проверим, что там одно непрочитанное сообщение
         (assert (equal 1 undelivered-msg-cnt))
         ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
@@ -79,6 +82,9 @@
           (let* ((read-msg-id (car undelivered-msg-ids))
                  (read-msg (delivery-msg read-msg-id)))
             ;; Проверим, что это именно то сообщение, которое послал первый пользователь
-            (assert (equal "message-1" (msg read-msg))))))))
+            (assert (equal "message-1" (msg read-msg)))
+            ;; Проверим, что сообщение теперь доставлено
+            (assert (equal ":DELIVERED" (state (get-msg read-msg-id))))
+            )))))
   (dbg "passed: msg-test~%"))
 (msg-test)
