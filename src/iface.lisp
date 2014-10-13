@@ -24,11 +24,11 @@
                                                 (if (null *current-user*)
                                                     "none"
                                                     *current-user*)))
-                           (tpl:retvalblock (list :retval retval))
                            (if *current-user*
                                (tpl:msgblock
                                 (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
-                               ""))))))))
+                               "")
+                           (tpl:retvalblock (list :retval retval)))))))))
 
 ;; Хелпер форм
 (in-package #:moto)

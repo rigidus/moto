@@ -78,6 +78,7 @@
     и почта: kait.klochkova@gmail.com.
   - Поиск друзей с кем покататься
     Вводишь время, место и радиус, система находит друзей, и пишешь им - давай катать!
+  - Мототур "по бабам"
 
 * Стартап
   идея. жизнь на пракачку, или как из омеги заальфаться для задротов.
@@ -639,11 +640,11 @@
                                                      (if (null *current-user*)
                                                          "none"
                                                          ,*current-user*)))
-                                (tpl:retvalblock (list :retval retval))
                                 (if *current-user*
                                     (tpl:msgblock
                                      (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
-                                    ""))))))))
+                                    "")
+                                (tpl:retvalblock (list :retval retval)))))))))
    #+END_SRC
 
    Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
@@ -762,7 +763,7 @@
 
      {template msgblock}
          <div style="border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;">
-             Сообщения ({$msgcnt | noAutoescape})
+             Новых сообщений: {$msgcnt | noAutoescape}
          </div>
      {/template}
    #+END_SRC

@@ -7,24 +7,24 @@
  (pathname
   (concatenate 'string *base-path* "mod/msg/msg-tpl.htm")))
 
+(in-package #:moto)
 
 ;; Страница сообщений
-;; (restas:define-route msgs ("/user/:id/msgs")
-;;   (with-wrapper
-;;     (concatenate
-;;      'string
-;;      "<h1>Страница сообщений</h1>"
-;;      (if *current-user*
-;;          "Регистрация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
-;;          (frm (tbl
-;;                (list
-;;                 (row "Имя пользователя" (fld "name"))
-;;                 (row "Пароль" (fld "password"))
-;;                 (row "Email" (fld "email"))
-;;                 (row "" (submit "Зарегистрироваться")))))))))
+(restas:define-route im ("/im")
+  (with-wrapper
+    (concatenate
+     'string
+     "<h1>Страница сообщений</h1>"
+     (if (not *current-user*)
+         "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+         (let ((msgs (get-msg-for-user-id *current-user*)))
+           (mapcar #'msg
+                   msgs))))))
+
+;; (create-msg 1 4 "wefewf")
 
 ;; ;; Контроллер страницы регистрации
-;; (restas:define-route msgs-ctrl ("/user/:id/msgs" :method :post)
+;; (restas:define-route reg-ctrl ("/reg" :method :post)
 ;;   (with-wrapper
 ;;     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
 ;;       (setf (hunchentoot:session-value 'current-user)
@@ -56,6 +56,15 @@
         (takt (get-msg msg-id) :delivered))
     msg))
 
+
+;; Функция получения всех сообщений для данного пользователя
+(defun get-msg-for-user-id (user-id)
+  (let ((args (list :snd-id user-id :rcv-id user-id)))
+    (with-connection *db-spec*
+      (query-dao 'msg
+                 (sql-compile
+                  (list :select :* :from 'msg
+                        :where (make-clause-list ':or ':= args)))))))
 
 
 ;; Тестируем сообщения

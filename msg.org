@@ -96,29 +96,26 @@
 
 ** Страница сообщений ее контроллер
 
-   Страница регистрации использует движок форм для показа формы пользователю и при
-   выполнении регистрации вызывает событие =create-user=.
-
    #+NAME: msg_fn_contents
    #+BEGIN_SRC lisp
+     (in-package #:moto)
 
      ;; Страница сообщений
-     ;; (restas:define-route msgs ("/user/:id/msgs")
-     ;;   (with-wrapper
-     ;;     (concatenate
-     ;;      'string
-     ;;      "<h1>Страница сообщений</h1>"
-     ;;      (if *current-user*
-     ;;          "Регистрация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
-     ;;          (frm (tbl
-     ;;                (list
-     ;;                 (row "Имя пользователя" (fld "name"))
-     ;;                 (row "Пароль" (fld "password"))
-     ;;                 (row "Email" (fld "email"))
-     ;;                 (row "" (submit "Зарегистрироваться")))))))))
+     (restas:define-route im ("/im")
+       (with-wrapper
+         (concatenate
+          'string
+          "<h1>Страница сообщений</h1>"
+          (if (not *current-user*)
+              "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+              (let ((msgs (get-msg-ids-for-user-id *current-user*)))
+                (if (equal 0 (length msgs))
+                    "Нет сообщений"
+                    (format nil "~{~A~}"
+                            (mapcar #'show-msg-id msgs))))))))
 
      ;; ;; Контроллер страницы регистрации
-     ;; (restas:define-route msgs-ctrl ("/user/:id/msgs" :method :post)
+     ;; (restas:define-route reg-ctrl ("/reg" :method :post)
      ;;   (with-wrapper
      ;;     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
      ;;       (setf (hunchentoot:session-value 'current-user)
@@ -177,6 +174,35 @@
          msg))
 
    #+END_SRC
+
+** Функция получения всех идентификаторов сообщений для данного пользователя
+
+   #+NAME: msg_fn_contents
+   #+BEGIN_SRC lisp
+
+     ;; Функция получения всех идентификаторов сообщений для данного пользователя
+     (defun get-msg-ids-for-user-id (user-id)
+       (let ((args (list :snd-id user-id :rcv-id user-id)))
+         (mapcar #'id
+                 (with-connection *db-spec*
+                   (query-dao 'msg
+                              (sql-compile
+                               (list :select :* :from 'msg
+                                     :where (make-clause-list ':or ':= args))))))))
+   #+END_SRC
+
+** Функция отображения одного сообщения в списке сообщений
+
+   #+NAME: msg_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; Функция отображения одного сообщения в списке сообщений
+     (defun show-msg-id (msg-id)
+       (format nil "<div>~A</div>"
+               (msg (get-msg msg-id))))
+   #+END_SRC
+
 
 * Тесты
 
