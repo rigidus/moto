@@ -17,11 +17,11 @@
      "<h1>Страница сообщений</h1>"
      (if (not *current-user*)
          "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
-         (let ((msgs (get-msg-for-user-id *current-user*)))
-           (mapcar #'msg
-                   msgs))))))
-
-;; (create-msg 1 4 "wefewf")
+         (let ((msgs (get-msg-ids-for-user-id *current-user*)))
+           (if (equal 0 (length msgs))
+               "Нет сообщений"
+               (format nil "~{~A~}"
+                       (mapcar #'show-msg-id msgs))))))))
 
 ;; ;; Контроллер страницы регистрации
 ;; (restas:define-route reg-ctrl ("/reg" :method :post)
@@ -57,14 +57,21 @@
     msg))
 
 
-;; Функция получения всех сообщений для данного пользователя
-(defun get-msg-for-user-id (user-id)
+;; Функция получения всех идентификаторов сообщений для данного пользователя
+(defun get-msg-ids-for-user-id (user-id)
   (let ((args (list :snd-id user-id :rcv-id user-id)))
-    (with-connection *db-spec*
-      (query-dao 'msg
-                 (sql-compile
-                  (list :select :* :from 'msg
-                        :where (make-clause-list ':or ':= args)))))))
+    (mapcar #'id
+            (with-connection *db-spec*
+              (query-dao 'msg
+                         (sql-compile
+                          (list :select :* :from 'msg
+                                :where (make-clause-list ':or ':= args))))))))
+(in-package #:moto)
+
+;; Функция отображения одного сообщения в списке сообщений
+(defun show-msg-id (msg-id)
+  (format nil "<div>~A</div>"
+          (msg (get-msg msg-id))))
 
 
 ;; Тестируем сообщения
