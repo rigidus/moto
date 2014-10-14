@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Модуль сущностей, автоматов и их тесты"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-13T21:21+0400"/>
+<meta name="generated" content="2014-10-14T21:38+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -362,7 +362,7 @@ for the JavaScript code in this tag.
 <pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">create-user</span> (name password email)
   <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;. &#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; id &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((user-id (id (make-user <span style="color: #0000ee; font-weight: bold;">:name</span> name <span style="color: #0000ee; font-weight: bold;">:password</span> password <span style="color: #0000ee; font-weight: bold;">:email</span> email))))
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((user-id (id (make-user <span style="color: #0000ee; font-weight: bold;">:name</span> name <span style="color: #0000ee; font-weight: bold;">:password</span> password <span style="color: #0000ee; font-weight: bold;">:email</span> email <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)))))
     (dbg <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;: ~A"</span> user-id)
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1077;&#1083;&#1072;&#1077;&#1084; &#1077;&#1075;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084;</span>
     (upd-user (get-user user-id) (list <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":LOGGED"</span>))
@@ -671,7 +671,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-13T21:21+0400</p>
+<p class="date">Date: 2014-10-14T21:38+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

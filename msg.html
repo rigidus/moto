@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Модуль сообщений их тесты"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-13T21:21+0400"/>
+<meta name="generated" content="2014-10-14T21:38+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -132,11 +132,13 @@ for the JavaScript code in this tag.
 <li><a href="#sec-3">3 Функционал</a>
 <ul>
 <li><a href="#sec-3-1">3.1 Шаблон</a></li>
-<li><a href="#sec-3-2">3.2 Страница сообщений ее контроллер</a></li>
+<li><a href="#sec-3-2">3.2 Страница диалогов</a></li>
 <li><a href="#sec-3-3">3.3 Событие отправки сообщения</a></li>
 <li><a href="#sec-3-4">3.4 Функция получения кол-ва непрочитанных сообщений</a></li>
 <li><a href="#sec-3-5">3.5 Функция получения идентификторов непрочитанных сообщений</a></li>
 <li><a href="#sec-3-6">3.6 Событие доставки сообщения</a></li>
+<li><a href="#sec-3-7">3.7 Функция получения последних сообщений диалогов для данного пользователя</a></li>
+<li><a href="#sec-3-8">3.8 Функция отображения одного сообщения в списке сообщений</a></li>
 </ul>
 </li>
 <li><a href="#sec-4">4 Тесты</a></li>
@@ -211,6 +213,19 @@ for the JavaScript code in this tag.
 <p>
   Чтобы получить конкретное сообщение, адресат должен вызвать событие <code>delivery-msg</code>
 </p>
+<p>
+  Страницы:
+</p><ul>
+<li>Страница отправки сообщения пользователю - на самом деле это должен быть попап на
+    странице пользователя. Но пока сделаем так, чтобы снизить связность
+</li>
+<li>Страница переписки с конкретным пользова
+</li>
+</ul>
+
+
+
+
 </div>
 
 </div>
@@ -287,40 +302,34 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-3-2" class="outline-3">
-<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Страница сообщений ее контроллер</h3>
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Страница диалогов</h3>
 <div class="outline-text-3" id="text-3-2">
 
 
 <p>
-   Страница регистрации использует движок форм для показа формы пользователю и при
-   выполнении регистрации вызывает событие <code>create-user</code>.
+   На странице диалогов мы хотим видеть список всех диалогов. В каждом диалоге мы хотим
+   видеть последнее сообщение. Чтобы получить последние сообщения мы вызываем
+   <code>get-last-msg-dialog-ids-for-user-id</code>.
 </p>
 
 
 
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(restas:define-route msgs ("/user/:id/msgs")</span>
-<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(with-wrapper</span>
-<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(concatenate</span>
-<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">'string</span>
-<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;&lt;/h1&gt;"</span>
-<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">(if *current-user*</span>
-<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">"&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/logout\"&gt;Logout&lt;/a&gt;"</span>
-<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">(frm (tbl</span>
-<span style="color: #cd0000;">;;                </span><span style="color: #cd0000;">(list</span>
-<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;" (fld "name"))</span>
-<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;" (fld "password"))</span>
-<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "Email" (fld "email"))</span>
-<span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(row "" (submit "&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;&#1089;&#1103;")))))))))</span>
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">;; &#1050;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;</span>
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(restas:define-route msgs-ctrl ("/user/:id/msgs" :method :post)</span>
-<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(with-wrapper</span>
-<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(let* ((p (alist-to-plist (hunchentoot:post-parameters*))))</span>
-<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(setf (hunchentoot:session-value 'current-user)</span>
-<span style="color: #cd0000;">;;             </span><span style="color: #cd0000;">(create-user (getf p :name)</span>
-<span style="color: #cd0000;">;;                          </span><span style="color: #cd0000;">(getf p :password)</span>
-<span style="color: #cd0000;">;;                          </span><span style="color: #cd0000;">(getf p :email))))))</span>
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+(restas:define-route im (<span style="color: #00cd00;">"/im"</span>)
+  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+    (concatenate
+     'string
+     <span style="color: #00cd00;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;&lt;/h1&gt;"</span>
+     (<span style="color: #00cdcd; font-weight: bold;">if</span> (not *current-user*)
+         <span style="color: #00cd00;">"&#1053;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086; &#1087;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1090;&#1100; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1085;&#1077; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/login\"&gt;Login&lt;/a&gt;"</span>
+         (<span style="color: #00cdcd; font-weight: bold;">let</span> ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
+           (<span style="color: #00cdcd; font-weight: bold;">if</span> (equal 0 (length msgs))
+               <span style="color: #00cd00;">"&#1053;&#1077;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;"</span>
+               (format nil <span style="color: #00cd00;">"~{~A~}"</span>
+                       (mapcar #'show-msg-id msgs))))))))
 </pre>
 
 
@@ -338,7 +347,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1086;&#1090;&#1087;&#1088;&#1072;&#1074;&#1082;&#1080; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">create-msg</span> (snd-id rcv-id msg)
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((msg-id (id (make-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> snd-id <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> rcv-id <span style="color: #0000ee; font-weight: bold;">:msg</span> msg))))
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((msg-id (id (make-msg <span style="color: #0000ee; font-weight: bold;">:snd-id</span> snd-id <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> rcv-id <span style="color: #0000ee; font-weight: bold;">:msg</span> msg <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time) <span style="color: #0000ee; font-weight: bold;">:ts-delivery</span> 0))))
     (dbg <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;: ~A"</span> msg-id)
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1077;&#1083;&#1072;&#1077;&#1084; &#1077;&#1075;&#1086; &#1085;&#1077;&#1076;&#1086;&#1089;&#1090;&#1072;&#1074;&#1083;&#1077;&#1085;&#1085;&#1099;&#1084;</span>
     (upd-msg (get-msg msg-id) (list <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":UNDELIVERED"</span>))
@@ -409,6 +418,90 @@ for the JavaScript code in this tag.
 
 
 </div>
+
+</div>
+
+<div id="outline-container-3-7" class="outline-3">
+<h3 id="sec-3-7"><span class="section-number-3">3.7</span> Функция получения последних сообщений диалогов для данного пользователя</h3>
+<div class="outline-text-3" id="text-3-7">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1103; &#1074;&#1089;&#1077;&#1093; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;&#1086;&#1088;&#1086;&#1074; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081; &#1076;&#1083;&#1103; &#1076;&#1072;&#1085;&#1085;&#1086;&#1075;&#1086; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-last-msg-dialog-ids-for-user-id</span> (user-id)
+  (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((res-snd)
+           (res-rcv)
+           <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1080;&#1084; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1090;&#1086;&#1088;&#1099; &#1074;&#1089;&#1077;&#1093;, &#1082;&#1090;&#1086; &#1085;&#1072;&#1084; &#1087;&#1080;&#1089;&#1072;&#1083;, &#1087;&#1086; &#1085;&#1080;&#1084; &#1087;&#1086;&#1083;&#1091;&#1095;&#1080;&#1084; &#1087;&#1086;&#1089;&#1083;&#1077;&#1076;&#1085;&#1077;&#1077; &#1085;&#1072;&#1087;&#1080;&#1089;&#1072;&#1085;&#1085;&#1086;&#1077; &#1080;&#1084;&#1080; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</span>
+           (snd (<span style="color: #00cdcd; font-weight: bold;">loop</span>
+                   <span style="color: #0000ee; font-weight: bold;">:for</span> sndr
+                   <span style="color: #0000ee; font-weight: bold;">:in</span>  (query (<span style="color: #0000ee; font-weight: bold;">:select</span> <span style="color: #0000ee; font-weight: bold;">:snd-id</span> <span style="color: #0000ee; font-weight: bold;">:distinct</span> <span style="color: #0000ee; font-weight: bold;">:from</span> 'msg <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> user-id)))
+                   <span style="color: #0000ee; font-weight: bold;">:collect</span> (query
+                             (<span style="color: #0000ee; font-weight: bold;">:limit</span>
+                              (<span style="color: #0000ee; font-weight: bold;">:order-by</span>
+                               (<span style="color: #0000ee; font-weight: bold;">:select</span> <span style="color: #0000ee; font-weight: bold;">:id</span> <span style="color: #0000ee; font-weight: bold;">:snd-id</span> <span style="color: #0000ee; font-weight: bold;">:ts-create</span> <span style="color: #0000ee; font-weight: bold;">:msg</span>
+                                        <span style="color: #0000ee; font-weight: bold;">:from</span> 'msg
+                                        <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> user-id)
+                                                     (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:snd-id</span> (car sndr))))
+                               (<span style="color: #0000ee; font-weight: bold;">:desc</span> <span style="color: #0000ee; font-weight: bold;">:ts-create</span>))
+                              1)
+                             )))
+           <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1080;&#1084; &#1080;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1090;&#1086;&#1088;&#1099; &#1074;&#1089;&#1077;&#1093;, &#1082;&#1086;&#1084;&#1091; &#1084;&#1099; &#1087;&#1080;&#1089;&#1072;&#1083;&#1080;, &#1087;&#1086; &#1085;&#1080;&#1084; &#1087;&#1086;&#1083;&#1091;&#1095;&#1080;&#1084; &#1087;&#1086;&#1089;&#1083;&#1077;&#1076;&#1085;&#1077;&#1077; &#1085;&#1072;&#1087;&#1080;&#1089;&#1072;&#1085;&#1085;&#1086;&#1077; &#1085;&#1072;&#1084;&#1080; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;</span>
+           (rcv (<span style="color: #00cdcd; font-weight: bold;">loop</span>
+                   <span style="color: #0000ee; font-weight: bold;">:for</span> rcvr
+                   <span style="color: #0000ee; font-weight: bold;">:in</span>  (query (<span style="color: #0000ee; font-weight: bold;">:select</span> <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> <span style="color: #0000ee; font-weight: bold;">:distinct</span> <span style="color: #0000ee; font-weight: bold;">:from</span> 'msg <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:snd-id</span> user-id)))
+                   <span style="color: #0000ee; font-weight: bold;">:collect</span> (query
+                             (<span style="color: #0000ee; font-weight: bold;">:limit</span>
+                              (<span style="color: #0000ee; font-weight: bold;">:order-by</span>
+                               (<span style="color: #0000ee; font-weight: bold;">:select</span> <span style="color: #0000ee; font-weight: bold;">:id</span> <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> <span style="color: #0000ee; font-weight: bold;">:ts-create</span> <span style="color: #0000ee; font-weight: bold;">:msg</span>
+                                        <span style="color: #0000ee; font-weight: bold;">:from</span> 'msg
+                                        <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:snd-id</span> user-id)
+                                                     (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:rcv-id</span> (car rcvr))))
+                               (<span style="color: #0000ee; font-weight: bold;">:desc</span> <span style="color: #0000ee; font-weight: bold;">:ts-create</span>))
+                              1)
+                             ))))
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1093;&#1086;&#1076;&#1080;&#1084; &#1087;&#1086; &#1090;&#1077;&#1084; &#1087;&#1086;&#1089;&#1083;&#1077;&#1076;&#1085;&#1080;&#1084; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;&#1084;, &#1095;&#1090;&#1086; &#1072;&#1076;&#1088;&#1077;&#1089;&#1086;&#1074;&#1072;&#1085;&#1099; &#1085;&#1072;&#1084;</span>
+      (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> item <span style="color: #0000ee; font-weight: bold;">:in</span> snd <span style="color: #0000ee; font-weight: bold;">:do</span>
+         <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1103;&#1077;&#1084;, &#1077;&#1089;&#1090;&#1100; &#1083;&#1080; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077; &#1082; &#1101;&#1090;&#1086;&#1084;&#1091; &#1072;&#1073;&#1086;&#1085;&#1077;&#1085;&#1090;&#1091; &#1074; &#1089;&#1087;&#1080;&#1089;&#1082;&#1077; &#1087;&#1086;&#1089;&#1083;&#1077;&#1076;&#1085;&#1080;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081; &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1084;&#1099; &#1087;&#1086;&#1089;&#1083;&#1072;&#1083;&#1080;</span>
+         (aif (find (cadar item) rcv <span style="color: #0000ee; font-weight: bold;">:key</span> #'cadar)
+              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1077;&#1089;&#1090;&#1100;, &#1090;&#1086; &#1089;&#1084;&#1086;&#1090;&#1088;&#1080;&#1084;, &#1082;&#1072;&#1082;&#1086;&#1077; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077; &#1073;&#1086;&#1083;&#1077;&#1077; &#1089;&#1074;&#1077;&#1078;&#1077;&#1077;</span>
+              (<span style="color: #00cdcd; font-weight: bold;">if</span> (&gt; (caddar item) (caddar it))
+                  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1090;&#1086;, &#1095;&#1090;&#1086; &#1085;&#1072;&#1084; &#1087;&#1088;&#1080;&#1089;&#1083;&#1072;&#1083;&#1080;, &#1090;&#1086; &#1086;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; &#1077;&#1075;&#1086; &#1074; res-snd</span>
+                  (setf res-snd (append res-snd (list item)))
+                  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1090;&#1086;, &#1095;&#1090;&#1086; &#1087;&#1086;&#1089;&#1083;&#1072;&#1083;&#1080; &#1084;&#1099;, &#1090;&#1086; &#1086;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; &#1077;&#1075;&#1086; &#1074; res-rcv</span>
+                  (setf res-rcv (append res-rcv (list it))))
+              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1077;&#1090;, &#1090;&#1086; &#1074; &#1088;&#1077;&#1079;&#1091;&#1083;&#1100;&#1090;&#1072;&#1090; &#1086;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; &#1090;&#1086; &#1095;&#1090;&#1086; &#1077;&#1089;&#1090;&#1100; &#1074; res-snd</span>
+              (setf res-snd (append res-snd (list item)))))
+      (values res-snd res-rcv))))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-3-8" class="outline-3">
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Функция отображения одного сообщения в списке сообщений</h3>
+<div class="outline-text-3" id="text-3-8">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1086;&#1090;&#1086;&#1073;&#1088;&#1072;&#1078;&#1077;&#1085;&#1080;&#1103; &#1086;&#1076;&#1085;&#1086;&#1075;&#1086; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103; &#1074; &#1089;&#1087;&#1080;&#1089;&#1082;&#1077; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">show-msg-id</span> (msg-id)
+  (format nil <span style="color: #00cd00;">"&lt;div&gt;~A&lt;/div&gt;"</span>
+          (msg (get-msg msg-id))))
+</pre>
+
+
+</div>
 </div>
 
 </div>
@@ -466,7 +559,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-13T21:21+0400</p>
+<p class="date">Date: 2014-10-14T21:38+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

@@ -17,24 +17,15 @@
      "<h1>Страница сообщений</h1>"
      (if (not *current-user*)
          "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
-         (let ((msgs (get-msg-ids-for-user-id *current-user*)))
+         (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
            (if (equal 0 (length msgs))
                "Нет сообщений"
                (format nil "~{~A~}"
                        (mapcar #'show-msg-id msgs))))))))
 
-;; ;; Контроллер страницы регистрации
-;; (restas:define-route reg-ctrl ("/reg" :method :post)
-;;   (with-wrapper
-;;     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-;;       (setf (hunchentoot:session-value 'current-user)
-;;             (create-user (getf p :name)
-;;                          (getf p :password)
-;;                          (getf p :email))))))
-
 ;; Событие отправки сообщения
 (defun create-msg (snd-id rcv-id msg)
-  (let ((msg-id (id (make-msg :snd-id snd-id :rcv-id rcv-id :msg msg))))
+  (let ((msg-id (id (make-msg :snd-id snd-id :rcv-id rcv-id :msg msg :ts-create (get-universal-time) :ts-delivery 0))))
     (dbg "Создано сообщение: ~A" msg-id)
     ;; Делаем его недоставленным
     (upd-msg (get-msg msg-id) (list :state ":UNDELIVERED"))
@@ -56,16 +47,54 @@
         (takt (get-msg msg-id) :delivered))
     msg))
 
+(in-package #:moto)
 
 ;; Функция получения всех идентификаторов сообщений для данного пользователя
-(defun get-msg-ids-for-user-id (user-id)
-  (let ((args (list :snd-id user-id :rcv-id user-id)))
-    (mapcar #'id
-            (with-connection *db-spec*
-              (query-dao 'msg
-                         (sql-compile
-                          (list :select :* :from 'msg
-                                :where (make-clause-list ':or ':= args))))))))
+(defun get-last-msg-dialog-ids-for-user-id (user-id)
+  (with-connection *db-spec*
+    (let* ((res-snd)
+           (res-rcv)
+           ;; Получим идентификторы всех, кто нам писал, по ним получим последнее написанное ими сообщение
+           (snd (loop
+                   :for sndr
+                   :in  (query (:select :snd-id :distinct :from 'msg :where (:= :rcv-id user-id)))
+                   :collect (query
+                             (:limit
+                              (:order-by
+                               (:select :id :snd-id :ts-create :msg
+                                        :from 'msg
+                                        :where (:and (:= :rcv-id user-id)
+                                                     (:= :snd-id (car sndr))))
+                               (:desc :ts-create))
+                              1)
+                             )))
+           ;; Получим идентификторы всех, кому мы писали, по ним получим последнее написанное нами сообщение
+           (rcv (loop
+                   :for rcvr
+                   :in  (query (:select :rcv-id :distinct :from 'msg :where (:= :snd-id user-id)))
+                   :collect (query
+                             (:limit
+                              (:order-by
+                               (:select :id :rcv-id :ts-create :msg
+                                        :from 'msg
+                                        :where (:and (:= :snd-id user-id)
+                                                     (:= :rcv-id (car rcvr))))
+                               (:desc :ts-create))
+                              1)
+                             ))))
+      ;; Проходим по тем последним сообщениям, что адресованы нам
+      (loop :for item :in snd :do
+         ;; Проверяем, есть ли сообщение к этому абоненту в списке последних сообщений которые мы послали
+         (aif (find (cadar item) rcv :key #'cadar)
+              ;; Если есть, то смотрим, какое сообщение более свежее
+              (if (> (caddar item) (caddar it))
+                  ;; Если то, что нам прислали, то отправляем его в res-snd
+                  (setf res-snd (append res-snd (list item)))
+                  ;; Если то, что послали мы, то оправляем его в res-rcv
+                  (setf res-rcv (append res-rcv (list it))))
+              ;; Если нет, то в результат отправляем то что есть в res-snd
+              (setf res-snd (append res-snd (list item)))))
+      (values res-snd res-rcv))))
 (in-package #:moto)
 
 ;; Функция отображения одного сообщения в списке сообщений

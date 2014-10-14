@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="moto"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-13T21:21+0400"/>
+<meta name="generated" content="2014-10-14T21:38+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -320,6 +320,8 @@ for the JavaScript code in this tag.
 <li>Поиск друзей с кем покататься
     Вводишь время, место и радиус, система находит друзей, и пишешь им - давай катать!
 </li>
+<li>Мототур "по бабам"
+</li>
 </ul>
 
 
@@ -521,8 +523,10 @@ for the JavaScript code in this tag.
 <tr><td class="left">name</td><td class="left">varchar</td><td class="left">имя пользователя</td></tr>
 <tr><td class="left">password</td><td class="left">varchar</td><td class="left">пароль</td></tr>
 <tr><td class="left">email</td><td class="left">varchar</td><td class="left">емейл</td></tr>
+<tr><td class="left">ts-create</td><td class="left">bigint</td><td class="left">время создания</td></tr>
 </tbody>
 </table>
+
 
 
 <p>
@@ -604,7 +608,8 @@ for the JavaScript code in this tag.
 ((id serial)
  (name varchar)
  (password varchar)
- (email varchar))
+ (email varchar)
+ (ts-create bigint))
 </pre>
 
 
@@ -692,6 +697,8 @@ for the JavaScript code in this tag.
 <tr><td class="left">snd-id</td><td class="left">integer</td><td class="left">пользователь, который послал сообщение</td></tr>
 <tr><td class="left">rcv-id</td><td class="left">integer</td><td class="left">пользователь, который получает сообщение</td></tr>
 <tr><td class="left">msg</td><td class="left">varchar</td><td class="left">сообщение</td></tr>
+<tr><td class="left">ts-create</td><td class="left">bigint</td><td class="left">время создания</td></tr>
+<tr><td class="left">ts-delivery</td><td class="left">bigint</td><td class="left">время доставки</td></tr>
 </tbody>
 </table>
 
@@ -740,7 +747,9 @@ for the JavaScript code in this tag.
 ((id serial)
  (snd-id integer)
  (rcv-id integer)
- (msg varchar))
+ (msg varchar)
+ (ts-create bigint)
+ (ts-delivery bigint))
 </pre>
 
 
@@ -1151,11 +1160,11 @@ for the JavaScript code in this tag.
                                                 (<span style="color: #00cdcd; font-weight: bold;">if</span> (null *current-user*)
                                                     <span style="color: #00cd00;">"none"</span>
                                                     *current-user*)))
-                           (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval))
                            (<span style="color: #00cdcd; font-weight: bold;">if</span> *current-user*
                                (tpl:msgblock
                                 (list <span style="color: #0000ee; font-weight: bold;">:msgcnt</span> (get-undelivered-msg-cnt *current-user*)))
-                               <span style="color: #00cd00;">""</span>))))))))
+                               <span style="color: #00cd00;">""</span>)
+                           (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval)))))))))
 </pre>
 
 
@@ -1287,7 +1296,7 @@ for the JavaScript code in this tag.
 
 {<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">msgblock}</span>
     &lt;<span style="color: #0000ee; font-weight: bold;">div</span> <span style="color: #cdcd00;">style</span>=<span style="color: #00cd00;">"border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;"</span>&gt;
-        &#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103; ({$<span style="color: #cdcd00;">msgcnt</span> | noAutoescape})
+        &#1053;&#1086;&#1074;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;: {$<span style="color: #cdcd00;">msgcnt</span> | noAutoescape}
     &lt;/<span style="color: #0000ee; font-weight: bold;">div</span>&gt;
 {<span style="color: #00cd00; font-weight: bold;">/template</span>}
 </pre>
@@ -1527,7 +1536,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-13T21:21+0400</p>
+<p class="date">Date: 2014-10-14T21:38+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
