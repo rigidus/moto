@@ -82,19 +82,43 @@
                                (:desc :ts-create))
                               1)
                              ))))
-      ;; Проходим по тем последним сообщениям, что адресованы нам
+      ;; Проходим по тем последним сообщениям, что присланы нам
       (loop :for item :in snd :do
+         ;; (dbg "~%:~A" item)
          ;; Проверяем, есть ли сообщение к этому абоненту в списке последних сообщений которые мы послали
          (aif (find (cadar item) rcv :key #'cadar)
-              ;; Если есть, то смотрим, какое сообщение более свежее
-              (if (> (caddar item) (caddar it))
-                  ;; Если то, что нам прислали, то отправляем его в res-snd
-                  (setf res-snd (append res-snd (list item)))
-                  ;; Если то, что послали мы, то оправляем его в res-rcv
-                  (setf res-rcv (append res-rcv (list it))))
-              ;; Если нет, то в результат отправляем то что есть в res-snd
-              (setf res-snd (append res-snd (list item)))))
-      (values res-snd res-rcv))))
+              ;; Если есть, то...
+              (progn
+                ;; (dbg "~%:Y: ~A - ~A" (caddar item) (caddar it))
+                ;; Смотрим, какое сообщение свежее
+                (if (> (caddar item) (caddar it))
+                    ;; Если более позднее то, что нам прислали, то
+                    ;; отправляем его в res-snd
+                    (progn
+                      (setf res-snd (append res-snd (list item)))
+                      ;; (dbg "~%|YY|res-snd: ~A" res-snd)
+                      )
+                    ;; Если то, что послали мы, то оправляем его в res-rcv и удаляем из rcv - останутся только неспаренные
+                    (progn
+                      (setf res-rcv (append res-rcv (list it)))
+                      ;; (dbg "~%|NN|res-rcv: ~A" res-rcv)
+                      (setf rcv (remove it rcv)))))
+              ;; Если нет, то
+              (progn
+                ;; Результат отправляем то что есть в res-snd
+                (setf res-snd (append res-snd (list item)))
+                ;; (dbg "~%|N|res-snd: ~A" res-snd)
+                )))
+      ;; Добавляем к res-rcv неспаренные остатки из rcv
+      (setf res-rcv (append res-rcv rcv))
+      ;; Объединим res-rcv и res-snd и отсортируем
+      (mapcar #'car
+              (sort
+               (append res-snd res-rcv)
+               #'(lambda (a b)
+                   (> (caddar a) (caddar b))))))))
+
+
 (in-package #:moto)
 
 ;; Функция отображения одного сообщения в списке сообщений
@@ -106,30 +130,53 @@
 ;; Тестируем сообщения
 (defun msg-test ()
   
-  ;; Зарегистрируем двух пользователей
-  (let ((user-id-1 (create-user "name-1" "password-1" "email-1"))
-        (user-id-2 (create-user "name-2" "password-2" "email-2")))
-    ;; Пусть первый пользователь пошлет второму сообщение
-    (let ((msg-id (create-msg user-id-1 user-id-2 "message-1")))
+  ;; Зарегистрируем четырех пользователей
+  (let ((alice (create-user "alice" "aXJAVtBT" "alice@mail.com"))
+        (bob   (create-user "bob"   "pDa84LAh" "bob@mail.com"))
+        (carol (create-user "carol" "zDgjGus7" "carol@mail.com"))
+        (dave  (create-user "dave"  "6zt5GmvE" "dave@mail.com")))
+    ;; Пусть Алиса пошлет Бобу сообщение
+    (let* ((test-msg "Привет, Боб, это Алиса!")
+           (msg-id (create-msg alice bob test-msg)))
       ;; Проверим, что сообщение существует
       (assert (get-msg msg-id))
       ;; Проверим, что оно находится в статусе "недоставлено"
       (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
       ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
-      (let ((undelivered-msg-cnt (get-undelivered-msg-cnt user-id-2)))
+      (let ((undelivered-msg-cnt (get-undelivered-msg-cnt bob)))
         ;; Проверим, что там одно непрочитанное сообщение
         (assert (equal 1 undelivered-msg-cnt))
         ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
-        (let ((undelivered-msg-ids (get-undelivered-msg-ids user-id-1 user-id-2)))
+        (let ((undelivered-msg-ids (get-undelivered-msg-ids alice bob)))
           ;; Проверим, что в списке идентификторов непрочитанных сообщений один элемент
           (assert (equal 1 (length undelivered-msg-ids)))
           ;; Получим это сообщение
           (let* ((read-msg-id (car undelivered-msg-ids))
                  (read-msg (delivery-msg read-msg-id)))
             ;; Проверим, что это именно то сообщение, которое послал первый пользователь
-            (assert (equal "message-1" (msg read-msg)))
+            (assert (equal test-msg (msg read-msg)))
             ;; Проверим, что сообщение теперь доставлено
-            (assert (equal ":DELIVERED" (state (get-msg read-msg-id))))
-            )))))
+            (assert (equal ":DELIVERED" (state (get-msg read-msg-id))))))))
+    ;; Пусть Боб ответит Алисе и напишет Кэрол
+    (sleep 1)
+    (let* ((reply-bob-to-alice "Здравствуй, Алиса, я получил твое письмо. Я напишу Кэрол что ты нашла меня")
+           (reply-bob-to-alice-id (create-msg bob alice reply-bob-to-alice)))
+      (sleep 1)
+      (let* ((msg-bob-to-carol "Кэрол, передаю привет от Алисы. Боб.")
+             (msg-bob-to-carol-id (create-msg bob carol msg-bob-to-carol)))
+        (sleep 1)
+        ;; Пусть Дэйв напишет Бобу
+        (let* ((msg-dave-to-bob "Привет, Боб, я хочу добавить тебя в друзья")
+               (msg-dave-to-bob-id (create-msg dave bob msg-dave-to-bob)))
+          ;; Получим последние диалоги Боба
+          (let ((last-dialogs (get-last-msg-dialog-ids-for-user-id bob)))
+            (dbg "~%~A" (bprint last-dialogs))
+            ;; Проверим, что в имеем три диалога
+            (assert (equal 3 (length last-dialogs)))
+            ;; Проверим, что сообщения правильно упорядочены
+            (assert (equal (list msg-dave-to-bob-id
+                                 msg-bob-to-carol-id
+                                 reply-bob-to-alice-id)
+                           (mapcar #'car last-dialogs))))))))
   (dbg "passed: msg-test~%"))
 (msg-test)
