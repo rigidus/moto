@@ -171,6 +171,7 @@
   - Типы для полей state нужно задавать как перечисления
   - Добавить AJAX и Comet
   - Автоматизированная генерация интерфейса для просмотра и редактирования сущностей
+  - Забираем пользователей с других ресурсов
 * Определения сущностей
 ** Функции для кодогенерации сущностей
 
@@ -381,11 +382,10 @@
 
    #+CAPTION: Данные роли
    #+NAME: role_data
-     | field name  | field type | note                                     |
-     |-------------+------------+------------------------------------------|
-     | id          | serial     | идентификатор                            |
-     | name        | varchar    | имя роли                                 |
-
+     | field name | field type | note          |
+     |------------+------------+---------------|
+     | id         | serial     | идентификатор |
+     | name       | varchar    | имя роли      |
 
    #+NAME: role_entity
    #+BEGIN_SRC lisp
@@ -564,20 +564,43 @@
 
    #+CAPTION: Данные квартиры
    #+NAME: flat_data
-     | field name   | field type | note                                   |
-     |--------------+------------+----------------------------------------|
-     | id           | serial     | идентификатор                          |
-     | plex-id      | integer    | идентификатор очереди жилого комплекса |
-     | rooms        | integer    | кол-во комнат                          |
-     | area-sum     | integer    | общая площадь квартиры                 |
-     | area-living  | integer    | жилая площадь квартиры                 |
-     | area-kitchen | integer    | площадь кухни                          |
-     | price        | integer    | цена                                   |
-     | subsidy      | boolean    | субсидия                               |
-     | finishing    | boolean    | отделка                                |
-     | ipoteka      | boolean    | ипотека                                |
-     | installment  | boolean    | рассрочка                              |
-     | balcony      | varchar    | балкон/лоджия                          |
+     | field name   | field type           | note                                   |
+     |--------------+----------------------+----------------------------------------|
+     | id           | serial               | идентификатор                          |
+     | plex-id      | (or db-null integer) | идентификатор очереди жилого комплекса |
+     | rooms        | (or db-null integer) | кол-во комнат                          |
+     | area-sum     | (or db-null integer) | общая площадь квартиры                 |
+     | area-living  | (or db-null integer) | жилая площадь квартиры                 |
+     | area-kitchen | (or db-null integer) | площадь кухни                          |
+     | price        | (or db-null integer) | цена                                   |
+     | subsidy      | (or db-null boolean) | субсидия                               |
+     | finishing    | (or db-null boolean) | отделка                                |
+     | ipoteka      | (or db-null boolean) | ипотека                                |
+     | installment  | (or db-null boolean) | рассрочка                              |
+     | balcony      | (or db-null varchar) | балкон/лоджия                          |
+
+   #+NAME: flat_entity
+   #+BEGIN_SRC lisp
+     ;; Сущность роли
+     (define-entity flat "Сущность роли"
+       <<flat_fields()>>)
+
+     (make-flat-table)
+
+     <<create_flats>>
+   #+END_SRC
+
+   Где =flat-fields= (поля данных) определим как:
+
+   #+NAME: flat_fields
+   #+BEGIN_SRC emacs-lisp :var table=flat_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
+   #+NAME: create_flats
+   #+BEGIN_SRC lisp
+     (make-flat :rooms 1)
+   #+END_SRC
 
 ** Жилой комплекс (cmpx)
 
@@ -676,12 +699,12 @@
      (restas:define-route allusers ("/users")
        (with-wrapper
          (tbl
-          (loop :for i :in (all-user) :collect
-             (tr
-              (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
-              (td (name i))
-              (td (password i))
-              (td (email i))))
+          (with-collection (i (all-user))
+            (tr
+             (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
+             (td (name i))
+             (td (password i))
+             (td (email i))))
           :border 1)))
 
      (restas:define-route allusers-ctrl ("/users" :method :post)
@@ -706,11 +729,12 @@
                        (list
                         (format nil "<h1>Страница пользователя ~A</h1>" (id u))
                         (format nil "<h2>Данные пользователя ~A</h2>" (name u))
-                        (tbl (list
-                              (row "Имя пользователя" (name u))
-                              (row "Пароль" (password u))
-                              (row "Email" (email u)))
-                             :border 1)
+                        (tbl
+                         (with-element (u u)
+                           (row "Имя пользователя" (name u))
+                           (row "Пароль" (password u))
+                           (row "Email" (email u)))
+                         :border 1)
                         ))))))
 
      (restas:define-route user-ctrl ("/user/:userid" :method :post)
@@ -720,6 +744,124 @@
                  ((getf p :follow)   )
                  ((getf p :neworder) )))))
    #+END_SRC
+
+** Страничка квартиры
+
+    [[file:pics/Trend_apartment02.png][Дизайн-макет: Карточка квартиры]]
+
+    [[file:pics/Trend_apartment_print.png][Дизайн-макет: Карточка квартиры - версия для печати]]
+
+*** Шаблон и код который его заполняет
+
+  Соберем шаблоны страницы квартиры
+
+  #+NAME: flatpage_tpl
+  #+BEGIN_SRC closure-template-html :tangle src/flat-templates.htm :noweb tangle :exports code
+    // -*- mode: closure-template-html; fill-column: 140 -*-
+    {namespace flattpl}
+
+    {template flatpage}
+        <<flatpage_tpl_contents>>
+    {/template}
+  #+END_SRC
+
+  И соберем код, который его заполняет
+
+  #+NAME: flatpage
+  #+BEGIN_SRC lisp :tangle src/flatpage.lisp :noweb tangle :exports code
+    (in-package #:moto)
+
+    (restas:define-route flat ("/flat/:flatid")
+      (with-wrapper
+        (let ((flat (get-flat 1)))
+          (flattpl:flatpage
+           (list
+            <<flatpage_contents>>
+            )))))
+  #+END_SRC
+
+*** TODO Pop-up
+    Есть вариант открывать карточку квартиры в pop-up окне. Но на каждую квартиру должна
+    быть прямая ссылка - очевидно надо менять адресную строку.
+
+*** TODO Версия для печати
+    Также должна быть версия для печати, чтобы распечатать интересующий вариант.
+
+*** TODO Менеджер хочет накидать скидок
+    Менеджер по продаже должен иметь возможность на странице квартиры накидать скидок (иногородний
+    покупатель, итп), влиящих на цену квартиры. Это очень важное бизнес-требование.
+*** TODO Pdf-версия
+*** TODO Отправить на почту
+*** TODO Рассказать в социальных сетях
+*** Тип квартиры
+
+    #+NAME: flatpage_tpl_contents
+    #+BEGIN_SRC closure-template-html
+      {$rooms | noAutoescape}
+    #+END_SRC
+
+    Тип квартиры показывается исходя из кол-ва комнат:
+
+    #+NAME: flatpage_contents
+    #+BEGIN_SRC lisp
+      :rooms (let ((r (rooms flat)))
+               (cond ((equal 0 r) "Квартира-студия")
+                     ((equal 1 r) "1-комнатная квартира")
+                     ((equal 2 r) "2-комнатная квартира")
+                     ((equal 3 r) "3-комнатная квартира")
+                     ((equal 4 r) "4-комнатная квартира")
+                     (t (err "unc rooms value"))))
+    #+END_SRC
+
+
+
+    Видим:
+    - Тип квартиры (студия, 1комнатная)
+    - id
+    - Цена при 100% оплате
+    - Кнопка "подробности у менедждера" - ссылка на контакты
+
+    Справа карточка комплекса идентичная поисковой выдачи - она оттуда
+    и берется.
+
+    - Планировка квартиры - рисунок
+    - План этажа
+    - Карта на который мы отмечаем где в корпусе расположена
+      квартира - чтобы сориентироваться по виду.
+    - Карта с минимальной ценой
+
+    - Характеристики квартиры
+      - Кол-во комнат
+      - жилая площадь
+      - общая площадь
+      - Пллощадь кухни
+      - Санузел
+      - Отделка
+      - Балкон
+      Нужно иметь возможность добавлять сюда параметры
+
+    - Сравнение
+    - Избранное
+
+    - Четыре ключевых преимущетва из ЖК
+
+    - калькулятор ипотеки и рассрочки - отдельный кейс
+
+    - Возможность баннеров (автобусные туры)
+
+    - Инфо о жилом комплексе (потому что попадает в распечатку)
+
+    - Сссылка "подробно о комплексе" - к ЖК
+
+    - Квартиры в этом комплексе - ведут в карточку комплекса с
+      открытыми двухкомнатными квартирами.
+
+    - Сообщить об ошибке.
+
+    - Когда было последнее обновление информации о квартире. Обновлено и дату. Чтобы менеджер
+      видел актуальность. Показывать ли клиентам?
+
+
 
 * Модули
 ** Cущности, автоматы и их тесты
@@ -797,6 +939,10 @@
      <<with_wrapper>>
 
      <<frm>>
+
+     <<with_collection>>
+
+     <<with_element>>
    #+END_SRC
 
    #+NAME: get_obj_data
@@ -968,6 +1114,26 @@
      ;; (frm (tbl (list (row "username" (fld "user")))))
    #+END_SRC
 
+   Чтобы выводить коллекции напишем макрос
+
+   #+NAME: with_collection
+   #+BEGIN_SRC lisp
+
+     (defmacro with-collection ((item collection) &body body)
+       `(loop :for ,item :in ,collection :collect
+           ,@body))
+   #+END_SRC
+
+   Чтобы выводить элемент коллекции напишем макрос
+
+   #+NAME: with_element
+   #+BEGIN_SRC lisp
+     (defmacro with-element ((item elt) &body body)
+       `(let ((,item ,elt))
+          (list
+           ,@body)))
+   #+END_SRC
+
 ** Шаблоны
 
    Шаблоны будем вставлять в отдельный файл =src/templates.htm=
@@ -1038,7 +1204,7 @@
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; clear db
-     (let ((tables '("user" "role" "group" "user2group" "msg")))
+     (let ((tables '("user" "role" "group" "user2group" "msg" "flat")))
        (flet ((rmtbl (tblname)
                 (when (with-connection *db-spec*
                         (query (:select 'table_name :from 'information_schema.tables :where
@@ -1103,6 +1269,8 @@
                     <<mod_msg>>
                     (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
+                    (:static-file "flat-templates.htm")
+                    (:file "flatpage")
                     ))
    #+END_SRC
 
@@ -1144,6 +1312,9 @@
 
      (closure-template:compile-template
       :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
+
+     (closure-template:compile-template
+      :common-lisp-backend (pathname (concatenate 'string *base-path* "flat-templates.htm")))
    #+END_SRC
 
 ** Точка входа
@@ -1164,6 +1335,8 @@
      <<user_automat>>
 
      <<msg_automat>>
+
+     <<flat_entity>>
 
      ;; Веб-интерфейс
 

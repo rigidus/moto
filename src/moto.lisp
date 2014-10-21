@@ -17,7 +17,7 @@
 (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
 ;; clear db
-(let ((tables '("user" "role" "group" "user2group" "msg")))
+(let ((tables '("user" "role" "group" "user2group" "msg" "flat")))
   (flet ((rmtbl (tblname)
            (when (with-connection *db-spec*
                    (query (:select 'table_name :from 'information_schema.tables :where
@@ -122,6 +122,25 @@
    "undelivered -> delivered"
    )
 
+
+;; Сущность роли
+(define-entity flat "Сущность роли"
+  ((id serial)
+   (plex-id (or db-null integer))
+   (rooms (or db-null integer))
+   (area-sum (or db-null integer))
+   (area-living (or db-null integer))
+   (area-kitchen (or db-null integer))
+   (price (or db-null integer))
+   (subsidy (or db-null boolean))
+   (finishing (or db-null boolean))
+   (ipoteka (or db-null boolean))
+   (installment (or db-null boolean))
+   (balcony (or db-null varchar))))
+
+(make-flat-table)
+
+(make-flat :rooms 1)
 
 ;; Веб-интерфейс
 

@@ -107,12 +107,12 @@
 (restas:define-route allusers ("/users")
   (with-wrapper
     (tbl
-     (loop :for i :in (all-user) :collect
-        (tr
-         (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
-         (td (name i))
-         (td (password i))
-         (td (email i))))
+     (with-collection (i (all-user))
+       (tr
+        (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
+        (td (name i))
+        (td (password i))
+        (td (email i))))
      :border 1)))
 
 (restas:define-route allusers-ctrl ("/users" :method :post)
@@ -133,11 +133,12 @@
                   (list
                    (format nil "<h1>Страница пользователя ~A</h1>" (id u))
                    (format nil "<h2>Данные пользователя ~A</h2>" (name u))
-                   (tbl (list
-                         (row "Имя пользователя" (name u))
-                         (row "Пароль" (password u))
-                         (row "Email" (email u)))
-                        :border 1)
+                   (tbl
+                    (with-element (u u)
+                      (row "Имя пользователя" (name u))
+                      (row "Пароль" (password u))
+                      (row "Email" (email u)))
+                    :border 1)
                    ))))))
 
 (restas:define-route user-ctrl ("/user/:userid" :method :post)

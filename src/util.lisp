@@ -146,3 +146,13 @@
 ;; (tbl (list "zzz") :name "table")
 
 ;; (frm (tbl (list (row "username" (fld "user")))))
+
+
+(defmacro with-collection ((item collection) &body body)
+  `(loop :for ,item :in ,collection :collect
+      ,@body))
+
+(defmacro with-element ((item elt) &body body)
+  `(let ((,item ,elt))
+     (list
+      ,@body)))

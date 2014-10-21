@@ -45,4 +45,6 @@
                                      (:file "msg")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
+               (:static-file "flat-templates.htm")
+               (:file "flatpage")
                ))

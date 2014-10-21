@@ -10,3 +10,6 @@
 
 (closure-template:compile-template
  :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
+
+(closure-template:compile-template
+ :common-lisp-backend (pathname (concatenate 'string *base-path* "flat-templates.htm")))
