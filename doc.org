@@ -172,6 +172,8 @@
   - Добавить AJAX и Comet
   - Автоматизированная генерация интерфейса для просмотра и редактирования сущностей
   - Забираем пользователей с других ресурсов
+  - Очищалка базы для каждого модуля должна лежать в модуле
+  - И сущности тоже туда переложить
 * Определения сущностей
 ** Функции для кодогенерации сущностей
 
@@ -560,111 +562,6 @@
        )
    #+END_SRC
 
-** Квартира (flat)
-
-   #+CAPTION: Данные квартиры
-   #+NAME: flat_data
-     | field name   | field type           | note                                   |
-     |--------------+----------------------+----------------------------------------|
-     | id           | serial               | идентификатор                          |
-     | plex-id      | (or db-null integer) | идентификатор очереди жилого комплекса |
-     | rooms        | (or db-null integer) | кол-во комнат                          |
-     | area-sum     | (or db-null integer) | общая площадь квартиры                 |
-     | area-living  | (or db-null integer) | жилая площадь квартиры                 |
-     | area-kitchen | (or db-null integer) | площадь кухни                          |
-     | price        | (or db-null integer) | цена                                   |
-     | subsidy      | (or db-null boolean) | субсидия                               |
-     | finishing    | (or db-null boolean) | отделка                                |
-     | ipoteka      | (or db-null boolean) | ипотека                                |
-     | installment  | (or db-null boolean) | рассрочка                              |
-     | balcony      | (or db-null varchar) | балкон/лоджия                          |
-
-   #+NAME: flat_entity
-   #+BEGIN_SRC lisp
-     ;; Сущность роли
-     (define-entity flat "Сущность роли"
-       <<flat_fields()>>)
-
-     (make-flat-table)
-
-     <<create_flats>>
-   #+END_SRC
-
-   Где =flat-fields= (поля данных) определим как:
-
-   #+NAME: flat_fields
-   #+BEGIN_SRC emacs-lisp :var table=flat_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   #+NAME: create_flats
-   #+BEGIN_SRC lisp
-     (make-flat :rooms 1)
-   #+END_SRC
-
-** Жилой комплекс (cmpx)
-
-   Эта сущность нужна только чтобы объединять очереди жилого комплекса
-
-   #+CAPTION: Данные жилого комплекса
-   #+NAME: plex_data
-     | field name  | field type | note                           |
-     |-------------+------------+--------------------------------|
-     | id          | serial     | идентификатор                  |
-     | name        | varchar    | название                       |
-     | addr        | varchar    | адрес                          |
-
-** Очередь жилого комплекса (plex)
-
-   #+CAPTION: Данные очереди жилого комплекса
-   #+NAME: plex_data
-     | field name  | field type | note                           |
-     |-------------+------------+--------------------------------|
-     | id          | serial     | идентификатор                  |
-     | cmpx-id     | integer    | идентификатор жилого комплекса |
-     | name        | varchar    | название                       |
-     | addr        | varchar    | адрес                          |
-     | deadline    | varchar    | срок сдачи                     |
-     | district-id | integer    | идентификатор района           |
-     | metro-id    | integer    | идентификатор метро            |
-     | distance    | varchar    | расстояние до метро            |
-
-** Картинки очередей ЖК
-** Картинки планировок
-** Картинки хода строительства
-** Город (city)
-
-   Город в котором находится объект
-
-   #+CAPTION: Данные города
-   #+NAME: district_data
-     | field name | field type | note            |
-     |------------+------------+-----------------|
-     | id         | serial     | идентификатор   |
-     | name       | varchar    | название города |
-
-** Район (district)
-
-   Район города, в котором находится объект
-
-   #+CAPTION: Данные роли
-   #+NAME: district_data
-     | field name  | field type | note                                     |
-     |-------------+------------+------------------------------------------|
-     | id          | serial     | идентификатор                            |
-     | name        | varchar    | название района |
-
-** Метро (metro)
-
-   Метро неподалеку от объекта
-
-   #+CAPTION: Данные роли
-   #+NAME: metro_data
-     | field name | field type | note             |
-     |------------+------------+------------------|
-     | id         | serial     | идентификатор    |
-     | name       | varchar    | название станции |
-
 * События
 
   Мы используем события, чтобы отслеживать и логгировать изменения в системе, которые
@@ -745,124 +642,6 @@
                  ((getf p :neworder) )))))
    #+END_SRC
 
-** Страничка квартиры
-
-    [[file:pics/Trend_apartment02.png][Дизайн-макет: Карточка квартиры]]
-
-    [[file:pics/Trend_apartment_print.png][Дизайн-макет: Карточка квартиры - версия для печати]]
-
-*** Шаблон и код который его заполняет
-
-  Соберем шаблоны страницы квартиры
-
-  #+NAME: flatpage_tpl
-  #+BEGIN_SRC closure-template-html :tangle src/flat-templates.htm :noweb tangle :exports code
-    // -*- mode: closure-template-html; fill-column: 140 -*-
-    {namespace flattpl}
-
-    {template flatpage}
-        <<flatpage_tpl_contents>>
-    {/template}
-  #+END_SRC
-
-  И соберем код, который его заполняет
-
-  #+NAME: flatpage
-  #+BEGIN_SRC lisp :tangle src/flatpage.lisp :noweb tangle :exports code
-    (in-package #:moto)
-
-    (restas:define-route flat ("/flat/:flatid")
-      (with-wrapper
-        (let ((flat (get-flat 1)))
-          (flattpl:flatpage
-           (list
-            <<flatpage_contents>>
-            )))))
-  #+END_SRC
-
-*** TODO Pop-up
-    Есть вариант открывать карточку квартиры в pop-up окне. Но на каждую квартиру должна
-    быть прямая ссылка - очевидно надо менять адресную строку.
-
-*** TODO Версия для печати
-    Также должна быть версия для печати, чтобы распечатать интересующий вариант.
-
-*** TODO Менеджер хочет накидать скидок
-    Менеджер по продаже должен иметь возможность на странице квартиры накидать скидок (иногородний
-    покупатель, итп), влиящих на цену квартиры. Это очень важное бизнес-требование.
-*** TODO Pdf-версия
-*** TODO Отправить на почту
-*** TODO Рассказать в социальных сетях
-*** Тип квартиры
-
-    #+NAME: flatpage_tpl_contents
-    #+BEGIN_SRC closure-template-html
-      {$rooms | noAutoescape}
-    #+END_SRC
-
-    Тип квартиры показывается исходя из кол-ва комнат:
-
-    #+NAME: flatpage_contents
-    #+BEGIN_SRC lisp
-      :rooms (let ((r (rooms flat)))
-               (cond ((equal 0 r) "Квартира-студия")
-                     ((equal 1 r) "1-комнатная квартира")
-                     ((equal 2 r) "2-комнатная квартира")
-                     ((equal 3 r) "3-комнатная квартира")
-                     ((equal 4 r) "4-комнатная квартира")
-                     (t (err "unc rooms value"))))
-    #+END_SRC
-
-
-
-    Видим:
-    - Тип квартиры (студия, 1комнатная)
-    - id
-    - Цена при 100% оплате
-    - Кнопка "подробности у менедждера" - ссылка на контакты
-
-    Справа карточка комплекса идентичная поисковой выдачи - она оттуда
-    и берется.
-
-    - Планировка квартиры - рисунок
-    - План этажа
-    - Карта на который мы отмечаем где в корпусе расположена
-      квартира - чтобы сориентироваться по виду.
-    - Карта с минимальной ценой
-
-    - Характеристики квартиры
-      - Кол-во комнат
-      - жилая площадь
-      - общая площадь
-      - Пллощадь кухни
-      - Санузел
-      - Отделка
-      - Балкон
-      Нужно иметь возможность добавлять сюда параметры
-
-    - Сравнение
-    - Избранное
-
-    - Четыре ключевых преимущетва из ЖК
-
-    - калькулятор ипотеки и рассрочки - отдельный кейс
-
-    - Возможность баннеров (автобусные туры)
-
-    - Инфо о жилом комплексе (потому что попадает в распечатку)
-
-    - Сссылка "подробно о комплексе" - к ЖК
-
-    - Квартиры в этом комплексе - ведут в карточку комплекса с
-      открытыми двухкомнатными квартирами.
-
-    - Сообщить об ошибке.
-
-    - Когда было последнее обновление информации о квартире. Обновлено и дату. Чтобы менеджер
-      видел актуальность. Показывать ли клиентам?
-
-
-
 * Модули
 ** Cущности, автоматы и их тесты
 
@@ -910,10 +689,23 @@
                            (:file "msg")))
    #+END_SRC
 
-   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
-   закрытому от неавторизованных пользователей функционалу.
-
    Собственно описание модуля вынесено в файл [[file:msg.org]]
+
+** Trend
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_trend
+   #+BEGIN_SRC lisp
+     (:module "trend"
+              :serial t
+              :pathname "mod/trend"
+              :components ((:static-file "trend-tpl.htm")
+                           (:file "trend-prepare")
+                           (:file "trend")))
+   #+END_SRC
+
+   Собственно описание модуля вынесено в файл [[file:trend.org]]
 
 ** TODO Посты
 ** TODO Багзилла
@@ -1267,10 +1059,10 @@
                     <<mod_auth>>
                     ;; Модуль сообщений
                     <<mod_msg>>
+                    ;; Модуль trend
+                    <<mod_trend>>
                     (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
-                    (:static-file "flat-templates.htm")
-                    (:file "flatpage")
                     ))
    #+END_SRC
 
@@ -1312,9 +1104,6 @@
 
      (closure-template:compile-template
       :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
-
-     (closure-template:compile-template
-      :common-lisp-backend (pathname (concatenate 'string *base-path* "flat-templates.htm")))
    #+END_SRC
 
 ** Точка входа
@@ -1335,8 +1124,6 @@
      <<user_automat>>
 
      <<msg_automat>>
-
-     <<flat_entity>>
 
      ;; Веб-интерфейс
 

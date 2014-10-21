@@ -1,0 +1,32 @@
+
+// -*- mode: closure-template-html; fill-column: 140 -*-
+{namespace trendtpl}
+
+{template flatpage}
+    {$rooms | noAutoescape}
+    <br />
+    id: {$id | noAutoescape}
+    <br />
+    Цена квартиры при 100% оплате: {$price | noAutoescape}
+    <br />
+    <a href="/contacts">Подробности у менеджера</a>
+    <br />
+    <br />
+    <div style="border: 1px solid blue;">
+        Кол_во комнат: {$rooms | noAutoescape}
+        <br />
+        Жилая площадь: {$area_living | noAutoescape}
+        <br />
+        Общая площадь: {$area_sum | noAutoescape}
+        <br />
+        Пллощадь кухни: {$area_kitchen | noAutoescape}
+        <br />
+        Санузел: {$sanuzel | noAutoescape}
+        <br />
+        Отделка: {$finishing | noAutoescape}
+        <br />
+        Балкон: {$balcon | noAutoescape}
+        <br />
+    </div>
+    <br />
+{/template}

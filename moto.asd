@@ -43,8 +43,13 @@
                         :components ((:static-file "msg-tpl.htm")
                                      (:file "msg-prepare")
                                      (:file "msg")))
+               ;; Модуль trend
+               (:module "trend"
+                        :serial t
+                        :pathname "mod/trend"
+                        :components ((:static-file "trend-tpl.htm")
+                                     (:file "trend-prepare")
+                                     (:file "trend")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
-               (:static-file "flat-templates.htm")
-               (:file "flatpage")
                ))
