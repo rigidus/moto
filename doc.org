@@ -560,6 +560,88 @@
        )
    #+END_SRC
 
+** Квартира (flat)
+
+   #+CAPTION: Данные квартиры
+   #+NAME: flat_data
+     | field name   | field type | note                                   |
+     |--------------+------------+----------------------------------------|
+     | id           | serial     | идентификатор                          |
+     | plex-id      | integer    | идентификатор очереди жилого комплекса |
+     | rooms        | integer    | кол-во комнат                          |
+     | area-sum     | integer    | общая площадь квартиры                 |
+     | area-living  | integer    | жилая площадь квартиры                 |
+     | area-kitchen | integer    | площадь кухни                          |
+     | price        | integer    | цена                                   |
+     | subsidy      | boolean    | субсидия                               |
+     | finishing    | boolean    | отделка                                |
+     | ipoteka      | boolean    | ипотека                                |
+     | installment  | boolean    | рассрочка                              |
+     | balcony      | varchar    | балкон/лоджия                          |
+
+** Жилой комплекс (cmpx)
+
+   Эта сущность нужна только чтобы объединять очереди жилого комплекса
+
+   #+CAPTION: Данные жилого комплекса
+   #+NAME: plex_data
+     | field name  | field type | note                           |
+     |-------------+------------+--------------------------------|
+     | id          | serial     | идентификатор                  |
+     | name        | varchar    | название                       |
+     | addr        | varchar    | адрес                          |
+
+** Очередь жилого комплекса (plex)
+
+   #+CAPTION: Данные очереди жилого комплекса
+   #+NAME: plex_data
+     | field name  | field type | note                           |
+     |-------------+------------+--------------------------------|
+     | id          | serial     | идентификатор                  |
+     | cmpx-id     | integer    | идентификатор жилого комплекса |
+     | name        | varchar    | название                       |
+     | addr        | varchar    | адрес                          |
+     | deadline    | varchar    | срок сдачи                     |
+     | district-id | integer    | идентификатор района           |
+     | metro-id    | integer    | идентификатор метро            |
+     | distance    | varchar    | расстояние до метро            |
+
+** Картинки очередей ЖК
+** Картинки планировок
+** Картинки хода строительства
+** Город (city)
+
+   Город в котором находится объект
+
+   #+CAPTION: Данные города
+   #+NAME: district_data
+     | field name | field type | note            |
+     |------------+------------+-----------------|
+     | id         | serial     | идентификатор   |
+     | name       | varchar    | название города |
+
+** Район (district)
+
+   Район города, в котором находится объект
+
+   #+CAPTION: Данные роли
+   #+NAME: district_data
+     | field name  | field type | note                                     |
+     |-------------+------------+------------------------------------------|
+     | id          | serial     | идентификатор                            |
+     | name        | varchar    | название района |
+
+** Метро (metro)
+
+   Метро неподалеку от объекта
+
+   #+CAPTION: Данные роли
+   #+NAME: metro_data
+     | field name | field type | note             |
+     |------------+------------+------------------|
+     | id         | serial     | идентификатор    |
+     | name       | varchar    | название станции |
+
 * События
 
   Мы используем события, чтобы отслеживать и логгировать изменения в системе, которые
