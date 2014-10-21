@@ -562,6 +562,7 @@
               :serial t
               :pathname "mod/msg"
               :components ((:static-file "msg-tpl.htm")
+                           (:file "msg-prepare")
                            (:file "msg")))
    #+END_SRC
 

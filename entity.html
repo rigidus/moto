@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Модуль сущностей, автоматов и их тесты"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-11T23:23+0400"/>
+<meta name="generated" content="2014-10-21T12:08+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -158,9 +158,9 @@ for the JavaScript code in this tag.
 
 &lt;&lt;automat&gt;&gt;
 
-&lt;&lt;entity-test&gt;&gt;
+&lt;&lt;entity_test&gt;&gt;
 
-&lt;&lt;automat-test&gt;&gt;
+&lt;&lt;automat_test&gt;&gt;
 </pre>
 
 
@@ -206,8 +206,8 @@ for the JavaScript code in this tag.
 <pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-entity</span> (name desc <span style="color: #00cd00;">&amp;rest</span> tail)
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((*package* (symbol-package name)))
     `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
-       &lt;&lt;entity-class&gt;&gt;
-       &lt;&lt;make_entity-table&gt;&gt;
+       &lt;&lt;entity_class&gt;&gt;
+       &lt;&lt;make_entity_table&gt;&gt;
        &lt;&lt;make_entity&gt;&gt;
        &lt;&lt;upd_entity&gt;&gt;
        &lt;&lt;del_entity&gt;&gt;
@@ -409,7 +409,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1080;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">entity-test</span> ()
-  &lt;&lt;entity-test_contents&gt;&gt;
+  &lt;&lt;entity_test_contents&gt;&gt;
   (dbg <span style="color: #00cd00;">"passed: entity-test~%"</span>))
 (entity-test)
 </pre>
@@ -608,7 +608,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1099;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">automat-test</span> ()
-  &lt;&lt;automat-test_contents&gt;&gt;
+  &lt;&lt;automat_test_contents&gt;&gt;
   (dbg <span style="color: #00cd00;">"passed: automat-test~%"</span>))
 (automat-test)
 </pre>
@@ -737,7 +737,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-11T23:23+0400</p>
+<p class="date">Date: 2014-10-21T12:08+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

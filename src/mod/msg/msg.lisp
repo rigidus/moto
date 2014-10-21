@@ -1,12 +1,6 @@
 
 (in-package #:moto)
 
-;; Скомпилируем шаблон
-(closure-template:compile-template
- :common-lisp-backend
- (pathname
-  (concatenate 'string *base-path* "mod/msg/msg-tpl.htm")))
-
 (in-package #:moto)
 
 ;; Страница сообщений
@@ -20,8 +14,30 @@
          (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
            (if (equal 0 (length msgs))
                "Нет сообщений"
-               (format nil "~{~A~}"
-                       (mapcar #'show-msg-id msgs))))))))
+               (msgtpl:dialogs
+                (list
+                 :content
+                 (format nil "~{~A~}"
+                         (loop :for item :in msgs :collect
+                            (cond ((equal :rcv (car (last item)))
+                                   (msgtpl:dlgrcv
+                                    (list :id (car item)
+                                          :from (cadr item)
+                                          :time (caddr item)
+                                          :msg (cadddr item)
+                                          :state (nth 4 item)
+                                          )))
+                                  ((equal :snd (car (last item)))
+                                   (msgtpl:dlgsnd
+                                    (list :id (car item)
+                                          :to (cadr item)
+                                          :time (caddr item)
+                                          :msg (cadddr item)
+                                          :state (nth 4 item)
+                                          )))
+                                   (t (err "unknown dialog type")))
+                                   ))))))))))
+
 
 ;; Событие отправки сообщения
 (defun create-msg (snd-id rcv-id msg)
@@ -61,7 +77,7 @@
                    :collect (query
                              (:limit
                               (:order-by
-                               (:select :id :snd-id :ts-create :msg
+                               (:select :id :snd-id :ts-create :msg :state
                                         :from 'msg
                                         :where (:and (:= :rcv-id user-id)
                                                      (:= :snd-id (car sndr))))
@@ -75,7 +91,7 @@
                    :collect (query
                              (:limit
                               (:order-by
-                               (:select :id :rcv-id :ts-create :msg
+                               (:select :id :rcv-id :ts-create :msg :state
                                         :from 'msg
                                         :where (:and (:= :snd-id user-id)
                                                      (:= :rcv-id (car rcvr))))
@@ -111,14 +127,18 @@
                 )))
       ;; Добавляем к res-rcv неспаренные остатки из rcv
       (setf res-rcv (append res-rcv rcv))
+      ;; Добавим направление
+      (setf res-rcv (mapcar #'(lambda (x)
+                                (append (car x) (list :rcv)))
+                            res-rcv))
+      (setf res-snd (mapcar #'(lambda (x)
+                                (append (car x) (list :snd)))
+                            res-snd))
       ;; Объединим res-rcv и res-snd и отсортируем
-      (mapcar #'car
-              (sort
-               (append res-snd res-rcv)
-               #'(lambda (a b)
-                   (> (caddar a) (caddar b))))))))
-
-
+      (sort
+       (append res-snd res-rcv)
+       #'(lambda (a b)
+           (> (caddr a) (caddr b)))))))
 (in-package #:moto)
 
 ;; Функция отображения одного сообщения в списке сообщений
@@ -170,13 +190,17 @@
                (msg-dave-to-bob-id (create-msg dave bob msg-dave-to-bob)))
           ;; Получим последние диалоги Боба
           (let ((last-dialogs (get-last-msg-dialog-ids-for-user-id bob)))
-            (dbg "~%~A" (bprint last-dialogs))
+            ;; (dbg "~%~A" (bprint last-dialogs))
             ;; Проверим, что в имеем три диалога
             (assert (equal 3 (length last-dialogs)))
             ;; Проверим, что сообщения правильно упорядочены
             (assert (equal (list msg-dave-to-bob-id
                                  msg-bob-to-carol-id
                                  reply-bob-to-alice-id)
-                           (mapcar #'car last-dialogs))))))))
+                           (mapcar #'car last-dialogs)))))))
+    (logout-user dave)
+    (logout-user carol)
+    (logout-user bob)
+    (logout-user alice))
   (dbg "passed: msg-test~%"))
 (msg-test)

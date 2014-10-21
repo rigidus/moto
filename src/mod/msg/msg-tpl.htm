@@ -2,6 +2,32 @@
 // -*- mode: closure-template-html; fill-column: 140 -*-
 {namespace msgtpl}
 
-{template sometpl}
-  this is some tpl
+{template dialogs}
+  <div style="border: 1px solid green">
+      <table>
+          {$content | noAutoescape}
+      </table>
+  </div>
+{/template}
+
+{template dlgrcv}
+  <tr>
+      <td>-></td>
+      <td>{$id | noAutoescape}</td>
+      <td>{$time | noAutoescape}</td>
+      <td>{$from | noAutoescape}</td>
+      <td>{$msg | noAutoescape}</td>
+      <td>{$state | noAutoescape}</td>
+  </tr>
+{/template}
+
+{template dlgsnd}
+  <tr>
+      <td><-</td>
+      <td>{$id | noAutoescape}</td>
+      <td>{$time | noAutoescape}</td>
+      <td>{$to | noAutoescape}</td>
+      <td>{$msg | noAutoescape}</td>
+      <td>{$state | noAutoescape}</td>
+  </tr>
 {/template}
