@@ -17,7 +17,7 @@
 (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
 ;; clear db
-(let ((tables '("user" "msg")))
+(let ((tables '("user" "role" "group" "user2group" "msg")))
   (flet ((rmtbl (tblname)
            (when (with-connection *db-spec*
                    (query (:select 'table_name :from 'information_schema.tables :where
@@ -29,13 +29,49 @@
        (rmtbl tblname))))
 
 ;; Описания автоматов и сущностей
+;; Сущность роли
+(define-entity role "Сущность роли"
+  ((id serial)
+   (name varchar)))
+
+(make-role-table)
+
+(make-role :name "admin")
+(make-role :name "manager")
+(make-role :name "moderator")
+(make-role :name "robot")
+
+;; Сущность группы
+(define-entity group "Сущность группы"
+  ((id serial)
+   (name varchar)))
+
+(make-group-table)
+
+(make-group :name "oldman")
+(make-group :name "newboy")
+(make-group :name "veteran")
+(make-group :name "traveler")
+(make-group :name "dirtyman")
+
+;; Сущность группы
+(define-entity user2group "Сущность группы"
+  ((id serial)
+   (user-id integer)
+   (group-id integer)))
+
+(make-user2group-table)
+
+(make-user2group-table)
+
 ;; Автомат пользователя
 (define-automat user "Автомат пользователя"
   ((id serial)
    (name varchar)
    (password varchar)
    (email varchar)
-   (ts-create bigint))
+   (ts-create bigint)
+   (role-id (or db-null integer)))
   (:sended :unlogged :logged :unregistred)
   ((:unregistred :logged :registration)
    (:logged :unregistred :unregistration)
@@ -86,7 +122,6 @@
    "undelivered -> delivered"
    )
 
- 
 
 ;; Веб-интерфейс
 

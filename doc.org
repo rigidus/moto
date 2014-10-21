@@ -169,6 +169,8 @@
 
 * Что улучшать
   - Типы для полей state нужно задавать как перечисления
+  - Добавить AJAX и Comet
+  - Автоматизированная генерация интерфейса для просмотра и редактирования сущностей
 * Определения сущностей
 ** Функции для кодогенерации сущностей
 
@@ -252,14 +254,14 @@
 
    #+CAPTION: Данные пользователя
    #+NAME: user_data
-     | field name | field type | note             |
-     |------------+------------+------------------|
-     | id         | serial     | идентификатор    |
-     | name       | varchar    | имя пользователя |
-     | password   | varchar    | пароль           |
-     | email      | varchar    | емейл            |
-     | ts-create  | bigint     | время создания   |
-
+     | field name | field type            | note              |
+     |------------+-----------------------+-------------------|
+     | id         | serial                | идентификатор     |
+     | name       | varchar               | имя пользователя  |
+     | password   | varchar               | пароль            |
+     | email      | varchar               | емейл             |
+     | ts-create  | bigint                | время создания    |
+     | role-id    | (or db-null integer)  | идентифактор роли |
 
    В нашей системе пользователь может существовать (или не существовать) в одном их
    нескольких состояний:
@@ -368,6 +370,125 @@
        )
    #+END_SRC
 
+** Роли (role)
+
+   Роли определяют набор сценариев, которые пользователь выполняет на сайте. Функционал,
+   который выполняет сценарии запрашивает разрешение на выполнение действий, которое
+   опирается на роль, присвоенную пользователю. Пользователь может иметь только одну роль
+   или не иметь ее вовсе.
+
+   Роль является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: role_data
+     | field name  | field type | note                                     |
+     |-------------+------------+------------------------------------------|
+     | id          | serial     | идентификатор                            |
+     | name        | varchar    | имя роли                                 |
+
+
+   #+NAME: role_entity
+   #+BEGIN_SRC lisp
+     ;; Сущность роли
+     (define-entity role "Сущность роли"
+       <<role_fields()>>)
+
+     (make-role-table)
+
+     <<create_roles>>
+   #+END_SRC
+
+   Где =role-fields= (поля данных) определим как:
+
+   #+NAME: role_fields
+   #+BEGIN_SRC emacs-lisp :var table=role_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
+   Создадим необходимые роли:
+
+   #+NAME: create_roles
+   #+BEGIN_SRC lisp
+     (make-role :name "admin")
+     (make-role :name "manager")
+     (make-role :name "moderator")
+     (make-role :name "robot")
+   #+END_SRC
+
+** Группы (group)
+
+   Группы пользователей определяют набор операций, которые пользователь может выполнять над
+   объектами системы. В отличие от ролей, один пользователь может входить в несколько групп
+   или не входить ни в одну из них.
+
+   Роль является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: group_data
+     | field name | field type | note          |
+     |------------+------------+---------------|
+     | id         | serial     | идентификатор |
+     | name       | varchar    | имя группы    |
+
+   #+NAME: group_entity
+   #+BEGIN_SRC lisp
+     ;; Сущность группы
+     (define-entity group "Сущность группы"
+       <<group_fields()>>)
+
+     (make-group-table)
+
+     <<create_groups>>
+
+     <<user2group_entity>>
+
+     (make-user2group-table)
+   #+END_SRC
+
+   Где =group-fields= (поля данных) определим как:
+
+   #+NAME: group_fields
+   #+BEGIN_SRC emacs-lisp :var table=group_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
+   Создадим необходимые роли:
+
+   #+NAME: create_groups
+   #+BEGIN_SRC lisp
+     (make-group :name "oldman")
+     (make-group :name "newboy")
+     (make-group :name "veteran")
+     (make-group :name "traveler")
+     (make-group :name "dirtyman")
+   #+END_SRC
+
+   Теперь создадим таблицу связи, которая свяжет пользователей и группы:
+
+   #+CAPTION: Данные роли
+   #+NAME: user2group_data
+     | field name | field type | note                       |
+     |------------+------------+----------------------------|
+     | id         | serial     | идентификатор              |
+     | user-id    | integer    | идентификатор пользователя |
+     | group-id   | integer    | идентификатор группы       |
+
+   #+NAME: user2group_entity
+   #+BEGIN_SRC lisp
+     ;; Сущность группы
+     (define-entity user2group "Сущность группы"
+       <<user2group_fields()>>)
+
+     (make-user2group-table)
+   #+END_SRC
+
+   Где =user2group-fields= (поля данных) определим как:
+
+   #+NAME: user2group_fields
+   #+BEGIN_SRC emacs-lisp :var table=user2group_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
 ** Сообщения (msg)
 
    О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
@@ -407,10 +528,9 @@
 
       <<msg_actions_func>>
 
-      <<create_msg>>
    #+END_SRC
 
-   Где =user-fields= (поля данных) определим как:
+   Где =msg-fields= (поля данных) определим как:
 
    #+NAME: msg_fields
    #+BEGIN_SRC emacs-lisp :var table=msg_data :results output :exports results :tangle no
@@ -836,7 +956,7 @@
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; clear db
-     (let ((tables '("user" "msg")))
+     (let ((tables '("user" "role" "group" "user2group" "msg")))
        (flet ((rmtbl (tblname)
                 (when (with-connection *db-spec*
                         (query (:select 'table_name :from 'information_schema.tables :where
@@ -955,6 +1075,10 @@
      <<globals>>
 
      ;; Описания автоматов и сущностей
+     <<role_entity>>
+
+     <<group_entity>>
+
      <<user_automat>>
 
      <<msg_automat>>
