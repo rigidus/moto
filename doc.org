@@ -267,14 +267,15 @@
 
    #+CAPTION: Данные пользователя
    #+NAME: user_data
-     | field name | field type            | note              |
-     |------------+-----------------------+-------------------|
-     | id         | serial                | идентификатор     |
-     | name       | varchar               | имя пользователя  |
-     | password   | varchar               | пароль            |
-     | email      | varchar               | емейл             |
-     | ts-create  | bigint                | время создания    |
-     | role-id    | (or db-null integer)  | идентифактор роли |
+     | field name | field type           | note                          |
+     |------------+----------------------+-------------------------------|
+     | id         | serial               | идентификатор                 |
+     | name       | varchar              | имя пользователя              |
+     | password   | varchar              | пароль                        |
+     | email      | varchar              | емейл                         |
+     | ts-create  | bigint               | время создания                |
+     | ts-last    | bigint               | время когда был последний раз |
+     | role-id    | (or db-null integer) | идентифактор роли             |
 
    В нашей системе пользователь может существовать (или не существовать) в одном их
    нескольких состояний:
@@ -806,6 +807,21 @@
 
    Собственно описание модуля вынесено в файл [[file:trend.org]]
 
+** Граббер пользователей мотобратана
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_bratan
+   #+BEGIN_SRC lisp
+     (:module "bratan"
+              :serial t
+              :pathname "mod/bratan"
+              :components ((:file "bratan")))
+   #+END_SRC
+
+   Собственно описание модуля вынесено в файл [[file:bratan.org]]
+
+** TODO Граббер тем мотобратана
 ** TODO Посты
 ** TODO Багзилла
 ** TODO Шаринг
@@ -834,6 +850,8 @@
      <<with_collection>>
 
      <<with_element>>
+
+     <<replace_all>>
    #+END_SRC
 
    #+NAME: get_obj_data
@@ -1019,10 +1037,32 @@
 
    #+NAME: with_element
    #+BEGIN_SRC lisp
+
      (defmacro with-element ((item elt) &body body)
        `(let ((,item ,elt))
           (list
            ,@body)))
+   #+END_SRC
+
+   Репласер
+
+   #+NAME: replace_all
+   #+BEGIN_SRC lisp
+
+     (defun replace-all (string part replacement &key (test #'char=))
+       "Returns a new string in which all the occurences of the part
+     is replaced with replacement."
+       (with-output-to-string (out)
+         (loop with part-length = (length part)
+            for old-pos = 0 then (+ pos part-length)
+            for pos = (search part string
+                              :start2 old-pos
+                              :test test)
+            do (write-string string out
+                             :start old-pos
+                             :end (or pos (length string)))
+            when pos do (write-string replacement out)
+            while pos)))
    #+END_SRC
 
 ** Шаблоны

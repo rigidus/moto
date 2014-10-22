@@ -35,7 +35,7 @@
 ;; Событие создания пользователя
 (defun create-user (name password email)
   "Создание пользователя. Возвращает id пользователя"
-  (let ((user-id (id (make-user :name name :password password :email email :ts-create (get-universal-time)))))
+  (let ((user-id (id (make-user :name name :password password :email email :ts-create (get-universal-time) :ts-last (get-universal-time)))))
     (dbg "Создан пользователь: ~A" user-id)
     ;; Делаем его залогиненным
     (upd-user (get-user user-id) (list :state ":LOGGED"))

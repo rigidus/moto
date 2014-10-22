@@ -8,6 +8,7 @@
    (password varchar)
    (email varchar)
    (ts-create bigint)
+   (ts-last bigint)
    (role-id (or db-null integer)))
   (:sended :unlogged :logged :unregistred)
   ((:unregistred :logged :registration)
