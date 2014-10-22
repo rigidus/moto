@@ -1,6 +1,4 @@
 
-;;;; entity.lisp
-
 (in-package #:moto)
 
 ;; Подключение к базе данных
@@ -12,7 +10,7 @@
 (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
 ;; clear db
-(let ((tables '("user" "role" "group" "user2group" "msg" "flat")))
+(let ((tables '("user" "role" "group" "user2group" "avatar" "msg" "flat")))
   (flet ((rmtbl (tblname)
            (when (with-connection *db-spec*
                    (query (:select 'table_name :from 'information_schema.tables :where

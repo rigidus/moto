@@ -94,14 +94,11 @@
 
 ;; (frm (tbl (list (row "username" (fld "user")))))
 
-;; Главная страница
 (in-package #:moto)
 
 (restas:define-route main ("/")
   (with-wrapper
     "main"))
-
-;; Список пользователей
 (in-package #:moto)
 
 (restas:define-route allusers ("/users")
@@ -119,8 +116,6 @@
   (with-wrapper
     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
       "TODO")))
-
-;; Страничка пользователя
 (in-package #:moto)
 
 (restas:define-route user ("/user/:userid")

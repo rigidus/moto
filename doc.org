@@ -175,6 +175,16 @@
   - Очищалка базы для каждого модуля должна лежать в модуле
   - И сущности тоже туда переложить
 * Определения сущностей
+
+  Соберем все сущности и автоматы
+
+  #+NAME: entity_and_automates
+  #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports code
+    (in-package #:moto)
+
+    <<entity_and_automates_contents>>
+  #+END_SRC
+
 ** Функции для кодогенерации сущностей
 
    Эти функции будут кодогенерировать сущности и автоматы из таблиц с наименованием и
@@ -310,9 +320,9 @@
    Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
    в коде:
 
-   #+NAME: user_automat
+   #+NAME: entity_and_automates_contents
    #+BEGIN_SRC lisp
-     ;; Автомат пользователя
+
      (define-automat user "Автомат пользователя"
        <<user_fields()>>
        <<user_states()>>
@@ -389,9 +399,9 @@
      | id         | serial     | идентификатор |
      | name       | varchar    | имя роли      |
 
-   #+NAME: role_entity
+   #+NAME: entity_and_automates_contents
    #+BEGIN_SRC lisp
-     ;; Сущность роли
+
      (define-entity role "Сущность роли"
        <<role_fields()>>)
 
@@ -432,9 +442,9 @@
      | id         | serial     | идентификатор |
      | name       | varchar    | имя группы    |
 
-   #+NAME: group_entity
+   #+NAME: entity_and_automates_contents
    #+BEGIN_SRC lisp
-     ;; Сущность группы
+
      (define-entity group "Сущность группы"
        <<group_fields()>>)
 
@@ -443,8 +453,6 @@
      <<create_groups>>
 
      <<user2group_entity>>
-
-     (make-user2group-table)
    #+END_SRC
 
    Где =group-fields= (поля данных) определим как:
@@ -467,7 +475,7 @@
 
    Теперь создадим таблицу связи, которая свяжет пользователей и группы:
 
-   #+CAPTION: Данные роли
+   #+CAPTION: Данные таблицы связи пользователя и группы
    #+NAME: user2group_data
      | field name | field type | note                       |
      |------------+------------+----------------------------|
@@ -477,8 +485,7 @@
 
    #+NAME: user2group_entity
    #+BEGIN_SRC lisp
-     ;; Сущность группы
-     (define-entity user2group "Сущность группы"
+     (define-entity user2group "Сущность связи пользователя и группы"
        <<user2group_fields()>>)
 
      (make-user2group-table)
@@ -520,16 +527,15 @@
    Сводя вместе, все что нам известно о сообщении (его поведение и поля) опишем все это в
    коде:
 
-   #+NAME: msg_automat
+   #+NAME: entity_and_automates_contents
    #+BEGIN_SRC lisp
-     ;; Автомат сообщения
+
      (define-automat msg "Автомат сообщения"
        <<msg_fields()>>
        <<msg_states()>>
        <<msg_actions()>>)
 
       <<msg_actions_func>>
-
    #+END_SRC
 
    Где =msg-fields= (поля данных) определим как:
@@ -562,6 +568,81 @@
        )
    #+END_SRC
 
+** Аватары (avatar)
+
+   Пользователи имеют неопределенное кол-во аватарок, разного размера, для которых мы
+   осуществляем хранение в оригинальном размере, масштабирование и хранение
+   отмасштабированных превьюшек.
+
+   #+CAPTION: Данные аватарки
+   #+NAME: avatar_data
+     | field name | field type | note                               |
+     |------------+------------+------------------------------------|
+     | id         | serial     | идентификатор                      |
+     | user-id    | integer    | идентификатор пользователя         |
+     | name       | varchar    | имя пользователя                   |
+     | origin     | varchar    | путь к файлу оригинального размера |
+     | ts-create  | bigint     | время создания                     |
+
+   Одна из автарок может быть активной в данный момент.
+
+   #+CAPTION: Состояния конечного автомата пользователя
+   #+NAME: avatar_state
+     | action     | from     | to       |
+     |------------+----------+----------|
+     | avatar-off | active   | inactive |
+     | avatar-on  | inactive | active   |
+
+   Сводя вместе, все что нам известно о аватаре (его поведение и поля) опишем все это
+   в коде:
+
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-automat avatar "Автомат аватара"
+       <<avatar_fields()>>
+       <<avatar_states()>>
+       <<avatar_actions()>>)
+
+      <<avatar_actions_func>>
+
+      <<create_avatar>>
+   #+END_SRC
+
+   Где =avatar-fields= (поля данных) определим как:
+
+   #+NAME: avatar_fields
+   #+BEGIN_SRC emacs-lisp :var table=avatar_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
+   А =avatar-states= т.е. состояния пользователя определим так:
+
+   #+NAME: avatar_states
+   #+BEGIN_SRC emacs-lisp :var table=avatar_state :results output :exports results :tangle no
+     (gen-states table)
+   #+END_SRC
+
+   И, наконец, определим =avatar-actions= переходы между состояниями:
+
+   #+NAME: avatar_actions
+   #+BEGIN_SRC emacs-lisp :var table=avatar_state :results output :exports results :tangle no
+     (gen-actions table)
+   #+END_SRC
+
+   Теперь определим функции, которые вызываются на переходах
+
+   #+NAME: avatar_actions_func
+   #+BEGIN_SRC lisp
+     (defun avatar-off ()
+       "active -> inactive"
+       )
+
+     (defun avatar-on ()
+       "inactive -> active"
+       )
+   #+END_SRC
+
 * События
 
   Мы используем события, чтобы отслеживать и логгировать изменения в системе, которые
@@ -576,9 +657,27 @@
    #+END_SRC
 
 * Interface
+
+  Соберем веб-интерфейс:
+
+  #+NAME: iface
+  #+BEGIN_SRC lisp :tangle src/iface.lisp :noweb tangle :exports code
+    ;;;; iface.lisp
+
+    (in-package #:moto)
+
+    ;; Враппер веб-интерфейса
+    <<with_wrapper>>
+
+    ;; Хелпер форм
+    <<frm>>
+
+    <<iface_contents>>
+  #+END_SRC
+
 ** Главная страница
 
-   #+NAME: mainpage
+   #+NAME: iface_contents
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -589,7 +688,7 @@
 
 ** Список пользователей
 
-   #+NAME: alluserspage
+   #+NAME: iface_contents
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -612,7 +711,7 @@
 
 ** Страничка пользователя
 
-   #+NAME: userpage
+   #+NAME: iface_contents
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -983,8 +1082,6 @@
 
    #+NAME: globals
    #+BEGIN_SRC lisp :tangle src/globals.lisp :noweb tangle :exports code
-     ;;;; entity.lisp
-
      (in-package #:moto)
 
      ;; Подключение к базе данных
@@ -996,7 +1093,7 @@
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; clear db
-     (let ((tables '("user" "role" "group" "user2group" "msg" "flat")))
+     (let ((tables '("user" "role" "group" "user2group" "avatar" "msg" "flat")))
        (flet ((rmtbl (tblname)
                 (when (with-connection *db-spec*
                         (query (:select 'table_name :from 'information_schema.tables :where
@@ -1054,6 +1151,7 @@
                     (:file "globals")    ;; файл с глобальными определеями
                     ;; Модуль сущностей, автоматов и их тестов
                     <<mod_entity>>
+                    (:file "entityes")   ;; Сущности и автоматы
                     (:file "moto")       ;; стартовый файл
                     ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)
                     <<mod_auth>>
@@ -1107,55 +1205,17 @@
    #+END_SRC
 
 ** Точка входа
-   #+NAME: enter
+   #+NAME: enter_point
    #+BEGIN_SRC lisp :tangle src/moto.lisp :noweb tangle :exports code
      ;;;; moto.lisp
 
      (in-package #:moto)
-
-     ;; Подключим глобальные определения
-     <<globals>>
-
-     ;; Описания автоматов и сущностей
-     <<role_entity>>
-
-     <<group_entity>>
-
-     <<user_automat>>
-
-     <<msg_automat>>
-
-     ;; Веб-интерфейс
 
      ;; start
      (restas:start '#:moto :port 9997)
      (restas:debug-mode-on)
      ;; (restas:debug-mode-off)
      (setf hunchentoot:*catch-errors-p* t)
-   #+END_SRC
-
-** Веб-интерфейс
-
-   #+NAME: iface
-   #+BEGIN_SRC lisp :tangle src/iface.lisp :noweb tangle :exports code
-     ;;;; iface.lisp
-
-     (in-package #:moto)
-
-     ;; Враппер веб-интерфейса
-     <<with_wrapper>>
-
-     ;; Хелпер форм
-     <<frm>>
-
-     ;; Главная страница
-     <<mainpage>>
-
-     ;; Список пользователей
-     <<alluserspage>>
-
-     ;; Страничка пользователя
-     <<userpage>>
    #+END_SRC
 
 * Идеи

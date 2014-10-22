@@ -29,6 +29,7 @@
                         :serial t
                         :pathname "mod"
                         :components ((:file "entity")))
+               (:file "entityes")   ;; Сущности и автоматы
                (:file "moto")       ;; стартовый файл
                ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)
                (:module "auth"
