@@ -656,24 +656,25 @@
 
    #+CAPTION: Данные роли
    #+NAME: bratan_data
-     | field name | field type           | note                            |
-     |------------+----------------------+---------------------------------|
-     | id         | serial               | идентификатор                   |
-     | bratan-id  | (or db-null integer) | идентификтор на мотобратане     |
-     | name       | varchar              | имя                             |
-     | last-seen  | (or db-null varchar) | последнее посещение мотобратана |
-     | distriсt   | (or db-null varchar) | район и город                   |
-     | ts_reg     | (or db-null varchar) | время регистрации               |
-     | age        | (or db-null varchar) | возраст                         |
-     | birthday   | (or db-null varchar) | день рождения                   |
-     | blood      | (or db-null varchar) | группа крови                    |
-     | moto-exp   | (or db-null varchar) | стаж мотовождения               |
-     | phone      | (or db-null varchar) | телефон                         |
-     | activityes | (or db-null varchar) | активность                      |
-     | interests  | (or db-null varchar) | интересы                        |
-     | photos     | (or db-null varchar) | фотографии                      |
-     | avatar     | (or db-null varchar) | аватар                          |
-     | motos      | (or db-null varchar) | мотоциклы                       |
+     | field name  | field type           | note                               |
+     |-------------+----------------------+------------------------------------|
+     | id          | serial               | идентификатор                      |
+     | bratan-id   | (or db-null integer) | идентификтор на мотобратане        |
+     | ts-last-upd | (or db-null bigint)  | время последнего обновления данных |
+     | name        | varchar              | имя                                |
+     | last-seen   | (or db-null varchar) | последнее посещение мотобратана    |
+     | distriсt    | (or db-null varchar) | район и город                      |
+     | ts_reg      | (or db-null varchar) | время регистрации                  |
+     | age         | (or db-null varchar) | возраст                            |
+     | birthday    | (or db-null varchar) | день рождения                      |
+     | blood       | (or db-null varchar) | группа крови                       |
+     | moto-exp    | (or db-null varchar) | стаж мотовождения                  |
+     | phone       | (or db-null varchar) | телефон                            |
+     | activityes  | (or db-null varchar) | активность                         |
+     | interests   | (or db-null varchar) | интересы                           |
+     | photos      | (or db-null varchar) | фотографии                         |
+     | avatar      | (or db-null varchar) | аватар                             |
+     | motos       | (or db-null varchar) | мотоциклы                          |
 
    #+NAME: entity_and_automates_contents
    #+BEGIN_SRC lisp

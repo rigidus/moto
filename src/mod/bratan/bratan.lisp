@@ -1,6 +1,22 @@
 
 (in-package #:moto)
 
+(defun process-user (user-id)
+  (handler-case
+      (let ((user-plist (get-user-plist user-id)))
+        (let ((prepared (prepare-to-save user-plist)))
+          (save-bratan prepared)))
+    (skip-record-error (c) (format t "~%skipped:~%~A" (bprint (text c))))))
+
+(defparameter *stop* nil)
+
+(defun motobratan-grabber ()
+  (loop :for i :from 10001 :to 40079 :do
+     (print i)
+     (when *stop*
+       (break))
+     (process-user i)))
+
 
 (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0")
 
@@ -39,202 +55,278 @@
        (subseq str 2 (- (length str) 1)))))
 (in-package #:moto)
 
+(define-condition malformed-user-page-error (error)
+    ((text :initarg :text :reader text)))
+
 (defun get-user-plist (user-id)
   "Получает идентификатор пользователя и извлекает данные этого пользователя с мотобратана"
   (let* ((page (web ("http://www.motobratan.ru/users/~A.html" user-id)
                     ("http://www.motobratan.ru/")))
          (head (fnd page "(?s)<div class=\"headClass\">(.*)<div class=\"clear\">")))
-    (if (equal "" head)
-        (err "bad page")
-        (list
-         :bratan-id user-id
-         :fio (let ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">")))
-                (fnd tmp "<div class=\"item flow\">(.*)</div>"))
-         :name (fnd head "<h1>(.*)</h1>")
-         :last-seen (replace-all (fnd head "<div class=\"link flow small\">(.*)</div>") "&nbsp;" " ")
-         :addr (let* ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">"))
-                      (fio (fnd tmp "<div class=\"item flow\">(.*)</div>")))
-                 (if (equal "" tmp)
-                     ""
-                     (string-trim '(#\Space #\Newline #\Tab)
-                                  (replace-all
-                                   (string-trim '(#\Space #\Newline #\Tab)
-                                                (fnd tmp "(?s)<div class=\"item flow\">(.*)</div>(.*)</div>(.*)</div>(.*)<noindex><div class=\"flow\">(.*)Регистрация:"))
-                                   fio
-                                   ""))))
-         :ts_reg (fnd head "<noindex><div class=\"flow\">Регистрация: (.*)</div></noindex>")
-         :age (fnd head "<div class=\"flow\">Возраст: (.*)<span class=\"small gray\">")
-         :birthday (fnd head "<span class=\"small gray\"> (.*)</span></div>")
-         :blood (fnd head "<noindex><div class=\"\">Группа крови: (.*)</div></noindex>")
-         :moto-exp (fnd head "<noindex><div class=\"\">Мото-стаж: (.*)</div></noindex>")
-         :phone (fnd head "<div class=\"item flow\">Телефон: (.*)</div>")
-         :activityes (let* ((tmp  (fnd head "(?s)<div class=\"lerge\">Деятельность</div>(.*)<div class=\"boxFlowTop\">"))
-                            (tmp2 (fnd tmp "(?s)<div>(.*)</div>")))
-                       (fnd tmp2 "(?s)(.*)</div>"))
-         :interests (let* ((tmp (fnd head "(?s)Интересы</div>(.*)"))
-                           (tmp2 (fnd tmp "(?s)<div>(.*)</div>" ))
-                           (tmp3 (fnd tmp2 "(?s)(.*)</div>")))
-                      (fnd tmp3 "(?s)(.*)</div>"))
-         :photos (let* ((tmp (fnd head "(?s)<div id=\"photos_id\"><div class=\"images\">(.*)</div></div>")))
-                   (if (equal "" tmp)
-                       ""
-                       (ppcre:all-matches-as-strings "http://[a-z0-9-\.]*/photos/normal/[0-9]*/[0-9]*\.jpg" tmp)))
-         :avatar (let* ((tmp (fnd page "(?s)<div class=\"boxLeft boxFlowRight\">(.*)"))
-                        (tmp2 (fnd tmp "<div class=\"image\"><img alt=\"(.*)</div>")))
-                   (fnd tmp2 "src=\"(.*)\" width"))
-         :motos (let* ((tmp (fnd page "(?s)<div class=\"boxRight boxFlowLeft\">(.*)<div class=\"boxCenter\">"))
-                       (lst (ppcre:split "<div class=\"item flow\">" tmp)))
-                  (if (equal "" tmp)
-                      ""
-                      (loop :for elt :in lst :collect
-                         (progn
-                           (let* ((img  (let ((tmp (fnd elt "<div class=\"image\"><img src=\"(.*)\" width=\"240\"")))
-                                          (when (equal "" tmp)
-                                            (setf tmp (fnd elt "<img src=\"(.*)\" width=\"240\"")))
-                                          tmp))
-                                  (namelist (ppcre:split " " (fnd elt "<div class=\"lerge\"><a href=\"(.*)\">(.*)</a></div>"))))
-                             (list :img   img
-                                   :lnk   (car namelist)
-                                   :year  (car (last namelist))
-                                   :color (cadr namelist)
-                                   :name  (format nil "~{~A~^ ~}" (cddr (butlast namelist)))))))))))))
+    (when (equal head "")
+      (error 'malformed-user-page-error))
+    (list
+     :bratan-id user-id
+     :fio (let ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">")))
+            (fnd tmp "<div class=\"item flow\">(.*)</div>"))
+     :name (fnd head "<h1>(.*)</h1>")
+     :last-seen (replace-all (fnd head "<div class=\"link flow small\">(.*)</div>") "&nbsp;" " ")
+     :addr (let* ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">"))
+                  (fio (fnd tmp "<div class=\"item flow\">(.*)</div>")))
+             (if (equal "" tmp)
+                 ""
+                 (string-trim '(#\Space #\Newline #\Tab)
+                              (replace-all
+                               (string-trim '(#\Space #\Newline #\Tab)
+                                            (fnd tmp "(?s)<div class=\"item flow\">(.*)</div>(.*)</div>(.*)</div>(.*)<noindex><div class=\"flow\">(.*)Регистрация:"))
+                               fio
+                               ""))))
+     :ts-reg (fnd head "<noindex><div class=\"flow\">Регистрация: (.*)</div></noindex>")
+     :age (let ((tmp (fnd head "<div class=\"flow\">Возраст: (.*)<span class=\"small gray\">")))
+            (if (equal "" tmp)
+                ""
+                (car (ppcre:split " " tmp))))
+     :birthday (fnd head "<span class=\"small gray\"> (.*)</span></div>")
+     :blood (fnd head "<noindex><div class=\"\">Группа крови: (.*)</div></noindex>")
+     :moto-exp (fnd head "<noindex><div class=\"\">Мото-стаж: (.*)</div></noindex>")
+     :phone (fnd head "<div class=\"item flow\">Телефон: (.*)</div>")
+     :activityes (let* ((tmp  (fnd head "(?s)<div class=\"lerge\">Деятельность</div>(.*)<div class=\"boxFlowTop\">"))
+                        (tmp2 (fnd tmp "(?s)<div>(.*)</div>")))
+                   (fnd tmp2 "(?s)(.*)</div>"))
+     :interests (let* ((tmp (fnd head "(?s)Интересы</div>(.*)"))
+                       (tmp2 (fnd tmp "(?s)<div>(.*)</div>" ))
+                       (tmp3 (fnd tmp2 "(?s)(.*)</div>")))
+                  (fnd tmp3 "(?s)(.*)</div>"))
+     :photos (let* ((tmp (fnd head "(?s)<div id=\"photos_id\"><div class=\"images\">(.*)</div></div>")))
+               (if (equal "" tmp)
+                   ""
+                   (ppcre:all-matches-as-strings "http://[a-z0-9-\.]*/photos/normal/[0-9]*/[0-9]*\.jpg" tmp)))
+     :avatar (let* ((tmp (fnd page "(?s)<div class=\"boxLeft boxFlowRight\">(.*)"))
+                    (tmp2 (fnd tmp "<div class=\"image\"><img alt=\"(.*)</div>")))
+               (fnd tmp2 "src=\"(.*)\" width"))
+     :motos (let* ((tmp (fnd page "(?s)<div class=\"boxRight boxFlowLeft\">(.*)<div class=\"boxCenter\">"))
+                   (lst (ppcre:split "<div class=\"item flow\">" tmp)))
+              (if (equal "" tmp)
+                  ""
+                  (loop :for elt :in lst :collect
+                     (progn
+                       (let* ((img  (let ((tmp (fnd elt "<div class=\"image\"><img src=\"(.*)\" width=\"240\"")))
+                                      (when (equal "" tmp)
+                                        (setf tmp (fnd elt "<img src=\"(.*)\" width=\"240\"")))
+                                      tmp))
+                              (namelist (ppcre:split " " (fnd elt "<div class=\"lerge\"><a href=\"(.*)\">(.*)</a></div>"))))
+                         (list :img    img
+                               :lnk    (car namelist)
+                               :year   (car (last namelist))
+                               :color  (cadr namelist)
+                               :vendor (caddr namelist)
+                               :name   (format nil "~{~A~^ ~}" (cdddr (butlast namelist))))))))))))
+(in-package #:moto)
 
-;; (get-user-plist 18601)
+(define-condition user-name-empty-error (error)
+  ((text :initarg :text :reader text))
+  (:report (lambda (condition stream)
+             (format stream "Имя пустое:~%~A"
+                     (bprint (text condition))))))
 
+(define-condition suspicious-reg-date-error (error)
+  ((text :initarg :text :reader text))
+  (:report (lambda (condition stream)
+             (format stream "Подозрительная дата регистрации:~%~A"
+                     (bprint (text condition))))))
+
+(define-condition skip-record-error (error)
+  ((text :initarg :text :reader text)))
+
+
+(defun prepare-to-save (plist)
+  (setf (getf plist :name)
+        (string-trim '(#\Space #\Newline #\Tab)
+                     (getf plist :name)))
+  (restart-case
+      (when (equal (getf plist :name) "")
+        (error 'user-name-empty-error :text plist))
+      (ignore-empty-name  () "")
+      (skip-this-record   () (error 'skip-record-error :text plist))
+      ;; (enter-name-manually () "")))
+      )
+  (restart-case
+      (when (equal (getf plist :ts-reg) "1 января 1970")
+        (error 'suspicious-reg-date-error :text plist))
+    (ignore-date       () "")
+    (skip-this-record  () (error 'skip-record-error :text plist)))
+  plist)
 (in-package #:moto)
 
 (defun save-bratan (p)
-  "Принимает plist пользователя и создает сущность в базе"
-  (make-bratan
-   :bratan-id (getf p :bratan-id)
-   :fio (getf p :fio)
-   :name (getf p :name)
-   :last-seen (getf p :last-seen)
-   :addr (getf p :addr)
-   :ts_reg (getf p :ts_reg)
-   :age (getf p :age)
-   :birthday (getf p :birthday)
-   :blood (getf p :blood)
-   :moto-exp (getf p :moto-exp)
-   :phone (getf p :phone)
-   :activityes (getf p :activityes)
-   :interests (getf p :interests)
-   :photos (format nil "~A" (bprint (getf p :photos)))
-   :avatar (getf p :avatar)
-   :motos (format nil "~A" (getf p :motos))
-   ))
-
-;; (save-bratan (get-user-plist 18601))
-(in-package #:moto)
-
-
-;; (bordeaux-threads:make-thread
-;;  #'(lambda ()
-;;      (save-bratan (get-user-plist 18601))))
-
-(defun get-users-from-to (from to)
-  (loop :for i :from from :to to :do
-     (let ((user-plist (get-user-plist i)))
-       (unless (equal "" (getf user-plist :name))
-         (save-bratan user-plist)))))
-
-(defmacro thread-maker (from to)
-  `(bordeaux-threads:make-thread
-    #'(lambda ()
-        (get-users-from-to ,from ,to))
-    :name ,(format nil "~A..~A" from to)))
-
-;; (macroexpand-1 '
-;;  (thread-maker 1 30))
-
-;; (progn
-;;   (thread-maker 18601 18611)
-;;   (thread-maker 18611 18621))
-
-;; (thread-maker 31 200)
-
-(defmacro dispatcher (from to)
-  `(progn
-     ,@(loop :for i :from from :to to :by 300 :collect
-          (list 'thread-maker i (+ 799 i)))))
-
-;; (macroexpand-1 '
-;;  (dispatcher 18601 19601))
-
-;; (dispatcher 1 40079)
-
-;; (print (bordeaux-threads:all-threads))
-
-;; (length (bordeaux-threads:all-threads))
-
-;; 39301..40100
-;; 38701..39500
-;; 38401..39200
-;; 38101..38900
-;; 35101..35900
-;; 34501..35300
-;; 30601..31400
-;; 30301..31100
-;; 26401..27200
-;; 26101..26900
-;; 18301..19100
-;; 17701..18500
-;; 17101..17900
+  "Принимает plist пользователя и создает/обновляет сущность в базе"
+  (aif (find-bratan :bratan_id (getf p :bratan-id))
+       ;; Найдены записи, обновляем первую, остальные удаляем
+       (let ((rec (car it)))
+         ;; Удаление дублей
+         (unless (null (cdr it))
+           (loop :for d :in (cdr it) :do
+              (del-bratan (id d))))
+         ;; Обновление записи
+         (progn
+           (setf (getf p :photos)
+                 (bprint (getf p :photos)))
+           (setf (getf p :motos)
+                 (bprint (getf p :motos)))
+           (setf (getf p :ts-last-upd)
+                 (get-universal-time))
+           (upd-bratan rec p)))
+       ;; Записи не найдены, вставляем новую
+       (progn
+         (make-bratan
+          :bratan-id (getf p :bratan-id)
+          :ts-last-upd (get-universal-time)
+          :fio (getf p :fio)
+          :name (getf p :name)
+          :last-seen (getf p :last-seen)
+          :addr (getf p :addr)
+          :ts-reg (getf p :ts-reg)
+          :age (getf p :age)
+          :birthday (getf p :birthday)
+          :blood (getf p :blood)
+          :moto-exp (getf p :moto-exp)
+          :phone (getf p :phone)
+          :activityes (getf p :activityes)
+          :interests (getf p :interests)
+          :photos (format nil "~A" (bprint (getf p :photos)))
+          :avatar (getf p :avatar)
+          :motos (format nil "~A" (getf p :motos))
+          ))))
+;; (in-package #:moto)
 
 
-(make-bratan :id 2700000000 :name "test")
+;; ;; (bordeaux-threads:make-thread
+;; ;;  #'(lambda ()
+;; ;;      (save-bratan (get-user-plist 18601))))
 
-(defparameter *not-isset*
-  (let ((all    (loop :for i :from 1 :to 40070 collect i))
-        (isset  (mapcar #'car
-                        (with-connection *db-spec*
-                          (query (:select (:distinct 'bratan_id) :from 'bratan)))))
-        (result))
-    (format t "~% всего:  ~A" (length all))
-    (format t "~% в базе: ~A" (length isset))
-    (loop :for i :in all :do
-       (unless (find i isset)
-         (push i result)))
-    (format t "~% result: ~A" (length result))
-    result))
+;; (defun get-users-from-to (from to)
+;;   (loop :for i :from from :to to :do
+;;      (let ((user-plist (get-user-plist i)))
+;;        (unless (equal "" (getf user-plist :name))
+;;          (save-bratan user-plist)))))
+
+;; (defmacro thread-maker (from to)
+;;   `(bordeaux-threads:make-thread
+;;     #'(lambda ()
+;;         (get-users-from-to ,from ,to))
+;;     :name ,(format nil "~A..~A" from to)))
+
+;; ;; (macroexpand-1 '
+;; ;;  (thread-maker 1 30))
+
+;; ;; (progn
+;; ;;   (thread-maker 18601 18611)
+;; ;;   (thread-maker 18611 18621))
+
+;; ;; (thread-maker 31 200)
+
+;; (defmacro dispatcher (from to)
+;;   `(progn
+;;      ,@(loop :for i :from from :to to :by 300 :collect
+;;           (list 'thread-maker i (+ 799 i)))))
+
+;; ;; (macroexpand-1 '
+;; ;;  (dispatcher 18601 19601))
+
+;; ;; (dispatcher 1 40079)
+
+;; ;; (print (bordeaux-threads:all-threads))
+
+;; ;; (length (bordeaux-threads:all-threads))
+
+;; ;; 39301..40100
+;; ;; 38701..39500
+;; ;; 38401..39200
+;; ;; 38101..38900
+;; ;; 35101..35900
+;; ;; 34501..35300
+;; ;; 30601..31400
+;; ;; 30301..31100
+;; ;; 26401..27200
+;; ;; 26101..26900
+;; ;; 18301..19100
+;; ;; 17701..18500
+;; ;; 17101..17900
 
 
+;; (make-bratan :id 2700000000 :name "test")
 
-(defun get-users-from-to-in-list (from to lst)
-  (loop :for i :in (subseq lst from to) :do
-     (let ((user-plist (get-user-plist i)))
-       (unless (equal "" (getf user-plist :name))
-         (save-bratan user-plist)))))
-
-(defmacro thread-maker-in-list (from to)
-  `(bordeaux-threads:make-thread
-    #'(lambda ()
-        (get-users-from-to *not-isset* ,from ,to))
-    :name ,(format nil "~A..~A" from to)))
-
-;; (macroexpand-1 '
-;;  (thread-maker 1 30))
-
-;; (progn
-;;   (thread-maker 18601 18611)
-;;   (thread-maker 18611 18621))
-
-;; (thread-maker 31 200)
-
-(defmacro dispatcher-in-list (from to)
-  `(progn
-     ,@(loop :for i :from from :to to :by 300 :collect
-          (list 'thread-maker-in-list i (+ 799 i *not-isset*)))))
+;; (defparameter *not-isset*
+;;   (let ((all    (loop :for i :from 1 :to 40070 collect i))
+;;         (isset  (mapcar #'car
+;;                         (with-connection *db-spec*
+;;                           (query (:select (:distinct 'bratan_id) :from 'bratan)))))
+;;         (result))
+;;     (format t "~% всего:  ~A" (length all))
+;;     (format t "~% в базе: ~A" (length isset))
+;;     (loop :for i :in all :do
+;;        (unless (find i isset)
+;;          (push i result)))
+;;     (format t "~% result: ~A" (length result))
+;;     result))
 
 
 
-(with-connection *db-spec*
-  (let ((isset))
-    ;; Проходим по всем возможным id
-    (loop :for i :from 1 :to 40079 :do
-       ;; Получаем для каждого id строку если она есть
-       (aif (query (:select 'bratan_id :from 'bratan :where (:= 'id i)))
-            ;; Если строка есть, получаем bratan_id
-            (let ((bratan_id (caar it)))
-              ;; Удаляем все остальные строки кроме этой
-              (query (:delete-from 'bratan :where (:and (:= 'bratan_id bratan_id) (:!= 'id i)))))))))
+;; (defun get-users-from-to-in-list (from to lst)
+;;   (loop :for i :in (subseq lst from to) :do
+;;      (let ((user-plist (get-user-plist i)))
+;;        (unless (equal "" (getf user-plist :name))
+;;          (save-bratan user-plist)))))
+
+;; (defmacro thread-maker-in-list (from to)
+;;   `(bordeaux-threads:make-thread
+;;     #'(lambda ()
+;;         (get-users-from-to *not-isset* ,from ,to))
+;;     :name ,(format nil "~A..~A" from to)))
+
+;; ;; (macroexpand-1 '
+;; ;;  (thread-maker 1 30))
+
+;; ;; (progn
+;; ;;   (thread-maker 18601 18611)
+;; ;;   (thread-maker 18611 18621))
+
+;; ;; (thread-maker 31 200)
+
+;; (defmacro dispatcher-in-list (from to)
+;;   `(progn
+;;      ,@(loop :for i :from from :to to :by 300 :collect
+;;           (list 'thread-maker-in-list i (+ 799 i *not-isset*)))))
+
+
+
+;; (with-connection *db-spec*
+;;   (let ((isset))
+;;     ;; Проходим по всем возможным id
+;;     (loop :for i :from 1 :to 40079 :do
+;;        ;; Получаем для каждого id строку если она есть
+;;        (aif (query (:select 'bratan_id :from 'bratan :where (:= 'id i)))
+;;             ;; Если строка есть, получаем bratan_id
+;;             (let ((bratan_id (caar it)))
+;;               ;; Удаляем все остальные строки кроме этой
+;;               (query (:delete-from 'bratan :where (:and (:= 'bratan_id bratan_id) (:!= 'id i)))))))))
+;; (in-package #:moto)
+
+;; (with-connection *db-spec*
+;;   ;; Берем все возможные айдишники
+;;   (loop :for i :from 10001 :to 40079 :do
+;;      ;; Проверяем, есть ли у нас такой пользователь в базе
+;;      (aif (query (:select 'bratan_id :from 'bratan :where (:= 'bratan_id i)))
+;;           ;; Если такой пользователь есть - удаляем дупликаты
+;;           (query (:delete-from 'bratan :where (:and (:= 'bratan_id bratan_id) (:!= 'id i))))
+;;           ;; Если его нет
+;;           (progn
+;;             ;; Получаем пользователя
+;;             (let ((user-plist (get-user-plist i)))
+;;               ;; Сохраняем его в базу
+;;               (save-bratan user-plist))))))
+
+;; (with-connection *db-spec*
+;;   (query (:select 'bratan_id :from 'bratan :where (:= 'id 10000))))
+
+(motobratan-grabber)

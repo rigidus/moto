@@ -112,6 +112,7 @@
 (define-entity bratan "Сущность братана"
   ((id serial)
    (bratan-id (or db-null integer))
+   (ts-last-upd (or db-null bigint))
    (name varchar)
    (last-seen (or db-null varchar))
    (distriсt (or db-null varchar))
@@ -124,6 +125,7 @@
    (activityes (or db-null varchar))
    (interests (or db-null varchar))
    (photos (or db-null varchar))
-   (avatar (or db-null varchar))))
+   (avatar (or db-null varchar))
+   (motos (or db-null varchar))))
 
 (make-bratan-table)
