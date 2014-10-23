@@ -275,7 +275,7 @@
      | email      | varchar              | емейл                         |
      | ts-create  | bigint               | время создания                |
      | ts-last    | bigint               | время когда был последний раз |
-     | role-id    | (or db-null integer) | идентифактор роли             |
+     | role-id    | (or db-null integer) | идентификатор роли            |
 
    В нашей системе пользователь может существовать (или не существовать) в одном их
    нескольких состояний:
@@ -644,6 +644,53 @@
        )
    #+END_SRC
 
+** Братан
+
+   Наш пользователь может быть зарегистрирован на http://motobratan.ru
+
+   Чтобы предоставлять ему разнообразные сервисы, отсутстующие на на мотобратане, мы
+   отражаем профили пользователя мотобратана у себя. Наш пользователь может связать свой
+   профиль с профилем на мотобратане.
+
+   Братан является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: bratan_data
+     | field name | field type           | note                            |
+     |------------+----------------------+---------------------------------|
+     | id         | serial               | идентификатор                   |
+     | bratan-id  | (or db-null integer) | идентификтор на мотобратане     |
+     | name       | varchar              | имя                             |
+     | last-seen  | (or db-null varchar) | последнее посещение мотобратана |
+     | distriсt   | (or db-null varchar) | район и город                   |
+     | ts_reg     | (or db-null varchar) | время регистрации               |
+     | age        | (or db-null varchar) | возраст                         |
+     | birthday   | (or db-null varchar) | день рождения                   |
+     | blood      | (or db-null varchar) | группа крови                    |
+     | moto-exp   | (or db-null varchar) | стаж мотовождения               |
+     | phone      | (or db-null varchar) | телефон                         |
+     | activityes | (or db-null varchar) | активность                      |
+     | interests  | (or db-null varchar) | интересы                        |
+     | photos     | (or db-null varchar) | фотографии                      |
+     | avatar     | (or db-null varchar) | аватар                          |
+     | motos      | (or db-null varchar) | мотоциклы                       |
+
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-entity bratan "Сущность братана"
+       <<bratan_fields()>>)
+
+     (make-bratan-table)
+   #+END_SRC
+
+   Где =bratan-fields= (поля данных) определим как:
+
+   #+NAME: bratan_fields
+   #+BEGIN_SRC emacs-lisp :var table=bratan_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
 * События
 
   Мы используем события, чтобы отслеживать и логгировать изменения в системе, которые
@@ -743,6 +790,7 @@
    #+END_SRC
 
 * Модули
+
 ** Cущности, автоматы и их тесты
 
    Опишем из чего состоит модуль, это описание станет частью asd-файла:
@@ -1199,6 +1247,8 @@
                     <<mod_msg>>
                     ;; Модуль trend
                     <<mod_trend>>
+                    ;; Модуль мотобратан
+                    <<mod_bratan>>
                     (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
                     ))

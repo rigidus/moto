@@ -51,6 +51,11 @@
                         :components ((:static-file "trend-tpl.htm")
                                      (:file "trend-prepare")
                                      (:file "trend")))
+               ;; Модуль мотобратан
+               (:module "bratan"
+                        :serial t
+                        :pathname "mod/bratan"
+                        :components ((:file "bratan")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ))

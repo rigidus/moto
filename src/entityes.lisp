@@ -106,3 +106,24 @@
  (defun avatar-on ()
    "inactive -> active"
    )
+
+ 
+
+(define-entity bratan "Сущность братана"
+  ((id serial)
+   (bratan-id (or db-null integer))
+   (name varchar)
+   (last-seen (or db-null varchar))
+   (distriсt (or db-null varchar))
+   (ts_reg (or db-null varchar))
+   (age (or db-null varchar))
+   (birthday (or db-null varchar))
+   (blood (or db-null varchar))
+   (moto-exp (or db-null varchar))
+   (phone (or db-null varchar))
+   (activityes (or db-null varchar))
+   (interests (or db-null varchar))
+   (photos (or db-null varchar))
+   (avatar (or db-null varchar))))
+
+(make-bratan-table)

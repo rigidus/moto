@@ -1,17 +1,8 @@
 
 (in-package #:moto)
 
-;; (asdf:oos 'asdf:load-op :drakma)
-;; (asdf:oos 'asdf:load-op :anaphora)
-;; (asdf:oos 'asdf:load-op :split-sequence)
-;; (asdf:oos 'asdf:load-op :cl-ppcre)
 
-;; (use-package :drakma)
-;; (use-package :anaphora)
-;; (use-package :split-sequence)
-;; (use-package :cl-ppcre)
-
-(defparameter *user-agent* "Mozilla/5.0 (X11; U; Linux i686; ru; rv:1.9.2.13) Gecko/20101206 Ubuntu/10.04 (lucid) Firefox/3.6.13")
+(defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0")
 
 (defparameter *cookies*
   (list "portal_tid=1291969547067-10909"
@@ -22,13 +13,13 @@
 
 (defun get-headers (referer)
   `(
-    ;; ("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-    ("Accept-Language" . "en-us,en;q=0.5")
+    ("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+    ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
     ("Accept-Charset" . "utf-8")
     ("Referer" . ,referer)
     ;; ("Cookie" . ,(format nil "~{~a; ~}" *cookies*))
+    ("Cookie" . "ad20c=2; ad17c=2; __utma=48706362.2093251633.1396569814.1413985658.1413990550.145; __utmz=48706362.1413926450.142.18.utmcsr=vk.com|utmccn=(referral)|utmcmd=referral|utmcct=/im; email=avenger-f%40yandex.ru; password=30e3465569cc7433b34d42baeadff18f; PHPSESSID=ms1rrsgjqvm3lhdl5af1aekvv0; __utmc=48706362; __utmb=48706362.5.10.1413990550")
     ))
-
 
 (defmacro web (to ot)
   (let ((x-to (append '(format nil) to))
@@ -46,82 +37,204 @@
        (ppcre:scan-to-strings ,pattern ,var)
      (let ((str (format nil "~a" matches)))
        (subseq str 2 (- (length str) 1)))))
+(in-package #:moto)
 
-
-(defun get-user-page (user-id)
+(defun get-user-plist (user-id)
+  "Получает идентификатор пользователя и извлекает данные этого пользователя с мотобратана"
   (let* ((page (web ("http://www.motobratan.ru/users/~A.html" user-id)
                     ("http://www.motobratan.ru/")))
          (head (fnd page "(?s)<div class=\"headClass\">(.*)<div class=\"clear\">")))
-    (list
-     :name (fnd head "<h1>(.*)</h1>")
-     :last-seen (fnd head "<div class=\"link flow small\">(.*)</div>")
-     :distrinkt (fnd head "<div class=\"item flow\">(.*)</div>")
-     :registration (fnd head "<noindex><div class=\"flow\">(.*)</div></noindex>")
-     :age (fnd head "<div class=\"flow\">(.*)<span class=\"small gray\">")
-     :birthday (fnd head "<span class=\"small gray\">(.*)</span></div>")
-     :blood (fnd head "<noindex><div class=\"\">(.*)</div></noindex>")
-     :moto-exp (fnd head "<noindex><div class=\"\">(.*)</div></noindex>")
-     :phone (fnd head "<div class=\"item flow\">(.*)</div>")
-     )))
+    (if (equal "" head)
+        (err "bad page")
+        (list
+         :bratan-id user-id
+         :fio (let ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">")))
+                (fnd tmp "<div class=\"item flow\">(.*)</div>"))
+         :name (fnd head "<h1>(.*)</h1>")
+         :last-seen (replace-all (fnd head "<div class=\"link flow small\">(.*)</div>") "&nbsp;" " ")
+         :addr (let* ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">"))
+                      (fio (fnd tmp "<div class=\"item flow\">(.*)</div>")))
+                 (if (equal "" tmp)
+                     ""
+                     (string-trim '(#\Space #\Newline #\Tab)
+                                  (replace-all
+                                   (string-trim '(#\Space #\Newline #\Tab)
+                                                (fnd tmp "(?s)<div class=\"item flow\">(.*)</div>(.*)</div>(.*)</div>(.*)<noindex><div class=\"flow\">(.*)Регистрация:"))
+                                   fio
+                                   ""))))
+         :ts_reg (fnd head "<noindex><div class=\"flow\">Регистрация: (.*)</div></noindex>")
+         :age (fnd head "<div class=\"flow\">Возраст: (.*)<span class=\"small gray\">")
+         :birthday (fnd head "<span class=\"small gray\"> (.*)</span></div>")
+         :blood (fnd head "<noindex><div class=\"\">Группа крови: (.*)</div></noindex>")
+         :moto-exp (fnd head "<noindex><div class=\"\">Мото-стаж: (.*)</div></noindex>")
+         :phone (fnd head "<div class=\"item flow\">Телефон: (.*)</div>")
+         :activityes (let* ((tmp  (fnd head "(?s)<div class=\"lerge\">Деятельность</div>(.*)<div class=\"boxFlowTop\">"))
+                            (tmp2 (fnd tmp "(?s)<div>(.*)</div>")))
+                       (fnd tmp2 "(?s)(.*)</div>"))
+         :interests (let* ((tmp (fnd head "(?s)Интересы</div>(.*)"))
+                           (tmp2 (fnd tmp "(?s)<div>(.*)</div>" ))
+                           (tmp3 (fnd tmp2 "(?s)(.*)</div>")))
+                      (fnd tmp3 "(?s)(.*)</div>"))
+         :photos (let* ((tmp (fnd head "(?s)<div id=\"photos_id\"><div class=\"images\">(.*)</div></div>")))
+                   (if (equal "" tmp)
+                       ""
+                       (ppcre:all-matches-as-strings "http://[a-z0-9-\.]*/photos/normal/[0-9]*/[0-9]*\.jpg" tmp)))
+         :avatar (let* ((tmp (fnd page "(?s)<div class=\"boxLeft boxFlowRight\">(.*)"))
+                        (tmp2 (fnd tmp "<div class=\"image\"><img alt=\"(.*)</div>")))
+                   (fnd tmp2 "src=\"(.*)\" width"))
+         :motos (let* ((tmp (fnd page "(?s)<div class=\"boxRight boxFlowLeft\">(.*)<div class=\"boxCenter\">"))
+                       (lst (ppcre:split "<div class=\"item flow\">" tmp)))
+                  (if (equal "" tmp)
+                      ""
+                      (loop :for elt :in lst :collect
+                         (progn
+                           (let* ((img  (let ((tmp (fnd elt "<div class=\"image\"><img src=\"(.*)\" width=\"240\"")))
+                                          (when (equal "" tmp)
+                                            (setf tmp (fnd elt "<img src=\"(.*)\" width=\"240\"")))
+                                          tmp))
+                                  (namelist (ppcre:split " " (fnd elt "<div class=\"lerge\"><a href=\"(.*)\">(.*)</a></div>"))))
+                             (list :img   img
+                                   :lnk   (car namelist)
+                                   :year  (car (last namelist))
+                                   :color (cadr namelist)
+                                   :name  (format nil "~{~A~^ ~}" (cddr (butlast namelist)))))))))))))
 
-(get-user-page 35273)
+;; (get-user-plist 18601)
 
-;; (defun get-links (page)
-;;   (mapcar #'(lambda (x)
-;;               (replace-all (subseq x 41) ".html" ""))
-;;           (all-matches-as-strings "http:\\/\\/moto.auto.ru\\/motorcycle\\/used\\/sale\\/(.)*\.html"
-;;                                   (scan-to-strings "(?s)<table cellpadding=\"0\" cellspacing=\"0\" class=\"list\">(.*)<div class=\"content pager\">"
-;;                                                    (web ("http://all.auto.ru/list/?category_id=1&section_id=1&currency_key=RUR&country_id=1&has_photo=0&region_id=89&sort_by=2&output_format=1&submit=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8&_p=~A" page)
-;;                                                         ("http://all.auto.ru/"))))))
+(in-package #:moto)
+
+(defun save-bratan (p)
+  "Принимает plist пользователя и создает сущность в базе"
+  (make-bratan
+   :bratan-id (getf p :bratan-id)
+   :fio (getf p :fio)
+   :name (getf p :name)
+   :last-seen (getf p :last-seen)
+   :addr (getf p :addr)
+   :ts_reg (getf p :ts_reg)
+   :age (getf p :age)
+   :birthday (getf p :birthday)
+   :blood (getf p :blood)
+   :moto-exp (getf p :moto-exp)
+   :phone (getf p :phone)
+   :activityes (getf p :activityes)
+   :interests (getf p :interests)
+   :photos (format nil "~A" (bprint (getf p :photos)))
+   :avatar (getf p :avatar)
+   :motos (format nil "~A" (getf p :motos))
+   ))
+
+;; (save-bratan (get-user-plist 18601))
+(in-package #:moto)
 
 
-;; (loop :for page :from 30 :upto 40 :do
-;;    (let ((links (get-links page)))
-;;      (unless links
-;;        (loop-finish))
-;;      (loop :for link :in links :do
-;;         (print link)
-;;         (setf (gethash link *items*) ""))))
+;; (bordeaux-threads:make-thread
+;;  #'(lambda ()
+;;      (save-bratan (get-user-plist 18601))))
+
+(defun get-users-from-to (from to)
+  (loop :for i :from from :to to :do
+     (let ((user-plist (get-user-plist i)))
+       (unless (equal "" (getf user-plist :name))
+         (save-bratan user-plist)))))
+
+(defmacro thread-maker (from to)
+  `(bordeaux-threads:make-thread
+    #'(lambda ()
+        (get-users-from-to ,from ,to))
+    :name ,(format nil "~A..~A" from to)))
+
+;; (macroexpand-1 '
+;;  (thread-maker 1 30))
+
+;; (progn
+;;   (thread-maker 18601 18611)
+;;   (thread-maker 18611 18621))
+
+;; (thread-maker 31 200)
+
+(defmacro dispatcher (from to)
+  `(progn
+     ,@(loop :for i :from from :to to :by 300 :collect
+          (list 'thread-maker i (+ 799 i)))))
+
+;; (macroexpand-1 '
+;;  (dispatcher 18601 19601))
+
+;; (dispatcher 1 40079)
+
+;; (print (bordeaux-threads:all-threads))
+
+;; (length (bordeaux-threads:all-threads))
+
+;; 39301..40100
+;; 38701..39500
+;; 38401..39200
+;; 38101..38900
+;; 35101..35900
+;; 34501..35300
+;; 30601..31400
+;; 30301..31100
+;; 26401..27200
+;; 26101..26900
+;; 18301..19100
+;; 17701..18500
+;; 17101..17900
 
 
-;; (defun get-item (link)
-;;   (flet ((getint (str)
-;;            (let ((rs ""))
-;;              (do-matches-as-strings (m "\\d" str)
-;;                (setf rs (concatenate 'string rs m)))
-;;              (unless (equal rs "")
-;;                (parse-integer rs))))
-;;          (in-strong (str)
-;;            (let ((b (scan-to-strings "<strong>(.)*</strong>" str)))
-;;              (subseq b 8 (- (length b) 9)))))
-;;     (let* ((pg                 (web ("http://moto.auto.ru/motorcycle/used/sale/~A.html" link)
-;;                                     ("http://moto.auto.ru/")))
-;;            (cost               (getint (scan-to-strings "<p class=\"cost\">(.)*\\d+(.)*руб." pg)))
-;;            (sale-info-block    (scan-to-strings "(?s)sale-info(.)*card_char" pg))
-;;            (kubatura           (getint (scan-to-strings "id=\"card-engine_key\"><big><strong>(.)*см" sale-info-block)))
-;;            (year               (getint (scan-to-strings "id=\"card-year\"><big><strong>(.)*</strong>" sale-info-block)))
-;;            (probeg             (in-strong (scan-to-strings "id=\"card-run\"><big><strong>(.)*</strong>" sale-info-block)))
-;;            (custom-block       (let ((a (scan-to-strings "id=\"card-custom_key\">(.)*</dd>" sale-info-block)))
-;;                                  (scan-to-strings ">(.)*<" a)))
-;;            (split-list         (split "/" custom-block))
-;;            (presence           (let ((a (car split-list)))
-;;                                  (subseq a 1 (- (length a) 1))))
-;;            (docum              (let ((a (cadr split-list)))
-;;                                  (subseq a 1 (- (length a) 1))))
-;;            (message            (let* ((a (scan-to-strings "(?s)<h3 class=\"sale\">Дополнительная информация:<\\/h3>(.)*<div id=\"sale-contact\">" pg))
-;;                                       (b (scan-to-strings "(?s)</b>(.)*</p>" a)))
-;;                                  (when b
-;;                                    (subseq b 4 (- (length b) 4)))))
-;;            (contact            (in-strong (scan-to-strings "(?s)<dt>Контактное лицо:</dt>(.)*</dd><dt>E-mail:</dt>" pg)))
-;;            (phone              (scan-to-strings "(?s)Телефон(.)*<div id=\"sale-photo\">" pg)) ;; TODO
-;;            (sale-phote) ;; TODO
-;;            (counters)   ;; TODO
-;;            )
-;;       phone
-;;       )))
+(make-bratan :id 2700000000 :name "test")
 
-;; (print
-;;  (get-item "766510-82317"))
+(defparameter *not-isset*
+  (let ((all    (loop :for i :from 1 :to 40070 collect i))
+        (isset  (mapcar #'car
+                        (with-connection *db-spec*
+                          (query (:select (:distinct 'bratan_id) :from 'bratan)))))
+        (result))
+    (format t "~% всего:  ~A" (length all))
+    (format t "~% в базе: ~A" (length isset))
+    (loop :for i :in all :do
+       (unless (find i isset)
+         (push i result)))
+    (format t "~% result: ~A" (length result))
+    result))
 
-;; (print
-;;  (get-item "681190-741b40"))
+
+
+(defun get-users-from-to-in-list (from to lst)
+  (loop :for i :in (subseq lst from to) :do
+     (let ((user-plist (get-user-plist i)))
+       (unless (equal "" (getf user-plist :name))
+         (save-bratan user-plist)))))
+
+(defmacro thread-maker-in-list (from to)
+  `(bordeaux-threads:make-thread
+    #'(lambda ()
+        (get-users-from-to *not-isset* ,from ,to))
+    :name ,(format nil "~A..~A" from to)))
+
+;; (macroexpand-1 '
+;;  (thread-maker 1 30))
+
+;; (progn
+;;   (thread-maker 18601 18611)
+;;   (thread-maker 18611 18621))
+
+;; (thread-maker 31 200)
+
+(defmacro dispatcher-in-list (from to)
+  `(progn
+     ,@(loop :for i :from from :to to :by 300 :collect
+          (list 'thread-maker-in-list i (+ 799 i *not-isset*)))))
+
+
+
+(with-connection *db-spec*
+  (let ((isset))
+    ;; Проходим по всем возможным id
+    (loop :for i :from 1 :to 40079 :do
+       ;; Получаем для каждого id строку если она есть
+       (aif (query (:select 'bratan_id :from 'bratan :where (:= 'id i)))
+            ;; Если строка есть, получаем bratan_id
+            (let ((bratan_id (caar it)))
+              ;; Удаляем все остальные строки кроме этой
+              (query (:delete-from 'bratan :where (:and (:= 'bratan_id bratan_id) (:!= 'id i)))))))))

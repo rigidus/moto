@@ -1,0 +1,295 @@
+#+HTML_HEAD: -*- fill-column: 92 -*-
+
+#+TITLE: Модуль Bratan
+
+#+NAME:css
+#+BEGIN_HTML
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+#+END_HTML
+
+* Введение
+
+  Наш пользователь может быть зарегистрирован на http://motobratan.ru
+
+  Чтобы предоставлять ему разнообразные сервисы, отсутстующие на на мотобратане, мы
+  отражаем профили пользователя мотобратана у себя. Для этого мы забираем данные со страниц
+  пользователей на мотобратане.
+
+* Сборка
+
+  #+NAME: bratan
+  #+BEGIN_SRC lisp :tangle src/mod/bratan/bratan.lisp :noweb tangle :exports code
+    (in-package #:moto)
+
+    <<bratan_fn>>
+  #+END_SRC
+
+* Получение страниц
+
+  Здесь настройки DRAKMA и вспомогательные функции и макросы, которые обеспечивают получение
+  данных со сторонних ресурсов и поиск в них интересующих нас элементов
+
+  #+NAME: bratan_fn
+  #+BEGIN_SRC lisp
+
+    (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0")
+
+    (defparameter *cookies*
+      (list "portal_tid=1291969547067-10909"
+            "__utma=189530924.115785001.1291969547.1297497611.1297512149.377"
+            "__utmc=3521885"))
+
+    (setf *drakma-default-external-format* :utf-8)
+
+    (defun get-headers (referer)
+      `(
+        ("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+        ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+        ("Accept-Charset" . "utf-8")
+        ("Referer" . ,referer)
+        ;; ("Cookie" . ,(format nil "~{~a; ~}" *cookies*))
+        ("Cookie" . "ad20c=2; ad17c=2; __utma=48706362.2093251633.1396569814.1413985658.1413990550.145; __utmz=48706362.1413926450.142.18.utmcsr=vk.com|utmccn=(referral)|utmcmd=referral|utmcct=/im; email=avenger-f%40yandex.ru; password=30e3465569cc7433b34d42baeadff18f; PHPSESSID=ms1rrsgjqvm3lhdl5af1aekvv0; __utmc=48706362; __utmb=48706362.5.10.1413990550")
+        ))
+
+    (defmacro web (to ot)
+      (let ((x-to (append '(format nil) to))
+            (x-ot (append '(format nil) ot)))
+        `(let ((r (sb-ext:octets-to-string
+                   (drakma:http-request ,x-to
+                                        :user-agent *user-agent*
+                                        :additional-headers (get-headers ,x-ot)
+                                        :force-binary t)
+                   :external-format :utf-8)))
+           r)))
+
+    (defmacro fnd (var pattern)
+      `(multiple-value-bind (all matches)
+           (ppcre:scan-to-strings ,pattern ,var)
+         (let ((str (format nil "~a" matches)))
+           (subseq str 2 (- (length str) 1)))))
+  #+END_SRC
+
+* Получение страниц пользователя
+
+  Мы получаем страницу пользователя по его целочисленному идентификатору и извлекаем из нее
+  данные. Извлекаемые данные возвращаются в формате plist.
+
+  Если по какой-то причине не удалось получить данные, например сервер вернул 502 ошибку,
+  функция сигнализирует ошибку.
+
+  #+NAME: bratan_fn
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defun get-user-plist (user-id)
+      "Получает идентификатор пользователя и извлекает данные этого пользователя с мотобратана"
+      (let* ((page (web ("http://www.motobratan.ru/users/~A.html" user-id)
+                        ("http://www.motobratan.ru/")))
+             (head (fnd page "(?s)<div class=\"headClass\">(.*)<div class=\"clear\">")))
+        (if (equal "" head)
+            (err "bad page")
+            (list
+             :bratan-id user-id
+             :fio (let ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">")))
+                    (fnd tmp "<div class=\"item flow\">(.*)</div>"))
+             :name (fnd head "<h1>(.*)</h1>")
+             :last-seen (replace-all (fnd head "<div class=\"link flow small\">(.*)</div>") "&nbsp;" " ")
+             :addr (let* ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">"))
+                          (fio (fnd tmp "<div class=\"item flow\">(.*)</div>")))
+                     (if (equal "" tmp)
+                         ""
+                         (string-trim '(#\Space #\Newline #\Tab)
+                                      (replace-all
+                                       (string-trim '(#\Space #\Newline #\Tab)
+                                                    (fnd tmp "(?s)<div class=\"item flow\">(.*)</div>(.*)</div>(.*)</div>(.*)<noindex><div class=\"flow\">(.*)Регистрация:"))
+                                       fio
+                                       ""))))
+             :ts_reg (fnd head "<noindex><div class=\"flow\">Регистрация: (.*)</div></noindex>")
+             :age (fnd head "<div class=\"flow\">Возраст: (.*)<span class=\"small gray\">")
+             :birthday (fnd head "<span class=\"small gray\"> (.*)</span></div>")
+             :blood (fnd head "<noindex><div class=\"\">Группа крови: (.*)</div></noindex>")
+             :moto-exp (fnd head "<noindex><div class=\"\">Мото-стаж: (.*)</div></noindex>")
+             :phone (fnd head "<div class=\"item flow\">Телефон: (.*)</div>")
+             :activityes (let* ((tmp  (fnd head "(?s)<div class=\"lerge\">Деятельность</div>(.*)<div class=\"boxFlowTop\">"))
+                                (tmp2 (fnd tmp "(?s)<div>(.*)</div>")))
+                           (fnd tmp2 "(?s)(.*)</div>"))
+             :interests (let* ((tmp (fnd head "(?s)Интересы</div>(.*)"))
+                               (tmp2 (fnd tmp "(?s)<div>(.*)</div>" ))
+                               (tmp3 (fnd tmp2 "(?s)(.*)</div>")))
+                          (fnd tmp3 "(?s)(.*)</div>"))
+             :photos (let* ((tmp (fnd head "(?s)<div id=\"photos_id\"><div class=\"images\">(.*)</div></div>")))
+                       (if (equal "" tmp)
+                           ""
+                           (ppcre:all-matches-as-strings "http://[a-z0-9-\.]*/photos/normal/[0-9]*/[0-9]*\.jpg" tmp)))
+             :avatar (let* ((tmp (fnd page "(?s)<div class=\"boxLeft boxFlowRight\">(.*)"))
+                            (tmp2 (fnd tmp "<div class=\"image\"><img alt=\"(.*)</div>")))
+                       (fnd tmp2 "src=\"(.*)\" width"))
+             :motos (let* ((tmp (fnd page "(?s)<div class=\"boxRight boxFlowLeft\">(.*)<div class=\"boxCenter\">"))
+                           (lst (ppcre:split "<div class=\"item flow\">" tmp)))
+                      (if (equal "" tmp)
+                          ""
+                          (loop :for elt :in lst :collect
+                             (progn
+                               (let* ((img  (let ((tmp (fnd elt "<div class=\"image\"><img src=\"(.*)\" width=\"240\"")))
+                                              (when (equal "" tmp)
+                                                (setf tmp (fnd elt "<img src=\"(.*)\" width=\"240\"")))
+                                              tmp))
+                                      (namelist (ppcre:split " " (fnd elt "<div class=\"lerge\"><a href=\"(.*)\">(.*)</a></div>"))))
+                                 (list :img   img
+                                       :lnk   (car namelist)
+                                       :year  (car (last namelist))
+                                       :color (cadr namelist)
+                                       :name  (format nil "~{~A~^ ~}" (cddr (butlast namelist)))))))))))))
+
+    ;; (get-user-plist 18601)
+
+  #+END_SRC
+
+* Сохранение данных пользователя в базу
+
+  #+NAME: bratan_fn
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defun save-bratan (p)
+      "Принимает plist пользователя и создает сущность в базе"
+      (make-bratan
+       :bratan-id (getf p :bratan-id)
+       :fio (getf p :fio)
+       :name (getf p :name)
+       :last-seen (getf p :last-seen)
+       :addr (getf p :addr)
+       :ts_reg (getf p :ts_reg)
+       :age (getf p :age)
+       :birthday (getf p :birthday)
+       :blood (getf p :blood)
+       :moto-exp (getf p :moto-exp)
+       :phone (getf p :phone)
+       :activityes (getf p :activityes)
+       :interests (getf p :interests)
+       :photos (format nil "~A" (bprint (getf p :photos)))
+       :avatar (getf p :avatar)
+       :motos (format nil "~A" (getf p :motos))
+       ))
+
+    ;; (save-bratan (get-user-plist 18601))
+  #+END_SRC
+
+* Многопоточная обработка
+
+  #+NAME: bratan_fn
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+
+    ;; (bordeaux-threads:make-thread
+    ;;  #'(lambda ()
+    ;;      (save-bratan (get-user-plist 18601))))
+
+    (defun get-users-from-to (from to)
+      (loop :for i :from from :to to :do
+         (let ((user-plist (get-user-plist i)))
+           (unless (equal "" (getf user-plist :name))
+             (save-bratan user-plist)))))
+
+    (defmacro thread-maker (from to)
+      `(bordeaux-threads:make-thread
+        #'(lambda ()
+            (get-users-from-to ,from ,to))
+        :name ,(format nil "~A..~A" from to)))
+
+    ;; (macroexpand-1 '
+    ;;  (thread-maker 1 30))
+
+    ;; (progn
+    ;;   (thread-maker 18601 18611)
+    ;;   (thread-maker 18611 18621))
+
+    ;; (thread-maker 31 200)
+
+    (defmacro dispatcher (from to)
+      `(progn
+         ,@(loop :for i :from from :to to :by 300 :collect
+              (list 'thread-maker i (+ 799 i)))))
+
+    ;; (macroexpand-1 '
+    ;;  (dispatcher 18601 19601))
+
+    ;; (dispatcher 1 40079)
+
+    ;; (print (bordeaux-threads:all-threads))
+
+    ;; (length (bordeaux-threads:all-threads))
+
+    ;; 39301..40100
+    ;; 38701..39500
+    ;; 38401..39200
+    ;; 38101..38900
+    ;; 35101..35900
+    ;; 34501..35300
+    ;; 30601..31400
+    ;; 30301..31100
+    ;; 26401..27200
+    ;; 26101..26900
+    ;; 18301..19100
+    ;; 17701..18500
+    ;; 17101..17900
+
+
+    (make-bratan :id 2700000000 :name "test")
+
+    (defparameter *not-isset*
+      (let ((all    (loop :for i :from 1 :to 40070 collect i))
+            (isset  (mapcar #'car
+                            (with-connection *db-spec*
+                              (query (:select (:distinct 'bratan_id) :from 'bratan)))))
+            (result))
+        (format t "~% всего:  ~A" (length all))
+        (format t "~% в базе: ~A" (length isset))
+        (loop :for i :in all :do
+           (unless (find i isset)
+             (push i result)))
+        (format t "~% result: ~A" (length result))
+        result))
+
+
+
+    (defun get-users-from-to-in-list (from to lst)
+      (loop :for i :in (subseq lst from to) :do
+         (let ((user-plist (get-user-plist i)))
+           (unless (equal "" (getf user-plist :name))
+             (save-bratan user-plist)))))
+
+    (defmacro thread-maker-in-list (from to)
+      `(bordeaux-threads:make-thread
+        #'(lambda ()
+            (get-users-from-to *not-isset* ,from ,to))
+        :name ,(format nil "~A..~A" from to)))
+
+    ;; (macroexpand-1 '
+    ;;  (thread-maker 1 30))
+
+    ;; (progn
+    ;;   (thread-maker 18601 18611)
+    ;;   (thread-maker 18611 18621))
+
+    ;; (thread-maker 31 200)
+
+    (defmacro dispatcher-in-list (from to)
+      `(progn
+         ,@(loop :for i :from from :to to :by 300 :collect
+              (list 'thread-maker-in-list i (+ 799 i *not-isset*)))))
+
+
+
+    (with-connection *db-spec*
+      (let ((isset))
+        ;; Проходим по всем возможным id
+        (loop :for i :from 1 :to 40079 :do
+           ;; Получаем для каждого id строку если она есть
+           (aif (query (:select 'bratan_id :from 'bratan :where (:= 'id i)))
+                ;; Если строка есть, получаем bratan_id
+                (let ((bratan_id (caar it)))
+                  ;; Удаляем все остальные строки кроме этой
+                  (query (:delete-from 'bratan :where (:and (:= 'bratan_id bratan_id) (:!= 'id i)))))))))
+  #+END_SRC
