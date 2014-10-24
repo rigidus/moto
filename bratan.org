@@ -20,7 +20,23 @@
   данные пользователя со страницы помощью =get-user-plist=, подготавливает их к сохранению
   с помощью =prepare-to-save=, и, наконец, сохраняет их с помощью =save-bratan=.
 
-  В ней же предоставляются перезапуски, которые используются вызывающим кодом.
+  В ней же предоставляются перезапуски, которые используются вызывающим кодом:
+  - =malformed-user-page-error= - Не удалось получить данные пользователя со страницы
+  - =user-name-empty-error= - При подготовке к сохранению в базу обнаружилось что имя
+    пользователя - пустая строка
+  - =suspicious-reg-date-error= - Подозрительная дата регистрации - совпадает с принятой по
+    умолчанию, возможно профиль не заполнен.
+
+  Так как слишком долго ждать пока все пользователи последовательно будут скачаны и
+  обработаны мы распарралелим эту операцию и заставим ее выполняться в несколько
+  потоков. Чтобы не слишком нагружать сервер кол-во потоков должно быть меньше ста.
+
+  Чтобы разбить весь сканируемый дипазон на нужное кол-во кусков испольуем функцию
+  =split-to-blocks=, которую вызывает функция =make-process-users-threads= которая и
+  занимается запуском потоков.
+
+  По странной причине, реальные пользователи начинаются с id = 10001, и это, что
+  характерно, Ветер. Так что мы не будем смотреть тех кто меньше 10001.
 
   #+NAME: bratan
   #+BEGIN_SRC lisp :tangle src/mod/bratan/bratan.lisp :noweb tangle :exports code
@@ -35,16 +51,46 @@
 
     (defparameter *stop* nil)
 
-    (defun motobratan-grabber ()
-      (loop :for i :from 10001 :to 40079 :do
-         (print i)
+    (defun process-users-array (from to)
+      (loop :for i :from from :to to  :do
+         ;; (print i)
          (when *stop*
-           (break))
+           (err "stopped!"))
          (process-user i)))
 
     <<bratan_fn>>
 
-    (motobratan-grabber)
+    (defun split-to-blocks (from to cnt-blocks)
+      (let ((cnt-elts (- to from)))
+        (multiple-value-bind (quotient remainder)
+            (ceiling cnt-elts cnt-blocks)
+          (let ((size-block (if (equal 0 remainder)
+                                (+ 1 quotient)
+                                quotient)))
+            (loop :for i :from from :to to :by size-block
+               :collect (list i
+                              (let ((end (+ i (- size-block 1))))
+                                (if (> to end) end to))))))))
+
+    (defun make-process-users-threads (from to cnt-blocs)
+      (loop :for (start end) :in (split-to-blocks from to cnt-blocs) :do
+         (bordeaux-threads:make-thread
+          #'(lambda ()
+              (handler-bind
+                  ((user-name-empty-error      #'(lambda (c)
+                                                   (invoke-restart 'skip-this-record)))
+                   (suspicious-reg-date-error  #'(lambda (c)
+                                                   (invoke-restart 'ignore-date))))
+                (process-users-array start end))
+              :name (format nil "~A..~A" start end)))))
+
+    ;; (make-process-users-threads 10001 40104 50)
+
+    ;; (print (bordeaux-threads:all-threads))
+
+    ;; (length (bordeaux-threads:all-threads))
+
+    ;; (floor (- 40104 10001) 50)
   #+END_SRC
 
 * Получение страниц
@@ -105,12 +151,15 @@
     (in-package #:moto)
 
     (define-condition malformed-user-page-error (error)
-        ((text :initarg :text :reader text)))
+      ((text :initarg :text :reader text)))
+
+    (defun get-user-page (user-id)
+      (web ("http://www.motobratan.ru/users/~A.html" user-id)
+           ("http://www.motobratan.ru/")))
 
     (defun get-user-plist (user-id)
       "Получает идентификатор пользователя и извлекает данные этого пользователя с мотобратана"
-      (let* ((page (web ("http://www.motobratan.ru/users/~A.html" user-id)
-                        ("http://www.motobratan.ru/")))
+      (let* ((page (get-user-page user-id))
              (head (fnd page "(?s)<div class=\"headClass\">(.*)<div class=\"clear\">")))
         (when (equal head "")
           (error 'malformed-user-page-error))
@@ -119,17 +168,13 @@
          :fio (let ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">")))
                 (fnd tmp "<div class=\"item flow\">(.*)</div>"))
          :name (fnd head "<h1>(.*)</h1>")
-         :last-seen (replace-all (fnd head "<div class=\"link flow small\">(.*)</div>") "&nbsp;" " ")
-         :addr (let* ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)<div class=\"item flow\">(.*)</div>(.*)<div class=\"item flow\">"))
-                      (fio (fnd tmp "<div class=\"item flow\">(.*)</div>")))
-                 (if (equal "" tmp)
-                     ""
-                     (string-trim '(#\Space #\Newline #\Tab)
-                                  (replace-all
-                                   (string-trim '(#\Space #\Newline #\Tab)
-                                                (fnd tmp "(?s)<div class=\"item flow\">(.*)</div>(.*)</div>(.*)</div>(.*)<noindex><div class=\"flow\">(.*)Регистрация:"))
-                                   fio
-                                   ""))))
+         :last-seen (let ((tmp (replace-all (fnd head "<div class=\"link flow small\">(.*)</div>") "&nbsp;" " ")))
+                      (if (equal "" tmp)
+                          ""
+                          (ppcre:regex-replace "Был(а)? в сети " tmp "")))
+         :addr (let* ((tmp (fnd head "(?s)<div class=\"\">(.*)<div class=\"flow\">(.*)Регистрация")))
+                 (let ((tmp (fnd tmp "<div class=\"item flow\">(.*)</div>")))
+                   tmp))
          :ts-reg (fnd head "<noindex><div class=\"flow\">Регистрация: (.*)</div></noindex>")
          :age (let ((tmp (fnd head "<div class=\"flow\">Возраст: (.*)<span class=\"small gray\">")))
                 (if (equal "" tmp)
@@ -266,128 +311,8 @@
               ))))
   #+END_SRC
 
-* Многопоточная обработка
-
-  #+NAME: bratan_fn
-  #+BEGIN_SRC lisp
-    ;; (in-package #:moto)
-
-
-    ;; ;; (bordeaux-threads:make-thread
-    ;; ;;  #'(lambda ()
-    ;; ;;      (save-bratan (get-user-plist 18601))))
-
-    ;; (defun get-users-from-to (from to)
-    ;;   (loop :for i :from from :to to :do
-    ;;      (let ((user-plist (get-user-plist i)))
-    ;;        (unless (equal "" (getf user-plist :name))
-    ;;          (save-bratan user-plist)))))
-
-    ;; (defmacro thread-maker (from to)
-    ;;   `(bordeaux-threads:make-thread
-    ;;     #'(lambda ()
-    ;;         (get-users-from-to ,from ,to))
-    ;;     :name ,(format nil "~A..~A" from to)))
-
-    ;; ;; (macroexpand-1 '
-    ;; ;;  (thread-maker 1 30))
-
-    ;; ;; (progn
-    ;; ;;   (thread-maker 18601 18611)
-    ;; ;;   (thread-maker 18611 18621))
-
-    ;; ;; (thread-maker 31 200)
-
-    ;; (defmacro dispatcher (from to)
-    ;;   `(progn
-    ;;      ,@(loop :for i :from from :to to :by 300 :collect
-    ;;           (list 'thread-maker i (+ 799 i)))))
-
-    ;; ;; (macroexpand-1 '
-    ;; ;;  (dispatcher 18601 19601))
-
-    ;; ;; (dispatcher 1 40079)
-
-    ;; ;; (print (bordeaux-threads:all-threads))
-
-    ;; ;; (length (bordeaux-threads:all-threads))
-
-    ;; ;; 39301..40100
-    ;; ;; 38701..39500
-    ;; ;; 38401..39200
-    ;; ;; 38101..38900
-    ;; ;; 35101..35900
-    ;; ;; 34501..35300
-    ;; ;; 30601..31400
-    ;; ;; 30301..31100
-    ;; ;; 26401..27200
-    ;; ;; 26101..26900
-    ;; ;; 18301..19100
-    ;; ;; 17701..18500
-    ;; ;; 17101..17900
-
-
-    ;; (make-bratan :id 2700000000 :name "test")
-
-    ;; (defparameter *not-isset*
-    ;;   (let ((all    (loop :for i :from 1 :to 40070 collect i))
-    ;;         (isset  (mapcar #'car
-    ;;                         (with-connection *db-spec*
-    ;;                           (query (:select (:distinct 'bratan_id) :from 'bratan)))))
-    ;;         (result))
-    ;;     (format t "~% всего:  ~A" (length all))
-    ;;     (format t "~% в базе: ~A" (length isset))
-    ;;     (loop :for i :in all :do
-    ;;        (unless (find i isset)
-    ;;          (push i result)))
-    ;;     (format t "~% result: ~A" (length result))
-    ;;     result))
-
-
-
-    ;; (defun get-users-from-to-in-list (from to lst)
-    ;;   (loop :for i :in (subseq lst from to) :do
-    ;;      (let ((user-plist (get-user-plist i)))
-    ;;        (unless (equal "" (getf user-plist :name))
-    ;;          (save-bratan user-plist)))))
-
-    ;; (defmacro thread-maker-in-list (from to)
-    ;;   `(bordeaux-threads:make-thread
-    ;;     #'(lambda ()
-    ;;         (get-users-from-to *not-isset* ,from ,to))
-    ;;     :name ,(format nil "~A..~A" from to)))
-
-    ;; ;; (macroexpand-1 '
-    ;; ;;  (thread-maker 1 30))
-
-    ;; ;; (progn
-    ;; ;;   (thread-maker 18601 18611)
-    ;; ;;   (thread-maker 18611 18621))
-
-    ;; ;; (thread-maker 31 200)
-
-    ;; (defmacro dispatcher-in-list (from to)
-    ;;   `(progn
-    ;;      ,@(loop :for i :from from :to to :by 300 :collect
-    ;;           (list 'thread-maker-in-list i (+ 799 i *not-isset*)))))
-
-
-
-    ;; (with-connection *db-spec*
-    ;;   (let ((isset))
-    ;;     ;; Проходим по всем возможным id
-    ;;     (loop :for i :from 1 :to 40079 :do
-    ;;        ;; Получаем для каждого id строку если она есть
-    ;;        (aif (query (:select 'bratan_id :from 'bratan :where (:= 'id i)))
-    ;;             ;; Если строка есть, получаем bratan_id
-    ;;             (let ((bratan_id (caar it)))
-    ;;               ;; Удаляем все остальные строки кроме этой
-    ;;               (query (:delete-from 'bratan :where (:and (:= 'bratan_id bratan_id) (:!= 'id i)))))))))
-  #+END_SRC
 * Подбираем остатки
 
-  По странной причине, реальные пользователи начинаются с id = 10001, и это, что
-  характерно, Ветер. Так что мы не будем смотреть тех кто меньше 10001
 
   #+NAME: bratan_fn
   #+BEGIN_SRC lisp

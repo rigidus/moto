@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="moto"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-14T21:38+0400"/>
+<meta name="generated" content="2014-10-25T01:35+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -134,7 +134,12 @@ for the JavaScript code in this tag.
 <ul>
 <li><a href="#sec-4-1">4.1 Функции для кодогенерации сущностей</a></li>
 <li><a href="#sec-4-2">4.2 Пользователи (user)</a></li>
-<li><a href="#sec-4-3">4.3 Сообщения (msg)</a></li>
+<li><a href="#sec-4-3">4.3 Роли (role)</a></li>
+<li><a href="#sec-4-4">4.4 Группы (group)</a></li>
+<li><a href="#sec-4-5">4.5 Сообщения (msg)</a></li>
+<li><a href="#sec-4-6">4.6 Аватары (avatar)</a></li>
+<li><a href="#sec-4-7">4.7 Мотоциклы (moto)</a></li>
+<li><a href="#sec-4-8">4.8 Братан (bratan)</a></li>
 </ul>
 </li>
 <li><a href="#sec-5">5 События</a></li>
@@ -150,9 +155,12 @@ for the JavaScript code in this tag.
 <li><a href="#sec-7-1">7.1 Cущности, автоматы и их тесты</a></li>
 <li><a href="#sec-7-2">7.2 Авторизация</a></li>
 <li><a href="#sec-7-3">7.3 Сообщения</a></li>
-<li><a href="#sec-7-4">7.4 Посты</a></li>
-<li><a href="#sec-7-5">7.5 Багзилла</a></li>
-<li><a href="#sec-7-6">7.6 Шаринг</a></li>
+<li><a href="#sec-7-4">7.4 Trend</a></li>
+<li><a href="#sec-7-5">7.5 Граббер пользователей мотобратана</a></li>
+<li><a href="#sec-7-6">7.6 Граббер тем мотобратана</a></li>
+<li><a href="#sec-7-7">7.7 Посты</a></li>
+<li><a href="#sec-7-8">7.8 Багзилла</a></li>
+<li><a href="#sec-7-9">7.9 Шаринг</a></li>
 </ul>
 </li>
 <li><a href="#sec-8">8 Сборка</a>
@@ -164,7 +172,6 @@ for the JavaScript code in this tag.
 <li><a href="#sec-8-5">8.5 Пакеты</a></li>
 <li><a href="#sec-8-6">8.6 Подготовка к старту</a></li>
 <li><a href="#sec-8-7">8.7 Точка входа</a></li>
-<li><a href="#sec-8-8">8.8 Веб-интерфейс</a></li>
 </ul>
 </li>
 <li><a href="#sec-9">9 Идеи</a></li>
@@ -377,6 +384,62 @@ for the JavaScript code in this tag.
   неделю. мне эти балы не дают нихуя. не даж так. НИХУЯШЕНЬКИ
   но воспитанное годами мышление задрота не позволяет упустить возможность заработать баллы
 </p>
+<p>
+  есть проблема, связанная с тем, что человеки - в общем-то ленивые скоты. а задроты еще и
+  хитрые ленивые скоты и нужна система контроля.
+</p>
+<p>
+  поэтому эту хуйню надо строить изначально с привязкой к кому-нибудь.
+  идеальный вариант - начать с физического состояния задрота, т.к. это самая болезненная тема
+  раз, измеряется проще всего два.
+  берем в одну руку сеть качалок - тот же задрипанный алекс фитнес и привязываем всю эту
+  лабуду туда.
+  менеджменту говорим, что ща продажи вырастут так, что охуеете а так же у вас будет мощная
+  обратная связь с клиентурой.
+  чувак не только чекинится в зале, но так же имеет возможность раз в месяц подойти к тренеру
+  и сказать "смари как я умею". тренер проверяет прогресс и говорит - молодца чувак. после
+  чего на своей мобилке жамкает кнопулю, которая генерит qr-код. чувак считывает своей
+  мобилой qr-код и переходит на след уровень.
+  можно привязать персональные тренировки к этой лабуде. тренра жеж все равно дают роуд мап
+  какй-то мол по понедельникам ты делаешь два притопа три прихлопа, во вторник дрочишь хуй, в
+  четверг работаешь вот с такими мышцами вот такими упражнениями по столько подходов. для
+  чувака который первый раз пришел в зал все это - китайская грамота и вылетает из ушей
+  моментально (я вот в полном ахуе например была) - а тут тренер говорит, мол выполняешь
+  программу с номером 15, вот те код - чувак его считывает мобилкой и имеет нормальное
+  рассписание что и когда ему делать. и задно баллы получает.
+</p>
+<p>
+  делает это вместе с тренером - получает от тренера код, баллы удваиваются, в зале растут
+  продажи персональных тренировок.
+</p>
+<p>
+  через нное количество времени получаем сеть посетителей сети клубов, которые радостно друг
+  другу шлют фотаньки с бицухами и дают оценки тренерам (как бонус)
+</p>
+<p>
+  и тогда топаем в сеть школ, ну например иностранных языков. та же лабуда. получаешь баллы
+  за то что приходишь на уроки, после экзамена и перехода на новый уровень владения языком
+  получаешь от препода код. + мильен баллов и бэйджик.
+  школам говорим - ща к вам прибежит клиентура в 100500 чуваков из качалок.
+  потом туда же постепенно добавляем другие напрваления. автошколы, университеты, курсы
+  повышения квалификации, оздоровительные программы и проч.
+</p>
+<p>
+  от всех организаций-участников получаем обратную связь по поводу того, как чувачки наши
+  развиваются. каждый новый участник получает прирост клиентуры и охуенную рекламную
+  площадку. участники игрули получают скидку на услугу компаний-участников. мы сидим и
+  стрижем купоны. вин-вин
+</p>
+<p>
+  так как все участники реальны и действительно ходят во все эти хуйни, то мы будем
+  единственной площадкой, которая может доказать, что отзывы, складирующиеся у нас (а люди
+  ж те же голуби, им везде срать надо своим мнением) на 100% реальны, а не написаны
+  пиарщиками или роботами
+</p>
+<p>
+  соответственно к нам начинают прибегать посторонние люди что бы получать объективную оченку
+  мест в которые они хотят вписаться
+</p>
 </div>
 
 </div>
@@ -388,8 +451,15 @@ for the JavaScript code in this tag.
 <ul>
 <li>Типы для полей state нужно задавать как перечисления
 </li>
-<li>Для всех таблиц добавить дату/время (регистрации пользователя, отправки/доставки
-    сообщения)
+<li>Добавить AJAX и Comet
+</li>
+<li>Автоматизированная генерация интерфейса для просмотра и редактирования сущностей
+</li>
+<li>Забираем пользователей с других ресурсов
+</li>
+<li>Очищалка базы для каждого модуля должна лежать в модуле
+</li>
+<li>И сущности тоже туда переложить
 </li>
 </ul>
 
@@ -400,6 +470,19 @@ for the JavaScript code in this tag.
 <div id="outline-container-4" class="outline-2">
 <h2 id="sec-4"><span class="section-number-2">4</span> Определения сущностей</h2>
 <div class="outline-text-2" id="text-4">
+
+
+<p>
+  Соберем все сущности и автоматы
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;entity_and_automates_contents&gt;&gt;
+</pre>
+
 
 
 </div>
@@ -524,9 +607,10 @@ for the JavaScript code in this tag.
 <tr><td class="left">password</td><td class="left">varchar</td><td class="left">пароль</td></tr>
 <tr><td class="left">email</td><td class="left">varchar</td><td class="left">емейл</td></tr>
 <tr><td class="left">ts-create</td><td class="left">bigint</td><td class="left">время создания</td></tr>
+<tr><td class="left">ts-last</td><td class="left">bigint</td><td class="left">время когда был последний раз</td></tr>
+<tr><td class="left">role-id</td><td class="left">(or db-null integer)</td><td class="left">идентификатор роли</td></tr>
 </tbody>
 </table>
-
 
 
 <p>
@@ -587,8 +671,7 @@ for the JavaScript code in this tag.
 
 
 
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
-(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> user <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> user <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
   &lt;&lt;user_fields()&gt;&gt;
   &lt;&lt;user_states()&gt;&gt;
   &lt;&lt;user_actions()&gt;&gt;)
@@ -609,7 +692,9 @@ for the JavaScript code in this tag.
  (name varchar)
  (password varchar)
  (email varchar)
- (ts-create bigint))
+ (ts-create bigint)
+ (ts-last bigint)
+ (role-id (or db-null integer)))
 </pre>
 
 
@@ -675,8 +760,186 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-4-3" class="outline-3">
-<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Сообщения (msg)</h3>
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Роли (role)</h3>
 <div class="outline-text-3" id="text-4-3">
+
+
+<p>
+   Роли определяют набор сценариев, которые пользователь выполняет на сайте. Функционал,
+   который выполняет сценарии запрашивает разрешение на выполнение действий, которое
+   опирается на роль, присвоенную пользователю. Пользователь может иметь только одну роль
+   или не иметь ее вовсе.
+</p>
+<p>
+   Роль является простой сущностью и не имеет состояния.
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Данные роли</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">field name</th><th scope="col" class="left">field type</th><th scope="col" class="left">note</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">id</td><td class="left">serial</td><td class="left">идентификатор</td></tr>
+<tr><td class="left">name</td><td class="left">varchar</td><td class="left">имя роли</td></tr>
+</tbody>
+</table>
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> role <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1088;&#1086;&#1083;&#1080;"</span>
+  &lt;&lt;role_fields()&gt;&gt;)
+
+(make-role-table)
+
+&lt;&lt;create_roles&gt;&gt;
+</pre>
+
+
+<p>
+   Где <code>role-fields</code> (поля данных) определим как:
+</p>
+
+
+<pre class="example">
+((id serial)
+ (name varchar))
+</pre>
+
+
+<p>
+   Создадим необходимые роли:
+</p>
+
+
+
+<pre class="src src-lisp">(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"admin"</span>)
+(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"manager"</span>)
+(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"moderator"</span>)
+(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"robot"</span>)
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4-4" class="outline-3">
+<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Группы (group)</h3>
+<div class="outline-text-3" id="text-4-4">
+
+
+<p>
+   Группы пользователей определяют набор операций, которые пользователь может выполнять над
+   объектами системы. В отличие от ролей, один пользователь может входить в несколько групп
+   или не входить ни в одну из них.
+</p>
+<p>
+   Роль является простой сущностью и не имеет состояния.
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Данные роли</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">field name</th><th scope="col" class="left">field type</th><th scope="col" class="left">note</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">id</td><td class="left">serial</td><td class="left">идентификатор</td></tr>
+<tr><td class="left">name</td><td class="left">varchar</td><td class="left">имя группы</td></tr>
+</tbody>
+</table>
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> group <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1075;&#1088;&#1091;&#1087;&#1087;&#1099;"</span>
+  &lt;&lt;group_fields()&gt;&gt;)
+
+(make-group-table)
+
+&lt;&lt;create_groups&gt;&gt;
+
+&lt;&lt;user2group_entity&gt;&gt;
+</pre>
+
+
+<p>
+   Где <code>group-fields</code> (поля данных) определим как:
+</p>
+
+
+<pre class="example">
+((id serial)
+ (name varchar))
+</pre>
+
+
+<p>
+   Создадим необходимые роли:
+</p>
+
+
+
+<pre class="src src-lisp">(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"oldman"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"newboy"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"veteran"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"traveler"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"dirtyman"</span>)
+</pre>
+
+
+<p>
+   Теперь создадим таблицу связи, которая свяжет пользователей и группы:
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Данные таблицы связи пользователя и группы</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">field name</th><th scope="col" class="left">field type</th><th scope="col" class="left">note</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">id</td><td class="left">serial</td><td class="left">идентификатор</td></tr>
+<tr><td class="left">user-id</td><td class="left">integer</td><td class="left">идентификатор пользователя</td></tr>
+<tr><td class="left">group-id</td><td class="left">integer</td><td class="left">идентификатор группы</td></tr>
+</tbody>
+</table>
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> user2group <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1089;&#1074;&#1103;&#1079;&#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; &#1080; &#1075;&#1088;&#1091;&#1087;&#1087;&#1099;"</span>
+  &lt;&lt;user2group_fields()&gt;&gt;)
+
+(make-user2group-table)
+</pre>
+
+
+<p>
+   Где <code>user2group-fields</code> (поля данных) определим как:
+</p>
+
+
+<pre class="example">
+((id serial)
+ (user-id integer)
+ (group-id integer))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4-5" class="outline-3">
+<h3 id="sec-4-5"><span class="section-number-3">4.5</span> Сообщения (msg)</h3>
+<div class="outline-text-3" id="text-4-5">
 
 
 <p>
@@ -726,20 +989,17 @@ for the JavaScript code in this tag.
 
 
 
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;</span>
-(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> msg <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;"</span>
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> msg <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;"</span>
   &lt;&lt;msg_fields()&gt;&gt;
   &lt;&lt;msg_states()&gt;&gt;
   &lt;&lt;msg_actions()&gt;&gt;)
 
  &lt;&lt;msg_actions_func&gt;&gt;
-
- &lt;&lt;create_msg&gt;&gt;
 </pre>
 
 
 <p>
-   Где <code>user-fields</code> (поля данных) определим как:
+   Где <code>msg-fields</code> (поля данных) определим как:
 </p>
 
 
@@ -786,6 +1046,485 @@ for the JavaScript code in this tag.
 
 
 </div>
+
+</div>
+
+<div id="outline-container-4-6" class="outline-3">
+<h3 id="sec-4-6"><span class="section-number-3">4.6</span> Аватары (avatar)</h3>
+<div class="outline-text-3" id="text-4-6">
+
+
+<p>
+   Пользователи имеют неопределенное кол-во аватарок, разного размера, для которых мы
+   осуществляем хранение в оригинальном размере, масштабирование и хранение
+   отмасштабированных превьюшек.
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Данные аватарки</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">field name</th><th scope="col" class="left">field type</th><th scope="col" class="left">note</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">id</td><td class="left">serial</td><td class="left">идентификатор</td></tr>
+<tr><td class="left">user-id</td><td class="left">integer</td><td class="left">идентификатор пользователя</td></tr>
+<tr><td class="left">name</td><td class="left">varchar</td><td class="left">имя пользователя</td></tr>
+<tr><td class="left">origin</td><td class="left">varchar</td><td class="left">путь к файлу оригинального размера</td></tr>
+<tr><td class="left">ts-create</td><td class="left">bigint</td><td class="left">время создания</td></tr>
+</tbody>
+</table>
+
+
+<p>
+   Одна из автарок может быть активной в данный момент.
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Состояния конечного автомата пользователя</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">action</th><th scope="col" class="left">from</th><th scope="col" class="left">to</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">avatar-off</td><td class="left">active</td><td class="left">inactive</td></tr>
+<tr><td class="left">avatar-on</td><td class="left">inactive</td><td class="left">active</td></tr>
+</tbody>
+</table>
+
+
+<p>
+   Сводя вместе, все что нам известно о аватаре (его поведение и поля) опишем все это
+   в коде:
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> avatar <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1072;&#1074;&#1072;&#1090;&#1072;&#1088;&#1072;"</span>
+  &lt;&lt;avatar_fields()&gt;&gt;
+  &lt;&lt;avatar_states()&gt;&gt;
+  &lt;&lt;avatar_actions()&gt;&gt;)
+
+ &lt;&lt;avatar_actions_func&gt;&gt;
+
+ &lt;&lt;create_avatar&gt;&gt;
+</pre>
+
+
+<p>
+   Где <code>avatar-fields</code> (поля данных) определим как:
+</p>
+
+
+<pre class="example">
+((id serial)
+ (user-id integer)
+ (name varchar)
+ (origin varchar)
+ (ts-create bigint))
+</pre>
+
+
+<p>
+   А <code>avatar-states</code> т.е. состояния пользователя определим так:
+</p>
+
+
+<pre class="example">
+(:inactive :active)
+</pre>
+
+
+<p>
+   И, наконец, определим <code>avatar-actions</code> переходы между состояниями:
+</p>
+
+
+<pre class="example">
+((:active :inactive :avatar-off)
+ (:inactive :active :avatar-on))
+</pre>
+
+
+<p>
+   Теперь определим функции, которые вызываются на переходах
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">avatar-off</span> ()
+  <span style="color: #00cd00;">"active -&gt; inactive"</span>
+  )
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">avatar-on</span> ()
+  <span style="color: #00cd00;">"inactive -&gt; active"</span>
+  )
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4-7" class="outline-3">
+<h3 id="sec-4-7"><span class="section-number-3">4.7</span> Мотоциклы (moto)</h3>
+<div class="outline-text-3" id="text-4-7">
+
+
+<p>
+   Здесь все, что относится к мотоциклам пользователей.
+</p>
+<p>
+   Для начала, стандартные поля - марка, модель, цвет и год выпуска.
+</p>
+<p>
+   У каждого мотоцикла также есть цена за которую владелец готов его продать.
+</p>
+<p>
+   Поля, которые пользователь может заполнить по желанию - описание мотоцикла, описание
+   тюнинга.
+</p>
+<p>
+   Поля, которые не показываются всем подряд: номерной знак, номер рамы, номер двигателя -
+   все это может пригодиться для проверки мотоцикла на легальность.
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Данные мотоцикла</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">field name</th><th scope="col" class="left">field type</th><th scope="col" class="left">note</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">id</td><td class="left">serial</td><td class="left">идентификатор</td></tr>
+<tr><td class="left">vendor-id</td><td class="left">(or db-null integer)</td><td class="left">идентификтор фирмы-производителя</td></tr>
+<tr><td class="left">model-id</td><td class="left">(or db-null integer)</td><td class="left">идентификтор модели</td></tr>
+<tr><td class="left">color-id</td><td class="left">(or db-null integer)</td><td class="left">идентификтор цвета</td></tr>
+<tr><td class="left">year</td><td class="left">(or db-null integer)</td><td class="left">год выпуска</td></tr>
+<tr><td class="left">price</td><td class="left">(or db-null integer)</td><td class="left">цена</td></tr>
+<tr><td class="left">plate</td><td class="left">(or db-null varchar)</td><td class="left">номерной знак</td></tr>
+<tr><td class="left">vin</td><td class="left">(or db-null varchar)</td><td class="left">vin-номер</td></tr>
+<tr><td class="left">frame-num</td><td class="left">(or db-null varchar)</td><td class="left">номер рамы</td></tr>
+<tr><td class="left">engine-num</td><td class="left">(or db-null varchar)</td><td class="left">номер двигателя</td></tr>
+<tr><td class="left">pts-data</td><td class="left">(or db-null varchar)</td><td class="left">данные птс (раскрыть)</td></tr>
+<tr><td class="left">desc</td><td class="left">(or db-null varchar)</td><td class="left">описание мотоцикла</td></tr>
+<tr><td class="left">tuning</td><td class="left">(or db-null varchar)</td><td class="left">описание тюнинга</td></tr>
+</tbody>
+</table>
+
+
+<p>
+   В нашей системе мотоцикл может существовать (или не существовать) в одном их
+   нескольких состояний:
+</p><ul>
+<li><code>используется</code> Мотоцикл на ходу, может быть выставлен на продажу, разбит, сломан или угнан.
+</li>
+<li><code>продается</code> Мотоцикл может быть продан. В этом состоянии мотоцикл находится в
+      поиске. Хозяин может отменить продажу мотоцикла, если его слишком достали звонками,
+      например. Хозяин может осуществить продажу, в этом случае, мотоцикл переходит в
+      состояние <code>продан</code>.
+</li>
+<li><code>продан</code>. Продавец ставит этот статус, расставаясь с мотоциклом.
+</li>
+<li><code>куплен</code>. Покупатель ставит этот статус, получая мотоцикл
+</li>
+<li><code>сломан</code> Поломан настолько, что поломка препятствует эксплуатации. Отсюда есть только
+      путь в сервис или на разборку. Конечно ломаный мотоцикл могут еще украсть или
+      продать, но мы не продаем ломаные мотоциклы, это уже в раздел запчастей.
+</li>
+<li><code>угнан</code> Украден (в угоне). Дальше в дневнике может быть только где его видели. Может
+      быть возвращен владельцу, а также сломан или разбит ворами.
+</li>
+<li><code>чинится</code> (в сервисе - эксплуатация невозможна). Этот статус устанавливает
+      <code>service-man</code> при получени мотоцикла. При переводе мотоцикла обратно в эксплуатацию
+      по идее должен занести в дневник список выполненных работ и сумму оплаты. Однако
+      иногда починить мотоцикл не удается, тогда он остается сломанным, однако в сервисной
+      книжке появляется запись о попытке починить. Иногда в процессе ремонта оказывается,
+      что дешевле объявить мотоцикл хламом, чем чинить.
+</li>
+<li><code>хлам</code> Разбит (и восстановлению не подлежит)
+</li>
+</ul>
+
+
+<p>
+   Все эти состояния и переходы между ними сведем в единую таблицу:
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Состояния конечного автомата мотоцикла</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">action</th><th scope="col" class="left">from</th><th scope="col" class="left">to</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">выставление.на.продажу</td><td class="left">используется</td><td class="left">продается</td></tr>
+<tr><td class="left">сломался</td><td class="left">используется</td><td class="left">сломан</td></tr>
+<tr><td class="left">крэш</td><td class="left">используется</td><td class="left">хлам</td></tr>
+<tr><td class="left">угон</td><td class="left">используется</td><td class="left">угнан</td></tr>
+<tr><td class="left">воры.повредили</td><td class="left">угнан</td><td class="left">сломан</td></tr>
+<tr><td class="left">воры.разбили</td><td class="left">угнан</td><td class="left">хлам</td></tr>
+<tr><td class="left">отмена.выставления.на.продажу</td><td class="left">продается</td><td class="left">используется</td></tr>
+<tr><td class="left">отвоз.в.ремонт</td><td class="left">сломан</td><td class="left">чинится</td></tr>
+<tr><td class="left">доломал</td><td class="left">сломан</td><td class="left">хлам</td></tr>
+<tr><td class="left">неосилил.починить</td><td class="left">чинится</td><td class="left">сломан</td></tr>
+<tr><td class="left">починил</td><td class="left">чинится</td><td class="left">используется</td></tr>
+<tr><td class="left">здесь.не.починишь</td><td class="left">чинится</td><td class="left">хлам</td></tr>
+<tr><td class="left">продажа</td><td class="left">продается</td><td class="left">продан</td></tr>
+<tr><td class="left">покупка</td><td class="left">продан</td><td class="left">куплен</td></tr>
+<tr><td class="left">ввод.в.эксплуатацию</td><td class="left">куплен</td><td class="left">используется</td></tr>
+<tr><td class="left">возврат.с.угона</td><td class="left">угнан</td><td class="left">используется</td></tr>
+</tbody>
+</table>
+
+
+<p>
+   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+</p>
+
+
+
+
+<p>
+   <img src="img/moto-state.png"  alt="img/moto-state.png" />
+</p>
+<p>
+   Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
+   в коде:
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> moto <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1084;&#1086;&#1090;&#1086;&#1094;&#1080;&#1082;&#1083;&#1072;"</span>
+  &lt;&lt;moto_fields()&gt;&gt;
+  &lt;&lt;moto_states()&gt;&gt;
+  &lt;&lt;moto_actions()&gt;&gt;)
+
+ &lt;&lt;moto_actions_func&gt;&gt;
+
+ &lt;&lt;create_moto&gt;&gt;
+</pre>
+
+
+<p>
+   Где <code>moto-fields</code> (поля данных) определим как:
+</p>
+
+
+
+
+
+<pre class="example">((id serial)
+ (vendor-id (or db-null integer))
+ (model-id (or db-null integer))
+ (color-id (or db-null integer))
+ (year (or db-null integer))
+ (price (or db-null integer))
+ (plate (or db-null varchar))
+ (vin (or db-null varchar))
+ (frame-num (or db-null varchar))
+ (engine-num (or db-null varchar))
+ (pts-data (or db-null varchar))
+ (desc (or db-null varchar))
+ (tuning (or db-null varchar)))
+</pre>
+
+
+<p>
+   А <code>moto-states</code> т.е. состояния пользователя определим так:
+</p>
+
+
+<pre class="example">
+(:куплен :продан :чинится :угнан :хлам :сломан :продается :используется)
+</pre>
+
+
+<p>
+   И, наконец, определим <code>moto-actions</code> переходы между состояниями:
+</p>
+
+
+
+
+
+<pre class="example">((:используется :продается :выставление.на.продажу)
+ (:используется :сломан :сломался)
+ (:используется :хлам :крэш)
+ (:используется :угнан :угон)
+ (:угнан :сломан :воры.повредили)
+ (:угнан :хлам :воры.разбили)
+ (:продается :используется :отмена.выставления.на.продажу)
+ (:сломан :чинится :отвоз.в.ремонт)
+ (:сломан :хлам :доломал)
+ (:чинится :сломан :неосилил.починить)
+ (:чинится :используется :починил)
+ (:чинится :хлам :здесь.не.починишь)
+ (:продается :продан :продажа)
+ (:продан :куплен :покупка)
+ (:куплен :используется :ввод.в.эксплуатацию)
+ (:угнан :используется :возврат.с.угона))
+</pre>
+
+
+<p>
+   Теперь определим функции, которые вызываются на переходах
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1074;&#1099;&#1089;&#1090;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1077;.&#1085;&#1072;.&#1087;&#1088;&#1086;&#1076;&#1072;&#1078;&#1091;| ()
+  <span style="color: #00cd00;">"&#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103; -&gt; &#1087;&#1088;&#1086;&#1076;&#1072;&#1077;&#1090;&#1089;&#1103;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1089;&#1083;&#1086;&#1084;&#1072;&#1083;&#1089;&#1103;| ()
+  <span style="color: #00cd00;">"&#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103; -&gt; &#1089;&#1083;&#1086;&#1084;&#1072;&#1085;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1082;&#1088;&#1101;&#1096;| ()
+  <span style="color: #00cd00;">"&#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103; -&gt; &#1093;&#1083;&#1072;&#1084;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1091;&#1075;&#1086;&#1085;| ()
+  <span style="color: #00cd00;">"&#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103; -&gt; &#1091;&#1075;&#1085;&#1072;&#1085;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1074;&#1086;&#1088;&#1099;.&#1087;&#1086;&#1074;&#1088;&#1077;&#1076;&#1080;&#1083;&#1080;| ()
+  <span style="color: #00cd00;">"&#1091;&#1075;&#1085;&#1072;&#1085; -&gt; &#1089;&#1083;&#1086;&#1084;&#1072;&#1085;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1074;&#1086;&#1088;&#1099;.&#1088;&#1072;&#1079;&#1100;&#1077;&#1073;&#1072;&#1083;&#1080;| ()
+  <span style="color: #00cd00;">"&#1091;&#1075;&#1085;&#1072;&#1085; -&gt; &#1093;&#1083;&#1072;&#1084;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1086;&#1090;&#1084;&#1077;&#1085;&#1072;.&#1074;&#1099;&#1089;&#1090;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1103;.&#1085;&#1072;.&#1087;&#1088;&#1086;&#1076;&#1072;&#1078;&#1091;| ()
+  <span style="color: #00cd00;">"&#1087;&#1088;&#1086;&#1076;&#1072;&#1077;&#1090;&#1089;&#1103; -&gt; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1086;&#1090;&#1074;&#1086;&#1079;.&#1074;.&#1088;&#1077;&#1084;&#1086;&#1085;&#1090;| ()
+  <span style="color: #00cd00;">"&#1089;&#1083;&#1086;&#1084;&#1072;&#1085; -&gt; &#1095;&#1080;&#1085;&#1080;&#1090;&#1089;&#1103;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1076;&#1086;&#1083;&#1086;&#1084;&#1072;&#1083;| ()
+  <span style="color: #00cd00;">"&#1089;&#1083;&#1086;&#1084;&#1072;&#1085; -&gt; &#1093;&#1083;&#1072;&#1084;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1085;&#1077;&#1086;&#1089;&#1080;&#1083;&#1080;&#1083;.&#1087;&#1086;&#1095;&#1080;&#1085;&#1080;&#1090;&#1100;| ()
+  <span style="color: #00cd00;">"&#1095;&#1080;&#1085;&#1080;&#1090;&#1089;&#1103; -&gt; &#1089;&#1083;&#1086;&#1084;&#1072;&#1085;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1087;&#1086;&#1095;&#1080;&#1085;&#1080;&#1083;| ()
+  <span style="color: #00cd00;">"&#1095;&#1080;&#1085;&#1080;&#1090;&#1089;&#1103; -&gt; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1079;&#1076;&#1077;&#1089;&#1100;.&#1085;&#1077;.&#1087;&#1086;&#1095;&#1080;&#1085;&#1080;&#1096;&#1100;| ()
+  <span style="color: #00cd00;">"&#1095;&#1080;&#1085;&#1080;&#1090;&#1089;&#1103; -&gt; &#1093;&#1083;&#1072;&#1084;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1087;&#1088;&#1086;&#1076;&#1072;&#1078;&#1072;| ()
+  <span style="color: #00cd00;">"&#1087;&#1088;&#1086;&#1076;&#1072;&#1077;&#1090;&#1089;&#1103; -&gt; &#1087;&#1088;&#1086;&#1076;&#1072;&#1085;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1087;&#1086;&#1082;&#1091;&#1087;&#1082;&#1072;| ()
+  <span style="color: #00cd00;">"&#1087;&#1088;&#1086;&#1076;&#1072;&#1085; -&gt; &#1082;&#1091;&#1087;&#1083;&#1077;&#1085;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1074;&#1074;&#1086;&#1076;.&#1074;.&#1101;&#1082;&#1089;&#1087;&#1083;&#1091;&#1072;&#1090;&#1072;&#1094;&#1080;&#1102;| ()
+  <span style="color: #00cd00;">"&#1082;&#1091;&#1087;&#1083;&#1077;&#1085; -&gt; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> |&#1074;&#1086;&#1079;&#1074;&#1088;&#1072;&#1090;.&#1089;.&#1091;&#1075;&#1086;&#1085;&#1072;| ()
+  <span style="color: #00cd00;">"&#1091;&#1075;&#1085;&#1072;&#1085; -&gt; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103;"</span>)
+</pre>
+
+
+<p>
+   ПРОБЕГ!!! Верификация другими пользователями за очки.
+</p>
+<p>
+   Не забываем про аватар, который показывается на страничке пользователя и про набор фоток
+   этого мотоцикла, доступный через таблицу связи <code>moto2motophoto</code>. Аватаром является фотка
+   мотоцикла, со статусом <code>active</code>.
+</p>
+<p>
+   Поскольку у мотоцикла может быть несколько владельцев, и один пользователь может владеть
+   несколькими мотоциклами, то мы связываем мотоцикл и его владельца через таблицу связи с
+   диапазоном дат - <code>moto2user</code>, при этом, если даты пересекаются - то два пользователя,
+   очевидно, владеют мотоциклами вместе. Таким образом мы можем отследить историю
+   мотоцикла, с момента его появления, до разборки. Учитывая планируемую "технологическую
+   репутацию" пользователей это поможет сделать вывод о том, как с мотоциклом обращались.
+</p>
+<p>
+   Дневник мотоцикла. Что случалось с мотоциклом - поломки, участие в прохватах,
+   поездках-путешествиях, ремонт в сервисах - все это привязывается из <code>motodiary</code>. Это
+   позволяет еще и отслеживать траты на мотоцикл.
+</p>
+<p>
+   Также у каждого мотоцикла есть wish-list - то, что хозяин хотел бы приобрести для
+   него. Мы храним это в таблице <code>motowish</code>, которая содержит ссылку на мотоцикл и его
+   владельца, а также на товар, если он существует в базе товаров.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-4-8" class="outline-3">
+<h3 id="sec-4-8"><span class="section-number-3">4.8</span> Братан (bratan)</h3>
+<div class="outline-text-3" id="text-4-8">
+
+
+<p>
+   Наш пользователь может быть зарегистрирован на <a href="http://motobratan.ru">http://motobratan.ru</a>
+</p>
+<p>
+   Чтобы предоставлять ему разнообразные сервисы, отсутстующие на на мотобратане, мы
+   отражаем профили пользователя мотобратана у себя. Наш пользователь может связать свой
+   профиль с профилем на мотобратане.
+</p>
+<p>
+   Братан является простой сущностью и не имеет состояния.
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption>Данные роли</caption>
+<colgroup><col class="left" /><col class="left" /><col class="left" />
+</colgroup>
+<thead>
+<tr><th scope="col" class="left">field name</th><th scope="col" class="left">field type</th><th scope="col" class="left">note</th></tr>
+</thead>
+<tbody>
+<tr><td class="left">id</td><td class="left">serial</td><td class="left">идентификатор</td></tr>
+<tr><td class="left">bratan-id</td><td class="left">(or db-null integer)</td><td class="left">идентификтор на мотобратане</td></tr>
+<tr><td class="left">ts-last-upd</td><td class="left">(or db-null bigint)</td><td class="left">время последнего обновления данных</td></tr>
+<tr><td class="left">name</td><td class="left">varchar</td><td class="left">имя</td></tr>
+<tr><td class="left">fio</td><td class="left">(or db-null varchar)</td><td class="left">ФИО</td></tr>
+<tr><td class="left">last-seen</td><td class="left">(or db-null varchar)</td><td class="left">последнее посещение мотобратана</td></tr>
+<tr><td class="left">addr</td><td class="left">(or db-null varchar)</td><td class="left">район и город</td></tr>
+<tr><td class="left">ts<sub>reg</sub></td><td class="left">(or db-null varchar)</td><td class="left">время регистрации</td></tr>
+<tr><td class="left">age</td><td class="left">(or db-null varchar)</td><td class="left">возраст</td></tr>
+<tr><td class="left">birthday</td><td class="left">(or db-null varchar)</td><td class="left">день рождения</td></tr>
+<tr><td class="left">blood</td><td class="left">(or db-null varchar)</td><td class="left">группа крови</td></tr>
+<tr><td class="left">moto-exp</td><td class="left">(or db-null varchar)</td><td class="left">стаж мотовождения</td></tr>
+<tr><td class="left">phone</td><td class="left">(or db-null varchar)</td><td class="left">телефон</td></tr>
+<tr><td class="left">activityes</td><td class="left">(or db-null varchar)</td><td class="left">активность</td></tr>
+<tr><td class="left">interests</td><td class="left">(or db-null varchar)</td><td class="left">интересы</td></tr>
+<tr><td class="left">photos</td><td class="left">(or db-null varchar)</td><td class="left">фотографии</td></tr>
+<tr><td class="left">avatar</td><td class="left">(or db-null varchar)</td><td class="left">аватар</td></tr>
+<tr><td class="left">motos</td><td class="left">(or db-null varchar)</td><td class="left">мотоциклы</td></tr>
+</tbody>
+</table>
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> bratan <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1073;&#1088;&#1072;&#1090;&#1072;&#1085;&#1072;"</span>
+  &lt;&lt;bratan_fields()&gt;&gt;)
+
+(make-bratan-table)
+</pre>
+
+
+<p>
+   Где <code>bratan-fields</code> (поля данных) определим как:
+</p>
+
+
+
+
+
+<pre class="example">((id serial)
+ (bratan-id (or db-null integer))
+ (ts-last-upd (or db-null bigint))
+ (name varchar)
+ (fio (or db-null varchar))
+ (last-seen (or db-null varchar))
+ (addr (or db-null varchar))
+ (ts_reg (or db-null varchar))
+ (age (or db-null varchar))
+ (birthday (or db-null varchar))
+ (blood (or db-null varchar))
+ (moto-exp (or db-null varchar))
+ (phone (or db-null varchar))
+ (activityes (or db-null varchar))
+ (interests (or db-null varchar))
+ (photos (or db-null varchar))
+ (avatar (or db-null varchar))
+ (motos (or db-null varchar)))
+</pre>
+
+
+</div>
 </div>
 
 </div>
@@ -816,6 +1555,27 @@ for the JavaScript code in this tag.
 <div id="outline-container-6" class="outline-2">
 <h2 id="sec-6"><span class="section-number-2">6</span> Interface</h2>
 <div class="outline-text-2" id="text-6">
+
+
+<p>
+  Соберем веб-интерфейс:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">iface.lisp</span>
+
+(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1088;&#1072;&#1087;&#1087;&#1077;&#1088; &#1074;&#1077;&#1073;-&#1080;&#1085;&#1090;&#1077;&#1088;&#1092;&#1077;&#1081;&#1089;&#1072;</span>
+&lt;&lt;with_wrapper&gt;&gt;
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1061;&#1077;&#1083;&#1087;&#1077;&#1088; &#1092;&#1086;&#1088;&#1084;</span>
+&lt;&lt;frm&gt;&gt;
+
+&lt;&lt;iface_contents&gt;&gt;
+</pre>
+
 
 
 </div>
@@ -853,12 +1613,12 @@ for the JavaScript code in this tag.
 (restas:define-route allusers (<span style="color: #00cd00;">"/users"</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
     (tbl
-     (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> i <span style="color: #0000ee; font-weight: bold;">:in</span> (all-user) <span style="color: #0000ee; font-weight: bold;">:collect</span>
-        (tr
-         (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
-         (td (name i))
-         (td (password i))
-         (td (email i))))
+     (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-user))
+       (tr
+        (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
+        (td (name i))
+        (td (password i))
+        (td (email i))))
      <span style="color: #0000ee; font-weight: bold;">:border</span> 1)))
 
 (restas:define-route allusers-ctrl (<span style="color: #00cd00;">"/users"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
@@ -892,11 +1652,12 @@ for the JavaScript code in this tag.
                   (list
                    (format nil <span style="color: #00cd00;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; ~A&lt;/h1&gt;"</span> (id u))
                    (format nil <span style="color: #00cd00;">"&lt;h2&gt;&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; ~A&lt;/h2&gt;"</span> (name u))
-                   (tbl (list
-                         (row <span style="color: #00cd00;">"&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span> (name u))
-                         (row <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (password u))
-                         (row <span style="color: #00cd00;">"Email"</span> (email u)))
-                        <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
+                   (tbl
+                    (<span style="color: #00cdcd; font-weight: bold;">with-element</span> (u u)
+                      (row <span style="color: #00cd00;">"&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span> (name u))
+                      (row <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (password u))
+                      (row <span style="color: #00cd00;">"Email"</span> (email u)))
+                    <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
                    ))))))
 
 (restas:define-route user-ctrl (<span style="color: #00cd00;">"/user/:userid"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
@@ -916,6 +1677,7 @@ for the JavaScript code in this tag.
 <div id="outline-container-7" class="outline-2">
 <h2 id="sec-7"><span class="section-number-2">7</span> Модули</h2>
 <div class="outline-text-2" id="text-7">
+
 
 
 </div>
@@ -990,14 +1752,11 @@ for the JavaScript code in this tag.
          <span style="color: #0000ee; font-weight: bold;">:serial</span> t
          <span style="color: #0000ee; font-weight: bold;">:pathname</span> <span style="color: #00cd00;">"mod/msg"</span>
          <span style="color: #0000ee; font-weight: bold;">:components</span> ((<span style="color: #0000ee; font-weight: bold;">:static-file</span> <span style="color: #00cd00;">"msg-tpl.htm"</span>)
+                      (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"msg-prepare"</span>)
                       (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"msg"</span>)))
 </pre>
 
 
-<p>
-   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
-   закрытому от неавторизованных пользователей функционалу.
-</p>
 <p>
    Собственно описание модуля вынесено в файл <a href="msg.html">msg</a>
 </p>
@@ -1006,24 +1765,84 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-7-4" class="outline-3">
-<h3 id="sec-7-4"><span class="section-number-3">7.4</span> <span class="todo TODO">TODO</span> Посты</h3>
+<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Trend</h3>
 <div class="outline-text-3" id="text-7-4">
 
+
+<p>
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #0000ee; font-weight: bold;">:module</span> <span style="color: #00cd00;">"trend"</span>
+         <span style="color: #0000ee; font-weight: bold;">:serial</span> t
+         <span style="color: #0000ee; font-weight: bold;">:pathname</span> <span style="color: #00cd00;">"mod/trend"</span>
+         <span style="color: #0000ee; font-weight: bold;">:components</span> ((<span style="color: #0000ee; font-weight: bold;">:static-file</span> <span style="color: #00cd00;">"trend-tpl.htm"</span>)
+                      (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"trend-prepare"</span>)
+                      (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"trend"</span>)))
+</pre>
+
+
+<p>
+   Собственно описание модуля вынесено в файл <a href="trend.html">trend</a>
+</p>
 </div>
 
 </div>
 
 <div id="outline-container-7-5" class="outline-3">
-<h3 id="sec-7-5"><span class="section-number-3">7.5</span> <span class="todo TODO">TODO</span> Багзилла</h3>
+<h3 id="sec-7-5"><span class="section-number-3">7.5</span> Граббер пользователей мотобратана</h3>
 <div class="outline-text-3" id="text-7-5">
 
+
+<p>
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #0000ee; font-weight: bold;">:module</span> <span style="color: #00cd00;">"bratan"</span>
+         <span style="color: #0000ee; font-weight: bold;">:serial</span> t
+         <span style="color: #0000ee; font-weight: bold;">:pathname</span> <span style="color: #00cd00;">"mod/bratan"</span>
+         <span style="color: #0000ee; font-weight: bold;">:components</span> ((<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"bratan"</span>)))
+</pre>
+
+
+<p>
+   Собственно описание модуля вынесено в файл <a href="bratan.html">bratan</a>
+</p>
 </div>
 
 </div>
 
 <div id="outline-container-7-6" class="outline-3">
-<h3 id="sec-7-6"><span class="section-number-3">7.6</span> <span class="todo TODO">TODO</span> Шаринг</h3>
+<h3 id="sec-7-6"><span class="section-number-3">7.6</span> <span class="todo TODO">TODO</span> Граббер тем мотобратана</h3>
 <div class="outline-text-3" id="text-7-6">
+
+</div>
+
+</div>
+
+<div id="outline-container-7-7" class="outline-3">
+<h3 id="sec-7-7"><span class="section-number-3">7.7</span> <span class="todo TODO">TODO</span> Посты</h3>
+<div class="outline-text-3" id="text-7-7">
+
+</div>
+
+</div>
+
+<div id="outline-container-7-8" class="outline-3">
+<h3 id="sec-7-8"><span class="section-number-3">7.8</span> <span class="todo TODO">TODO</span> Багзилла</h3>
+<div class="outline-text-3" id="text-7-8">
+
+</div>
+
+</div>
+
+<div id="outline-container-7-9" class="outline-3">
+<h3 id="sec-7-9"><span class="section-number-3">7.9</span> <span class="todo TODO">TODO</span> Шаринг</h3>
+<div class="outline-text-3" id="text-7-9">
 
 </div>
 </div>
@@ -1061,6 +1880,12 @@ for the JavaScript code in this tag.
 &lt;&lt;with_wrapper&gt;&gt;
 
 &lt;&lt;frm&gt;&gt;
+
+&lt;&lt;with_collection&gt;&gt;
+
+&lt;&lt;with_element&gt;&gt;
+
+&lt;&lt;replace_all&gt;&gt;
 </pre>
 
 
@@ -1239,6 +2064,54 @@ for the JavaScript code in this tag.
 </pre>
 
 
+<p>
+   Чтобы выводить коллекции напишем макрос
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-collection</span> ((item collection) <span style="color: #00cd00;">&amp;body</span> body)
+  `(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> ,item <span style="color: #0000ee; font-weight: bold;">:in</span> ,collection <span style="color: #0000ee; font-weight: bold;">:collect</span>
+      ,@body))
+</pre>
+
+
+<p>
+   Чтобы выводить элемент коллекции напишем макрос
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-element</span> ((item elt) <span style="color: #00cd00;">&amp;body</span> body)
+  `(<span style="color: #00cdcd; font-weight: bold;">let</span> ((,item ,elt))
+     (list
+      ,@body)))
+</pre>
+
+
+<p>
+   Репласер
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">replace-all</span> (string part replacement <span style="color: #00cd00;">&amp;key</span> (test #'char=))
+  <span style="color: #00cd00;">"Returns a new string in which all the occurences of the part</span>
+<span style="color: #00cd00;">is replaced with replacement."</span>
+  (<span style="color: #00cdcd; font-weight: bold;">with-output-to-string</span> (out)
+    (<span style="color: #00cdcd; font-weight: bold;">loop</span> with part-length = (length part)
+       for old-pos = 0 then (+ pos part-length)
+       for pos = (search part string
+                         <span style="color: #0000ee; font-weight: bold;">:start2</span> old-pos
+                         <span style="color: #0000ee; font-weight: bold;">:test</span> test)
+       do (write-string string out
+                        <span style="color: #0000ee; font-weight: bold;">:start</span> old-pos
+                        <span style="color: #0000ee; font-weight: bold;">:end</span> (or pos (length string)))
+       when pos do (write-string replacement out)
+       while pos)))
+</pre>
+
+
 </div>
 
 </div>
@@ -1314,9 +2187,7 @@ for the JavaScript code in this tag.
 
 
 
-<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">entity.lisp</span>
-
-(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1076;&#1082;&#1083;&#1102;&#1095;&#1077;&#1085;&#1080;&#1077; &#1082; &#1073;&#1072;&#1079;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defvar</span> <span style="color: #cdcd00;">*db-name*</span> <span style="color: #00cd00;">"ylg_new"</span>)
@@ -1327,7 +2198,7 @@ for the JavaScript code in this tag.
 (<span style="color: #00cdcd; font-weight: bold;">defvar</span> <span style="color: #cdcd00;">*db-spec*</span> (list <span style="color: #00cd00;">"ylg_new"</span> <span style="color: #00cd00;">"ylg"</span> <span style="color: #00cd00;">"6mEfBjyLrSzlE"</span> <span style="color: #00cd00;">"localhost"</span>))
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">clear db</span>
-(<span style="color: #00cdcd; font-weight: bold;">let</span> ((tables '(<span style="color: #00cd00;">"user"</span> <span style="color: #00cd00;">"msg"</span>)))
+(<span style="color: #00cdcd; font-weight: bold;">let</span> ((tables '(<span style="color: #00cd00;">"user"</span> <span style="color: #00cd00;">"role"</span> <span style="color: #00cd00;">"group"</span> <span style="color: #00cd00;">"user2group"</span> <span style="color: #00cd00;">"avatar"</span> <span style="color: #00cd00;">"msg"</span> <span style="color: #00cd00;">"flat"</span>)))
   (<span style="color: #00cdcd; font-weight: bold;">flet</span> ((rmtbl (tblname)
            (<span style="color: #00cdcd; font-weight: bold;">when</span> (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
                    (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
@@ -1399,11 +2270,16 @@ for the JavaScript code in this tag.
                (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"globals"</span>)    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1092;&#1072;&#1081;&#1083; &#1089; &#1075;&#1083;&#1086;&#1073;&#1072;&#1083;&#1100;&#1085;&#1099;&#1084;&#1080; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1077;&#1103;&#1084;&#1080;</span>
                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1086;&#1076;&#1091;&#1083;&#1100; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081;, &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1086;&#1074; &#1080; &#1080;&#1093; &#1090;&#1077;&#1089;&#1090;&#1086;&#1074;</span>
                &lt;&lt;mod_entity&gt;&gt;
+               (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"entityes"</span>)   <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1080; &#1080; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1099;</span>
                (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"moto"</span>)       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1089;&#1090;&#1072;&#1088;&#1090;&#1086;&#1074;&#1099;&#1081; &#1092;&#1072;&#1081;&#1083;</span>
                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1086;&#1076;&#1091;&#1083;&#1100; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1080; (&#1079;&#1072;&#1074;&#1080;&#1089;&#1080;&#1090; &#1086;&#1090; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1077;&#1085;&#1080;&#1103; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1074; &#1089;&#1090;&#1072;&#1088;&#1090;&#1086;&#1074;&#1086;&#1084; &#1092;&#1072;&#1081;&#1083;&#1077;)</span>
                &lt;&lt;mod_auth&gt;&gt;
                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1086;&#1076;&#1091;&#1083;&#1100; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;</span>
                &lt;&lt;mod_msg&gt;&gt;
+               <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1086;&#1076;&#1091;&#1083;&#1100; trend</span>
+               &lt;&lt;mod_trend&gt;&gt;
+               <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1086;&#1076;&#1091;&#1083;&#1100; &#1084;&#1086;&#1090;&#1086;&#1073;&#1088;&#1072;&#1090;&#1072;&#1085;</span>
+               &lt;&lt;mod_bratan&gt;&gt;
                (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"events"</span>)     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1089;&#1086;&#1073;&#1099;&#1090;&#1080;&#1103; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;</span>
                (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"iface"</span>)      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1092;&#1072;&#1081;&#1083; &#1074;&#1077;&#1073;-&#1080;&#1085;&#1090;&#1077;&#1088;&#1092;&#1077;&#1081;&#1089;&#1072;</span>
                ))
@@ -1470,54 +2346,11 @@ for the JavaScript code in this tag.
 
 (<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1076;&#1082;&#1083;&#1102;&#1095;&#1080;&#1084; &#1075;&#1083;&#1086;&#1073;&#1072;&#1083;&#1100;&#1085;&#1099;&#1077; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1077;&#1085;&#1080;&#1103;</span>
-&lt;&lt;globals&gt;&gt;
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1103; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1086;&#1074; &#1080; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081;</span>
-&lt;&lt;user_automat&gt;&gt;
-
-&lt;&lt;msg_automat&gt;&gt;
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1077;&#1073;-&#1080;&#1085;&#1090;&#1077;&#1088;&#1092;&#1077;&#1081;&#1089;</span>
-
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">start</span>
 (restas:start '#<span style="color: #0000ee; font-weight: bold;">:moto</span> <span style="color: #0000ee; font-weight: bold;">:port</span> 9997)
 (restas:debug-mode-on)
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(restas:debug-mode-off)</span>
 (setf hunchentoot:*catch-errors-p* t)
-</pre>
-
-
-</div>
-
-</div>
-
-<div id="outline-container-8-8" class="outline-3">
-<h3 id="sec-8-8"><span class="section-number-3">8.8</span> Веб-интерфейс</h3>
-<div class="outline-text-3" id="text-8-8">
-
-
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">iface.lisp</span>
-
-(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1088;&#1072;&#1087;&#1087;&#1077;&#1088; &#1074;&#1077;&#1073;-&#1080;&#1085;&#1090;&#1077;&#1088;&#1092;&#1077;&#1081;&#1089;&#1072;</span>
-&lt;&lt;with_wrapper&gt;&gt;
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1061;&#1077;&#1083;&#1087;&#1077;&#1088; &#1092;&#1086;&#1088;&#1084;</span>
-&lt;&lt;frm&gt;&gt;
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1043;&#1083;&#1072;&#1074;&#1085;&#1072;&#1103; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072;</span>
-&lt;&lt;mainpage&gt;&gt;
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1087;&#1080;&#1089;&#1086;&#1082; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;</span>
-&lt;&lt;alluserspage&gt;&gt;
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1095;&#1082;&#1072; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
-&lt;&lt;userpage&gt;&gt;
 </pre>
 
 
@@ -1531,12 +2364,37 @@ for the JavaScript code in this tag.
 <div class="outline-text-2" id="text-9">
 
 <p>  <a href="http://www.motobratan.ru/motoprogress/230.html">http://www.motobratan.ru/motoprogress/230.html</a>
+  Флип-чарт - как чопперасты видят: спортбайкеров, эндурастов етц
+  Только отслеживаемые люди (веб-камера, документ етц)
+</p>
+<p>
+  Что такое Кодекс чести Coursera?
+</p>
+<p>
+    Я зарегистрирую только одну учётную запись.
+    Все мои ответы на задания, включая опросы и экзамены будут моей собственной работой (за
+    исключением заданий, которые недвусмысленно допускают возможность совместной работы).
+    Я не буду выкладывать в открытый доступ ответы на вопросы домашних работ, опросов или
+    экзаменов. Это включает как написанные мною лично ответы на вопросы, так и любые
+    официальные ответы, предоставленные сотрудниками курса.
+    Я не буду прибегать к каким-либо уловкам, с помощью которых обманным путём могут быть
+    улучшены мои результаты или улучшены/ухудшены результаты других.
+</p>
+<p>
+    Курсы по ремонту мотоциклов
+</p>
+<p>
+    Умный поиск с привязкой к местонахождению. Ищу то-то - поиск по товарам с ценами и расстоянием
+</p>
+<p>
+    Технологическая репутация пользователей - кто как относится к своим мотоциклам. Может
+    заполняться сервис-менами.
 </p></div>
 </div>
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-14T21:38+0400</p>
+<p class="date">Date: 2014-10-25T01:35+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
