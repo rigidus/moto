@@ -212,7 +212,7 @@
              (hash (make-hash-table :test #'equal))
              (states))
          (dolist (elt rows nil)
-           (puthash (second elt) nil hash)
+           (puthash (cadr elt) nil hash)
            (puthash (third elt)  nil hash))
          (maphash (lambda (k v)
                     (push k states))
@@ -230,16 +230,16 @@
      (defun gen-actions (table)
        (let ((rows (nthcdr 2 table)))
          (let ((x (car rows)))
-           (princ (format "((:%s :%s :%s)" (second x) (third x) (car x))))
+           (princ (format "((:%s :%s :%s)" (cadr x) (third x) (car x))))
          (if (equal 1 (length rows))
              (princ ")\n")
              (progn
                (princ "\n")
                (mapcar #'(lambda (x)
-                           (princ (format " (:%s :%s :%s)\n" (second x) (third x) (car x))))
+                           (princ (format " (:%s :%s :%s)\n" (cadr x) (third x) (car x))))
                        (cdr (butlast rows)))
                (let ((x (car (last rows))))
-                 (princ (format " (:%s :%s :%s))" (second x) (third x) (car x))))))))
+                 (princ (format " (:%s :%s :%s))" (cadr x) (third x) (car x))))))))
    #+END_SRC
 
    Соберем все это в один файл:
