@@ -37,6 +37,11 @@
                         :pathname "mod/auth"
                         :components ((:static-file "auth-tpl.htm")
                                      (:file "auth")))
+               ;; Модуль очередей
+               (:module "que"
+                        :serial t
+                        :pathname "mod/que"
+                        :components ((:file "que")))
                ;; Модуль сообщений
                (:module "msg"
                         :serial t

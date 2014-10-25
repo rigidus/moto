@@ -44,6 +44,26 @@
 
  
 
+(define-entity que "Сущность очереди"
+  ((id serial)
+   (name varchar)))
+
+(make-que-table)
+
+;; (make-que :name "admin")
+;; (make-que :name "manager")
+;; (make-que :name "moderator")
+;; (make-que :name "robot")
+
+(define-entity quelt "Сущность элемента очереди"
+  ((id serial)
+   (que-id integer)
+   (text varchar)))
+
+(make-quelt-table)
+
+
+
 (define-entity role "Сущность роли"
   ((id serial)
    (name varchar)))
@@ -129,7 +149,7 @@
    (:используется :хлам :крэш)
    (:используется :угнан :угон)
    (:угнан :сломан :воры.повредили)
-   (:угнан :хлам :воры.разьебали)
+   (:угнан :хлам :воры.разбили)
    (:продается :используется :отмена.выставления.на.продажу)
    (:сломан :чинится :отвоз.в.ремонт)
    (:сломан :хлам :доломал)
