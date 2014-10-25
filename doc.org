@@ -190,6 +190,17 @@
    Эти функции будут кодогенерировать сущности и автоматы из таблиц с наименованием и
    типами полей внутри этого файла.
 
+   Чтобы емакс не запрашивал подтверждение на каждое исполнение кода, установим эту
+   настройку:
+
+   #+NAME: gen_org_confirm
+   #+BEGIN_SRC emacs-lisp
+     ;; Do not prompt to confirm evaluation
+     ;; This may be dangerous - make sure you understand the consequences
+     ;; of setting this -- see the docstring for details
+     (setq org-confirm-babel-evaluate nil)
+   #+END_SRC
+
    Начнем с генерации кода из таблицы полей:
 
    #+NAME: gen_fields
@@ -246,6 +257,8 @@
 
    #+NAME: generators
    #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code
+     <<gen_org_confirm>>
+
      <<gen_fields>>
 
      <<gen_states>>
