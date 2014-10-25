@@ -1754,6 +1754,35 @@
 
        Чуть не забыл, веб-интерфейс размещен на порту 9997
 
+     ,* Установка и настройка Postgres
+
+       ,#+BEGIN_COMMENT
+           TODO сделать линки на получение значений с глобальных определений doc.org, если возможно
+       ,#+END_COMMENT
+
+       В =~/repo/moto/doc.org= в секции "Глобальные определения" написаны имя базы данных, логин и пароль
+
+       Для систем Ubuntu/Debian:
+
+       ,#+BEGIN_SRC bash
+          sudo apt-get install postgresql postgresql-contrib postgresql-client
+          sudo -i -u postgres
+
+          postgres$ createuser --interactive
+          ....
+          postgres$ createdb DB_NAME
+          postgres$ psql -d DB_NAME
+       ,#+END_SRC
+
+       В консоль postrges ввести:
+
+       ,#+BEGIN_SRC psql
+          ALTER USER ylg PASSWORD '...';
+          \q
+       ,#+END_SRC
+
+       См. туториал https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-14-04
+
    #+END_SRC
 
 * Идеи
