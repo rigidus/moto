@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Модуль очередей</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="title" content="Модуль очередей"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2014-10-25T04:15+0400"/>
+<meta name="author" content="rigidus"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">Модуль очередей</h1>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Введение</a></li>
+<li><a href="#sec-2">2 Функционал</a>
+<ul>
+<li><a href="#sec-2-1">2.1 Поиск очередей и получение списка имен всех очередей.</a></li>
+<li><a href="#sec-2-2">2.2 операции создания и удаления очередей</a></li>
+<li><a href="#sec-2-3">2.3 перации очистки очереди и получения содержимого всех ее элементов</a></li>
+<li><a href="#sec-2-4">2.4 Операции добавления удаления и поиска элементов очереди</a></li>
+<li><a href="#sec-2-5">2.5 Операцию подписки и отписки на очередь</a></li>
+<li><a href="#sec-2-6">2.6 Операцию <code>mapcar-que</code>, которая применяет переданную функцию к каждому элементу очереди.</a></li>
+<li><a href="#sec-2-7">2.7 Операцию посылки сообщения элементам очереди</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3 Тесты</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Введение</h2>
+<div class="outline-text-2" id="text-1">
+
+
+<p>
+   Очереди используются для фолловинга и прочей подписки на обновления.
+</p>
+<p>
+   Нам нужна некоторая инфраструктура чтобы абстрагироваться от операций управления
+   очередями, подписчиками и посылки сообщений. Потом ее можно будет изменить для поддержки
+   RabbitMQ, Mbus или ZMQ или даже использовать все их одновременно для разных целей.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Функционал</h2>
+<div class="outline-text-2" id="text-2">
+
+
+<p>
+  Соберем контроллеры и все функции, которые контроллеры вызывают
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;que_contents&gt;&gt;
+
+&lt;&lt;que_test&gt;&gt;
+</pre>
+
+
+<p>
+  Мы вводим:
+</p>
+
+</div>
+
+<div id="outline-container-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Поиск очередей и получение списка имен всех очередей.</h3>
+<div class="outline-text-3" id="text-2-1">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">search</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">search-que</span> (name)
+  (aif (find-que <span style="color: #0000ee; font-weight: bold;">:name</span> name)
+       (id (car it))
+       nil))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">all</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">all-que-names</span> ()
+  (mapcar #'name (all-que)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> операции создания и удаления очередей</h3>
+<div class="outline-text-3" id="text-2-2">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">make</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">ensure-que</span> (name)
+  (aif (search-que name)
+       it
+       (<span style="color: #00cdcd; font-weight: bold;">prog1</span>  (make-que <span style="color: #0000ee; font-weight: bold;">:name</span> name)
+         (dbg <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; ~A"</span> name))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">del</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">destroy-que</span> (name)
+  (aif (search-que name)
+       (<span style="color: #00cdcd; font-weight: bold;">prog1</span> (del-que (id it))
+         (dbg <span style="color: #00cd00;">"&#1059;&#1076;&#1072;&#1083;&#1077;&#1085;&#1072; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; ~A"</span> name))
+       (err <span style="color: #00cd00;">"destroy-que error: que not found"</span>)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> перации очистки очереди и получения содержимого всех ее элементов</h3>
+<div class="outline-text-3" id="text-2-3">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">clear</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">clear-que</span> (name)
+  (aif (search-que name)
+       (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+         (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+           (query (<span style="color: #0000ee; font-weight: bold;">:delete-from</span> 'quelt <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'que_id it))))
+         (dbg <span style="color: #00cd00;">"&#1054;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; ~A &#1086;&#1095;&#1080;&#1097;&#1077;&#1085;&#1072;"</span> name))
+       (err <span style="color: #00cd00;">"clear-que error: que not found"</span>)))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">all</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">all-que-elts</span> (name)
+  (aif (search-que name)
+       (mapcar #'text
+               (find-quelt <span style="color: #0000ee; font-weight: bold;">:que-id</span> it))
+       (err <span style="color: #00cd00;">"all-que-elts: que not found"</span>)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Операции добавления удаления и поиска элементов очереди</h3>
+<div class="outline-text-3" id="text-2-4">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">add</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">add-to-que</span> (que-name text)
+  (aif (search-que que-name)
+       (make-quelt <span style="color: #0000ee; font-weight: bold;">:que-id</span> it <span style="color: #0000ee; font-weight: bold;">:text</span> text)
+       (err <span style="color: #00cd00;">"add-to-que error: que not found"</span>)))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">del</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">del-from-que</span> (que-name text)
+  (aif (search-que que-name)
+       (aif (find-quelt <span style="color: #0000ee; font-weight: bold;">:que-id</span> it <span style="color: #0000ee; font-weight: bold;">:text</span> text)
+            (del-quelt (id (car it)))
+            (err <span style="color: #00cd00;">"add-to-que error: quelt not found"</span>))
+       (err <span style="color: #00cd00;">"add-to-que error: que not found"</span>)))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">find</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">find-in-que</span> (que-name text)
+  (aif (search-que que-name)
+       (aif (find-quelt <span style="color: #0000ee; font-weight: bold;">:que-id</span> it <span style="color: #0000ee; font-weight: bold;">:text</span> text)
+            (car it)
+            (err <span style="color: #00cd00;">"add-to-que error: quelt not found"</span>))
+       (err <span style="color: #00cd00;">"add-to-que error: que not found"</span>)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Операцию подписки и отписки на очередь</h3>
+<div class="outline-text-3" id="text-2-5">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">subscribe</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">subscribe</span> (que elt)
+  (add-to-que que elt))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">unsubscribe</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">unsubscribe</span> (que elt)
+  (del-from-que que elt))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2-6" class="outline-3">
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Операцию <code>mapcar-que</code>, которая применяет переданную функцию к каждому элементу очереди.</h3>
+<div class="outline-text-3" id="text-2-6">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">mapcar-que</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">mapcar-que</span> (que-name fn)
+  (aif (search-que que-name)
+       (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                   (apply fn (list (text x))))
+               (find-quelt <span style="color: #0000ee; font-weight: bold;">:que-id</span> it))))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2-7" class="outline-3">
+<h3 id="sec-2-7"><span class="section-number-3">2.7</span> Операцию посылки сообщения элементам очереди</h3>
+<div class="outline-text-3" id="text-2-7">
+
+
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">snd</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">snd</span> (que-name msg)
+  (mapcar-que que-name msg))
+</pre>
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Тесты</h2>
+<div class="outline-text-2" id="text-3">
+
+
+<p>
+  Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
+  протестировать, для этого сформируем тест:
+</p>
+
+
+
+<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1102;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">que-test</span> ()
+  &lt;&lt;que_test_contents&gt;&gt;
+  (dbg <span style="color: #00cd00;">"passed: que-test~%"</span>))
+(que-test)
+</pre>
+
+
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">tests</span>
+(<span style="color: #00cdcd; font-weight: bold;">progn</span>
+  (ensure-que <span style="color: #00cd00;">"Q-1"</span>)
+  (ensure-que <span style="color: #00cd00;">"Q-2"</span>)
+  (ensure-que <span style="color: #00cd00;">"Q-3"</span>)
+  (<span style="color: #cd0000; font-weight: bold;">assert</span> (string= (bprint (all-que-names))
+                   <span style="color: #00cd00;">"(\"Q-1\" \"Q-2\" \"Q-3\")"</span>))
+  (add-to-que <span style="color: #00cd00;">"Q-1"</span> <span style="color: #00cd00;">"test"</span>)
+  (add-to-que <span style="color: #00cd00;">"Q-1"</span> 7)
+  (<span style="color: #cd0000; font-weight: bold;">assert</span> (string= (bprint (all-que-elts <span style="color: #00cd00;">"Q-1"</span>))
+                   <span style="color: #00cd00;">"(\"test\" \"7\")"</span>))
+  (<span style="color: #cd0000; font-weight: bold;">assert</span> (find-in-que <span style="color: #00cd00;">"Q-1"</span> <span style="color: #00cd00;">"7"</span>))
+  (del-from-que <span style="color: #00cd00;">"Q-1"</span> <span style="color: #00cd00;">"test"</span>)
+  (<span style="color: #cd0000; font-weight: bold;">assert</span> (string= (bprint (all-que-elts <span style="color: #00cd00;">"Q-1"</span>))
+                   <span style="color: #00cd00;">"(\"7\")"</span>))
+  (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal (bprint (snd <span style="color: #00cd00;">"Q-1"</span> #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) x)))
+                 <span style="color: #00cd00;">"(\"7\")"</span>)))
+</pre>
+
+</div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2014-10-25T04:15+0400</p>
+<p class="author">Author: rigidus</p>
+<p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

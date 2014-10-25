@@ -196,11 +196,11 @@
    #+BEGIN_SRC emacs-lisp
      (defun gen-fields (table)
        (let ((rows (nthcdr 2 table)))
-         (princ (format "(%s\n" (butlast (first rows))))
+         (princ (format "(%s\n" (butlast (car rows))))
          (mapcar #'(lambda (x)
                      (princ (format " %s\n" (butlast x))))
                  (butlast (cdr rows)))
-         (princ (format " %s)" (butlast (first (last rows)))))))
+         (princ (format " %s)" (butlast (car (last rows)))))))
    #+END_SRC
 
    Теперь напишем код, который генерирует код для состояний конечного автомата:
@@ -230,16 +230,16 @@
      (defun gen-actions (table)
        (let ((rows (nthcdr 2 table)))
          (let ((x (car rows)))
-           (princ (format "((:%s :%s :%s)" (second x) (third x) (first x))))
+           (princ (format "((:%s :%s :%s)" (second x) (third x) (car x))))
          (if (equal 1 (length rows))
              (princ ")\n")
              (progn
                (princ "\n")
                (mapcar #'(lambda (x)
-                           (princ (format " (:%s :%s :%s)\n" (second x) (third x) (first x))))
+                           (princ (format " (:%s :%s :%s)\n" (second x) (third x) (car x))))
                        (cdr (butlast rows)))
                (let ((x (car (last rows))))
-                 (princ (format " (:%s :%s :%s))" (second x) (third x) (first x))))))))
+                 (princ (format " (:%s :%s :%s))" (second x) (third x) (car x))))))))
    #+END_SRC
 
    Соберем все это в один файл:
@@ -911,6 +911,76 @@
    него. Мы храним это в таблице =motowish=, которая содержит ссылку на мотоцикл и его
    владельца, а также на товар, если он существует в базе товаров.
 
+   #+NAME: moto_actions_func
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; (loop :for item :in (with-connection *db-spec*
+     ;;                        (query
+     ;;                         (:limit
+     ;;                          (:select 'motos
+     ;;                                   :from 'bratan
+     ;;                                   :where (:not (:like "" 'motos)))
+     ;;                                  999999999999))) :do
+     ;;    (format t "~%~A"
+     ;;             (ppcre:split "\\s+" (car item))))
+   #+END_SRC
+
+** Цвет (color)
+
+
+   Цвета мотоциклов - простая сущность и не имеет состояния.
+
+   #+CAPTION: Данные цвета
+   #+NAME: color_data
+     | field name | field type | note          |
+     |------------+------------+---------------|
+     | id         | serial     | идентификатор |
+     | name       | varchar    | имя цвета     |
+
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-entity color "Сущность цвета"
+       <<color_fields()>>)
+
+     (make-color-table)
+   #+END_SRC
+
+   Где =color-fields= (поля данных) определим как:
+
+   #+NAME: color_fields
+   #+BEGIN_SRC emacs-lisp :var table=color_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
+** Производитель (vendor)
+
+   Цвета мотоциклов - простая сущность и не имеет состояния.
+
+   #+CAPTION: Данные производителя
+   #+NAME: vendor_data
+     | field name | field type | note              |
+     |------------+------------+-------------------|
+     | id         | serial     | идентификатор     |
+     | name       | varchar    | имя производителя |
+
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-entity vendor "Сущность производителя"
+       <<vendor_fields()>>)
+
+     (make-vendor-table)
+   #+END_SRC
+
+   Где =vendor-fields= (поля данных) определим как:
+
+   #+NAME: vendor_fields
+   #+BEGIN_SRC emacs-lisp :var table=vendor_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
 ** Братан (bratan)
 
    Наш пользователь может быть зарегистрирован на http://motobratan.ru
@@ -1465,7 +1535,7 @@
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; clear db
-     (let ((tables '("user" "role" "group" "user2group" "avatar" "msg" "flat" "que" "quelt")))
+     (let ((tables '("user" "role" "group" "user2group" "avatar" "msg" "flat" "que" "quelt" "bratan")))
        (flet ((rmtbl (tblname)
                 (when (with-connection *db-spec*
                         (query (:select 'table_name :from 'information_schema.tables :where
@@ -1616,3 +1686,8 @@
 
     Технологическая репутация пользователей - кто как относится к своим мотоциклам. Может
     заполняться сервис-менами.
+
+  Специальная система приглашений - ты можешь завести друга, а потому передать ему его
+  аккаунт
+
+  Не забыть адреса травмпунктов и контакты хороших врачей и юристов

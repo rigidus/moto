@@ -106,20 +106,26 @@
      :motos (let* ((tmp (fnd page "(?s)<div class=\"boxRight boxFlowLeft\">(.*)<div class=\"boxCenter\">"))
                    (lst (ppcre:split "<div class=\"item flow\">" tmp)))
               (if (equal "" tmp)
-                  ""
+                  nil
                   (loop :for elt :in lst :collect
                      (progn
                        (let* ((img  (let ((tmp (fnd elt "<div class=\"image\"><img src=\"(.*)\" width=\"240\"")))
                                       (when (equal "" tmp)
                                         (setf tmp (fnd elt "<img src=\"(.*)\" width=\"240\"")))
                                       tmp))
-                              (namelist (ppcre:split " " (fnd elt "<div class=\"lerge\"><a href=\"(.*)\">(.*)</a></div>"))))
-                         (list :img    img
-                               :lnk    (car namelist)
-                               :year   (car (last namelist))
-                               :color  (cadr namelist)
-                               :vendor (caddr namelist)
-                               :name   (format nil "~{~A~^ ~}" (cdddr (butlast namelist))))))))))))
+                              (namelist (ppcre:split "\\s+"
+                                                     (ppcre:regex-replace
+                                                      "металлик"
+                                                      (fnd elt "<div class=\"lerge\"><a href=\"(.*)\">(.*)</a></div>")
+                                                      ""))))
+                         (if (null namelist)
+                             nil
+                             (list :img    img
+                                   :lnk    (car namelist)
+                                   :year   (car (last namelist))
+                                   :color  (cadr namelist)
+                                   :vendor (caddr namelist)
+                                   :name   (format nil "~{~A~^ ~}" (cdddr (butlast namelist)))))))))))))
 (in-package #:moto)
 
 (define-condition user-name-empty-error (error)
@@ -159,61 +165,73 @@
 
 (defun save-bratan (p)
   "Принимает plist пользователя и создает/обновляет сущность в базе"
-  (aif (find-bratan :bratan_id (getf p :bratan-id))
-       ;; Найдены записи, обновляем первую, остальные удаляем
-       (let ((rec (car it)))
-         ;; Удаление дублей
-         (unless (null (cdr it))
-           (loop :for d :in (cdr it) :do
-              (del-bratan (id d))))
-         ;; Обновление записи
+
+  ;; Если в наборе есть непустой список мотоциклов
+  ;; (format t "~%:[1]:~A" (bprint (getf p :motos)))
+  (let ((result (unless (null (getf p :motos))
+                  ;; То для каждого мотоцикла
+                  (loop :for moto :in (getf p :motos) :collect
+                     ;; Который не равен nil
+                     (unless (null moto)
+                       (list
+                        ;; Вычисляем цвет
+                        :color-id (let ((color (getf moto :color)))
+                                    (aif (find-color :name color)
+                                         (id (car it))
+                                         (id (make-color :name color))))
+                        ;; Вычисляем производителя
+                        :vendor-id (let ((vendor (getf moto :vendor)))
+                                     (aif (find-vendor :name vendor)
+                                          (id (car it))
+                                          (id (make-vendor :name vendor))))
+                        ;; Добавляем остальные поля без изменений
+                        :img (getf moto :img)
+                        :lnk (getf moto :lnk)
+                        :year (getf moto :year)
+                        :name (getf moto :name)))))))
+    (setf (getf p :motos) result)
+    ;; (format t "~%:[2]:~A" (bprint result))
+
+    ;; Ищем запись братана в базе данных
+    (aif (find-bratan :bratan_id (getf p :bratan-id))
+         ;; Найдены записи, обновляем первую, остальные удаляем
+         (let ((rec (car it)))
+           ;; Удаление дублей
+           (unless (null (cdr it))
+             (loop :for d :in (cdr it) :do
+                (del-bratan (id d))))
+           ;; Обновление записи
+           (progn
+             (setf (getf p :photos)
+                   (bprint (getf p :photos)))
+             (setf (getf p :motos)
+                   (bprint (getf p :motos)))
+             (setf (getf p :ts-last-upd)
+                   (get-universal-time))
+             (upd-bratan rec p)))
+         ;; Записи не найдены, вставляем новую
          (progn
-           (setf (getf p :photos)
-                 (bprint (getf p :photos)))
-           (setf (getf p :motos)
-                 (bprint (getf p :motos)))
-           (setf (getf p :ts-last-upd)
-                 (get-universal-time))
-           (upd-bratan rec p)))
-       ;; Записи не найдены, вставляем новую
-       (progn
-         (make-bratan
-          :bratan-id (getf p :bratan-id)
-          :ts-last-upd (get-universal-time)
-          :fio (getf p :fio)
-          :name (getf p :name)
-          :last-seen (getf p :last-seen)
-          :addr (getf p :addr)
-          :ts-reg (getf p :ts-reg)
-          :age (getf p :age)
-          :birthday (getf p :birthday)
-          :blood (getf p :blood)
-          :moto-exp (getf p :moto-exp)
-          :phone (getf p :phone)
-          :activityes (getf p :activityes)
-          :interests (getf p :interests)
-          :photos (format nil "~A" (bprint (getf p :photos)))
-          :avatar (getf p :avatar)
-          :motos (format nil "~A" (getf p :motos))
-          ))))
-;; (in-package #:moto)
+           (make-bratan
+            :bratan-id (getf p :bratan-id)
+            :ts-last-upd (get-universal-time)
+            :fio (getf p :fio)
+            :name (getf p :name)
+            :last-seen (getf p :last-seen)
+            :addr (getf p :addr)
+            :ts-reg (getf p :ts-reg)
+            :age (getf p :age)
+            :birthday (getf p :birthday)
+            :blood (getf p :blood)
+            :moto-exp (getf p :moto-exp)
+            :phone (getf p :phone)
+            :activityes (getf p :activityes)
+            :interests (getf p :interests)
+            :photos (format nil "~A" (bprint (getf p :photos)))
+            :avatar (getf p :avatar)
+            :motos (bprint (getf p :motos)))))))
 
-;; (with-connection *db-spec*
-;;   ;; Берем все возможные айдишники
-;;   (loop :for i :from 10001 :to 40079 :do
-;;      ;; Проверяем, есть ли у нас такой пользователь в базе
-;;      (aif (query (:select 'bratan_id :from 'bratan :where (:= 'bratan_id i)))
-;;           ;; Если такой пользователь есть - удаляем дупликаты
-;;           (query (:delete-from 'bratan :where (:and (:= 'bratan_id bratan_id) (:!= 'id i))))
-;;           ;; Если его нет
-;;           (progn
-;;             ;; Получаем пользователя
-;;             (let ((user-plist (get-user-plist i)))
-;;               ;; Сохраняем его в базу
-;;               (save-bratan user-plist))))))
+;; (process-users-array 10201 10220)
 
-;; (with-connection *db-spec*
-;;   (query (:select 'bratan_id :from 'bratan :where (:= 'id 10000))))
 
 (defun split-to-blocks (from to cnt-blocks)
   (let ((cnt-elts (- to from)))

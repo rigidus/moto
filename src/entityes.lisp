@@ -193,8 +193,31 @@
    "куплен -> используется")
  (defun |возврат.с.угона| ()
    "угнан -> используется")
+ (in-package #:moto)
+ 
+ ;; (loop :for item :in (with-connection *db-spec*
+ ;;                        (query
+ ;;                         (:limit
+ ;;                          (:select 'motos
+ ;;                                   :from 'bratan
+ ;;                                   :where (:not (:like "" 'motos)))
+ ;;                                  999999999999))) :do
+ ;;    (format t "~%~A"
+ ;;             (ppcre:split "\\s+" (car item))))
 
  
+
+(define-entity color "Сущность цвета"
+  ((id serial)
+   (name varchar)))
+
+(make-color-table)
+
+(define-entity vendor "Сущность производителя"
+  ((id serial)
+   (name varchar)))
+
+(make-vendor-table)
 
 (define-entity bratan "Сущность братана"
   ((id serial)
