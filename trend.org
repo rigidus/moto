@@ -165,6 +165,41 @@
      (gen-fields table)
    #+END_SRC
 
+** Очередь жилого комплекса (plex)
+
+   #+CAPTION: Данные очереди жилого комплекса
+   #+NAME: plex_data
+     | field name  | field type           | note                           |
+     |-------------+----------------------+--------------------------------|
+     | id          | serial               | идентификатор                  |
+     | cmpx-id     | integer              | идентификатор жилого комплекса |
+     | name        | varchar              | название                       |
+     | addr        | varchar              | адрес                          |
+     | deadline    | varchar              | срок сдачи                     |
+     | district-id | integer              | идентификатор района           |
+     | metro-id    | integer              | идентификатор метро            |
+     | distance    | varchar              | расстояние до метро            |
+     | subsidy     | (or db-null boolean) | субсидия                       |
+     | finishing   | (or db-null boolean) | отделка                        |
+     | ipoteka     | (or db-null boolean) | ипотека                        |
+     | installment | (or db-null boolean) | рассрочка                      |
+
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-entity plex "Сущность очереди жилого комплекса"
+       <<plex_fields()>>)
+
+     (make-plex-table)
+   #+END_SRC
+
+   Где =plex-fields= (поля данных) определим как:
+
+   #+NAME: plex_fields
+   #+BEGIN_SRC emacs-lisp :var table=plex_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
 ** Планировка (flat)
 
    #+CAPTION: Данные планировки
@@ -178,10 +213,6 @@
      | area-living  | (or db-null integer) | жилая площадь квартиры                 |
      | area-kitchen | (or db-null integer) | площадь кухни                          |
      | price        | (or db-null integer) | цена                                   |
-     | subsidy      | (or db-null boolean) | субсидия                               |
-     | finishing    | (or db-null boolean) | отделка                                |
-     | ipoteka      | (or db-null boolean) | ипотека                                |
-     | installment  | (or db-null boolean) | рассрочка                              |
      | balcon       | (or db-null varchar) | балкон/лоджия                          |
      | sanuzel      | (or db-null boolean) | Санузел раздельный/совмещенный         |
 
@@ -207,21 +238,6 @@
    #+BEGIN_SRC lisp
      (make-flat :rooms 1 :price 2589000)
    #+END_SRC
-
-** Очередь жилого комплекса (plex)
-
-   #+CAPTION: Данные очереди жилого комплекса
-   #+NAME: plex_data
-     | field name  | field type | note                           |
-     |-------------+------------+--------------------------------|
-     | id          | serial     | идентификатор                  |
-     | cmpx-id     | integer    | идентификатор жилого комплекса |
-     | name        | varchar    | название                       |
-     | addr        | varchar    | адрес                          |
-     | deadline    | varchar    | срок сдачи                     |
-     | district-id | integer    | идентификатор района           |
-     | metro-id    | integer    | идентификатор метро            |
-     | distance    | varchar    | расстояние до метро            |
 
 ** Картинки очередей ЖК
 ** Картинки планировок
@@ -305,7 +321,14 @@
                              (format nil "~A~A/~A" *data-path* cmpx it)))))
                ;; Создаем комплекс
                (let ((cmpx-id (make-cmpx :name name :addr addr)))
-                 (print cmpx-id)))))))
+                 ;; Получаем все его очереди
+                 (let ((plex (last-dir (format nil "~A~A/" *data-path* cmpx))))
+                   ;; Получаем содержимое папок очередей
+                   (loop :for plex :in plex :do
+                      ...
+                   (print plex)
+                 )))))))
+
   #+END_SRC
 
 * Точки входа
