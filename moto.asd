@@ -55,6 +55,7 @@
                         :pathname "mod/trend"
                         :components ((:static-file "trend-tpl.htm")
                                      (:file "trend-prepare")
+                                     (:file "entityes")
                                      (:file "trend")))
                ;; Модуль мотобратан
                (:module "bratan"

@@ -173,3 +173,15 @@ is replaced with replacement."
                         :end (or pos (length string)))
        when pos do (write-string replacement out)
        while pos)))
+
+
+(defun explore-dir (path)
+  (let ((raw (directory path))
+        (dirs)
+        (files))
+    (mapcar #'(lambda (x)
+                (if (cl-fad:directory-pathname-p x)
+                    (push x dirs)
+                    (push x files)))
+            raw)
+    (values dirs files raw)))
