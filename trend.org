@@ -143,11 +143,11 @@
 
    #+CAPTION: Данные жилого комплекса
    #+NAME: cmpx_data
-     | field name  | field type | note                           |
-     |-------------+------------+--------------------------------|
-     | id          | serial     | идентификатор                  |
-     | name        | varchar    | название                       |
-     | addr        | varchar    | адрес                          |
+     | field name | field type           | note          |
+     |------------+----------------------+---------------|
+     | id         | serial               | идентификатор |
+     | name       | varchar              | название      |
+     | addr       | (or db-null varchar) | адрес         |
 
    #+NAME: entity_and_automates_contents
    #+BEGIN_SRC lisp
@@ -173,12 +173,12 @@
      |-------------+----------------------+--------------------------------|
      | id          | serial               | идентификатор                  |
      | cmpx-id     | integer              | идентификатор жилого комплекса |
-     | name        | varchar              | название                       |
-     | addr        | varchar              | адрес                          |
-     | deadline    | varchar              | срок сдачи                     |
-     | district-id | integer              | идентификатор района           |
-     | metro-id    | integer              | идентификатор метро            |
-     | distance    | varchar              | расстояние до метро            |
+     | name        | (or db-null varchar) | название                       |
+     | addr        | (or db-null varchar) | адрес                          |
+     | deadline    | (or db-null varchar) | срок сдачи                     |
+     | district-id | (or db-null integer) | идентификатор района           |
+     | metro-id    | (or db-null integer) | идентификатор метро            |
+     | distance    | (or db-null varchar) | расстояние до метро            |
      | subsidy     | (or db-null boolean) | субсидия                       |
      | finishing   | (or db-null boolean) | отделка                        |
      | ipoteka     | (or db-null boolean) | ипотека                        |
@@ -297,38 +297,36 @@
   #+BEGIN_SRC lisp :tangle
     (in-package #:moto)
 
-    (flet ((last-dir (path)
-             (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (directory-namestring x)))))
-                     (explore-dir (format nil "~A*.*" path))))
-           (last-file (files)
-             (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (file-namestring x)))))
-                     files)))
-      ;; Получаем все папки комплексов
-      (let ((cmpx (last-dir *data-path*)))
-        ;; Получаем содержимое папки комплекса
-        (loop :for cmpx :in cmpx :do
-           (multiple-value-bind (dirs files)
-               (explore-dir
-                (format nil "~A~A/*.*" *data-path* cmpx))
-             ;; Обрабатываем сначала файлы
-             (let ((addr "")
-                   (name cmpx))
-               (let ((files (last-file files)))
-                 ;; Если найден файл с адресом - загружаем его
-                 (aif (find "адрес.txt" files :test #'string=)
-                      (setf addr
-                            (alexandria:read-file-into-string
-                             (format nil "~A~A/~A" *data-path* cmpx it)))))
-               ;; Создаем комплекс
-               (let ((cmpx-id (make-cmpx :name name :addr addr)))
-                 ;; Получаем все его очереди
-                 (let ((plex (last-dir (format nil "~A~A/" *data-path* cmpx))))
-                   ;; Получаем содержимое папок очередей
-                   (loop :for plex :in plex :do
-                      ...
-                   (print plex)
-                 )))))))
-
+    (macrolet ((awhen-file ((file files) &body body)
+                 `(awhen (find ,file ,files :test #'string=)
+                    ,@body))
+               (loop-dir (var (&rest path) &body body)
+                  `(loop :for ,var :in (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (directory-namestring x)))))
+                                               (explore-dir (format nil "~A~{~A/~}*.*" *data-path* (list ,@path)))) :do
+                      (multiple-value-bind (_ files)
+                          (explore-dir (format nil "~A~{~A/~}~A/*.*" *data-path* (list ,@path) ,var))
+                        (declare (ignore _))
+                        (let ((files (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (file-namestring x)))))
+                                             files)))
+                          ,@body)))))
+      ;; Для каждой подпапке в папке данных..
+      (loop-dir cmpx ()
+         ;; Создаем комплекс, и заполняем адрес, если удалось найти соответствующий файл
+           (let ((cmpx-id (id (make-cmpx :name cmpx :addr (awhen-file ("адрес.txt" files)
+                                                            (alexandria:read-file-into-string (format nil "~A~A/~A" *data-path* cmpx it)))))))
+             ;; Для каждой подпапки в папке комплекса
+               (loop-dir plex (cmpx)
+                  ;; Создаем очередь ЖК
+                    (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
+                      ;; Если найден файл с паспортом объекта
+                      (awhen-file ("паспорт.txt" files)
+                        (print it))
+                      ;; Если найден файл с описанием объекта
+                      ;; Если найден файл с местоположением объекта
+                      ;; Если найден файл с комфортом объекта
+                      ;; Если найден файл с детьми объекта
+                      ;; Если найден файл с квартирами объекта
+                      )))))
   #+END_SRC
 
 * Точки входа

@@ -10,10 +10,6 @@
    (area-living (or db-null integer))
    (area-kitchen (or db-null integer))
    (price (or db-null integer))
-   (subsidy (or db-null boolean))
-   (finishing (or db-null boolean))
-   (ipoteka (or db-null boolean))
-   (installment (or db-null boolean))
    (balcon (or db-null varchar))
    (sanuzel (or db-null boolean))))
 
