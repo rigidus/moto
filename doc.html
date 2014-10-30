@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="moto"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-25T17:58+0400"/>
+<meta name="generated" content="2014-10-30T14:26+0400"/>
 <meta name="author" content="rigidus"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -1838,7 +1838,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(restas:define-route main (<span style="color: #00cd00;">"/"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">restas:define-route</span> main (<span style="color: #00cd00;">"/"</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
     <span style="color: #00cd00;">"main"</span>))
 </pre>
@@ -1858,7 +1858,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(restas:define-route allusers (<span style="color: #00cd00;">"/users"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">restas:define-route</span> allusers (<span style="color: #00cd00;">"/users"</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
     (tbl
      (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-user))
@@ -1869,7 +1869,7 @@ for the JavaScript code in this tag.
         (td (email i))))
      <span style="color: #0000ee; font-weight: bold;">:border</span> 1)))
 
-(restas:define-route allusers-ctrl (<span style="color: #00cd00;">"/users"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
+(<span style="color: #00cdcd; font-weight: bold;">restas:define-route</span> allusers-ctrl (<span style="color: #00cd00;">"/users"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
     (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
       <span style="color: #00cd00;">"TODO"</span>)))
@@ -1890,7 +1890,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(restas:define-route user (<span style="color: #00cd00;">"/user/:userid"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">restas:define-route</span> user (<span style="color: #00cd00;">"/user/:userid"</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
     (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((i (parse-integer userid))
            (u (get-user i)))
@@ -1908,7 +1908,7 @@ for the JavaScript code in this tag.
                     <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
                    ))))))
 
-(restas:define-route user-ctrl (<span style="color: #00cd00;">"/user/:userid"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
+(<span style="color: #00cdcd; font-weight: bold;">restas:define-route</span> user-ctrl (<span style="color: #00cd00;">"/user/:userid"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
     (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
       (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((getf p <span style="color: #0000ee; font-weight: bold;">:addsum</span>)   )
@@ -2054,6 +2054,7 @@ for the JavaScript code in this tag.
          <span style="color: #0000ee; font-weight: bold;">:pathname</span> <span style="color: #00cd00;">"mod/trend"</span>
          <span style="color: #0000ee; font-weight: bold;">:components</span> ((<span style="color: #0000ee; font-weight: bold;">:static-file</span> <span style="color: #00cd00;">"trend-tpl.htm"</span>)
                       (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"trend-prepare"</span>)
+                      (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"entityes"</span>)
                       (<span style="color: #0000ee; font-weight: bold;">:file</span> <span style="color: #00cd00;">"trend"</span>)))
 </pre>
 
@@ -2160,6 +2161,8 @@ for the JavaScript code in this tag.
 &lt;&lt;with_element&gt;&gt;
 
 &lt;&lt;replace_all&gt;&gt;
+
+&lt;&lt;explore_dir&gt;&gt;
 </pre>
 
 
@@ -2386,6 +2389,20 @@ for the JavaScript code in this tag.
 </pre>
 
 
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">explore-dir</span> (path)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((raw (directory path))
+        (dirs)
+        (files))
+    (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                (<span style="color: #00cdcd; font-weight: bold;">if</span> (cl-fad:directory-pathname-p x)
+                    (push x dirs)
+                    (push x files)))
+            raw)
+    (values dirs files raw)))
+</pre>
+
+
 </div>
 
 </div>
@@ -2472,7 +2489,7 @@ for the JavaScript code in this tag.
 (<span style="color: #00cdcd; font-weight: bold;">defvar</span> <span style="color: #cdcd00;">*db-spec*</span> (list <span style="color: #00cd00;">"ylg_new"</span> <span style="color: #00cd00;">"ylg"</span> <span style="color: #00cd00;">"6mEfBjyLrSzlE"</span> <span style="color: #00cd00;">"localhost"</span>))
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">clear db</span>
-(<span style="color: #00cdcd; font-weight: bold;">let</span> ((tables '(<span style="color: #00cd00;">"user"</span> <span style="color: #00cd00;">"role"</span> <span style="color: #00cd00;">"group"</span> <span style="color: #00cd00;">"user2group"</span> <span style="color: #00cd00;">"avatar"</span> <span style="color: #00cd00;">"msg"</span> <span style="color: #00cd00;">"flat"</span> <span style="color: #00cd00;">"que"</span> <span style="color: #00cd00;">"quelt"</span> <span style="color: #00cd00;">"bratan"</span>)))
+(<span style="color: #00cdcd; font-weight: bold;">let</span> ((tables '(<span style="color: #00cd00;">"user"</span> <span style="color: #00cd00;">"role"</span> <span style="color: #00cd00;">"group"</span> <span style="color: #00cd00;">"user2group"</span> <span style="color: #00cd00;">"avatar"</span> <span style="color: #00cd00;">"msg"</span> <span style="color: #00cd00;">"flat"</span> <span style="color: #00cd00;">"que"</span> <span style="color: #00cd00;">"quelt"</span> <span style="color: #00cd00;">"bratan"</span> <span style="color: #00cd00;">"cmpx"</span> <span style="color: #00cd00;">"plex"</span>)))
   (<span style="color: #00cdcd; font-weight: bold;">flet</span> ((rmtbl (tblname)
            (<span style="color: #00cdcd; font-weight: bold;">when</span> (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
                    (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
@@ -2579,7 +2596,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">package.lisp</span>
 
-(restas:define-module #<span style="color: #0000ee; font-weight: bold;">:moto</span>
+(<span style="color: #00cdcd; font-weight: bold;">restas:define-module</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>
   (<span style="color: #0000ee; font-weight: bold;">:use</span>  #<span style="color: #0000ee; font-weight: bold;">:cl</span> #<span style="color: #0000ee; font-weight: bold;">:closer-mop</span> #<span style="color: #0000ee; font-weight: bold;">:postmodern</span> #<span style="color: #0000ee; font-weight: bold;">:anaphora</span> #<span style="color: #0000ee; font-weight: bold;">:hunchentoot</span>)
   (<span style="color: #0000ee; font-weight: bold;">:shadowing-import-from</span> #<span style="color: #0000ee; font-weight: bold;">:closer-mop</span>
                           #<span style="color: #0000ee; font-weight: bold;">:defclass</span>
@@ -2714,6 +2731,52 @@ for the JavaScript code in this tag.
 
   &#1063;&#1091;&#1090;&#1100; &#1085;&#1077; &#1079;&#1072;&#1073;&#1099;&#1083;, &#1074;&#1077;&#1073;-&#1080;&#1085;&#1090;&#1077;&#1088;&#1092;&#1077;&#1081;&#1089; &#1088;&#1072;&#1079;&#1084;&#1077;&#1097;&#1077;&#1085; &#1085;&#1072; &#1087;&#1086;&#1088;&#1090;&#1091; 9997
 
+<span style="color: #0000ee; font-weight: bold;">* &#1059;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1082;&#1072; &#1080; &#1085;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1072; Postgres</span>
+
+<span style="color: #cd0000;">  #+BEGIN_COMMENT</span>
+      TODO &#1089;&#1076;&#1077;&#1083;&#1072;&#1090;&#1100; &#1083;&#1080;&#1085;&#1082;&#1080; &#1085;&#1072; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1081; &#1089; &#1075;&#1083;&#1086;&#1073;&#1072;&#1083;&#1100;&#1085;&#1099;&#1093; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1077;&#1085;&#1080;&#1081; doc.org, &#1077;&#1089;&#1083;&#1080; &#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086;
+<span style="color: #cd0000;">  #+END_COMMENT</span>
+
+  &#1042; <span style="color: #00cd00;">=~/repo/moto/doc.org=</span> &#1074; &#1089;&#1077;&#1082;&#1094;&#1080;&#1080; "&#1043;&#1083;&#1086;&#1073;&#1072;&#1083;&#1100;&#1085;&#1099;&#1077; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1077;&#1085;&#1080;&#1103;" &#1085;&#1072;&#1087;&#1080;&#1089;&#1072;&#1085;&#1099; &#1080;&#1084;&#1103; &#1073;&#1072;&#1079;&#1099; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;, &#1083;&#1086;&#1075;&#1080;&#1085; &#1080; &#1087;&#1072;&#1088;&#1086;&#1083;&#1100;
+
+  &#1044;&#1083;&#1103; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084; Ubuntu/Debian:
+
+<span style="color: #cd0000;">  #+BEGIN_SRC bash</span>
+<span style="color: #00cd00;">     sudo apt-get install postgresql postgresql-contrib postgresql-client</span>
+<span style="color: #00cd00;">     sudo -i -u postgres</span>
+
+<span style="color: #00cd00;">     postgres$ createuser --interactive</span>
+<span style="color: #00cd00;">     ....</span>
+<span style="color: #00cd00;">     postgres$ createdb DB_NAME</span>
+<span style="color: #00cd00;">     postgres$ psql -d DB_NAME</span>
+<span style="color: #cd0000;">  #+END_SRC</span>
+
+  &#1042; &#1082;&#1086;&#1085;&#1089;&#1086;&#1083;&#1100; postrges &#1074;&#1074;&#1077;&#1089;&#1090;&#1080;:
+
+<span style="color: #cd0000;">  #+BEGIN_SRC psql</span>
+<span style="color: #00cd00;">     ALTER USER ylg PASSWORD '...';</span>
+<span style="color: #00cd00;">     \q</span>
+<span style="color: #cd0000;">  #+END_SRC</span>
+
+  &#1057;&#1084;. &#1090;&#1091;&#1090;&#1086;&#1088;&#1080;&#1072;&#1083; <span style="color: #0000ee; text-decoration: underline;">https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-14-04</span>
+
+<span style="color: #0000ee; font-weight: bold;">* &#1047;&#1072;&#1095;&#1077;&#1084; &#1101;&#1090;&#1086; &#1074;&#1089;&#1077;</span>
+
+  &#1069;&#1090;&#1086; &#1074;&#1089;&#1077; &#1073;&#1099;&#1083;&#1086; &#1079;&#1072;&#1076;&#1091;&#1084;&#1072;&#1085;&#1086; &#1080; &#1085;&#1072;&#1087;&#1080;&#1089;&#1072;&#1085;&#1086; (&#1080; &#1087;&#1080;&#1096;&#1077;&#1090;&#1089;&#1103; &#1074; &#1076;&#1072;&#1085;&#1085;&#1099;&#1081; &#1084;&#1086;&#1084;&#1077;&#1085;&#1090;) &#1082;&#1072;&#1082;
+  &#1080;&#1089;&#1089;&#1083;&#1077;&#1076;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077; &#1088;&#1103;&#1076;&#1072; &#1087;&#1086;&#1076;&#1093;&#1086;&#1076;&#1086;&#1074; &#1074; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1080; &#1074; &#1087;&#1088;&#1080;&#1084;&#1077;&#1085;&#1077;&#1085;&#1080;&#1080; &#1082;
+  &#1082;&#1086;&#1085;&#1082;&#1088;&#1077;&#1090;&#1085;&#1099;&#1084; &#1087;&#1088;&#1072;&#1082;&#1090;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1084; &#1079;&#1072;&#1076;&#1072;&#1095;&#1072;&#1084;. &#1053;&#1091; &#1080; &#1088;&#1072;&#1076;&#1080; &#1086;&#1073;&#1097;&#1077;&#1089;&#1090;&#1074;&#1077;&#1085;&#1085;&#1086;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1099;,
+  &#1087;&#1086;&#1085;&#1080;&#1084;&#1072;&#1077;&#1084;&#1086;&#1081; &#1086;&#1095;&#1077;&#1085;&#1100; &#1096;&#1080;&#1088;&#1086;&#1082;&#1086;, &#1074;&#1082;&#1083;&#1102;&#1095;&#1072;&#1103; &#1082;&#1072;&#1082; &#1087;&#1086;&#1083;&#1100;&#1079;&#1091; &#1086;&#1090; &#1089;&#1072;&#1084;&#1086;&#1075;&#1086; &#1087;&#1088;&#1086;&#1076;&#1091;&#1082;&#1090;&#1072;, &#1090;&#1072;&#1082;
+  &#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1091; &#1086;&#1090; &#1080;&#1089;&#1089;&#1083;&#1077;&#1076;&#1091;&#1077;&#1084;&#1099;&#1093; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1081; &#1080; &#1087;&#1088;&#1080;&#1077;&#1084;&#1086;&#1074; &#1080;&#1093; &#1087;&#1088;&#1080;&#1084;&#1077;&#1085;&#1077;&#1085;&#1080;&#1103;.
+
+  &#1042;&#1077;&#1089;&#1100; &#1082;&#1086;&#1076; &#1083;&#1080;&#1094;&#1077;&#1085;&#1079;&#1080;&#1088;&#1091;&#1077;&#1090;&#1089;&#1103; &#1087;&#1086;&#1076; &#1089;&#1074;&#1086;&#1073;&#1086;&#1076;&#1085;&#1086;&#1081; &#1083;&#1080;&#1094;&#1077;&#1085;&#1079;&#1080;&#1077;&#1081; GPLv3 &#1080; &#1074;&#1099; &#1074;&#1087;&#1088;&#1072;&#1074;&#1077;
+  &#1088;&#1077;&#1072;&#1083;&#1080;&#1079;&#1086;&#1074;&#1099;&#1074;&#1072;&#1090;&#1100; &#1074;&#1089;&#1077; &#1089;&#1074;&#1103;&#1079;&#1072;&#1085;&#1085;&#1099;&#1077; &#1089; &#1101;&#1090;&#1080;&#1084; &#1089;&#1074;&#1086;&#1073;&#1086;&#1076;&#1099;. &#1050;&#1086;&#1085;&#1090;&#1088;&#1080;&#1073;&#1100;&#1102;&#1090;&#1086;&#1088;&#1099;
+  &#1087;&#1088;&#1080;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1091;&#1102;&#1090;&#1089;&#1103;, &#1085;&#1077; &#1090;&#1086;&#1083;&#1100;&#1082;&#1086; &#1074; &#1085;&#1072;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1080; &#1082;&#1086;&#1076;&#1072;, &#1085;&#1086; &#1080; &#1074; &#1087;&#1088;&#1080;&#1074;&#1083;&#1077;&#1095;&#1077;&#1085;&#1080;&#1080;
+  &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;, &#1080;&#1079;&#1091;&#1095;&#1077;&#1085;&#1080;&#1080; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1081;, &#1090;&#1077;&#1089;&#1090;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1080; &#1080; &#1082;&#1088;&#1080;&#1090;&#1080;&#1082;&#1077; &#1080;&#1076;&#1077;&#1081;.
+
+  &#1045;&#1089;&#1083;&#1080; &#1077;&#1089;&#1090;&#1100; &#1082;&#1072;&#1082;&#1086;&#1081;-&#1090;&#1086; &#1074;&#1086;&#1087;&#1088;&#1086;&#1089; &#1080;&#1083;&#1080; &#1085;&#1077;&#1087;&#1086;&#1085;&#1103;&#1090;&#1085;&#1099;&#1081; &#1084;&#1086;&#1084;&#1077;&#1085;&#1090; - &#1085;&#1077; &#1089;&#1090;&#1077;&#1089;&#1085;&#1103;&#1081;&#1090;&#1077;&#1089;&#1100;
+  &#1087;&#1080;&#1089;&#1072;&#1090;&#1100; &#1087;&#1088;&#1103;&#1084;&#1086; &#1074; &#1075;&#1080;&#1090;&#1093;&#1072;&#1073;.
+
+
 </pre>
 
 
@@ -2764,7 +2827,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2014-10-25T17:58+0400</p>
+<p class="date">Date: 2014-10-30T14:26+0400</p>
 <p class="author">Author: rigidus</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>

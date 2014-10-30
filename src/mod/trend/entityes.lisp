@@ -1,18 +1,15 @@
-
+;; [[file:trend.org::*Определения сущностей][entity_and_automates]]
 (in-package #:moto)
 
 
 (define-entity cmpx "Сущность комплекса"
-  ((id serial)
-   (name varchar)
+  ((addr (or db-null varchar))
    (addr (or db-null varchar))))
 
 (make-cmpx-table)
 
 (define-entity plex "Сущность очереди жилого комплекса"
-  ((id serial)
-   (cmpx-id integer)
-   (name (or db-null varchar))
+  ((name (or db-null varchar))
    (addr (or db-null varchar))
    (deadline (or db-null varchar))
    (district-id (or db-null integer))
@@ -24,3 +21,4 @@
    (installment (or db-null boolean))))
 
 (make-plex-table)
+;; entity_and_automates ends here
