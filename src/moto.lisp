@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Точка входа][enter_point]]
 ;;;; moto.lisp
 
 (in-package #:moto)
@@ -8,3 +8,4 @@
 (restas:debug-mode-on)
 ;; (restas:debug-mode-off)
 (setf hunchentoot:*catch-errors-p* t)
+;; enter_point ends here

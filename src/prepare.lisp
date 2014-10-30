@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Подготовка к старту][prepare]]
 ;;;; prepare.lisp
 
 (in-package #:moto)
@@ -25,3 +25,4 @@
 ;; Компилируем шаблоны
 (closure-template:compile-template
  :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
+;; prepare ends here

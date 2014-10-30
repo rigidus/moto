@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Определения сущностей][entity_and_automates]]
 (in-package #:moto)
 
 
@@ -240,3 +240,4 @@
    (motos (or db-null varchar))))
 
 (make-bratan-table)
+;; entity_and_automates ends here

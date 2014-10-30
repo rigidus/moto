@@ -179,7 +179,7 @@
   Соберем все сущности и автоматы
 
   #+NAME: entity_and_automates
-  #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports code
+  #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports code :padline no :comments link
     (in-package #:moto)
 
     <<entity_and_automates_contents>>
@@ -205,22 +205,20 @@
 
    #+NAME: gen_fields
    #+BEGIN_SRC emacs-lisp
-     (defun gen-fields (table)
-       (let ((rows (nthcdr 2 table)))
-         (princ (format "(%s\n" (butlast (car rows))))
-         (mapcar #'(lambda (x)
-                     (princ (format " %s\n" (butlast x))))
-                 (butlast (cdr rows)))
-         (princ (format " %s)" (butlast (car (last rows)))))))
+     (defun gen-fields (rows)
+       (princ (format "(%s\n" (butlast (car rows))))
+       (mapcar #'(lambda (x)
+                   (princ (format " %s\n" (butlast x))))
+               (butlast (cdr rows)))
+       (princ (format " %s)" (butlast (car (last rows))))))
    #+END_SRC
 
    Теперь напишем код, который генерирует код для состояний конечного автомата:
 
    #+NAME: gen_states
    #+BEGIN_SRC emacs-lisp
-     (defun gen-states (table)
-       (let ((rows (nthcdr 2 table))
-             (hash (make-hash-table :test #'equal))
+     (defun gen-states (rows)
+       (let ((hash (make-hash-table :test #'equal))
              (states))
          (dolist (elt rows nil)
            (puthash (cadr elt) nil hash)
@@ -238,25 +236,24 @@
 
    #+NAME: gen_actions
    #+BEGIN_SRC emacs-lisp
-     (defun gen-actions (table)
-       (let ((rows (nthcdr 2 table)))
-         (let ((x (car rows)))
-           (princ (format "((:%s :%s :%s)" (cadr x) (cadr (cdr x)) (car x))))
-         (if (equal 1 (length rows))
-             (princ ")\n")
-             (progn
-               (princ "\n")
-               (mapcar #'(lambda (x)
-                           (princ (format " (:%s :%s :%s)\n" (cadr x) (cadr (cdr x)) (car x))))
-                       (cdr (butlast rows)))
-               (let ((x (car (last rows))))
-                 (princ (format " (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x))))))))
+     (defun gen-actions (rows)
+       (let ((x (car rows)))
+         (princ (format "((:%s :%s :%s)" (cadr x) (cadr (cdr x)) (car x))))
+       (if (equal 1 (length rows))
+           (princ ")\n")
+         (progn
+           (princ "\n")
+           (mapcar #'(lambda (x)
+                       (princ (format " (:%s :%s :%s)\n" (cadr x) (cadr (cdr x)) (car x))))
+                   (cdr (butlast rows)))
+           (let ((x (car (last rows))))
+             (princ (format " (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x)))))))
    #+END_SRC
 
    Соберем все это в один файл:
 
    #+NAME: generators
-   #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code
+   #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code :padline no :comments link
      <<gen_org_confirm>>
 
      <<gen_fields>>
@@ -431,6 +428,36 @@
    #+BEGIN_SRC emacs-lisp :var table=que_data :results output :exports results :tangle no
      (gen-fields table)
    #+END_SRC
+
+   #+CAPTION: Данные пользователя
+   #+NAME: user_data2
+     | field name | field type           | note                          |
+     |------------+----------------------+-------------------------------|
+     | id         | serial               | идентификатор                 |
+     | name       | varchar              | имя пользователя              |
+     | password   | varchar              | пароль                        |
+     | email      | varchar              | емейл                         |
+     | ts-create  | bigint               | время создания                |
+     | ts-last    | bigint               | время когда был последний раз |
+     | role-id    | (or db-null integer) | идентификатор роли            |
+
+
+   #+NAME: user_fields
+   #+BEGIN_SRC emacs-lisp :var table=user_data2 :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
+   #+results: user_fields
+   : ((id serial)
+   :  (name varchar)
+   :  (password varchar)
+   :  (email varchar)
+   :  (ts-create bigint)
+   :  (ts-last bigint)
+   :  (role-id (or db-null integer)))
+
+
+
 
    Нам понадобится сущность элемента очереди, назовем его =quelt=. Элемент очереди является
    простой сущностью и не имеет состояния.
@@ -1049,7 +1076,7 @@
   происходят в ответ на действия внешних сил.
 
    #+NAME: events
-   #+BEGIN_SRC lisp :tangle src/events.lisp :noweb tangle :exports code
+   #+BEGIN_SRC lisp :tangle src/events.lisp :noweb tangle :exports code :padline no :comments link
      ;;;; events.lisp
 
      (in-package #:moto)
@@ -1061,7 +1088,7 @@
   Соберем веб-интерфейс:
 
   #+NAME: iface
-  #+BEGIN_SRC lisp :tangle src/iface.lisp :noweb tangle :exports code
+  #+BEGIN_SRC lisp :tangle src/iface.lisp :noweb tangle :exports code :padline no :comments link
     ;;;; iface.lisp
 
     (in-package #:moto)
@@ -1244,7 +1271,7 @@
 * Сборка
 ** Утилиты
    #+NAME: utility_file
-   #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code
+   #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code  :padline no :comments link
      ;;;; util.lisp
 
      (in-package #:moto)
@@ -1503,7 +1530,7 @@
    Шаблоны будем вставлять в отдельный файл =src/templates.htm=
 
    #+NAME: templates
-   #+BEGIN_SRC closure-template-html :tangle src/templates.htm :noweb tangle :exports code
+   #+BEGIN_SRC closure-template-html :tangle src/templates.htm :noweb tangle :exports code :padline no :comments link
      // -*- mode: closure-template-html; fill-column: 140 -*-
 
      {namespace tpl}
@@ -1554,7 +1581,7 @@
 ** Глобальные определения
 
    #+NAME: globals
-   #+BEGIN_SRC lisp :tangle src/globals.lisp :noweb tangle :exports code
+   #+BEGIN_SRC lisp :tangle src/globals.lisp :noweb tangle :exports code :padline no :comments link
      (in-package #:moto)
 
      ;; Подключение к базе данных
@@ -1596,7 +1623,7 @@
    данных, которое используют тесты сущностей и автоматов.
 
    #+NAME: defsystem
-   #+BEGIN_SRC lisp :tangle moto.asd :noweb tangle :exports code
+   #+BEGIN_SRC lisp :tangle moto.asd :noweb tangle :exports code :padline no :comments link
      ;;;; moto.asd
 
      (asdf:defsystem #:moto
@@ -1646,7 +1673,7 @@
    Соберем весь код в пакет:
 
    #+NAME: package
-   #+BEGIN_SRC lisp :tangle src/package.lisp :noweb tangle :exports code
+   #+BEGIN_SRC lisp :tangle src/package.lisp :noweb tangle :exports code :padline no :comments link
      ;;;; package.lisp
 
      (restas:define-module #:moto
@@ -1667,7 +1694,7 @@
    возможно, инициализацию окружения.
 
    #+NAME: prepare
-   #+BEGIN_SRC lisp :tangle src/prepare.lisp :noweb tangle :exports code :exports none
+   #+BEGIN_SRC lisp :tangle src/prepare.lisp :noweb tangle :exports code :exports none :padline no :comments link
      ;;;; prepare.lisp
 
      (in-package #:moto)
@@ -1698,7 +1725,7 @@
 
 ** Точка входа
    #+NAME: enter_point
-   #+BEGIN_SRC lisp :tangle src/moto.lisp :noweb tangle :exports code
+   #+BEGIN_SRC lisp :tangle src/moto.lisp :noweb tangle :exports code :padline no :comments link
      ;;;; moto.lisp
 
      (in-package #:moto)
@@ -1713,49 +1740,91 @@
 ** Readme
    #+NAME: enter_point
    #+BEGIN_SRC org :tangle README.org :noweb tangle :exports code
-
      Этот документ отвечает на вопросы
      - Что нужно сделать чтобы собрать проект
      - Что нужно сделать чтобы запусить собранный проект
 
-     Можно начинать сразу со второй части, если вы не планируете
-     дорабатывать проект или просто хочется попробовать
+     Можно запустить проект не собирая его, если вы просто хотите
+     попробовать.
 
      ,* Сборка
 
-       Создаем путь, где будет все лежать.
+       На момент, когда вы начнете это делать у вас должны стоять:
+       - emacs (http://www.gnu.org/software/emacs/)
+       - git (http://git-scm.com/)
+       - sbcl (http://sbcl.org/)
+       - quicklisp (http://quicklisp.org/)
+       - postgresql (http://www.postgresql.org/)
+       Их установка как правило тривиальна, поэтому не будет здесь
+       описываться.
 
-       mkdir ~/repo
+       Перед тем, как начать сборку, создаем каталог, где будет все лежать
+       и переходим в него:
 
-       Скачиваем последнюю версию с https://github.com/rigidus/moto.git и
-       положим ее в =~/repo/moto=. Соблюдать эти пути необязательно, но
-       остальные рекомендации ниже тогда придется скорректировать.
+       =mkdir ~/repo=
+       =cd ~/repo=
 
-       Открываем =~/repo/moto/doc.org= в emacs-e
+     ,** Orgmode
 
-       Загружаем генераторы: =M-x load-file= =~/repo/moto/generators.el=
-       Без этого шага при генерации не найдуться некоторые необходимые
-       функции, что вызовет ошибку генерации.
+        Находясь в каталоге =~/repo=, скачиваем последнюю версию
+        =org-mode= - расширения, которое уже стоит в емаксе, но к
+        сожалению, часто не самой свежей версии. В той версии, которую я
+        использую поменялся способ работы с org-tables, поэтому я
+        рекомендую забирать версию с моего репозитория:
 
-       Выполняем генерацию кода (org-babel-tangle) в открытом в emacs-е
-       файле =~/repo/moto/doc.org=, нажимая комбинацию клавишь =C-c C-v t=
+        =git-clone https://github.com/rigidus/org-mode.git=
 
-       Сгенерируется множество файлов проекта, в основном в каталоге
-       =~/repo/moto/src=
+        Переходим в появившийся каталог и собираем:
 
-       Выполняем генерацию документации в формате html (org-export) в
-       открытом в emacs-е файле =~/repo/moto/doc.org= нажимая комбинацию
-       клавишь =C-c C-e h=
+        =cd org-mode/lisp=
+        =make autoloads=
 
-       Сгенерируется файл документации =~/repo/moto/doc.html=
+        Открываем файл конфигурации emacs ~/.emacs.d/init.el и прописываем
+        собранный org-mode:
 
-       Аналогичным образом можно поступать со всеми файлами модулей - это
-       файлы с расширением =org=, которые лежат в корневом каталоге
-       =~/repo/moto/=
+        =;; OrgMode http://orgmode.org/manual/Installation.html=
+        =(add-to-list 'load-path "/home/rigidus/repo/org-mode/lisp")=
+        =(require 'org-install)=
 
-       Если понадобится изменить процесс генерации - функции, которые за
-       него отвечают лежат в "Определения сущностей" -> "Функции для
-       кодогенерации сущностей"
+        Возвращаемся в исходный каталог
+
+        =cd ~/repo=
+
+     ,** Проект
+
+        Скачиваем последнюю версию проекта:
+
+        =cd ~/repo=
+        =git-clone https://github.com/rigidus/moto.git=
+
+        Открываем =~/repo/moto/doc.org= в emacs-e
+
+        Загружаем генераторы:
+
+        =M-x load-file= =~/repo/moto/generators.el=
+
+        Без этого шага при генерации не найдуться некоторые необходимые
+        функции, что вызовет ошибку генерации.
+
+        Выполняем генерацию кода (org-babel-tangle) в открытом в emacs-е
+        файле =~/repo/moto/doc.org=, нажимая комбинацию клавишь =C-c C-v t=
+
+        Сгенерируется множество файлов проекта, в основном в каталоге
+        =~/repo/moto/src=
+
+        Выполняем генерацию документации в формате html (org-export) в
+        открытом в emacs-е файле =~/repo/moto/doc.org= нажимая комбинацию
+        клавишь =C-c C-e h=
+
+        Сгенерируется файл документации =~/repo/moto/doc.html=
+
+        Аналогичным образом можно поступать со всеми файлами модулей - это
+        файлы с расширением =org=, которые лежат в корневом каталоге
+        =~/repo/moto/=
+
+        Если понадобится изменить процесс генерации - функции, которые за
+        него отвечают лежат в "Определения сущностей" -> "Функции для
+        кодогенерации сущностей"
 
      ,* Запуск
 

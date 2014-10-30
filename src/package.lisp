@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Пакеты][package]]
 ;;;; package.lisp
 
 (restas:define-module #:moto
@@ -11,3 +11,4 @@
                           #:defgeneric
                           #:standard-generic-function
                           #:class-name))
+;; package ends here

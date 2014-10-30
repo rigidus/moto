@@ -2,7 +2,9 @@
 
 ;; Сущность планировки
 (define-entity flat "Сущность планировки"
-  ((rooms (or db-null integer))
+  ((id serial)
+   (plex-id (or db-null integer))
+   (rooms (or db-null integer))
    (area-sum (or db-null integer))
    (area-living (or db-null integer))
    (area-kitchen (or db-null integer))

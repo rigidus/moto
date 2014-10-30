@@ -3,13 +3,16 @@
 
 
 (define-entity cmpx "Сущность комплекса"
-  ((addr (or db-null varchar))
+  ((id serial)
+   (name varchar)
    (addr (or db-null varchar))))
 
 (make-cmpx-table)
 
 (define-entity plex "Сущность очереди жилого комплекса"
-  ((name (or db-null varchar))
+  ((id serial)
+   (cmpx-id integer)
+   (name (or db-null varchar))
    (addr (or db-null varchar))
    (deadline (or db-null varchar))
    (district-id (or db-null integer))

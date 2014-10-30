@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Утилиты][utility_file]]
 ;;;; util.lisp
 
 (in-package #:moto)
@@ -185,3 +185,4 @@ is replaced with replacement."
                     (push x files)))
             raw)
     (values dirs files raw)))
+;; utility_file ends here

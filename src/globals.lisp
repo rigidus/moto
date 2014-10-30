@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Глобальные определения][globals]]
 (in-package #:moto)
 
 ;; Подключение к базе данных
@@ -20,3 +20,4 @@
                (query (:drop-table (intern (string-upcase tblname))))))))
     (loop :for tblname :in tables :collect
        (rmtbl tblname))))
+;; globals ends here

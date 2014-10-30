@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Interface][iface]]
 ;;;; iface.lisp
 
 (in-package #:moto)
@@ -142,3 +142,4 @@
       (cond ((getf p :addsum)   )
             ((getf p :follow)   )
             ((getf p :neworder) )))))
+;; iface ends here

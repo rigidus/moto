@@ -1,4 +1,4 @@
-
+;; [[file:doc.org::*Каркас проекта][defsystem]]
 ;;;; moto.asd
 
 (asdf:defsystem #:moto
@@ -65,3 +65,4 @@
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ))
+;; defsystem ends here
