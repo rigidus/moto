@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>moto</title>
-<!-- 2014-10-30 Чт. 21:58 -->
+<!-- 2014-10-30 Чт. 22:46 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -2416,7 +2416,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 (restas:define-route main (<span style="color: #00cd00;">"/"</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    <span style="color: #00cd00;">"main"</span>))
+    <span style="color: #00cd00;">"&lt;h1&gt;&#1043;&#1083;&#1072;&#1074;&#1085;&#1072;&#1103; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072;&lt;/h1&gt;"</span>
+    ))
 </pre>
 </div>
 </div>
@@ -2780,18 +2781,39 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
        (tpl:root
         (list
          <span style="color: #0000ee; font-weight: bold;">:title</span> <span style="color: #00cd00;">"title"</span>
-         <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~}"</span>
-                          (list
-                           (tpl:dbgblock  (list <span style="color: #0000ee; font-weight: bold;">:dbgout</span> output))
-                           (tpl:userblock (list <span style="color: #0000ee; font-weight: bold;">:currentuser</span>
-                                                (<span style="color: #00cdcd; font-weight: bold;">if</span> (null *current-user*)
-                                                    <span style="color: #00cd00;">"none"</span>
-                                                    *current-user*)))
-                           (<span style="color: #00cdcd; font-weight: bold;">if</span> *current-user*
-                               (tpl:msgblock
-                                (list <span style="color: #0000ee; font-weight: bold;">:msgcnt</span> (get-undelivered-msg-cnt *current-user*)))
-                               <span style="color: #00cd00;">""</span>)
-                           (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval)))))))))
+         <span style="color: #0000ee; font-weight: bold;">:content</span>
+         (format
+          nil <span style="color: #00cd00;">"~{~A~}"</span>
+          (list
+           (tpl:dbgblock (list <span style="color: #0000ee; font-weight: bold;">:dbgout</span> output))
+           (tpl:userblock (list <span style="color: #0000ee; font-weight: bold;">:currentuser</span> (<span style="color: #00cdcd; font-weight: bold;">if</span> (null *current-user*)
+                                                 <span style="color: #00cd00;">"none"</span>
+                                                 *current-user*)))
+           (<span style="color: #00cdcd; font-weight: bold;">if</span> *current-user*
+               (tpl:msgblock
+                (list <span style="color: #0000ee; font-weight: bold;">:msgcnt</span> (get-undelivered-msg-cnt *current-user*)))
+               <span style="color: #00cd00;">""</span>)
+           (tpl:menublock
+            (list
+             <span style="color: #0000ee; font-weight: bold;">:menu</span>
+             (format
+              nil <span style="color: #00cd00;">"~{~A&lt;br /&gt;~}"</span>
+              (remove-if
+               #'null
+               (list
+                <span style="color: #00cd00;">"&lt;a href=\"/users\"&gt;&#1057;&#1087;&#1080;&#1089;&#1086;&#1082; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;&lt;/a&gt;"</span>
+                (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
+                  <span style="color: #00cd00;">"&lt;a href=\"/reg\"&gt;&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103;&lt;/a&gt;"</span>)
+                (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
+                  <span style="color: #00cd00;">"&lt;a href=\"/login\"&gt;&#1051;&#1086;&#1075;&#1080;&#1085;&lt;/a&gt;"</span>)
+                (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
+                  <span style="color: #00cd00;">"&#1041;&#1086;&#1083;&#1100;&#1096;&#1077; &#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1103;&#1084;"</span>)
+                (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
+                  (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;&#1052;&#1086;&#1081; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100;&lt;/a&gt;"</span> *current-user*))
+                (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
+                  <span style="color: #00cd00;">"&lt;a href=\"/logout\"&gt;&#1042;&#1099;&#1093;&#1086;&#1076;&lt;/a&gt;"</span>)
+                )))))
+           (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval)))))))))
 </pre>
 </div>
 
@@ -2983,6 +3005,12 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 {<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">msgblock}</span>
     &lt;<span style="color: #0000ee; font-weight: bold;">div</span> <span style="color: #cdcd00;">style</span>=<span style="color: #00cd00;">"border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;"</span>&gt;
         &#1053;&#1086;&#1074;&#1099;&#1093; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;: {$<span style="color: #cdcd00;">msgcnt</span> | noAutoescape}
+    &lt;/<span style="color: #0000ee; font-weight: bold;">div</span>&gt;
+{<span style="color: #00cd00; font-weight: bold;">/template</span>}
+
+{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">menublock}</span>
+    &lt;<span style="color: #0000ee; font-weight: bold;">div</span> <span style="color: #cdcd00;">style</span>=<span style="color: #00cd00;">"border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;"</span>&gt;
+        {$<span style="color: #cdcd00;">menu</span> | noAutoescape}
     &lt;/<span style="color: #0000ee; font-weight: bold;">div</span>&gt;
 {<span style="color: #00cd00; font-weight: bold;">/template</span>}
 </pre>
@@ -3221,7 +3249,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
    <span style="color: #00cd00;">=M-x load-file=</span> <span style="color: #00cd00;">=~/repo/moto/generators.el=</span>
 
-   &#1041;&#1077;&#1079; &#1101;&#1090;&#1086;&#1075;&#1086; &#1096;&#1072;&#1075;&#1072; &#1087;&#1088;&#1080; &#1075;&#1077;&#1085;&#1077;&#1088;&#1072;&#1094;&#1080;&#1080; &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1091;&#1090;&#1100;&#1089;&#1103; &#1085;&#1077;&#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1085;&#1077;&#1086;&#1073;&#1093;&#1086;&#1076;&#1080;&#1084;&#1099;&#1077;
+   &#1041;&#1077;&#1079; &#1101;&#1090;&#1086;&#1075;&#1086; &#1096;&#1072;&#1075;&#1072; &#1087;&#1088;&#1080; &#1075;&#1077;&#1085;&#1077;&#1088;&#1072;&#1094;&#1080;&#1080; &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1091;&#1090;&#1089;&#1103; &#1085;&#1077;&#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1085;&#1077;&#1086;&#1073;&#1093;&#1086;&#1076;&#1080;&#1084;&#1099;&#1077;
    &#1092;&#1091;&#1085;&#1082;&#1094;&#1080;&#1080;, &#1095;&#1090;&#1086; &#1074;&#1099;&#1079;&#1086;&#1074;&#1077;&#1090; &#1086;&#1096;&#1080;&#1073;&#1082;&#1091; &#1075;&#1077;&#1085;&#1077;&#1088;&#1072;&#1094;&#1080;&#1080;.
 
    &#1042;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1084; &#1075;&#1077;&#1085;&#1077;&#1088;&#1072;&#1094;&#1080;&#1102; &#1082;&#1086;&#1076;&#1072; (org-babel-tangle) &#1074; &#1086;&#1090;&#1082;&#1088;&#1099;&#1090;&#1086;&#1084; &#1074; emacs-&#1077;
@@ -3374,7 +3402,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-10-30 Чт. 21:58</p>
+<p class="date">Created: 2014-10-30 Чт. 22:46</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

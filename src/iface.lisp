@@ -17,18 +17,39 @@
        (tpl:root
         (list
          :title "title"
-         :content (format nil "~{~A~}"
-                          (list
-                           (tpl:dbgblock  (list :dbgout output))
-                           (tpl:userblock (list :currentuser
-                                                (if (null *current-user*)
-                                                    "none"
-                                                    *current-user*)))
-                           (if *current-user*
-                               (tpl:msgblock
-                                (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
-                               "")
-                           (tpl:retvalblock (list :retval retval)))))))))
+         :content
+         (format
+          nil "~{~A~}"
+          (list
+           (tpl:dbgblock (list :dbgout output))
+           (tpl:userblock (list :currentuser (if (null *current-user*)
+                                                 "none"
+                                                 *current-user*)))
+           (if *current-user*
+               (tpl:msgblock
+                (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
+               "")
+           (tpl:menublock
+            (list
+             :menu
+             (format
+              nil "~{~A<br />~}"
+              (remove-if
+               #'null
+               (list
+                "<a href=\"/users\">Список пользователей</a>"
+                (when (null *current-user*)
+                  "<a href=\"/reg\">Регистрация</a>")
+                (when (null *current-user*)
+                  "<a href=\"/login\">Логин</a>")
+                (when (null *current-user*)
+                  "Больше возможностей доступно залогиненным пользоватям")
+                (when *current-user*
+                  (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
+                (when *current-user*
+                  "<a href=\"/logout\">Выход</a>")
+                )))))
+           (tpl:retvalblock (list :retval retval)))))))))
 
 ;; Хелпер форм
 (in-package #:moto)
@@ -98,7 +119,9 @@
 
 (restas:define-route main ("/")
   (with-wrapper
-    "main"))
+    "<h1>Главная страница</h1>"
+    ))
+
 (in-package #:moto)
 
 (restas:define-route allusers ("/users")
