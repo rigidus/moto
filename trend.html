@@ -1,0 +1,2439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Модуль Trend и тесты</title>
+<!-- 2014-10-30 Чт. 20:50 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="rigidus" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+-*- fill-column: 92 -*-
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Модуль Trend и тесты</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Бизнес-процесс и цели</a></li>
+<li><a href="#sec-2">2. Пользователи и роли</a></li>
+<li><a href="#sec-3">3. Определения сущностей</a>
+<ul>
+<li><a href="#sec-3-1">3.1. Жилой комплекс (cmpx)</a></li>
+<li><a href="#sec-3-2">3.2. Очередь жилого комплекса (plex)</a></li>
+<li><a href="#sec-3-3">3.3. Планировка (flat)</a></li>
+<li><a href="#sec-3-4">3.4. Картинки очередей ЖК</a></li>
+<li><a href="#sec-3-5">3.5. Картинки планировок</a></li>
+<li><a href="#sec-3-6">3.6. Картинки хода строительства</a></li>
+<li><a href="#sec-3-7">3.7. Город (city)</a></li>
+<li><a href="#sec-3-8">3.8. Район (district)</a></li>
+<li><a href="#sec-3-9">3.9. Метро (metro)</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4. Загрузка данных</a></li>
+<li><a href="#sec-5">5. Точки входа</a></li>
+<li><a href="#sec-6">6. Interface</a>
+<ul>
+<li><a href="#sec-6-1">6.1. Страничка планировки</a>
+<ul>
+<li><a href="#sec-6-1-1">6.1.1. <span class="todo nilTODO">TODO</span> Pop-up</a></li>
+<li><a href="#sec-6-1-2">6.1.2. <span class="todo nilTODO">TODO</span> Версия для печати</a></li>
+<li><a href="#sec-6-1-3">6.1.3. <span class="todo nilTODO">TODO</span> Менеджер хочет накидать скидок</a></li>
+<li><a href="#sec-6-1-4">6.1.4. <span class="todo nilTODO">TODO</span> Pdf-версия</a></li>
+<li><a href="#sec-6-1-5">6.1.5. <span class="todo nilTODO">TODO</span> Отправить на почту</a></li>
+<li><a href="#sec-6-1-6">6.1.6. <span class="todo nilTODO">TODO</span> Рассказать в социальных сетях</a></li>
+<li><a href="#sec-6-1-7">6.1.7. Тип квартиры</a></li>
+<li><a href="#sec-6-1-8">6.1.8. Идентификатор квартиры</a></li>
+<li><a href="#sec-6-1-9">6.1.9. Цена при 100% оплате</a></li>
+<li><a href="#sec-6-1-10">6.1.10. Кнопка "подробности у менедждера"</a></li>
+<li><a href="#sec-6-1-11">6.1.11. <span class="todo nilTODO">TODO</span> Карточка комплекса</a></li>
+<li><a href="#sec-6-1-12">6.1.12. <span class="todo nilTODO">TODO</span> Характеристики квартиры</a></li>
+<li><a href="#sec-6-1-13">6.1.13. <span class="todo nilTODO">TODO</span> Добавить в сравнение</a></li>
+<li><a href="#sec-6-1-14">6.1.14. <span class="todo nilTODO">TODO</span> Добавить в избранное</a></li>
+<li><a href="#sec-6-1-15">6.1.15. <span class="todo nilTODO">TODO</span> Четыре ключевых преимущетва из ЖК</a></li>
+<li><a href="#sec-6-1-16">6.1.16. <span class="todo nilTODO">TODO</span> калькулятор ипотеки и рассрочки - отдельный кейс</a></li>
+<li><a href="#sec-6-1-17">6.1.17. <span class="todo nilTODO">TODO</span> Возможность баннеров (автобусные туры)</a></li>
+<li><a href="#sec-6-1-18">6.1.18. <span class="todo nilTODO">TODO</span> Инфо о жилом комплексе (потому что попадает в распечатку)</a></li>
+<li><a href="#sec-6-1-19">6.1.19. <span class="todo nilTODO">TODO</span> Сссылка "подробно о комплексе" - к ЖК</a></li>
+<li><a href="#sec-6-1-20">6.1.20. <span class="todo nilTODO">TODO</span> Квартиры в этом комплексе - ведут в карточку комплекса с открытыми двухкомнатными квартирами.</a></li>
+<li><a href="#sec-6-1-21">6.1.21. <span class="todo nilTODO">TODO</span> Сообщить об ошибке.</a></li>
+<li><a href="#sec-6-1-22">6.1.22. <span class="todo nilTODO">TODO</span> Когда было последнее обновление информации о квартире.</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#sec-7">7. Проект CRM-системы для отдела продаж</a></li>
+<li><a href="#sec-8">8. Сценарии использования</a>
+<ul>
+<li><a href="#sec-8-1">8.1. Поиск квартиры в новостройке</a>
+<ul>
+<li><a href="#sec-8-1-1">8.1.1. Простой поиск</a></li>
+<li><a href="#sec-8-1-2">8.1.2. Расширенный поиск</a></li>
+<li><a href="#sec-8-1-3">8.1.3. Поисковая выдача с картой</a></li>
+<li><a href="#sec-8-1-4">8.1.4. Поисковая выдача таблицей</a></li>
+<li><a href="#sec-8-1-5">8.1.5. Карточка ЖК</a></li>
+<li><a href="#sec-8-1-6">8.1.6. Карточка квартиры</a></li>
+</ul>
+</li>
+<li><a href="#sec-8-2">8.2. Просто карта</a></li>
+<li><a href="#sec-8-3">8.3. Поиск вторичного жилья</a></li>
+<li><a href="#sec-8-4">8.4. Ипотечный калькулятор в карточке квартиры</a></li>
+<li><a href="#sec-8-5">8.5. Ипотечный калькулятор в отдельном разделе</a></li>
+<li><a href="#sec-8-6">8.6. Калькулятор рассрочки</a></li>
+<li><a href="#sec-8-7">8.7. Запись на демонстрацию квартир</a></li>
+<li><a href="#sec-8-8">8.8. Похожие предложения</a></li>
+<li><a href="#sec-8-9">8.9. Продажа своей квартиры</a></li>
+<li><a href="#sec-8-10">8.10. Обращение в компанию</a></li>
+<li><a href="#sec-8-11">8.11. Подписка на рассылку</a></li>
+<li><a href="#sec-8-12">8.12. Сравнение</a></li>
+<li><a href="#sec-8-13">8.13. Избранное</a></li>
+<li><a href="#sec-8-14">8.14. "Просмотрено" - список объектов просмотренных пользователем ранее</a></li>
+<li><a href="#sec-8-15">8.15. Хранение и визуализация истории цен по объекту (!) (менеджер и возможно клиент)</a></li>
+<li><a href="#sec-8-16">8.16. <span class="todo nilTODO">TODO</span> Внесение данных контентщиком</a></li>
+<li><a href="#sec-8-17">8.17. <span class="todo nilTODO">TODO</span> Внесение данных объектов роботом</a></li>
+<li><a href="#sec-8-18">8.18. <span class="todo nilTODO">TODO</span> Контент-менеджер заполняет паспорт объекта</a></li>
+<li><a href="#sec-8-19">8.19. <span class="todo nilTODO">TODO</span> Скачать pdf</a></li>
+</ul>
+</li>
+<li><a href="#sec-9">9. Тесты</a></li>
+<li><a href="#sec-10">10. Текущие задачи по проекту</a></li>
+<li><a href="#sec-11">11. Остальное</a></li>
+<li><a href="#sec-12">12. Конкуренты</a></li>
+<li><a href="#sec-13">13. Инвест-привлекательность:</a></li>
+<li><a href="#sec-14">14. Вопросы</a></li>
+</ul>
+</div>
+</div>
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Бизнес-процесс и цели</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Мы делаем сайт-аггрегатор всех квартир-новостроек в С-Пб.
+</p>
+
+<p>
+Есть застройщики, они строят и продают квартиры. Но для того чтобы реализовать объем квартир они
+не только используют свой отдел продаж, но и привлекают агенства реализации квартир за комиссию
+(агентское вознаграждение)
+</p>
+
+<p>
+Многие застройщики работают с 3-5 крупных агенств, которые в свою очередь привлекают других
+субагентов за комиссию.
+</p>
+
+<p>
+Цель сайта для нашей компании - инициировать обращение посетителя в компанию.
+</p>
+
+<p>
+Цель пользователя - найти квартиру под его возможности и потребности. На сайте пользователю
+предоставляется не вся информация по квартире, чтобы он имел стимул обратиться в нашу компанию,
+где его обработает менеджер по продажам.
+</p>
+
+<p>
+Посетитель на сайте выполняет поиск квартиры (основной пользовательский сценарий). Посетитель
+может выполнить расчет ипотеки, продать свою квартиру, заказать просмотр квартир итп
+(дополнительные сценарии).
+</p>
+
+<p>
+Цель сайта для менеджера - найти квартиру под любые параметры клиента и обеспечить ответ на
+любые вопросы клиента по застройщику и квартире.
+</p>
+
+<p>
+Причины обращений частных клиентов:
+</p>
+<ul class="org-ul">
+<li>большой выбор и возможность получить ответы на все вопросы
+</li>
+<li>ипотечный центр (берет на себя сложности с ипотекой)
+</li>
+<li>показ квартир, который осуществляет компания:
+<ul class="org-ul">
+<li>индивидуальный показ (на автомобиле)
+</li>
+<li>автобусные туры (срез по району) в выходные
+</li>
+</ul>
+</li>
+<li>реализация квартир клиентов (чтобы купить квартиру, клиенту иногда надо
+продать квартиру)
+</li>
+<li>Люди не покупают квартиры с сайта. Им психологически сложно расстаться с такой большой суммой
+денег, поэтому они ищут иллюзии понимания этого рынка, которую предоставляет им менеджер
+компании.
+</li>
+<li>Вторичку вообще продают через знакомых агентов. Поэтому практически единственное бизнес-value
+агенств вторички - широта связей их менеджеров. Все продается только через знакомых.
+</li>
+</ul>
+
+<p>
+Взаимодействие с застройщиками:
+</p>
+<ul class="org-ul">
+<li>Застройщики регулярно отправляют информацию о объектах (или мы ее самостоятельно забираем). У
+поставщиков информация представлена в очень разных форматах. Мы конкурируем с отделом продаж
+застройщиков, поэтому они не заинтересованы предоставлять нам данные в нашем формате.
+</li>
+<li>Небольшая часть застройщиков предоставляет данные через т.н. "агентский портал", куда
+менеджер компании может попасть по логину и паролю.
+</li>
+<li>У ряда застройщиков есть достаточно актуальное наличие планировок на сайте.
+</li>
+<li>Мы сопровождаем договора клиентов с застройщиком.
+</li>
+</ul>
+
+<p>
+Взаимодействие с агентствами:
+</p>
+<ul class="org-ul">
+<li>Мы выступаем для суб-агентов в роли застройщика, отправляя им данные о квартирах.
+</li>
+<li>Отдел диллерских продаж принимает обращения от агенств, бронируют квартиры.
+</li>
+</ul>
+
+<p>
+Стратегия: Сумма проданных компанией квартир = кол-во обращений клиентов компании * конверсия
+отдела продаж * кол-во менеджеров.
+</p>
+
+<p>
+Новый сайт необходим чтобы увеличить конверсию клик-обращение, и конверсию отдела продаж.
+</p>
+
+<p>
+Компания также хочет чтобы сайт был для пользователя более ценным чем сайты застройщиков, для
+этого планируются дополнительные сервисы - ипотечный калькулятор, расчет инвестиционной
+привлекательности, итп.
+</p>
+
+<p>
+Компания считает что сможет также сократить время обучения используя новый сайт.
+</p>
+
+<p>
+Какая-то часть обработки информации будет производиться контент-менеджерами вручную. Необходимо
+заложить возможности для них. Например: У застройщика есть базовая цена квартиры и регламент -
+как рассчитывать стоимость квартир, иногда очень сложный. Менеджер по развитию проектов должен
+иметь возможность создавать набор правил применяющихся в определенном порядке.
+</p>
+
+<p>
+Менеджер по продаже должен иметь возможность на странице квартиры накидать скидок (иногородний
+покупатель, итп), влиящих на цену квартиры. Это очень важное бизнес-требование.
+</p>
+
+<p>
+С точки зрения бизнес-процесса, продуктом компании яаляется специалист по недвижимости. Его
+время покупает клиент. Поэтому компания заинтересована:
+</p>
+<ul class="org-ul">
+<li>Занять нишу ресурса, который позволяет выбрать квартиру в новостройке С-Пб.
+</li>
+<li>Сэкономить на обучении специалистов.
+</li>
+</ul>
+<p>
+Основные проблемы на этом пути:
+</p>
+<ul class="org-ul">
+<li>Товарная линейка ограничена
+</li>
+<li>Актуальность данных
+</li>
+<li>Юзабилити
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Пользователи и роли</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Пользователи объединены в роли по реализуемым на сайте сценариям. Некоторые сценарии
+являются общими для нескольких ролей, так например и <code>посетитель</code> и <code>менеджер</code> выполняют
+на сайте сценарии поиска квартир.
+</p>
+
+<p>
+Если кто-то логинится под логином и паролем под которым в данный момент сидит другой
+пользователь - реализуем перехват сессии - старый пользователь автоматически теряет
+сессию.
+</p>
+
+<p>
+Логин и пароль нужен и посетителю. Но он не будет регистрироваться, а скорее отправит на
+почту себе письмо со ссылкой на варианты которые он выбрал в избранном и сравнении.
+</p>
+
+<p>
+Роли и их типичные сценарии:
+</p>
+<ul class="org-ul">
+<li>Посетитель
+<ul class="org-ul">
+<li>Поиск квартиры
+</li>
+<li>Сравнение
+</li>
+<li>Добавление в избранное
+</li>
+<li>Печать
+</li>
+<li>&#x2026;
+</li>
+</ul>
+</li>
+<li>Менеджер компании
+<ul class="org-ul">
+<li>Поиск квартиры
+</li>
+<li>Сравнение
+</li>
+<li>Добавление в избранное - избранное нужно как-то шарить клиенту.
+</li>
+<li>Печать
+</li>
+<li>&#x2026;
+</li>
+</ul>
+</li>
+<li>Контент-менеджер
+<ul class="org-ul">
+<li>Забивает информацию в базу
+</li>
+</ul>
+</li>
+<li>Менеджеры по развитию (продукт-менеджеры)
+<ul class="org-ul">
+<li>Создают правила расчета цен
+</li>
+<li>Проверяют (пока раз в месяц) качество работы контент-менеджеров.
+</li>
+</ul>
+</li>
+<li>Менеджер субагента
+выпоняет примерно те же задачи что менеджер по продажам компании, но, возможно,
+использует
+меньше данных, чем сотрудник компании
+</li>
+<li>Администратор сайта
+<ul class="org-ul">
+<li>Управляет пользователями
+</li>
+</ul>
+</li>
+<li>Робот
+<ul class="org-ul">
+<li>Загрузка данных со сторонних сайтов
+</li>
+<li>Выгрузка данных на рекламные ресурсы
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Определения сущностей</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Соберем все сущности и автоматы
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;entity_and_automates_contents&gt;&gt;
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Жилой комплекс (cmpx)</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+Эта сущность нужна только чтобы объединять очереди жилого комплекса
+</p>
+
+<table id="cmpx_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 1:</span> Данные жилого комплекса</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">название</td>
+</tr>
+
+<tr>
+<td class="left">addr</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">адрес</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> cmpx <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;"</span>
+  &lt;&lt;cmpx_fields()&gt;&gt;)
+
+(make-cmpx-table)
+</pre>
+</div>
+
+<p>
+Где <code>cmpx-fields</code> (поля данных) определим как:
+</p>
+
+<pre class="example">
+((addr (or db-null varchar))
+ (addr (or db-null varchar)))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Очередь жилого комплекса (plex)</h3>
+<div class="outline-text-3" id="text-3-2">
+<table id="plex_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 2:</span> Данные очереди жилого комплекса</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">cmpx-id</td>
+<td class="left">integer</td>
+<td class="left">идентификатор жилого комплекса</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">название</td>
+</tr>
+
+<tr>
+<td class="left">addr</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">адрес</td>
+</tr>
+
+<tr>
+<td class="left">deadline</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">срок сдачи</td>
+</tr>
+
+<tr>
+<td class="left">district-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор района</td>
+</tr>
+
+<tr>
+<td class="left">metro-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор метро</td>
+</tr>
+
+<tr>
+<td class="left">distance</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">расстояние до метро</td>
+</tr>
+
+<tr>
+<td class="left">subsidy</td>
+<td class="left">(or db-null boolean)</td>
+<td class="left">субсидия</td>
+</tr>
+
+<tr>
+<td class="left">finishing</td>
+<td class="left">(or db-null boolean)</td>
+<td class="left">отделка</td>
+</tr>
+
+<tr>
+<td class="left">ipoteka</td>
+<td class="left">(or db-null boolean)</td>
+<td class="left">ипотека</td>
+</tr>
+
+<tr>
+<td class="left">installment</td>
+<td class="left">(or db-null boolean)</td>
+<td class="left">рассрочка</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> plex <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;"</span>
+  &lt;&lt;plex_fields()&gt;&gt;)
+
+(make-plex-table)
+</pre>
+</div>
+
+<p>
+Где <code>plex-fields</code> (поля данных) определим как:
+</p>
+
+<pre class="example">
+((name (or db-null varchar))
+ (addr (or db-null varchar))
+ (deadline (or db-null varchar))
+ (district-id (or db-null integer))
+ (metro-id (or db-null integer))
+ (distance (or db-null varchar))
+ (subsidy (or db-null boolean))
+ (finishing (or db-null boolean))
+ (ipoteka (or db-null boolean))
+ (installment (or db-null boolean)))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Планировка (flat)</h3>
+<div class="outline-text-3" id="text-3-3">
+<table id="flat_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 3:</span> Данные планировки</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">plex-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор очереди жилого комплекса</td>
+</tr>
+
+<tr>
+<td class="left">rooms</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">кол-во комнат</td>
+</tr>
+
+<tr>
+<td class="left">area-sum</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">общая площадь квартиры</td>
+</tr>
+
+<tr>
+<td class="left">area-living</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">жилая площадь квартиры</td>
+</tr>
+
+<tr>
+<td class="left">area-kitchen</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">площадь кухни</td>
+</tr>
+
+<tr>
+<td class="left">price</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">цена</td>
+</tr>
+
+<tr>
+<td class="left">balcon</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">балкон/лоджия</td>
+</tr>
+
+<tr>
+<td class="left">sanuzel</td>
+<td class="left">(or db-null boolean)</td>
+<td class="left">Санузел раздельный/совмещенный</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="flat_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;</span>
+(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> flat <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;"</span>
+  &lt;&lt;flat_fields()&gt;&gt;)
+
+(make-flat-table)
+
+&lt;&lt;create_flats&gt;&gt;
+</pre>
+</div>
+
+<p>
+Где <code>flat-fields</code> (поля данных) определим как:
+</p>
+
+<pre class="example">
+((rooms (or db-null integer))
+ (area-sum (or db-null integer))
+ (area-living (or db-null integer))
+ (area-kitchen (or db-null integer))
+ (price (or db-null integer))
+ (balcon (or db-null varchar))
+ (sanuzel (or db-null boolean)))
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="create_flats">(make-flat <span style="color: #0000ee; font-weight: bold;">:rooms</span> 1 <span style="color: #0000ee; font-weight: bold;">:price</span> 2589000)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Картинки очередей ЖК</h3>
+</div>
+<div id="outline-container-sec-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Картинки планировок</h3>
+</div>
+<div id="outline-container-sec-3-6" class="outline-3">
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Картинки хода строительства</h3>
+</div>
+<div id="outline-container-sec-3-7" class="outline-3">
+<h3 id="sec-3-7"><span class="section-number-3">3.7</span> Город (city)</h3>
+<div class="outline-text-3" id="text-3-7">
+<p>
+Город в котором находится объект
+</p>
+
+<table id="district_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 4:</span> Данные города</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">название города</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-3-8" class="outline-3">
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Район (district)</h3>
+<div class="outline-text-3" id="text-3-8">
+<p>
+Район города, в котором находится объект
+</p>
+
+<table id="district_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 5:</span> Данные роли</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">название района</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-3-9" class="outline-3">
+<h3 id="sec-3-9"><span class="section-number-3">3.9</span> Метро (metro)</h3>
+<div class="outline-text-3" id="text-3-9">
+<p>
+Метро неподалеку от объекта
+</p>
+
+<table id="metro_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 6:</span> Данные роли</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">название станции</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Загрузка данных</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+В папке <code>./data</code> лежат ЖК, в каждом из них есть подпапки, в которых лежат очереди. Очереди
+в себе содержат подпапки, содержащие изображения:
+</p>
+<ul class="org-ul">
+<li>Планировки
+</li>
+<li>Рендеры
+</li>
+<li>Ход строительства
+</li>
+</ul>
+<p>
+и файлы:
+</p>
+<ul class="org-ul">
+<li>паспорт.txt - паспорт объекта
+</li>
+<li>описание.txt - описание объекта
+</li>
+<li>местоположение
+</li>
+<li>комфорт
+</li>
+<li><p>
+квартиры, в формате CSV
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="left">корпус</td>
+<td class="left">тип</td>
+<td class="left">метраж</td>
+<td class="left">жилая площадь</td>
+<td class="left">площадь кухни</td>
+<td class="left">балкон/лоджия</td>
+<td class="left">санузел</td>
+<td class="left">цена</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+
+
+<p>
+Напишем проход по всем этим директориям
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="loader">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">macrolet</span> ((<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> ((file files) <span style="color: #00cd00;">&amp;body</span> body)
+             `(awhen (find ,file ,files <span style="color: #0000ee; font-weight: bold;">:test</span> #'string=)
+                ,@body))
+           (<span style="color: #00cdcd; font-weight: bold;">loop-dir</span> (var (<span style="color: #00cd00;">&amp;rest</span> path) <span style="color: #00cd00;">&amp;body</span> body)
+              `(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> ,var <span style="color: #0000ee; font-weight: bold;">:in</span> (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (car (last (ppcre:split <span style="color: #00cd00;">"\/"</span> (directory-namestring x)))))
+                                           (explore-dir (format nil <span style="color: #00cd00;">"~A~{~A/~}*.*"</span> *data-path* (list ,@path)))) <span style="color: #0000ee; font-weight: bold;">:do</span>
+                  (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (_ files)
+                      (explore-dir (format nil <span style="color: #00cd00;">"~A~{~A/~}~A/*.*"</span> *data-path* (list ,@path) ,var))
+                    (<span style="color: #00cdcd; font-weight: bold;">declare</span> (ignore _))
+                    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((files (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (car (last (ppcre:split <span style="color: #00cd00;">"\/"</span> (file-namestring x)))))
+                                         files)))
+                      ,@body)))))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1077; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;..</span>
+  (<span style="color: #00cdcd; font-weight: bold;">loop-dir</span> cmpx ()
+     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;, &#1080; &#1079;&#1072;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1084; &#1072;&#1076;&#1088;&#1077;&#1089;, &#1077;&#1089;&#1083;&#1080; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1085;&#1072;&#1081;&#1090;&#1080; &#1089;&#1086;&#1086;&#1090;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1091;&#1102;&#1097;&#1080;&#1081; &#1092;&#1072;&#1081;&#1083;</span>
+       (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cmpx-id (id (make-cmpx <span style="color: #0000ee; font-weight: bold;">:name</span> cmpx <span style="color: #0000ee; font-weight: bold;">:addr</span> (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1072;&#1076;&#1088;&#1077;&#1089;.txt"</span> files)
+                                                        (alexandria:read-file-into-string (format nil <span style="color: #00cd00;">"~A~A/~A"</span> *data-path* cmpx it)))))))
+         <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;</span>
+         (<span style="color: #00cdcd; font-weight: bold;">loop-dir</span> plex (cmpx)
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
+              (<span style="color: #00cdcd; font-weight: bold;">let</span> ((plex-id (id (make-plex <span style="color: #0000ee; font-weight: bold;">:name</span> plex <span style="color: #0000ee; font-weight: bold;">:cmpx-id</span> cmpx-id))))
+                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;.txt"</span> files)
+                  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1090;&#1100;, &#1088;&#1072;&#1079;&#1073;&#1080;&#1090;&#1100; &#1087;&#1086;&#1089;&#1090;&#1088;&#1086;&#1095;&#1085;&#1086;, &#1086;&#1090;&#1076;&#1077;&#1083;&#1080;&#1090;&#1100; &#1082;&#1083;&#1102;&#1095;&#1080; &#1086;&#1090; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1081;, &#1091;&#1073;&#1088;&#1072;&#1090;&#1100; &#1074;&#1077;&#1076;&#1091;&#1097;&#1080;&#1077;, &#1074;&#1077;&#1076;&#1086;&#1084;&#1099;&#1077; &#1080; &#1087;&#1086;&#1074;&#1090;&#1086;&#1088;&#1103;&#1102;&#1097;&#1080;&#1077;&#1089;&#1103; &#1087;&#1088;&#1086;&#1073;&#1077;&#1083;&#1099;</span>
+                  (print
+                   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                               (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (y)
+                                           (string-trim '(#\NewLine #\Tab #\Space )
+                                                        (ppcre:regex-replace-all <span style="color: #00cd00;">"\\s+"</span> y <span style="color: #00cd00;">" "</span>)))
+                                       (ppcre:split <span style="color: #00cd00;">":"</span> x)))
+                           (ppcre:split #\Newline (alexandria:read-file-into-string
+                                                   (format nil <span style="color: #00cd00;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))))
+                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;.txt"</span> files)
+                  (print it))
+                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;.txt"</span> files)
+                  (print it))
+                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;.txt"</span> files)
+                  (print it))
+                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1077;&#1090;&#1100;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1076;&#1077;&#1090;&#1080;.txt"</span> files)
+                  (print it))
+                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;.csv"</span> files)
+                  (print it))
+                )))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Точки входа</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Соберем шаблоны:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="trend_tpl"><span style="color: #cd0000;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
+{<span style="color: #00cd00; font-weight: bold;">namespace</span> <span style="color: #0000ee; font-weight: bold;">trendtpl</span>}
+
+&lt;&lt;<span style="color: #0000ee; font-weight: bold;">trendtpl_contents</span>&gt;&gt;
+</pre>
+</div>
+
+<p>
+Скомпилируем шаблоны при подготовке модуля
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_prepare">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
+(closure-template:compile-template
+ <span style="color: #0000ee; font-weight: bold;">:common-lisp-backend</span>
+ (pathname
+  (concatenate 'string *base-path* <span style="color: #00cd00;">"mod/trend/trend-tpl.htm"</span>)))
+</pre>
+</div>
+
+<p>
+Соберем контроллеры и все функции, которые контроллеры вызывают
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_fn">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;flat_entity&gt;&gt;
+
+&lt;&lt;trend_fn_contents&gt;&gt;
+
+&lt;&lt;trend_test&gt;&gt;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Interface</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+одна и та же планировка может быть в двух очередях и даже в двух комплексах
+</p>
+</div>
+
+<div id="outline-container-sec-6-1" class="outline-3">
+<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Страничка планировки</h3>
+<div class="outline-text-3" id="text-6-1">
+<p>
+<a href="pics/Trend_apartment02.png">Дизайн-макет: Карточка квартиры</a>
+</p>
+
+<p>
+<a href="pics/Trend_apartment_print.png">Дизайн-макет: Карточка квартиры - версия для печати</a>
+</p>
+
+<p>
+Соберем шаблоны страницы планировки
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="trendtpl_contents">{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">flatpage}</span>
+    &lt;&lt;<span style="color: #0000ee; font-weight: bold;">flatpage_tpl_contents</span>&gt;&gt;
+{<span style="color: #00cd00; font-weight: bold;">/template</span>}
+</pre>
+</div>
+
+<p>
+Соберем определения страниц
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">restas:define-route</span> flat (<span style="color: #00cd00;">"/flat/:flatid"</span>)
+  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((flat (get-flat 1)))
+      (trendtpl:flatpage
+       (list
+        &lt;&lt;flatpage_contents&gt;&gt;
+        )))))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-1" class="outline-4">
+<h4 id="sec-6-1-1"><span class="section-number-4">6.1.1</span> <span class="todo TODO">TODO</span> Pop-up</h4>
+<div class="outline-text-4" id="text-6-1-1">
+<p>
+Есть вариант открывать карточку квартиры в pop-up окне. Но на каждую квартиру должна
+быть прямая ссылка - очевидно надо менять адресную строку.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-2" class="outline-4">
+<h4 id="sec-6-1-2"><span class="section-number-4">6.1.2</span> <span class="todo TODO">TODO</span> Версия для печати</h4>
+<div class="outline-text-4" id="text-6-1-2">
+<p>
+Также должна быть версия для печати, чтобы распечатать интересующий вариант.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-3" class="outline-4">
+<h4 id="sec-6-1-3"><span class="section-number-4">6.1.3</span> <span class="todo TODO">TODO</span> Менеджер хочет накидать скидок</h4>
+<div class="outline-text-4" id="text-6-1-3">
+<p>
+Менеджер по продаже должен иметь возможность на странице квартиры накидать скидок (иногородний
+покупатель, итп), влиящих на цену квартиры. Это очень важное бизнес-требование.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-6-1-4" class="outline-4">
+<h4 id="sec-6-1-4"><span class="section-number-4">6.1.4</span> <span class="todo TODO">TODO</span> Pdf-версия</h4>
+</div>
+<div id="outline-container-sec-6-1-5" class="outline-4">
+<h4 id="sec-6-1-5"><span class="section-number-4">6.1.5</span> <span class="todo TODO">TODO</span> Отправить на почту</h4>
+</div>
+<div id="outline-container-sec-6-1-6" class="outline-4">
+<h4 id="sec-6-1-6"><span class="section-number-4">6.1.6</span> <span class="todo TODO">TODO</span> Рассказать в социальных сетях</h4>
+</div>
+<div id="outline-container-sec-6-1-7" class="outline-4">
+<h4 id="sec-6-1-7"><span class="section-number-4">6.1.7</span> Тип квартиры</h4>
+<div class="outline-text-4" id="text-6-1-7">
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">{$<span style="color: #cdcd00;">rooms</span> | noAutoescape}
+&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+</pre>
+</div>
+
+<p>
+Тип квартиры показывается исходя из кол-ва комнат:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:rooms</span> (<span style="color: #00cdcd; font-weight: bold;">let</span> ((r (rooms flat)))
+         (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((equal 0 r) <span style="color: #00cd00;">"&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;-&#1089;&#1090;&#1091;&#1076;&#1080;&#1103;"</span>)
+               ((equal 1 r) <span style="color: #00cd00;">"1-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               ((equal 2 r) <span style="color: #00cd00;">"2-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               ((equal 3 r) <span style="color: #00cd00;">"3-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               ((equal 4 r) <span style="color: #00cd00;">"4-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               (t (err <span style="color: #00cd00;">"unknown rooms value"</span>))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-8" class="outline-4">
+<h4 id="sec-6-1-8"><span class="section-number-4">6.1.8</span> Идентификатор квартиры</h4>
+<div class="outline-text-4" id="text-6-1-8">
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">id: {$<span style="color: #cdcd00;">id</span> | noAutoescape}
+&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+</pre>
+</div>
+
+<p>
+Идентификатор квартиры показывается для быстрого доступа
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:id</span> (id flat)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-9" class="outline-4">
+<h4 id="sec-6-1-9"><span class="section-number-4">6.1.9</span> Цена при 100% оплате</h4>
+<div class="outline-text-4" id="text-6-1-9">
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&#1062;&#1077;&#1085;&#1072; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099; &#1087;&#1088;&#1080; 100% &#1086;&#1087;&#1083;&#1072;&#1090;&#1077;: {$<span style="color: #cdcd00;">price</span> | noAutoescape}
+&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:price</span> (price flat)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-10" class="outline-4">
+<h4 id="sec-6-1-10"><span class="section-number-4">6.1.10</span> Кнопка "подробности у менедждера"</h4>
+<div class="outline-text-4" id="text-6-1-10">
+<p>
+ссылка на контакты
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&lt;<span style="color: #0000ee; font-weight: bold;">a</span> <span style="color: #cdcd00;">href</span>=<span style="color: #00cd00;">"/contacts"</span>&gt;&#1055;&#1086;&#1076;&#1088;&#1086;&#1073;&#1085;&#1086;&#1089;&#1090;&#1080; &#1091; &#1084;&#1077;&#1085;&#1077;&#1076;&#1078;&#1077;&#1088;&#1072;&lt;/<span style="color: #0000ee; font-weight: bold;">a</span>&gt;
+&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-6-1-11" class="outline-4">
+<h4 id="sec-6-1-11"><span class="section-number-4">6.1.11</span> <span class="todo TODO">TODO</span> Карточка комплекса</h4>
+<div class="outline-text-4" id="text-6-1-11">
+<p>
+Справа карточка комплекса идентичная поисковой выдачи - она оттуда
+и берется.
+</p>
+
+<ul class="org-ul">
+<li>Планировка квартиры - рисунок
+</li>
+<li>План этажа
+</li>
+<li>Карта на который мы отмечаем где в корпусе расположена
+квартира - чтобы сориентироваться по виду.
+</li>
+<li>Карта с минимальной ценой
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-12" class="outline-4">
+<h4 id="sec-6-1-12"><span class="section-number-4">6.1.12</span> <span class="todo TODO">TODO</span> Характеристики квартиры</h4>
+<div class="outline-text-4" id="text-6-1-12">
+<p>
+Нужно иметь возможность добавлять сюда параметры, но в первом прототипе мы это пока не
+делаем
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+&lt;<span style="color: #0000ee; font-weight: bold;">div</span> <span style="color: #cdcd00;">style</span>=<span style="color: #00cd00;">"border: 1px solid blue;"</span>&gt;
+    &#1050;&#1086;&#1083;_&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;: {$<span style="color: #cdcd00;">rooms</span> | noAutoescape}
+    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+    &#1046;&#1080;&#1083;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;: {$<span style="color: #cdcd00;">area</span>_living | noAutoescape}
+    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+    &#1054;&#1073;&#1097;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;: {$<span style="color: #cdcd00;">area</span>_sum | noAutoescape}
+    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+    &#1055;&#1083;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1082;&#1091;&#1093;&#1085;&#1080;: {$<span style="color: #cdcd00;">area</span>_kitchen | noAutoescape}
+    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+    &#1057;&#1072;&#1085;&#1091;&#1079;&#1077;&#1083;: {$<span style="color: #cdcd00;">sanuzel</span> | noAutoescape}
+    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+    &#1054;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;: {$<span style="color: #cdcd00;">finishing</span> | noAutoescape}
+    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+    &#1041;&#1072;&#1083;&#1082;&#1086;&#1085;: {$<span style="color: #cdcd00;">balcon</span> | noAutoescape}
+    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+&lt;/<span style="color: #0000ee; font-weight: bold;">div</span>&gt;
+&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:rooms</span> (rooms flat)
+<span style="color: #0000ee; font-weight: bold;">:area_living</span> (area-living flat)
+<span style="color: #0000ee; font-weight: bold;">:area_sum</span> (area-sum flat)
+<span style="color: #0000ee; font-weight: bold;">:area_kitchen</span> (area-kitchen flat)
+<span style="color: #0000ee; font-weight: bold;">:sanuzel</span> (sanuzel flat)
+<span style="color: #0000ee; font-weight: bold;">:finishing</span> (finishing flat)
+<span style="color: #0000ee; font-weight: bold;">:balcon</span> (balcon flat)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1-13" class="outline-4">
+<h4 id="sec-6-1-13"><span class="section-number-4">6.1.13</span> <span class="todo TODO">TODO</span> Добавить в сравнение</h4>
+</div>
+<div id="outline-container-sec-6-1-14" class="outline-4">
+<h4 id="sec-6-1-14"><span class="section-number-4">6.1.14</span> <span class="todo TODO">TODO</span> Добавить в избранное</h4>
+</div>
+<div id="outline-container-sec-6-1-15" class="outline-4">
+<h4 id="sec-6-1-15"><span class="section-number-4">6.1.15</span> <span class="todo TODO">TODO</span> Четыре ключевых преимущетва из ЖК</h4>
+</div>
+<div id="outline-container-sec-6-1-16" class="outline-4">
+<h4 id="sec-6-1-16"><span class="section-number-4">6.1.16</span> <span class="todo TODO">TODO</span> калькулятор ипотеки и рассрочки - отдельный кейс</h4>
+</div>
+<div id="outline-container-sec-6-1-17" class="outline-4">
+<h4 id="sec-6-1-17"><span class="section-number-4">6.1.17</span> <span class="todo TODO">TODO</span> Возможность баннеров (автобусные туры)</h4>
+</div>
+<div id="outline-container-sec-6-1-18" class="outline-4">
+<h4 id="sec-6-1-18"><span class="section-number-4">6.1.18</span> <span class="todo TODO">TODO</span> Инфо о жилом комплексе (потому что попадает в распечатку)</h4>
+</div>
+<div id="outline-container-sec-6-1-19" class="outline-4">
+<h4 id="sec-6-1-19"><span class="section-number-4">6.1.19</span> <span class="todo TODO">TODO</span> Сссылка "подробно о комплексе" - к ЖК</h4>
+</div>
+<div id="outline-container-sec-6-1-20" class="outline-4">
+<h4 id="sec-6-1-20"><span class="section-number-4">6.1.20</span> <span class="todo TODO">TODO</span> Квартиры в этом комплексе - ведут в карточку комплекса с открытыми двухкомнатными квартирами.</h4>
+</div>
+<div id="outline-container-sec-6-1-21" class="outline-4">
+<h4 id="sec-6-1-21"><span class="section-number-4">6.1.21</span> <span class="todo TODO">TODO</span> Сообщить об ошибке.</h4>
+</div>
+<div id="outline-container-sec-6-1-22" class="outline-4">
+<h4 id="sec-6-1-22"><span class="section-number-4">6.1.22</span> <span class="todo TODO">TODO</span> Когда было последнее обновление информации о квартире.</h4>
+<div class="outline-text-4" id="text-6-1-22">
+<p>
+Обновлено и дату. Чтобы менеджер видел актуальность. Показывать ли клиентам?
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Проект CRM-системы для отдела продаж</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+Обращение стоит денег, его надо оформлять в объект базы CRM - чтобы
+не терялись. В первую очередь необходимо зафиксировать телефон, с
+которого звонит клиент
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Сценарии использования</h2>
+<div class="outline-text-2" id="text-8">
+</div><div id="outline-container-sec-8-1" class="outline-3">
+<h3 id="sec-8-1"><span class="section-number-3">8.1</span> Поиск квартиры в новостройке</h3>
+<div class="outline-text-3" id="text-8-1">
+<p>
+Клиент может искать квартиру используя <code>простой поиск</code> или <code>расширенный поиск</code>. В сложном
+поиске больше параметров. В обоих случаях он получает одну и ту же выдачу, которая может быть
+представлена в двух разных форматах: <code>поисковая выдача с картой</code> или <code>поисковая выдача
+   таблицей</code>.
+</p>
+
+<p>
+Экпертов также часто интересует id квартиры - при вводе в строку поиска числового значения,
+находится должен искомый объект.
+</p>
+</div>
+
+<div id="outline-container-sec-8-1-1" class="outline-4">
+<h4 id="sec-8-1-1"><span class="section-number-4">8.1.1</span> Простой поиск</h4>
+<div class="outline-text-4" id="text-8-1-1">
+<p>
+<a href="pics/Trend_mainpage.png">Дизайн-макет: Простой поиск на главной странице</a>
+</p>
+
+<p>
+При поиске клиенту интересны следующие параметры:
+</p>
+<ul class="org-ul">
+<li>Район
+</li>
+<li>Метро
+</li>
+<li>Название жилищного комплекса
+</li>
+<li>Количество комнат
+</li>
+<li>Срок сдачи (не позднее)
+</li>
+<li>Стоимость квартиры
+</li>
+</ul>
+
+<p>
+Требуется выводить подсказки в поисковой строке
+<a href="pics/Trend_mainpage07.png">Пример подсказок в дизайн-макете</a>
+</p>
+
+<p>
+Пользователь, выполнивший простой поиск попадает в выдачу.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-1-2" class="outline-4">
+<h4 id="sec-8-1-2"><span class="section-number-4">8.1.2</span> Расширенный поиск</h4>
+<div class="outline-text-4" id="text-8-1-2">
+<p>
+<a href="pics/Trend_mainpage_search.png">Дизайн-макет: Расширенный поиск на главной странице</a>
+</p>
+
+<p>
+Все тоже самое что и в <code>простом поиске</code>, но:
+</p>
+
+<ul class="org-ul">
+<li>Вместо "Срока сдачи" можно задать интервал (от &#x2026; до &#x2026;) тоже списком выбора
+</li>
+<li>Добавляется блок "ипотека", в котором есть "первоначальный взнос" и "ежемесячный
+платеж". Клиент должен ввести число либо в одно поле либо в другое.
+</li>
+<li>Рассрочка - либо "первоначальный взнос" либо "ежемесячный платеж". Если клиент готов
+рассматривать или ипотеку или рассрочку - то в выдаче мы выдаем и те и другие варианты
+</li>
+<li>Метраж (от &#x2026; до &#x2026;)
+</li>
+<li>Субсидия (галочка) - квартиру можно приобрести с помощью жилищного сертификата, который
+покрывает часть стоимости квартиры. Это можно объяснять всплывающей подсказкой
+</li>
+<li>Отделка (галочка) - если клиент ставит галочку, то мы выдаем только те квартиры в которых
+есть обои, раковины и можно сразу жить.
+</li>
+<li>Инвестиционная привлекательность удорожание в процентах или предоставить форму с двумя полями:
+<ul class="org-ul">
+<li>Сумма которую хочет инвестировать клиент
+</li>
+<li>Срок на который хочет инвестировать клиент (поквартально)
+</li>
+</ul>
+</li>
+</ul>
+
+
+
+<p>
+Также нужен поиск по расстоянию до метро, но мы будем стараться чтобы этот параметр был
+доступен только для менеджера компании
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-1-3" class="outline-4">
+<h4 id="sec-8-1-3"><span class="section-number-4">8.1.3</span> Поисковая выдача с картой</h4>
+<div class="outline-text-4" id="text-8-1-3">
+<p>
+<a href="pics/Trend_search12_map.png">Дизайн-макет: Поисковая выдача с картой</a>
+</p>
+
+<p>
+Выдача отдается в две колонки - слева список, включающий:
+</p>
+<ul class="org-ul">
+<li>Фото комплекса
+</li>
+<li>Название
+</li>
+<li>Район
+</li>
+<li>Метро
+</li>
+<li>Расстояние до метро
+</li>
+<li>Срок сдачи
+</li>
+<li>Тип отделки
+</li>
+<li>Ипотека (если есть)
+</li>
+<li>Рассрочка (если есть)
+</li>
+<li>Цена квартир которых он искал (от&#x2026;). Если он в поиске выбрал и
+однушку и двушку и трешку показывается самое дешевое с метражом
+</li>
+<li>Цена всех вариантов (однушку и двушку и трешку), по клику на
+плюсике (с метражом)
+</li>
+<li>В избранное
+</li>
+<li>В сравнение
+</li>
+</ul>
+
+<p>
+В правой колонке выводятся маркеры на карте, содержащие цену и синхронизированные со списком
+выдачи (рамки при наведении итп)
+</p>
+
+<p>
+При этом при скроллировании карта остается на месте, а выдача прокручивается.
+</p>
+
+<p>
+Сортировать можно:
+</p>
+<ul class="org-ul">
+<li>по цене туда и обратно
+</li>
+<li>по сроку сдачи
+</li>
+<li>по району
+</li>
+<li>по станции метро
+</li>
+<li>возможно, по расстоянию до метро
+</li>
+</ul>
+
+<p>
+Надо указывать число найденных комплексов.
+</p>
+
+<p>
+Возможность переключения между выдачей на карте и выдачей списком
+</p>
+
+<p>
+Нажимая на элемент выдачи он попадает в карточку ЖК
+</p>
+
+<p>
+После выдачи идет блок похожих предложений, но возможно откажемся от этого блока здесь.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-1-4" class="outline-4">
+<h4 id="sec-8-1-4"><span class="section-number-4">8.1.4</span> Поисковая выдача таблицей</h4>
+<div class="outline-text-4" id="text-8-1-4">
+<p>
+<a href="pics/Trend_search11_list.png">Дизайн-макет: Поисковая выдача таблицей</a>
+</p>
+
+<p>
+Выдается таблица с колонками:
+</p>
+<ul class="org-ul">
+<li>Район
+</li>
+<li>Название ЖК
+</li>
+<li>Станция метро
+</li>
+<li>До метро
+</li>
+<li>Срок сдачи
+</li>
+<li>Отделка
+</li>
+<li>Ипотека/Рассрочка
+</li>
+<li>Кол-во комнат
+</li>
+<li>Общая площадь
+</li>
+<li>Цена с доп. скидками
+</li>
+<li>Цена всех вариантов (однушку и двушку и трешку), по клику на
+плюсике (с метражом)
+</li>
+<li>В избранное
+</li>
+<li>В сравнение
+</li>
+</ul>
+
+<p>
+Сортировать необходимо по столбцам.
+</p>
+
+<p>
+Нажимая на элемент выдачи он попадает в карточку ЖК
+</p>
+
+<p>
+После выдачи идет блок похожих предложений, но возможно откажемся от этого блока здесь.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-1-5" class="outline-4">
+<h4 id="sec-8-1-5"><span class="section-number-4">8.1.5</span> Карточка ЖК</h4>
+<div class="outline-text-4" id="text-8-1-5">
+<p>
+На самом деле это не карточка Жилищного Комплекса, а скорее карточка одной из его очередей,
+т.к. большинство параметров различаются между очередями. С другой стороны все очереди одного
+комплекса между собой связаны, так что нужна какая-то обьединяющая сущность.
+</p>
+
+<p>
+<a href="pics/Trend_complex20.png">Дизайн-макет: Карточка ЖК</a>
+</p>
+
+<p>
+Если пользователь попал на эту страницу НЕ через поиск - ему надо
+показать кнопку "К поиску (378)", которая содержит кол-во
+вариантов при самых широких параметров поиска.
+</p>
+
+<p>
+Есть пользователь попал на эту страницу из выборки - эта кнопка
+должна вести на его выборку и содержать кол-во вариантов его
+выборки.
+</p>
+
+<p>
+Тут может быть мемоизация и предвычисления, которые мы на первом
+этапе можем не делать.
+</p>
+
+<p>
+Если пользователь зашел на этот обьект - этот объект нужно
+добавить в его "просмотренные".
+</p>
+
+<p>
+Отсюда пользователь может перейти к сценарию "сравнение",
+"добавить в избранное", "распечатать объект".
+</p>
+
+<p>
+Когда все квартиры в очереди закончились необходимо не удалять
+очередь с сайта, а убирать их в архив, чтобы она не показывалась в
+поиске, но были доступна администратору.
+</p>
+
+<p>
+Видим:
+</p>
+<ul class="org-ul">
+<li>Название ЖК
+</li>
+<li>Метро
+</li>
+<li>Расстояние до метро
+</li>
+<li>Район
+</li>
+<li>Улица (или пересчение улиц)
+</li>
+
+<li>Картинки (неограниченно, можно листать)
+</li>
+<li>Минимальные цены в этом ЖК в формате "тип квартиры - цена -
+метры". При выборе этой ссылки мы сдвигаемся по странице до
+раздела "планировки и цены" где разворачивается аккордеон с
+выбранным им вариантом".
+</li>
+<li>Возможность выбора очереди (с инфой о сроке сдачи)
+Когда пользователь выбирает другую очередь - он переходит на
+другую карточку (здесь очевидно нужна таблица связи)
+</li>
+<li>Возможность выбора корпуса
+От корпуса зависят цены, карта корпусов, цены в разделе
+"планировки и цены", "преимущества"
+</li>
+<li>Кнопка "все корпуса и цены", открывает pop-up "Очереди и корпуса"
+</li>
+<li>Преимущества
+</li>
+<li>Карта расположения корпусов комплекса
+</li>
+<li>Карта объекта с ценой
+</li>
+<li>Раздел планировки и цены
+<ul class="org-ul">
+<li>Форма поиска по квартирам (внутри квартир этой карточки)
+<ul class="org-ul">
+<li>Сортировка по цене (убыванию и возрастанию)
+</li>
+<li>Выбор корпуса
+</li>
+<li>Выбор кол-ва комнат
+</li>
+<li>Стоимость квартиры (от .. до .. тыс.руб)
+</li>
+<li>Первоначальный взнос, от &#x2026; до &#x2026;
+</li>
+<li>Метраж
+</li>
+<li>Кнопка поиска
+</li>
+</ul>
+</li>
+<li><p>
+Выдача, в аккордеоне, сгруппированные по кол-ву комнат, колонки
+</p>
+<ul class="org-ul">
+<li>Номер корпуса
+</li>
+<li>Кол-во комнат
+</li>
+<li>Общая площадь
+</li>
+<li>Жилая площадь
+</li>
+<li>Площадь кухни
+</li>
+<li>Балкон/лоджия
+</li>
+<li>Санузел
+</li>
+<li>Отделка
+</li>
+<li>Первый взнос от ..
+</li>
+<li>Цена с доп. скидками
+</li>
+<li>Инвест. привлекательность
+</li>
+<li>Добавить в сравнение?
+</li>
+<li>Избранное?
+</li>
+<li>Подробнее
+</li>
+</ul>
+<p>
+При клике на ячейку в таблице или на кнопку "подробнее" мы
+попадаем в карточку квартиры.
+</p>
+</li>
+</ul>
+</li>
+<li>Картинки (еще раз)
+</li>
+<li>Описание
+</li>
+<li>Паспорт обьекта
+<ul class="org-ul">
+<li>Список параметров-значений, и параметры и значения могут добавлять контент-менеджеры.
+</li>
+</ul>
+</li>
+<li>Ход строительства диаграмма месяцев по годам, к каждому месяцу
+несколько фотографий
+</li>
+<li>Кнопка "записаться на тур бесплатно"
+</li>
+<li>Похожие предложения
+Как выбирать и группировать - непонятно.
+Нужно сделать алгоритм и вручную.
+</li>
+<li>Регламент (условия продажи: 100% оплата, рассрочка, ипотека). В дизайне его нет. Надо ли его
+показывать клиентам.
+</li>
+<li>Дата обновления. Показывать ли это клиентам?
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-8-1-6" class="outline-4">
+<h4 id="sec-8-1-6"><span class="section-number-4">8.1.6</span> Карточка квартиры</h4>
+<div class="outline-text-4" id="text-8-1-6">
+<p>
+<a href="pics/Trend_apartment02.png">Дизайн-макет: Карточка квартиры</a>
+</p>
+
+<p>
+<a href="pics/Trend_apartment_print.png">Дизайн-макет: Карточка квартиры - версия для печати</a>
+</p>
+
+<p>
+Есть вариант открывать карточку квартиры в pop-up окне. Но на каждую квартиру должна быть
+прямая ссылка - очевидно надо менять адресную строку. Также должна быть версия для печати,
+чтобы распечатать интересующий вариант.
+</p>
+
+<p>
+Менеджер по продаже должен иметь возможность на странице квартиры накидать скидок (иногородний
+покупатель, итп), влиящих на цену квартиры. Это очень важное бизнес-требование.
+</p>
+
+<p>
+Видим:
+</p>
+<ul class="org-ul">
+<li>Пдф
+</li>
+<li>Печать
+</li>
+<li>Почта
+</li>
+<li>Соцсети (шаринг)
+</li>
+<li>Тип квартиры (студия, 1комнатная)
+</li>
+<li>id
+</li>
+<li>Цена при 100% оплате
+</li>
+<li>Кнопка "подробности у менедждера" - ссылка на контакты
+</li>
+</ul>
+
+<p>
+Справа карточка комплекса идентичная поисковой выдачи - она оттуда
+и берется.
+</p>
+
+<ul class="org-ul">
+<li>Планировка квартиры - рисунок
+</li>
+<li>План этажа
+</li>
+<li>Карта на который мы отмечаем где в корпусе расположена
+квартира - чтобы сориентироваться по виду.
+</li>
+<li>Карта с минимальной ценой
+</li>
+
+<li><p>
+Характеристики квартиры
+</p>
+<ul class="org-ul">
+<li>Кол-во комнат
+</li>
+<li>жилая площадь
+</li>
+<li>общая площадь
+</li>
+<li>Пллощадь кухни
+</li>
+<li>Санузел
+</li>
+<li>Отделка
+</li>
+<li>Балкон
+</li>
+</ul>
+<p>
+Нужно иметь возможность добавлять сюда параметры
+</p>
+</li>
+
+<li>Сравнение
+</li>
+<li>Избранное
+</li>
+
+<li>Четыре ключевых преимущетва из ЖК
+</li>
+
+<li>калькулятор ипотеки и рассрочки - отдельный кейс
+</li>
+
+<li>Возможность баннеров (автобусные туры)
+</li>
+
+<li>Инфо о жилом комплексе (потому что попадает в распечатку)
+</li>
+
+<li>Сссылка "подробно о комплексе" - к ЖК
+</li>
+
+<li>Квартиры в этом комплексе - ведут в карточку комплекса с
+открытыми двухкомнатными квартирами.
+</li>
+
+<li>Сообщить об ошибке.
+</li>
+
+<li>Когда было последнее обновление информации о квартире. Обновлено и дату. Чтобы менеджер
+видел актуальность. Показывать ли клиентам?
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-8-2" class="outline-3">
+<h3 id="sec-8-2"><span class="section-number-3">8.2</span> Просто карта</h3>
+<div class="outline-text-3" id="text-8-2">
+<p>
+Макета нет, но можно ориентировать на Trend<sub>search</sub><sub>map</sub>.
+</p>
+
+<p>
+Title: Все ЖК.
+</p>
+
+<p>
+ostrovok.ru
+</p>
+
+<p>
+Закрыть карту.
+</p>
+
+<p>
+Нам надо развернуть карту на целый экран или свернуть чтобы показть выборку.
+</p>
+
+<p>
+Надо подумать делать просто большую карту или вместе с выборкой и фильтрами
+</p>
+
+<p>
+По умолчанию открыватся большая, после клика на маркер нужно что-то показать об выбранном
+комплексе. Можно попапом, или в карту уменьшить и сбоку.
+</p>
+
+<p>
+Все комплексы.
+</p>
+
+<p>
+Карта не должна скроллиться
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-3" class="outline-3">
+<h3 id="sec-8-3"><span class="section-number-3">8.3</span> Поиск вторичного жилья</h3>
+<div class="outline-text-3" id="text-8-3">
+<p>
+В первом релизе не будет.
+</p>
+
+<p>
+Вторичное жилье не так критично, т.к. занимает 1% от
+реализаций, ему можно оставить только простой поиск.
+</p>
+
+<p>
+Для вторички нет срока сдачи, но есть тип дома (список выбора)
+</p>
+
+<p>
+Экпертов также часто интересует id обьекта - при вводе в строку
+поиска числа находится должен искомый объект. id должен печататься
+и на карточке квартиры, для того чтобы, можно было по телефону
+объяснить о каком объекте идет речь.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-4" class="outline-3">
+<h3 id="sec-8-4"><span class="section-number-3">8.4</span> Ипотечный калькулятор в карточке квартиры</h3>
+<div class="outline-text-3" id="text-8-4">
+<p>
+Задачи:
+</p>
+<ul class="org-ul">
+<li>Показать клиенту что он может взять квартиру в ипотеку
+</li>
+<li>Дать клиенту возможность оценить свои возможности, поиграв с калькулятором.
+</li>
+</ul>
+
+<p>
+Мы должны иметь возможность присваивать программы <code>корпусу очереди</code>. У одного корпуса может быть
+множество разных программ от множества разных банков.  На карточке квартиры нужно показать
+расчет с эвристически лучшей программой - например, с самой низкой процентной ставкой и самым
+длинным сроком кредита - но есть вариант рекомендовать это вручную.  Мы не показываем ему инфу
+по программе банка (даже наименование банка не светим), чтобы он консультировался с нашим
+специалистом. Но менеджеры получают подробную инфу.
+</p>
+
+<p>
+Параметры:
+</p>
+<ul class="org-ul">
+<li>Стоимость квартиры (мин 10% от стоимости квартиры) - не давать клиенту забить меньше
+</li>
+<li>Первоначальный взнаос (мин 10%) - не давать клиенту забить меньше
+</li>
+<li>Срок кредита (макс 25 лет)
+</li>
+<li>Процентная ставка % в год - по идее если клиенту показывается оптимальный банк то он не
+должен мочь ее менять.
+</li>
+<li>Менеджеру видно банки, % и ежемесячный платеж.
+</li>
+</ul>
+<p>
+Результат
+</p>
+<ul class="org-ul">
+<li>Ежемесячный платеж
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-8-5" class="outline-3">
+<h3 id="sec-8-5"><span class="section-number-3">8.5</span> Ипотечный калькулятор в отдельном разделе</h3>
+<div class="outline-text-3" id="text-8-5">
+<p>
+Ипотечный калькулятор используется клиентом чтобы расчитать ипотеку неважно для какой
+квартиры. После рассчета можно отдать клиенту выборку подходящих квартир.
+</p>
+
+<p>
+Есть банки, у них есть "программы". Мы дожны создавать базу по банкам и их программам. У
+программы банка есть:
+</p>
+<ul class="org-ul">
+<li>Наименование
+</li>
+<li>Максимальный срок кредита
+</li>
+<li>Процентная ставка
+</li>
+<li>Минимальный первый взнос в процентах.
+</li>
+</ul>
+
+<p>
+Сценарии проговаривать с ипотечниками - уточнять по ходу дела.
+</p>
+
+<p>
+Варианты расчета:
+</p>
+<ul class="org-ul">
+<li>Отталкиваемся от дохода
+<ul class="org-ul">
+<li>Ставим максммальный срок
+</li>
+<li>Подбираем сумму кредита (доход 50.000, может ли взять 2.000.000)
+</li>
+<li>Определяем ежемесячный платеж - смотрим сможет ли платить.
+</li>
+<li>Манипулируем суммами чтобы учесть все интересы.
+</li>
+</ul>
+</li>
+<li>Отталкиваемся от максимального размера ежемесячный платежей
+</li>
+<li>Отталкиваемся от максимального срока погашения (из-за возраста)
+</li>
+<li>Отталкиваемся от единственного банка или от суммы кредита
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-8-6" class="outline-3">
+<h3 id="sec-8-6"><span class="section-number-3">8.6</span> Калькулятор рассрочки</h3>
+<div class="outline-text-3" id="text-8-6">
+<p>
+Чем сложнее чем ипотечный калькулятор?
+</p>
+
+<p>
+Если мы говорм про рассрочку, то параметры там те же самые что и в ипотеке:
+</p>
+<ul class="org-ul">
+<li>мин перв взнос
+</li>
+<li>срок
+</li>
+<li>процент
+</li>
+</ul>
+<p>
+но если вносишь 10% и платишь за 2 года, то тебе такая процентная ставка
+Там очень много программ и все они зависят сложным образом от входных параметров, которых
+неопределенное число, и иногда даже зависит от типа квартир или, например, от этажности, акции
+и фазы луны.
+</p>
+
+<p>
+Застройщик делает программы рассрочки со сложными условиями..
+</p>
+
+<p>
+Как формализовать условия? У нас есть менеддеры по внутреннему развитию проектов. Они умеют
+делать экселевские калькуляторы для себя. Также многие застройщики деляют экселевские файлы для
+рассчетов своих рассрочек.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-7" class="outline-3">
+<h3 id="sec-8-7"><span class="section-number-3">8.7</span> Запись на демонстрацию квартир</h3>
+<div class="outline-text-3" id="text-8-7">
+<p>
+Просто форма заявки, пусть клиент запоняет.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-8" class="outline-3">
+<h3 id="sec-8-8"><span class="section-number-3">8.8</span> Похожие предложения</h3>
+<div class="outline-text-3" id="text-8-8">
+<p>
+Первый вариант - назначает менеджер вручную, в первом релизе можно ограничиться им.
+Второй вариант - назначить алгоритмом:
+</p>
+<ul class="org-ul">
+<li>Берем за базу цену, отсекаем все что выходит за коридор цены.
+</li>
+<li>Срок сдачи (коридор срока)
+</li>
+<li>Район (тут все сложно - рядом по территориальности, например)
+</li>
+</ul>
+<p>
+Вариант:
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-9" class="outline-3">
+<h3 id="sec-8-9"><span class="section-number-3">8.9</span> Продажа своей квартиры</h3>
+<div class="outline-text-3" id="text-8-9">
+<p>
+Ссылка на контакты пока или форму заявки.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-10" class="outline-3">
+<h3 id="sec-8-10"><span class="section-number-3">8.10</span> Обращение в компанию</h3>
+<div class="outline-text-3" id="text-8-10">
+<p>
+Контакты
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-11" class="outline-3">
+<h3 id="sec-8-11"><span class="section-number-3">8.11</span> Подписка на рассылку</h3>
+<div class="outline-text-3" id="text-8-11">
+<p>
+В первом релизе можно обойтись без нее.
+Рассылка долждна быть в нескольких вариантах.
+</p>
+<ul class="org-ul">
+<li>Возможность подписаться на новости по конкретному объекту
+</li>
+<li>Возможность подписать на инвестиционные предложения, которые мы сами генерируем
+</li>
+<li>Подписка на старте продаж.
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-8-12" class="outline-3">
+<h3 id="sec-8-12"><span class="section-number-3">8.12</span> Сравнение</h3>
+<div class="outline-text-3" id="text-8-12">
+<p>
+Trend<sub>comparisioon</sub>
+</p>
+
+<p>
+В сравнение можно добавлять и жилые комплексы и квартиры. Если человек добавляет квартиру, то
+ЖК добавляется автоматически.
+</p>
+
+<p>
+О ЖК:
+</p>
+
+<p>
+При нажатии менеджером "отправить на почту" нужно генерировать ссылку с этими объектами,
+добавленными в сравнение. Это нужно чтобы отдать клиенту "на подумать".
+</p>
+
+<p>
+Карта с объектами с автоматическим расчетом центра и масштаба
+</p>
+
+<p>
+Скроллер влево-вправо
+Сердечко - добавить в избранное
+Удалить их сравнения
+Блок "о комплексе"
+</p>
+<ul class="org-ul">
+<li>Рендер (кликабельно в объект)
+</li>
+<li>Название ЖК и очередь
+</li>
+<li>Район
+</li>
+<li>Метро и расстояние до него
+</li>
+<li>Срок сдачи
+</li>
+<li>Цена минимальных квартир
+</li>
+<li>Тип отделки
+</li>
+<li>Ипотека с указанием макс срока
+</li>
+<li>Рассрочка с указанием макс срока
+</li>
+<li>Стандартный блок "тип квартиры- цена от - метраж по всем типам квартир"
+</li>
+</ul>
+<p>
+Блок сравнения по паспорту объекта
+&#x2026; поднимаем из комплекса
+</p>
+
+<p>
+О квартирах:
+</p>
+<ul class="org-ul">
+<li>Сердечко - добавить в избранное
+</li>
+<li>Удалить их сравнения
+</li>
+<li>Планировка (картинка с увеличением)
+</li>
+<li>Сравнение по данным таблицы по квартирам, которую мы описывали в карточке ЖК.
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-8-13" class="outline-3">
+<h3 id="sec-8-13"><span class="section-number-3">8.13</span> Избранное</h3>
+<div class="outline-text-3" id="text-8-13">
+<p>
+Trend<sub>favorite</sub><sub>map</sub>
+</p>
+
+<p>
+Избранное согласно поисковой выдаче. Все так же, только избранное.
+Но в избранном может быть как комплекс так и квартира. Как отображать это таблицей -
+понятно. А как отображать на карте?
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-14" class="outline-3">
+<h3 id="sec-8-14"><span class="section-number-3">8.14</span> "Просмотрено" - список объектов просмотренных пользователем ранее</h3>
+<div class="outline-text-3" id="text-8-14">
+<p>
+Отображается точно также как избранное, но заносим мы туда только комплексы, без
+квартир. Непонятно почему?
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-8-15" class="outline-3">
+<h3 id="sec-8-15"><span class="section-number-3">8.15</span> Хранение и визуализация истории цен по объекту (!) (менеджер и возможно клиент)</h3>
+<div class="outline-text-3" id="text-8-15">
+<p>
+Это нужно чтобы показать клиенту инвестиционную привлекательность квартиры в этом корпусе.
+</p>
+
+<p>
+График с четырьмя кривыми цен по типам квартиры.
+</p>
+
+<p>
+Нам нужна цена квадратного метра в зависимости от типа квартиры.
+</p>
+
+<p>
+Контенщик или робот заносит в базу базовую цену квадратного метра (разную в зависимости от
+типа квартиры)
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-16" class="outline-3">
+<h3 id="sec-8-16"><span class="section-number-3">8.16</span> <span class="todo TODO">TODO</span> Внесение данных контентщиком</h3>
+<div class="outline-text-3" id="text-8-16">
+<p>
+Посмотреть админку
+Построить файловую иерархию для обновления данных
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-17" class="outline-3">
+<h3 id="sec-8-17"><span class="section-number-3">8.17</span> <span class="todo TODO">TODO</span> Внесение данных объектов роботом</h3>
+</div>
+<div id="outline-container-sec-8-18" class="outline-3">
+<h3 id="sec-8-18"><span class="section-number-3">8.18</span> <span class="todo TODO">TODO</span> Контент-менеджер заполняет паспорт объекта</h3>
+</div>
+<div id="outline-container-sec-8-19" class="outline-3">
+<h3 id="sec-8-19"><span class="section-number-3">8.19</span> <span class="todo TODO">TODO</span> Скачать pdf</h3>
+</div>
+</div>
+<div id="outline-container-sec-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> Тесты</h2>
+<div class="outline-text-2" id="text-9">
+<p>
+Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
+протестировать, для этого сформируем тест:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_test"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; trend</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">trend-test</span> ()
+  &lt;&lt;trend_test_contents&gt;&gt;
+  (dbg <span style="color: #00cd00;">"passed: trend-test~%"</span>))
+(trend-test)
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_test_contents"></pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-10" class="outline-2">
+<h2 id="sec-10"><span class="section-number-2">10</span> Текущие задачи по проекту</h2>
+<div class="outline-text-2" id="text-10">
+<p>
+Исправить поиск
+Настроить сервер
+Получить стул, монитор и наушники
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-11" class="outline-2">
+<h2 id="sec-11"><span class="section-number-2">11</span> Остальное</h2>
+<div class="outline-text-2" id="text-11">
+<p>
+Элементарный поиск (то что есть на существующем сайте)
+Карточки квартир
+Поиск по большому кол-ву параметров:
+</p>
+<ul class="org-ul">
+<li>первый взнос
+</li>
+<li>платеж в месяц
+</li>
+<li>инвестиционная привлекательность
+</li>
+<li>&#x2026;
+</li>
+</ul>
+<p>
+Личный кабинет менеджера
+</p>
+<ul class="org-ul">
+<li>Графики чтобы обосновать клиенту инвест. привлекательность
+</li>
+<li>Статистика работы менеджеров
+</li>
+<li>&#x2026;
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-12" class="outline-2">
+<h2 id="sec-12"><span class="section-number-2">12</span> Конкуренты</h2>
+<div class="outline-text-2" id="text-12">
+<p>
+cian.ru
+петербургская недвижимость
+миан
+миель
+инком
+ндв-недвижимость
+</p>
+</div>
+</div>
+<div id="outline-container-sec-13" class="outline-2">
+<h2 id="sec-13"><span class="section-number-2">13</span> Инвест-привлекательность:</h2>
+<div class="outline-text-2" id="text-13">
+<p>
+В идеале для клиента надо предоставить форму с двумя полями:
+</p>
+<ul class="org-ul">
+<li>Сумма которую хочет инвестировать клиент
+</li>
+<li>Срок на который хочет инвестировать клиент
+</li>
+</ul>
+
+<p>
+И система автоматически подберет ему подходящие варианты (из числа заранее отобранных
+менеджерами компании)
+</p>
+</div>
+</div>
+<div id="outline-container-sec-14" class="outline-2">
+<h2 id="sec-14"><span class="section-number-2">14</span> Вопросы</h2>
+<div class="outline-text-2" id="text-14">
+<p>
+Планируется ли делать логин.пароль и вход для посетителейб чтобы они например могли
+открыть свою
+сессию с другого устройстваб увидеть на своем планшете те объектыб которые смотрели на
+ноутбуке итп,
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: rigidus</p>
+<p class="date">Created: 2014-10-30 Чт. 20:50</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
