@@ -143,37 +143,81 @@
      ;; Страница сообщений
      (restas:define-route im ("/im")
        (with-wrapper
-         (concatenate
-          'string
-          "<h1>Страница сообщений</h1>"
-          (if (not *current-user*)
-              "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
-              (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
-                (if (equal 0 (length msgs))
-                    "Нет сообщений"
-                    (msgtpl:dialogs
-                     (list
-                      :content
-                      (format nil "~{~A~}"
-                              (loop :for item :in msgs :collect
-                                 (cond ((equal :rcv (car (last item)))
-                                        (msgtpl:dlgrcv
-                                         (list :id (car item)
-                                               :from (cadr item)
-                                               :time (caddr item)
-                                               :msg (cadddr item)
-                                               :state (nth 4 item)
-                                               )))
-                                       ((equal :snd (car (last item)))
-                                        (msgtpl:dlgsnd
-                                         (list :id (car item)
-                                               :to (cadr item)
-                                               :time (caddr item)
-                                               :msg (cadddr item)
-                                               :state (nth 4 item)
-                                               )))
-                                        (t (err "unknown dialog type")))
-                                        ))))))))))
+           (concatenate
+            'string
+            "<h1>Страница сообщений</h1>"
+            (if (not *current-user*)
+                "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+                (format
+                 nil "~{~A<br/>~}"
+                 (list
+                  (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
+                    (if (equal 0 (length msgs))
+                        "Нет сообщений"
+                        (msgtpl:dialogs
+                         (list
+                          :content
+                          (format nil "~{~A~}"
+                                  (loop :for item :in msgs :collect
+                                     (cond ((equal :rcv (car (last item)))
+                                            (msgtpl:dlgrcv
+                                             (list :id (car item)
+                                                   :from (cadr item)
+                                                   :time (caddr item)
+                                                   :msg (cadddr item)
+                                                   :state (nth 4 item)
+                                                   )))
+                                           ((equal :snd (car (last item)))
+                                            (msgtpl:dlgsnd
+                                             (list :id (car item)
+                                                   :to (cadr item)
+                                                   :time (caddr item)
+                                                   :msg (cadddr item)
+                                                   :state (nth 4 item)
+                                                   )))
+                                           (t (err "unknown dialog type")))
+                                     ))))))
+                  ""
+                  "<a href=\"/im/new\">Новое сообщение<a/>"))))))
+
+   #+END_SRC
+
+** Страница отправки сообщения
+
+   На странице диалогов мы хотим видеть список всех диалогов. В каждом диалоге мы хотим
+   видеть последнее сообщение. Чтобы получить последние сообщения мы вызываем
+   =get-last-msg-dialog-ids-for-user-id=.
+
+   Не стоит пытаться называть маршрут =msg= так как это конфликтует с именем сущности,
+   определенным в этом же пакете
+
+   #+NAME: msg_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; Страница сообщений
+     (restas:define-route im-new ("/im/new")
+       (with-wrapper
+           (concatenate
+            'string
+            "<h1>Страница отправки нового сообщения</h1>"
+            (if (not *current-user*)
+                "Невозможно отпраить сообщение - пользователь не залогинен. <a href=\"/login\">Login</a>"
+                (format
+                 nil "~{~A<br/>~}"
+                 (list
+                  (frm (tbl
+                        (list
+                         (row "Идентификатор пользователя" (fld "user_id"))
+                         (row "Сообщение" (fld "msg"))
+                         (row "" (submit "Отправить")))))))))))
+
+     (restas:define-route im-new-ctrl ("/im/new" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (create-msg *current-user*
+                       (getf p :user_id)
+                       (getf p :msg)))))
 
    #+END_SRC
 

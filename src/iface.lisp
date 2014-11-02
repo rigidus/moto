@@ -48,6 +48,8 @@
                   (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
                 (when *current-user*
                   "<a href=\"/logout\">Выход</a>")
+                (when *current-user*
+                  "<a href=\"/im\">Сообщения</a>")
                 )))))
            (tpl:retvalblock (list :retval retval)))))))))
 
