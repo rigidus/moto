@@ -174,13 +174,12 @@
      | id          | serial               | идентификатор                  |
      | cmpx-id     | integer              | идентификатор жилого комплекса |
      | name        | (or db-null varchar) | название                       |
-     | addr        | (or db-null varchar) | адрес                          |
      | deadline    | (or db-null varchar) | срок сдачи                     |
      | district-id | (or db-null integer) | идентификатор района           |
      | metro-id    | (or db-null integer) | идентификатор метро            |
      | distance    | (or db-null varchar) | расстояние до метро            |
      | subsidy     | (or db-null boolean) | субсидия                       |
-     | finishing   | (or db-null boolean) | отделка                        |
+     | finishing   | (or db-null varchar) | отделка                        |
      | ipoteka     | (or db-null boolean) | ипотека                        |
      | installment | (or db-null boolean) | рассрочка                      |
 
@@ -257,23 +256,163 @@
 
    Район города, в котором находится объект
 
-   #+CAPTION: Данные роли
+   #+CAPTION: Данные района
    #+NAME: district_data
      | field name  | field type | note                                     |
      |-------------+------------+------------------------------------------|
      | id          | serial     | идентификатор                            |
      | name        | varchar    | название района |
 
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-entity district "Сущность района"
+       <<district_fields()>>)
+
+     (make-district-table)
+
+     ;; Районы города
+     (make-district :name "Адмиралтейский")
+     (make-district :name "Василеостровский")
+     (make-district :name "Выборгский")
+     (make-district :name "Калининский")
+     (make-district :name "Кировский")
+     (make-district :name "Колпинский")
+     (make-district :name "Красногвардейский")
+     (make-district :name "Красносельский")
+     (make-district :name "Кронштадтский")
+     (make-district :name "Курортный")
+     (make-district :name "Московский")
+     (make-district :name "Невский")
+     (make-district :name "Петроградский")
+     (make-district :name "Петродворцовый")
+     (make-district :name "Приморский")
+     (make-district :name "Пушкинский")
+     (make-district :name "Фрунзенский")
+     (make-district :name "Центральный")
+     (make-district :name "Всеволожкси")
+
+     ;; Районы области
+     (make-district :name "Бокситогорский")
+     (make-district :name "Волосовский")
+     (make-district :name "Волховский")
+     (make-district :name "Всеволожский")
+     (make-district :name "Выборгский")
+     (make-district :name "Гатчинский")
+     (make-district :name "Кингисеппский")
+     (make-district :name "Киришский")
+     (make-district :name "Кировский")
+     (make-district :name "Лодейнопольский")
+     (make-district :name "Ломоносовский")
+     (make-district :name "Лужский")
+     (make-district :name "Подпорожский")
+     (make-district :name "Приозерский")
+     (make-district :name "Сланцевский")
+     (make-district :name "Тихвинский")
+     (make-district :name "Тосненский")
+   #+END_SRC
+
+   Где =district-fields= (поля данных) определим как:
+
+   #+NAME: district_fields
+   #+BEGIN_SRC emacs-lisp :var table=district_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
+
 ** Метро (metro)
 
    Метро неподалеку от объекта
 
-   #+CAPTION: Данные роли
+   #+CAPTION: Данные метро
    #+NAME: metro_data
      | field name | field type | note             |
      |------------+------------+------------------|
      | id         | serial     | идентификатор    |
      | name       | varchar    | название станции |
+
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-entity metro "Сущность метро"
+       <<metro_fields()>>)
+
+     (make-metro-table)
+
+     (make-metro :name "Автово")
+     (make-metro :name "Адмиралтейская")
+     (make-metro :name "Академическая")
+     (make-metro :name "Балтийская")
+     (make-metro :name "Бухарестская")
+     (make-metro :name "Василеостровская")
+     (make-metro :name "Владимирская")
+     (make-metro :name "Волковская")
+     (make-metro :name "Выборгская")
+     (make-metro :name "Горьковская")
+     (make-metro :name "Гостиный двор")
+     (make-metro :name "Гражданский проспект")
+     (make-metro :name "Девяткино")
+     (make-metro :name "Достоевская")
+     (make-metro :name "Елизаровская")
+     (make-metro :name "Звёздная")
+     (make-metro :name "Звенигородская")
+     (make-metro :name "Кировский завод")
+     (make-metro :name "Комендантский проспект")
+     (make-metro :name "Крестовский остров")
+     (make-metro :name "Купчино")
+     (make-metro :name "Ладожская")
+     (make-metro :name "Ленинский проспект")
+     (make-metro :name "Лесная")
+     (make-metro :name "Лиговский проспект")
+     (make-metro :name "Ломоносовская")
+     (make-metro :name "Маяковская")
+     (make-metro :name "Международная")
+     (make-metro :name "Московская")
+     (make-metro :name "Московские ворота")
+     (make-metro :name "Нарвская")
+     (make-metro :name "Невский проспект")
+     (make-metro :name "Новочеркасская")
+     (make-metro :name "Обводный канал")
+     (make-metro :name "Обухово")
+     (make-metro :name "Озерки")
+     (make-metro :name "Парк Победы")
+     (make-metro :name "Парнас")
+     (make-metro :name "Петроградская")
+     (make-metro :name "Пионерская")
+     (make-metro :name "Площадь Александра Невского")
+     (make-metro :name "Площадь Александра Невского")
+     (make-metro :name "Площадь Восстания")
+     (make-metro :name "Площадь Ленина")
+     (make-metro :name "Площадь Мужества")
+     (make-metro :name "Политехническая")
+     (make-metro :name "Приморская")
+     (make-metro :name "Пролетарская")
+     (make-metro :name "Проспект Большевиков")
+     (make-metro :name "Проспект Ветеранов")
+     (make-metro :name "Проспект Просвещения")
+     (make-metro :name "Пушкинская")
+     (make-metro :name "Рыбацкое")
+     (make-metro :name "Садовая")
+     (make-metro :name "Сенная площадь")
+     (make-metro :name "Спасская")
+     (make-metro :name "Спортивная")
+     (make-metro :name "Старая Деревня")
+     (make-metro :name "Технологический институт")
+     (make-metro :name "Технологический институт")
+     (make-metro :name "Удельная")
+     (make-metro :name "Улица Дыбенко")
+     (make-metro :name "Фрунзенская")
+     (make-metro :name "Чёрная речка")
+     (make-metro :name "Чернышевская")
+     (make-metro :name "Чкаловская")
+     (make-metro :name "Электросила")
+   #+END_SRC
+
+   Где =metro-fields= (поля данных) определим как:
+
+   #+NAME: metro_fields
+   #+BEGIN_SRC emacs-lisp :var table=metro_data :results output :exports results :tangle no
+     (gen-fields table)
+   #+END_SRC
 
 * Загрузка данных
 
@@ -298,8 +437,9 @@
     (in-package #:moto)
 
     (macrolet ((awhen-file ((file files) &body body)
-                 `(awhen (find ,file ,files :test #'string=)
-                    ,@body))
+                 `(aif (find ,file ,files :test #'string=)
+                       ,@body
+                       ""))
                (loop-dir (var (&rest path) &body body)
                   `(loop :for ,var :in (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (directory-namestring x)))))
                                                (explore-dir (format nil "~A~{~A/~}*.*" *data-path* (list ,@path)))) :do
@@ -308,43 +448,79 @@
                         (declare (ignore _))
                         (let ((files (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (file-namestring x)))))
                                              files)))
-                          ,@body)))))
-      ;; Для каждой подпапке в папке данных..
-      (loop-dir cmpx ()
-         ;; Создаем комплекс, и заполняем адрес, если удалось найти соответствующий файл
-           (let ((cmpx-id (id (make-cmpx :name cmpx :addr (awhen-file ("адрес.txt" files)
-                                                            (alexandria:read-file-into-string (format nil "~A~A/~A" *data-path* cmpx it)))))))
-             ;; Для каждой подпапки в папке комплекса
-             (loop-dir plex (cmpx)
-                ;; Создаем очередь ЖК
-                  (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
-                    ;; Если найден файл с паспортом объекта
-                    (awhen-file ("паспорт.txt" files)
-                      ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
-                      (print
-                       (mapcar #'(lambda (x)
-                                   (mapcar #'(lambda (y)
-                                               (string-trim '(#\NewLine #\Tab #\Space )
-                                                            (ppcre:regex-replace-all "\\s+" y " ")))
-                                           (ppcre:split ":" x)))
-                               (ppcre:split #\Newline (alexandria:read-file-into-string
-                                                       (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))))
-                    ;; Если найден файл с описанием объекта
-                    (awhen-file ("описание.txt" files)
-                      (print it))
-                    ;; Если найден файл с местоположением объекта
-                    (awhen-file ("местоположение.txt" files)
-                      (print it))
-                    ;; Если найден файл с комфортом объекта
-                    (awhen-file ("комфорт.txt" files)
-                      (print it))
-                    ;; Если найден файл с детьми объекта
-                    (awhen-file ("дети.txt" files)
-                      (print it))
-                    ;; Если найден файл с квартирами объекта
-                    (awhen-file ("Квартиры.csv" files)
-                      (print it))
-                    )))))
+                          ,@body))))
+               (assoc-key (key alist)
+                 `(cdr (assoc ,key ,alist :test #'string=))))
+      (flet ((keyval (filename)
+               (remove-if #'null
+                          (mapcar #'(lambda (in)
+                                      (let* ((pos (position #\: in :test #'char=)))
+                                        (if (null pos)
+                                            (warn (format nil "wrong param: ~A" in))
+                                            (let ((key (subseq in 0 pos))
+                                                  (val (subseq in (+ 1 pos))))
+                                              (cons (string-trim '(#\NewLine #\Tab #\Space  #\﻿)
+                                                                 (ppcre:regex-replace-all "\\s+" key " "))
+                                                    (string-trim '(#\NewLine #\Tab #\Space  #\﻿)
+                                                                 (ppcre:regex-replace-all "\\s+" val " ")))))))
+                                  (ppcre:split #\Newline (alexandria:read-file-into-string filename))))))
+        ;; Для каждой подпапке в папке данных..
+        (loop-dir cmpx ()
+           ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
+             (let ((cmpx-id (id (make-cmpx :name cmpx
+                                           :addr (awhen-file ("адрес.txt" files)
+                                                   (string-trim '(#\NewLine #\Tab #\Space )
+                                                                (alexandria:read-file-into-string (format nil "~A~A/~A" *data-path* cmpx it))))))))
+               ;; Для каждой подпапки в папке комплекса
+               (loop-dir plex (cmpx)
+                  ;; Создаем очередь ЖК
+                    (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
+                      ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
+                      (awhen-file ("data.txt" files)
+                        (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
+                          (upd-plex (get-plex plex-id)
+                                    (list :deadline    (assoc-key "срок сдачи" data)
+                                          :distance    (assoc-key "расстояние до метро" data)
+                                          :finishing   (assoc-key "отделка" data)
+                                          :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
+                                          :installment (or (string= "да" (assoc-key "рассрочка" data)))
+                                          :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
+                                          :district-id (let ((obj (find-district :name (assoc-key "район" data))))
+                                                         (if (null obj)
+                                                             (warn (format nil "район ~A не найден в таблице районов" (assoc-key "район" data)))
+                                                             (id (car obj))))
+                                          :metro-id    (let ((obj (find-metro :name (assoc-key "метро" data))))
+                                                         (if (null obj)
+                                                             (warn (format nil "метро ~A не найдено в таблице метро" (assoc-key "метро" data)))
+                                                             (id (car obj))))))))
+                      ;; Если найден файл с паспортом объекта
+                      (awhen-file ("паспорт.txt" files)
+                        ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
+                        (let ((passport (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
+                          ;; (print passport)
+                          ))
+                      ;; Если найден файл с описанием объекта
+                      (awhen-file ("описание.txt" files)
+                        ;; (print it)
+                        )
+                      ;; Если найден файл с местоположением объекта
+                      (awhen-file ("местоположение.txt" files)
+                        ;; (print it)
+                        )
+                      ;; Если найден файл с комфортом объекта
+                      (awhen-file ("комфорт.txt" files)
+                        ;; (print it)
+                        )
+                      ;; Если найден файл с детьми объекта
+                      (awhen-file ("дети.txt" files)
+                        ;; (print it)
+                        )
+                      ;; Если найден файл с квартирами объекта
+                      (awhen-file ("Квартиры.csv" files)
+                        ;; (print it)
+                        )
+                      ))))))
+
   #+END_SRC
 
 * Точки входа
@@ -1067,7 +1243,7 @@
   И система автоматически подберет ему подходящие варианты (из числа заранее отобранных
   менеджерами компании)
 * Вопросы
-  Планируется ли делать логин.пароль и вход для посетителейб чтобы они например могли
-  открыть свою
-  сессию с другого устройстваб увидеть на своем планшете те объектыб которые смотрели на
-  ноутбуке итп,
+  Планируется ли делать логин.пароль и вход для посетителей, чтобы они, например, могли
+  открыть свою сессию с другого устройства, увидеть на своем планшете те объекты, которые
+  смотрели на ноутбуке итп.
+  Мы как-то отличаем районы города от районов ленинградской области?
