@@ -238,9 +238,9 @@
      (make-flat :rooms 1 :price 2589000)
    #+END_SRC
 
-** Картинки очередей ЖК
-** Картинки планировок
-** Картинки хода строительства
+** TODO Картинки очередей ЖК
+** TODO Картинки планировок
+** TODO Картинки хода строительства
 ** Город (city)
 
    Город в котором находится объект
@@ -647,7 +647,7 @@
                   ))))
 
 
-    (xls-processor "/home/rigidus/repo/moto/data/Десяткино/1 очередь/Квартиры2.xls")
+    (print (xls-processor "/home/rigidus/repo/moto/data/Десяткино/1 очередь/Квартиры2.xls"))
 
 
   #+END_SRC
@@ -693,6 +693,19 @@
 * Interface
 
   одна и та же планировка может быть в двух очередях и даже в двух комплексах
+
+** Страничка загрузки данных
+
+   #+NAME: trend_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route load-data ("/load")
+       (with-wrapper
+         "<h1>Загрузка данных из файлов</h1>"
+         ))
+
+   #+END_SRC
 
 ** Страничка планировки
 
