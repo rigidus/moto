@@ -104,6 +104,11 @@
                   "<a href=\"/logout\">Выход</a>")
                 (when *current-user*
                   "<a href=\"/im\">Сообщения</a>")
+                (when *current-user*
+                  "<a href=\"/load\">Загрузка данных</a>")
+                "<a href=\"/\">Простой поиск по ЖК</a>"
+                "<a href=\"/\">Расширенный поиск по ЖК</a>"
+                "Загрузить данные"
                 )))))
            (tpl:retvalblock (list :retval retval)))))))))
 

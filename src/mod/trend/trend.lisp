@@ -18,6 +18,13 @@
 
 (in-package #:moto)
 
+(restas:define-route load-data ("/load")
+  (with-wrapper
+    "<h1>Загрузка данных из файлов</h1>"
+    ))
+
+(in-package #:moto)
+
 (restas:define-route flat ("/flat/:flatid")
   (with-wrapper
     (let ((flat (get-flat 1)))
