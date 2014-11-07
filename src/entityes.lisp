@@ -1,27 +1,6 @@
 ;; [[file:doc.org::*Сущности и автоматы][entity_and_automates]]
 (in-package #:moto)
 
-
-(define-automat avatar "Автомат аватара"
-  ((id serial)
-   (user-id integer)
-   (name varchar)
-   (origin varchar)
-   (ts-create bigint))
-  (:inactive :active)
-  ((:active :inactive :avatar-off)
-   (:inactive :active :avatar-on)))
-
- (defun avatar-off ()
-   "active -> inactive"
-   )
- 
- (defun avatar-on ()
-   "inactive -> active"
-   )
-
- 
-
 (define-automat user "Автомат пользователя"
   ((id serial)
    (name varchar)
@@ -37,31 +16,33 @@
    (:unlogged :sended :forgot)
    (:sended :logged :remember)))
 
- (defun registration ()
-   "unregistred -> logged"
-   )
- 
- (defun unregistration ()
-   "logged -> unregistred"
-   )
- 
- (defun enter ()
-   "unlogged -> logged"
-   )
- 
- (defun leave ()
-   "logged -> unlogged"
-   )
- 
- (defun forgot ()
-   "unlogged -> sended"
-   )
- 
- (defun remember ()
-   "sended -> logged"
-   )
 
- 
+(defun registration ()
+  "unregistred -> logged"
+  )
+
+(defun unregistration ()
+  "logged -> unregistred"
+  )
+
+(defun enter ()
+  "unlogged -> logged"
+  )
+
+(defun leave ()
+  "logged -> unlogged"
+  )
+
+(defun forgot ()
+  "unlogged -> sended"
+  )
+
+(defun remember ()
+  "sended -> logged"
+  )
+
+
+
 
 (define-entity role "Сущность роли"
   ((id serial)
@@ -69,17 +50,20 @@
 
 (make-role-table)
 
+
 (make-role :name "admin")
 (make-role :name "manager")
 (make-role :name "moderator")
 (make-role :name "editor")
 (make-role :name "robot")
 
+
 (define-entity group "Сущность группы"
   ((id serial)
    (name varchar)))
 
 (make-group-table)
+
 
 (make-group :name "oldman")
 (make-group :name "newboy")
@@ -89,9 +73,12 @@
 
 (define-entity user2group "Сущность связи пользователя и группы"
   ((id serial)
-   (name varchar)))
+   (user-id integer)
+   (group-id integer)))
 
 (make-user2group-table)
+
+
 
 (define-automat msg "Автомат сообщения"
   ((id serial)
@@ -101,18 +88,20 @@
    (ts-create bigint)
    (ts-delivery bigint))
   (:delivered :undelivered)
-  ((:undelivered :delivered :delivery))
+  ((:undelivered :delivered :delivery)))
+
+
+(defun delivery ()
+  "undelivered -> delivered"
   )
 
- (defun delivery ()
-   "undelivered -> delivered"
-   )
 
 (define-entity que "Сущность очереди"
   ((id serial)
    (name varchar)))
 
 (make-que-table)
+
 
 ;; (make-que :name "admin")
 ;; (make-que :name "manager")
@@ -125,6 +114,30 @@
    (text varchar)))
 
 (make-quelt-table)
+
+
+
+
+
+(define-automat avatar "Автомат аватара"
+  ((id serial)
+   (user-id integer)
+   (name varchar)
+   (origin varchar)
+   (ts-create bigint))
+  (:inactive :active)
+  ((:active :inactive :avatar-off)
+   (:inactive :active :avatar-on)))
+
+
+(defun avatar-off ()
+  "active -> inactive"
+  )
+
+(defun avatar-on ()
+  "inactive -> active"
+  )
+
 
 
 
@@ -160,51 +173,53 @@
    (:куплен :используется :ввод.в.эксплуатацию)
    (:угнан :используется :возврат.с.угона)))
 
- (defun |выставление.на.продажу| ()
-   "используется -> продается")
- (defun |сломался| ()
-   "используется -> сломан")
- (defun |крэш| ()
-   "используется -> хлам")
- (defun |угон| ()
-   "используется -> угнан")
- (defun |воры.повредили| ()
-   "угнан -> сломан")
- (defun |воры.разьебали| ()
-   "угнан -> хлам")
- (defun |отмена.выставления.на.продажу| ()
-   "продается -> используется")
- (defun |отвоз.в.ремонт| ()
-   "сломан -> чинится")
- (defun |доломал| ()
-   "сломан -> хлам")
- (defun |неосилил.починить| ()
-   "чинится -> сломан")
- (defun |починил| ()
-   "чинится -> используется")
- (defun |здесь.не.починишь| ()
-   "чинится -> хлам")
- (defun |продажа| ()
-   "продается -> продан")
- (defun |покупка| ()
-   "продан -> куплен")
- (defun |ввод.в.эксплуатацию| ()
-   "куплен -> используется")
- (defun |возврат.с.угона| ()
-   "угнан -> используется")
- (in-package #:moto)
- 
- ;; (loop :for item :in (with-connection *db-spec*
- ;;                        (query
- ;;                         (:limit
- ;;                          (:select 'motos
- ;;                                   :from 'bratan
- ;;                                   :where (:not (:like "" 'motos)))
- ;;                                  999999999999))) :do
- ;;    (format t "~%~A"
- ;;             (ppcre:split "\\s+" (car item))))
 
- 
+(defun |выставление.на.продажу| ()
+  "используется -> продается")
+(defun |сломался| ()
+  "используется -> сломан")
+(defun |крэш| ()
+  "используется -> хлам")
+(defun |угон| ()
+  "используется -> угнан")
+(defun |воры.повредили| ()
+  "угнан -> сломан")
+(defun |воры.разьебали| ()
+  "угнан -> хлам")
+(defun |отмена.выставления.на.продажу| ()
+  "продается -> используется")
+(defun |отвоз.в.ремонт| ()
+  "сломан -> чинится")
+(defun |доломал| ()
+  "сломан -> хлам")
+(defun |неосилил.починить| ()
+  "чинится -> сломан")
+(defun |починил| ()
+  "чинится -> используется")
+(defun |здесь.не.починишь| ()
+  "чинится -> хлам")
+(defun |продажа| ()
+  "продается -> продан")
+(defun |покупка| ()
+  "продан -> куплен")
+(defun |ввод.в.эксплуатацию| ()
+  "куплен -> используется")
+(defun |возврат.с.угона| ()
+  "угнан -> используется")
+(in-package #:moto)
+
+;; (loop :for item :in (with-connection *db-spec*
+;;                        (query
+;;                         (:limit
+;;                          (:select 'motos
+;;                                   :from 'bratan
+;;                                   :where (:not (:like "" 'motos)))
+;;                                  999999999999))) :do
+;;    (format t "~%~A"
+;;             (ppcre:split "\\s+" (car item))))
+
+
+
 
 (define-entity color "Сущность цвета"
   ((id serial)
@@ -212,11 +227,15 @@
 
 (make-color-table)
 
+
+
 (define-entity vendor "Сущность производителя"
   ((id serial)
    (name varchar)))
 
 (make-vendor-table)
+
+
 
 (define-entity bratan "Сущность братана"
   ((id serial)

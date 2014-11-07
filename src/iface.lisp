@@ -141,38 +141,39 @@
 
 (restas:define-route allusers ("/users")
   (with-wrapper
-    (concatenate
-     'string
-     "<h1>Все пользователи</h1>"
-     (tbl
-      (with-collection (i (all-user))
-        (tr
-         (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
-         (td (name i))
-         (td (password i))
-         (td (email i))
-         (td (state i))
-         (td (role-id i))))
-      :border 1)
-     "<h2>Новый пользователь</h2>"
-     (frm
-      (tbl
-       (list
-        (row "Имя" (fld "name"))
-        (row "Email" (fld "email"))
-        (row "Пароль" (fld "password"))
-        (row "" (submit "Создать"))))))))
+      (concatenate
+       'string
+       "<h1>Все пользователи</h1>"
+       (tbl
+        (with-collection (i (all-user))
+          (tr
+           (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
+           (td (name i))
+           (td (password i))
+           (td (email i))
+           (td (state i))
+           ;; (td (role-id i))
+           ))
+        :border 1)
+       "<h2>Новый пользователь</h2>"
+       (frm
+        (tbl
+         (list
+          (row "Имя" (fld "name"))
+          (row "Email" (fld "email"))
+          (row "Пароль" (fld "password"))
+          (row "" (submit "Создать"))))))))
 
 (restas:define-route allusers-ctrl ("/users" :method :post)
   (with-wrapper
-    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (make-user :name (getf p :name)
-                 :email (getf p :email)
-                 :password (getf p :password)
-                 :ts-create (get-universal-time)
-                 :ts-last (get-universal-time)
-                 )
-      "Пользователь создан")))
+      (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+        (make-user :name (getf p :name)
+                   :email (getf p :email)
+                   :password (getf p :password)
+                   :ts-create (get-universal-time)
+                   :ts-last (get-universal-time)
+                   )
+        "Пользователь создан")))
 
 (in-package #:moto)
 
