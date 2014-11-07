@@ -2,26 +2,6 @@
 (in-package #:moto)
 
 
-(define-entity que "Сущность очереди"
-  ((id serial)
-   (name varchar)))
-
-(make-que-table)
-
-;; (make-que :name "admin")
-;; (make-que :name "manager")
-;; (make-que :name "moderator")
-;; (make-que :name "robot")
-
-(define-entity quelt "Сущность элемента очереди"
-  ((id serial)
-   (que-id integer)
-   (text varchar)))
-
-(make-quelt-table)
-
-
-
 (define-automat avatar "Автомат аватара"
   ((id serial)
    (user-id integer)
@@ -41,6 +21,112 @@
    )
 
  
+
+(define-automat user "Автомат пользователя"
+  ((id serial)
+   (name varchar)
+   (password varchar)
+   (email varchar)
+   (ts-create bigint)
+   (ts-last bigint))
+  (:sended :unlogged :logged :unregistred)
+  ((:unregistred :logged :registration)
+   (:logged :unregistred :unregistration)
+   (:unlogged :logged :enter)
+   (:logged :unlogged :leave)
+   (:unlogged :sended :forgot)
+   (:sended :logged :remember)))
+
+ (defun registration ()
+   "unregistred -> logged"
+   )
+ 
+ (defun unregistration ()
+   "logged -> unregistred"
+   )
+ 
+ (defun enter ()
+   "unlogged -> logged"
+   )
+ 
+ (defun leave ()
+   "logged -> unlogged"
+   )
+ 
+ (defun forgot ()
+   "unlogged -> sended"
+   )
+ 
+ (defun remember ()
+   "sended -> logged"
+   )
+
+ 
+
+(define-entity role "Сущность роли"
+  ((id serial)
+   (name (or db-null varchar))))
+
+(make-role-table)
+
+(make-role :name "admin")
+(make-role :name "manager")
+(make-role :name "moderator")
+(make-role :name "editor")
+(make-role :name "robot")
+
+(define-entity group "Сущность группы"
+  ((id serial)
+   (name varchar)))
+
+(make-group-table)
+
+(make-group :name "oldman")
+(make-group :name "newboy")
+(make-group :name "veteran")
+(make-group :name "traveler")
+(make-group :name "troll")
+
+(define-entity user2group "Сущность связи пользователя и группы"
+  ((id serial)
+   (name varchar)))
+
+(make-user2group-table)
+
+(define-automat msg "Автомат сообщения"
+  ((id serial)
+   (snd-id integer)
+   (rcv-id integer)
+   (msg varchar)
+   (ts-create bigint)
+   (ts-delivery bigint))
+  (:delivered :undelivered)
+  ((:undelivered :delivered :delivery))
+  )
+
+ (defun delivery ()
+   "undelivered -> delivered"
+   )
+
+(define-entity que "Сущность очереди"
+  ((id serial)
+   (name varchar)))
+
+(make-que-table)
+
+;; (make-que :name "admin")
+;; (make-que :name "manager")
+;; (make-que :name "moderator")
+;; (make-que :name "robot")
+
+(define-entity quelt "Сущность элемента очереди"
+  ((id serial)
+   (que-id integer)
+   (text varchar)))
+
+(make-quelt-table)
+
+
 
 (define-automat moto "Автомат мотоцикла"
   ((id serial)
@@ -153,91 +239,4 @@
    (motos (or db-null varchar))))
 
 (make-bratan-table)
-
-(define-automat user "Автомат пользователя"
-  ((id serial)
-   (name varchar)
-   (password varchar)
-   (email varchar)
-   (ts-create bigint)
-   (ts-last bigint)
-   (role-id (or db-null integer)))
-  (:sended :unlogged :logged :unregistred)
-  ((:unregistred :logged :registration)
-   (:logged :unregistred :unregistration)
-   (:unlogged :logged :enter)
-   (:logged :unlogged :leave)
-   (:unlogged :sended :forgot)
-   (:sended :logged :remember)))
-
- (defun registration ()
-   "unregistred -> logged"
-   )
- 
- (defun unregistration ()
-   "logged -> unregistred"
-   )
- 
- (defun enter ()
-   "unlogged -> logged"
-   )
- 
- (defun leave ()
-   "logged -> unlogged"
-   )
- 
- (defun forgot ()
-   "unlogged -> sended"
-   )
- 
- (defun remember ()
-   "sended -> logged"
-   )
-
- 
-
-(define-entity role "Сущность роли"
-  ((id serial)
-   (name (or db-null varchar))))
-
-(make-role-table)
-
-(make-role :name "admin")
-(make-role :name "manager")
-(make-role :name "moderator")
-(make-role :name "editor")
-(make-role :name "robot")
-
-(define-entity group "Сущность группы"
-  ((id serial)
-   (name varchar)))
-
-(make-group-table)
-
-(make-group :name "oldman")
-(make-group :name "newboy")
-(make-group :name "veteran")
-(make-group :name "traveler")
-(make-group :name "troll")
-
-(define-entity user2group "Сущность связи пользователя и группы"
-  ((id serial)
-   (name varchar)))
-
-(make-user2group-table)
-
-(define-automat msg "Автомат сообщения"
-  ((id serial)
-   (snd-id integer)
-   (rcv-id integer)
-   (msg varchar)
-   (ts-create bigint)
-   (ts-delivery bigint))
-  (:delivered :undelivered)
-  ((:undelivered :delivered :delivery))
-  )
-
- (defun delivery ()
-   "undelivered -> delivered"
-   )
 ;; entity_and_automates ends here

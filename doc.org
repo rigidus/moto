@@ -1,4 +1,4 @@
-#+TITLE: moto
+0#+TITLE: moto
 
 #+HTML_HEAD: <!-- -*- fill-column: 86 -*- -->
 
@@ -500,53 +500,10 @@
      | id         | serial     | идентификатор |
      | name       | varchar    | имя очереди   |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity que "Сущность очереди"
-       <<que_fields()>>)
-
-     (make-que-table)
-
-     <<que_contents>>
+   #+NAME: que_flds
+   #+BEGIN_SRC emacs-lisp :var table=que_data :results value :exports none
+     table
    #+END_SRC
-
-   Где =que-fields= (поля данных) определим как:
-
-   #+NAME: que_fields
-   #+BEGIN_SRC emacs-lisp :var table=que_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   #+CAPTION: Данные пользователя
-   #+NAME: user_data2
-     | field name | field type           | note                          |
-     |------------+----------------------+-------------------------------|
-     | id         | serial               | идентификатор                 |
-     | name       | varchar              | имя пользователя              |
-     | password   | varchar              | пароль                        |
-     | email      | varchar              | емейл                         |
-     | ts-create  | bigint               | время создания                |
-     | ts-last    | bigint               | время когда был последний раз |
-     | role-id    | (or db-null integer) | идентификатор роли            |
-
-
-   #+NAME: user_fields
-   #+BEGIN_SRC emacs-lisp :var table=user_data2 :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   #+results: user_fields
-   : ((id serial)
-   :  (name varchar)
-   :  (password varchar)
-   :  (email varchar)
-   :  (ts-create bigint)
-   :  (ts-last bigint)
-   :  (role-id (or db-null integer)))
-
-
-
 
    Нам понадобится сущность элемента очереди, назовем его =quelt=. Элемент очереди является
    простой сущностью и не имеет состояния.
@@ -559,22 +516,9 @@
      | que-id     | integer    | идентификатор очереди |
      | text       | varchar    | содержимое            |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity quelt "Сущность элемента очереди"
-       <<quelt_fields()>>)
-
-     (make-quelt-table)
-
-     <<quelt_contents>>
-   #+END_SRC
-
-   Где =quelt-fields= (поля данных) определим как:
-
-   #+NAME: quelt_fields
-   #+BEGIN_SRC emacs-lisp :var table=quelt_data :results output :exports results :tangle no
-     (gen-fields table)
+   #+NAME: quelt_flds
+   #+BEGIN_SRC emacs-lisp :var table=quelt_data :results value :exports none
+     table
    #+END_SRC
 
    Создадим необходимые очереди:
@@ -587,7 +531,7 @@
      ;; (make-que :name "robot")
    #+END_SRC
 
-** Аватары (avatar)
+** TODO Аватары (avatar)
 
    Пользователи имеют неопределенное кол-во аватарок, разного размера, для которых мы
    осуществляем хранение в оригинальном размере, масштабирование и хранение
@@ -699,6 +643,11 @@
      | desc       | (or db-null varchar) | описание мотоцикла               |
      | tuning     | (or db-null varchar) | описание тюнинга                 |
 
+   #+NAME: moto_flds
+   #+BEGIN_SRC emacs-lisp :var table=moto_data :results value :exports none
+     table
+   #+END_SRC
+
    В нашей системе мотоцикл может существовать (или не существовать) в одном их
    нескольких состояний:
     + =используется= Мотоцикл на ходу, может быть выставлен на продажу, разбит, сломан или угнан.
@@ -759,43 +708,6 @@
        rankdir = LR;
        $input
      }
-   #+END_SRC
-
-   Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
-   в коде:
-
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-automat moto "Автомат мотоцикла"
-       <<moto_fields()>>
-       <<moto_states()>>
-       <<moto_actions()>>)
-
-      <<moto_actions_func>>
-
-      <<create_moto>>
-   #+END_SRC
-
-   Где =moto-fields= (поля данных) определим как:
-
-   #+NAME: moto_fields
-   #+BEGIN_SRC emacs-lisp :var table=moto_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   А =moto-states= т.е. состояния пользователя определим так:
-
-   #+NAME: moto_states
-   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports results :tangle no
-     (gen-states table)
-   #+END_SRC
-
-   И, наконец, определим =moto-actions= переходы между состояниями:
-
-   #+NAME: moto_actions
-   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports results :tangle no
-     (gen-actions table)
    #+END_SRC
 
    Теперь определим функции, которые вызываются на переходах
@@ -882,20 +794,9 @@
      | id         | serial     | идентификатор |
      | name       | varchar    | имя цвета     |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity color "Сущность цвета"
-       <<color_fields()>>)
-
-     (make-color-table)
-   #+END_SRC
-
-   Где =color-fields= (поля данных) определим как:
-
-   #+NAME: color_fields
-   #+BEGIN_SRC emacs-lisp :var table=color_data :results output :exports results :tangle no
-     (gen-fields table)
+   #+NAME: color_flds
+   #+BEGIN_SRC emacs-lisp :var table=color_data :results value :exports none
+     table
    #+END_SRC
 
 ** Производитель (vendor)
@@ -909,20 +810,9 @@
      | id         | serial     | идентификатор     |
      | name       | varchar    | имя производителя |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity vendor "Сущность производителя"
-       <<vendor_fields()>>)
-
-     (make-vendor-table)
-   #+END_SRC
-
-   Где =vendor-fields= (поля данных) определим как:
-
-   #+NAME: vendor_fields
-   #+BEGIN_SRC emacs-lisp :var table=vendor_data :results output :exports results :tangle no
-     (gen-fields table)
+   #+NAME: vendor_flds
+   #+BEGIN_SRC emacs-lisp :var table=vendor_data :results value :exports none
+     table
    #+END_SRC
 
 ** Братан (bratan)
@@ -958,20 +848,9 @@
      | avatar      | (or db-null varchar) | аватар                             |
      | motos       | (or db-null varchar) | мотоциклы                          |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity bratan "Сущность братана"
-       <<bratan_fields()>>)
-
-     (make-bratan-table)
-   #+END_SRC
-
-   Где =bratan-fields= (поля данных) определим как:
-
-   #+NAME: bratan_fields
-   #+BEGIN_SRC emacs-lisp :var table=bratan_data :results output :exports results :tangle no
-     (gen-fields table)
+   #+NAME: bratan_flds
+   #+BEGIN_SRC emacs-lisp :var table=bratan_data :results value :exports none
+     table
    #+END_SRC
 
 * События
@@ -1881,6 +1760,137 @@
     #+NAME: msg_actions
     #+BEGIN_SRC emacs-lisp :var table=msg_state :results output :exports results :tangle no :cache yes
       (gen-actions table)
+    #+END_SRC
+
+*** Очереди
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-entity que "Сущность очереди"
+        <<que_fields()>>)
+
+      (make-que-table)
+
+      <<que_contents>>
+    #+END_SRC
+
+    Где =que-fields= (поля данных) определим как:
+
+    #+NAME: que_fields
+    #+BEGIN_SRC emacs-lisp :var table=que_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-entity quelt "Сущность элемента очереди"
+        <<quelt_fields()>>)
+
+      (make-quelt-table)
+
+      <<quelt_contents>>
+    #+END_SRC
+
+    Где =quelt-fields= (поля данных) определим как:
+
+    #+NAME: quelt_fields
+    #+BEGIN_SRC emacs-lisp :var table=quelt_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+*** Мотоциклы
+
+   Сводя вместе, все что нам известно о мотоцикле (его поведение и поля) опишем все это
+   в коде:
+
+   #+NAME: entity_and_automates_contents
+   #+BEGIN_SRC lisp
+
+     (define-automat moto "Автомат мотоцикла"
+       <<moto_fields()>>
+       <<moto_states()>>
+       <<moto_actions()>>)
+
+      <<moto_actions_func>>
+
+      <<create_moto>>
+   #+END_SRC
+
+   Где =moto-fields= (поля данных) определим как:
+
+   #+NAME: moto_fields
+   #+BEGIN_SRC emacs-lisp :var table=moto_flds :results output :exports results :tangle no :cache yes
+     (gen-fields table)
+   #+END_SRC
+
+   А =moto-states= т.е. состояния пользователя определим так:
+
+   #+NAME: moto_states
+   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports results :tangle no :cache yes
+     (gen-states table)
+   #+END_SRC
+
+   И, наконец, определим =moto-actions= переходы между состояниями:
+
+   #+NAME: moto_actions
+   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports results :tangle no :cache yes
+     (gen-actions table)
+   #+END_SRC
+
+*** Цвета
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-entity color "Сущность цвета"
+        <<color_fields()>>)
+
+      (make-color-table)
+    #+END_SRC
+
+    Где =color-fields= (поля данных) определим как:
+
+    #+NAME: color_fields
+    #+BEGIN_SRC emacs-lisp :var table=color_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+*** Производители
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-entity vendor "Сущность производителя"
+        <<vendor_fields()>>)
+
+      (make-vendor-table)
+    #+END_SRC
+
+    Где =vendor-fields= (поля данных) определим как:
+
+    #+NAME: vendor_fields
+    #+BEGIN_SRC emacs-lisp :var table=vendor_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+*** Братаны
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-entity bratan "Сущность братана"
+        <<bratan_fields()>>)
+
+      (make-bratan-table)
+    #+END_SRC
+
+    Где =bratan-fields= (поля данных) определим как:
+
+    #+NAME: bratan_fields
+    #+BEGIN_SRC emacs-lisp :var table=bratan_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
     #+END_SRC
 
 ** Подготовка к старту

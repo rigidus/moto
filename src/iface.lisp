@@ -151,6 +151,7 @@
          (td (name i))
          (td (password i))
          (td (email i))
+         (td (state i))
          (td (role-id i))))
       :border 1)
      "<h2>Новый пользователь</h2>"
@@ -219,7 +220,11 @@
       (with-collection (i (all-group))
         (tr
          (td (format nil "<a href=\"/group/~A\">~A</a>" (id i) (id i)))
-         (td (name i))))
+         (td (name i))
+         (td (frm
+              ;; (hid "act" :value "del")
+              ;; (hid "id" :value (id i))
+              (submit "Удалить")))))
       :border 1)
      "<h2>Новая группа</h2>"
      (frm
