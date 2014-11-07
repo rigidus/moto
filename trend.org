@@ -199,21 +199,22 @@
      (gen-fields table)
    #+END_SRC
 
+** TODO Корпуса
 ** Планировка (flat)
 
    #+CAPTION: Данные планировки
    #+NAME: flat_data
-     | field name   | field type           | note                                   |
-     |--------------+----------------------+----------------------------------------|
-     | id           | serial               | идентификатор                          |
-     | plex-id      | (or db-null integer) | идентификатор очереди жилого комплекса |
-     | rooms        | (or db-null integer) | кол-во комнат                          |
-     | area-sum     | (or db-null integer) | общая площадь квартиры                 |
-     | area-living  | (or db-null integer) | жилая площадь квартиры                 |
-     | area-kitchen | (or db-null integer) | площадь кухни                          |
-     | price        | (or db-null integer) | цена                                   |
-     | balcon       | (or db-null varchar) | балкон/лоджия                          |
-     | sanuzel      | (or db-null boolean) | Санузел раздельный/совмещенный         |
+     | field name   | field type           | note                                        |
+     |--------------+----------------------+---------------------------------------------|
+     | id           | serial               | идентификатор                               |
+     | plex-id      | (or db-null integer) | идентификатор очереди жилого комплекса      |
+     | rooms        | (or db-null integer) | кол-во комнат                               |
+     | area-sum     | (or db-null integer) | общая площадь квартиры (может быть дробное) |
+     | area-living  | (or db-null varchar) | жилая площадь квартиры (именно varchar)     |
+     | area-kitchen | (or db-null integer) | площадь кухни (может быть дробное)          |
+     | price        | (or db-null integer) | цена                                        |
+     | balcon       | (or db-null varchar) | балкон/лоджия                               |
+     | sanuzel      | (or db-null boolean) | Санузел раздельный/совмещенный              |
 
    #+NAME: flat_entity
    #+BEGIN_SRC lisp
