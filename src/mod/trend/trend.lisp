@@ -1,28 +1,29 @@
 (in-package #:moto)
 
-;; Сущность планировки
-(define-entity flat "Сущность планировки"
-  ((id serial)
-   (plex-id (or db-null integer))
-   (rooms (or db-null integer))
-   (area-sum (or db-null integer))
-   (area-living (or db-null integer))
-   (area-kitchen (or db-null integer))
-   (price (or db-null integer))
-   (balcon (or db-null varchar))
-   (sanuzel (or db-null boolean))))
 
-(make-flat-table)
-
-(make-flat :rooms 1 :price 2589000)
 
 (in-package #:moto)
 
+;; Страница загрузки данных
 (restas:define-route load-data ("/load")
   (with-wrapper
-    "<h1>Загрузка данных из файлов</h1>"
-    ))
+    (concatenate
+     'string
+     "<h1>Загрузка данных из файлов</h1>"
+     (if (null *current-user*)
+         "Error: Незалогиненные пользователи не имеют права загружать данные"
+         (frm (tbl
+               (list
+                (row "" (hid "load"))
+                (row "" (submit "Загрузить")))))))))
 
+;; Контроллер страницы регистрации
+(restas:define-route load-ctrl ("/load" :method :post)
+  (with-wrapper
+    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+      (if (equal (getf p :load) "")
+          "Данные загружены"
+          "err"))))
 (in-package #:moto)
 
 (restas:define-route flat ("/flat/:flatid")

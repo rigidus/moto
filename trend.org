@@ -128,15 +128,6 @@
     - Выгрузка данных на рекламные ресурсы
 
 * Определения сущностей
-  Соберем все сущности и автоматы
-
-  #+NAME: entity_and_automates
-  #+BEGIN_SRC lisp :tangle src/mod/trend/entityes.lisp :noweb tangle :exports code :padline no :comments link
-    (in-package #:moto)
-
-    <<entity_and_automates_contents>>
-  #+END_SRC
-
 ** Жилой комплекс (cmpx)
 
    Эта сущность нужна только чтобы объединять очереди жилого комплекса
@@ -149,20 +140,9 @@
      | name       | varchar              | название      |
      | addr       | (or db-null varchar) | адрес         |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity cmpx "Сущность комплекса"
-       <<cmpx_fields()>>)
-
-     (make-cmpx-table)
-   #+END_SRC
-
-   Где =cmpx-fields= (поля данных) определим как:
-
-   #+NAME: cmpx_fields
-   #+BEGIN_SRC emacs-lisp :var table=cmpx_data :results output :exports results :tangle no
-     (gen-fields table)
+   #+NAME: cmpx_flds
+   #+BEGIN_SRC emacs-lisp :var table=cmpx_data :results value :exports none :session gen
+     table
    #+END_SRC
 
 ** Очередь жилого комплекса (plex)
@@ -183,75 +163,62 @@
      | ipoteka     | (or db-null boolean) | ипотека                        |
      | installment | (or db-null boolean) | рассрочка                      |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity plex "Сущность очереди жилого комплекса"
-       <<plex_fields()>>)
-
-     (make-plex-table)
+   #+NAME: plex_flds
+   #+BEGIN_SRC emacs-lisp :var table=plex_data :results value :exports none :session gen
+     table
    #+END_SRC
 
-   Где =plex-fields= (поля данных) определим как:
+** Корпус очереди жилого комплекса (crpx)
 
-   #+NAME: plex_fields
-   #+BEGIN_SRC emacs-lisp :var table=plex_data :results output :exports results :tangle no
-     (gen-fields table)
+   #+CAPTION: Данные корпуса очереди жилого комплекса
+   #+NAME: crps_data
+     | field name | field type           | note                                  |
+     |------------+----------------------+---------------------------------------|
+     | id         | serial               | идентификатор                         |
+     | plex-id    | integer              | идентификатор очередижилого комплекса |
+     | name       | (or db-null varchar) | название (номер корпуса)              |
+
+   #+NAME: crps_flds
+   #+BEGIN_SRC emacs-lisp :var table=crps_data :results value :exports none :session gen
+     table
    #+END_SRC
 
-** TODO Корпуса
 ** Планировка (flat)
 
    #+CAPTION: Данные планировки
    #+NAME: flat_data
-     | field name   | field type           | note                                        |
-     |--------------+----------------------+---------------------------------------------|
-     | id           | serial               | идентификатор                               |
-     | plex-id      | (or db-null integer) | идентификатор очереди жилого комплекса      |
-     | rooms        | (or db-null integer) | кол-во комнат                               |
-     | area-sum     | (or db-null integer) | общая площадь квартиры (может быть дробное) |
-     | area-living  | (or db-null varchar) | жилая площадь квартиры (именно varchar)     |
-     | area-kitchen | (or db-null integer) | площадь кухни (может быть дробное)          |
-     | price        | (or db-null integer) | цена                                        |
-     | balcon       | (or db-null varchar) | балкон/лоджия                               |
-     | sanuzel      | (or db-null boolean) | Санузел раздельный/совмещенный              |
+     | field name   | field type           | note                                           |
+     |--------------+----------------------+------------------------------------------------|
+     | id           | serial               | идентификатор                                  |
+     | crps-id      | (or db-null integer) | идентификатор корпуса очереди жилого комплекса |
+     | rooms        | (or db-null integer) | кол-во комнат                                  |
+     | area-sum     | (or db-null integer) | общая площадь квартиры (может быть дробное)    |
+     | area-living  | (or db-null varchar) | жилая площадь квартиры (именно varchar)        |
+     | area-kitchen | (or db-null integer) | площадь кухни (может быть дробное)             |
+     | price        | (or db-null integer) | цена                                           |
+     | balcon       | (or db-null varchar) | балкон/лоджия                                  |
+     | sanuzel      | (or db-null boolean) | Санузел раздельный/совмещенный                 |
 
-   #+NAME: flat_entity
-   #+BEGIN_SRC lisp
-     ;; Сущность планировки
-     (define-entity flat "Сущность планировки"
-       <<flat_fields()>>)
-
-     (make-flat-table)
-
-     <<create_flats>>
+   #+NAME: flat_flds
+   #+BEGIN_SRC emacs-lisp :var table=flat_data :results value :exports none :session gen
+     table
    #+END_SRC
 
-   Где =flat-fields= (поля данных) определим как:
-
-   #+NAME: flat_fields
-   #+BEGIN_SRC emacs-lisp :var table=flat_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   #+NAME: create_flats
-   #+BEGIN_SRC lisp
-     (make-flat :rooms 1 :price 2589000)
-   #+END_SRC
-
-** TODO Картинки очередей ЖК
-** TODO Картинки планировок
-** TODO Картинки хода строительства
 ** Город (city)
 
    Город в котором находится объект
 
    #+CAPTION: Данные города
-   #+NAME: district_data
+   #+NAME: city_data
      | field name | field type | note            |
      |------------+------------+-----------------|
      | id         | serial     | идентификатор   |
      | name       | varchar    | название города |
+
+   #+NAME: city_flds
+   #+BEGIN_SRC emacs-lisp :var table=city_data :results value :exports none :session gen
+     table
+   #+END_SRC
 
 ** Район (district)
 
@@ -264,60 +231,9 @@
      | id          | serial     | идентификатор                            |
      | name        | varchar    | название района |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity district "Сущность района"
-       <<district_fields()>>)
-
-     (make-district-table)
-
-     ;; Районы города
-     (make-district :name "Адмиралтейский")
-     (make-district :name "Василеостровский")
-     (make-district :name "Выборгский")
-     (make-district :name "Калининский")
-     (make-district :name "Кировский")
-     (make-district :name "Колпинский")
-     (make-district :name "Красногвардейский")
-     (make-district :name "Красносельский")
-     (make-district :name "Кронштадтский")
-     (make-district :name "Курортный")
-     (make-district :name "Московский")
-     (make-district :name "Невский")
-     (make-district :name "Петроградский")
-     (make-district :name "Петродворцовый")
-     (make-district :name "Приморский")
-     (make-district :name "Пушкинский")
-     (make-district :name "Фрунзенский")
-     (make-district :name "Центральный")
-     (make-district :name "Всеволожкси")
-
-     ;; Районы области
-     (make-district :name "Бокситогорский")
-     (make-district :name "Волосовский")
-     (make-district :name "Волховский")
-     (make-district :name "Всеволожский")
-     (make-district :name "Выборгский")
-     (make-district :name "Гатчинский")
-     (make-district :name "Кингисеппский")
-     (make-district :name "Киришский")
-     (make-district :name "Кировский")
-     (make-district :name "Лодейнопольский")
-     (make-district :name "Ломоносовский")
-     (make-district :name "Лужский")
-     (make-district :name "Подпорожский")
-     (make-district :name "Приозерский")
-     (make-district :name "Сланцевский")
-     (make-district :name "Тихвинский")
-     (make-district :name "Тосненский")
-   #+END_SRC
-
-   Где =district-fields= (поля данных) определим как:
-
-   #+NAME: district_fields
-   #+BEGIN_SRC emacs-lisp :var table=district_data :results output :exports results :tangle no
-     (gen-fields table)
+   #+NAME: district_flds
+   #+BEGIN_SRC emacs-lisp :var table=district_data :results value :exports none :session gen
+     table
    #+END_SRC
 
 ** Метро (metro)
@@ -331,90 +247,14 @@
      | id         | serial     | идентификатор    |
      | name       | varchar    | название станции |
 
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity metro "Сущность метро"
-       <<metro_fields()>>)
-
-     (make-metro-table)
-
-     (make-metro :name "Автово")
-     (make-metro :name "Адмиралтейская")
-     (make-metro :name "Академическая")
-     (make-metro :name "Балтийская")
-     (make-metro :name "Бухарестская")
-     (make-metro :name "Василеостровская")
-     (make-metro :name "Владимирская")
-     (make-metro :name "Волковская")
-     (make-metro :name "Выборгская")
-     (make-metro :name "Горьковская")
-     (make-metro :name "Гостиный двор")
-     (make-metro :name "Гражданский проспект")
-     (make-metro :name "Девяткино")
-     (make-metro :name "Достоевская")
-     (make-metro :name "Елизаровская")
-     (make-metro :name "Звёздная")
-     (make-metro :name "Звенигородская")
-     (make-metro :name "Кировский завод")
-     (make-metro :name "Комендантский проспект")
-     (make-metro :name "Крестовский остров")
-     (make-metro :name "Купчино")
-     (make-metro :name "Ладожская")
-     (make-metro :name "Ленинский проспект")
-     (make-metro :name "Лесная")
-     (make-metro :name "Лиговский проспект")
-     (make-metro :name "Ломоносовская")
-     (make-metro :name "Маяковская")
-     (make-metro :name "Международная")
-     (make-metro :name "Московская")
-     (make-metro :name "Московские ворота")
-     (make-metro :name "Нарвская")
-     (make-metro :name "Невский проспект")
-     (make-metro :name "Новочеркасская")
-     (make-metro :name "Обводный канал")
-     (make-metro :name "Обухово")
-     (make-metro :name "Озерки")
-     (make-metro :name "Парк Победы")
-     (make-metro :name "Парнас")
-     (make-metro :name "Петроградская")
-     (make-metro :name "Пионерская")
-     (make-metro :name "Площадь Александра Невского")
-     (make-metro :name "Площадь Александра Невского")
-     (make-metro :name "Площадь Восстания")
-     (make-metro :name "Площадь Ленина")
-     (make-metro :name "Площадь Мужества")
-     (make-metro :name "Политехническая")
-     (make-metro :name "Приморская")
-     (make-metro :name "Пролетарская")
-     (make-metro :name "Проспект Большевиков")
-     (make-metro :name "Проспект Ветеранов")
-     (make-metro :name "Проспект Просвещения")
-     (make-metro :name "Пушкинская")
-     (make-metro :name "Рыбацкое")
-     (make-metro :name "Садовая")
-     (make-metro :name "Сенная площадь")
-     (make-metro :name "Спасская")
-     (make-metro :name "Спортивная")
-     (make-metro :name "Старая Деревня")
-     (make-metro :name "Технологический институт")
-     (make-metro :name "Технологический институт")
-     (make-metro :name "Удельная")
-     (make-metro :name "Улица Дыбенко")
-     (make-metro :name "Фрунзенская")
-     (make-metro :name "Чёрная речка")
-     (make-metro :name "Чернышевская")
-     (make-metro :name "Чкаловская")
-     (make-metro :name "Электросила")
+   #+NAME: metro_flds
+   #+BEGIN_SRC emacs-lisp :var table=metro_data :results value :exports none :session gen
+     table
    #+END_SRC
 
-   Где =metro-fields= (поля данных) определим как:
-
-   #+NAME: metro_fields
-   #+BEGIN_SRC emacs-lisp :var table=metro_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
+** TODO Картинки очередей ЖК
+** TODO Картинки планировок
+** TODO Картинки хода строительства
 * Загрузка данных
 
   В папке =./data= лежат ЖК, в каждом из них есть подпапки, в которых лежат очереди. Очереди
@@ -1405,3 +1245,182 @@
   открыть свою сессию с другого устройства, увидеть на своем планшете те объекты, которые
   смотрели на ноутбуке итп.
   Мы как-то отличаем районы города от районов ленинградской области?
+* Сборка
+** Сущности и автоматы
+   Соберем все сущности и автоматы
+
+   #+NAME: entity_and_automates
+   #+BEGIN_SRC lisp :tangle src/mod/trend/entityes.lisp :noweb tangle :exports code :padline no :comments link
+     (in-package #:moto)
+
+     <<asm_cmpx()>>
+
+     <<asm_plex()>>
+
+     <<asm_crps()>>
+
+     <<asm_flat()>>
+
+     <<asm_city()>>
+
+     <<asm_district()>>
+
+     ;; Районы города
+     (make-district :name "Адмиралтейский")
+     (make-district :name "Василеостровский")
+     (make-district :name "Выборгский")
+     (make-district :name "Калининский")
+     (make-district :name "Кировский")
+     (make-district :name "Колпинский")
+     (make-district :name "Красногвардейский")
+     (make-district :name "Красносельский")
+     (make-district :name "Кронштадтский")
+     (make-district :name "Курортный")
+     (make-district :name "Московский")
+     (make-district :name "Невский")
+     (make-district :name "Петроградский")
+     (make-district :name "Петродворцовый")
+     (make-district :name "Приморский")
+     (make-district :name "Пушкинский")
+     (make-district :name "Фрунзенский")
+     (make-district :name "Центральный")
+     (make-district :name "Всеволожкси")
+
+     ;; Районы области
+     (make-district :name "Бокситогорский")
+     (make-district :name "Волосовский")
+     (make-district :name "Волховский")
+     (make-district :name "Всеволожский")
+     (make-district :name "Выборгский")
+     (make-district :name "Гатчинский")
+     (make-district :name "Кингисеппский")
+     (make-district :name "Киришский")
+     (make-district :name "Кировский")
+     (make-district :name "Лодейнопольский")
+     (make-district :name "Ломоносовский")
+     (make-district :name "Лужский")
+     (make-district :name "Подпорожский")
+     (make-district :name "Приозерский")
+     (make-district :name "Сланцевский")
+     (make-district :name "Тихвинский")
+     (make-district :name "Тосненский")
+
+     <<asm_metro()>>
+
+     (make-metro :name "Автово")
+     (make-metro :name "Адмиралтейская")
+     (make-metro :name "Академическая")
+     (make-metro :name "Балтийская")
+     (make-metro :name "Бухарестская")
+     (make-metro :name "Василеостровская")
+     (make-metro :name "Владимирская")
+     (make-metro :name "Волковская")
+     (make-metro :name "Выборгская")
+     (make-metro :name "Горьковская")
+     (make-metro :name "Гостиный двор")
+     (make-metro :name "Гражданский проспект")
+     (make-metro :name "Девяткино")
+     (make-metro :name "Достоевская")
+     (make-metro :name "Елизаровская")
+     (make-metro :name "Звёздная")
+     (make-metro :name "Звенигородская")
+     (make-metro :name "Кировский завод")
+     (make-metro :name "Комендантский проспект")
+     (make-metro :name "Крестовский остров")
+     (make-metro :name "Купчино")
+     (make-metro :name "Ладожская")
+     (make-metro :name "Ленинский проспект")
+     (make-metro :name "Лесная")
+     (make-metro :name "Лиговский проспект")
+     (make-metro :name "Ломоносовская")
+     (make-metro :name "Маяковская")
+     (make-metro :name "Международная")
+     (make-metro :name "Московская")
+     (make-metro :name "Московские ворота")
+     (make-metro :name "Нарвская")
+     (make-metro :name "Невский проспект")
+     (make-metro :name "Новочеркасская")
+     (make-metro :name "Обводный канал")
+     (make-metro :name "Обухово")
+     (make-metro :name "Озерки")
+     (make-metro :name "Парк Победы")
+     (make-metro :name "Парнас")
+     (make-metro :name "Петроградская")
+     (make-metro :name "Пионерская")
+     (make-metro :name "Площадь Александра Невского")
+     (make-metro :name "Площадь Александра Невского")
+     (make-metro :name "Площадь Восстания")
+     (make-metro :name "Площадь Ленина")
+     (make-metro :name "Площадь Мужества")
+     (make-metro :name "Политехническая")
+     (make-metro :name "Приморская")
+     (make-metro :name "Пролетарская")
+     (make-metro :name "Проспект Большевиков")
+     (make-metro :name "Проспект Ветеранов")
+     (make-metro :name "Проспект Просвещения")
+     (make-metro :name "Пушкинская")
+     (make-metro :name "Рыбацкое")
+     (make-metro :name "Садовая")
+     (make-metro :name "Сенная площадь")
+     (make-metro :name "Спасская")
+     (make-metro :name "Спортивная")
+     (make-metro :name "Старая Деревня")
+     (make-metro :name "Технологический институт")
+     (make-metro :name "Технологический институт")
+     (make-metro :name "Удельная")
+     (make-metro :name "Улица Дыбенко")
+     (make-metro :name "Фрунзенская")
+     (make-metro :name "Чёрная речка")
+     (make-metro :name "Чернышевская")
+     (make-metro :name "Чкаловская")
+     (make-metro :name "Электросила")
+   #+END_SRC
+
+*** Жилой комплекс
+
+    #+NAME: asm_cmpx
+    #+BEGIN_SRC emacs-lisp :var flds=cmpx_flds :exports none :session gen
+      (gen-entity "cmpx" "комплекса" flds)
+    #+END_SRC
+
+*** Очередь жилого комплекса
+
+    #+NAME: asm_plex
+    #+BEGIN_SRC emacs-lisp :var flds=plex_flds :exports none :session gen
+      (gen-entity "plex" "очереди жилого комплекса" flds)
+    #+END_SRC
+
+*** Корпус очереди жилого комплекса
+
+    #+NAME: asm_crps
+    #+BEGIN_SRC emacs-lisp :var flds=crps_flds :exports none :session gen
+      (gen-entity "cmps" "корпуса очереди жилого комплекса" flds)
+    #+END_SRC
+
+*** Планировка
+
+    #+NAME: asm_flat
+    #+BEGIN_SRC emacs-lisp :var flds=flat_flds :exports none :session gen
+      (gen-entity "flat" "планировки" flds)
+    #+END_SRC
+
+*** Город
+
+    #+NAME: asm_city
+    #+BEGIN_SRC emacs-lisp :var flds=city_flds :exports none :session gen
+      (gen-entity "city" "города" flds)
+    #+END_SRC
+
+*** Районы
+
+    #+NAME: asm_district
+    #+BEGIN_SRC emacs-lisp :var flds=district_flds :exports none :session gen
+      (gen-entity "district" "района" flds)
+    #+END_SRC
+
+*** Метро
+
+    #+NAME: asm_metro
+    #+BEGIN_SRC emacs-lisp :var flds=metro_flds :exports none :session gen
+      (gen-entity "metro" "метро" flds)
+    #+END_SRC

@@ -1,6 +1,5 @@
-;; [[file:trend.org::*Определения сущностей][entity_and_automates]]
+;; [[file:trend.org::*Сущности и автоматы][entity_and_automates]]
 (in-package #:moto)
-
 
 (define-entity cmpx "Сущность комплекса"
   ((id serial)
@@ -8,6 +7,7 @@
    (addr (or db-null varchar))))
 
 (make-cmpx-table)
+
 
 (define-entity plex "Сущность очереди жилого комплекса"
   ((id serial)
@@ -24,11 +24,42 @@
 
 (make-plex-table)
 
+
+(define-entity cmps "Сущность корпуса очереди жилого комплекса"
+  ((id serial)
+   (plex-id integer)
+   (name (or db-null varchar))))
+
+(make-cmps-table)
+
+
+(define-entity flat "Сущность планировки"
+  ((id serial)
+   (crps-id (or db-null integer))
+   (rooms (or db-null integer))
+   (area-sum (or db-null integer))
+   (area-living (or db-null varchar))
+   (area-kitchen (or db-null integer))
+   (price (or db-null integer))
+   (balcon (or db-null varchar))
+   (sanuzel (or db-null boolean))))
+
+(make-flat-table)
+
+
+(define-entity city "Сущность города"
+  ((id serial)
+   (name varchar)))
+
+(make-city-table)
+
+
 (define-entity district "Сущность района"
   ((id serial)
    (name varchar)))
 
 (make-district-table)
+
 
 ;; Районы города
 (make-district :name "Адмиралтейский")
@@ -75,6 +106,7 @@
    (name varchar)))
 
 (make-metro-table)
+
 
 (make-metro :name "Автово")
 (make-metro :name "Адмиралтейская")
