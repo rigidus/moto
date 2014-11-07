@@ -700,11 +700,26 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+     ;; Страница загрузки данных
      (restas:define-route load-data ("/load")
        (with-wrapper
-         "<h1>Загрузка данных из файлов</h1>"
-         ))
+         (concatenate
+          'string
+          "<h1>Загрузка данных из файлов</h1>"
+          (if (null *current-user*)
+              "Error: Незалогиненные пользователи не имеют права загружать данные"
+              (frm (tbl
+                    (list
+                     (row "" (hid "load"))
+                     (row "" (submit "Загрузить")))))))))
 
+     ;; Контроллер страницы регистрации
+     (restas:define-route load-ctrl ("/load" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (if (equal (getf p :load) "")
+               "Данные загружены"
+               "err"))))
    #+END_SRC
 
 ** Страничка планировки

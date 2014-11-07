@@ -1,6 +1,6 @@
-#+HTML_HEAD: <!-- -*- fill-column: 92 -*- -->
-
 #+TITLE: moto
+
+#+HTML_HEAD: <!-- -*- fill-column: 86 -*- -->
 
 #+NAME: css
 #+BEGIN_HTML
@@ -175,16 +175,6 @@
   - Очищалка базы для каждого модуля должна лежать в модуле
   - И сущности тоже туда переложить
 * Определения сущностей
-
-  Соберем все сущности и автоматы
-
-  #+NAME: entity_and_automates
-  #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports code :padline no :comments link
-    (in-package #:moto)
-
-    <<entity_and_automates_contents>>
-  #+END_SRC
-
 ** Функции для кодогенерации сущностей
 
    Эти функции будут кодогенерировать сущности и автоматы из таблиц с наименованием и
@@ -195,9 +185,6 @@
 
    #+NAME: gen_org_confirm
    #+BEGIN_SRC emacs-lisp
-     ;; Do not prompt to confirm evaluation
-     ;; This may be dangerous - make sure you understand the consequences
-     ;; of setting this -- see the docstring for details
      (setq org-confirm-babel-evaluate nil)
    #+END_SRC
 
@@ -285,7 +272,11 @@
      | email      | varchar              | емейл                         |
      | ts-create  | bigint               | время создания                |
      | ts-last    | bigint               | время когда был последний раз |
-     | role-id    | (or db-null integer) | идентификатор роли            |
+
+   #+NAME: user_flds
+   #+BEGIN_SRC emacs-lisp :var table=user_data :results value :exports none
+     table
+   #+END_SRC
 
    В нашей системе пользователь может существовать (или не существовать) в одном их
    нескольких состояний:
@@ -328,44 +319,8 @@
      }
    #+END_SRC
 
-   Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
-   в коде:
-
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-automat user "Автомат пользователя"
-       <<user_fields()>>
-       <<user_states()>>
-       <<user_actions()>>)
-
-      <<user_actions_func>>
-
-      <<create_user>>
-   #+END_SRC
-
-   Где =user-fields= (поля данных) определим как:
-
-   #+NAME: user_fields
-   #+BEGIN_SRC emacs-lisp :var table=user_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   А =user-states= т.е. состояния пользователя определим так:
-
-   #+NAME: user_states
-   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports results :tangle no
-     (gen-states table)
-   #+END_SRC
-
-   И, наконец, определим =user-actions= переходы между состояниями:
-
-   #+NAME: user_actions
-   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports results :tangle no
-     (gen-actions table)
-   #+END_SRC
-
-   Теперь определим функции, которые вызываются на переходах
+   Теперь определим функции, которые вызываются на переходах из одного
+   состояния в другое
 
    #+NAME: user_actions_func
    #+BEGIN_SRC lisp
@@ -391,6 +346,140 @@
 
      (defun remember ()
        "sended -> logged"
+       )
+   #+END_SRC
+
+** Роли (role)
+
+   Роли определяют набор сценариев, которые пользователь выполняет на
+   сайте. Функционал, который выполняют сценарии запрашивает
+   разрешение на выполнение действий, которое опирается на роль,
+   присвоенную пользователю. Пользователь может иметь только одну роль
+   или не иметь ее вовсе.
+
+   Роль является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: role_data
+     | field name | field type           | note          |
+     |------------+----------------------+---------------|
+     | id         | serial               | идентификатор |
+     | name       | (or db-null varchar) | имя роли      |
+
+   #+NAME: role_flds
+   #+BEGIN_SRC emacs-lisp :var table=role_data :results value :exports none
+     table
+   #+END_SRC
+
+   Добавляем к полям пользователя еще одно поле, которое будет
+   указывать на идентификатор роли, которую имеет пользователь:
+
+   #+CAPTION: Связь пользователя с ролью
+   #+NAME: user_role_link
+     | field name | field type           | note               |
+     |------------+----------------------+--------------------|
+     | role-id    | (or db-null integer) | идентификатор роли |
+
+   #+NAME: user_flds
+   #+BEGIN_SRC emacs-lisp :var table=user_flds addon=user_role_link :results value :exports none
+     (append table addon)
+   #+END_SRC
+
+   Создадим необходимые роли:
+
+   #+NAME: create_roles
+   #+BEGIN_SRC lisp
+     (make-role :name "admin")
+     (make-role :name "manager")
+     (make-role :name "moderator")
+     (make-role :name "editor")
+     (make-role :name "robot")
+   #+END_SRC
+** Группы (group, user2group)
+
+   Группы пользователей определяют набор операций, которые
+   пользователь может выполнять над объектами системы. В отличие от
+   ролей, один пользователь может входить в несколько групп или не
+   входить ни в одну из них.
+
+   Группа является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные группы
+   #+NAME: group_data
+     | field name | field type | note          |
+     |------------+------------+---------------|
+     | id         | serial     | идентификатор |
+     | name       | varchar    | имя группы    |
+
+   #+NAME: group_flds
+   #+BEGIN_SRC emacs-lisp :var table=group_data :results value :exports none
+     table
+   #+END_SRC
+
+   Создадим необходимые группы:
+
+   #+NAME: create_groups
+   #+BEGIN_SRC lisp
+     (make-group :name "oldman")
+     (make-group :name "newboy")
+     (make-group :name "veteran")
+     (make-group :name "traveler")
+     (make-group :name "troll")
+   #+END_SRC
+
+   Теперь создадим таблицу связи, которая свяжет пользователей и группы:
+
+   #+CAPTION: Данные таблицы связи пользователя и группы
+   #+NAME: user2group_data
+     | field name | field type | note                       |
+     |------------+------------+----------------------------|
+     | id         | serial     | идентификатор              |
+     | user-id    | integer    | идентификатор пользователя |
+     | group-id   | integer    | идентификатор группы       |
+
+   #+NAME: user2group_flds
+   #+BEGIN_SRC emacs-lisp :var table=group_data :results value :exports none
+     table
+   #+END_SRC
+
+** Сообщения (msg)
+
+   О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
+   сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
+   может удалить сообщение (пометить как удаленное), для этого мы используем отдельные
+   флаги.
+
+   #+CAPTION: Данные сообщения
+   #+NAME: msg_data
+     | field name  | field type | note                                     |
+     |-------------+------------+------------------------------------------|
+     | id          | serial     | идентификатор                            |
+     | snd-id      | integer    | пользователь, который послал сообщение   |
+     | rcv-id      | integer    | пользователь, который получает сообщение |
+     | msg         | varchar    | сообщение                                |
+     | ts-create   | bigint     | время создания                           |
+     | ts-delivery | bigint     | время доставки                           |
+
+   #+NAME: msg_flds
+   #+BEGIN_SRC emacs-lisp :var table=msg_data :results value :exports none
+     table
+   #+END_SRC
+
+   Еще сообщение может быть доставлено или недоставлено.
+
+   #+CAPTION: Состояния конечного автомата сообщения
+   #+NAME: msg_state
+     | action   | from        | to        |
+     |----------+-------------+-----------|
+     | delivery | undelivered | delivered |
+
+
+   Теперь определим функции, которые вызываются на переходах
+
+   #+NAME: msg_actions_func
+   #+BEGIN_SRC lisp
+     (defun delivery ()
+       "undelivered -> delivered"
        )
    #+END_SRC
 
@@ -496,191 +585,6 @@
      ;; (make-que :name "manager")
      ;; (make-que :name "moderator")
      ;; (make-que :name "robot")
-   #+END_SRC
-
-** Роли (role)
-
-   Роли определяют набор сценариев, которые пользователь выполняет на сайте. Функционал,
-   который выполняет сценарии запрашивает разрешение на выполнение действий, которое
-   опирается на роль, присвоенную пользователю. Пользователь может иметь только одну роль
-   или не иметь ее вовсе.
-
-   Роль является простой сущностью и не имеет состояния.
-
-   #+CAPTION: Данные роли
-   #+NAME: role_data
-     | field name | field type | note          |
-     |------------+------------+---------------|
-     | id         | serial     | идентификатор |
-     | name       | varchar    | имя роли      |
-
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity role "Сущность роли"
-       <<role_fields()>>)
-
-     (make-role-table)
-
-     <<create_roles>>
-   #+END_SRC
-
-   Где =role-fields= (поля данных) определим как:
-
-   #+NAME: role_fields
-   #+BEGIN_SRC emacs-lisp :var table=role_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   Создадим необходимые роли:
-
-   #+NAME: create_roles
-   #+BEGIN_SRC lisp
-     (make-role :name "admin")
-     (make-role :name "manager")
-     (make-role :name "moderator")
-     (make-role :name "robot")
-   #+END_SRC
-
-** Группы (group)
-
-   Группы пользователей определяют набор операций, которые пользователь может выполнять над
-   объектами системы. В отличие от ролей, один пользователь может входить в несколько групп
-   или не входить ни в одну из них.
-
-   Роль является простой сущностью и не имеет состояния.
-
-   #+CAPTION: Данные роли
-   #+NAME: group_data
-     | field name | field type | note          |
-     |------------+------------+---------------|
-     | id         | serial     | идентификатор |
-     | name       | varchar    | имя группы    |
-
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-entity group "Сущность группы"
-       <<group_fields()>>)
-
-     (make-group-table)
-
-     <<create_groups>>
-
-     <<user2group_entity>>
-   #+END_SRC
-
-   Где =group-fields= (поля данных) определим как:
-
-   #+NAME: group_fields
-   #+BEGIN_SRC emacs-lisp :var table=group_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   Создадим необходимые роли:
-
-   #+NAME: create_groups
-   #+BEGIN_SRC lisp
-     (make-group :name "oldman")
-     (make-group :name "newboy")
-     (make-group :name "veteran")
-     (make-group :name "traveler")
-     (make-group :name "dirtyman")
-   #+END_SRC
-
-   Теперь создадим таблицу связи, которая свяжет пользователей и группы:
-
-   #+CAPTION: Данные таблицы связи пользователя и группы
-   #+NAME: user2group_data
-     | field name | field type | note                       |
-     |------------+------------+----------------------------|
-     | id         | serial     | идентификатор              |
-     | user-id    | integer    | идентификатор пользователя |
-     | group-id   | integer    | идентификатор группы       |
-
-   #+NAME: user2group_entity
-   #+BEGIN_SRC lisp
-     (define-entity user2group "Сущность связи пользователя и группы"
-       <<user2group_fields()>>)
-
-     (make-user2group-table)
-   #+END_SRC
-
-   Где =user2group-fields= (поля данных) определим как:
-
-   #+NAME: user2group_fields
-   #+BEGIN_SRC emacs-lisp :var table=user2group_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-** Сообщения (msg)
-
-   О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
-   сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
-   может удалить сообщение (пометить как удаленное), для этого мы используем отдельные
-   флаги.
-
-   #+CAPTION: Данные сообщения
-   #+NAME: msg_data
-     | field name  | field type | note                                     |
-     |-------------+------------+------------------------------------------|
-     | id          | serial     | идентификатор                            |
-     | snd-id      | integer    | пользователь, который послал сообщение   |
-     | rcv-id      | integer    | пользователь, который получает сообщение |
-     | msg         | varchar    | сообщение                                |
-     | ts-create   | bigint     | время создания                           |
-     | ts-delivery | bigint     | время доставки                           |
-
-   Еще сообщение может быть доставлено или недоставлено.
-
-   #+CAPTION: Состояния конечного автомата пользователя
-   #+NAME: msg_state
-     | action   | from        | to        |
-     |----------+-------------+-----------|
-     | delivery | undelivered | delivered |
-
-   Сводя вместе, все что нам известно о сообщении (его поведение и поля) опишем все это в
-   коде:
-
-   #+NAME: entity_and_automates_contents
-   #+BEGIN_SRC lisp
-
-     (define-automat msg "Автомат сообщения"
-       <<msg_fields()>>
-       <<msg_states()>>
-       <<msg_actions()>>)
-
-      <<msg_actions_func>>
-   #+END_SRC
-
-   Где =msg-fields= (поля данных) определим как:
-
-   #+NAME: msg_fields
-   #+BEGIN_SRC emacs-lisp :var table=msg_data :results output :exports results :tangle no
-     (gen-fields table)
-   #+END_SRC
-
-   А =msg-states= т.е. состояния пользователя определим так:
-
-   #+NAME: msg_states
-   #+BEGIN_SRC emacs-lisp :var table=msg_state :results output :exports results :tangle no
-     (gen-states table)
-   #+END_SRC
-
-   И, наконец, определим =msg-actions= переходы между состояниями:
-
-   #+NAME: msg_actions
-   #+BEGIN_SRC emacs-lisp :var table=msg_state :results output :exports results :tangle no
-     (gen-actions table)
-   #+END_SRC
-
-   Теперь определим функции, которые вызываются на переходах
-
-   #+NAME: msg_actions_func
-   #+BEGIN_SRC lisp
-     (defun delivery ()
-       "undelivered -> delivered"
-       )
    #+END_SRC
 
 ** Аватары (avatar)
@@ -1093,55 +997,182 @@
 
     (in-package #:moto)
 
+    ;; Меню
+    <<menu>>
     ;; Враппер веб-интерфейса
     <<with_wrapper>>
-
     ;; Хелпер форм
     <<frm>>
-
+    ;; Страницы
     <<iface_contents>>
+  #+END_SRC
+
+** Главное меню
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+
+     (in-package #:moto)
+
+     (defun menu ()
+       (remove-if
+        #'null
+        (list
+         "<a href=\"/users\">Пользователи</a>"
+         "<a href=\"/roles\">Роли</a>"
+         "<a href=\"/groups\">Группы</a>"
+         (when (null *current-user*)
+           "<a href=\"/reg\">Регистрация</a>")
+         (when (null *current-user*)
+           "<a href=\"/login\">Логин</a>")
+         (when (null *current-user*)
+           "Больше возможностей доступно залогиненным пользоватям")
+         (when *current-user*
+           (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
+         (when *current-user*
+           "<a href=\"/logout\">Выход</a>")
+         (when *current-user*
+           "<a href=\"/im\">Сообщения</a>")
+         (when *current-user*
+           "<a href=\"/load\">Загрузка данных</a>")
+         "<a href=\"/\">TODO: Простой поиск по ЖК</a>"
+         "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
+         )))
   #+END_SRC
 
 ** Главная страница
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
+
      (in-package #:moto)
 
      (restas:define-route main ("/")
        (with-wrapper
          "<h1>Главная страница</h1>"
          ))
-
    #+END_SRC
 
 ** Список пользователей
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
+
      (in-package #:moto)
 
      (restas:define-route allusers ("/users")
        (with-wrapper
-         (tbl
-          (with-collection (i (all-user))
-            (tr
-             (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
-             (td (name i))
-             (td (password i))
-             (td (email i))))
-          :border 1)))
+         (concatenate
+          'string
+          "<h1>Все пользователи</h1>"
+          (tbl
+           (with-collection (i (all-user))
+             (tr
+              (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
+              (td (name i))
+              (td (password i))
+              (td (email i))
+              (td (role-id i))))
+           :border 1)
+          "<h2>Новый пользователь</h2>"
+          (frm
+           (tbl
+            (list
+             (row "Имя" (fld "name"))
+             (row "Email" (fld "email"))
+             (row "Пароль" (fld "password"))
+             (row "" (submit "Создать"))))))))
 
      (restas:define-route allusers-ctrl ("/users" :method :post)
        (with-wrapper
          (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           "TODO")))
+           (make-user :name (getf p :name)
+                      :email (getf p :email)
+                      :password (getf p :password)
+                      :ts-create (get-universal-time)
+                      :ts-last (get-universal-time)
+                      )
+           "Пользователь создан")))
+   #+END_SRC
+
+** Список ролей
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+
+     (in-package #:moto)
+
+     (restas:define-route allroles ("/roles")
+       (with-wrapper
+         (concatenate
+          'string
+          "<h1>Роли пользователей</h1>"
+          "Роли определяют набор сценариев, которые пользователь выполняет на
+          сайте. Функционал, который выполняют сценарии запрашивает
+          разрешение на выполнение действий, которое опирается на роль,
+          присвоенную пользователю. Пользователь может иметь только одну роль
+          или не иметь ее вовсе.<br /><br />"
+          (tbl
+           (with-collection (i (all-role))
+             (tr
+              (td (format nil "<a href=\"/role/~A\">~A</a>" (id i) (id i)))
+              (td (name i))))
+           :border 1)
+          "<h2>Новая роль</h2>"
+          (frm
+           (tbl
+            (list
+             (row "Название" (fld "name"))
+             (row "" (submit "Создать"))))))))
+
+     (restas:define-route allroles-ctrl ("/roles" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (make-role :name (getf p :name))
+           "Роль создана")))
+   #+END_SRC
+
+** Список групп
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+
+     (in-package #:moto)
+
+     (restas:define-route allgroups ("/groups")
+       (with-wrapper
+         (concatenate
+          'string
+          "<h1>Группы пользователей</h1>"
+          "Группы пользователей определяют набор операций, которые
+           пользователь может выполнять над объектами системы. В отличие от
+           ролей, один пользователь может входить в несколько групп или не
+           входить ни в одну из них. <br /><br />"
+          (tbl
+           (with-collection (i (all-group))
+             (tr
+              (td (format nil "<a href=\"/group/~A\">~A</a>" (id i) (id i)))
+              (td (name i))))
+           :border 1)
+          "<h2>Новая группа</h2>"
+          (frm
+           (tbl
+            (list
+             (row "Название" (fld "name"))
+             (row "" (submit "Создать"))))))))
+
+     (restas:define-route allgroups-ctrl ("/groups" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (make-group :name (getf p :name))
+           "Группа создана")))
    #+END_SRC
 
 ** Страничка пользователя
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
+
      (in-package #:moto)
 
      (restas:define-route user ("/user/:userid")
@@ -1405,28 +1436,7 @@
                   :menu
                   (format
                    nil "~{~A<br />~}"
-                   (remove-if
-                    #'null
-                    (list
-                     "<a href=\"/users\">Список пользователей</a>"
-                     (when (null *current-user*)
-                       "<a href=\"/reg\">Регистрация</a>")
-                     (when (null *current-user*)
-                       "<a href=\"/login\">Логин</a>")
-                     (when (null *current-user*)
-                       "Больше возможностей доступно залогиненным пользоватям")
-                     (when *current-user*
-                       (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
-                     (when *current-user*
-                       "<a href=\"/logout\">Выход</a>")
-                     (when *current-user*
-                       "<a href=\"/im\">Сообщения</a>")
-                     (when *current-user*
-                       "<a href=\"/load\">Загрузка данных</a>")
-                     "<a href=\"/\">Простой поиск по ЖК</a>"
-                     "<a href=\"/\">Расширенный поиск по ЖК</a>"
-                     "Загрузить данные"
-                     )))))
+                   (menu))))
                 (tpl:retvalblock (list :retval retval)))))))))
    #+END_SRC
 
@@ -1723,6 +1733,150 @@
                                #:standard-generic-function
                                #:class-name))
    #+END_SRC
+
+** Сущности и автоматы
+
+   Соберем все сущности и автоматы
+
+   #+NAME: entity_and_automates
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports code :padline no :comments link
+     (in-package #:moto)
+
+     <<entity_and_automates_contents>>
+   #+END_SRC
+
+*** Пользователи
+
+    Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
+    в коде:
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-automat user "Автомат пользователя"
+        <<user_fields()>>
+        <<user_states()>>
+        <<user_actions()>>)
+
+       <<user_actions_func>>
+
+       <<create_user>>
+    #+END_SRC
+
+    Где =user-fields= (поля данных) определим как:
+
+    #+NAME: user_fields
+    #+BEGIN_SRC emacs-lisp :var table=user_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+    А =user-states= т.е. состояния пользователя определим так:
+
+    #+NAME: user_states
+    #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports results :tangle no :cache yes
+      (gen-states table)
+    #+END_SRC
+
+    И, наконец, определим =user-actions= переходы между состояниями:
+
+    #+NAME: user_actions
+    #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports results :tangle no :cache yes
+      (gen-actions table)
+    #+END_SRC
+
+*** Роли
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-entity role "Сущность роли"
+        <<role_fields()>>)
+
+      (make-role-table)
+
+      <<create_roles>>
+    #+END_SRC
+
+    Где =role-fields= (поля данных) определим как:
+
+    #+NAME: role_fields
+    #+BEGIN_SRC emacs-lisp :var table=role_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+*** Группы
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-entity group "Сущность группы"
+        <<group_fields()>>)
+
+      (make-group-table)
+
+      <<create_groups>>
+
+      <<user2group_entity>>
+    #+END_SRC
+
+    Где =group-fields= (поля данных) определим как:
+
+    #+NAME: group_fields
+    #+BEGIN_SRC emacs-lisp :var table=group_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+   #+NAME: user2group_entity
+   #+BEGIN_SRC lisp
+     (define-entity user2group "Сущность связи пользователя и группы"
+       <<user2group_fields()>>)
+
+     (make-user2group-table)
+   #+END_SRC
+
+   Где =user2group-fields= (поля данных) определим как:
+
+   #+NAME: user2group_fields
+   #+BEGIN_SRC emacs-lisp :var table=user2group_flds :results output :exports results :tangle no :cache yes
+     (gen-fields table)
+   #+END_SRC
+
+*** Сообщения
+
+    Сводя вместе, все что нам известно о сообщении (его поведение и поля) опишем все это в
+    коде:
+
+    #+NAME: entity_and_automates_contents
+    #+BEGIN_SRC lisp
+
+      (define-automat msg "Автомат сообщения"
+        <<msg_fields()>>
+        <<msg_states()>>
+        <<msg_actions()>>)
+
+       <<msg_actions_func>>
+    #+END_SRC
+
+    Где =msg-fields= (поля данных) определим как:
+
+    #+NAME: msg_fields
+    #+BEGIN_SRC emacs-lisp :var table=msg_flds :results output :exports results :tangle no :cache yes
+      (gen-fields table)
+    #+END_SRC
+
+    А =msg-states= т.е. состояния пользователя определим так:
+
+    #+NAME: msg_states
+    #+BEGIN_SRC emacs-lisp :var table=msg_state :results output :exports results :tangle no :cache yes
+      (gen-states table)
+    #+END_SRC
+
+    И, наконец, определим =msg-actions= переходы между состояниями:
+
+    #+NAME: msg_actions
+    #+BEGIN_SRC emacs-lisp :var table=msg_state :results output :exports results :tangle no :cache yes
+      (gen-actions table)
+    #+END_SRC
 
 ** Подготовка к старту
 
@@ -2101,3 +2255,7 @@ H - 210
 V - 240
 VR - 210-240
 ZR - от 240
+** Очень интересный способ добавлять фичи
+   Сначала мы отталкиваемся от фич и описываем их
+   Описание фич сопровождаются кодом, который генерирует структуры данных, которые являются
+   источником для генераторов сущностий.

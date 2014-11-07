@@ -3,6 +3,8 @@
 
 (in-package #:moto)
 
+;; Меню
+
 ;; Враппер веб-интерфейса
 (in-package #:moto)
 
@@ -34,30 +36,8 @@
              :menu
              (format
               nil "~{~A<br />~}"
-              (remove-if
-               #'null
-               (list
-                "<a href=\"/users\">Список пользователей</a>"
-                (when (null *current-user*)
-                  "<a href=\"/reg\">Регистрация</a>")
-                (when (null *current-user*)
-                  "<a href=\"/login\">Логин</a>")
-                (when (null *current-user*)
-                  "Больше возможностей доступно залогиненным пользоватям")
-                (when *current-user*
-                  (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
-                (when *current-user*
-                  "<a href=\"/logout\">Выход</a>")
-                (when *current-user*
-                  "<a href=\"/im\">Сообщения</a>")
-                (when *current-user*
-                  "<a href=\"/load\">Загрузка данных</a>")
-                "<a href=\"/\">Простой поиск по ЖК</a>"
-                "<a href=\"/\">Расширенный поиск по ЖК</a>"
-                "Загрузить данные"
-                )))))
+              (menu))))
            (tpl:retvalblock (list :retval retval)))))))))
-
 ;; Хелпер форм
 (in-package #:moto)
 
@@ -121,6 +101,34 @@
 ;; (tbl (list "zzz") :name "table")
 
 ;; (frm (tbl (list (row "username" (fld "user")))))
+;; Страницы
+
+(in-package #:moto)
+
+(defun menu ()
+  (remove-if
+   #'null
+   (list
+    "<a href=\"/users\">Пользователи</a>"
+    "<a href=\"/roles\">Роли</a>"
+    "<a href=\"/groups\">Группы</a>"
+    (when (null *current-user*)
+      "<a href=\"/reg\">Регистрация</a>")
+    (when (null *current-user*)
+      "<a href=\"/login\">Логин</a>")
+    (when (null *current-user*)
+      "Больше возможностей доступно залогиненным пользоватям")
+    (when *current-user*
+      (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
+    (when *current-user*
+      "<a href=\"/logout\">Выход</a>")
+    (when *current-user*
+      "<a href=\"/im\">Сообщения</a>")
+    (when *current-user*
+      "<a href=\"/load\">Загрузка данных</a>")
+    "<a href=\"/\">TODO: Простой поиск по ЖК</a>"
+    "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
+    )))
 
 (in-package #:moto)
 
@@ -133,19 +141,99 @@
 
 (restas:define-route allusers ("/users")
   (with-wrapper
-    (tbl
-     (with-collection (i (all-user))
-       (tr
-        (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
-        (td (name i))
-        (td (password i))
-        (td (email i))))
-     :border 1)))
+    (concatenate
+     'string
+     "<h1>Все пользователи</h1>"
+     (tbl
+      (with-collection (i (all-user))
+        (tr
+         (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
+         (td (name i))
+         (td (password i))
+         (td (email i))
+         (td (role-id i))))
+      :border 1)
+     "<h2>Новый пользователь</h2>"
+     (frm
+      (tbl
+       (list
+        (row "Имя" (fld "name"))
+        (row "Email" (fld "email"))
+        (row "Пароль" (fld "password"))
+        (row "" (submit "Создать"))))))))
 
 (restas:define-route allusers-ctrl ("/users" :method :post)
   (with-wrapper
     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      "TODO")))
+      (make-user :name (getf p :name)
+                 :email (getf p :email)
+                 :password (getf p :password)
+                 :ts-create (get-universal-time)
+                 :ts-last (get-universal-time)
+                 )
+      "Пользователь создан")))
+
+(in-package #:moto)
+
+(restas:define-route allroles ("/roles")
+  (with-wrapper
+    (concatenate
+     'string
+     "<h1>Роли пользователей</h1>"
+     "Роли определяют набор сценариев, которые пользователь выполняет на
+     сайте. Функционал, который выполняют сценарии запрашивает
+     разрешение на выполнение действий, которое опирается на роль,
+     присвоенную пользователю. Пользователь может иметь только одну роль
+     или не иметь ее вовсе.<br /><br />"
+     (tbl
+      (with-collection (i (all-role))
+        (tr
+         (td (format nil "<a href=\"/role/~A\">~A</a>" (id i) (id i)))
+         (td (name i))))
+      :border 1)
+     "<h2>Новая роль</h2>"
+     (frm
+      (tbl
+       (list
+        (row "Название" (fld "name"))
+        (row "" (submit "Создать"))))))))
+
+(restas:define-route allroles-ctrl ("/roles" :method :post)
+  (with-wrapper
+    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+      (make-role :name (getf p :name))
+      "Роль создана")))
+
+(in-package #:moto)
+
+(restas:define-route allgroups ("/groups")
+  (with-wrapper
+    (concatenate
+     'string
+     "<h1>Группы пользователей</h1>"
+     "Группы пользователей определяют набор операций, которые
+      пользователь может выполнять над объектами системы. В отличие от
+      ролей, один пользователь может входить в несколько групп или не
+      входить ни в одну из них. <br /><br />"
+     (tbl
+      (with-collection (i (all-group))
+        (tr
+         (td (format nil "<a href=\"/group/~A\">~A</a>" (id i) (id i)))
+         (td (name i))))
+      :border 1)
+     "<h2>Новая группа</h2>"
+     (frm
+      (tbl
+       (list
+        (row "Название" (fld "name"))
+        (row "" (submit "Создать"))))))))
+
+(restas:define-route allgroups-ctrl ("/groups" :method :post)
+  (with-wrapper
+    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+      (make-group :name (getf p :name))
+      "Группа создана")))
+
 (in-package #:moto)
 
 (restas:define-route user ("/user/:userid")

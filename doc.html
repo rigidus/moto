@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>moto</title>
-<!-- 2014-10-30 Чт. 23:08 -->
+<!-- 2014-11-07 Пт. 05:35 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -88,7 +88,7 @@
     { background-color: #ffff00; color: #000000; font-weight: bold; }
   /*]]>*/-->
 </style>
-<!-- -*- fill-column: 92 -*- -->
+<!-- -*- fill-column: 86 -*- -->
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -150,10 +150,10 @@ for the JavaScript code in this tag.
 <ul>
 <li><a href="#sec-4-1">4.1. Функции для кодогенерации сущностей</a></li>
 <li><a href="#sec-4-2">4.2. Пользователи (user)</a></li>
-<li><a href="#sec-4-3">4.3. Очереди (que, quelt)</a></li>
-<li><a href="#sec-4-4">4.4. Роли (role)</a></li>
-<li><a href="#sec-4-5">4.5. Группы (group)</a></li>
-<li><a href="#sec-4-6">4.6. Сообщения (msg)</a></li>
+<li><a href="#sec-4-3">4.3. Роли (role)</a></li>
+<li><a href="#sec-4-4">4.4. Группы (group, user2group)</a></li>
+<li><a href="#sec-4-5">4.5. Сообщения (msg)</a></li>
+<li><a href="#sec-4-6">4.6. Очереди (que, quelt)</a></li>
 <li><a href="#sec-4-7">4.7. Аватары (avatar)</a></li>
 <li><a href="#sec-4-8">4.8. Мотоциклы (moto)</a></li>
 <li><a href="#sec-4-9">4.9. Цвет (color)</a></li>
@@ -164,9 +164,12 @@ for the JavaScript code in this tag.
 <li><a href="#sec-5">5. События</a></li>
 <li><a href="#sec-6">6. Interface</a>
 <ul>
-<li><a href="#sec-6-1">6.1. Главная страница</a></li>
-<li><a href="#sec-6-2">6.2. Список пользователей</a></li>
-<li><a href="#sec-6-3">6.3. Страничка пользователя</a></li>
+<li><a href="#sec-6-1">6.1. Главное меню</a></li>
+<li><a href="#sec-6-2">6.2. Главная страница</a></li>
+<li><a href="#sec-6-3">6.3. Список пользователей</a></li>
+<li><a href="#sec-6-4">6.4. Список ролей</a></li>
+<li><a href="#sec-6-5">6.5. Список групп</a></li>
+<li><a href="#sec-6-6">6.6. Страничка пользователя</a></li>
 </ul>
 </li>
 <li><a href="#sec-7">7. Модули</a>
@@ -190,12 +193,25 @@ for the JavaScript code in this tag.
 <li><a href="#sec-8-3">8.3. Глобальные определения</a></li>
 <li><a href="#sec-8-4">8.4. Каркас проекта</a></li>
 <li><a href="#sec-8-5">8.5. Пакеты</a></li>
-<li><a href="#sec-8-6">8.6. Подготовка к старту</a></li>
-<li><a href="#sec-8-7">8.7. Точка входа</a></li>
-<li><a href="#sec-8-8">8.8. Readme</a></li>
+<li><a href="#sec-8-6">8.6. Сущности и автоматы</a>
+<ul>
+<li><a href="#sec-8-6-1">8.6.1. Пользователи</a></li>
+<li><a href="#sec-8-6-2">8.6.2. Роли</a></li>
+<li><a href="#sec-8-6-3">8.6.3. Группы</a></li>
+<li><a href="#sec-8-6-4">8.6.4. Сообщения</a></li>
 </ul>
 </li>
-<li><a href="#sec-9">9. Идеи</a></li>
+<li><a href="#sec-8-7">8.7. Подготовка к старту</a></li>
+<li><a href="#sec-8-8">8.8. Точка входа</a></li>
+<li><a href="#sec-8-9">8.9. Readme</a></li>
+</ul>
+</li>
+<li><a href="#sec-9">9. Идеи</a>
+<ul>
+<li><a href="#sec-9-1">9.1. Обозначения и маркировка мотошин</a></li>
+<li><a href="#sec-9-2">9.2. Очень интересный способ добавлять фичи</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -494,20 +510,7 @@ for the JavaScript code in this tag.
 <div id="outline-container-sec-4" class="outline-2">
 <h2 id="sec-4"><span class="section-number-2">4</span> Определения сущностей</h2>
 <div class="outline-text-2" id="text-4">
-<p>
-Соберем все сущности и автоматы
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="entity_and_automates">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-&lt;&lt;entity_and_automates_contents&gt;&gt;
-</pre>
-</div>
-</div>
-
-<div id="outline-container-sec-4-1" class="outline-3">
+</div><div id="outline-container-sec-4-1" class="outline-3">
 <h3 id="sec-4-1"><span class="section-number-3">4.1</span> Функции для кодогенерации сущностей</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
@@ -522,10 +525,7 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp" id="gen_org_confirm"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">Do not prompt to confirm evaluation</span>
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">This may be dangerous - make sure you understand the consequences</span>
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">of setting this -- see the docstring for details</span>
-(setq org-confirm-babel-evaluate nil)
+<pre class="src src-emacs-lisp" id="gen_org_confirm">(setq org-confirm-babel-evaluate nil)
 </pre>
 </div>
 
@@ -676,12 +676,6 @@ for the JavaScript code in this tag.
 <td class="left">bigint</td>
 <td class="left">время когда был последний раз</td>
 </tr>
-
-<tr>
-<td class="left">role-id</td>
-<td class="left">(or db-null integer)</td>
-<td class="left">идентификатор роли</td>
-</tr>
 </tbody>
 </table>
 
@@ -776,50 +770,8 @@ for the JavaScript code in this tag.
 </div>
 
 <p>
-Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
-в коде:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> user <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
-  &lt;&lt;user_fields()&gt;&gt;
-  &lt;&lt;user_states()&gt;&gt;
-  &lt;&lt;user_actions()&gt;&gt;)
-
- &lt;&lt;user_actions_func&gt;&gt;
-
- &lt;&lt;create_user&gt;&gt;
-</pre>
-</div>
-
-<p>
-Где <code>user-fields</code> (поля данных) определим как:
-</p>
-
-<p>
-А <code>user-states</code> т.е. состояния пользователя определим так:
-</p>
-
-<pre class="example">
-(:sended :unlogged :logged :unregistred)
-</pre>
-
-<p>
-И, наконец, определим <code>user-actions</code> переходы между состояниями:
-</p>
-
-<pre class="example">
-((:unregistred :logged :registration)
- (:logged :unregistred :unregistration)
- (:unlogged :logged :enter)
- (:logged :unlogged :leave)
- (:unlogged :sended :forgot)
- (:sended :logged :remember))
-</pre>
-
-<p>
-Теперь определим функции, которые вызываются на переходах
+Теперь определим функции, которые вызываются на переходах из одного
+состояния в другое
 </p>
 
 <div class="org-src-container">
@@ -853,8 +805,316 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-4-3" class="outline-3">
-<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Очереди (que, quelt)</h3>
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Роли (role)</h3>
 <div class="outline-text-3" id="text-4-3">
+<p>
+Роли определяют набор сценариев, которые пользователь выполняет на
+сайте. Функционал, который выполняют сценарии запрашивает
+разрешение на выполнение действий, которое опирается на роль,
+присвоенную пользователю. Пользователь может иметь только одну роль
+или не иметь ее вовсе.
+</p>
+
+<p>
+Роль является простой сущностью и не имеет состояния.
+</p>
+
+<table id="role_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 3:</span> Данные роли</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">имя роли</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Добавляем к полям пользователя еще одно поле, которое будет
+указывать на идентификатор роли, которую имеет пользователь:
+</p>
+
+<table id="user_role_link" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 4:</span> Связь пользователя с ролью</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">role-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор роли</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Создадим необходимые роли:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="create_roles">(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"admin"</span>)
+(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"manager"</span>)
+(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"moderator"</span>)
+(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"editor"</span>)
+(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"robot"</span>)
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-4-4" class="outline-3">
+<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Группы (group, user2group)</h3>
+<div class="outline-text-3" id="text-4-4">
+<p>
+Группы пользователей определяют набор операций, которые
+пользователь может выполнять над объектами системы. В отличие от
+ролей, один пользователь может входить в несколько групп или не
+входить ни в одну из них.
+</p>
+
+<p>
+Группа является простой сущностью и не имеет состояния.
+</p>
+
+<table id="group_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 5:</span> Данные группы</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">имя группы</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Создадим необходимые группы:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="create_groups">(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"oldman"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"newboy"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"veteran"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"traveler"</span>)
+(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"troll"</span>)
+</pre>
+</div>
+
+<p>
+Теперь создадим таблицу связи, которая свяжет пользователей и группы:
+</p>
+
+<table id="user2group_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 6:</span> Данные таблицы связи пользователя и группы</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">user-id</td>
+<td class="left">integer</td>
+<td class="left">идентификатор пользователя</td>
+</tr>
+
+<tr>
+<td class="left">group-id</td>
+<td class="left">integer</td>
+<td class="left">идентификатор группы</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-4-5" class="outline-3">
+<h3 id="sec-4-5"><span class="section-number-3">4.5</span> Сообщения (msg)</h3>
+<div class="outline-text-3" id="text-4-5">
+<p>
+О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
+сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
+может удалить сообщение (пометить как удаленное), для этого мы используем отдельные
+флаги.
+</p>
+
+<table id="msg_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 7:</span> Данные сообщения</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">snd-id</td>
+<td class="left">integer</td>
+<td class="left">пользователь, который послал сообщение</td>
+</tr>
+
+<tr>
+<td class="left">rcv-id</td>
+<td class="left">integer</td>
+<td class="left">пользователь, который получает сообщение</td>
+</tr>
+
+<tr>
+<td class="left">msg</td>
+<td class="left">varchar</td>
+<td class="left">сообщение</td>
+</tr>
+
+<tr>
+<td class="left">ts-create</td>
+<td class="left">bigint</td>
+<td class="left">время создания</td>
+</tr>
+
+<tr>
+<td class="left">ts-delivery</td>
+<td class="left">bigint</td>
+<td class="left">время доставки</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Еще сообщение может быть доставлено или недоставлено.
+</p>
+
+<table id="msg_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 8:</span> Состояния конечного автомата сообщения</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">action</th>
+<th scope="col" class="left">from</th>
+<th scope="col" class="left">to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">delivery</td>
+<td class="left">undelivered</td>
+<td class="left">delivered</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>
+Теперь определим функции, которые вызываются на переходах
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="msg_actions_func">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">delivery</span> ()
+  <span style="color: #00cd00;">"undelivered -&gt; delivered"</span>
+  )
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-6" class="outline-3">
+<h3 id="sec-4-6"><span class="section-number-3">4.6</span> Очереди (que, quelt)</h3>
+<div class="outline-text-3" id="text-4-6">
 <p>
 Очереди используются для фолловинга и прочей подписки на обновления.
 </p>
@@ -870,7 +1130,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="que_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 3:</span> Данные очереди</caption>
+<caption class="t-above"><span class="table-number">Table 9:</span> Данные очереди</caption>
 
 <colgroup>
 <col  class="left" />
@@ -922,7 +1182,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </pre>
 
 <table id="user_data2" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 4:</span> Данные пользователя</caption>
+<caption class="t-above"><span class="table-number">Table 10:</span> Данные пользователя</caption>
 
 <colgroup>
 <col  class="left" />
@@ -990,8 +1250,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
  (password varchar)
  (email varchar)
  (ts-create bigint)
- (ts-last bigint)
- (role-id (or db-null integer)))
+ (ts-last bigint))
 </pre>
 
 
@@ -1003,7 +1262,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="quelt_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 5:</span> Данные элемента очереди</caption>
+<caption class="t-above"><span class="table-number">Table 11:</span> Данные элемента очереди</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1076,386 +1335,6 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </div>
 </div>
 
-<div id="outline-container-sec-4-4" class="outline-3">
-<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Роли (role)</h3>
-<div class="outline-text-3" id="text-4-4">
-<p>
-Роли определяют набор сценариев, которые пользователь выполняет на сайте. Функционал,
-который выполняет сценарии запрашивает разрешение на выполнение действий, которое
-опирается на роль, присвоенную пользователю. Пользователь может иметь только одну роль
-или не иметь ее вовсе.
-</p>
-
-<p>
-Роль является простой сущностью и не имеет состояния.
-</p>
-
-<table id="role_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 6:</span> Данные роли</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">field name</th>
-<th scope="col" class="left">field type</th>
-<th scope="col" class="left">note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">id</td>
-<td class="left">serial</td>
-<td class="left">идентификатор</td>
-</tr>
-
-<tr>
-<td class="left">name</td>
-<td class="left">varchar</td>
-<td class="left">имя роли</td>
-</tr>
-</tbody>
-</table>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> role <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1088;&#1086;&#1083;&#1080;"</span>
-  &lt;&lt;role_fields()&gt;&gt;)
-
-(make-role-table)
-
-&lt;&lt;create_roles&gt;&gt;
-</pre>
-</div>
-
-<p>
-Где <code>role-fields</code> (поля данных) определим как:
-</p>
-
-<pre class="example">
-((id serial)
- (name varchar))
-</pre>
-
-<p>
-Создадим необходимые роли:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="create_roles">(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"admin"</span>)
-(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"manager"</span>)
-(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"moderator"</span>)
-(make-role <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"robot"</span>)
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-4-5" class="outline-3">
-<h3 id="sec-4-5"><span class="section-number-3">4.5</span> Группы (group)</h3>
-<div class="outline-text-3" id="text-4-5">
-<p>
-Группы пользователей определяют набор операций, которые пользователь может выполнять над
-объектами системы. В отличие от ролей, один пользователь может входить в несколько групп
-или не входить ни в одну из них.
-</p>
-
-<p>
-Роль является простой сущностью и не имеет состояния.
-</p>
-
-<table id="group_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 7:</span> Данные роли</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">field name</th>
-<th scope="col" class="left">field type</th>
-<th scope="col" class="left">note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">id</td>
-<td class="left">serial</td>
-<td class="left">идентификатор</td>
-</tr>
-
-<tr>
-<td class="left">name</td>
-<td class="left">varchar</td>
-<td class="left">имя группы</td>
-</tr>
-</tbody>
-</table>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> group <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1075;&#1088;&#1091;&#1087;&#1087;&#1099;"</span>
-  &lt;&lt;group_fields()&gt;&gt;)
-
-(make-group-table)
-
-&lt;&lt;create_groups&gt;&gt;
-
-&lt;&lt;user2group_entity&gt;&gt;
-</pre>
-</div>
-
-<p>
-Где <code>group-fields</code> (поля данных) определим как:
-</p>
-
-<pre class="example">
-((id serial)
- (name varchar))
-</pre>
-
-<p>
-Создадим необходимые роли:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="create_groups">(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"oldman"</span>)
-(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"newboy"</span>)
-(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"veteran"</span>)
-(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"traveler"</span>)
-(make-group <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"dirtyman"</span>)
-</pre>
-</div>
-
-<p>
-Теперь создадим таблицу связи, которая свяжет пользователей и группы:
-</p>
-
-<table id="user2group_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 8:</span> Данные таблицы связи пользователя и группы</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">field name</th>
-<th scope="col" class="left">field type</th>
-<th scope="col" class="left">note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">id</td>
-<td class="left">serial</td>
-<td class="left">идентификатор</td>
-</tr>
-
-<tr>
-<td class="left">user-id</td>
-<td class="left">integer</td>
-<td class="left">идентификатор пользователя</td>
-</tr>
-
-<tr>
-<td class="left">group-id</td>
-<td class="left">integer</td>
-<td class="left">идентификатор группы</td>
-</tr>
-</tbody>
-</table>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="user2group_entity">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> user2group <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1089;&#1074;&#1103;&#1079;&#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; &#1080; &#1075;&#1088;&#1091;&#1087;&#1087;&#1099;"</span>
-  &lt;&lt;user2group_fields()&gt;&gt;)
-
-(make-user2group-table)
-</pre>
-</div>
-
-<p>
-Где <code>user2group-fields</code> (поля данных) определим как:
-</p>
-
-<pre class="example">
-((id serial)
- (user-id integer)
- (group-id integer))
-</pre>
-</div>
-</div>
-
-<div id="outline-container-sec-4-6" class="outline-3">
-<h3 id="sec-4-6"><span class="section-number-3">4.6</span> Сообщения (msg)</h3>
-<div class="outline-text-3" id="text-4-6">
-<p>
-О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
-сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
-может удалить сообщение (пометить как удаленное), для этого мы используем отдельные
-флаги.
-</p>
-
-<table id="msg_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 9:</span> Данные сообщения</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">field name</th>
-<th scope="col" class="left">field type</th>
-<th scope="col" class="left">note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">id</td>
-<td class="left">serial</td>
-<td class="left">идентификатор</td>
-</tr>
-
-<tr>
-<td class="left">snd-id</td>
-<td class="left">integer</td>
-<td class="left">пользователь, который послал сообщение</td>
-</tr>
-
-<tr>
-<td class="left">rcv-id</td>
-<td class="left">integer</td>
-<td class="left">пользователь, который получает сообщение</td>
-</tr>
-
-<tr>
-<td class="left">msg</td>
-<td class="left">varchar</td>
-<td class="left">сообщение</td>
-</tr>
-
-<tr>
-<td class="left">ts-create</td>
-<td class="left">bigint</td>
-<td class="left">время создания</td>
-</tr>
-
-<tr>
-<td class="left">ts-delivery</td>
-<td class="left">bigint</td>
-<td class="left">время доставки</td>
-</tr>
-</tbody>
-</table>
-
-<p>
-Еще сообщение может быть доставлено или недоставлено.
-</p>
-
-<table id="msg_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 10:</span> Состояния конечного автомата пользователя</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">action</th>
-<th scope="col" class="left">from</th>
-<th scope="col" class="left">to</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">delivery</td>
-<td class="left">undelivered</td>
-<td class="left">delivered</td>
-</tr>
-</tbody>
-</table>
-
-<p>
-Сводя вместе, все что нам известно о сообщении (его поведение и поля) опишем все это в
-коде:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> msg <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;"</span>
-  &lt;&lt;msg_fields()&gt;&gt;
-  &lt;&lt;msg_states()&gt;&gt;
-  &lt;&lt;msg_actions()&gt;&gt;)
-
- &lt;&lt;msg_actions_func&gt;&gt;
-</pre>
-</div>
-
-<p>
-Где <code>msg-fields</code> (поля данных) определим как:
-</p>
-
-<pre class="example">
-((id serial)
- (snd-id integer)
- (rcv-id integer)
- (msg varchar)
- (ts-create bigint)
- (ts-delivery bigint))
-</pre>
-
-<p>
-А <code>msg-states</code> т.е. состояния пользователя определим так:
-</p>
-
-<pre class="example">
-(:delivered :undelivered)
-</pre>
-
-<p>
-И, наконец, определим <code>msg-actions</code> переходы между состояниями:
-</p>
-
-<pre class="example">
-((:undelivered :delivered :delivery))
-</pre>
-
-<p>
-Теперь определим функции, которые вызываются на переходах
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="msg_actions_func">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">delivery</span> ()
-  <span style="color: #00cd00;">"undelivered -&gt; delivered"</span>
-  )
-</pre>
-</div>
-</div>
-</div>
-
 <div id="outline-container-sec-4-7" class="outline-3">
 <h3 id="sec-4-7"><span class="section-number-3">4.7</span> Аватары (avatar)</h3>
 <div class="outline-text-3" id="text-4-7">
@@ -1466,7 +1345,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="avatar_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 11:</span> Данные аватарки</caption>
+<caption class="t-above"><span class="table-number">Table 12:</span> Данные аватарки</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1520,7 +1399,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="avatar_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 12:</span> Состояния конечного автомата пользователя</caption>
+<caption class="t-above"><span class="table-number">Table 13:</span> Состояния конечного автомата пользователя</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1649,7 +1528,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="moto_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 13:</span> Данные мотоцикла</caption>
+<caption class="t-above"><span class="table-number">Table 14:</span> Данные мотоцикла</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1785,7 +1664,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="moto_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 14:</span> Состояния конечного автомата мотоцикла</caption>
+<caption class="t-above"><span class="table-number">Table 15:</span> Состояния конечного автомата мотоцикла</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2073,7 +1952,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="color_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 15:</span> Данные цвета</caption>
+<caption class="t-above"><span class="table-number">Table 16:</span> Данные цвета</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2132,7 +2011,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="vendor_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 16:</span> Данные производителя</caption>
+<caption class="t-above"><span class="table-number">Table 17:</span> Данные производителя</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2201,7 +2080,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="bratan_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 17:</span> Данные роли</caption>
+<caption class="t-above"><span class="table-number">Table 18:</span> Данные роли</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2396,20 +2275,57 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 (<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1077;&#1085;&#1102;</span>
+&lt;&lt;menu&gt;&gt;
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1088;&#1072;&#1087;&#1087;&#1077;&#1088; &#1074;&#1077;&#1073;-&#1080;&#1085;&#1090;&#1077;&#1088;&#1092;&#1077;&#1081;&#1089;&#1072;</span>
 &lt;&lt;with_wrapper&gt;&gt;
-
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1061;&#1077;&#1083;&#1087;&#1077;&#1088; &#1092;&#1086;&#1088;&#1084;</span>
 &lt;&lt;frm&gt;&gt;
-
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;</span>
 &lt;&lt;iface_contents&gt;&gt;
 </pre>
 </div>
 </div>
 
 <div id="outline-container-sec-6-1" class="outline-3">
-<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Главная страница</h3>
+<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Главное меню</h3>
 <div class="outline-text-3" id="text-6-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">menu</span> ()
+  (remove-if
+   #'null
+   (list
+    <span style="color: #00cd00;">"&lt;a href=\"/users\"&gt;&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;&lt;/a&gt;"</span>
+    <span style="color: #00cd00;">"&lt;a href=\"/roles\"&gt;&#1056;&#1086;&#1083;&#1080;&lt;/a&gt;"</span>
+    <span style="color: #00cd00;">"&lt;a href=\"/groups\"&gt;&#1043;&#1088;&#1091;&#1087;&#1087;&#1099;&lt;/a&gt;"</span>
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
+      <span style="color: #00cd00;">"&lt;a href=\"/reg\"&gt;&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103;&lt;/a&gt;"</span>)
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
+      <span style="color: #00cd00;">"&lt;a href=\"/login\"&gt;&#1051;&#1086;&#1075;&#1080;&#1085;&lt;/a&gt;"</span>)
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
+      <span style="color: #00cd00;">"&#1041;&#1086;&#1083;&#1100;&#1096;&#1077; &#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1103;&#1084;"</span>)
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
+      (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;&#1052;&#1086;&#1081; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100;&lt;/a&gt;"</span> *current-user*))
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
+      <span style="color: #00cd00;">"&lt;a href=\"/logout\"&gt;&#1042;&#1099;&#1093;&#1086;&#1076;&lt;/a&gt;"</span>)
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
+      <span style="color: #00cd00;">"&lt;a href=\"/im\"&gt;&#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;&lt;/a&gt;"</span>)
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
+      <span style="color: #00cd00;">"&lt;a href=\"/load\"&gt;&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;&lt;/a&gt;"</span>)
+    <span style="color: #00cd00;">"&lt;a href=\"/\"&gt;TODO: &#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082; &#1087;&#1086; &#1046;&#1050;&lt;/a&gt;"</span>
+    <span style="color: #00cd00;">"&lt;a href=\"/\"&gt;TODO: &#1056;&#1072;&#1089;&#1096;&#1080;&#1088;&#1077;&#1085;&#1085;&#1099;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082; &#1087;&#1086; &#1046;&#1050;&lt;/a&gt;"</span>
+    )))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-2" class="outline-3">
+<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Главная страница</h3>
+<div class="outline-text-3" id="text-6-2">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
@@ -2423,36 +2339,133 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </div>
 </div>
 
-<div id="outline-container-sec-6-2" class="outline-3">
-<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Список пользователей</h3>
-<div class="outline-text-3" id="text-6-2">
+<div id="outline-container-sec-6-3" class="outline-3">
+<h3 id="sec-6-3"><span class="section-number-3">6.3</span> Список пользователей</h3>
+<div class="outline-text-3" id="text-6-3">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
 (restas:define-route allusers (<span style="color: #00cd00;">"/users"</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (tbl
-     (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-user))
-       (tr
-        (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
-        (td (name i))
-        (td (password i))
-        (td (email i))))
-     <span style="color: #0000ee; font-weight: bold;">:border</span> 1)))
+    (concatenate
+     'string
+     <span style="color: #00cd00;">"&lt;h1&gt;&#1042;&#1089;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;&lt;/h1&gt;"</span>
+     (tbl
+      (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-user))
+        (tr
+         (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
+         (td (name i))
+         (td (password i))
+         (td (email i))
+         (td (role-id i))))
+      <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
+     <span style="color: #00cd00;">"&lt;h2&gt;&#1053;&#1086;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;&lt;/h2&gt;"</span>
+     (frm
+      (tbl
+       (list
+        (row <span style="color: #00cd00;">"&#1048;&#1084;&#1103;"</span> (fld <span style="color: #00cd00;">"name"</span>))
+        (row <span style="color: #00cd00;">"Email"</span> (fld <span style="color: #00cd00;">"email"</span>))
+        (row <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (fld <span style="color: #00cd00;">"password"</span>))
+        (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>))))))))
 
 (restas:define-route allusers-ctrl (<span style="color: #00cd00;">"/users"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
   (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
     (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      <span style="color: #00cd00;">"TODO"</span>)))
+      (make-user <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>)
+                 <span style="color: #0000ee; font-weight: bold;">:email</span> (getf p <span style="color: #0000ee; font-weight: bold;">:email</span>)
+                 <span style="color: #0000ee; font-weight: bold;">:password</span> (getf p <span style="color: #0000ee; font-weight: bold;">:password</span>)
+                 <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
+                 <span style="color: #0000ee; font-weight: bold;">:ts-last</span> (get-universal-time)
+                 )
+      <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;"</span>)))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-6-3" class="outline-3">
-<h3 id="sec-6-3"><span class="section-number-3">6.3</span> Страничка пользователя</h3>
-<div class="outline-text-3" id="text-6-3">
+<div id="outline-container-sec-6-4" class="outline-3">
+<h3 id="sec-6-4"><span class="section-number-3">6.4</span> Список ролей</h3>
+<div class="outline-text-3" id="text-6-4">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(restas:define-route allroles (<span style="color: #00cd00;">"/roles"</span>)
+  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+    (concatenate
+     'string
+     <span style="color: #00cd00;">"&lt;h1&gt;&#1056;&#1086;&#1083;&#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;&lt;/h1&gt;"</span>
+     <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1080; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1077;&#1074;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1090; &#1085;&#1072;</span>
+<span style="color: #00cd00;">     &#1089;&#1072;&#1081;&#1090;&#1077;. &#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1086;&#1085;&#1072;&#1083;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1081; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1102;&#1090; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1080; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1090;</span>
+<span style="color: #00cd00;">     &#1088;&#1072;&#1079;&#1088;&#1077;&#1096;&#1077;&#1085;&#1080;&#1077; &#1085;&#1072; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1077;&#1085;&#1080;&#1077; &#1076;&#1077;&#1081;&#1089;&#1090;&#1074;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1086;&#1077; &#1086;&#1087;&#1080;&#1088;&#1072;&#1077;&#1090;&#1089;&#1103; &#1085;&#1072; &#1088;&#1086;&#1083;&#1100;,</span>
+<span style="color: #00cd00;">     &#1087;&#1088;&#1080;&#1089;&#1074;&#1086;&#1077;&#1085;&#1085;&#1091;&#1102; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1102;. &#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1080;&#1084;&#1077;&#1090;&#1100; &#1090;&#1086;&#1083;&#1100;&#1082;&#1086; &#1086;&#1076;&#1085;&#1091; &#1088;&#1086;&#1083;&#1100;</span>
+<span style="color: #00cd00;">     &#1080;&#1083;&#1080; &#1085;&#1077; &#1080;&#1084;&#1077;&#1090;&#1100; &#1077;&#1077; &#1074;&#1086;&#1074;&#1089;&#1077;.&lt;br /&gt;&lt;br /&gt;"</span>
+     (tbl
+      (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-role))
+        (tr
+         (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/role/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
+         (td (name i))))
+      <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
+     <span style="color: #00cd00;">"&lt;h2&gt;&#1053;&#1086;&#1074;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;&lt;/h2&gt;"</span>
+     (frm
+      (tbl
+       (list
+        (row <span style="color: #00cd00;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #00cd00;">"name"</span>))
+        (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>))))))))
+
+(restas:define-route allroles-ctrl (<span style="color: #00cd00;">"/roles"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
+  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
+      (make-role <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>))
+      <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-5" class="outline-3">
+<h3 id="sec-6-5"><span class="section-number-3">6.5</span> Список групп</h3>
+<div class="outline-text-3" id="text-6-5">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(restas:define-route allgroups (<span style="color: #00cd00;">"/groups"</span>)
+  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+    (concatenate
+     'string
+     <span style="color: #00cd00;">"&lt;h1&gt;&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;&lt;/h1&gt;"</span>
+     <span style="color: #00cd00;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1086;&#1087;&#1077;&#1088;&#1072;&#1094;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077;</span>
+<span style="color: #00cd00;">      &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1090;&#1100; &#1085;&#1072;&#1076; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;&#1084;&#1080; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;. &#1042; &#1086;&#1090;&#1083;&#1080;&#1095;&#1080;&#1077; &#1086;&#1090;</span>
+<span style="color: #00cd00;">      &#1088;&#1086;&#1083;&#1077;&#1081;, &#1086;&#1076;&#1080;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1074;&#1093;&#1086;&#1076;&#1080;&#1090;&#1100; &#1074; &#1085;&#1077;&#1089;&#1082;&#1086;&#1083;&#1100;&#1082;&#1086; &#1075;&#1088;&#1091;&#1087;&#1087; &#1080;&#1083;&#1080; &#1085;&#1077;</span>
+<span style="color: #00cd00;">      &#1074;&#1093;&#1086;&#1076;&#1080;&#1090;&#1100; &#1085;&#1080; &#1074; &#1086;&#1076;&#1085;&#1091; &#1080;&#1079; &#1085;&#1080;&#1093;. &lt;br /&gt;&lt;br /&gt;"</span>
+     (tbl
+      (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-group))
+        (tr
+         (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/group/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
+         (td (name i))))
+      <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
+     <span style="color: #00cd00;">"&lt;h2&gt;&#1053;&#1086;&#1074;&#1072;&#1103; &#1075;&#1088;&#1091;&#1087;&#1087;&#1072;&lt;/h2&gt;"</span>
+     (frm
+      (tbl
+       (list
+        (row <span style="color: #00cd00;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #00cd00;">"name"</span>))
+        (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>))))))))
+
+(restas:define-route allgroups-ctrl (<span style="color: #00cd00;">"/groups"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
+  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
+      (make-group <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>))
+      <span style="color: #00cd00;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1072; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-6" class="outline-3">
+<h3 id="sec-6-6"><span class="section-number-3">6.6</span> Страничка пользователя</h3>
+<div class="outline-text-3" id="text-6-6">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
@@ -2798,21 +2811,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
              <span style="color: #0000ee; font-weight: bold;">:menu</span>
              (format
               nil <span style="color: #00cd00;">"~{~A&lt;br /&gt;~}"</span>
-              (remove-if
-               #'null
-               (list
-                <span style="color: #00cd00;">"&lt;a href=\"/users\"&gt;&#1057;&#1087;&#1080;&#1089;&#1086;&#1082; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;&lt;/a&gt;"</span>
-                (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
-                  <span style="color: #00cd00;">"&lt;a href=\"/reg\"&gt;&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103;&lt;/a&gt;"</span>)
-                (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
-                  <span style="color: #00cd00;">"&lt;a href=\"/login\"&gt;&#1051;&#1086;&#1075;&#1080;&#1085;&lt;/a&gt;"</span>)
-                (<span style="color: #00cdcd; font-weight: bold;">when</span> (null *current-user*)
-                  <span style="color: #00cd00;">"&#1041;&#1086;&#1083;&#1100;&#1096;&#1077; &#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1103;&#1084;"</span>)
-                (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
-                  (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;&#1052;&#1086;&#1081; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100;&lt;/a&gt;"</span> *current-user*))
-                (<span style="color: #00cdcd; font-weight: bold;">when</span> *current-user*
-                  <span style="color: #00cd00;">"&lt;a href=\"/logout\"&gt;&#1042;&#1099;&#1093;&#1086;&#1076;&lt;/a&gt;"</span>)
-                )))))
+              (menu))))
            (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval)))))))))
 </pre>
 </div>
@@ -3153,8 +3152,193 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </div>
 
 <div id="outline-container-sec-8-6" class="outline-3">
-<h3 id="sec-8-6"><span class="section-number-3">8.6</span> Подготовка к старту</h3>
+<h3 id="sec-8-6"><span class="section-number-3">8.6</span> Сущности и автоматы</h3>
 <div class="outline-text-3" id="text-8-6">
+<p>
+Соберем все сущности и автоматы
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;entity_and_automates_contents&gt;&gt;
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-8-6-1" class="outline-4">
+<h4 id="sec-8-6-1"><span class="section-number-4">8.6.1</span> Пользователи</h4>
+<div class="outline-text-4" id="text-8-6-1">
+<p>
+Сводя вместе, все что нам известно о пользователе (его поведение и поля) опишем все это
+в коде:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> user <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
+  &lt;&lt;user_fields()&gt;&gt;
+  &lt;&lt;user_states()&gt;&gt;
+  &lt;&lt;user_actions()&gt;&gt;)
+
+ &lt;&lt;user_actions_func&gt;&gt;
+
+ &lt;&lt;create_user&gt;&gt;
+</pre>
+</div>
+
+<p>
+Где <code>user-fields</code> (поля данных) определим как:
+</p>
+
+<p>
+А <code>user-states</code> т.е. состояния пользователя определим так:
+</p>
+
+<pre class="example">
+(:sended :unlogged :logged :unregistred)
+</pre>
+
+<p>
+И, наконец, определим <code>user-actions</code> переходы между состояниями:
+</p>
+
+<pre class="example">
+((:unregistred :logged :registration)
+ (:logged :unregistred :unregistration)
+ (:unlogged :logged :enter)
+ (:logged :unlogged :leave)
+ (:unlogged :sended :forgot)
+ (:sended :logged :remember))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-8-6-2" class="outline-4">
+<h4 id="sec-8-6-2"><span class="section-number-4">8.6.2</span> Роли</h4>
+<div class="outline-text-4" id="text-8-6-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> role <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1088;&#1086;&#1083;&#1080;"</span>
+  &lt;&lt;role_fields()&gt;&gt;)
+
+(make-role-table)
+
+&lt;&lt;create_roles&gt;&gt;
+</pre>
+</div>
+
+<p>
+Где <code>role-fields</code> (поля данных) определим как:
+</p>
+
+<pre class="example">
+((id serial)
+ (name (or db-null varchar)))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-8-6-3" class="outline-4">
+<h4 id="sec-8-6-3"><span class="section-number-4">8.6.3</span> Группы</h4>
+<div class="outline-text-4" id="text-8-6-3">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> group <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1075;&#1088;&#1091;&#1087;&#1087;&#1099;"</span>
+  &lt;&lt;group_fields()&gt;&gt;)
+
+(make-group-table)
+
+&lt;&lt;create_groups&gt;&gt;
+
+&lt;&lt;user2group_entity&gt;&gt;
+</pre>
+</div>
+
+<p>
+Где <code>group-fields</code> (поля данных) определим как:
+</p>
+
+<pre class="example">
+((id serial)
+ (name varchar))
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="user2group_entity">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> user2group <span style="color: #00cd00;">"&#1057;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100; &#1089;&#1074;&#1103;&#1079;&#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; &#1080; &#1075;&#1088;&#1091;&#1087;&#1087;&#1099;"</span>
+  &lt;&lt;user2group_fields()&gt;&gt;)
+
+(make-user2group-table)
+</pre>
+</div>
+
+<p>
+Где <code>user2group-fields</code> (поля данных) определим как:
+</p>
+
+<pre class="example">
+((id serial)
+ (name varchar))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-8-6-4" class="outline-4">
+<h4 id="sec-8-6-4"><span class="section-number-4">8.6.4</span> Сообщения</h4>
+<div class="outline-text-4" id="text-8-6-4">
+<p>
+Сводя вместе, все что нам известно о сообщении (его поведение и поля) опишем все это в
+коде:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates_contents">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> msg <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;"</span>
+  &lt;&lt;msg_fields()&gt;&gt;
+  &lt;&lt;msg_states()&gt;&gt;
+  &lt;&lt;msg_actions()&gt;&gt;)
+
+ &lt;&lt;msg_actions_func&gt;&gt;
+</pre>
+</div>
+
+<p>
+Где <code>msg-fields</code> (поля данных) определим как:
+</p>
+
+<pre class="example">
+((id serial)
+ (snd-id integer)
+ (rcv-id integer)
+ (msg varchar)
+ (ts-create bigint)
+ (ts-delivery bigint))
+</pre>
+
+<p>
+А <code>msg-states</code> т.е. состояния пользователя определим так:
+</p>
+
+<pre class="example">
+(:delivered :undelivered)
+</pre>
+
+<p>
+И, наконец, определим <code>msg-actions</code> переходы между состояниями:
+</p>
+
+<pre class="example">
+((:undelivered :delivered :delivery))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-8-7" class="outline-3">
+<h3 id="sec-8-7"><span class="section-number-3">8.7</span> Подготовка к старту</h3>
+<div class="outline-text-3" id="text-8-7">
 <p>
 Подготовка включает в себя загрузку всех необходимых библиотек, компиляцию шаблонов, и,
 возможно, инициализацию окружения.
@@ -3162,9 +3346,9 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </div>
 </div>
 
-<div id="outline-container-sec-8-7" class="outline-3">
-<h3 id="sec-8-7"><span class="section-number-3">8.7</span> Точка входа</h3>
-<div class="outline-text-3" id="text-8-7">
+<div id="outline-container-sec-8-8" class="outline-3">
+<h3 id="sec-8-8"><span class="section-number-3">8.8</span> Точка входа</h3>
+<div class="outline-text-3" id="text-8-8">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="enter_point"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">moto.lisp</span>
@@ -3181,9 +3365,9 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </div>
 </div>
 
-<div id="outline-container-sec-8-8" class="outline-3">
-<h3 id="sec-8-8"><span class="section-number-3">8.8</span> Readme</h3>
-<div class="outline-text-3" id="text-8-8">
+<div id="outline-container-sec-8-9" class="outline-3">
+<h3 id="sec-8-9"><span class="section-number-3">8.9</span> Readme</h3>
+<div class="outline-text-3" id="text-8-9">
 <div class="org-src-container">
 
 <pre class="src src-org" id="enter_point">&#1069;&#1090;&#1086;&#1090; &#1076;&#1086;&#1082;&#1091;&#1084;&#1077;&#1085;&#1090; &#1086;&#1090;&#1074;&#1077;&#1095;&#1072;&#1077;&#1090; &#1085;&#1072; &#1074;&#1086;&#1087;&#1088;&#1086;&#1089;&#1099;:
@@ -3366,6 +3550,10 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 <h2 id="sec-9"><span class="section-number-2">9</span> Идеи</h2>
 <div class="outline-text-2" id="text-9">
 <p>
+Необходимы заметки одного пользователя о другом. И шаринг их для группы лиц
+</p>
+
+<p>
 <a href="http://www.motobratan.ru/motoprogress/230.html">http://www.motobratan.ru/motoprogress/230.html</a>
 Флип-чарт - как чопперасты видят: спортбайкеров, эндурастов етц
 Только отслеживаемые люди (веб-камера, документ етц)
@@ -3408,11 +3596,168 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 Не забыть адреса травмпунктов и контакты хороших врачей и юристов
 </p>
 </div>
+
+<div id="outline-container-sec-9-1" class="outline-3">
+<h3 id="sec-9-1"><span class="section-number-3">9.1</span> Обозначения и маркировка мотошин</h3>
+<div class="outline-text-3" id="text-9-1">
+<p>
+Рассмотрим данный вопрос на конкретном примере. Например, на боковине #шины имеется
+обозначение 140/80 - 18 M/C 70M TL
+</p>
+
+<p>
+№1 Производитель или название бренда
+№2 Выражение максимальной нагрузки на шину при указанном давлении (psi).
+№3 Название модели #мотошины
+№4 Стрелка, указывающая направление вращения колеса.Обозначение относится к дополнительной
+маркировке
+№5 Ширина профиля покрышки в миллиметрах. В данном случае - 140 №6 Высота профиля в
+процентах от ширины.В данном случае - 80. Это значение не указывается, если ширина выражена
+в дюймах. Например, 3,5-18.
+№7 Индекс обозначающий конструкцию шины. В данном случае "-" - диагональная
+конструкция. Индекс "R"- радиальная конструкция шины. №8 Посадочный размер внутреннего
+кольца покрышки в дюймах. На нашей шине он равен 18. Буквы М/С - аббревиатура от motorcycle
+. Означает, что шины относятся к категории мотоциклетных шин. Встречается на мотошинах,
+имеющих "автомобильные" размеры.
+№9 Индекс нагрузки ( в рассматриваем случае 70). Число , соответствующее нагрузке, которую
+способна выдержать шина при максимальном внутреннем давлении воздуха. Существует таблица
+индексов нагрузок, по которой определяется ее максимальное значение. №10 M - индекс
+скорости. Читайте подробнее о индексах скорости.
+№11 TT - тип шины ТТ - аббревиатура от Tube Type (камерный тип) - обозначение для покрышек,
+предназначенных для использования только вместе с камерой. Обозначение TL - аббревиатура от
+Tubeless.(бескамерная) - указывает на то, что шину следует использовать без
+камеры. Герметичность обеспечивает слой особой резины, нанесенный на внутреннее
+кольцо. Должная фиксация шины на ободе достигается за счет хампов – особых конструктивным
+элементам колесного диска.
+№12 Номер согласно ECE R 75
+№13 Наименование типа протектора. №14 Аббревиатура DOT.
+№15 Дата изготовления шины - три или четыре цифры в овале на одной из боковин. У некоторых
+производителей – три или четыре последние цифры в индивидуальном номере покрышки. Например,
+(178) - 17-я неделя 1998 г.. С 2000 года введено 4-х значное число обозначение. К примеру
+(1105) – 11 неделя 2005 года
+</p>
+
+<p>
+Обозначение и маркировка шин
+</p>
+
+<p>
+Обозначение и маркировка шин, выпускаемых в Европе, соответствует Евростандарту, а в США -
+требованиями Транспортного управления этой страны. Следует отметить, что обозначения и
+маркировка отечественных и импортных шин по отдельным позициям совпадают, хотя среди них
+имеются характерные различия. Прежде всего рассмотрим маркировки шин, действующих в Европе:
+1 - Пример: 185/65 R15 87Т - размер шины и ее техническая характеристика: 185 - ширина
+профиля шины в мм.; 65 - отношение высоты профиля к ее ширине, выраженное в процентах; R -
+радиальная конструкция шины; 15 - посадочный диаметр обода в дюймах; 87 - индекс
+грузоподъемности.
+</p>
+
+<p>
+Ряд зарубежных фирм указывают максимальную нагрузку (MAX LOAD) в кг. и английских фунтах;
+Т - индекс максимальной скорости, на которую рассчитана шина - надпись "Radial" - указывает
+на радиальную конструкцию шины; - "Tubeless" - маркировка бескамерной шины. Камерная шина
+обозначается "TUBE TYPE";
+</p>
+<ul class="org-ul">
+<li>"M+S" (Mud+Snow -грязь+снег) - тип рисунка протектора. Маркировка обозначает, что шина
+предназначена для эксплуатации в зимний период года и по грязи. - цифры 376 - дата выпуска
+шины: изготовлена на 37-й недели 1996 года - знак Е одним цифровым индексом (на других
+шинах может быть двух цифровой индекс) указывает, что шина проверена на соответствие
+европейскому стандарту безопасности - Правилу N 30 Европейской экономической комиссии
+ООН. Индекс в кружке - условный номер страны, где назначенная правительством комиссия
+провела проверку. Например, Е - проверено в Швеции. Пятизначный (может быть и
+шестизначный) индекс, нанесенный рядом с кружком, означает номер сертификата,
+свидетельствующий о положительных результатах проверки, и выданного страной,
+осуществлявшей проверку; - страна, в которой находится предприятие-изготовитель шин (Made
+in Germany -сделано в Германии, Made in Europe - сделано в Европе и т.д.);
+</li>
+</ul>
+
+<p>
+Дополнительные маркировки, действующие в США: - DOT - знак, который означает, что шина
+отвечает нормативным требованиям Транспортного управления США; - DM AB CD EFG - код,
+означающий место изготовления, размер и тип шины; - максимально допустимые в США нагрузка и
+внутреннее давление воздуха в шине: max Load 545kg (1202 lbs) - 545кг (1202 фунта), max
+Pressure 300 кПа (44psi) - 3,0 кгс/см2 (44 фунта на квадратный дюйм); - Plies Tread area:1
+Rayon + 2 Steel + 1 Nylon Sidewall: 1 Rayon - особенности конструкции шины: в брекере один
+слой вискозного корда; два слоя стального и один слой нейлонового корда; в боковине один
+слой вискозного корда; - TWI (Tread Wear Indiration) -указатели индикаторов износа
+(минимально допустимая глубина) рисунка протектора шины.Указатели располагаются равномерно в
+шести- восьми местах по окружности. Маркировка TWI может быть со стрелкой. Индикатор износа
+иногда изображается одной стрелкой.Индикатор выполняется в виде выступа высотой 1.6 мм (для
+легких автомобилей) и располагается в углублении протектора;
+</p>
+
+<ul class="org-ul">
+<li>Treadwear 180 - относительная износоустойчивость рисунка протектора.Отвечает специальным
+стандартным тестам США; - Traction A - оценка влажных условий А, В или С ( специальный
+тест США); - Temperatyre B - температурная устойчивость на больших скоростях движения А, В
+или С (специальный тест США);
+</li>
+<li>Safetywarning - требование техники безопасности при монтаже шины на обод и при
+использовании шины. На некоторых моделях шин нового поколения для легковых автомобилей
+введена дополнительная маркировка.На боковине шин фирмы "Pirelli" ставится стрелка,
+указывающая направление вращения колеса. На боковых шинах других фирм наносятся две
+стрелки с надписью "Rotation" (направление вращения). При сборке колеса необходимо
+учитывать рекомендации маркировки: направление вращения колеса при движении автомобиля
+вперед должно совпадать с направлением, указанным стрелкой (стрелками).
+</li>
+</ul>
+
+<p>
+Индекс грузоподъемности, кг/ #колесо
+60 - 250
+62 - 265
+64 - 280
+66 - 300
+68 - 315
+70 - 335
+72 - 355
+74 - 375
+76 - 400
+78 - 425
+80 - 450
+82 - 475
+84 - 500
+86 - 530
+88 - 560
+90 - 600
+</p>
+
+<p>
+Индекс максимальной скорости, км/ч
+I - 100
+K - 110
+L - 120
+M - 130
+N - 140
+P - 150
+Q - 160
+R - 170
+S - 180
+T - 190
+H - 210
+V - 240
+VR - 210-240
+ZR - от 240
+</p>
+</div>
+</div>
+<div id="outline-container-sec-9-2" class="outline-3">
+<h3 id="sec-9-2"><span class="section-number-3">9.2</span> Очень интересный способ добавлять фичи</h3>
+<div class="outline-text-3" id="text-9-2">
+<p>
+Сначала мы отталкиваемся от фич и описываем их
+Описание фич сопровождаются кодом, который генерирует структуры данных, которые являются
+источником для генераторов сущностий.
+</p>
+</div>
+</div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-10-30 Чт. 23:08</p>
+<p class="date">Created: 2014-11-07 Пт. 05:35</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

@@ -88,28 +88,7 @@
              :menu
              (format
               nil "~{~A<br />~}"
-              (remove-if
-               #'null
-               (list
-                "<a href=\"/users\">Список пользователей</a>"
-                (when (null *current-user*)
-                  "<a href=\"/reg\">Регистрация</a>")
-                (when (null *current-user*)
-                  "<a href=\"/login\">Логин</a>")
-                (when (null *current-user*)
-                  "Больше возможностей доступно залогиненным пользоватям")
-                (when *current-user*
-                  (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
-                (when *current-user*
-                  "<a href=\"/logout\">Выход</a>")
-                (when *current-user*
-                  "<a href=\"/im\">Сообщения</a>")
-                (when *current-user*
-                  "<a href=\"/load\">Загрузка данных</a>")
-                "<a href=\"/\">Простой поиск по ЖК</a>"
-                "<a href=\"/\">Расширенный поиск по ЖК</a>"
-                "Загрузить данные"
-                )))))
+              (menu))))
            (tpl:retvalblock (list :retval retval)))))))))
 
 (in-package #:moto)
