@@ -1,5 +1,4 @@
 #+TITLE: moto
-
 #+HTML_HEAD: <!-- -*- fill-column: 86 -*- -->
 
 #+NAME: css
@@ -304,7 +303,7 @@
    сохранить данные в =PostgreSQL=
 
    #+CAPTION: Данные пользователя
-   #+NAME: user_data
+   #+NAME: user_flds
      | field name | field type           | note                          |
      |------------+----------------------+-------------------------------|
      | id         | serial               | идентификатор                 |
@@ -313,11 +312,7 @@
      | email      | varchar              | емейл                         |
      | ts-create  | bigint               | время создания                |
      | ts-last    | bigint               | время когда был последний раз |
-
-   #+NAME: user_flds
-   #+BEGIN_SRC emacs-lisp :var table=user_data :results value :exports none :session gen
-     table
-   #+END_SRC
+     | role-id    | (or db-null integer) | идентификатор роли            |
 
    В нашей системе пользователь может существовать (или не существовать) в одном их
    нескольких состояний:
@@ -346,14 +341,14 @@
    Теперь мы можем полностью описать поведение пользователя как конечный автомат:
 
    #+NAME: user_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports none
+   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports none :cache yes
      (mapcar #'(lambda (x)
                  (princ (format "%s -> %s [label =\"%s\"];\n"
                                 (second x) (third x) (first x))))
              (nthcdr 2 table))
    #+END_SRC
 
-   #+BEGIN_SRC dot :file img/user-state.png :var input=user_state_graph :exports results
+   #+BEGIN_SRC dot :file img/user-state.png :var input=user_state_graph :exports results :cache yes
      digraph G {
        rankdir = LR;
        $input
@@ -401,30 +396,11 @@
    Роль является простой сущностью и не имеет состояния.
 
    #+CAPTION: Данные роли
-   #+NAME: role_data
+   #+NAME: role_flds
      | field name | field type           | note          |
      |------------+----------------------+---------------|
      | id         | serial               | идентификатор |
      | name       | (or db-null varchar) | имя роли      |
-
-   #+NAME: role_flds
-   #+BEGIN_SRC emacs-lisp :var table=role_data :results value :exports none :session gen
-     table
-   #+END_SRC
-
-   Добавляем к полям пользователя еще одно поле, которое будет
-   указывать на идентификатор роли, которую имеет пользователь:
-
-   #+CAPTION: Связь пользователя с ролью
-   #+NAME: user_role_link
-     | field name | field type           | note               |
-     |------------+----------------------+--------------------|
-     | role-id    | (or db-null integer) | идентификатор роли |
-
-   #+NAME: user_flds
-   #+BEGIN_SRC emacs-lisp :var table=user_flds addon=user_role_link :results value :exports none :session gen
-     (append table addon)
-   #+END_SRC
 
    Создадим необходимые роли:
 
@@ -447,16 +423,11 @@
    Группа является простой сущностью и не имеет состояния.
 
    #+CAPTION: Данные группы
-   #+NAME: group_data
+   #+NAME: group_flds
      | field name | field type | note          |
      |------------+------------+---------------|
      | id         | serial     | идентификатор |
      | name       | varchar    | имя группы    |
-
-   #+NAME: group_flds
-   #+BEGIN_SRC emacs-lisp :var table=group_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
    Создадим необходимые группы:
 
@@ -472,17 +443,12 @@
    Теперь создадим таблицу связи, которая свяжет пользователей и группы:
 
    #+CAPTION: Данные таблицы связи пользователя и группы
-   #+NAME: user2group_data
+   #+NAME: user2group_flds
      | field name | field type | note                       |
      |------------+------------+----------------------------|
      | id         | serial     | идентификатор              |
      | user-id    | integer    | идентификатор пользователя |
      | group-id   | integer    | идентификатор группы       |
-
-   #+NAME: user2group_flds
-   #+BEGIN_SRC emacs-lisp :var table=user2group_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
 ** Сообщения (msg)
 
@@ -492,7 +458,7 @@
    флаги.
 
    #+CAPTION: Данные сообщения
-   #+NAME: msg_data
+   #+NAME: msg_flds
      | field name  | field type | note                                     |
      |-------------+------------+------------------------------------------|
      | id          | serial     | идентификатор                            |
@@ -501,11 +467,6 @@
      | msg         | varchar    | сообщение                                |
      | ts-create   | bigint     | время создания                           |
      | ts-delivery | bigint     | время доставки                           |
-
-   #+NAME: msg_flds
-   #+BEGIN_SRC emacs-lisp :var table=msg_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
    Еще сообщение может быть доставлено или недоставлено.
 
@@ -536,32 +497,22 @@
    Очередь является простой сущностью и не имеет состояния.
 
    #+CAPTION: Данные очереди
-   #+NAME: que_data
+   #+NAME: que_flds
      | field name | field type | note          |
      |------------+------------+---------------|
      | id         | serial     | идентификатор |
      | name       | varchar    | имя очереди   |
 
-   #+NAME: que_flds
-   #+BEGIN_SRC emacs-lisp :var table=que_data :results value :exports none :session gen
-     table
-   #+END_SRC
-
    Нам понадобится сущность элемента очереди, назовем его =quelt=. Элемент очереди является
    простой сущностью и не имеет состояния.
 
    #+CAPTION: Данные элемента очереди
-   #+NAME: quelt_data
+   #+NAME: quelt_flds
      | field name | field type | note                  |
      |------------+------------+-----------------------|
      | id         | serial     | идентификатор         |
      | que-id     | integer    | идентификатор очереди |
      | text       | varchar    | содержимое            |
-
-   #+NAME: quelt_flds
-   #+BEGIN_SRC emacs-lisp :var table=quelt_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
    Создадим необходимые очереди:
 
@@ -580,7 +531,7 @@
    отмасштабированных превьюшек.
 
    #+CAPTION: Данные аватарки
-   #+NAME: avatar_data
+   #+NAME: avatar_flds
      | field name | field type | note                               |
      |------------+------------+------------------------------------|
      | id         | serial     | идентификатор                      |
@@ -588,11 +539,6 @@
      | name       | varchar    | имя пользователя                   |
      | origin     | varchar    | путь к файлу оригинального размера |
      | ts-create  | bigint     | время создания                     |
-
-   #+NAME: avatar_flds
-   #+BEGIN_SRC emacs-lisp :var table=avatar_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
    Одна из автарок может быть активной в данный момент.
 
@@ -637,7 +583,7 @@
    все это может пригодиться для проверки мотоцикла на легальность.
 
    #+CAPTION: Данные мотоцикла
-   #+NAME: moto_data
+   #+NAME: moto_flds
      | field name | field type           | note                             |
      |------------+----------------------+----------------------------------|
      | id         | serial               | идентификатор                    |
@@ -653,11 +599,6 @@
      | pts-data   | (or db-null varchar) | данные птс (раскрыть)            |
      | desc       | (or db-null varchar) | описание мотоцикла               |
      | tuning     | (or db-null varchar) | описание тюнинга                 |
-
-   #+NAME: moto_flds
-   #+BEGIN_SRC emacs-lisp :var table=moto_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
    В нашей системе мотоцикл может существовать (или не существовать) в одном их
    нескольких состояний:
@@ -707,14 +648,14 @@
    Теперь мы можем полностью описать поведение пользователя как конечный автомат:
 
    #+NAME: moto_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports none
+   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports none :cache yes
      (mapcar #'(lambda (x)
                  (princ (format "%s -> %s [label =\"%s\"];\n"
                                 (second x) (third x) (first x))))
              (nthcdr 2 table))
    #+END_SRC
 
-   #+BEGIN_SRC dot :file img/moto-state.png :var input=moto_state_graph :exports results
+   #+BEGIN_SRC dot :file img/moto-state.png :var input=moto_state_graph :exports results :cache yes
      digraph G {
        rankdir = LR;
        $input
@@ -799,32 +740,22 @@
    Цвета мотоциклов - простая сущность и не имеет состояния.
 
    #+CAPTION: Данные цвета
-   #+NAME: color_data
+   #+NAME: color_flds
      | field name | field type | note          |
      |------------+------------+---------------|
      | id         | serial     | идентификатор |
      | name       | varchar    | имя цвета     |
-
-   #+NAME: color_flds
-   #+BEGIN_SRC emacs-lisp :var table=color_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
 ** Производитель (vendor)
 
    Цвета мотоциклов - простая сущность и не имеет состояния.
 
    #+CAPTION: Данные производителя
-   #+NAME: vendor_data
+   #+NAME: vendor_flds
      | field name | field type | note              |
      |------------+------------+-------------------|
      | id         | serial     | идентификатор     |
      | name       | varchar    | имя производителя |
-
-   #+NAME: vendor_flds
-   #+BEGIN_SRC emacs-lisp :var table=vendor_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
 ** Братан (bratan)
 
@@ -837,7 +768,7 @@
    Братан является простой сущностью и не имеет состояния.
 
    #+CAPTION: Данные роли
-   #+NAME: bratan_data
+   #+NAME: bratan_flds
      | field name  | field type           | note                               |
      |-------------+----------------------+------------------------------------|
      | id          | serial               | идентификатор                      |
@@ -858,11 +789,6 @@
      | photos      | (or db-null varchar) | фотографии                         |
      | avatar      | (or db-null varchar) | аватар                             |
      | motos       | (or db-null varchar) | мотоциклы                          |
-
-   #+NAME: bratan_flds
-   #+BEGIN_SRC emacs-lisp :var table=bratan_data :results value :exports none :session gen
-     table
-   #+END_SRC
 
 * События
 
@@ -1205,7 +1131,7 @@
 
      (in-package #:moto)
 
-     <<get_obj_data>>
+     <<get_obj_flds>>
 
      <<make_clause_list>>
 
@@ -1228,7 +1154,7 @@
      <<explore_dir>>
    #+END_SRC
 
-   #+NAME: get_obj_data
+   #+NAME: get_obj_flds
    #+BEGIN_SRC lisp
      ;; Превращает инициализированные поля объекта в plist
      (defun get-obj-data (obj)
@@ -1635,7 +1561,7 @@
    Соберем все сущности и автоматы
 
    #+NAME: entity_and_automates
-   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports code :padline no :comments link
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports noneh :padline no :comments link
      (in-package #:moto)
 
      <<asm_user()>>
@@ -1697,80 +1623,80 @@
 *** Пользователи
 
     #+NAME: asm_user
-    #+BEGIN_SRC emacs-lisp :var flds=user_flds states=user_state :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=user_flds states=user_state :exports none
       (gen-automat "user" "пользователя" flds states)
     #+END_SRC
 
 *** Роли
 
     #+NAME: asm_role
-    #+BEGIN_SRC emacs-lisp :var flds=role_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=role_flds :exports none
       (gen-entity "role" "роли" flds)
     #+END_SRC
 
 *** Группы
 
     #+NAME: asm_group
-    #+BEGIN_SRC emacs-lisp :var flds=group_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=group_flds :exports none
       (gen-entity "group" "группы" flds)
     #+END_SRC
 
     #+NAME: asm_user2group
-    #+BEGIN_SRC emacs-lisp :var flds=user2group_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=user2group_flds :exports none
       (gen-entity "user2group" "связи пользователя и группы" flds)
     #+END_SRC
 
 *** Сообщения
 
     #+NAME: asm_msg
-    #+BEGIN_SRC emacs-lisp :var flds=msg_flds states=msg_state :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=msg_flds states=msg_state :exports none
       (gen-automat "msg" "сообщения" flds states)
     #+END_SRC
 
 *** Очереди
 
     #+NAME: asm_que
-    #+BEGIN_SRC emacs-lisp :var flds=que_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=que_flds :exports none
       (gen-entity "que" "очереди" flds)
     #+END_SRC
 
     #+NAME: asm_quelt
-    #+BEGIN_SRC emacs-lisp :var flds=quelt_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=quelt_flds :exports none
       (gen-entity "quelt" "элемента очереди" flds)
     #+END_SRC
 
 *** Аватары
 
     #+NAME: asm_avatar
-    #+BEGIN_SRC emacs-lisp :var flds=avatar_flds states=avatar_state :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=avatar_flds states=avatar_state :exports none
       (gen-automat "avatar" "аватара" flds states)
     #+END_SRC
 
 *** Мотоциклы
 
     #+NAME: asm_moto
-    #+BEGIN_SRC emacs-lisp :var flds=moto_flds states=moto_state :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=moto_flds states=moto_state :exports none
       (gen-automat "moto" "мотоцикла" flds states)
     #+END_SRC
 
 *** Цвета
 
     #+NAME: asm_color
-    #+BEGIN_SRC emacs-lisp :var flds=color_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=color_flds :exports none
       (gen-entity "color" "цвета" flds)
     #+END_SRC
 
 *** Производители
 
     #+NAME: asm_vendor
-    #+BEGIN_SRC emacs-lisp :var flds=vendor_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=vendor_flds :exports none
       (gen-entity "vendor" "производителя" flds)
     #+END_SRC
 
 *** Братаны
 
     #+NAME: asm_bratan
-    #+BEGIN_SRC emacs-lisp :var flds=bratan_flds :exports none :session gen
+    #+BEGIN_SRC emacs-lisp :var flds=bratan_flds :exports none
       (gen-entity "bratan" "братана" flds)
     #+END_SRC
 
@@ -1819,7 +1745,7 @@
      ;; start
      (restas:start '#:moto :port 9997)
      (restas:debug-mode-on)
-     ;; (restas:debug-mode-off)
+     ;; (restas:debugg-mode-off)
      (setf hunchentoot:*catch-errors-p* t)
    #+END_SRC
 
