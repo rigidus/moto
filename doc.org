@@ -876,41 +876,30 @@
 
      (in-package #:moto)
 
-     (restas:define-route allusers ("/users")
-       (with-wrapper
-           (concatenate
-            'string
-            "<h1>Все пользователи</h1>"
-            (tbl
-             (with-collection (i (all-user))
-               (tr
-                (td (format nil "<a href=\"/user/~A\">~A</a>" (id i) (id i)))
-                (td (name i))
-                (td (password i))
-                (td (email i))
-                (td (state i))
-                ;; (td (role-id i))
-                ))
-             :border 1)
-            "<h2>Новый пользователь</h2>"
-            (frm
-             (tbl
-              (list
-               (row "Имя" (fld "name"))
-               (row "Email" (fld "email"))
-               (row "Пароль" (fld "password"))
-               (row "" (submit "Создать"))))))))
-
-     (restas:define-route allusers-ctrl ("/users" :method :post)
-       (with-wrapper
-           (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-             (make-user :name (getf p :name)
-                        :email (getf p :email)
-                        :password (getf p :password)
-                        :ts-create (get-universal-time)
-                        :ts-last (get-universal-time)
-                        )
-             "Пользователь создан")))
+     (define-iface-add-del-entity all-users "/users"
+       "пользователи"
+       "Новый пользователь"
+       ""
+       #'all-user "user"
+       (name password email state role-id)
+       (frm
+        (tbl
+         (list
+          (row "Имя" (fld "name"))
+          (row "Email" (fld "email"))
+          (row "Пароль" (fld "password"))
+          (row "" %new%))))
+       (:new (act-btn "NEW" "" "Создать")
+             (progn
+               (make-user :name (getf p :name)
+                          :email (getf p :email)
+                          :password (getf p :password)
+                          :ts-create (get-universal-time)
+                          :ts-last (get-universal-time))
+               "Пользователь создан"))
+       (:del (act-btn "DEL" (id i) "Удалить")
+             (progn
+               (del-user (getf p :data)))))
    #+END_SRC
 
 ** Список ролей
@@ -920,34 +909,28 @@
 
      (in-package #:moto)
 
-     (restas:define-route allroles ("/roles")
-       (with-wrapper
-         (concatenate
-          'string
-          "<h1>Роли пользователей</h1>"
-          "Роли определяют набор сценариев, которые пользователь выполняет на
+     (define-iface-add-del-entity all-roles "/roles"
+       "Роли пользователей"
+       "Новая роль"
+       "Роли определяют набор сценариев, которые пользователь выполняет на
           сайте. Функционал, который выполняют сценарии запрашивает
           разрешение на выполнение действий, которое опирается на роль,
           присвоенную пользователю. Пользователь может иметь только одну роль
-          или не иметь ее вовсе.<br /><br />"
-          (tbl
-           (with-collection (i (all-role))
-             (tr
-              (td (format nil "<a href=\"/role/~A\">~A</a>" (id i) (id i)))
-              (td (name i))))
-           :border 1)
-          "<h2>Новая роль</h2>"
-          (frm
-           (tbl
-            (list
-             (row "Название" (fld "name"))
-             (row "" (submit "Создать"))))))))
-
-     (restas:define-route allroles-ctrl ("/roles" :method :post)
-       (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           (make-role :name (getf p :name))
-           "Роль создана")))
+          или не иметь ее вовсе."
+       #'all-role "role"
+       (name)
+       (frm
+        (tbl
+         (list
+          (row "Название" (fld "name"))
+          (row "" %new%))))
+       (:new (act-btn "NEW" "" "Создать")
+             (progn
+               (make-role :name (getf p :name))
+               "Роль создана"))
+       (:del (act-btn "DEL" (id i) "Удалить")
+             (progn
+               (del-role (getf p :data)))))
    #+END_SRC
 
 ** Список групп
@@ -957,37 +940,27 @@
 
      (in-package #:moto)
 
-     (restas:define-route allgroups ("/groups")
-       (with-wrapper
-         (concatenate
-          'string
-          "<h1>Группы пользователей</h1>"
-          "Группы пользователей определяют набор операций, которые
+     (define-iface-add-del-entity all-groups "/groups"
+       "Группы пользователей"
+       "Новая группа"
+       "Группы пользователей определяют набор операций, которые
            пользователь может выполнять над объектами системы. В отличие от
            ролей, один пользователь может входить в несколько групп или не
-           входить ни в одну из них. <br /><br />"
-          (tbl
-           (with-collection (i (all-group))
-             (tr
-              (td (format nil "<a href=\"/group/~A\">~A</a>" (id i) (id i)))
-              (td (name i))
-              (td (frm
-                   ;; (hid "act" :value "del")
-                   ;; (hid "id" :value (id i))
-                   (submit "Удалить")))))
-           :border 1)
-          "<h2>Новая группа</h2>"
-          (frm
-           (tbl
-            (list
-             (row "Название" (fld "name"))
-             (row "" (submit "Создать"))))))))
-
-     (restas:define-route allgroups-ctrl ("/groups" :method :post)
-       (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           (make-group :name (getf p :name))
-           "Группа создана")))
+           входить ни в одну из них."
+       #'all-group "group"
+       (name)
+       (frm
+        (tbl
+         (list
+          (row "Название" (fld "name"))
+          (row "" %new%))))
+       (:new (act-btn "NEW" "" "Создать")
+             (progn
+               (make-group :name (getf p :name))
+               "Роль создана"))
+       (:del (act-btn "DEL" (id i) "Удалить")
+             (progn
+               (del-group (getf p :data)))))
    #+END_SRC
 
 ** Страничка пользователя
@@ -1131,31 +1104,6 @@
 
      (in-package #:moto)
 
-     <<get_obj_flds>>
-
-     <<make_clause_list>>
-
-     <<err_bprint_macro>>
-
-     <<dbgout>>
-
-     <<alist_plist>>
-
-     <<with_wrapper>>
-
-     <<frm>>
-
-     <<with_collection>>
-
-     <<with_element>>
-
-     <<replace_all>>
-
-     <<explore_dir>>
-   #+END_SRC
-
-   #+NAME: get_obj_flds
-   #+BEGIN_SRC lisp
      ;; Превращает инициализированные поля объекта в plist
      (defun get-obj-data (obj)
        (let ((class (find-class (type-of obj)))
@@ -1167,10 +1115,7 @@
                       (append result (list (intern (symbol-name slot-name) :keyword)
                                            (funcall slot-name obj)))))))
          result))
-   #+END_SRC
 
-   #+NAME: make_clause_list
-   #+BEGIN_SRC lisp
      ;; Assembly WHERE clause
      (defun make-clause-list (glob-rel rel args)
        (append (list glob-rel)
@@ -1181,20 +1126,14 @@
                              (getf args i)
                              (not (symbolp (getf args i))))
                   :collect (list rel i (getf args i)))))
-   #+END_SRC
 
-   #+NAME: err_bprint_macro
-   #+BEGIN_SRC lisp
      ;; Макросы для корректного вывода ошибок
      (defmacro bprint (var)
        `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
 
      (defmacro err (var)
        `(error (format nil "ERR:[~A]" (bprint ,var))))
-   #+END_SRC
 
-   #+NAME: dbgout
-   #+BEGIN_SRC lisp
      ;; Отладочный вывод
      (defparameter *dbg-enable* t)
      (defparameter *dbg-indent* 1)
@@ -1207,10 +1146,7 @@
        `(dbgout (format nil ,frmt ,@params)))
 
      ;; (macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))
-   #+END_SRC
 
-   #+NAME: alist_plist
-   #+BEGIN_SRC lisp
      (defun anything-to-keyword (item)
        (intern (string-upcase (format nil "~a" item)) :keyword))
 
@@ -1222,14 +1158,8 @@
               :for (key . value)
               :in alist
               :nconc (list (anything-to-keyword key) value))))
-   #+END_SRC
 
-   Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
-
-   #+NAME: with_wrapper
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
+     ;; Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
      (defmacro with-wrapper (&body body)
        `(progn
           (hunchentoot:start-session)
@@ -1260,13 +1190,8 @@
                    nil "~{~A<br />~}"
                    (menu))))
                 (tpl:retvalblock (list :retval retval)))))))))
-   #+END_SRC
 
-   Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
-
-   #+NAME: frm
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
+     ;; Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
 
      (defun input (type &key name value)
        (format nil "~%<input type=\"~A\"~A~A/>" type
@@ -1289,6 +1214,13 @@
        (if value
            (input "submit" :value value)
            (input "submit")))
+
+     (defun act-btn (act data title)
+       (format nil "~%~{~%~A~}"
+               (list
+                (hid "act"  act)
+                (hid "data" data)
+                (submit title))))
 
      (defmacro row (title &body body)
        `(format nil "~%<tr>~%<td>~A</td>~%<td>~A~%</td>~%</tr>"
@@ -1328,37 +1260,61 @@
      ;; (tbl (list "zzz") :name "table")
 
      ;; (frm (tbl (list (row "username" (fld "user")))))
-   #+END_SRC
 
-   Чтобы выводить коллекции напишем макрос
+     ;; Макрос создает маршрут и маршрут-контроллер, таким образом,
+     ;; чтобы связать действия контроллера и кнопки
+     (defmacro define-page (name url (&body body) &rest rest)
+       (let ((name-ctrl (intern (format nil "~A-CTRL" (symbol-name name)))))
+         `(symbol-macrolet (,@(loop :for (act exp body) :in rest :collect
+                                 `(,(intern (format nil "%~A%" (symbol-name act))) ,exp)))
+            (restas:define-route ,name (,url)
+              (with-wrapper
+                ,body))
+            (restas:define-route ,name-ctrl (,url :method :post)
+              (with-wrapper
+                (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+                  (cond
+                    ,@(append
+                       (loop :for (act exp body) :in rest :collect
+                          `((string= ,(symbol-name act) (getf p :act))
+                            ,body))
+                       `((t (format nil "unk act : ~A" (bprint p))))))))))))
 
-   #+NAME: with_collection
-   #+BEGIN_SRC lisp
+
+     ;; Макрос создает интерфейс для удаления и добавления сущностей
+     (defmacro define-iface-add-del-entity (name url h1 h2 content all-entity-func url-elt fields new-form new del)
+       `(define-page ,name ,url
+          (concatenate
+           'string "<h1>" ,h1 "</h1>" ,content "<br /><br />"
+           (tbl
+            (with-collection (i (funcall ,all-entity-func))
+              (tr
+               (td (format nil "<a href=\"/~A/~A\">~A</a>" ,url-elt (id i) (id i)))
+               ,@(loop :for fld :in fields :collect
+                    `(td (,fld i)))
+               (td (frm %del%))))
+            :border 1)
+           "<h2>" ,h2 "</h2>"
+           ,new-form)
+          ,new
+          ,del))
+
+     ;; Чтобы выводить коллекции напишем макрос
 
      (defmacro with-collection ((item collection) &body body)
        `(loop :for ,item :in ,collection :collect
            ,@body))
-   #+END_SRC
 
-   Чтобы выводить элемент коллекции напишем макрос
-
-   #+NAME: with_element
-   #+BEGIN_SRC lisp
+     ;; Чтобы выводить элемент коллекции напишем макрос
 
      (defmacro with-element ((item elt) &body body)
        `(let ((,item ,elt))
           (list
            ,@body)))
-   #+END_SRC
-
-   Репласер
-
-   #+NAME: replace_all
-   #+BEGIN_SRC lisp
 
      (defun replace-all (string part replacement &key (test #'char=))
        "Returns a new string in which all the occurences of the part
-     is replaced with replacement."
+        is replaced with replacement."
        (with-output-to-string (out)
          (loop with part-length = (length part)
             for old-pos = 0 then (+ pos part-length)
@@ -1370,10 +1326,6 @@
                              :end (or pos (length string)))
             when pos do (write-string replacement out)
             while pos)))
-   #+END_SRC
-
-   #+NAME: explore_dir
-   #+BEGIN_SRC lisp
 
      (defun explore-dir (path)
        (let ((raw (directory path))

@@ -58,8 +58,7 @@
          :in alist
          :nconc (list (anything-to-keyword key) value))))
 
-(in-package #:moto)
-
+;; Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
 (defmacro with-wrapper (&body body)
   `(progn
      (hunchentoot:start-session)
@@ -91,7 +90,7 @@
               (menu))))
            (tpl:retvalblock (list :retval retval)))))))))
 
-(in-package #:moto)
+;; Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
 
 (defun input (type &key name value)
   (format nil "~%<input type=\"~A\"~A~A/>" type
@@ -114,6 +113,13 @@
   (if value
       (input "submit" :value value)
       (input "submit")))
+
+(defun act-btn (act data title)
+  (format nil "~%~{~%~A~}"
+          (list
+           (hid "act"  act)
+           (hid "data" data)
+           (submit title))))
 
 (defmacro row (title &body body)
   `(format nil "~%<tr>~%<td>~A</td>~%<td>~A~%</td>~%</tr>"
@@ -154,21 +160,60 @@
 
 ;; (frm (tbl (list (row "username" (fld "user")))))
 
+;; Макрос создает маршрут и маршрут-контроллер, таким образом,
+;; чтобы связать действия контроллера и кнопки
+(defmacro define-page (name url (&body body) &rest rest)
+  (let ((name-ctrl (intern (format nil "~A-CTRL" (symbol-name name)))))
+    `(symbol-macrolet (,@(loop :for (act exp body) :in rest :collect
+                            `(,(intern (format nil "%~A%" (symbol-name act))) ,exp)))
+       (restas:define-route ,name (,url)
+         (with-wrapper
+           ,body))
+       (restas:define-route ,name-ctrl (,url :method :post)
+         (with-wrapper
+           (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+             (cond
+               ,@(append
+                  (loop :for (act exp body) :in rest :collect
+                     `((string= ,(symbol-name act) (getf p :act))
+                       ,body))
+                  `((t (format nil "unk act : ~A" (bprint p))))))))))))
+
+
+;; Макрос создает интерфейс для удаления и добавления сущностей
+(defmacro define-iface-add-del-entity (name url h1 h2 content all-entity-func url-elt fields new-form new del)
+  `(define-page ,name ,url
+     (concatenate
+      'string "<h1>" ,h1 "</h1>" ,content "<br /><br />"
+      (tbl
+       (with-collection (i (funcall ,all-entity-func))
+         (tr
+          (td (format nil "<a href=\"/~A/~A\">~A</a>" ,url-elt (id i) (id i)))
+          ,@(loop :for fld :in fields :collect
+               `(td (,fld i)))
+          (td (frm %del%))))
+       :border 1)
+      "<h2>" ,h2 "</h2>"
+      ,new-form)
+     ,new
+     ,del))
+
+;; Чтобы выводить коллекции напишем макрос
 
 (defmacro with-collection ((item collection) &body body)
   `(loop :for ,item :in ,collection :collect
       ,@body))
 
+;; Чтобы выводить элемент коллекции напишем макрос
 
 (defmacro with-element ((item elt) &body body)
   `(let ((,item ,elt))
      (list
       ,@body)))
 
-
 (defun replace-all (string part replacement &key (test #'char=))
   "Returns a new string in which all the occurences of the part
-is replaced with replacement."
+   is replaced with replacement."
   (with-output-to-string (out)
     (loop with part-length = (length part)
        for old-pos = 0 then (+ pos part-length)
@@ -180,7 +225,6 @@ is replaced with replacement."
                         :end (or pos (length string)))
        when pos do (write-string replacement out)
        while pos)))
-
 
 (defun explore-dir (path)
   (let ((raw (directory path))

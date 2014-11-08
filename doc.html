@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>moto</title>
-<!-- 2014-11-08 Сб. 01:58 -->
+<!-- 2014-11-08 Сб. 23:44 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -676,7 +676,7 @@ for the JavaScript code in this tag.
 сохранить данные в <code>PostgreSQL</code>
 </p>
 
-<table id="user_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<table id="user_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 1:</span> Данные пользователя</caption>
 
 <colgroup>
@@ -728,6 +728,12 @@ for the JavaScript code in this tag.
 <td class="left">ts-last</td>
 <td class="left">bigint</td>
 <td class="left">время когда был последний раз</td>
+</tr>
+
+<tr>
+<td class="left">role-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор роли</td>
 </tr>
 </tbody>
 </table>
@@ -872,7 +878,7 @@ for the JavaScript code in this tag.
 Роль является простой сущностью и не имеет состояния.
 </p>
 
-<table id="role_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<table id="role_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 3:</span> Данные роли</caption>
 
 <colgroup>
@@ -900,37 +906,6 @@ for the JavaScript code in this tag.
 <td class="left">name</td>
 <td class="left">(or db-null varchar)</td>
 <td class="left">имя роли</td>
-</tr>
-</tbody>
-</table>
-
-<p>
-Добавляем к полям пользователя еще одно поле, которое будет
-указывать на идентификатор роли, которую имеет пользователь:
-</p>
-
-<table id="user_role_link" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 4:</span> Связь пользователя с ролью</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">field name</th>
-<th scope="col" class="left">field type</th>
-<th scope="col" class="left">note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">role-id</td>
-<td class="left">(or db-null integer)</td>
-<td class="left">идентификатор роли</td>
 </tr>
 </tbody>
 </table>
@@ -965,8 +940,8 @@ for the JavaScript code in this tag.
 Группа является простой сущностью и не имеет состояния.
 </p>
 
-<table id="group_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 5:</span> Данные группы</caption>
+<table id="group_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 4:</span> Данные группы</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1015,8 +990,8 @@ for the JavaScript code in this tag.
 Теперь создадим таблицу связи, которая свяжет пользователей и группы:
 </p>
 
-<table id="user2group_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 6:</span> Данные таблицы связи пользователя и группы</caption>
+<table id="user2group_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 5:</span> Данные таблицы связи пользователя и группы</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1065,8 +1040,8 @@ for the JavaScript code in this tag.
 флаги.
 </p>
 
-<table id="msg_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 7:</span> Данные сообщения</caption>
+<table id="msg_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 6:</span> Данные сообщения</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1126,7 +1101,7 @@ for the JavaScript code in this tag.
 </p>
 
 <table id="msg_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 8:</span> Состояния конечного автомата сообщения</caption>
+<caption class="t-above"><span class="table-number">Table 7:</span> Состояния конечного автомата сообщения</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1183,8 +1158,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 Очередь является простой сущностью и не имеет состояния.
 </p>
 
-<table id="que_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 9:</span> Данные очереди</caption>
+<table id="que_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 8:</span> Данные очереди</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1220,8 +1195,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 простой сущностью и не имеет состояния.
 </p>
 
-<table id="quelt_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 10:</span> Данные элемента очереди</caption>
+<table id="quelt_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 9:</span> Данные элемента очереди</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1282,8 +1257,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 отмасштабированных превьюшек.
 </p>
 
-<table id="avatar_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 11:</span> Данные аватарки</caption>
+<table id="avatar_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 10:</span> Данные аватарки</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1337,7 +1312,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="avatar_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 12:</span> Состояния конечного автомата пользователя</caption>
+<caption class="t-above"><span class="table-number">Table 11:</span> Состояния конечного автомата пользователя</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1419,8 +1394,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 все это может пригодиться для проверки мотоцикла на легальность.
 </p>
 
-<table id="moto_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 13:</span> Данные мотоцикла</caption>
+<table id="moto_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 12:</span> Данные мотоцикла</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1556,7 +1531,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 </p>
 
 <table id="moto_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 14:</span> Состояния конечного автомата мотоцикла</caption>
+<caption class="t-above"><span class="table-number">Table 13:</span> Состояния конечного автомата мотоцикла</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1774,8 +1749,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 Цвета мотоциклов - простая сущность и не имеет состояния.
 </p>
 
-<table id="color_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 15:</span> Данные цвета</caption>
+<table id="color_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 14:</span> Данные цвета</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1815,8 +1790,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 Цвета мотоциклов - простая сущность и не имеет состояния.
 </p>
 
-<table id="vendor_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 16:</span> Данные производителя</caption>
+<table id="vendor_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 15:</span> Данные производителя</caption>
 
 <colgroup>
 <col  class="left" />
@@ -1866,8 +1841,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 Братан является простой сущностью и не имеет состояния.
 </p>
 
-<table id="bratan_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 17:</span> Данные роли</caption>
+<table id="bratan_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 16:</span> Данные роли</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2099,41 +2074,30 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(restas:define-route allusers (<span style="color: #00cd00;">"/users"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-      (concatenate
-       'string
-       <span style="color: #00cd00;">"&lt;h1&gt;&#1042;&#1089;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;&lt;/h1&gt;"</span>
-       (tbl
-        (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-user))
-          (tr
-           (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/user/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
-           (td (name i))
-           (td (password i))
-           (td (email i))
-           (td (state i))
-           <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(td (role-id i))</span>
-           ))
-        <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
-       <span style="color: #00cd00;">"&lt;h2&gt;&#1053;&#1086;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;&lt;/h2&gt;"</span>
-       (frm
-        (tbl
-         (list
-          (row <span style="color: #00cd00;">"&#1048;&#1084;&#1103;"</span> (fld <span style="color: #00cd00;">"name"</span>))
-          (row <span style="color: #00cd00;">"Email"</span> (fld <span style="color: #00cd00;">"email"</span>))
-          (row <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (fld <span style="color: #00cd00;">"password"</span>))
-          (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>))))))))
-
-(restas:define-route allusers-ctrl (<span style="color: #00cd00;">"/users"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-      (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
-        (make-user <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>)
-                   <span style="color: #0000ee; font-weight: bold;">:email</span> (getf p <span style="color: #0000ee; font-weight: bold;">:email</span>)
-                   <span style="color: #0000ee; font-weight: bold;">:password</span> (getf p <span style="color: #0000ee; font-weight: bold;">:password</span>)
-                   <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
-                   <span style="color: #0000ee; font-weight: bold;">:ts-last</span> (get-universal-time)
-                   )
-        <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;"</span>)))
+(<span style="color: #00cdcd; font-weight: bold;">define-iface-add-del-entity</span> all-users <span style="color: #00cd00;">"/users"</span>
+  <span style="color: #00cd00;">"&#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;"</span>
+  <span style="color: #00cd00;">"&#1053;&#1086;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;"</span>
+  <span style="color: #00cd00;">""</span>
+  #'all-user <span style="color: #00cd00;">"user"</span>
+  (name password email state role-id)
+  (frm
+   (tbl
+    (list
+     (row <span style="color: #00cd00;">"&#1048;&#1084;&#1103;"</span> (fld <span style="color: #00cd00;">"name"</span>))
+     (row <span style="color: #00cd00;">"Email"</span> (fld <span style="color: #00cd00;">"email"</span>))
+     (row <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (fld <span style="color: #00cd00;">"password"</span>))
+     (row <span style="color: #00cd00;">""</span> %new%))))
+  (<span style="color: #0000ee; font-weight: bold;">:new</span> (act-btn <span style="color: #00cd00;">"NEW"</span> <span style="color: #00cd00;">""</span> <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (make-user <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>)
+                     <span style="color: #0000ee; font-weight: bold;">:email</span> (getf p <span style="color: #0000ee; font-weight: bold;">:email</span>)
+                     <span style="color: #0000ee; font-weight: bold;">:password</span> (getf p <span style="color: #0000ee; font-weight: bold;">:password</span>)
+                     <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
+                     <span style="color: #0000ee; font-weight: bold;">:ts-last</span> (get-universal-time))
+          <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;"</span>))
+  (<span style="color: #0000ee; font-weight: bold;">:del</span> (act-btn <span style="color: #00cd00;">"DEL"</span> (id i) <span style="color: #00cd00;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (del-user (getf p <span style="color: #0000ee; font-weight: bold;">:data</span>)))))
 </pre>
 </div>
 </div>
@@ -2146,34 +2110,28 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(restas:define-route allroles (<span style="color: #00cd00;">"/roles"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (concatenate
-     'string
-     <span style="color: #00cd00;">"&lt;h1&gt;&#1056;&#1086;&#1083;&#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;&lt;/h1&gt;"</span>
-     <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1080; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1077;&#1074;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1090; &#1085;&#1072;</span>
+(<span style="color: #00cdcd; font-weight: bold;">define-iface-add-del-entity</span> all-roles <span style="color: #00cd00;">"/roles"</span>
+  <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;"</span>
+  <span style="color: #00cd00;">"&#1053;&#1086;&#1074;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;"</span>
+  <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1080; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1077;&#1074;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1090; &#1085;&#1072;</span>
 <span style="color: #00cd00;">     &#1089;&#1072;&#1081;&#1090;&#1077;. &#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1086;&#1085;&#1072;&#1083;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1081; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1102;&#1090; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1080; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1090;</span>
 <span style="color: #00cd00;">     &#1088;&#1072;&#1079;&#1088;&#1077;&#1096;&#1077;&#1085;&#1080;&#1077; &#1085;&#1072; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1077;&#1085;&#1080;&#1077; &#1076;&#1077;&#1081;&#1089;&#1090;&#1074;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1086;&#1077; &#1086;&#1087;&#1080;&#1088;&#1072;&#1077;&#1090;&#1089;&#1103; &#1085;&#1072; &#1088;&#1086;&#1083;&#1100;,</span>
 <span style="color: #00cd00;">     &#1087;&#1088;&#1080;&#1089;&#1074;&#1086;&#1077;&#1085;&#1085;&#1091;&#1102; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1102;. &#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1080;&#1084;&#1077;&#1090;&#1100; &#1090;&#1086;&#1083;&#1100;&#1082;&#1086; &#1086;&#1076;&#1085;&#1091; &#1088;&#1086;&#1083;&#1100;</span>
-<span style="color: #00cd00;">     &#1080;&#1083;&#1080; &#1085;&#1077; &#1080;&#1084;&#1077;&#1090;&#1100; &#1077;&#1077; &#1074;&#1086;&#1074;&#1089;&#1077;.&lt;br /&gt;&lt;br /&gt;"</span>
-     (tbl
-      (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-role))
-        (tr
-         (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/role/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
-         (td (name i))))
-      <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
-     <span style="color: #00cd00;">"&lt;h2&gt;&#1053;&#1086;&#1074;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;&lt;/h2&gt;"</span>
-     (frm
-      (tbl
-       (list
-        (row <span style="color: #00cd00;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #00cd00;">"name"</span>))
-        (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>))))))))
-
-(restas:define-route allroles-ctrl (<span style="color: #00cd00;">"/roles"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (make-role <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>))
-      <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>)))
+<span style="color: #00cd00;">     &#1080;&#1083;&#1080; &#1085;&#1077; &#1080;&#1084;&#1077;&#1090;&#1100; &#1077;&#1077; &#1074;&#1086;&#1074;&#1089;&#1077;."</span>
+  #'all-role <span style="color: #00cd00;">"role"</span>
+  (name)
+  (frm
+   (tbl
+    (list
+     (row <span style="color: #00cd00;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #00cd00;">"name"</span>))
+     (row <span style="color: #00cd00;">""</span> %new%))))
+  (<span style="color: #0000ee; font-weight: bold;">:new</span> (act-btn <span style="color: #00cd00;">"NEW"</span> <span style="color: #00cd00;">""</span> <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (make-role <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>))
+          <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>))
+  (<span style="color: #0000ee; font-weight: bold;">:del</span> (act-btn <span style="color: #00cd00;">"DEL"</span> (id i) <span style="color: #00cd00;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (del-role (getf p <span style="color: #0000ee; font-weight: bold;">:data</span>)))))
 </pre>
 </div>
 </div>
@@ -2186,37 +2144,27 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(restas:define-route allgroups (<span style="color: #00cd00;">"/groups"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (concatenate
-     'string
-     <span style="color: #00cd00;">"&lt;h1&gt;&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;&lt;/h1&gt;"</span>
-     <span style="color: #00cd00;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1086;&#1087;&#1077;&#1088;&#1072;&#1094;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077;</span>
+(<span style="color: #00cdcd; font-weight: bold;">define-iface-add-del-entity</span> all-groups <span style="color: #00cd00;">"/groups"</span>
+  <span style="color: #00cd00;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;"</span>
+  <span style="color: #00cd00;">"&#1053;&#1086;&#1074;&#1072;&#1103; &#1075;&#1088;&#1091;&#1087;&#1087;&#1072;"</span>
+  <span style="color: #00cd00;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1086;&#1087;&#1077;&#1088;&#1072;&#1094;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077;</span>
 <span style="color: #00cd00;">      &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1090;&#1100; &#1085;&#1072;&#1076; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;&#1084;&#1080; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;. &#1042; &#1086;&#1090;&#1083;&#1080;&#1095;&#1080;&#1077; &#1086;&#1090;</span>
 <span style="color: #00cd00;">      &#1088;&#1086;&#1083;&#1077;&#1081;, &#1086;&#1076;&#1080;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1074;&#1093;&#1086;&#1076;&#1080;&#1090;&#1100; &#1074; &#1085;&#1077;&#1089;&#1082;&#1086;&#1083;&#1100;&#1082;&#1086; &#1075;&#1088;&#1091;&#1087;&#1087; &#1080;&#1083;&#1080; &#1085;&#1077;</span>
-<span style="color: #00cd00;">      &#1074;&#1093;&#1086;&#1076;&#1080;&#1090;&#1100; &#1085;&#1080; &#1074; &#1086;&#1076;&#1085;&#1091; &#1080;&#1079; &#1085;&#1080;&#1093;. &lt;br /&gt;&lt;br /&gt;"</span>
-     (tbl
-      (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-group))
-        (tr
-         (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/group/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (id i)))
-         (td (name i))
-         (td (frm
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(hid "act" :value "del")</span>
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(hid "id" :value (id i))</span>
-              (submit <span style="color: #00cd00;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)))))
-      <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
-     <span style="color: #00cd00;">"&lt;h2&gt;&#1053;&#1086;&#1074;&#1072;&#1103; &#1075;&#1088;&#1091;&#1087;&#1087;&#1072;&lt;/h2&gt;"</span>
-     (frm
-      (tbl
-       (list
-        (row <span style="color: #00cd00;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #00cd00;">"name"</span>))
-        (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>))))))))
-
-(restas:define-route allgroups-ctrl (<span style="color: #00cd00;">"/groups"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (make-group <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>))
-      <span style="color: #00cd00;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1072; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>)))
+<span style="color: #00cd00;">      &#1074;&#1093;&#1086;&#1076;&#1080;&#1090;&#1100; &#1085;&#1080; &#1074; &#1086;&#1076;&#1085;&#1091; &#1080;&#1079; &#1085;&#1080;&#1093;."</span>
+  #'all-group <span style="color: #00cd00;">"group"</span>
+  (name)
+  (frm
+   (tbl
+    (list
+     (row <span style="color: #00cd00;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #00cd00;">"name"</span>))
+     (row <span style="color: #00cd00;">""</span> %new%))))
+  (<span style="color: #0000ee; font-weight: bold;">:new</span> (act-btn <span style="color: #00cd00;">"NEW"</span> <span style="color: #00cd00;">""</span> <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (make-group <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>))
+          <span style="color: #00cd00;">"&#1056;&#1086;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>))
+  (<span style="color: #0000ee; font-weight: bold;">:del</span> (act-btn <span style="color: #00cd00;">"DEL"</span> (id i) <span style="color: #00cd00;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (del-group (getf p <span style="color: #0000ee; font-weight: bold;">:data</span>)))))
 </pre>
 </div>
 </div>
@@ -2435,33 +2383,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 (<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-&lt;&lt;get_obj_data&gt;&gt;
-
-&lt;&lt;make_clause_list&gt;&gt;
-
-&lt;&lt;err_bprint_macro&gt;&gt;
-
-&lt;&lt;dbgout&gt;&gt;
-
-&lt;&lt;alist_plist&gt;&gt;
-
-&lt;&lt;with_wrapper&gt;&gt;
-
-&lt;&lt;frm&gt;&gt;
-
-&lt;&lt;with_collection&gt;&gt;
-
-&lt;&lt;with_element&gt;&gt;
-
-&lt;&lt;replace_all&gt;&gt;
-
-&lt;&lt;explore_dir&gt;&gt;
-</pre>
-</div>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="get_obj_data"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1077;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; &#1080;&#1085;&#1080;&#1094;&#1080;&#1072;&#1083;&#1080;&#1079;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1103; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072; &#1074; plist</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1077;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; &#1080;&#1085;&#1080;&#1094;&#1080;&#1072;&#1083;&#1080;&#1079;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1103; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072; &#1074; plist</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-obj-data</span> (obj)
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((class (find-class (type-of obj)))
         (result))
@@ -2472,12 +2394,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
                  (append result (list (intern (symbol-name slot-name) <span style="color: #0000ee; font-weight: bold;">:keyword</span>)
                                       (funcall slot-name obj)))))))
     result))
-</pre>
-</div>
 
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="make_clause_list"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">Assembly WHERE clause</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">Assembly WHERE clause</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">make-clause-list</span> (glob-rel rel args)
   (append (list glob-rel)
           (<span style="color: #00cdcd; font-weight: bold;">loop</span>
@@ -2487,23 +2405,15 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
                         (getf args i)
                         (not (symbolp (getf args i))))
              <span style="color: #0000ee; font-weight: bold;">:collect</span> (list rel i (getf args i)))))
-</pre>
-</div>
 
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="err_bprint_macro"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1072;&#1082;&#1088;&#1086;&#1089;&#1099; &#1076;&#1083;&#1103; &#1082;&#1086;&#1088;&#1088;&#1077;&#1082;&#1090;&#1085;&#1086;&#1075;&#1086; &#1074;&#1099;&#1074;&#1086;&#1076;&#1072; &#1086;&#1096;&#1080;&#1073;&#1086;&#1082;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1072;&#1082;&#1088;&#1086;&#1089;&#1099; &#1076;&#1083;&#1103; &#1082;&#1086;&#1088;&#1088;&#1077;&#1082;&#1090;&#1085;&#1086;&#1075;&#1086; &#1074;&#1099;&#1074;&#1086;&#1076;&#1072; &#1086;&#1096;&#1080;&#1073;&#1086;&#1082;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">bprint</span> (var)
   `(subseq (<span style="color: #00cdcd; font-weight: bold;">with-output-to-string</span> (*standard-output*)  (pprint ,var)) 1))
 
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">err</span> (var)
   `(<span style="color: #cd0000; font-weight: bold;">error</span> (format nil <span style="color: #00cd00;">"ERR:[~A]"</span> (bprint ,var))))
-</pre>
-</div>
 
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="dbgout"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1083;&#1072;&#1076;&#1086;&#1095;&#1085;&#1099;&#1081; &#1074;&#1099;&#1074;&#1086;&#1076;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1083;&#1072;&#1076;&#1086;&#1095;&#1085;&#1099;&#1081; &#1074;&#1099;&#1074;&#1086;&#1076;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*dbg-enable*</span> t)
 (<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*dbg-indent*</span> 1)
 
@@ -2515,12 +2425,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
   `(dbgout (format nil ,frmt ,@params)))
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))</span>
-</pre>
-</div>
 
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="alist_plist">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">anything-to-keyword</span> (item)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">anything-to-keyword</span> (item)
   (intern (string-upcase (format nil <span style="color: #00cd00;">"~a"</span> item)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">alist-to-plist</span> (alist)
@@ -2531,17 +2437,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
          <span style="color: #0000ee; font-weight: bold;">:for</span> (key . value)
          <span style="color: #0000ee; font-weight: bold;">:in</span> alist
          <span style="color: #0000ee; font-weight: bold;">:nconc</span> (list (anything-to-keyword key) value))))
-</pre>
-</div>
 
-<p>
-Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="with_wrapper">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1088;&#1072;&#1087;&#1087;&#1077;&#1088; &#1091;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1090; &#1089;&#1077;&#1089;&#1080;&#1080;&#1103;&#1084;&#1080; &#1080; &#1074;&#1099;&#1074;&#1086;&#1076;&#1080;&#1090; &#1074;&#1089;&#1077; &#1074; &#1086;&#1089;&#1085;&#1086;&#1074;&#1085;&#1086;&#1081; (root-&#1086;&#1074;&#1099;&#1081;) &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-wrapper</span> (<span style="color: #00cd00;">&amp;body</span> body)
   `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
      (hunchentoot:start-session)
@@ -2572,16 +2469,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
               nil <span style="color: #00cd00;">"~{~A&lt;br /&gt;~}"</span>
               (menu))))
            (tpl:retvalblock (list <span style="color: #0000ee; font-weight: bold;">:retval</span> retval)))))))))
-</pre>
-</div>
 
-<p>
-Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="frm">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1083;&#1103; &#1090;&#1086;&#1075;&#1086; &#1095;&#1090;&#1086;&#1073;&#1099; &#1075;&#1077;&#1085;&#1077;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100; &#1080; &#1074;&#1099;&#1074;&#1086;&#1076;&#1080;&#1090;&#1100; &#1101;&#1083;&#1077;&#1084;&#1077;&#1085;&#1090;&#1099; &#1092;&#1086;&#1088;&#1084;, &#1085;&#1072;&#1087;&#1080;&#1096;&#1077;&#1084; &#1093;&#1077;&#1083;&#1087;&#1077;&#1088;&#1099;:</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">input</span> (type <span style="color: #00cd00;">&amp;key</span> name value)
   (format nil <span style="color: #00cd00;">"~%&lt;input type=\"~A\"~A~A/&gt;"</span> type
@@ -2604,6 +2493,13 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
   (<span style="color: #00cdcd; font-weight: bold;">if</span> value
       (input <span style="color: #00cd00;">"submit"</span> <span style="color: #0000ee; font-weight: bold;">:value</span> value)
       (input <span style="color: #00cd00;">"submit"</span>)))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">act-btn</span> (act data title)
+  (format nil <span style="color: #00cd00;">"~%~{~%~A~}"</span>
+          (list
+           (hid <span style="color: #00cd00;">"act"</span>  act)
+           (hid <span style="color: #00cd00;">"data"</span> data)
+           (submit title))))
 
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">row</span> (title <span style="color: #00cd00;">&amp;body</span> body)
   `(format nil <span style="color: #00cd00;">"~%&lt;tr&gt;~%&lt;td&gt;~A&lt;/td&gt;~%&lt;td&gt;~A~%&lt;/td&gt;~%&lt;/tr&gt;"</span>
@@ -2643,43 +2539,61 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(tbl (list "zzz") :name "table")</span>
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(frm (tbl (list (row "username" (fld "user")))))</span>
-</pre>
-</div>
 
-<p>
-Чтобы выводить коллекции напишем макрос
-</p>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1072;&#1082;&#1088;&#1086;&#1089; &#1089;&#1086;&#1079;&#1076;&#1072;&#1077;&#1090; &#1084;&#1072;&#1088;&#1096;&#1088;&#1091;&#1090; &#1080; &#1084;&#1072;&#1088;&#1096;&#1088;&#1091;&#1090;-&#1082;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088;, &#1090;&#1072;&#1082;&#1080;&#1084; &#1086;&#1073;&#1088;&#1072;&#1079;&#1086;&#1084;,</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1095;&#1090;&#1086;&#1073;&#1099; &#1089;&#1074;&#1103;&#1079;&#1072;&#1090;&#1100; &#1076;&#1077;&#1081;&#1089;&#1090;&#1074;&#1080;&#1103; &#1082;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088;&#1072; &#1080; &#1082;&#1085;&#1086;&#1087;&#1082;&#1080;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-page</span> (name url (<span style="color: #00cd00;">&amp;body</span> body) <span style="color: #00cd00;">&amp;rest</span> rest)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((name-ctrl (intern (format nil <span style="color: #00cd00;">"~A-CTRL"</span> (symbol-name name)))))
+    `(<span style="color: #00cdcd; font-weight: bold;">symbol-macrolet</span> (,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> (act exp body) <span style="color: #0000ee; font-weight: bold;">:in</span> rest <span style="color: #0000ee; font-weight: bold;">:collect</span>
+                            `(,(intern (format nil <span style="color: #00cd00;">"%~A%"</span> (symbol-name act))) ,exp)))
+       (restas:define-route ,name (,url)
+         (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+           ,body))
+       (restas:define-route ,name-ctrl (,url <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
+         (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+           (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
+             (<span style="color: #00cdcd; font-weight: bold;">cond</span>
+               ,@(append
+                  (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> (act exp body) <span style="color: #0000ee; font-weight: bold;">:in</span> rest <span style="color: #0000ee; font-weight: bold;">:collect</span>
+                     `((string= ,(symbol-name act) (getf p <span style="color: #0000ee; font-weight: bold;">:act</span>))
+                       ,body))
+                  `((t (format nil <span style="color: #00cd00;">"unk act : ~A"</span> (bprint p))))))))))))
 
-<div class="org-src-container">
 
-<pre class="src src-lisp" id="with_collection">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-collection</span> ((item collection) <span style="color: #00cd00;">&amp;body</span> body)
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1052;&#1072;&#1082;&#1088;&#1086;&#1089; &#1089;&#1086;&#1079;&#1076;&#1072;&#1077;&#1090; &#1080;&#1085;&#1090;&#1077;&#1088;&#1092;&#1077;&#1081;&#1089; &#1076;&#1083;&#1103; &#1091;&#1076;&#1072;&#1083;&#1077;&#1085;&#1080;&#1103; &#1080; &#1076;&#1086;&#1073;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1103; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-iface-add-del-entity</span> (name url h1 h2 content all-entity-func url-elt fields new-form new del)
+  `(<span style="color: #00cdcd; font-weight: bold;">define-page</span> ,name ,url
+     (concatenate
+      'string <span style="color: #00cd00;">"&lt;h1&gt;"</span> ,h1 <span style="color: #00cd00;">"&lt;/h1&gt;"</span> ,content <span style="color: #00cd00;">"&lt;br /&gt;&lt;br /&gt;"</span>
+      (tbl
+       (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (funcall ,all-entity-func))
+         (tr
+          (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/~A/~A\"&gt;~A&lt;/a&gt;"</span> ,url-elt (id i) (id i)))
+          ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> fld <span style="color: #0000ee; font-weight: bold;">:in</span> fields <span style="color: #0000ee; font-weight: bold;">:collect</span>
+               `(td (,fld i)))
+          (td (frm %del%))))
+       <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
+      <span style="color: #00cd00;">"&lt;h2&gt;"</span> ,h2 <span style="color: #00cd00;">"&lt;/h2&gt;"</span>
+      ,new-form)
+     ,new
+     ,del))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1063;&#1090;&#1086;&#1073;&#1099; &#1074;&#1099;&#1074;&#1086;&#1076;&#1080;&#1090;&#1100; &#1082;&#1086;&#1083;&#1083;&#1077;&#1082;&#1094;&#1080;&#1080; &#1085;&#1072;&#1087;&#1080;&#1096;&#1077;&#1084; &#1084;&#1072;&#1082;&#1088;&#1086;&#1089;</span>
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-collection</span> ((item collection) <span style="color: #00cd00;">&amp;body</span> body)
   `(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> ,item <span style="color: #0000ee; font-weight: bold;">:in</span> ,collection <span style="color: #0000ee; font-weight: bold;">:collect</span>
       ,@body))
-</pre>
-</div>
 
-<p>
-Чтобы выводить элемент коллекции напишем макрос
-</p>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1063;&#1090;&#1086;&#1073;&#1099; &#1074;&#1099;&#1074;&#1086;&#1076;&#1080;&#1090;&#1100; &#1101;&#1083;&#1077;&#1084;&#1077;&#1085;&#1090; &#1082;&#1086;&#1083;&#1083;&#1077;&#1082;&#1094;&#1080;&#1080; &#1085;&#1072;&#1087;&#1080;&#1096;&#1077;&#1084; &#1084;&#1072;&#1082;&#1088;&#1086;&#1089;</span>
 
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="with_element">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-element</span> ((item elt) <span style="color: #00cd00;">&amp;body</span> body)
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-element</span> ((item elt) <span style="color: #00cd00;">&amp;body</span> body)
   `(<span style="color: #00cdcd; font-weight: bold;">let</span> ((,item ,elt))
      (list
       ,@body)))
-</pre>
-</div>
 
-<p>
-Репласер
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="replace_all">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">replace-all</span> (string part replacement <span style="color: #00cd00;">&amp;key</span> (test #'char=))
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">replace-all</span> (string part replacement <span style="color: #00cd00;">&amp;key</span> (test #'char=))
   <span style="color: #00cd00;">"Returns a new string in which all the occurences of the part</span>
-<span style="color: #00cd00;">is replaced with replacement."</span>
+<span style="color: #00cd00;">   is replaced with replacement."</span>
   (<span style="color: #00cdcd; font-weight: bold;">with-output-to-string</span> (out)
     (<span style="color: #00cdcd; font-weight: bold;">loop</span> with part-length = (length part)
        for old-pos = 0 then (+ pos part-length)
@@ -2691,12 +2605,8 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
                         <span style="color: #0000ee; font-weight: bold;">:end</span> (or pos (length string)))
        when pos do (write-string replacement out)
        while pos)))
-</pre>
-</div>
 
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="explore_dir">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">explore-dir</span> (path)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">explore-dir</span> (path)
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((raw (directory path))
         (dirs)
         (files))
@@ -2916,6 +2826,67 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 <p>
 Соберем все сущности и автоматы
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;asm_user()&gt;&gt;
+
+&lt;&lt;user_actions_func&gt;&gt;
+
+&lt;&lt;create_user&gt;&gt;
+
+
+&lt;&lt;asm_role()&gt;&gt;
+
+&lt;&lt;create_roles&gt;&gt;
+
+
+&lt;&lt;asm_group()&gt;&gt;
+
+&lt;&lt;create_groups&gt;&gt;
+
+&lt;&lt;asm_user2group()&gt;&gt;
+
+
+&lt;&lt;asm_msg()&gt;&gt;
+
+&lt;&lt;msg_actions_func&gt;&gt;
+
+
+&lt;&lt;asm_que()&gt;&gt;
+
+&lt;&lt;que_contents&gt;&gt;
+
+&lt;&lt;asm_quelt()&gt;&gt;
+
+&lt;&lt;quelt_contents&gt;&gt;
+
+
+&lt;&lt;asm_avatar()&gt;&gt;
+
+&lt;&lt;avatar_actions_func&gt;&gt;
+
+&lt;&lt;create_avatar&gt;&gt;
+
+
+&lt;&lt;asm_moto()&gt;&gt;
+
+&lt;&lt;moto_actions_func&gt;&gt;
+
+&lt;&lt;create_moto&gt;&gt;
+
+
+&lt;&lt;asm_color()&gt;&gt;
+
+
+&lt;&lt;asm_vendor()&gt;&gt;
+
+
+&lt;&lt;asm_bratan()&gt;&gt;
+</pre>
+</div>
 </div>
 
 <div id="outline-container-sec-8-6-1" class="outline-4">
@@ -2981,7 +2952,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">start</span>
 (restas:start '#<span style="color: #0000ee; font-weight: bold;">:moto</span> <span style="color: #0000ee; font-weight: bold;">:port</span> 9997)
 (restas:debug-mode-on)
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(restas:debug-mode-off)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(restas:debugg-mode-off)</span>
 (setf hunchentoot:*catch-errors-p* t)
 </pre>
 </div>
@@ -3380,7 +3351,7 @@ ZR - от 240
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-11-08 Сб. 01:58</p>
+<p class="date">Created: 2014-11-08 Сб. 23:44</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
