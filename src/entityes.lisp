@@ -9,7 +9,7 @@
    (ts-create bigint)
    (ts-last bigint)
    (role-id (or db-null integer)))
-  (:sended :unlogged :logged :unregistred):abcdefg  )
+  (:sended :unlogged :logged :unregistred)
   ((:unregistred :logged :registration)
    (:logged :unregistred :unregistration)
    (:unlogged :logged :enter)
@@ -88,7 +88,7 @@
    (msg varchar)
    (ts-create bigint)
    (ts-delivery bigint))
-  (:delivered :undelivered):abcdefg  )
+  (:delivered :undelivered)
   ((:undelivered :delivered :delivery)))
 
 
@@ -126,7 +126,7 @@
    (name varchar)
    (origin varchar)
    (ts-create bigint))
-  (:inactive :active):abcdefg  )
+  (:inactive :active)
   ((:active :inactive :avatar-off)
    (:inactive :active :avatar-on)))
 
@@ -156,7 +156,7 @@
    (pts-data (or db-null varchar))
    (desc (or db-null varchar))
    (tuning (or db-null varchar)))
-  (:куплен :продан :чинится :угнан :хлам :сломан :продается :используется):abcdefg  )
+  (:куплен :продан :чинится :угнан :хлам :сломан :продается :используется)
   ((:используется :продается :выставление.на.продажу)
    (:используется :сломан :сломался)
    (:используется :хлам :крэш)
