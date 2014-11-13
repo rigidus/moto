@@ -277,6 +277,8 @@
 
    #+NAME: generators
    #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code :padline no :comments link
+     <<copyright>>
+
      <<gen_org_confirm>>
 
      <<gen_fields>>
@@ -797,6 +799,7 @@
 
    #+NAME: events
    #+BEGIN_SRC lisp :tangle src/events.lisp :noweb tangle :exports code :padline no :comments link
+     <<copyright>>
      ;;;; events.lisp
 
      (in-package #:moto)
@@ -809,6 +812,8 @@
 
   #+NAME: iface
   #+BEGIN_SRC lisp :tangle src/iface.lisp :noweb tangle :exports code :padline no :comments link
+    <<copyright>>
+
     ;;;; iface.lisp
 
     (in-package #:moto)
@@ -994,8 +999,7 @@
            (cond ((getf p :addsum)   )
                  ((getf p :follow)   )
                  ((getf p :neworder) )))))
-   #+END_SRC
-
+   #+END_S
 * Модули
 ** Cущности, автоматы и их тесты
 
@@ -1100,6 +1104,7 @@
 ** Утилиты
    #+NAME: utility_file
    #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code  :padline no :comments link
+     <<copyright>>
      ;;;; util.lisp
 
      (in-package #:moto)
@@ -1345,6 +1350,7 @@
 
    #+NAME: templates
    #+BEGIN_SRC closure-template-html :tangle src/templates.htm :noweb tangle :exports code :padline no :comments link
+     // <<copyright>>
      // -*- mode: closure-template-html; fill-column: 140 -*-
 
      {namespace tpl}
@@ -1402,6 +1408,7 @@
 
    #+NAME: globals
    #+BEGIN_SRC lisp :tangle src/globals.lisp :noweb tangle :exports code :padline no :comments link
+     <<copyright>>
      (in-package #:moto)
 
      ;; Подключение к базе данных
@@ -1444,6 +1451,7 @@
 
    #+NAME: defsystem
    #+BEGIN_SRC lisp :tangle moto.asd :noweb tangle :exports code :padline no :comments link
+     <<copyright>>
      ;;;; moto.asd
 
      (asdf:defsystem #:moto
@@ -1463,7 +1471,7 @@
        :description "site for bikers"
        :author "rigidus"
        :version "0.0.3"
-       :license "GPLv3"
+       :license "GNU AGPLv3"
        :components ((:file "package")    ;; файл пакетов
                     (:static-file "templates.htm")
                     (:file "prepare")    ;; подготовка к старту
@@ -1494,6 +1502,7 @@
 
    #+NAME: package
    #+BEGIN_SRC lisp :tangle src/package.lisp :noweb tangle :exports code :padline no :comments link
+     <<copyright>>
      ;;;; package.lisp
 
      (restas:define-module #:moto
@@ -1514,6 +1523,7 @@
 
    #+NAME: entity_and_automates
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports noneh :padline no :comments link
+     <<copyright>>
      (in-package #:moto)
 
      <<asm_user()>>
@@ -1659,6 +1669,7 @@
 
    #+NAME: prepare
    #+BEGIN_SRC lisp :tangle src/prepare.lisp :noweb tangle :exports code :exports none :padline no :comments link
+     <<copyright>>
      ;;;; prepare.lisp
 
      (in-package #:moto)
@@ -1690,6 +1701,7 @@
 ** Точка входа
    #+NAME: enter_point
    #+BEGIN_SRC lisp :tangle src/moto.lisp :noweb tangle :exports code :padline no :comments link
+     <<copyright>>
      ;;;; moto.lisp
 
      (in-package #:moto)
@@ -1877,6 +1889,18 @@
 
 
    #+END_SRC
+
+** Copyright
+
+   Из-за того что есть множество людей, стремящихся нарушить лицензию,
+   добавляем копирайт.
+
+   #+NAME: copyright
+   #+BEGIN_SRC lisp
+     Copyright © 2014 Glukhov Mikhail. All rights reserved.
+   #+END_SRC
+
+Copyright © 2022 John Doe. All rights reserved.
 
 * Идеи
 
@@ -2216,3 +2240,8 @@ ZR - от 240
 самом деле он открыл все, что надо делать, чтобы узнать что-то о
 крысах. Но не замечать подобных экспериментов - типично для науки
 самолетопоклонников.
+** MUMPS
+
+   Обьединение идей MUMPS и вероятностного программирования
+   http://habrahabr.ru/post/242993/ может обещать некоторые интересные
+   результаты...

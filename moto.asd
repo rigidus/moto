@@ -1,4 +1,5 @@
 ;; [[file:doc.org::*Каркас проекта][defsystem]]
+Copyright © 2014 Glukhov Mikhail. All rights reserved.
 ;;;; moto.asd
 
 (asdf:defsystem #:moto
@@ -18,17 +19,14 @@
   :description "site for bikers"
   :author "rigidus"
   :version "0.0.3"
-  :license "GPLv3"
+  :license "GNU AGPLv3"
   :components ((:file "package")    ;; файл пакетов
                (:static-file "templates.htm")
                (:file "prepare")    ;; подготовка к старту
                (:file "util")       ;; файл с утилитами
                (:file "globals")    ;; файл с глобальными определеями
                ;; Модуль сущностей, автоматов и их тестов
-               (:module "entity"
-                        :serial t
-                        :pathname "mod"
-                        :components ((:file "entity")))
+               
                (:file "entityes")   ;; Сущности и автоматы
                (:file "moto")       ;; стартовый файл
                ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)

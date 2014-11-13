@@ -1,4 +1,6 @@
 ;; [[file:doc.org::*Interface][iface]]
+Copyright © 2014 Glukhov Mikhail. All rights reserved.
+
 ;;;; iface.lisp
 
 (in-package #:moto)
@@ -121,30 +123,42 @@
         (progn
           (del-group (getf p :data)))))
 
-(in-package #:moto)
+     (in-package #:moto)
 
-(restas:define-route user ("/user/:userid")
-  (with-wrapper
-    (let* ((i (parse-integer userid))
-           (u (get-user i)))
-      (if (null u)
-          "Нет такого пользователя"
-          (format nil "~{~A~}"
-                  (list
-                   (format nil "<h1>Страница пользователя ~A</h1>" (id u))
-                   (format nil "<h2>Данные пользователя ~A</h2>" (name u))
-                   (tbl
-                    (with-element (u u)
-                      (row "Имя пользователя" (name u))
-                      (row "Пароль" (password u))
-                      (row "Email" (email u)))
-                    :border 1)
-                   ))))))
+     (restas:define-route user ("/user/:userid")
+       (with-wrapper
+         (let* ((i (parse-integer userid))
+                (u (get-user i)))
+           (if (null u)
+               "Нет такого пользователя"
+               (format nil "~{~A~}"
+                       (list
+                        (format nil "<h1>Страница пользователя ~A</h1>" (id u))
+                        (format nil "<h2>Данные пользователя ~A</h2>" (name u))
+                        (tbl
+                         (with-element (u u)
+                           (row "Имя пользователя" (name u))
+                           (row "Пароль" (password u))
+                           (row "Email" (email u)))
+                         :border 1)
+                        ))))))
 
-(restas:define-route user-ctrl ("/user/:userid" :method :post)
-  (with-wrapper
-    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (cond ((getf p :addsum)   )
-            ((getf p :follow)   )
-            ((getf p :neworder) )))))
+     (restas:define-route user-ctrl ("/user/:userid" :method :post)
+       (with-wrapper
+         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+           (cond ((getf p :addsum)   )
+                 ((getf p :follow)   )
+                 ((getf p :neworder) )))))
+   #+END_S
+* Модули
+** Cущности, автоматы и их тесты
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_entity
+   #+BEGIN_SRC lisp
+     (:module "entity"
+              :serial t
+              :pathname "mod"
+              :components ((:file "entity")))
 ;; iface ends here

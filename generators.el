@@ -1,4 +1,6 @@
 ;; [[file:doc.org::*Функции для кодогенерации сущностей][generators]]
+Copyright © 2014 Glukhov Mikhail. All rights reserved.
+
 (setq org-confirm-babel-evaluate nil)
 
 (defun gen-fields (rows)
