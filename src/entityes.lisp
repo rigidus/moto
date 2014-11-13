@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Сущности и автоматы][entity_and_automates]]
-Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
 (in-package #:moto)
 
 (define-automat user "Автомат пользователя"

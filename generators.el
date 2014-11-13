@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Функции для кодогенерации сущностей][generators]]
-Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
 
 (setq org-confirm-babel-evaluate nil)
 

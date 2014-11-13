@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Точка входа][enter_point]]
-Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
 ;;;; moto.lisp
 
 (in-package #:moto)

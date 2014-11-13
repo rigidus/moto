@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Глобальные определения][globals]]
-Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
 (in-package #:moto)
 
 ;; Подключение к базе данных

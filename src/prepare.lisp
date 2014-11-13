@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Подготовка к старту][prepare]]
-Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
 ;;;; prepare.lisp
 
 (in-package #:moto)
