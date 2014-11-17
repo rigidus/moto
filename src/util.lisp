@@ -1,5 +1,6 @@
 ;; [[file:doc.org::*Утилиты][utility_file]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Licensed under the GNU AGPLv3
 ;;;; util.lisp
 
 (in-package #:moto)

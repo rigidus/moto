@@ -1,5 +1,6 @@
 ;; [[file:doc.org::*Глобальные определения][globals]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Licensed under the GNU AGPLv3
 (in-package #:moto)
 
 ;; Подключение к базе данных

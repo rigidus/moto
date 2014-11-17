@@ -1,5 +1,6 @@
 ;; [[file:doc.org::*Пакеты][package]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Licensed under the GNU AGPLv3
 ;;;; package.lisp
 
 (restas:define-module #:moto

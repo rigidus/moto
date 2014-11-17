@@ -1,5 +1,6 @@
 ;; [[file:doc.org::*Сущности и автоматы][entity_and_automates]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Licensed under the GNU AGPLv3
 (in-package #:moto)
 
 (define-automat user "Автомат пользователя"

@@ -1,5 +1,6 @@
 ;; [[file:doc.org::*Каркас проекта][defsystem]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Licensed under the GNU AGPLv3
 ;;;; moto.asd
 
 (asdf:defsystem #:moto
