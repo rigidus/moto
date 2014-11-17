@@ -882,7 +882,7 @@
    (in-package #:moto)
 
    (define-iface-add-del-entity all-users "/users"
-     "пользователи"
+     "Пользователи"
      "Новый пользователь"
      ""
      #'all-user "user"
@@ -975,31 +975,45 @@
 
    (in-package #:moto)
 
-   (restas:define-route user ("/user/:userid")
-     (with-wrapper
-         (let* ((i (parse-integer userid))
-                (u (get-user i)))
-           (if (null u)
-               "Нет такого пользователя"
-               (format nil "~{~A~}"
-                       (list
-                        (format nil "<h1>Страница пользователя ~A</h1>" (id u))
-                        (format nil "<h2>Данные пользователя ~A</h2>" (name u))
-                        (tbl
-                         (with-element (u u)
-                           (row "Имя пользователя" (name u))
-                           (row "Пароль" (password u))
-                           (row "Email" (email u)))
-                         :border 1)
-                        ))))))
-
-   (restas:define-route user-ctrl ("/user/:userid" :method :post)
-     (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           (cond ((getf p :addsum) )
-                 ((getf p :follow) )
-                 ((getf p :neworder) )))))
-
+   (define-page user "/user/:userid"
+     (let* ((i (parse-integer userid))
+            (u (get-user i)))
+       (if (null u)
+           "Нет такого пользователя"
+           (format nil "~{~A~}"
+                   (list
+                    (format nil "<h1>Страница пользователя ~A</h1>" (id u))
+                    (format nil "<h2>Данные пользователя ~A</h2>" (name u))
+                    (tbl
+                     (with-element (u u)
+                       (row "Имя пользователя" (name u))
+                       (row "Пароль" (password u))
+                       (row "Email" (email u)))
+                     :border 1)
+                    (format nil "<h2>Роль пользователя ~A</h2>" (name u))
+                    (frm
+                     (tbl
+                      (list
+                       (row "Текущая роль" (select "role"
+                                             (list* (list "Выберите роль" "0"
+                                                          (format nil "disabled~A"
+                                                                  (if (equal :null (role-id u))
+                                                                      " selected"
+                                                                      "")))
+                                                    (with-collection (i (all-role))
+                                                      (list (name i)
+                                                            (id i)
+                                                            (if (equal (id i) (role-id u))
+                                                                " selected")
+                                                            )))))
+                       (row "" %change%))))
+                    ))))
+     (:change (act-btn "CHANGE" "" "Изменить")
+              (let* ((i (parse-integer userid))
+                     (u (get-user i)))
+                (aif (getf p :role)
+                     (role-id (upd-user u (list :role-id (parse-integer it))))
+                     ":null"))))
  #+END_SRC
 
 * Модули
@@ -1207,6 +1221,15 @@
 
      ;; (input "text" :name "zzz" :value 111)
      ;; (input "submit" :name "submit-btn" :value "send")
+
+     (defmacro select (name &body options)
+       `(format nil "~%<select name=\"~A\">~{~%~A~}~%</select>"
+                ,name
+                (loop :for (name value selected) :in ,@options :collect
+                   (format nil "<option value=\"~A\"~A>~A</option>"
+                           value
+                           (if selected (format nil " ~A" selected) "")
+                           name))))
 
      (defun fld (name &optional (value ""))
        (input "text" :name name :value value))
