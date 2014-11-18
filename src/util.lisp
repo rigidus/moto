@@ -1,7 +1,7 @@
 ;; [[file:doc.org::*Утилиты][utility_file]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
-;;;; Licensed under the GNU AGPLv3
-;;;; util.lisp
+   ;;;; Licensed under the GNU AGPLv3
+   ;;;; util.lisp
 
 (in-package #:moto)
 
@@ -101,6 +101,16 @@
 
 ;; (input "text" :name "zzz" :value 111)
 ;; (input "submit" :name "submit-btn" :value "send")
+
+(defmacro select ((name &optional attrs) &body options)
+  `(format nil "~%<select name=\"~A\"~A>~{~%~A~}~%</select>"
+           ,name
+           (aif ,attrs (format nil " ~A" it) "")
+           (loop :for (name value selected) :in ,@options :collect
+              (format nil "<option value=\"~A\"~A>~A</option>"
+                      value
+                      (if selected (format nil " ~A" selected) "")
+                      name))))
 
 (defun fld (name &optional (value ""))
   (input "text" :name name :value value))
@@ -215,7 +225,7 @@
 
 (defun replace-all (string part replacement &key (test #'char=))
   "Returns a new string in which all the occurences of the part
-   is replaced with replacement."
+      is replaced with replacement."
   (with-output-to-string (out)
     (loop with part-length = (length part)
        for old-pos = 0 then (+ pos part-length)

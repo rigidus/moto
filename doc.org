@@ -994,26 +994,55 @@
                     (frm
                      (tbl
                       (list
-                       (row "Текущая роль" (select "role"
-                                             (list* (list "Выберите роль" "0"
-                                                          (format nil "disabled~A"
-                                                                  (if (equal :null (role-id u))
-                                                                      " selected"
-                                                                      "")))
-                                                    (with-collection (i (all-role))
-                                                      (list (name i)
-                                                            (id i)
-                                                            (if (equal (id i) (role-id u))
-                                                                " selected")
-                                                            )))))
-                       (row "" %change%))))
-                    ))))
-     (:change (act-btn "CHANGE" "" "Изменить")
+                       (row "Текущая роль"
+                         (select ("role")
+                           (list* (list "Выберите роль" "0"
+                                        (format nil "disabled~A"
+                                                (if (equal :null (role-id u))
+                                                    "selected"
+                                                    "")))
+                                  (with-collection (i (all-role))
+                                    (list (name i)
+                                          (id i)
+                                          (if (equal (id i) (role-id u))
+                                              "selected"))))))
+                       (row "" %change-role%))))
+                    (format nil "<h2>Группы пользователя ~A</h2>" (name u))
+                    (frm
+                     (tbl
+                      (list
+                       (row "Группы в которые входит пользователь"
+                         (select ("groups" "multiple size=\"5\"")
+                           (with-collection (i (all-group))
+                             (list (name i)
+                                   (id i)
+                                   (if (find (id i)
+                                             (mapcar #'group-id
+                                                     (find-user2group :user-id (parse-integer userid))))
+                                       "selected")))))
+                       (row "" %change-group%))))))))
+     (:change-role (act-btn "CHANGE-ROLE" "" "Изменить")
               (let* ((i (parse-integer userid))
                      (u (get-user i)))
                 (aif (getf p :role)
                      (role-id (upd-user u (list :role-id (parse-integer it))))
-                     ":null"))))
+                     ":null")))
+     (:change-group (act-btn "CHANGE-GROUP" "" "Изменить")
+                    (let* ((i (parse-integer userid))
+                           (u (get-user i)))
+                      (if (null (getf p :groups))
+                          "-not change-"
+                          (loop
+                             :initially (mapcar #'(lambda (x)
+                                                    (del-user2group (id x)))
+                                                (find-user2group :user-id (parse-integer userid)))
+                             :for lnk
+                             :in (loop
+                                    :for key  :in p    :by #'cddr
+                                    :for n    :from 1  :to 10 :by (+ 2)
+                                    :when    (equal key :groups)
+                                    :collect (parse-integer (nth n p)))
+                             :collect (id (make-user2group :user-id i :group-id lnk)))))))
  #+END_SRC
 
 * Модули
@@ -1120,8 +1149,8 @@
 ** Утилиты
    #+NAME: utility_file
    #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code  :padline no :comments link
-     ;;;; <<copyright>>
-     ;;;; util.lisp
+        ;;;; <<copyright>>
+        ;;;; util.lisp
 
      (in-package #:moto)
 
@@ -1222,9 +1251,10 @@
      ;; (input "text" :name "zzz" :value 111)
      ;; (input "submit" :name "submit-btn" :value "send")
 
-     (defmacro select (name &body options)
-       `(format nil "~%<select name=\"~A\">~{~%~A~}~%</select>"
+     (defmacro select ((name &optional attrs) &body options)
+       `(format nil "~%<select name=\"~A\"~A>~{~%~A~}~%</select>"
                 ,name
+                (aif ,attrs (format nil " ~A" it) "")
                 (loop :for (name value selected) :in ,@options :collect
                    (format nil "<option value=\"~A\"~A>~A</option>"
                            value
@@ -1344,7 +1374,7 @@
 
      (defun replace-all (string part replacement &key (test #'char=))
        "Returns a new string in which all the occurences of the part
-        is replaced with replacement."
+           is replaced with replacement."
        (with-output-to-string (out)
          (loop with part-length = (length part)
             for old-pos = 0 then (+ pos part-length)

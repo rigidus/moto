@@ -51,7 +51,7 @@
 (in-package #:moto)
 
 (define-iface-add-del-entity all-users "/users"
-  "пользователи"
+  "Пользователи"
   "Новый пользователь"
   ""
   #'all-user "user"
@@ -126,28 +126,72 @@
 
 (in-package #:moto)
 
-(restas:define-route user ("/user/:userid")
-  (with-wrapper
-      (let* ((i (parse-integer userid))
-             (u (get-user i)))
-        (if (null u)
-            "Нет такого пользователя"
-            (format nil "~{~A~}"
-                    (list
-                     (format nil "<h1>Страница пользователя ~A</h1>" (id u))
-                     (format nil "<h2>Данные пользователя ~A</h2>" (name u))
-                     (tbl
-                      (with-element (u u)
-                        (row "Имя пользователя" (name u))
-                        (row "Пароль" (password u))
-                        (row "Email" (email u)))
-                      :border 1)
-                     ))))))
-
-(restas:define-route user-ctrl ("/user/:userid" :method :post)
-  (with-wrapper
-      (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-        (cond ((getf p :addsum) )
-              ((getf p :follow) )
-              ((getf p :neworder) )))))
+(define-page user "/user/:userid"
+  (let* ((i (parse-integer userid))
+         (u (get-user i)))
+    (if (null u)
+        "Нет такого пользователя"
+        (format nil "~{~A~}"
+                (list
+                 (format nil "<h1>Страница пользователя ~A</h1>" (id u))
+                 (format nil "<h2>Данные пользователя ~A</h2>" (name u))
+                 (tbl
+                  (with-element (u u)
+                    (row "Имя пользователя" (name u))
+                    (row "Пароль" (password u))
+                    (row "Email" (email u)))
+                  :border 1)
+                 (format nil "<h2>Роль пользователя ~A</h2>" (name u))
+                 (frm
+                  (tbl
+                   (list
+                    (row "Текущая роль"
+                      (select ("role")
+                        (list* (list "Выберите роль" "0"
+                                     (format nil "disabled~A"
+                                             (if (equal :null (role-id u))
+                                                 "selected"
+                                                 "")))
+                               (with-collection (i (all-role))
+                                 (list (name i)
+                                       (id i)
+                                       (if (equal (id i) (role-id u))
+                                           "selected"))))))
+                    (row "" %change-role%))))
+                 (format nil "<h2>Группы пользователя ~A</h2>" (name u))
+                 (frm
+                  (tbl
+                   (list
+                    (row "Группы в которые входит пользователь"
+                      (select ("groups" "multiple size=\"5\"")
+                        (with-collection (i (all-group))
+                          (list (name i)
+                                (id i)
+                                (if (find (id i)
+                                          (mapcar #'group-id
+                                                  (find-user2group :user-id (parse-integer userid))))
+                                    "selected")))))
+                    (row "" %change-group%))))))))
+  (:change-role (act-btn "CHANGE-ROLE" "" "Изменить")
+           (let* ((i (parse-integer userid))
+                  (u (get-user i)))
+             (aif (getf p :role)
+                  (role-id (upd-user u (list :role-id (parse-integer it))))
+                  ":null")))
+  (:change-group (act-btn "CHANGE-GROUP" "" "Изменить")
+                 (let* ((i (parse-integer userid))
+                        (u (get-user i)))
+                   (if (null (getf p :groups))
+                       "-not change-"
+                       (loop
+                          :initially (mapcar #'(lambda (x)
+                                                 (del-user2group (id x)))
+                                             (find-user2group :user-id (parse-integer userid)))
+                          :for lnk
+                          :in (loop
+                                 :for key  :in p    :by #'cddr
+                                 :for n    :from 1  :to 10 :by (+ 2)
+                                 :when    (equal key :groups)
+                                 :collect (parse-integer (nth n p)))
+                          :collect (id (make-user2group :user-id i :group-id lnk)))))))
 ;; iface ends here
