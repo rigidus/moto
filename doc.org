@@ -298,7 +298,7 @@
      (load-file "generators.el")
    #+END_SRC
 
-** Пользователи (user)
+** DONE Пользователи (user)
 
    Для начала надо определиться, какие данные мы собираемся хранить о пользователях, и
    какого типа будут эти данные. Типы данных задаем в формате [[http://marijnhaverbeke.nl/postmodern/postmodern.html][Postmodern]] чтобы потом
@@ -387,7 +387,7 @@
        )
    #+END_SRC
 
-** Роли (role)
+** DONE Роли (role)
 
    Роли определяют набор сценариев, которые пользователь выполняет на
    сайте. Функционал, который выполняют сценарии запрашивает
@@ -415,7 +415,7 @@
      (make-role :name "robot")
    #+END_SRC
 
-** Группы (group, user2group)
+** DONE Группы (group, user2group)
 
    Группы пользователей определяют набор операций, которые
    пользователь может выполнять над объектами системы. В отличие от
@@ -1122,6 +1122,7 @@
               :components ((:static-file "trend-tpl.htm")
                            (:file "trend-prepare")
                            (:file "entityes")
+                           (:file "loader")
                            (:file "trend")))
    #+END_SRC
 

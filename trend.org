@@ -278,6 +278,7 @@
 
   #+NAME: awhen_file
   #+BEGIN_SRC lisp
+    (in-package #:moto)
 
     (defmacro awhen-file ((file files) &body body)
       `(aif (find ,file ,files :test #'string=)
@@ -290,6 +291,7 @@
 
   #+NAME: loop_dir
   #+BEGIN_SRC lisp
+    (in-package #:moto)
 
     (defmacro loop-dir (var (&rest path) &body body)
       `(loop :for ,var :in (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (directory-namestring x)))))
@@ -307,9 +309,10 @@
 
   #+NAME: assoc_key
   #+BEGIN_SRC lisp
+    (in-package #:moto)
 
     (defmacro assoc-key (key alist)
-      `(cdr (assoc ,key ,alist :test #'string=))))
+      `(cdr (assoc ,key ,alist :test #'string=)))
   #+END_SRC
 
   Для работы с данными, извлекаемыми из файлов в формате ключ:значение напишем
@@ -317,6 +320,7 @@
 
   #+NAME: keyval
   #+BEGIN_SRC lisp
+    (in-package #:moto)
 
     (defun keyval (filename)
       (remove-if #'null
@@ -418,8 +422,7 @@
         (reverse result)))
   #+END_SRC
 
-
-  Теперь переходи к загрузке данных:
+  Теперь переходим к загрузке данных:
 
   #+NAME: loader
   #+BEGIN_SRC lisp
@@ -489,8 +492,6 @@
 
 
     (print (xls-processor "/home/rigidus/repo/moto/data/Десяткино/1 очередь/Квартиры2.xls"))
-
-
   #+END_SRC
 
 * Точки входа
@@ -551,6 +552,10 @@
               "Error: Незалогиненные пользователи не имеют права загружать данные"
               (frm (tbl
                     (list
+                     (row "" (let ((cmpx-s))
+                               (loop-dir cmpx ()
+                                    (push cmpx cmpx-s))
+                               (format nil "~{~A<br/>~}<br />" cmpx-s)))
                      (row "" (hid "load"))
                      (row "" (submit "Загрузить")))))))))
 
@@ -1210,7 +1215,6 @@
 
   Исправить поиск
   Настроить сервер
-  Получить стул, монитор и наушники
 
 * Остальное
 
@@ -1240,13 +1244,9 @@
 
   И система автоматически подберет ему подходящие варианты (из числа заранее отобранных
   менеджерами компании)
-* Вопросы
-  Планируется ли делать логин.пароль и вход для посетителей, чтобы они, например, могли
-  открыть свою сессию с другого устройства, увидеть на своем планшете те объекты, которые
-  смотрели на ноутбуке итп.
-  Мы как-то отличаем районы города от районов ленинградской области?
 * Сборка
 ** Сущности и автоматы
+
    Соберем все сущности и автоматы
 
    #+NAME: entity_and_automates
@@ -1424,3 +1424,11 @@
     #+BEGIN_SRC emacs-lisp :var flds=metro_flds :exports none :session gen
       (gen-entity "metro" "метро" flds)
     #+END_SRC
+** Загрузчик данных из файлов
+
+   Соберем загрузчик
+
+   #+NAME: asm_loader
+   #+BEGIN_SRC lisp :tangle src/mod/trend/loader.lisp :noweb tangle :exports code :padline no :comments link
+   <<loader>>
+   #+END_SRC

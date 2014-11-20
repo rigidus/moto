@@ -58,6 +58,7 @@
                         :components ((:static-file "trend-tpl.htm")
                                      (:file "trend-prepare")
                                      (:file "entityes")
+                                     (:file "loader")
                                      (:file "trend")))
                ;; Модуль мотобратан
                (:module "bratan"

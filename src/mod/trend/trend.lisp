@@ -14,6 +14,10 @@
          "Error: Незалогиненные пользователи не имеют права загружать данные"
          (frm (tbl
                (list
+                (row "" (let ((cmpx-s))
+                          (loop-dir cmpx ()
+                               (push cmpx cmpx-s))
+                          (format nil "~{~A<br/>~}<br />" cmpx-s)))
                 (row "" (hid "load"))
                 (row "" (submit "Загрузить")))))))))
 
