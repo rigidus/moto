@@ -1,0 +1,327 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>index</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/not-responsive.css" media="all" />
+    <link rel="stylesheet" type="text/css" href="css/theme.css" media="all" />
+    <link rel="stylesheet" type="text/css" href="css/fonts.css" media="all" />
+	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div class="bg-cover"></div>
+	<!-- header-->
+	<header>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-3 col-xs-3 logo"><a href="#"><img src="img/logo.png" alt="" /></a></div>
+				<div class="col-md-2 col-xs-2 slagan text-center">Первичное жильё <br>из первых рук</div>
+				<div class="col-md-7 col-xs-7">
+					<ul class="nav nav-pills pull-right">
+						<li><a href="#"><span class="glyphicon glyphicon-align-right" aria-hidden="true"></span></span> Сравнение</a></li>
+						<li><a href="#"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Избранное</a></li>
+						<li><a href="#"><span class="glyphicon glyphicon-book" aria-hidden="true"></span> Просмотрено</a></li>
+						<li><a class="btn btn-warning" href="#">Контакты</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="row promo-text">
+				<div class="col-md-6 col-xs-6"><h1>Более 300 объектов <br> недвижимости</h1></div>
+				<div class="col-md-6 col-xs-6 text-left"><p>В нашем предложении более 300 строящихся и новых <br> домов в Санкт-Петербурге и Ленинградской области.</p> <strong>Мы знаем о новостройках все!</strong></div>
+			</div>
+		</div>
+	</header>
+	<!-- end header -->
+	<!-- filter -->
+	<section id="filter">
+		<div class="container">
+			<div class="tab-panel">
+				<!-- nav tabs -->
+  				<ul class="nav nav-tabs" role="tablist">
+    				<li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Новостройки</a></li>
+    				<li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Вторичное жилье</a></li>
+  				</ul>
+  				<!-- tab panes -->
+  				<div class="tab-content">
+  					 <div role="tabpanel" class="tab-pane active" id="home">
+  					 	<!-- form -->
+  					 	<form action="" method="post">
+  					 		<div class="row">
+  					 			<div class="form-group">
+  					 				<div class="col-sm-3">
+  					 					<label for="" class="control-label">Название, район, метро, id</label>
+  					 					<input type="text" name="" class="form-control" id="" placeholder="Балти" />
+  					 					<span class="glyphicon glyphicon-search pull-right" aria-hidden="true"></span>
+  					 				</div>
+  					 				<div class="col-sm-2 cbox">	
+  					 					<label for="" class="control-label">Количество комнат</label><br>
+  					 					<input type="checkbox" value=""> C
+  					 					<input type="checkbox" value=""> 2
+  					 					<input type="checkbox" value="" disabled> 3
+  					 					<input type="checkbox" value="" disabled> 4
+  					 				</div>
+  					 				<div class="col-sm-2">
+  					 					<label for="" class="control-label">Срок сдачи, от</label>
+  					 					<select class="form-control">
+											<option>IV квартал 2014</option>
+										</select>
+  					 				</div>
+  					 				<div class="col-sm-2">
+  					 					<label for="" class="control-label">Срок сдачи, до</label>
+  					 					<select class="form-control">
+											<option>IV квартал 2015</option>
+										</select>
+  					 				</div>
+  					 				<div class="col-sm-3">
+  					 					<label for="" class="control-label">Стоимость квартиры, т. р.</label>
+  					 					<div class="row">
+  					 						<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="2 800" /></div>
+  					 						<div class="col-sm-2 text-center"><span class="entypo-minus"></span></div>
+  					 						<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="3 300" /></div>
+  					 					</div>
+  					 				</div>
+  					 			</div>
+  					 		</div>
+  					 		<span class="label label-default">Красносельский район <b class="entypo-cancel"></b></span>
+  					 		<span class="label label-default">Улица Адмирала Трибуца <b class="entypo-cancel"></b></span>
+  					 		<span class="label label-default">Улица Пограничника Гарькавого <b class="entypo-cancel"></b></span>
+  					 		<div class="clearfix"></div>
+  					 		<div class="row line">
+  					 			<div class="col-sm-3"><input type="checkbox" value="" checked> Ипотека </div>
+  					 			<div class="col-sm-3"><input type="checkbox" value="" checked> Рассрочка </div>
+  					 		</div>
+  					 		<div class="row">
+  					 			<div class="col-sm-3">
+  					 				<div class="row">
+  					 					<div class="col-sm-5"><label for="" class="control-label">Перв. взнос</label><input type="text" name="" class="form-control" id="" placeholder="600 000" /></div>
+  					 					<div class="col-sm-2 text-center rid"><div>или</div></div>
+  					 					<div class="col-sm-5"><label for="" class="control-label">В мес. платеж</label><input type="text" name="" class="form-control" id="" placeholder="22 800" /></div>
+  					 				</div>
+  					 			</div>
+  					 			<div class="col-sm-3">
+  					 				<div class="row">
+  					 					<div class="col-sm-5"><label for="" class="control-label">Перв. взнос</label><input type="text" name="" class="form-control" id="" placeholder="" disabled/></div>
+  					 					<div class="col-sm-2 text-center rid"><div>или</div></div>
+  					 					<div class="col-sm-5"><label for="" class="control-label">В мес. платеж</label><input type="text" name="" class="form-control" id="" placeholder="" disabled/></div>
+  					 				</div>
+  					 			</div>
+  					 			<div class="col-sm-2">
+  					 				<label for="" class="control-label">Метраж, м2</label>
+  					 				<div class="row">
+  					 					<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="30" /></div>
+  					 					<div class="col-sm-2 text-center"><b class="entypo-minus"></b></div>
+  					 					<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="40" /></div>
+  					 				</div>
+  					 			</div>
+  					 			<div class="col-sm-2">
+  					 				<div class="checkbox">
+  					 					<input type="checkbox" value=""> Субсидия <br>
+  					 					<input type="checkbox" value="" checked> Отделка
+  					 				</div>
+  					 			</div>
+  					 			<div class="col-sm-2 text-right">
+  					 				<button class="btn btn-primary btn-lg">Подобрать</button>
+  					 			</div>
+  					 		</div>
+  					 		<div class="text-right top"><a href="#">Быстрый поиск</a></div>
+  					 	</form>
+  					 	<!-- end form -->
+  					 </div>
+  				</div>
+			</div>
+		</div>
+	</section>
+	<!-- end filter -->
+	<!-- promo -->
+	<section id="promo">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-4 col-xs-4">
+					<h3>Выбор ипотечной <br>программы</h3>
+					<ul>
+						<li>Ипотечная ставка <strong>от 11,5%,</strong></li>
+						<li><strong>Более 50</strong> ипотечных программ.</li>
+					</ul>
+				</div>
+				<div class="col-md-4 col-xs-4">
+					<h3>Подготовка <br>документов за 30 минут</h3>
+					<p>Наш специалист соберет весь необходимый комплект доку-ментов в вашем присутствии или без вас.</p>
+				</div>
+				<div class="col-md-4 col-xs-4">
+					<h3>Одобрение в пяти <br>банках за три дня</h3>
+					<p>Через три дня получайте одобрение на ипотечный кредит в пяти банках.</p>
+				</div>
+			</div>
+			<div class="text-center top"><a href="#" class="btn btn-lg btn-danger">Рассчитать ипотеку</a></div>
+		</div>
+	</section>
+	<!-- end -->
+	<!-- service -->
+	<section id="service">
+		<div class="container">
+			<h3 class="text-center">Служба демонстрации квартир</h3>
+			<div class="row">
+				<div class="col-md-6 col-xs-6">
+					<img src="img/pics1.jpg" alt="" width="280" />
+					<img src="img/pics2.jpg" alt="" width="280" />
+					<h4>Служба демонстрации квартир — <span class="text-primary">быстро и удобно!</span></h4>
+					<p>Индивидуальный показ в удобное вам время от ближайшей станции метро на автомобиле сотрудника. За пару часов своими глазами вы увидите все интересные вам жилые комплексы.</p>
+				</div>
+				<div class="col-md-6 col-xs-6">
+					<div class="pull-left"><img src="img/pics3.jpg" alt="" /></div>
+					<div class="pull-left">
+					<h4>Автобусный тур — <span class="text-primary">каждые выходные!</span></h4>
+					<ul>
+						<li>Вы ознакомитесь с самым широким предложением по строящимся домам Санкт-Петербурга и Ленинградской области;</li>
+						<li>посетите несколько районов города за одну поездку, сравнить удобство местоположения и общее развитие территорий;</li>
+						<li>собственными глазами увидите степень готовности новостроек;</li>
+						<li>наглядно ознакомитесь с качеством строительства.</li>
+					</ul>
+					</div>
+				</div>
+			</div>
+			<div class="text-center top"><a href="#" class="btn btn-lg btn-default">Записаться бесплатно</a></div>
+		</div>
+	</section>
+	<!-- end service -->
+	<!-- sell -->
+	<section id="sail">
+		<div class="container">
+			<h3 class="text-center">Продажа вашей квартиры</h3>
+			<div class="row">
+				<div class="col-md-6 col-xs-6">
+					<p><strong>Мечтаете о квартире</strong> в новом доме, но для реализации задуманного необходимо продать имеющееся жилье?</p>
+					<p><strong>Не знаете</strong> с чего начать процесс продажи?</p>
+					<p><strong>Пугают</strong> рутинные и длительные этапы по проведению сделки, подготовке и сбору документов?</p>
+				</div>
+				<div class="col-md-6 col-xs-6">
+					<h4>Мы поможем решить все эти вопросы максимально комфортно и <a href="#">реализовать Вашу квартиру</a> по самым интересным тарифам Санкт-Петербурга</h4>
+				</div>
+			</div>
+			<div class="text-center top"><a href="#" class="btn btn-lg btn-success">Продать квартиру</a></div>
+		</div>
+	</section>
+	<!-- end sell -->
+	<!-- violet block -->
+	<section id="violet">
+		<div class="container">
+			<div class="text-center">
+				<h4>Все наши услуги бесплатны</h4>
+				<a href="#" class="btn btn-lg btn-warning">Связаться с нашим специалистом</a>
+				<p>Бесплатные звонки по России</p>
+			</div>
+		</div>
+	</section>
+	<!-- end violet -->
+	<!-- footer -->
+	<footer>
+		<div class="black bg-warning">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-4 col-xs-4">
+						<p>Следите за акциями, спецпредложениями и новостями новостроек в соцсетях:</p>
+					</div>
+					<div class="col-md-4 col-xs-4">
+						<ul class="nav nav-pills">
+							<li><a class="brandico-facebook" title="" href="#"></a></li>
+							<li><a class="brandico-twitter" title="" href="#"></a></li>
+							<li><a class="brandico-vkontakte-rect" title="" href="#"></a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="gray bg-danger">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-2 col-xs-2">
+						<h4>Новостройки</h4>
+						<ul class="nav nav-pills nav-stacked">
+							<li><a href="#">Объекты на карте</a></li>
+							<li><a href="#">Подбор квартиры</a></li>
+							<li><a href="#">Дома в центре</a></li>
+							<li><a href="#">Дома на севере</a></li>
+							<li><a href="#">Дома на юге</a></li>
+						</ul>
+					</div>
+					<div class="col-md-2 col-xs-2">
+						<h4>Популярные запросы</h4>
+						<ul class="nav nav-pills nav-stacked">
+							<li><a href="#">Квартиры в готовых домах</a></li>
+							<li><a href="#">Квартиры в ипотеку</a></li>
+							<li><a href="#">Квартиры с отделкой</a></li>
+							<li><a href="#">Квартиры-студии</a></li>
+							<li><a href="#">Однокомнатные квартиры</a></li>
+							<li><a href="#">Двухкомнатные квартиры</a></li>
+							<li><a href="#">Трехкомнатные квартиры</a></li>
+						</ul>
+					</div>
+					<div class="col-md-2 col-xs-2">
+						<h4>Наши подборки</h4>
+						<ul class="nav nav-pills nav-stacked">
+							<li><a href="#">Квартиры по доступной цене</a></li>
+							<li><a href="#">Квартиры на выгодных условиях</a></li>
+							<li><a href="#">Квартиры для комфортной жизни</a></li>
+							<li><a href="#">Квартиры по уступке</a></li>
+							<li><a href="#">Загородная недвижимость</a></li>
+						</ul>
+					</div>
+					<div class="col-md-2 col-xs-2">
+						<h4>Компания Тренд</h4>
+						<ul class="nav nav-pills nav-stacked">
+							<li><a href="#">О компании</a></li>
+							<li><a href="#">10 выгодных причин</a></li>
+							<li><a href="#">Награды и благодарности</a></li>
+							<li><a href="#">Ипотечный центр</a></li>
+							<li><a href="#">Новости</a></li>
+							<li><a href="#">Карьера</a></li>
+							<li><a class="text-danger" href="#">Пожаловаться</a></li>
+							<li><a class="text-danger" href="#">Контакты</a></li>
+						</ul>
+					</div>
+					<div class="col-md-4 col-xs-4">
+						<h3><strong>№ 2.</strong> Бесплатный <br>ипотечный центр</h3>
+						<h3 class="text-primary">Все 3 причины, <br>почему с нами выгодно</h3>
+						<form class="form-inline" role="form">
+							 <div class="form-group"><input type="text" class="form-control" id="" placeholder="Ваш e-mail"></div>
+							 <button type="submit" class="btn btn-primary"><span class="entypo-right-open-big"></span></button>
+						</form>
+						<div class="help-block"><small>Подпишитесь на старты продаж, <br>новости проектов, акции <br>и спецпредложения</small></div>
+					</div>
+					
+				</div>
+				<div class="clearfix"></div>
+				<div class="row">
+					<div class="col-md-3 col-xs-3"><div class="text-left copiryng">Сделано в <a href="#"> Deasign</a></div></div>
+					<div class="col-md-5 col-xs-5"></div>
+					<div class="col-md-4 col-xs-4 pull-left"></div>
+				</div>
+			</div>
+		</div>
+		
+	</footer>
+	<!-- end footer -->
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+</body>
+</html>

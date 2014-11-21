@@ -2300,3 +2300,96 @@ ZR - от 240
    Обьединение идей MUMPS и вероятностного программирования
    http://habrahabr.ru/post/242993/ может обещать некоторые интересные
    результаты...
+* Исследования
+** Дракон и sqlite
+
+   Чтобы использовать ДРАКОН для облегчения имеративного
+   программирования, необходимо
+
+   - Поставить tcl/tk (sudo apt-get install tcl8.6 tk8.6 tcllib libsqlite3-tcl libtk-img)
+   - Поставить drakon_editor (http://drakon-editor.sourceforge.net/editor.html#downloads)
+   - Поставить sqlite3 (apt-get install sqlite3)
+   - Использовать sqlite из elisp-a следующим образом:
+     #+BEGIN_SRC emacs-lisp
+       (add-to-list 'load-path "~//repo/sqlite.el/")
+
+       (require 'sqlite)
+
+       (let ((descriptor (sqlite-init "~/repo/moto/drakon.drn")))
+         (setq res (sqlite-query descriptor "SELECT * FROM items"))
+         (sqlite-bye descriptor)
+         res)
+     #+END_SRC
+
+   Таким образом мы получим таблицу элементов. Далее нам нужно
+   определить пересечения веток и других элементов. Начнем с начала,
+   где началом будем считать элемент =beginend= который не называется
+   "Конец"
+
+   #+BEGIN_SRC emacs-lisp :output table
+     (setq s3d (sqlite-init "~/repo/uber/sk.drn"))
+     (sqlite-query s3d "SELECT item_id, text, x, y, w, h, a, b FROM items WHERE type LIKE 'beginend' AND text NOT LIKE 'Конец'")
+   #+END_SRC
+
+   #+results:
+   | item_id | text         |   x |  y |  w |  h |  a | b |
+   |       1 | "Суперкасса" | 170 | 60 | 50 | 20 | 60 | 0 |
+
+   Однако нам это мало поможет, так как это название диаграммы. Более
+   интересно узнать все ветви и расположить их в порядке слева-направо
+
+   #+BEGIN_SRC emacs-lisp :output table
+     (setq s3d (sqlite-init "~/repo/uber/sk.drn"))
+     (sqlite-query s3d "SELECT item_id, text, x, y, w, h, a, b FROM items WHERE type LIKE 'branch' ORDER BY x")
+   #+END_SRC
+
+   #+results:
+   | item_id | text                     |    x |   y |   w |  h |  a | b |
+   |       8 | "Поиск маршрута"         |  230 | 170 | 160 | 30 | 60 | 0 |
+   |      71 | "Получение рекомендаций" | 1210 | 170 | 220 | 30 | 60 | 0 |
+   |      42 | "Формирование корзины"   | 2160 | 170 | 100 | 30 | 60 | 0 |
+   |     138 | "Добавление пассажиров"  | 2620 | 170 | 100 | 30 | 60 | 0 |
+   |      48 | "Оформление заказа"      | 2970 | 170 | 110 | 30 | 60 | 0 |
+   |     109 | "Добавление документов"  | 3970 | 170 | 140 | 30 | 60 | 0 |
+   |      10 | "Оплата"                 | 5040 | 170 |  90 | 30 | 60 | 0 |
+   |      11 | "Ожидание платежа"       | 5600 | 170 |  80 | 30 | 60 | 0 |
+
+   Теперь для каждой ветви нам необходимо получить лежащие на ней
+   элементы. В нашем простом случае все ветви очевидно имеют
+   одинаковую высоту и расположены строго вертикально, поэтому нам
+   достаточно найти блоки, координата X которых лежит до
+   горизонтального центра ветви, у W+X - после. Центр ветви вычисляем
+   как координату X + половину ширины. Например для ветви "Получение
+   рекомендаций" центр будет:
+
+   #+BEGIN_SRC emacs-lisp
+     (let* ((res (cadr (sqlite-query s3d "SELECT x, w FROM items WHERE type LIKE 'branch' AND text LIKE 'Получение рекомендаций'")))
+            (x (string-to-number (car res)))
+            (w (string-to-number (cadr res))))
+       (+ x (/ w 2)))
+   #+END_SRC
+
+   #+results:
+   : 1320
+
+   Теперь мы можем получить все блоки, координаты которых лежат на
+   ветви, упорядочив их сверху-вниз
+
+   #+BEGIN_SRC emacs-lisp
+     (let* ((res (sqlite-query s3d "SELECT type,text,x,y,w,h,a,b FROM items WHERE (x < 1320 AND (x+w) > 1320) AND type NOT LIKE 'horizontal' AND type NOT LIKE 'branch' ORDER BY y")))
+       res)
+   #+END_SRC
+
+   #+results:
+   | type      | text                                               |    x |    y |   w |  h |   a | b |
+   | output    | cities = get-iata-codes-and-transfer-id (segments) | 1210 |  290 | 220 | 60 |  20 | 0 |
+   | if        | "Произошла какая-нибудь ошибка?"                   | 1210 |  400 | 220 | 20 | 350 | 0 |
+   | insertion | "items = get-items-from-segments (segments)"       | 1210 |  500 | 220 | 20 |  60 | 0 |
+   | insertion | request = сформировать-запрос-рекомендаций (       | 1210 |  590 | 220 | 30 |  60 | 0 |
+   | output    | "(transfer, avia) = запрос-рекомендаций(request)"  | 1210 |  680 | 220 | 30 |  20 | 0 |
+   | input     | "recommendations = get-response(transfer, avia)"   | 1210 |  830 | 220 | 30 |  20 | 0 |
+   | if        | "Рекомендации корректны?"                          | 1210 |  910 | 220 | 20 | 130 | 1 |
+   | action    | "Показать рекомендации"                            | 1210 | 1110 | 220 | 20 |   0 | 0 |
+   | address   | "Формирование корзины"                             | 1210 | 1210 | 220 | 30 |  60 | 0 |
+
+   Ну а дальше - дело техники
