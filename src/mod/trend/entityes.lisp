@@ -25,12 +25,12 @@
 (make-plex-table)
 
 
-(define-entity cmps "Сущность корпуса очереди жилого комплекса"
+(define-entity crps "Сущность корпуса очереди жилого комплекса"
   ((id serial)
    (plex-id integer)
    (name (or db-null varchar))))
 
-(make-cmps-table)
+(make-crps-table)
 
 
 (define-entity flat "Сущность планировки"

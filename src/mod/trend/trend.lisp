@@ -28,6 +28,30 @@
       (if (equal (getf p :load) "")
           "Данные загружены"
           "err"))))
+
+(in-package #:moto)
+
+(define-page all-cmpx-s "/cmpxs"
+  (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
+               "<br /><br />"
+               (tbl
+                (with-collection (i (funcall #'all-cmpx))
+                  (tr
+                   (td
+                    (format nil "<a href=\"/~a/~a\">~a</a>" "cmpx"
+                            (id i) (id i)))
+                   (td (name i)) (td (addr i)) (td (frm %del%))))
+                :border 1)
+               "<h2>" "Новый комплекс" "</h2>"
+               (frm
+                (tbl
+                 (list
+                  (row "Имя"
+                    (fld "name"))
+                  (row "Адрес"
+                    (fld "name"))))))
+  (:del (act-btn "del" (id i) "Удалить")
+        (progn (del-cmpx (getf p :data)))))
 (in-package #:moto)
 
 (restas:define-route flat ("/flat/:flatid")

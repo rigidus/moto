@@ -168,15 +168,15 @@
      table
    #+END_SRC
 
-** Корпус очереди жилого комплекса (crpx)
+** Корпус очереди жилого комплекса (crps)
 
    #+CAPTION: Данные корпуса очереди жилого комплекса
    #+NAME: crps_data
-     | field name | field type           | note                                  |
-     |------------+----------------------+---------------------------------------|
-     | id         | serial               | идентификатор                         |
-     | plex-id    | integer              | идентификатор очередижилого комплекса |
-     | name       | (or db-null varchar) | название (номер корпуса)              |
+     | field name | field type           | note                                   |
+     |------------+----------------------+----------------------------------------|
+     | id         | serial               | идентификатор                          |
+     | plex-id    | integer              | идентификатор очереди жилого комплекса |
+     | name       | (or db-null varchar) | название (номер корпуса)               |
 
    #+NAME: crps_flds
    #+BEGIN_SRC emacs-lisp :var table=crps_data :results value :exports none :session gen
@@ -270,77 +270,77 @@
   - квартиры, в формате CSV
     |  корпус | тип | метраж | жилая площадь| площадь кухни | балкон/лоджия | санузел | цена |
 
+** Утилиты
+   Напишем проход по всем этим директориям, но перед этим необходимо определить ряд
+   вспомогательных макросов и функций.
 
-  Напишем проход по всем этим директориям, но перед этим необходимо определить ряд
-  вспомогательных макросов и функций.
+   Начнем с макроса поиска файла в наборе. В случае, если файл найден, мы выполняем body
 
-  Начнем с макроса поиска файла в наборе. В случае, если файл найден, мы выполняем body
+   #+NAME: awhen_file
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-  #+NAME: awhen_file
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
+     (defmacro awhen-file ((file files) &body body)
+       `(aif (find ,file ,files :test #'string=)
+             ,@body
+             ""))
+   #+END_SRC
 
-    (defmacro awhen-file ((file files) &body body)
-      `(aif (find ,file ,files :test #'string=)
-            ,@body
-            ""))
-  #+END_SRC
+   Нам также понадобится цикл внутри директории, который умеет предоставлять нам
+   поддиректории и файловое содержимое этих предоставленных поддиректорий.
 
-  Нам также понадобится цикл внутри директории, который умеет предоставлять нам
-  поддиректории и файловое содержимое этих предоставленных поддиректорий.
+   #+NAME: loop_dir
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-  #+NAME: loop_dir
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
+     (defmacro loop-dir (var (&rest path) &body body)
+       `(loop :for ,var :in (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (directory-namestring x)))))
+                                    (explore-dir (format nil "~A~{~A/~}*.*" *data-path* (list ,@path)))) :do
+           (multiple-value-bind (_ files)
+               (explore-dir (format nil "~A~{~A/~}~A/*.*" *data-path* (list ,@path) ,var))
+             (declare (ignore _))
+             (let ((files (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (file-namestring x)))))
+                                  files)))
+               ,@body))))
+   #+END_SRC
 
-    (defmacro loop-dir (var (&rest path) &body body)
-      `(loop :for ,var :in (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (directory-namestring x)))))
-                                   (explore-dir (format nil "~A~{~A/~}*.*" *data-path* (list ,@path)))) :do
-          (multiple-value-bind (_ files)
-              (explore-dir (format nil "~A~{~A/~}~A/*.*" *data-path* (list ,@path) ,var))
-            (declare (ignore _))
-            (let ((files (mapcar #'(lambda (x) (car (last (ppcre:split "\/" (file-namestring x)))))
-                                 files)))
-              ,@body))))
-  #+END_SRC
+   Еще маленький вспомогательный макрос для извлечения значения по ключу из ассоциативного
+   списка:
 
-  Еще маленький вспомогательный макрос для извлечения значения по ключу из ассоциативного
-  списка:
+   #+NAME: assoc_key
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-  #+NAME: assoc_key
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
+     (defmacro assoc-key (key alist)
+       `(cdr (assoc ,key ,alist :test #'string=)))
+   #+END_SRC
 
-    (defmacro assoc-key (key alist)
-      `(cdr (assoc ,key ,alist :test #'string=)))
-  #+END_SRC
+   Для работы с данными, извлекаемыми из файлов в формате ключ:значение напишем
+   функцию-парсер:
 
-  Для работы с данными, извлекаемыми из файлов в формате ключ:значение напишем
-  функцию-парсер:
+   #+NAME: keyval
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-  #+NAME: keyval
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
+     (defun keyval (filename)
+       (remove-if #'null
+                  (mapcar #'(lambda (in)
+                              (let* ((pos (position #\: in :test #'char=)))
+                                (if (null pos)
+                                    (warn (format nil "wrong param: ~A" in))
+                                    (let ((key (subseq in 0 pos))
+                                          (val (subseq in (+ 1 pos))))
+                                      (cons (string-trim '(#\NewLine #\Tab #\Space  #\﻿)
+                                                         (ppcre:regex-replace-all "\\s+" key " "))
+                                            (string-trim '(#\NewLine #\Tab #\Space  #\﻿)
+                                                         (ppcre:regex-replace-all "\\s+" val " ")))))))
+                          (ppcre:split #\Newline (alexandria:read-file-into-string filename)))))
+   #+END_SRC
 
-    (defun keyval (filename)
-      (remove-if #'null
-                 (mapcar #'(lambda (in)
-                             (let* ((pos (position #\: in :test #'char=)))
-                               (if (null pos)
-                                   (warn (format nil "wrong param: ~A" in))
-                                   (let ((key (subseq in 0 pos))
-                                         (val (subseq in (+ 1 pos))))
-                                     (cons (string-trim '(#\NewLine #\Tab #\Space  #\﻿)
-                                                        (ppcre:regex-replace-all "\\s+" key " "))
-                                           (string-trim '(#\NewLine #\Tab #\Space  #\﻿)
-                                                        (ppcre:regex-replace-all "\\s+" val " ")))))))
-                         (ppcre:split #\Newline (alexandria:read-file-into-string filename)))))
-  #+END_SRC
+   Для работы с xls-файлами напишем парсер и декодер:
 
-  Для работы с xls-файлами напишем парсер и декодер:
-
-  #+NAME: xls
-  #+BEGIN_SRC lisp
+   #+NAME: xls
+   #+BEGIN_SRC lisp
     (in-package #:moto)
 
     (defun decoder-3-csv  (in-string)
@@ -422,77 +422,78 @@
         (reverse result)))
   #+END_SRC
 
-  Теперь переходим к загрузке данных:
+** Загрузчик
+   Теперь переходим к загрузке данных:
 
-  #+NAME: loader
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
-    <<awhen_file>>
-    <<loop_dir>>
-    <<assoc_key>>
-    <<keyval>>
-    <<xls>>
+   #+NAME: loader
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+     <<awhen_file>>
+     <<loop_dir>>
+     <<assoc_key>>
+     <<keyval>>
+     <<xls>>
 
-    ;; Для каждой подпапке в папке данных..
-    (loop-dir cmpx ()
-       ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
-         (let ((cmpx-id (id (make-cmpx :name cmpx
-                                       :addr (awhen-file ("адрес.txt" files)
-                                               (string-trim '(#\NewLine #\Tab #\Space )
-                                                            (alexandria:read-file-into-string (format nil "~A~A/~A" *data-path* cmpx it))))))))
-           ;; Для каждой подпапки в папке комплекса
-           (loop-dir plex (cmpx)
-              ;; Создаем очередь ЖК
-                (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
-                  ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
-                  (awhen-file ("data.txt" files)
-                    (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
-                      (upd-plex (get-plex plex-id)
-                                (list :deadline    (assoc-key "срок сдачи" data)
-                                      :distance    (assoc-key "расстояние до метро" data)
-                                      :finishing   (assoc-key "отделка" data)
-                                      :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
-                                      :installment (or (string= "да" (assoc-key "рассрочка" data)))
-                                      :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
-                                      :district-id (let ((obj (find-district :name (assoc-key "район" data))))
-                                                     (if (null obj)
-                                                         (warn (format nil "район ~A не найден в таблице районов" (assoc-key "район" data)))
-                                                         (id (car obj))))
-                                      :metro-id    (let ((obj (find-metro :name (assoc-key "метро" data))))
-                                                     (if (null obj)
-                                                         (warn (format nil "метро ~A не найдено в таблице метро" (assoc-key "метро" data)))
-                                                         (id (car obj))))))))
-                  ;; Если найден файл с паспортом объекта
-                  (awhen-file ("паспорт.txt" files)
-                    ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
-                    (let ((passport (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
-                      ;; (print passport)
-                      ))
-                  ;; Если найден файл с описанием объекта
-                  (awhen-file ("описание.txt" files)
-                    ;; (print it)
-                    )
-                  ;; Если найден файл с местоположением объекта
-                  (awhen-file ("местоположение.txt" files)
-                    ;; (print it)
-                    )
-                  ;; Если найден файл с комфортом объекта
-                  (awhen-file ("комфорт.txt" files)
-                    ;; (print it)
-                    )
-                  ;; Если найден файл с детьми объекта
-                  (awhen-file ("дети.txt" files)
-                    ;; (print it)
-                    )
-                  ;; Если найден файл с квартирами объекта
-                  (awhen-file ("Квартиры.csv" files)
-                    ;; (print it)
-                    )
-                  ))))
+     ;; Для каждой подпапке в папке данных..
+     (loop-dir cmpx ()
+        ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
+          (let ((cmpx-id (id (make-cmpx :name cmpx
+                                        :addr (awhen-file ("адрес.txt" files)
+                                                (string-trim '(#\NewLine #\Tab #\Space )
+                                                             (alexandria:read-file-into-string (format nil "~A~A/~A" *data-path* cmpx it))))))))
+            ;; Для каждой подпапки в папке комплекса
+            (loop-dir plex (cmpx)
+               ;; Создаем очередь ЖК
+                 (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
+                   ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
+                   (awhen-file ("data.txt" files)
+                     (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
+                       (upd-plex (get-plex plex-id)
+                                 (list :deadline    (assoc-key "срок сдачи" data)
+                                       :distance    (assoc-key "расстояние до метро" data)
+                                       :finishing   (assoc-key "отделка" data)
+                                       :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
+                                       :installment (or (string= "да" (assoc-key "рассрочка" data)))
+                                       :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
+                                       :district-id (let ((obj (find-district :name (assoc-key "район" data))))
+                                                      (if (null obj)
+                                                          (warn (format nil "район ~A не найден в таблице районов" (assoc-key "район" data)))
+                                                          (id (car obj))))
+                                       :metro-id    (let ((obj (find-metro :name (assoc-key "метро" data))))
+                                                      (if (null obj)
+                                                          (warn (format nil "метро ~A не найдено в таблице метро" (assoc-key "метро" data)))
+                                                          (id (car obj))))))))
+                   ;; Если найден файл с паспортом объекта
+                   (awhen-file ("паспорт.txt" files)
+                     ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
+                     (let ((passport (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
+                       ;; (print passport)
+                       ))
+                   ;; Если найден файл с описанием объекта
+                   (awhen-file ("описание.txt" files)
+                     ;; (print it)
+                     )
+                   ;; Если найден файл с местоположением объекта
+                   (awhen-file ("местоположение.txt" files)
+                     ;; (print it)
+                     )
+                   ;; Если найден файл с комфортом объекта
+                   (awhen-file ("комфорт.txt" files)
+                     ;; (print it)
+                     )
+                   ;; Если найден файл с детьми объекта
+                   (awhen-file ("дети.txt" files)
+                     ;; (print it)
+                     )
+                   ;; Если найден файл с квартирами объекта
+                   (awhen-file ("Квартиры.csv" files)
+                     ;; (print it)
+                     )
+                   ))))
 
 
-    (print (xls-processor "/home/rigidus/repo/moto/data/Десяткино/1 очередь/Квартиры2.xls"))
-  #+END_SRC
+     (print (xls-processor "/home/rigidus/repo/moto/data/Десяткино/1 очередь/Квартиры2.xls"))
+   #+END_SRC
 
 * Точки входа
 
@@ -568,6 +569,115 @@
                "err"))))
    #+END_SRC
 
+** Список ЖК
+
+ #+NAME: trend_fn_contents
+ #+BEGIN_SRC lisp
+
+   (in-package #:moto)
+
+   (define-page all-cmpx-s "/cmpxs"
+     (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
+                  "<br /><br />"
+                  (tbl
+                   (with-collection (i (funcall #'all-cmpx))
+                     (tr
+                      (td
+                       (format nil "<a href=\"/~a/~a\">~a</a>" "cmpx"
+                               (id i) (id i)))
+                      (td (name i)) (td (addr i)) (td (frm %del%))))
+                   :border 1)
+                  "<h2>" "Новый комплекс" "</h2>"
+                  (frm
+                   (tbl
+                    (list
+                     (row "Имя"
+                       (fld "name"))
+                     (row "Адрес"
+                       (fld "name"))))))
+     (:del (act-btn "del" (id i) "Удалить")
+           (progn (del-cmpx (getf p :data)))))
+ #+END_SRC
+
+** Страница ЖК
+
+ #+NAME: iface_contents
+ #+BEGIN_SRC lisp
+
+   (in-package #:moto)
+
+   (define-page cmpx "/cmpx/:cmpx-id"
+     (let* ((i (parse-integer cmpx-id))
+            (u (get-cmpx i)))
+       (if (null u)
+           "Нет такого жилого комплекса"
+           (format nil "~{~A~}"
+                   (list
+                    (format nil "<h1>Страница жилого комплекса ~A</h1>" (id u))
+                    (format nil "<h2>Данные комплекса ~A</h2>" (name u))
+                    (tbl
+                     (with-element (u u)
+                       (row "Название" (name u))
+                       (row "Адрес" (addr u)))
+                     :border 1)
+                    (format nil "<h2>Очереди комплекса ~A</h2>~%~A"
+                            (name u)
+                            (tbl
+                             (with-collection (i (funcall #'all-plex))
+                               (tr
+                                (td
+                                 (format nil "<a href=\"/~a/~a\">~a</a>" "plex"
+                                         (id i) (id i)))
+                                (td (name i)) (td (deadline i)) (td (frm %del%))))
+                             :border 1)
+                    )))))
+     (:del (act-btn "del" (id i) "Удалить")
+           (progn (del-plex (getf p :data)))))
+ #+END_SRC
+
+** Страница очереди ЖК
+
+ #+NAME: iface_contents
+ #+BEGIN_SRC lisp
+
+   (in-package #:moto)
+
+   (define-page plex "/plex/:plex-id"
+     (let* ((i (parse-integer plex-id))
+            (plex (get-plex i)))
+       (if (null plex)
+           "Нет такой очереди у этого жилого комплекса"
+           (format nil "~{~A~}"
+                   (list
+                    (format nil "<h1>Страница очереди жилого комплекса</h1>")
+                    (format nil "<h2>Данные очереди комплекса</h2>")
+                    (tbl
+                     (with-element (plex plex)
+                       (row "Название" (name plex))
+                       (row "Срок сдачи" (deadline plex))
+                       (row "Идентификатор района" (district-id plex))
+                       (row "Идентификатор метро" (metro-id plex))
+                       (row "Расстояние до метро" (distance plex))
+                       (row "Субсидия" (subsidy plex))
+                       (row "Отделка" (finishing plex))
+                       (row "Ипотека" (ipoteka plex))
+                       (row "Рассрочка" (installment plex)))
+                     :border 1)
+                     (format nil "<h2>Корпуса очереди жилого комплекса</h2>~%~A"
+                            (tbl
+                             (with-collection (i (funcall #'all-crps))
+                               (tr
+                                (td
+                                 (format nil "<a href=\"/~a/~a\">~a</a>" "crps"
+                                         (id i) (id i)))
+                                (td (name i)) (td (frm %del%))))
+                             :border 1))))))
+     (:del (act-btn "del" (id i) "Удалить")
+           (progn (del-plex (getf p :data)))))
+ #+END_SRC
+
+** TODO Страница корпуса очереди ЖК
+** TODO Страница планировки
 ** Страничка планировки
 
    [[file:pics/Trend_apartment02.png][Дизайн-макет: Карточка квартиры]]
@@ -1394,7 +1504,7 @@
 
     #+NAME: asm_crps
     #+BEGIN_SRC emacs-lisp :var flds=crps_flds :exports none :session gen
-      (gen-entity "cmps" "корпуса очереди жилого комплекса" flds)
+      (gen-entity "crps" "корпуса очереди жилого комплекса" flds)
     #+END_SRC
 
 *** Планировка
