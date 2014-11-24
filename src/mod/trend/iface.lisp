@@ -199,17 +199,48 @@
            (frm
             (tbl
              (list
-              (row "Район" (fld "district"))
-              (row "Метро" (fld "metro"))
-              (row "Название жк" (fld "cmpx"))
-              (row "Кол-во комнат" (fld "rooms"))
-              (row "Срок сдачи (не позднее)" (fld "deadline"))
-              (row "Стоимость квартиры" (fld "price"))
+              (row "Район"
+                (select ("district")
+                  (list* (list "Не важен" "0")
+                         (with-collection (i (all-district))
+                           (list (name i)
+                                 (id i))))))
+              (row "Метро"
+                (select ("metro")
+                  (list* (list "Любое" "0")
+                         (with-collection (i (all-metro))
+                           (list (name i)
+                                 (id i))))))
+              (row "Название ЖК"
+                (select ("cmpx")
+                  (list* (list "Любой ЖК" "0")
+                         (with-collection (i (all-cmpx))
+                           (list (name i)
+                                 (id i))))))
+              (row "Кол-во комнат"
+                (tbl
+                 (list
+                  (row (input "checkbox" :name "studio" :value t) "Студия")
+                  (row (input "checkbox" :name "one" :value t) "Однокомнатная")
+                  (row (input "checkbox" :name "two" :value t) "Двухкомнатная")
+                  (row (input "checkbox" :name "three" :value t) "Трехкомнатная"))))
+              (row "Срок сдачи (не позднее)"
+                (select ("deadline")
+                  (list* (list "Не важен" "0")
+                         (with-collection (i (all-deadline))
+                           (list (name i)
+                                 (id i))))))
+              (row "Стоимость квартиры"
+                (tbl
+                 (list
+                  (row "от" (fld "price-from"))
+                  (row "до" (fld "price-to")))))
               (row "" %find%))
              :border 1)
             :action "/results")))
   (:find (act-btn "FIND" "FIND" "Искать")
          "Err: redirect to /results!"))
+
 
 (in-package #:moto)
 
@@ -224,45 +255,9 @@
                  (list
                   (format nil "<h1>Страница поиска</h1>")
                   (format nil "<h2>Выборка</h2>")
-                  ;; (format nil "~{~{~A~}<br />~}"
-                  ;; (mapcar #'(lambda (x)
-                  ;;             (format nil "~{~A~}"
-                  ;;                     (list crps-id price)))
-                  (format nil "~{~A<br /><br />~}"
-                          (mapcar #'(lambda (x)
-                                      (bprint
-                                       (list
-                                        :flat-id (id x)
-                                        :crps (mapcar #'(lambda (x)
-                                                          (list :crps-id (id x)
-                                                                :crps-name (name x)
-                                                                :plex (mapcar #'(lambda (x)
-                                                                                  (list :plex-id (id x)
-                                                                                        :cmpx-id (cmpx-id x)
-                                                                                        :name (name x)
-                                                                                        :deadline (deadline x)
-                                                                                        :district-id (district-id x)
-                                                                                        :metro-id (metro-id x)
-                                                                                        :distance (distance x)
-                                                                                        :subsidy (subsidy x)
-                                                                                        :finishing (finishing x)
-                                                                                        :ipoteka (ipoteka x)
-                                                                                        :installment (installment x)))
-                                                                              (find-plex :id (plex-id x)))))
-                                                      (find-crps :id (crps-id x)))
-                                        :rooms (rooms x)
-                                        :area-sum (area-sum x)
-                                        :area-living (area-living x)
-                                        :area-kitchen (area-kitchen x)
-                                        :price (price x)
-                                        :balcon (balcon x)
-                                        :sanuzel (sanuzel x))))
-                                  (find-flat :rooms (parse-integer (getf p :rooms)))))
-                  ;; (row "Название жк" (fld "cmpx"))
-                  ;; (row "Кол-во комнат" (fld "rooms"))
-                  ;; (row "Стоимость квартиры" (fld "price"))
-                  "br />"
-                  (format nil "~A" (bprint p))
+                  (format nil "<br /><br />Параметры поиска: ~A" (bprint p))
+                  ;; (format nil "<br /><br />Сформированный запрос: ~A" (bprint p))
+                  ;; (format nil "<br /><br />Результат: ~A" (bprint p))
                   ))))
 
 ;; - Район
@@ -272,25 +267,27 @@
 ;; - Срок сдачи (не позднее)
 ;; - Стоимость квартиры
 
-;; (print
-;;  (with-connection *db-spec*
-;;    (query
-;;     (:limit
-;;      (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
-;;               :from 'flat
-;;               :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
-;;               :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
-;;               :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
-;;               :inner-join 'district :on (:= 'plex.district_id 'district_id)
-;;               :where (:and (:or (:= 'rooms 1)
-;;                                 (:= 'rooms 3))
-;;                            (:and (:> 'price 1222000)
-;;                                  (:< 'price 3111000))
-;;                            (:= 'district_id 23)
-;;                            (:= 'metro_id 13)
-;;                            (:ilike 'cmpx.name "Десяткино")
-;;                            ;; (:= 'plex.deadline_id 1)
-;;                            )
-;;               )
-;;      2000))))
+;; (let ((district 0))
+;;   (print
+;;    (with-connection *db-spec*
+;;      (query
+;;       (:limit
+;;        (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
+;;                 :from 'flat
+;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
+;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
+;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
+;;                 :inner-join 'district :on (:= 'plex.district_id 'district_id)
+;;                 :where (:and (:or (:= 'rooms 1)
+;;                                   (:= 'rooms 3))
+;;                              (:and (:> 'price 1222000)
+;;                                    (:< 'price 3111000))
+;;                              (if (string= "0" district)
+;;                                  (:= 'district_id 23))
+;;                              (:= 'metro_id 13)
+;;                              (:ilike 'cmpx.name "Десяткино")
+;;                              ;; (:= 'plex.deadline_id 1)
+;;                              )
+;;                 )
+;;        2000)))))
 ;; iface ends here

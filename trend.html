@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль Trend и тесты</title>
-<!-- 2014-11-24 Пн. 04:21 -->
+<!-- 2014-11-24 Пн. 09:48 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -147,22 +147,23 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2">2. Пользователи и роли</a></li>
 <li><a href="#sec-3">3. Определения сущностей</a>
 <ul>
-<li><a href="#sec-3-1">3.1. Жилой комплекс (cmpx)</a></li>
-<li><a href="#sec-3-2">3.2. Очередь жилого комплекса (plex)</a></li>
-<li><a href="#sec-3-3">3.3. Корпус очереди жилого комплекса (crps)</a></li>
-<li><a href="#sec-3-4">3.4. Планировка (flat)</a></li>
-<li><a href="#sec-3-5">3.5. Город (city)</a></li>
-<li><a href="#sec-3-6">3.6. Район (district)</a></li>
-<li><a href="#sec-3-7">3.7. Метро (metro)</a></li>
-<li><a href="#sec-3-8">3.8. <span class="todo nilTODO">TODO</span> Картинки очередей ЖК</a></li>
-<li><a href="#sec-3-9">3.9. <span class="todo nilTODO">TODO</span> Картинки планировок</a></li>
-<li><a href="#sec-3-10">3.10. <span class="todo nilTODO">TODO</span> Картинки хода строительства</a></li>
+<li><a href="#sec-3-1">3.1. <span class="done nilDONE">DONE</span> Жилой комплекс (cmpx)</a></li>
+<li><a href="#sec-3-2">3.2. <span class="done nilDONE">DONE</span> Очередь жилого комплекса (plex)</a></li>
+<li><a href="#sec-3-3">3.3. <span class="done nilDONE">DONE</span> Корпус очереди жилого комплекса (crps)</a></li>
+<li><a href="#sec-3-4">3.4. <span class="done nilDONE">DONE</span> Планировка (flat)</a></li>
+<li><a href="#sec-3-5">3.5. <span class="done nilDONE">DONE</span> Город (city)</a></li>
+<li><a href="#sec-3-6">3.6. <span class="done nilDONE">DONE</span> Район (district)</a></li>
+<li><a href="#sec-3-7">3.7. <span class="done nilDONE">DONE</span> Метро (metro)</a></li>
+<li><a href="#sec-3-8">3.8. <span class="done nilDONE">DONE</span> Сроки сдачи (deadline)</a></li>
+<li><a href="#sec-3-9">3.9. <span class="todo nilTODO">TODO</span> Картинки очередей ЖК</a></li>
+<li><a href="#sec-3-10">3.10. <span class="todo nilTODO">TODO</span> Картинки планировок</a></li>
+<li><a href="#sec-3-11">3.11. <span class="todo nilTODO">TODO</span> Картинки хода строительства</a></li>
 </ul>
 </li>
 <li><a href="#sec-4">4. Загрузка данных</a>
 <ul>
-<li><a href="#sec-4-1">4.1. Утилиты</a></li>
-<li><a href="#sec-4-2">4.2. Загрузчик</a></li>
+<li><a href="#sec-4-1">4.1. <span class="done nilDONE">DONE</span> Утилиты</a></li>
+<li><a href="#sec-4-2">4.2. <span class="todo nilSTART">START</span> Загрузчик</a></li>
 </ul>
 </li>
 <li><a href="#sec-5">5. Точки входа</a></li>
@@ -199,39 +200,39 @@ for the JavaScript code in this tag.
 <li><a href="#sec-6-6-22">6.6.22. <span class="todo nilTODO">TODO</span> Когда было последнее обновление информации о квартире.</a></li>
 </ul>
 </li>
+<li><a href="#sec-6-7">6.7. <span class="todo nilTODO">TODO</span> Поиск квартиры в новостройке</a>
+<ul>
+<li><a href="#sec-6-7-1">6.7.1. <span class="todo nilTODO">TODO</span> Простой поиск</a></li>
+<li><a href="#sec-6-7-2">6.7.2. Расширенный поиск</a></li>
+<li><a href="#sec-6-7-3">6.7.3. Поисковая выдача с картой</a></li>
+<li><a href="#sec-6-7-4">6.7.4. <span class="todo nilSTART">START</span> Поисковая выдача таблицей</a></li>
+<li><a href="#sec-6-7-5">6.7.5. Карточка ЖК</a></li>
+<li><a href="#sec-6-7-6">6.7.6. Карточка квартиры</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#sec-7">7. Проект CRM-системы для отдела продаж</a></li>
 <li><a href="#sec-8">8. Сценарии использования</a>
 <ul>
-<li><a href="#sec-8-1">8.1. Поиск квартиры в новостройке</a>
-<ul>
-<li><a href="#sec-8-1-1">8.1.1. Простой поиск</a></li>
-<li><a href="#sec-8-1-2">8.1.2. Расширенный поиск</a></li>
-<li><a href="#sec-8-1-3">8.1.3. Поисковая выдача с картой</a></li>
-<li><a href="#sec-8-1-4">8.1.4. Поисковая выдача таблицей</a></li>
-<li><a href="#sec-8-1-5">8.1.5. Карточка ЖК</a></li>
-<li><a href="#sec-8-1-6">8.1.6. Карточка квартиры</a></li>
-</ul>
-</li>
-<li><a href="#sec-8-2">8.2. Просто карта</a></li>
-<li><a href="#sec-8-3">8.3. Поиск вторичного жилья</a></li>
-<li><a href="#sec-8-4">8.4. Ипотечный калькулятор в карточке квартиры</a></li>
-<li><a href="#sec-8-5">8.5. Ипотечный калькулятор в отдельном разделе</a></li>
-<li><a href="#sec-8-6">8.6. Калькулятор рассрочки</a></li>
-<li><a href="#sec-8-7">8.7. Запись на демонстрацию квартир</a></li>
-<li><a href="#sec-8-8">8.8. Похожие предложения</a></li>
-<li><a href="#sec-8-9">8.9. Продажа своей квартиры</a></li>
-<li><a href="#sec-8-10">8.10. Обращение в компанию</a></li>
-<li><a href="#sec-8-11">8.11. Подписка на рассылку</a></li>
-<li><a href="#sec-8-12">8.12. Сравнение</a></li>
-<li><a href="#sec-8-13">8.13. Избранное</a></li>
-<li><a href="#sec-8-14">8.14. "Просмотрено" - список объектов просмотренных пользователем ранее</a></li>
-<li><a href="#sec-8-15">8.15. Хранение и визуализация истории цен по объекту (!) (менеджер и возможно клиент)</a></li>
-<li><a href="#sec-8-16">8.16. <span class="todo nilTODO">TODO</span> Внесение данных контентщиком</a></li>
-<li><a href="#sec-8-17">8.17. <span class="todo nilTODO">TODO</span> Внесение данных объектов роботом</a></li>
-<li><a href="#sec-8-18">8.18. <span class="todo nilTODO">TODO</span> Контент-менеджер заполняет паспорт объекта</a></li>
-<li><a href="#sec-8-19">8.19. <span class="todo nilTODO">TODO</span> Скачать pdf</a></li>
+<li><a href="#sec-8-1">8.1. Просто карта</a></li>
+<li><a href="#sec-8-2">8.2. Поиск вторичного жилья</a></li>
+<li><a href="#sec-8-3">8.3. Ипотечный калькулятор в карточке квартиры</a></li>
+<li><a href="#sec-8-4">8.4. Ипотечный калькулятор в отдельном разделе</a></li>
+<li><a href="#sec-8-5">8.5. Калькулятор рассрочки</a></li>
+<li><a href="#sec-8-6">8.6. Запись на демонстрацию квартир</a></li>
+<li><a href="#sec-8-7">8.7. Похожие предложения</a></li>
+<li><a href="#sec-8-8">8.8. Продажа своей квартиры</a></li>
+<li><a href="#sec-8-9">8.9. Обращение в компанию</a></li>
+<li><a href="#sec-8-10">8.10. Подписка на рассылку</a></li>
+<li><a href="#sec-8-11">8.11. Сравнение</a></li>
+<li><a href="#sec-8-12">8.12. Избранное</a></li>
+<li><a href="#sec-8-13">8.13. "Просмотрено" - список объектов просмотренных пользователем ранее</a></li>
+<li><a href="#sec-8-14">8.14. Хранение и визуализация истории цен по объекту (!) (менеджер и возможно клиент)</a></li>
+<li><a href="#sec-8-15">8.15. <span class="todo nilTODO">TODO</span> Внесение данных контентщиком</a></li>
+<li><a href="#sec-8-16">8.16. <span class="todo nilTODO">TODO</span> Внесение данных объектов роботом</a></li>
+<li><a href="#sec-8-17">8.17. <span class="todo nilTODO">TODO</span> Контент-менеджер заполняет паспорт объекта</a></li>
+<li><a href="#sec-8-18">8.18. <span class="todo nilTODO">TODO</span> Скачать pdf</a></li>
 </ul>
 </li>
 <li><a href="#sec-9">9. Тесты</a></li>
@@ -250,6 +251,7 @@ for the JavaScript code in this tag.
 <li><a href="#sec-14-1-5">14.1.5. Город</a></li>
 <li><a href="#sec-14-1-6">14.1.6. Районы</a></li>
 <li><a href="#sec-14-1-7">14.1.7. Метро</a></li>
+<li><a href="#sec-14-1-8">14.1.8. Сроки сдачи</a></li>
 </ul>
 </li>
 <li><a href="#sec-14-2">14.2. Загрузчик данных из файлов</a></li>
@@ -259,6 +261,10 @@ for the JavaScript code in this tag.
 </div>
 </div>
 <link rel="stylesheet" type="text/css" href="css/css.css" />
+
+<p>
+одна и та же планировка может быть в двух очередях и даже в двух комплексах.
+</p>
 
 <div id="outline-container-sec-1" class="outline-2">
 <h2 id="sec-1"><span class="section-number-2">1</span> Бизнес-процесс и цели</h2>
@@ -502,7 +508,7 @@ for the JavaScript code in this tag.
 <h2 id="sec-3"><span class="section-number-2">3</span> Определения сущностей</h2>
 <div class="outline-text-2" id="text-3">
 </div><div id="outline-container-sec-3-1" class="outline-3">
-<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Жилой комплекс (cmpx)</h3>
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> <span class="done DONE">DONE</span> Жилой комплекс (cmpx)</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 Эта сущность нужна только чтобы объединять очереди жилого комплекса
@@ -549,7 +555,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-2" class="outline-3">
-<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Очередь жилого комплекса (plex)</h3>
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> <span class="done DONE">DONE</span> Очередь жилого комплекса (plex)</h3>
 <div class="outline-text-3" id="text-3-2">
 <table id="plex_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 2:</span> Данные очереди жилого комплекса</caption>
@@ -640,7 +646,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-3" class="outline-3">
-<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Корпус очереди жилого комплекса (crps)</h3>
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> <span class="done DONE">DONE</span> Корпус очереди жилого комплекса (crps)</h3>
 <div class="outline-text-3" id="text-3-3">
 <table id="crps_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 3:</span> Данные корпуса очереди жилого комплекса</caption>
@@ -683,7 +689,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-4" class="outline-3">
-<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Планировка (flat)</h3>
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> <span class="done DONE">DONE</span> Планировка (flat)</h3>
 <div class="outline-text-3" id="text-3-4">
 <table id="flat_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 4:</span> Данные планировки</caption>
@@ -762,7 +768,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-5" class="outline-3">
-<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Город (city)</h3>
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> <span class="done DONE">DONE</span> Город (city)</h3>
 <div class="outline-text-3" id="text-3-5">
 <p>
 Город в котором находится объект
@@ -803,7 +809,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-6" class="outline-3">
-<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Район (district)</h3>
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> <span class="done DONE">DONE</span> Район (district)</h3>
 <div class="outline-text-3" id="text-3-6">
 <p>
 Район города, в котором находится объект
@@ -844,7 +850,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-7" class="outline-3">
-<h3 id="sec-3-7"><span class="section-number-3">3.7</span> Метро (metro)</h3>
+<h3 id="sec-3-7"><span class="section-number-3">3.7</span> <span class="done DONE">DONE</span> Метро (metro)</h3>
 <div class="outline-text-3" id="text-3-7">
 <p>
 Метро неподалеку от объекта
@@ -885,13 +891,54 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-8" class="outline-3">
-<h3 id="sec-3-8"><span class="section-number-3">3.8</span> <span class="todo TODO">TODO</span> Картинки очередей ЖК</h3>
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> <span class="done DONE">DONE</span> Сроки сдачи (deadline)</h3>
+<div class="outline-text-3" id="text-3-8">
+<p>
+Сроки сдачи объектов
+</p>
+
+<table id="deadline_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 8:</span> Данные метро</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">название станции</td>
+</tr>
+</tbody>
+</table>
 </div>
+</div>
+
 <div id="outline-container-sec-3-9" class="outline-3">
-<h3 id="sec-3-9"><span class="section-number-3">3.9</span> <span class="todo TODO">TODO</span> Картинки планировок</h3>
+<h3 id="sec-3-9"><span class="section-number-3">3.9</span> <span class="todo TODO">TODO</span> Картинки очередей ЖК</h3>
 </div>
 <div id="outline-container-sec-3-10" class="outline-3">
-<h3 id="sec-3-10"><span class="section-number-3">3.10</span> <span class="todo TODO">TODO</span> Картинки хода строительства</h3>
+<h3 id="sec-3-10"><span class="section-number-3">3.10</span> <span class="todo TODO">TODO</span> Картинки планировок</h3>
+</div>
+<div id="outline-container-sec-3-11" class="outline-3">
+<h3 id="sec-3-11"><span class="section-number-3">3.11</span> <span class="todo TODO">TODO</span> Картинки хода строительства</h3>
 </div>
 </div>
 <div id="outline-container-sec-4" class="outline-2">
@@ -962,7 +1009,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-4-1" class="outline-3">
-<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Утилиты</h3>
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> <span class="done DONE">DONE</span> Утилиты</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 Напишем проход по всем этим директориям, но перед этим необходимо определить ряд
@@ -1135,7 +1182,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-4-2" class="outline-3">
-<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Загрузчик</h3>
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> <span class="todo START">START</span> Загрузчик</h3>
 <div class="outline-text-3" id="text-4-2">
 <p>
 Теперь переходим к загрузке данных:
@@ -1290,8 +1337,19 @@ for the JavaScript code in this tag.
 <h2 id="sec-6"><span class="section-number-2">6</span> Interface</h2>
 <div class="outline-text-2" id="text-6">
 <p>
-одна и та же планировка может быть в двух очередях и даже в двух комплексах
+Соберем веб-интерфейс:
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface"><span style="color: #b22222;">;;;; </span><span style="color: #b22222;">iface.lisp</span>
+
+(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;</span>
+&lt;&lt;iface_contents&gt;&gt;
+</pre>
+</div>
 </div>
 
 <div id="outline-container-sec-6-1" class="outline-3">
@@ -1299,7 +1357,7 @@ for the JavaScript code in this tag.
 <div class="outline-text-3" id="text-6-1">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
 (restas:define-route load-data (<span style="color: #8b2252;">"/load"</span>)
@@ -1335,7 +1393,7 @@ for the JavaScript code in this tag.
 <div class="outline-text-3" id="text-6-2">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">define-page</span> all-cmpx-s <span style="color: #8b2252;">"/cmpxs"</span>
   (concatenate 'string <span style="color: #8b2252;">"&lt;h1&gt;"</span> <span style="color: #8b2252;">"&#1046;&#1080;&#1083;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1099;"</span> <span style="color: #8b2252;">"&lt;/h1&gt;"</span> <span style="color: #8b2252;">""</span>
@@ -1360,7 +1418,7 @@ for the JavaScript code in this tag.
 <div class="outline-text-3" id="text-6-3">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">define-page</span> cmpx <span style="color: #8b2252;">"/cmpx/:cmpx-id"</span>
   (<span style="color: #a020f0;">let*</span> ((i (parse-integer cmpx-id))
@@ -1398,7 +1456,7 @@ for the JavaScript code in this tag.
 <div class="outline-text-3" id="text-6-4">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">define-page</span> plex <span style="color: #8b2252;">"/plex/:plex-id"</span>
   (<span style="color: #a020f0;">let*</span> ((i (parse-integer plex-id))
@@ -1442,7 +1500,7 @@ for the JavaScript code in this tag.
 <div class="outline-text-3" id="text-6-5">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">define-page</span> crps <span style="color: #8b2252;">"/crps/:crps-id"</span>
   (<span style="color: #a020f0;">let*</span> ((i (parse-integer crps-id))
@@ -1504,7 +1562,7 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(in-package #:moto)</span>
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">(restas:define-route flat ("/flat/:flatid")</span>
 <span style="color: #b22222;">;;   </span><span style="color: #b22222;">(with-wrapper</span>
@@ -1516,10 +1574,9 @@ for the JavaScript code in this tag.
 </pre>
 </div>
 
-
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">define-page</span> flat <span style="color: #8b2252;">"/flat/:flat-id"</span>
   (<span style="color: #a020f0;">let*</span> ((i (parse-integer flat-id))
@@ -1546,7 +1603,6 @@ for the JavaScript code in this tag.
 </pre>
 </div>
 </div>
-
 
 <div id="outline-container-sec-6-6-1" class="outline-4">
 <h4 id="sec-6-6-1"><span class="section-number-4">6.6.1</span> <span class="todo TODO">TODO</span> Pop-up</h4>
@@ -1771,24 +1827,10 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
-</div>
 
-<div id="outline-container-sec-7" class="outline-2">
-<h2 id="sec-7"><span class="section-number-2">7</span> Проект CRM-системы для отдела продаж</h2>
-<div class="outline-text-2" id="text-7">
-<p>
-Обращение стоит денег, его надо оформлять в объект базы CRM - чтобы
-не терялись. В первую очередь необходимо зафиксировать телефон, с
-которого звонит клиент
-</p>
-</div>
-</div>
-<div id="outline-container-sec-8" class="outline-2">
-<h2 id="sec-8"><span class="section-number-2">8</span> Сценарии использования</h2>
-<div class="outline-text-2" id="text-8">
-</div><div id="outline-container-sec-8-1" class="outline-3">
-<h3 id="sec-8-1"><span class="section-number-3">8.1</span> Поиск квартиры в новостройке</h3>
-<div class="outline-text-3" id="text-8-1">
+<div id="outline-container-sec-6-7" class="outline-3">
+<h3 id="sec-6-7"><span class="section-number-3">6.7</span> <span class="todo TODO">TODO</span> Поиск квартиры в новостройке</h3>
+<div class="outline-text-3" id="text-6-7">
 <p>
 Клиент может искать квартиру используя <code>простой поиск</code> или <code>расширенный поиск</code>. В сложном
 поиске больше параметров. В обоих случаях он получает одну и ту же выдачу, которая может быть
@@ -1802,9 +1844,9 @@ for the JavaScript code in this tag.
 </p>
 </div>
 
-<div id="outline-container-sec-8-1-1" class="outline-4">
-<h4 id="sec-8-1-1"><span class="section-number-4">8.1.1</span> Простой поиск</h4>
-<div class="outline-text-4" id="text-8-1-1">
+<div id="outline-container-sec-6-7-1" class="outline-4">
+<h4 id="sec-6-7-1"><span class="section-number-4">6.7.1</span> <span class="todo TODO">TODO</span> Простой поиск</h4>
+<div class="outline-text-4" id="text-6-7-1">
 <p>
 <a href="pics/Trend_mainpage.png">Дизайн-макет: Простой поиск на главной странице</a>
 </p>
@@ -1835,12 +1877,68 @@ for the JavaScript code in this tag.
 <p>
 Пользователь, выполнивший простой поиск попадает в выдачу.
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> findpage <span style="color: #8b2252;">"/find"</span>
+  (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+          (list
+           (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;&lt;/h1&gt;"</span>)
+           (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082;&lt;/h2&gt;"</span>)
+           (frm
+            (tbl
+             (list
+              (row <span style="color: #8b2252;">"&#1056;&#1072;&#1081;&#1086;&#1085;"</span>
+                (select (<span style="color: #8b2252;">"district"</span>)
+                  (list* (list <span style="color: #8b2252;">"&#1053;&#1077; &#1074;&#1072;&#1078;&#1077;&#1085;"</span> <span style="color: #8b2252;">"0"</span>)
+                         (<span style="color: #a020f0;">with-collection</span> (i (all-district))
+                           (list (name i)
+                                 (id i))))))
+              (row <span style="color: #8b2252;">"&#1052;&#1077;&#1090;&#1088;&#1086;"</span>
+                (select (<span style="color: #8b2252;">"metro"</span>)
+                  (list* (list <span style="color: #8b2252;">"&#1051;&#1102;&#1073;&#1086;&#1077;"</span> <span style="color: #8b2252;">"0"</span>)
+                         (<span style="color: #a020f0;">with-collection</span> (i (all-metro))
+                           (list (name i)
+                                 (id i))))))
+              (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077; &#1046;&#1050;"</span>
+                (select (<span style="color: #8b2252;">"cmpx"</span>)
+                  (list* (list <span style="color: #8b2252;">"&#1051;&#1102;&#1073;&#1086;&#1081; &#1046;&#1050;"</span> <span style="color: #8b2252;">"0"</span>)
+                         (<span style="color: #a020f0;">with-collection</span> (i (all-cmpx))
+                           (list (name i)
+                                 (id i))))))
+              (row <span style="color: #8b2252;">"&#1050;&#1086;&#1083;-&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;"</span>
+                (tbl
+                 (list
+                  (row (input <span style="color: #8b2252;">"checkbox"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"studio"</span> <span style="color: #483d8b;">:value</span> t) <span style="color: #8b2252;">"&#1057;&#1090;&#1091;&#1076;&#1080;&#1103;"</span>)
+                  (row (input <span style="color: #8b2252;">"checkbox"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"one"</span> <span style="color: #483d8b;">:value</span> t) <span style="color: #8b2252;">"&#1054;&#1076;&#1085;&#1086;&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103;"</span>)
+                  (row (input <span style="color: #8b2252;">"checkbox"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"two"</span> <span style="color: #483d8b;">:value</span> t) <span style="color: #8b2252;">"&#1044;&#1074;&#1091;&#1093;&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103;"</span>)
+                  (row (input <span style="color: #8b2252;">"checkbox"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"three"</span> <span style="color: #483d8b;">:value</span> t) <span style="color: #8b2252;">"&#1058;&#1088;&#1077;&#1093;&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103;"</span>))))
+              (row <span style="color: #8b2252;">"&#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080; (&#1085;&#1077; &#1087;&#1086;&#1079;&#1076;&#1085;&#1077;&#1077;)"</span>
+                (select (<span style="color: #8b2252;">"deadline"</span>)
+                  (list* (list <span style="color: #8b2252;">"&#1053;&#1077; &#1074;&#1072;&#1078;&#1077;&#1085;"</span> <span style="color: #8b2252;">"0"</span>)
+                         (<span style="color: #a020f0;">with-collection</span> (i (all-deadline))
+                           (list (name i)
+                                 (id i))))))
+              (row <span style="color: #8b2252;">"&#1057;&#1090;&#1086;&#1080;&#1084;&#1086;&#1089;&#1090;&#1100; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;"</span>
+                (tbl
+                 (list
+                  (row <span style="color: #8b2252;">"&#1086;&#1090;"</span> (fld <span style="color: #8b2252;">"price-from"</span>))
+                  (row <span style="color: #8b2252;">"&#1076;&#1086;"</span> (fld <span style="color: #8b2252;">"price-to"</span>)))))
+              (row <span style="color: #8b2252;">""</span> %find%))
+             <span style="color: #483d8b;">:border</span> 1)
+            <span style="color: #483d8b;">:action</span> <span style="color: #8b2252;">"/results"</span>)))
+  (<span style="color: #483d8b;">:find</span> (act-btn <span style="color: #8b2252;">"FIND"</span> <span style="color: #8b2252;">"FIND"</span> <span style="color: #8b2252;">"&#1048;&#1089;&#1082;&#1072;&#1090;&#1100;"</span>)
+         <span style="color: #8b2252;">"Err: redirect to /results!"</span>))
+</pre>
+</div>
 </div>
 </div>
 
-<div id="outline-container-sec-8-1-2" class="outline-4">
-<h4 id="sec-8-1-2"><span class="section-number-4">8.1.2</span> Расширенный поиск</h4>
-<div class="outline-text-4" id="text-8-1-2">
+<div id="outline-container-sec-6-7-2" class="outline-4">
+<h4 id="sec-6-7-2"><span class="section-number-4">6.7.2</span> Расширенный поиск</h4>
+<div class="outline-text-4" id="text-6-7-2">
 <p>
 <a href="pics/Trend_mainpage_search.png">Дизайн-макет: Расширенный поиск на главной странице</a>
 </p>
@@ -1885,9 +1983,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-8-1-3" class="outline-4">
-<h4 id="sec-8-1-3"><span class="section-number-4">8.1.3</span> Поисковая выдача с картой</h4>
-<div class="outline-text-4" id="text-8-1-3">
+<div id="outline-container-sec-6-7-3" class="outline-4">
+<h4 id="sec-6-7-3"><span class="section-number-4">6.7.3</span> Поисковая выдача с картой</h4>
+<div class="outline-text-4" id="text-6-7-3">
 <p>
 <a href="pics/Trend_search12_map.png">Дизайн-макет: Поисковая выдача с картой</a>
 </p>
@@ -1969,9 +2067,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-8-1-4" class="outline-4">
-<h4 id="sec-8-1-4"><span class="section-number-4">8.1.4</span> Поисковая выдача таблицей</h4>
-<div class="outline-text-4" id="text-8-1-4">
+<div id="outline-container-sec-6-7-4" class="outline-4">
+<h4 id="sec-6-7-4"><span class="section-number-4">6.7.4</span> <span class="todo START">START</span> Поисковая выдача таблицей</h4>
+<div class="outline-text-4" id="text-6-7-4">
 <p>
 <a href="pics/Trend_search11_list.png">Дизайн-макет: Поисковая выдача таблицей</a>
 </p>
@@ -2020,12 +2118,65 @@ for the JavaScript code in this tag.
 <p>
 После выдачи идет блок похожих предложений, но возможно откажемся от этого блока здесь.
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> results <span style="color: #8b2252;">"/results"</span>
+  (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+          (list
+           (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;&lt;/h1&gt;"</span>)
+           (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082;&lt;/h2&gt;"</span>)
+           <span style="color: #8b2252;">"&#1055;&#1091;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1081; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;"</span>))
+  (<span style="color: #483d8b;">:find</span> (act-btn <span style="color: #8b2252;">"FIND"</span> <span style="color: #8b2252;">"FIND"</span> <span style="color: #8b2252;">"&#1048;&#1089;&#1082;&#1072;&#1090;&#1100;"</span>)
+         (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                 (list
+                  (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;&lt;/h1&gt;"</span>)
+                  (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1042;&#1099;&#1073;&#1086;&#1088;&#1082;&#1072;&lt;/h2&gt;"</span>)
+                  (format nil <span style="color: #8b2252;">"&lt;br /&gt;&lt;br /&gt;&#1055;&#1072;&#1088;&#1072;&#1084;&#1077;&#1090;&#1088;&#1099; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;: ~A"</span> (bprint p))
+                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(format nil "&lt;br /&gt;&lt;br /&gt;&#1057;&#1092;&#1086;&#1088;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1081; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;: ~A" (bprint p))</span>
+                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(format nil "&lt;br /&gt;&lt;br /&gt;&#1056;&#1077;&#1079;&#1091;&#1083;&#1100;&#1090;&#1072;&#1090;: ~A" (bprint p))</span>
+                  ))))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1056;&#1072;&#1081;&#1086;&#1085;</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1052;&#1077;&#1090;&#1088;&#1086;</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077; &#1078;&#1080;&#1083;&#1080;&#1097;&#1085;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1050;&#1086;&#1083;&#1080;&#1095;&#1077;&#1089;&#1090;&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080; (&#1085;&#1077; &#1087;&#1086;&#1079;&#1076;&#1085;&#1077;&#1077;)</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1057;&#1090;&#1086;&#1080;&#1084;&#1086;&#1089;&#1090;&#1100; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(let ((district 0))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(with-connection *db-spec*</span>
+<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(query</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(:limit</span>
+<span style="color: #b22222;">;;        </span><span style="color: #b22222;">(:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:from 'flat</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'crps :on (:= 'flat.crps_id 'crps_id)</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'plex :on (:= 'crps.plex_id 'plex_id)</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'district :on (:= 'plex.district_id 'district_id)</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:where (:and (:or (:= 'rooms 1)</span>
+<span style="color: #b22222;">;;                                   </span><span style="color: #b22222;">(:= 'rooms 3))</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(:and (:&gt; 'price 1222000)</span>
+<span style="color: #b22222;">;;                                    </span><span style="color: #b22222;">(:&lt; 'price 3111000))</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(if (string= "0" district)</span>
+<span style="color: #b22222;">;;                                  </span><span style="color: #b22222;">(:= 'district_id 23))</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(:= 'metro_id 13)</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(:ilike 'cmpx.name "&#1044;&#1077;&#1089;&#1103;&#1090;&#1082;&#1080;&#1085;&#1086;")</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">;; (:= 'plex.deadline_id 1)</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">)</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">)</span>
+<span style="color: #b22222;">;;        </span><span style="color: #b22222;">2000)))))</span>
+</pre>
+</div>
 </div>
 </div>
 
-<div id="outline-container-sec-8-1-5" class="outline-4">
-<h4 id="sec-8-1-5"><span class="section-number-4">8.1.5</span> Карточка ЖК</h4>
-<div class="outline-text-4" id="text-8-1-5">
+<div id="outline-container-sec-6-7-5" class="outline-4">
+<h4 id="sec-6-7-5"><span class="section-number-4">6.7.5</span> Карточка ЖК</h4>
+<div class="outline-text-4" id="text-6-7-5">
 <p>
 На самом деле это не карточка Жилищного Комплекса, а скорее карточка одной из его очередей,
 т.к. большинство параметров различаются между очередями. С другой стороны все очереди одного
@@ -2195,9 +2346,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-8-1-6" class="outline-4">
-<h4 id="sec-8-1-6"><span class="section-number-4">8.1.6</span> Карточка квартиры</h4>
-<div class="outline-text-4" id="text-8-1-6">
+<div id="outline-container-sec-6-7-6" class="outline-4">
+<h4 id="sec-6-7-6"><span class="section-number-4">6.7.6</span> Карточка квартиры</h4>
+<div class="outline-text-4" id="text-6-7-6">
 <p>
 <a href="pics/Trend_apartment02.png">Дизайн-макет: Карточка квартиры</a>
 </p>
@@ -2313,10 +2464,24 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
+</div>
 
-<div id="outline-container-sec-8-2" class="outline-3">
-<h3 id="sec-8-2"><span class="section-number-3">8.2</span> Просто карта</h3>
-<div class="outline-text-3" id="text-8-2">
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Проект CRM-системы для отдела продаж</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+Обращение стоит денег, его надо оформлять в объект базы CRM - чтобы
+не терялись. В первую очередь необходимо зафиксировать телефон, с
+которого звонит клиент
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Сценарии использования</h2>
+<div class="outline-text-2" id="text-8">
+</div><div id="outline-container-sec-8-1" class="outline-3">
+<h3 id="sec-8-1"><span class="section-number-3">8.1</span> Просто карта</h3>
+<div class="outline-text-3" id="text-8-1">
 <p>
 Макета нет, но можно ориентировать на Trend<sub>search</sub><sub>map</sub>.
 </p>
@@ -2356,9 +2521,9 @@ ostrovok.ru
 </div>
 </div>
 
-<div id="outline-container-sec-8-3" class="outline-3">
-<h3 id="sec-8-3"><span class="section-number-3">8.3</span> Поиск вторичного жилья</h3>
-<div class="outline-text-3" id="text-8-3">
+<div id="outline-container-sec-8-2" class="outline-3">
+<h3 id="sec-8-2"><span class="section-number-3">8.2</span> Поиск вторичного жилья</h3>
+<div class="outline-text-3" id="text-8-2">
 <p>
 В первом релизе не будет.
 </p>
@@ -2381,9 +2546,9 @@ ostrovok.ru
 </div>
 </div>
 
-<div id="outline-container-sec-8-4" class="outline-3">
-<h3 id="sec-8-4"><span class="section-number-3">8.4</span> Ипотечный калькулятор в карточке квартиры</h3>
-<div class="outline-text-3" id="text-8-4">
+<div id="outline-container-sec-8-3" class="outline-3">
+<h3 id="sec-8-3"><span class="section-number-3">8.3</span> Ипотечный калькулятор в карточке квартиры</h3>
+<div class="outline-text-3" id="text-8-3">
 <p>
 Задачи:
 </p>
@@ -2429,9 +2594,9 @@ ostrovok.ru
 </div>
 </div>
 
-<div id="outline-container-sec-8-5" class="outline-3">
-<h3 id="sec-8-5"><span class="section-number-3">8.5</span> Ипотечный калькулятор в отдельном разделе</h3>
-<div class="outline-text-3" id="text-8-5">
+<div id="outline-container-sec-8-4" class="outline-3">
+<h3 id="sec-8-4"><span class="section-number-3">8.4</span> Ипотечный калькулятор в отдельном разделе</h3>
+<div class="outline-text-3" id="text-8-4">
 <p>
 Ипотечный калькулятор используется клиентом чтобы расчитать ипотеку неважно для какой
 квартиры. После рассчета можно отдать клиенту выборку подходящих квартир.
@@ -2482,9 +2647,9 @@ ostrovok.ru
 </div>
 </div>
 
-<div id="outline-container-sec-8-6" class="outline-3">
-<h3 id="sec-8-6"><span class="section-number-3">8.6</span> Калькулятор рассрочки</h3>
-<div class="outline-text-3" id="text-8-6">
+<div id="outline-container-sec-8-5" class="outline-3">
+<h3 id="sec-8-5"><span class="section-number-3">8.5</span> Калькулятор рассрочки</h3>
+<div class="outline-text-3" id="text-8-5">
 <p>
 Чем сложнее чем ипотечный калькулятор?
 </p>
@@ -2519,17 +2684,17 @@ ostrovok.ru
 </div>
 </div>
 
-<div id="outline-container-sec-8-7" class="outline-3">
-<h3 id="sec-8-7"><span class="section-number-3">8.7</span> Запись на демонстрацию квартир</h3>
-<div class="outline-text-3" id="text-8-7">
+<div id="outline-container-sec-8-6" class="outline-3">
+<h3 id="sec-8-6"><span class="section-number-3">8.6</span> Запись на демонстрацию квартир</h3>
+<div class="outline-text-3" id="text-8-6">
 <p>
 Просто форма заявки, пусть клиент запоняет.
 </p>
 </div>
 </div>
-<div id="outline-container-sec-8-8" class="outline-3">
-<h3 id="sec-8-8"><span class="section-number-3">8.8</span> Похожие предложения</h3>
-<div class="outline-text-3" id="text-8-8">
+<div id="outline-container-sec-8-7" class="outline-3">
+<h3 id="sec-8-7"><span class="section-number-3">8.7</span> Похожие предложения</h3>
+<div class="outline-text-3" id="text-8-7">
 <p>
 Первый вариант - назначает менеджер вручную, в первом релизе можно ограничиться им.
 Второй вариант - назначить алгоритмом:
@@ -2547,25 +2712,25 @@ ostrovok.ru
 </p>
 </div>
 </div>
-<div id="outline-container-sec-8-9" class="outline-3">
-<h3 id="sec-8-9"><span class="section-number-3">8.9</span> Продажа своей квартиры</h3>
-<div class="outline-text-3" id="text-8-9">
+<div id="outline-container-sec-8-8" class="outline-3">
+<h3 id="sec-8-8"><span class="section-number-3">8.8</span> Продажа своей квартиры</h3>
+<div class="outline-text-3" id="text-8-8">
 <p>
 Ссылка на контакты пока или форму заявки.
 </p>
 </div>
 </div>
-<div id="outline-container-sec-8-10" class="outline-3">
-<h3 id="sec-8-10"><span class="section-number-3">8.10</span> Обращение в компанию</h3>
-<div class="outline-text-3" id="text-8-10">
+<div id="outline-container-sec-8-9" class="outline-3">
+<h3 id="sec-8-9"><span class="section-number-3">8.9</span> Обращение в компанию</h3>
+<div class="outline-text-3" id="text-8-9">
 <p>
 Контакты
 </p>
 </div>
 </div>
-<div id="outline-container-sec-8-11" class="outline-3">
-<h3 id="sec-8-11"><span class="section-number-3">8.11</span> Подписка на рассылку</h3>
-<div class="outline-text-3" id="text-8-11">
+<div id="outline-container-sec-8-10" class="outline-3">
+<h3 id="sec-8-10"><span class="section-number-3">8.10</span> Подписка на рассылку</h3>
+<div class="outline-text-3" id="text-8-10">
 <p>
 В первом релизе можно обойтись без нее.
 Рассылка долждна быть в нескольких вариантах.
@@ -2580,9 +2745,9 @@ ostrovok.ru
 </ul>
 </div>
 </div>
-<div id="outline-container-sec-8-12" class="outline-3">
-<h3 id="sec-8-12"><span class="section-number-3">8.12</span> Сравнение</h3>
-<div class="outline-text-3" id="text-8-12">
+<div id="outline-container-sec-8-11" class="outline-3">
+<h3 id="sec-8-11"><span class="section-number-3">8.11</span> Сравнение</h3>
+<div class="outline-text-3" id="text-8-11">
 <p>
 Trend<sub>comparisioon</sub>
 </p>
@@ -2654,9 +2819,9 @@ Trend<sub>comparisioon</sub>
 </div>
 </div>
 
-<div id="outline-container-sec-8-13" class="outline-3">
-<h3 id="sec-8-13"><span class="section-number-3">8.13</span> Избранное</h3>
-<div class="outline-text-3" id="text-8-13">
+<div id="outline-container-sec-8-12" class="outline-3">
+<h3 id="sec-8-12"><span class="section-number-3">8.12</span> Избранное</h3>
+<div class="outline-text-3" id="text-8-12">
 <p>
 Trend<sub>favorite</sub><sub>map</sub>
 </p>
@@ -2669,9 +2834,9 @@ Trend<sub>favorite</sub><sub>map</sub>
 </div>
 </div>
 
-<div id="outline-container-sec-8-14" class="outline-3">
-<h3 id="sec-8-14"><span class="section-number-3">8.14</span> "Просмотрено" - список объектов просмотренных пользователем ранее</h3>
-<div class="outline-text-3" id="text-8-14">
+<div id="outline-container-sec-8-13" class="outline-3">
+<h3 id="sec-8-13"><span class="section-number-3">8.13</span> "Просмотрено" - список объектов просмотренных пользователем ранее</h3>
+<div class="outline-text-3" id="text-8-13">
 <p>
 Отображается точно также как избранное, но заносим мы туда только комплексы, без
 квартир. Непонятно почему?
@@ -2679,9 +2844,9 @@ Trend<sub>favorite</sub><sub>map</sub>
 </div>
 </div>
 
-<div id="outline-container-sec-8-15" class="outline-3">
-<h3 id="sec-8-15"><span class="section-number-3">8.15</span> Хранение и визуализация истории цен по объекту (!) (менеджер и возможно клиент)</h3>
-<div class="outline-text-3" id="text-8-15">
+<div id="outline-container-sec-8-14" class="outline-3">
+<h3 id="sec-8-14"><span class="section-number-3">8.14</span> Хранение и визуализация истории цен по объекту (!) (менеджер и возможно клиент)</h3>
+<div class="outline-text-3" id="text-8-14">
 <p>
 Это нужно чтобы показать клиенту инвестиционную привлекательность квартиры в этом корпусе.
 </p>
@@ -2700,23 +2865,23 @@ Trend<sub>favorite</sub><sub>map</sub>
 </p>
 </div>
 </div>
-<div id="outline-container-sec-8-16" class="outline-3">
-<h3 id="sec-8-16"><span class="section-number-3">8.16</span> <span class="todo TODO">TODO</span> Внесение данных контентщиком</h3>
-<div class="outline-text-3" id="text-8-16">
+<div id="outline-container-sec-8-15" class="outline-3">
+<h3 id="sec-8-15"><span class="section-number-3">8.15</span> <span class="todo TODO">TODO</span> Внесение данных контентщиком</h3>
+<div class="outline-text-3" id="text-8-15">
 <p>
 Посмотреть админку
 Построить файловую иерархию для обновления данных
 </p>
 </div>
 </div>
+<div id="outline-container-sec-8-16" class="outline-3">
+<h3 id="sec-8-16"><span class="section-number-3">8.16</span> <span class="todo TODO">TODO</span> Внесение данных объектов роботом</h3>
+</div>
 <div id="outline-container-sec-8-17" class="outline-3">
-<h3 id="sec-8-17"><span class="section-number-3">8.17</span> <span class="todo TODO">TODO</span> Внесение данных объектов роботом</h3>
+<h3 id="sec-8-17"><span class="section-number-3">8.17</span> <span class="todo TODO">TODO</span> Контент-менеджер заполняет паспорт объекта</h3>
 </div>
 <div id="outline-container-sec-8-18" class="outline-3">
-<h3 id="sec-8-18"><span class="section-number-3">8.18</span> <span class="todo TODO">TODO</span> Контент-менеджер заполняет паспорт объекта</h3>
-</div>
-<div id="outline-container-sec-8-19" class="outline-3">
-<h3 id="sec-8-19"><span class="section-number-3">8.19</span> <span class="todo TODO">TODO</span> Скачать pdf</h3>
+<h3 id="sec-8-18"><span class="section-number-3">8.18</span> <span class="todo TODO">TODO</span> Скачать pdf</h3>
 </div>
 </div>
 <div id="outline-container-sec-9" class="outline-2">
@@ -2951,6 +3116,33 @@ cian.ru
 (make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1063;&#1077;&#1088;&#1085;&#1099;&#1096;&#1077;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
 (make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1063;&#1082;&#1072;&#1083;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
 (make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1069;&#1083;&#1077;&#1082;&#1090;&#1088;&#1086;&#1089;&#1080;&#1083;&#1072;"</span>)
+
+&lt;&lt;asm_deadline()&gt;&gt;
+
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"1 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2015"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"2 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2015"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"3 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2015"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"4 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2015"</span>)
+
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"1 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2016"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"2 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2016"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"3 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2016"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"4 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2016"</span>)
+
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"1 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2017"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"2 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2017"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"3 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2017"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"4 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2017"</span>)
+
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"1 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2018"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"2 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2018"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"3 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2018"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"4 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2018"</span>)
+
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"1 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2019"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"2 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2019"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"3 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2019"</span>)
+(make-deadline <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"4 &#1082;&#1074;&#1072;&#1088;&#1090;&#1072;&#1083; 2019"</span>)
 </pre>
 </div>
 </div>
@@ -2982,6 +3174,10 @@ cian.ru
 <div id="outline-container-sec-14-1-7" class="outline-4">
 <h4 id="sec-14-1-7"><span class="section-number-4">14.1.7</span> Метро</h4>
 </div>
+
+<div id="outline-container-sec-14-1-8" class="outline-4">
+<h4 id="sec-14-1-8"><span class="section-number-4">14.1.8</span> Сроки сдачи</h4>
+</div>
 </div>
 
 <div id="outline-container-sec-14-2" class="outline-3">
@@ -3002,7 +3198,7 @@ cian.ru
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-11-24 Пн. 04:21</p>
+<p class="date">Created: 2014-11-24 Пн. 09:48</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

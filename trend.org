@@ -130,7 +130,7 @@
     - Выгрузка данных на рекламные ресурсы
 
 * Определения сущностей
-** Жилой комплекс (cmpx)
+** DONE Жилой комплекс (cmpx)
 
    Эта сущность нужна только чтобы объединять очереди жилого комплекса
 
@@ -147,7 +147,7 @@
      table
    #+END_SRC
 
-** Очередь жилого комплекса (plex)
+** DONE Очередь жилого комплекса (plex)
 
    #+CAPTION: Данные очереди жилого комплекса
    #+NAME: plex_data
@@ -170,7 +170,7 @@
      table
    #+END_SRC
 
-** Корпус очереди жилого комплекса (crps)
+** DONE Корпус очереди жилого комплекса (crps)
 
    #+CAPTION: Данные корпуса очереди жилого комплекса
    #+NAME: crps_data
@@ -185,7 +185,7 @@
      table
    #+END_SRC
 
-** Планировка (flat)
+** DONE Планировка (flat)
 
    #+CAPTION: Данные планировки
    #+NAME: flat_data
@@ -206,7 +206,7 @@
      table
    #+END_SRC
 
-** Город (city)
+** DONE Город (city)
 
    Город в котором находится объект
 
@@ -222,7 +222,7 @@
      table
    #+END_SRC
 
-** Район (district)
+** DONE Район (district)
 
    Район города, в котором находится объект
 
@@ -238,7 +238,7 @@
      table
    #+END_SRC
 
-** Метро (metro)
+** DONE Метро (metro)
 
    Метро неподалеку от объекта
 
@@ -251,6 +251,22 @@
 
    #+NAME: metro_flds
    #+BEGIN_SRC emacs-lisp :var table=metro_data :results value :exports none :session gen
+     table
+   #+END_SRC
+
+** DONE Сроки сдачи (deadline)
+
+   Сроки сдачи объектов
+
+   #+CAPTION: Данные метро
+   #+NAME: deadline_data
+     | field name | field type | note             |
+     |------------+------------+------------------|
+     | id         | serial     | идентификатор    |
+     | name       | varchar    | название станции |
+
+   #+NAME: deadline_flds
+   #+BEGIN_SRC emacs-lisp :var table=deadline_data :results value :exports none :session gen
      table
    #+END_SRC
 
@@ -272,7 +288,7 @@
   - квартиры, в формате CSV
     |  корпус | тип | метраж | жилая площадь| площадь кухни | балкон/лоджия | санузел | цена |
 
-** Утилиты
+** DONE Утилиты
    Напишем проход по всем этим директориям, но перед этим необходимо определить ряд
    вспомогательных макросов и функций.
 
@@ -424,7 +440,7 @@
         (reverse result)))
   #+END_SRC
 
-** Загрузчик
+** START Загрузчик
    Теперь переходим к загрузке данных:
 
    #+NAME: loader
@@ -937,7 +953,7 @@
    Экпертов также часто интересует id квартиры - при вводе в строку поиска числового значения,
    находится должен искомый объект.
 
-*** Простой поиск
+*** TODO Простой поиск
 
     [[file:pics/Trend_mainpage.png][Дизайн-макет: Простой поиск на главной странице]]
 
@@ -967,12 +983,42 @@
                  (frm
                   (tbl
                    (list
-                    (row "Район" (fld "district"))
-                    (row "Метро" (fld "metro"))
-                    (row "Название жк" (fld "cmpx"))
-                    (row "Кол-во комнат" (fld "rooms"))
-                    (row "Срок сдачи (не позднее)" (fld "deadline"))
-                    (row "Стоимость квартиры" (fld "price"))
+                    (row "Район"
+                      (select ("district")
+                        (list* (list "Не важен" "0")
+                               (with-collection (i (all-district))
+                                 (list (name i)
+                                       (id i))))))
+                    (row "Метро"
+                      (select ("metro")
+                        (list* (list "Любое" "0")
+                               (with-collection (i (all-metro))
+                                 (list (name i)
+                                       (id i))))))
+                    (row "Название ЖК"
+                      (select ("cmpx")
+                        (list* (list "Любой ЖК" "0")
+                               (with-collection (i (all-cmpx))
+                                 (list (name i)
+                                       (id i))))))
+                    (row "Кол-во комнат"
+                      (tbl
+                       (list
+                        (row (input "checkbox" :name "studio" :value t) "Студия")
+                        (row (input "checkbox" :name "one" :value t) "Однокомнатная")
+                        (row (input "checkbox" :name "two" :value t) "Двухкомнатная")
+                        (row (input "checkbox" :name "three" :value t) "Трехкомнатная"))))
+                    (row "Срок сдачи (не позднее)"
+                      (select ("deadline")
+                        (list* (list "Не важен" "0")
+                               (with-collection (i (all-deadline))
+                                 (list (name i)
+                                       (id i))))))
+                    (row "Стоимость квартиры"
+                      (tbl
+                       (list
+                        (row "от" (fld "price-from"))
+                        (row "до" (fld "price-to")))))
                     (row "" %find%))
                    :border 1)
                   :action "/results")))
@@ -1046,7 +1092,7 @@
 
     После выдачи идет блок похожих предложений, но возможно откажемся от этого блока здесь.
 
-*** COMMENT Поисковая выдача таблицей
+*** START Поисковая выдача таблицей
 
     [[file:pics/Trend_search11_list.png][Дизайн-макет: Поисковая выдача таблицей]]
 
@@ -1088,45 +1134,9 @@
                        (list
                         (format nil "<h1>Страница поиска</h1>")
                         (format nil "<h2>Выборка</h2>")
-                        ;; (format nil "~{~{~A~}<br />~}"
-                        ;; (mapcar #'(lambda (x)
-                        ;;             (format nil "~{~A~}"
-                        ;;                     (list crps-id price)))
-                        (format nil "~{~A<br /><br />~}"
-                                (mapcar #'(lambda (x)
-                                            (bprint
-                                             (list
-                                              :flat-id (id x)
-                                              :crps (mapcar #'(lambda (x)
-                                                                (list :crps-id (id x)
-                                                                      :crps-name (name x)
-                                                                      :plex (mapcar #'(lambda (x)
-                                                                                        (list :plex-id (id x)
-                                                                                              :cmpx-id (cmpx-id x)
-                                                                                              :name (name x)
-                                                                                              :deadline (deadline x)
-                                                                                              :district-id (district-id x)
-                                                                                              :metro-id (metro-id x)
-                                                                                              :distance (distance x)
-                                                                                              :subsidy (subsidy x)
-                                                                                              :finishing (finishing x)
-                                                                                              :ipoteka (ipoteka x)
-                                                                                              :installment (installment x)))
-                                                                                    (find-plex :id (plex-id x)))))
-                                                            (find-crps :id (crps-id x)))
-                                              :rooms (rooms x)
-                                              :area-sum (area-sum x)
-                                              :area-living (area-living x)
-                                              :area-kitchen (area-kitchen x)
-                                              :price (price x)
-                                              :balcon (balcon x)
-                                              :sanuzel (sanuzel x))))
-                                        (find-flat :rooms (parse-integer (getf p :rooms)))))
-                        ;; (row "Название жк" (fld "cmpx"))
-                        ;; (row "Кол-во комнат" (fld "rooms"))
-                        ;; (row "Стоимость квартиры" (fld "price"))
-                        "br />"
-                        (format nil "~A" (bprint p))
+                        (format nil "<br /><br />Параметры поиска: ~A" (bprint p))
+                        ;; (format nil "<br /><br />Сформированный запрос: ~A" (bprint p))
+                        ;; (format nil "<br /><br />Результат: ~A" (bprint p))
                         ))))
 
       ;; - Район
@@ -1136,29 +1146,30 @@
       ;; - Срок сдачи (не позднее)
       ;; - Стоимость квартиры
 
-      ;; (print
-      ;;  (with-connection *db-spec*
-      ;;    (query
-      ;;     (:limit
-      ;;      (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
-      ;;               :from 'flat
-      ;;               :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
-      ;;               :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
-      ;;               :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
-      ;;               :inner-join 'district :on (:= 'plex.district_id 'district_id)
-      ;;               :where (:and (:or (:= 'rooms 1)
-      ;;                                 (:= 'rooms 3))
-      ;;                            (:and (:> 'price 1222000)
-      ;;                                  (:< 'price 3111000))
-      ;;                            (:= 'district_id 23)
-      ;;                            (:= 'metro_id 13)
-      ;;                            (:ilike 'cmpx.name "Десяткино")
-      ;;                            ;; (:= 'plex.deadline_id 1)
-      ;;                            )
-      ;;               )
-      ;;      2000))))
+      ;; (let ((district 0))
+      ;;   (print
+      ;;    (with-connection *db-spec*
+      ;;      (query
+      ;;       (:limit
+      ;;        (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
+      ;;                 :from 'flat
+      ;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
+      ;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
+      ;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
+      ;;                 :inner-join 'district :on (:= 'plex.district_id 'district_id)
+      ;;                 :where (:and (:or (:= 'rooms 1)
+      ;;                                   (:= 'rooms 3))
+      ;;                              (:and (:> 'price 1222000)
+      ;;                                    (:< 'price 3111000))
+      ;;                              (if (string= "0" district)
+      ;;                                  (:= 'district_id 23))
+      ;;                              (:= 'metro_id 13)
+      ;;                              (:ilike 'cmpx.name "Десяткино")
+      ;;                              ;; (:= 'plex.deadline_id 1)
+      ;;                              )
+      ;;                 )
+      ;;        2000)))))
    #+END_SRC
-
 
 *** Карточка ЖК
 
@@ -1685,6 +1696,34 @@
      (make-metro :name "Чернышевская")
      (make-metro :name "Чкаловская")
      (make-metro :name "Электросила")
+
+     <<asm_deadline()>>
+
+     (make-deadline :name "1 квартал 2015")
+     (make-deadline :name "2 квартал 2015")
+     (make-deadline :name "3 квартал 2015")
+     (make-deadline :name "4 квартал 2015")
+
+     (make-deadline :name "1 квартал 2016")
+     (make-deadline :name "2 квартал 2016")
+     (make-deadline :name "3 квартал 2016")
+     (make-deadline :name "4 квартал 2016")
+
+     (make-deadline :name "1 квартал 2017")
+     (make-deadline :name "2 квартал 2017")
+     (make-deadline :name "3 квартал 2017")
+     (make-deadline :name "4 квартал 2017")
+
+     (make-deadline :name "1 квартал 2018")
+     (make-deadline :name "2 квартал 2018")
+     (make-deadline :name "3 квартал 2018")
+     (make-deadline :name "4 квартал 2018")
+
+     (make-deadline :name "1 квартал 2019")
+     (make-deadline :name "2 квартал 2019")
+     (make-deadline :name "3 квартал 2019")
+     (make-deadline :name "4 квартал 2019")
+
    #+END_SRC
 
 *** Жилой комплекс
@@ -1735,6 +1774,14 @@
     #+BEGIN_SRC emacs-lisp :var flds=metro_flds :exports none :session gen
       (gen-entity "metro" "метро" flds)
     #+END_SRC
+
+*** Сроки сдачи
+
+    #+NAME: asm_deadline
+    #+BEGIN_SRC emacs-lisp :var flds=deadline_flds :exports none :session gen
+      (gen-entity "deadline" "метро" flds)
+    #+END_SRC
+
 ** Загрузчик данных из файлов
 
    Соберем загрузчик

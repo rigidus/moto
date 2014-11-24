@@ -175,4 +175,36 @@
 (make-metro :name "Чернышевская")
 (make-metro :name "Чкаловская")
 (make-metro :name "Электросила")
+
+(define-entity deadline "Сущность метро"
+  ((id serial)
+   (name varchar)))
+
+(make-deadline-table)
+
+
+(make-deadline :name "1 квартал 2015")
+(make-deadline :name "2 квартал 2015")
+(make-deadline :name "3 квартал 2015")
+(make-deadline :name "4 квартал 2015")
+
+(make-deadline :name "1 квартал 2016")
+(make-deadline :name "2 квартал 2016")
+(make-deadline :name "3 квартал 2016")
+(make-deadline :name "4 квартал 2016")
+
+(make-deadline :name "1 квартал 2017")
+(make-deadline :name "2 квартал 2017")
+(make-deadline :name "3 квартал 2017")
+(make-deadline :name "4 квартал 2017")
+
+(make-deadline :name "1 квартал 2018")
+(make-deadline :name "2 квартал 2018")
+(make-deadline :name "3 квартал 2018")
+(make-deadline :name "4 квартал 2018")
+
+(make-deadline :name "1 квартал 2019")
+(make-deadline :name "2 квартал 2019")
+(make-deadline :name "3 квартал 2019")
+(make-deadline :name "4 квартал 2019")
 ;; entity_and_automates ends here
