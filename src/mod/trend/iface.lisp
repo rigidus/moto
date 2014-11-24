@@ -37,14 +37,20 @@
   (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
                "<br /><br />"
                (tbl
-                (with-collection (i (funcall #'all-cmpx))
+                (with-collection (cmpx (funcall #'all-cmpx))
                   (tr
                    (td
                     (format nil "<a href=\"/~a/~a\">~a</a>" "cmpx"
-                            (id i) (id i)))
-                   (td (name i)) (td (addr i)) (td (frm %del%))))
+                    (id cmpx) (id cmpx)))
+                   (td (name cmpx))
+                   (td (addr cmpx))
+                   (td (aif (district-id cmpx)
+                            (name (get-district it))))
+                   (td (aif (metro-id cmpx)
+                            (name (get-metro it))))
+                   (td (frm %del%))))
                 :border 1))
-  (:del (act-btn "DEL" (id i) "Удалить")
+  (:del (act-btn "DEL" (id cmpx) "Удалить")
         (progn (del-cmpx (getf p :data)))))
 
 (in-package #:moto)
@@ -61,7 +67,11 @@
                  (tbl
                   (with-element (cmpx cmpx)
                     (row "Название" (name cmpx))
-                    (row "Адрес" (addr cmpx)))
+                    (row "Адрес" (addr cmpx))
+                    (row "Район" (aif (district-id cmpx)
+                                      (name (get-district it))))
+                    (row "Метро" (aif (metro-id cmpx)
+                                      (name (get-metro it)))))
                   :border 1)
                  (format nil "<h2>Очереди комплекса ~A</h2>~%~A"
                          (name cmpx)
@@ -91,13 +101,11 @@
                   (with-element (plex plex)
                     (row "Название" (name plex))
                     (row "Срок сдачи" (deadline plex))
-                    (row "Идентификатор района" (district-id plex))
-                    (row "Идентификатор метро" (metro-id plex))
-                    (row "Расстояние до метро" (distance plex))
                     (row "Субсидия" (subsidy plex))
                     (row "Отделка" (finishing plex))
                     (row "Ипотека" (ipoteka plex))
-                    (row "Рассрочка" (installment plex)))
+                    (row "Рассрочка" (installment plex))
+                    (row "Расстояние до метро" (distance plex)))
                   :border 1)
                   (format nil "<h2>Корпуса очереди жилого комплекса</h2>~%~A"
                          (tbl
@@ -242,6 +250,41 @@
          "Err: redirect to /results!"))
 
 (in-package #:moto)
+
+;; (defmacro assembly-query (&key district metro cmpx)
+;;   `(with-connection *db-spec*
+;;      (query
+;;       (:limit
+;;        (:select 'metro.name 'metro.id 'cmpx.id 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
+;;                 :from 'flat
+;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
+;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
+;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
+;;                 :inner-join 'district :on (:= 'plex.district_id 'district_id)
+;;                 :inner-join 'metro :on (:= 'plex.district_id 'district_id)
+;;                 :where (:and (:or (:= 'rooms 1)
+;;                                   (:= 'rooms 3))
+;;                              (:and (:> 'price 1222000)
+;;                                    (:< 'price 3111000))
+;;                              ,(if district
+;;                                   `(:= 'district_id ,(parse-integer district))
+;;                                   t)
+;;                              ,(if metro
+;;                                   `(:= 'metro_id ,(parse-integer metro))
+;;                                   t)
+;;                              ,(if cmpx
+;;                                   `(:= 'cmpx_id ,(parse-integer cmpx))
+;;                                   t)
+;;                              ;; (:= 'plex.deadline_id 1)
+;;                              )
+;;                 )
+;;        2000))))
+
+
+;; (assembly-query :district "23")
+
+
+;; (print (macroexpand '(assembly-query :cmpx "23")))
 
 (define-page results "/results"
   (format nil "~{~A~}"

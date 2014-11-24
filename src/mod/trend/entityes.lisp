@@ -6,8 +6,7 @@
    (name varchar)
    (addr (or db-null varchar))
    (district-id (or db-null integer))
-   (metro-id (or db-null integer))
-   (distance (or db-null varchar))))
+   (metro-id (or db-null integer))))
 
 (make-cmpx-table)
 
@@ -16,6 +15,7 @@
   ((id serial)
    (cmpx-id integer)
    (name (or db-null varchar))
+   (distance (or db-null varchar))
    (deadline (or db-null varchar))
    (subsidy (or db-null boolean))
    (finishing (or db-null varchar))
