@@ -241,7 +241,6 @@
   (:find (act-btn "FIND" "FIND" "Искать")
          "Err: redirect to /results!"))
 
-
 (in-package #:moto)
 
 (define-page results "/results"

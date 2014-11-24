@@ -136,11 +136,15 @@
 
    #+CAPTION: Данные жилого комплекса
    #+NAME: cmpx_data
-     | field name | field type           | note          |
-     |------------+----------------------+---------------|
-     | id         | serial               | идентификатор |
-     | name       | varchar              | название      |
-     | addr       | (or db-null varchar) | адрес         |
+     | field name  | field type           | note                 |
+     |-------------+----------------------+----------------------|
+     | id          | serial               | идентификатор        |
+     | name        | varchar              | название             |
+     | addr        | (or db-null varchar) | адрес                |
+     | district-id | (or db-null integer) | идентификатор района |
+     | metro-id    | (or db-null integer) | идентификатор метро  |
+     | distance    | (or db-null varchar) | расстояние до метро  |
+
 
    #+NAME: cmpx_flds
    #+BEGIN_SRC emacs-lisp :var table=cmpx_data :results value :exports none :session gen
@@ -157,9 +161,6 @@
      | cmpx-id     | integer              | идентификатор жилого комплекса |
      | name        | (or db-null varchar) | название                       |
      | deadline    | (or db-null varchar) | срок сдачи                     |
-     | district-id | (or db-null integer) | идентификатор района           |
-     | metro-id    | (or db-null integer) | идентификатор метро            |
-     | distance    | (or db-null varchar) | расстояние до метро            |
      | subsidy     | (or db-null boolean) | субсидия                       |
      | finishing   | (or db-null varchar) | отделка                        |
      | ipoteka     | (or db-null boolean) | ипотека                        |
@@ -1123,6 +1124,48 @@
 
       (in-package #:moto)
 
+      ;; (defmacro assembly-query (&key district metro cmpx)
+      ;;   `(with-connection *db-spec*
+      ;;      (query
+      ;;       (:limit
+      ;;        (:select 'metro.name 'metro.id 'cmpx.id 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
+      ;;                 :from 'flat
+      ;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
+      ;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
+      ;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
+      ;;                 :inner-join 'district :on (:= 'plex.district_id 'district_id)
+      ;;                 :inner-join 'metro :on (:= 'plex.district_id 'district_id)
+      ;;                 :where (:and (:or (:= 'rooms 1)
+      ;;                                   (:= 'rooms 3))
+      ;;                              (:and (:> 'price 1222000)
+      ;;                                    (:< 'price 3111000))
+      ;;                              ,(if district
+      ;;                                   `(:= 'district_id ,(parse-integer district))
+      ;;                                   t)
+      ;;                              ,(if metro
+      ;;                                   `(:= 'metro_id ,(parse-integer metro))
+      ;;                                   t)
+      ;;                              ,(if cmpx
+      ;;                                   `(:= 'cmpx_id ,(parse-integer cmpx))
+      ;;                                   t)
+      ;;                              ;; (:= 'plex.deadline_id 1)
+      ;;                              )
+      ;;                 )
+      ;;        2000))))
+
+
+      ;; (assembly-query :district "23")
+
+
+      ;; (print (macroexpand '(assembly-query :cmpx "23")))
+
+
+                                (:AND (:> 'PRICE 1222000) (:< 'PRICE 3111000)) NIL (:= 'METRO_ID 13)
+                                (:ILIKE 'CMPX.NAME "Десяткино")))
+
+                                (:AND (:> 'PRICE 1222000) (:< 'PRICE 3111000)) (:= 'DISTRICT_ID 23)
+                                (:= 'METRO_ID 13) (:ILIKE 'CMPX.NAME "Десяткино")))
+
       (define-page results "/results"
         (format nil "~{~A~}"
                 (list
@@ -1146,29 +1189,29 @@
       ;; - Срок сдачи (не позднее)
       ;; - Стоимость квартиры
 
-      ;; (let ((district 0))
-      ;;   (print
-      ;;    (with-connection *db-spec*
-      ;;      (query
-      ;;       (:limit
-      ;;        (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
-      ;;                 :from 'flat
-      ;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
-      ;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
-      ;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
-      ;;                 :inner-join 'district :on (:= 'plex.district_id 'district_id)
-      ;;                 :where (:and (:or (:= 'rooms 1)
-      ;;                                   (:= 'rooms 3))
-      ;;                              (:and (:> 'price 1222000)
-      ;;                                    (:< 'price 3111000))
-      ;;                              (if (string= "0" district)
-      ;;                                  (:= 'district_id 23))
-      ;;                              (:= 'metro_id 13)
-      ;;                              (:ilike 'cmpx.name "Десяткино")
-      ;;                              ;; (:= 'plex.deadline_id 1)
-      ;;                              )
-      ;;                 )
-      ;;        2000)))))
+      (let ((district 0))
+        (print
+         (with-connection *db-spec*
+           (query
+            (:limit
+             (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
+                      :from 'flat
+                      :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
+                      :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
+                      :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
+                      :inner-join 'district :on (:= 'plex.district_id 'district_id)
+                      :where (:and (:or (:= 'rooms 1)
+                                        (:= 'rooms 3))
+                                   (:and (:> 'price 1222000)
+                                         (:< 'price 3111000))
+                                   (if (string= "0" district)
+                                       (:= 'district_id 23))
+                                   (:= 'metro_id 13)
+                                   (:ilike 'cmpx.name "Десяткино")
+                                   ;; (:= 'plex.deadline_id 1)
+                                   )
+                      )
+             2000)))))
    #+END_SRC
 
 *** Карточка ЖК
