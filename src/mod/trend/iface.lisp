@@ -198,14 +198,99 @@
            (format nil "<h2>Простой поиск</h2>")
            (frm
             (tbl
-             (row "Район" (rooms flat))
-             (row "Метро" (area-living flat))
-             (row "Название жк" (area-kitchen flat))
-             (row "Кол-во комнат" (format nil "~:d"(price flat)))
-             (row "Срок сдачи (не позднее)" (balcon flat))
-             (row "Стоимость квартиры" (sanuzel flat))
-             (row "" %find%))
-            :border 1)))
+             (list
+              (row "Район" (fld "district"))
+              (row "Метро" (fld "metro"))
+              (row "Название жк" (fld "cmpx"))
+              (row "Кол-во комнат" (fld "rooms"))
+              (row "Срок сдачи (не позднее)" (fld "deadline"))
+              (row "Стоимость квартиры" (fld "price"))
+              (row "" %find%))
+             :border 1)
+            :action "/results")))
   (:find (act-btn "FIND" "FIND" "Искать")
-           (progn 1)))
+         "Err: redirect to /results!"))
+
+(in-package #:moto)
+
+(define-page results "/results"
+  (format nil "~{~A~}"
+          (list
+           (format nil "<h1>Страница поиска</h1>")
+           (format nil "<h2>Простой поиск</h2>")
+           "Пустой поисковый запрос"))
+  (:find (act-btn "FIND" "FIND" "Искать")
+         (format nil "~{~A~}"
+                 (list
+                  (format nil "<h1>Страница поиска</h1>")
+                  (format nil "<h2>Выборка</h2>")
+                  ;; (format nil "~{~{~A~}<br />~}"
+                  ;; (mapcar #'(lambda (x)
+                  ;;             (format nil "~{~A~}"
+                  ;;                     (list crps-id price)))
+                  (format nil "~{~A<br /><br />~}"
+                          (mapcar #'(lambda (x)
+                                      (bprint
+                                       (list
+                                        :flat-id (id x)
+                                        :crps (mapcar #'(lambda (x)
+                                                          (list :crps-id (id x)
+                                                                :crps-name (name x)
+                                                                :plex (mapcar #'(lambda (x)
+                                                                                  (list :plex-id (id x)
+                                                                                        :cmpx-id (cmpx-id x)
+                                                                                        :name (name x)
+                                                                                        :deadline (deadline x)
+                                                                                        :district-id (district-id x)
+                                                                                        :metro-id (metro-id x)
+                                                                                        :distance (distance x)
+                                                                                        :subsidy (subsidy x)
+                                                                                        :finishing (finishing x)
+                                                                                        :ipoteka (ipoteka x)
+                                                                                        :installment (installment x)))
+                                                                              (find-plex :id (plex-id x)))))
+                                                      (find-crps :id (crps-id x)))
+                                        :rooms (rooms x)
+                                        :area-sum (area-sum x)
+                                        :area-living (area-living x)
+                                        :area-kitchen (area-kitchen x)
+                                        :price (price x)
+                                        :balcon (balcon x)
+                                        :sanuzel (sanuzel x))))
+                                  (find-flat :rooms (parse-integer (getf p :rooms)))))
+                  ;; (row "Название жк" (fld "cmpx"))
+                  ;; (row "Кол-во комнат" (fld "rooms"))
+                  ;; (row "Стоимость квартиры" (fld "price"))
+                  "br />"
+                  (format nil "~A" (bprint p))
+                  ))))
+
+;; - Район
+;; - Метро
+;; - Название жилищного комплекса
+;; - Количество комнат
+;; - Срок сдачи (не позднее)
+;; - Стоимость квартиры
+
+;; (print
+;;  (with-connection *db-spec*
+;;    (query
+;;     (:limit
+;;      (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
+;;               :from 'flat
+;;               :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
+;;               :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
+;;               :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
+;;               :inner-join 'district :on (:= 'plex.district_id 'district_id)
+;;               :where (:and (:or (:= 'rooms 1)
+;;                                 (:= 'rooms 3))
+;;                            (:and (:> 'price 1222000)
+;;                                  (:< 'price 3111000))
+;;                            (:= 'district_id 23)
+;;                            (:= 'metro_id 13)
+;;                            (:ilike 'cmpx.name "Десяткино")
+;;                            ;; (:= 'plex.deadline_id 1)
+;;                            )
+;;               )
+;;      2000))))
 ;; iface ends here

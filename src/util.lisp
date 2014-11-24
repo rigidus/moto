@@ -150,10 +150,11 @@
 ;; (tr "wfewf")
 ;; (tr "wfewf" 1111)
 
-(defun frm (contents &key name (method "POST"))
-  (format nil "~%<form method=\"~A\"~A>~{~A~}~%</form>"
+(defun frm (contents &key name (method "POST") action)
+  (format nil "~%<form method=\"~A\"~A~A>~{~A~}~%</form>"
           method
           (if name (format nil " name=\"~A\"" name) "")
+          (if action (format nil " action=\"~A\"" action) "")
           (if (consp contents)
               contents
               (list contents))))
