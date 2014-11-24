@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль Trend и тесты</title>
-<!-- 2014-11-08 Сб. 01:32 -->
+<!-- 2014-11-24 Пн. 04:21 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -149,7 +149,7 @@ for the JavaScript code in this tag.
 <ul>
 <li><a href="#sec-3-1">3.1. Жилой комплекс (cmpx)</a></li>
 <li><a href="#sec-3-2">3.2. Очередь жилого комплекса (plex)</a></li>
-<li><a href="#sec-3-3">3.3. Корпус очереди жилого комплекса (crpx)</a></li>
+<li><a href="#sec-3-3">3.3. Корпус очереди жилого комплекса (crps)</a></li>
 <li><a href="#sec-3-4">3.4. Планировка (flat)</a></li>
 <li><a href="#sec-3-5">3.5. Город (city)</a></li>
 <li><a href="#sec-3-6">3.6. Район (district)</a></li>
@@ -159,35 +159,44 @@ for the JavaScript code in this tag.
 <li><a href="#sec-3-10">3.10. <span class="todo nilTODO">TODO</span> Картинки хода строительства</a></li>
 </ul>
 </li>
-<li><a href="#sec-4">4. Загрузка данных</a></li>
+<li><a href="#sec-4">4. Загрузка данных</a>
+<ul>
+<li><a href="#sec-4-1">4.1. Утилиты</a></li>
+<li><a href="#sec-4-2">4.2. Загрузчик</a></li>
+</ul>
+</li>
 <li><a href="#sec-5">5. Точки входа</a></li>
 <li><a href="#sec-6">6. Interface</a>
 <ul>
 <li><a href="#sec-6-1">6.1. Страничка загрузки данных</a></li>
-<li><a href="#sec-6-2">6.2. Страничка планировки</a>
+<li><a href="#sec-6-2">6.2. Список ЖК</a></li>
+<li><a href="#sec-6-3">6.3. Страница ЖК</a></li>
+<li><a href="#sec-6-4">6.4. Страница очереди ЖК</a></li>
+<li><a href="#sec-6-5">6.5. Страница корпуса очереди ЖК</a></li>
+<li><a href="#sec-6-6">6.6. Страничка планировки</a>
 <ul>
-<li><a href="#sec-6-2-1">6.2.1. <span class="todo nilTODO">TODO</span> Pop-up</a></li>
-<li><a href="#sec-6-2-2">6.2.2. <span class="todo nilTODO">TODO</span> Версия для печати</a></li>
-<li><a href="#sec-6-2-3">6.2.3. <span class="todo nilTODO">TODO</span> Менеджер хочет накидать скидок</a></li>
-<li><a href="#sec-6-2-4">6.2.4. <span class="todo nilTODO">TODO</span> Pdf-версия</a></li>
-<li><a href="#sec-6-2-5">6.2.5. <span class="todo nilTODO">TODO</span> Отправить на почту</a></li>
-<li><a href="#sec-6-2-6">6.2.6. <span class="todo nilTODO">TODO</span> Рассказать в социальных сетях</a></li>
-<li><a href="#sec-6-2-7">6.2.7. Тип квартиры</a></li>
-<li><a href="#sec-6-2-8">6.2.8. Идентификатор квартиры</a></li>
-<li><a href="#sec-6-2-9">6.2.9. Цена при 100% оплате</a></li>
-<li><a href="#sec-6-2-10">6.2.10. Кнопка "подробности у менедждера"</a></li>
-<li><a href="#sec-6-2-11">6.2.11. <span class="todo nilTODO">TODO</span> Карточка комплекса</a></li>
-<li><a href="#sec-6-2-12">6.2.12. <span class="todo nilTODO">TODO</span> Характеристики квартиры</a></li>
-<li><a href="#sec-6-2-13">6.2.13. <span class="todo nilTODO">TODO</span> Добавить в сравнение</a></li>
-<li><a href="#sec-6-2-14">6.2.14. <span class="todo nilTODO">TODO</span> Добавить в избранное</a></li>
-<li><a href="#sec-6-2-15">6.2.15. <span class="todo nilTODO">TODO</span> Четыре ключевых преимущетва из ЖК</a></li>
-<li><a href="#sec-6-2-16">6.2.16. <span class="todo nilTODO">TODO</span> калькулятор ипотеки и рассрочки - отдельный кейс</a></li>
-<li><a href="#sec-6-2-17">6.2.17. <span class="todo nilTODO">TODO</span> Возможность баннеров (автобусные туры)</a></li>
-<li><a href="#sec-6-2-18">6.2.18. <span class="todo nilTODO">TODO</span> Инфо о жилом комплексе (потому что попадает в распечатку)</a></li>
-<li><a href="#sec-6-2-19">6.2.19. <span class="todo nilTODO">TODO</span> Сссылка "подробно о комплексе" - к ЖК</a></li>
-<li><a href="#sec-6-2-20">6.2.20. <span class="todo nilTODO">TODO</span> Квартиры в этом комплексе - ведут в карточку комплекса с открытыми двухкомнатными квартирами.</a></li>
-<li><a href="#sec-6-2-21">6.2.21. <span class="todo nilTODO">TODO</span> Сообщить об ошибке.</a></li>
-<li><a href="#sec-6-2-22">6.2.22. <span class="todo nilTODO">TODO</span> Когда было последнее обновление информации о квартире.</a></li>
+<li><a href="#sec-6-6-1">6.6.1. <span class="todo nilTODO">TODO</span> Pop-up</a></li>
+<li><a href="#sec-6-6-2">6.6.2. <span class="todo nilTODO">TODO</span> Версия для печати</a></li>
+<li><a href="#sec-6-6-3">6.6.3. <span class="todo nilTODO">TODO</span> Менеджер хочет накидать скидок</a></li>
+<li><a href="#sec-6-6-4">6.6.4. <span class="todo nilTODO">TODO</span> Pdf-версия</a></li>
+<li><a href="#sec-6-6-5">6.6.5. <span class="todo nilTODO">TODO</span> Отправить на почту</a></li>
+<li><a href="#sec-6-6-6">6.6.6. <span class="todo nilTODO">TODO</span> Рассказать в социальных сетях</a></li>
+<li><a href="#sec-6-6-7">6.6.7. Тип квартиры</a></li>
+<li><a href="#sec-6-6-8">6.6.8. Идентификатор квартиры</a></li>
+<li><a href="#sec-6-6-9">6.6.9. Цена при 100% оплате</a></li>
+<li><a href="#sec-6-6-10">6.6.10. Кнопка "подробности у менедждера"</a></li>
+<li><a href="#sec-6-6-11">6.6.11. <span class="todo nilTODO">TODO</span> Карточка комплекса</a></li>
+<li><a href="#sec-6-6-12">6.6.12. <span class="todo nilTODO">TODO</span> Характеристики квартиры</a></li>
+<li><a href="#sec-6-6-13">6.6.13. <span class="todo nilTODO">TODO</span> Добавить в сравнение</a></li>
+<li><a href="#sec-6-6-14">6.6.14. <span class="todo nilTODO">TODO</span> Добавить в избранное</a></li>
+<li><a href="#sec-6-6-15">6.6.15. <span class="todo nilTODO">TODO</span> Четыре ключевых преимущетва из ЖК</a></li>
+<li><a href="#sec-6-6-16">6.6.16. <span class="todo nilTODO">TODO</span> калькулятор ипотеки и рассрочки - отдельный кейс</a></li>
+<li><a href="#sec-6-6-17">6.6.17. <span class="todo nilTODO">TODO</span> Возможность баннеров (автобусные туры)</a></li>
+<li><a href="#sec-6-6-18">6.6.18. <span class="todo nilTODO">TODO</span> Инфо о жилом комплексе (потому что попадает в распечатку)</a></li>
+<li><a href="#sec-6-6-19">6.6.19. <span class="todo nilTODO">TODO</span> Сссылка "подробно о комплексе" - к ЖК</a></li>
+<li><a href="#sec-6-6-20">6.6.20. <span class="todo nilTODO">TODO</span> Квартиры в этом комплексе - ведут в карточку комплекса с открытыми двухкомнатными квартирами.</a></li>
+<li><a href="#sec-6-6-21">6.6.21. <span class="todo nilTODO">TODO</span> Сообщить об ошибке.</a></li>
+<li><a href="#sec-6-6-22">6.6.22. <span class="todo nilTODO">TODO</span> Когда было последнее обновление информации о квартире.</a></li>
 </ul>
 </li>
 </ul>
@@ -230,20 +239,20 @@ for the JavaScript code in this tag.
 <li><a href="#sec-11">11. Остальное</a></li>
 <li><a href="#sec-12">12. Конкуренты</a></li>
 <li><a href="#sec-13">13. Инвест-привлекательность:</a></li>
-<li><a href="#sec-14">14. Вопросы</a></li>
-<li><a href="#sec-15">15. Сборка</a>
+<li><a href="#sec-14">14. Сборка</a>
 <ul>
-<li><a href="#sec-15-1">15.1. Сущности и автоматы</a>
+<li><a href="#sec-14-1">14.1. Сущности и автоматы</a>
 <ul>
-<li><a href="#sec-15-1-1">15.1.1. Жилой комплекс</a></li>
-<li><a href="#sec-15-1-2">15.1.2. Очередь жилого комплекса</a></li>
-<li><a href="#sec-15-1-3">15.1.3. Корпус очереди жилого комплекса</a></li>
-<li><a href="#sec-15-1-4">15.1.4. Планировка</a></li>
-<li><a href="#sec-15-1-5">15.1.5. Город</a></li>
-<li><a href="#sec-15-1-6">15.1.6. Районы</a></li>
-<li><a href="#sec-15-1-7">15.1.7. Метро</a></li>
+<li><a href="#sec-14-1-1">14.1.1. Жилой комплекс</a></li>
+<li><a href="#sec-14-1-2">14.1.2. Очередь жилого комплекса</a></li>
+<li><a href="#sec-14-1-3">14.1.3. Корпус очереди жилого комплекса</a></li>
+<li><a href="#sec-14-1-4">14.1.4. Планировка</a></li>
+<li><a href="#sec-14-1-5">14.1.5. Город</a></li>
+<li><a href="#sec-14-1-6">14.1.6. Районы</a></li>
+<li><a href="#sec-14-1-7">14.1.7. Метро</a></li>
 </ul>
 </li>
+<li><a href="#sec-14-2">14.2. Загрузчик данных из файлов</a></li>
 </ul>
 </li>
 </ul>
@@ -631,7 +640,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-3" class="outline-3">
-<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Корпус очереди жилого комплекса (crpx)</h3>
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Корпус очереди жилого комплекса (crps)</h3>
 <div class="outline-text-3" id="text-3-3">
 <table id="crps_data" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 3:</span> Данные корпуса очереди жилого комплекса</caption>
@@ -660,7 +669,7 @@ for the JavaScript code in this tag.
 <tr>
 <td class="left">plex-id</td>
 <td class="left">integer</td>
-<td class="left">идентификатор очередижилого комплекса</td>
+<td class="left">идентификатор очереди жилого комплекса</td>
 </tr>
 
 <tr>
@@ -714,7 +723,7 @@ for the JavaScript code in this tag.
 
 <tr>
 <td class="left">area-sum</td>
-<td class="left">(or db-null integer)</td>
+<td class="left">(or db-null varchar)</td>
 <td class="left">общая площадь квартиры (может быть дробное)</td>
 </tr>
 
@@ -726,7 +735,7 @@ for the JavaScript code in this tag.
 
 <tr>
 <td class="left">area-kitchen</td>
-<td class="left">(or db-null integer)</td>
+<td class="left">(or db-null varchar)</td>
 <td class="left">площадь кухни (может быть дробное)</td>
 </tr>
 
@@ -950,8 +959,11 @@ for the JavaScript code in this tag.
 </table>
 </li>
 </ul>
+</div>
 
-
+<div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Утилиты</h3>
+<div class="outline-text-3" id="text-4-1">
 <p>
 Напишем проход по всем этим директориям, но перед этим необходимо определить ряд
 вспомогательных макросов и функций.
@@ -963,10 +975,12 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="awhen_file">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">awhen-file</span> ((file files) <span style="color: #00cd00;">&amp;body</span> body)
-  `(aif (find ,file ,files <span style="color: #0000ee; font-weight: bold;">:test</span> #'string=)
+<pre class="src src-lisp" id="awhen_file">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">awhen-file</span> ((file files) <span style="color: #228b22;">&amp;body</span> body)
+  `(aif (find ,file ,files <span style="color: #483d8b;">:test</span> #'string=)
         ,@body
-        <span style="color: #00cd00;">""</span>))
+        <span style="color: #8b2252;">""</span>))
 </pre>
 </div>
 
@@ -977,13 +991,15 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="loop_dir">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">loop-dir</span> (var (<span style="color: #00cd00;">&amp;rest</span> path) <span style="color: #00cd00;">&amp;body</span> body)
-  `(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> ,var <span style="color: #0000ee; font-weight: bold;">:in</span> (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (car (last (ppcre:split <span style="color: #00cd00;">"\/"</span> (directory-namestring x)))))
-                               (explore-dir (format nil <span style="color: #00cd00;">"~A~{~A/~}*.*"</span> *data-path* (list ,@path)))) <span style="color: #0000ee; font-weight: bold;">:do</span>
-      (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (_ files)
-          (explore-dir (format nil <span style="color: #00cd00;">"~A~{~A/~}~A/*.*"</span> *data-path* (list ,@path) ,var))
-        (<span style="color: #00cdcd; font-weight: bold;">declare</span> (ignore _))
-        (<span style="color: #00cdcd; font-weight: bold;">let</span> ((files (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (car (last (ppcre:split <span style="color: #00cd00;">"\/"</span> (file-namestring x)))))
+<pre class="src src-lisp" id="loop_dir">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">loop-dir</span> (var (<span style="color: #228b22;">&amp;rest</span> path) <span style="color: #228b22;">&amp;body</span> body)
+  `(<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> ,var <span style="color: #483d8b;">:in</span> (mapcar #'(<span style="color: #a020f0;">lambda</span> (x) (car (last (ppcre:split <span style="color: #8b2252;">"\/"</span> (directory-namestring x)))))
+                               (explore-dir (format nil <span style="color: #8b2252;">"~A~{~A/~}*.*"</span> *data-path* (list ,@path)))) <span style="color: #483d8b;">:do</span>
+      (<span style="color: #a020f0;">multiple-value-bind</span> (_ files)
+          (explore-dir (format nil <span style="color: #8b2252;">"~A~{~A/~}~A/*.*"</span> *data-path* (list ,@path) ,var))
+        (<span style="color: #a020f0;">declare</span> (ignore _))
+        (<span style="color: #a020f0;">let</span> ((files (mapcar #'(<span style="color: #a020f0;">lambda</span> (x) (car (last (ppcre:split <span style="color: #8b2252;">"\/"</span> (file-namestring x)))))
                              files)))
           ,@body))))
 </pre>
@@ -996,8 +1012,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="assoc_key">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">assoc-key</span> (key alist)
-  `(cdr (assoc ,key ,alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'string=))))
+<pre class="src src-lisp" id="assoc_key">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">assoc-key</span> (key alist)
+  `(cdr (assoc ,key ,alist <span style="color: #483d8b;">:test</span> #'string=)))
 </pre>
 </div>
 
@@ -1008,18 +1026,20 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="keyval">(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">keyval</span> (filename)
+<pre class="src src-lisp" id="keyval">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">keyval</span> (filename)
   (remove-if #'null
-             (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (in)
-                         (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((pos (position #\: in <span style="color: #0000ee; font-weight: bold;">:test</span> #'char=)))
-                           (<span style="color: #00cdcd; font-weight: bold;">if</span> (null pos)
-                               (<span style="color: #cd0000; font-weight: bold;">warn</span> (format nil <span style="color: #00cd00;">"wrong param: ~A"</span> in))
-                               (<span style="color: #00cdcd; font-weight: bold;">let</span> ((key (subseq in 0 pos))
+             (mapcar #'(<span style="color: #a020f0;">lambda</span> (in)
+                         (<span style="color: #a020f0;">let*</span> ((pos (position #\: in <span style="color: #483d8b;">:test</span> #'char=)))
+                           (<span style="color: #a020f0;">if</span> (null pos)
+                               (<span style="color: #ff0000; font-weight: bold;">warn</span> (format nil <span style="color: #8b2252;">"wrong param: ~A"</span> in))
+                               (<span style="color: #a020f0;">let</span> ((key (subseq in 0 pos))
                                      (val (subseq in (+ 1 pos))))
                                  (cons (string-trim '(#\NewLine #\Tab #\Space  #\&#65279;)
-                                                    (ppcre:regex-replace-all <span style="color: #00cd00;">"\\s+"</span> key <span style="color: #00cd00;">" "</span>))
+                                                    (ppcre:regex-replace-all <span style="color: #8b2252;">"\\s+"</span> key <span style="color: #8b2252;">" "</span>))
                                        (string-trim '(#\NewLine #\Tab #\Space  #\&#65279;)
-                                                    (ppcre:regex-replace-all <span style="color: #00cd00;">"\\s+"</span> val <span style="color: #00cd00;">" "</span>)))))))
+                                                    (ppcre:regex-replace-all <span style="color: #8b2252;">"\\s+"</span> val <span style="color: #8b2252;">" "</span>)))))))
                      (ppcre:split #\Newline (alexandria:read-file-into-string filename)))))
 </pre>
 </div>
@@ -1030,162 +1050,188 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="xls">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="xls">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">decoder-3-csv</span>  (in-string)
-  <span style="color: #00cd00;">"&#1042;&#1090;&#1086;&#1088;&#1086;&#1077; &#1074;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1084;&#1086;&#1077; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1077; &#1087;&#1086;&#1082;&#1072;&#1079;&#1099;&#1074;&#1072;&#1077;&#1090;, &#1073;&#1099;&#1083;&#1072; &#1083;&#1080; &#1079;&#1072;&#1082;&#1088;&#1099;&#1090;&#1072; &#1082;&#1072;&#1074;&#1099;&#1095;&#1082;&#1072;, &#1080;&#1083;&#1080; &#1089;&#1090;&#1088;&#1086;&#1082;&#1072;</span>
-<span style="color: #00cd00;">       &#1079;&#1072;&#1082;&#1086;&#1085;&#1095;&#1080;&#1083;&#1072;&#1089;&#1100; &#1087;&#1086;&#1089;&#1077;&#1088;&#1077;&#1076;&#1080;&#1085;&#1077; &#1086;&#1073;&#1088;&#1072;&#1073;&#1072;&#1090;&#1099;&#1074;&#1072;&#1077;&#1084;&#1086;&#1081; &#1103;&#1095;&#1077;&#1081;&#1082;&#1080;, &#1095;&#1090;&#1086; &#1091;&#1082;&#1072;&#1079;&#1099;&#1074;&#1072;&#1077;&#1090; &#1085;&#1072; &#1088;&#1072;&#1079;&#1088;&#1099;&#1074; &#1089;&#1090;&#1088;&#1086;&#1082;&#1080;"</span>
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((err))
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">decoder-3-csv</span>  (in-string)
+  <span style="color: #8b2252;">"&#1042;&#1090;&#1086;&#1088;&#1086;&#1077; &#1074;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1084;&#1086;&#1077; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1077; &#1087;&#1086;&#1082;&#1072;&#1079;&#1099;&#1074;&#1072;&#1077;&#1090;, &#1073;&#1099;&#1083;&#1072; &#1083;&#1080; &#1079;&#1072;&#1082;&#1088;&#1099;&#1090;&#1072; &#1082;&#1072;&#1074;&#1099;&#1095;&#1082;&#1072;, &#1080;&#1083;&#1080; &#1089;&#1090;&#1088;&#1086;&#1082;&#1072;</span>
+<span style="color: #8b2252;">       &#1079;&#1072;&#1082;&#1086;&#1085;&#1095;&#1080;&#1083;&#1072;&#1089;&#1100; &#1087;&#1086;&#1089;&#1077;&#1088;&#1077;&#1076;&#1080;&#1085;&#1077; &#1086;&#1073;&#1088;&#1072;&#1073;&#1072;&#1090;&#1099;&#1074;&#1072;&#1077;&#1084;&#1086;&#1081; &#1103;&#1095;&#1077;&#1081;&#1082;&#1080;, &#1095;&#1090;&#1086; &#1091;&#1082;&#1072;&#1079;&#1099;&#1074;&#1072;&#1077;&#1090; &#1085;&#1072; &#1088;&#1072;&#1079;&#1088;&#1099;&#1074; &#1089;&#1090;&#1088;&#1086;&#1082;&#1080;"</span>
+  (<span style="color: #a020f0;">let</span> ((err))
     (values
-     (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (y) (string-trim '(#\Space #\Tab) y))
-             (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (y) (ppcre:regex-replace-all <span style="color: #00cd00;">"\\s+"</span> y <span style="color: #00cd00;">" "</span>))
-                     (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (y) (string-trim '(#\Space #\Tab #\") y))
-                             (<span style="color: #00cdcd; font-weight: bold;">let</span> ((inp) (sav) (acc) (res))
-                               (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> cur <span style="color: #0000ee; font-weight: bold;">:across</span> in-string do
-                                  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print cur)</span>
-                                  (<span style="color: #00cdcd; font-weight: bold;">if</span> (null inp)
-                                      (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((equal #\" cur) (<span style="color: #00cdcd; font-weight: bold;">progn</span> (setf inp t)
-                                                                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print "open quote : inp t")</span>
+     (mapcar #'(<span style="color: #a020f0;">lambda</span> (y) (string-trim '(#\Space #\Tab) y))
+             (mapcar #'(<span style="color: #a020f0;">lambda</span> (y) (ppcre:regex-replace-all <span style="color: #8b2252;">"\\s+"</span> y <span style="color: #8b2252;">" "</span>))
+                     (mapcar #'(<span style="color: #a020f0;">lambda</span> (y) (string-trim '(#\Space #\Tab #\") y))
+                             (<span style="color: #a020f0;">let</span> ((inp) (sav) (acc) (res))
+                               (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> cur <span style="color: #483d8b;">:across</span> in-string do
+                                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print cur)</span>
+                                  (<span style="color: #a020f0;">if</span> (null inp)
+                                      (<span style="color: #a020f0;">cond</span> ((equal #\" cur) (<span style="color: #a020f0;">progn</span> (setf inp t)
+                                                                    <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print "open quote : inp t")</span>
                                                                     ))
-                                            ((equal #\, cur)  (<span style="color: #00cdcd; font-weight: bold;">progn</span> (push <span style="color: #00cd00;">""</span> res)
-                                                                     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print "next")</span>
+                                            ((equal #\, cur)  (<span style="color: #a020f0;">progn</span> (push <span style="color: #8b2252;">""</span> res)
+                                                                     <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print "next")</span>
                                                                      ))
-                                            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(t (print "unknown sign out of quite"))</span>
+                                            <span style="color: #b22222;">;; </span><span style="color: #b22222;">(t (print "unknown sign out of quite"))</span>
                                             )
-                                      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">else</span>
-                                      (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((and (null sav) (equal #\" cur)) (<span style="color: #00cdcd; font-weight: bold;">progn</span> (setf sav t)
-                                                                                     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print "close quote : sav t")</span>
+                                      <span style="color: #b22222;">;; </span><span style="color: #b22222;">else</span>
+                                      (<span style="color: #a020f0;">cond</span> ((and (null sav) (equal #\" cur)) (<span style="color: #a020f0;">progn</span> (setf sav t)
+                                                                                     <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print "close quote : sav t")</span>
                                                                                      ))
-                                            ((and sav (equal #\" cur)) (<span style="color: #00cdcd; font-weight: bold;">progn</span> (setf sav nil)
-                                                                              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print (list ".." #\"))</span>
+                                            ((and sav (equal #\" cur)) (<span style="color: #a020f0;">progn</span> (setf sav nil)
+                                                                              <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print (list ".." #\"))</span>
                                                                               (push #\" acc)))
-                                            ((and sav (equal #\, cur)) (<span style="color: #00cdcd; font-weight: bold;">progn</span> (setf sav nil)
+                                            ((and sav (equal #\, cur)) (<span style="color: #a020f0;">progn</span> (setf sav nil)
                                                                               (setf inp nil)
                                                                               (push (coerce (reverse acc) 'string) res)
-                                                                              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print "inp f")</span>
+                                                                              <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print "inp f")</span>
                                                                               (setf acc nil)))
                                             ((equal #\Return cur)      nil)
-                                            (t (<span style="color: #00cdcd; font-weight: bold;">progn</span> (push cur acc)
-                                                      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print (list "." cur))</span>
+                                            (t (<span style="color: #a020f0;">progn</span> (push cur acc)
+                                                      <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print (list "." cur))</span>
                                                       )))))
-                               (<span style="color: #00cdcd; font-weight: bold;">when</span> acc
-                                 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1085;&#1077;&#1079;&#1072;&#1082;&#1088;&#1099;&#1090;&#1072;&#1103; &#1082;&#1072;&#1074;&#1099;&#1095;&#1082;&#1072;</span>
-                                 (<span style="color: #00cdcd; font-weight: bold;">if</span> (and inp (null sav))
+                               (<span style="color: #a020f0;">when</span> acc
+                                 <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1085;&#1077;&#1079;&#1072;&#1082;&#1088;&#1099;&#1090;&#1072;&#1103; &#1082;&#1072;&#1074;&#1099;&#1095;&#1082;&#1072;</span>
+                                 (<span style="color: #a020f0;">if</span> (and inp (null sav))
                                      (setf err t))
-                                 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print (list ":" inp sav acc res))</span>
+                                 <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print (list ":" inp sav acc res))</span>
                                  (push (coerce (reverse acc) 'string) res))
                                (reverse res)))))
      err)))
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">xls-processor</span> (infile)
-  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((result)
-         (output (<span style="color: #00cdcd; font-weight: bold;">with-output-to-string</span> (*standard-output*)
-                   (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((proc (sb-ext:run-program <span style="color: #00cd00;">"/usr/bin/xls2csv"</span>
-                                                    (list <span style="color: #00cd00;">"-q3"</span> (format nil <span style="color: #00cd00;">"~a"</span> infile)) <span style="color: #0000ee; font-weight: bold;">:wait</span> nil <span style="color: #0000ee; font-weight: bold;">:output</span> <span style="color: #0000ee; font-weight: bold;">:stream</span>)))
-                     (<span style="color: #00cdcd; font-weight: bold;">with-open-stream</span> (in (sb-ext:process-output proc))
-                       (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> i from 1 do
-                          (<span style="color: #00cdcd; font-weight: bold;">tagbody</span> loop-body
-                             (<span style="color: #00cdcd; font-weight: bold;">handler-case</span>
-                                 (<span style="color: #00cdcd; font-weight: bold;">let</span> ((in-string (read-line in)))
-                                   (format nil <span style="color: #00cd00;">"~A"</span> in-string)
-                                   <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1085;&#1072;&#1095;&#1080;&#1085;&#1072;&#1077;&#1084; &#1076;&#1077;&#1082;&#1086;&#1076;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;</span>
-                                   (<span style="color: #00cdcd; font-weight: bold;">tagbody</span> start-decoding
-                                      (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (line err-string-flag)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">xls-processor</span> (infile)
+  (<span style="color: #a020f0;">let*</span> ((result)
+         (output (<span style="color: #a020f0;">with-output-to-string</span> (*standard-output*)
+                   (<span style="color: #a020f0;">let*</span> ((proc (sb-ext:run-program <span style="color: #8b2252;">"/usr/bin/xls2csv"</span>
+                                                    (list <span style="color: #8b2252;">"-q3"</span> (format nil <span style="color: #8b2252;">"~a"</span> infile)) <span style="color: #483d8b;">:wait</span> nil <span style="color: #483d8b;">:output</span> <span style="color: #483d8b;">:stream</span>)))
+                     (<span style="color: #a020f0;">with-open-stream</span> (in (sb-ext:process-output proc))
+                       (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> i from 1 do
+                          (<span style="color: #a020f0;">tagbody</span> loop-body
+                             (<span style="color: #a020f0;">handler-case</span>
+                                 (<span style="color: #a020f0;">let</span> ((in-string (read-line in)))
+                                   (format nil <span style="color: #8b2252;">"~A"</span> in-string)
+                                   <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1085;&#1072;&#1095;&#1080;&#1085;&#1072;&#1077;&#1084; &#1076;&#1077;&#1082;&#1086;&#1076;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;</span>
+                                   (<span style="color: #a020f0;">tagbody</span> start-decoding
+                                      (<span style="color: #a020f0;">multiple-value-bind</span> (line err-string-flag)
                                           (decoder-3-csv in-string)
-                                        (<span style="color: #00cdcd; font-weight: bold;">when</span> err-string-flag
+                                        (<span style="color: #a020f0;">when</span> err-string-flag
                                           (setf in-string (concatenate 'string in-string (read-line in)))
-                                          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(format t "~%warn-broken-string [~a] ~a~%" i in-string)</span>
+                                          <span style="color: #b22222;">;; </span><span style="color: #b22222;">(format t "~%warn-broken-string [~a] ~a~%" i in-string)</span>
                                           (incf i)
-                                          (<span style="color: #00cdcd; font-weight: bold;">go</span> start-decoding))
-                                        (format t <span style="color: #00cd00;">"~%~%str: ~a~%lin: ~a"</span> in-string (bprint line))
-                                        (<span style="color: #00cdcd; font-weight: bold;">unless</span> (null line)
-                                          (<span style="color: #00cdcd; font-weight: bold;">handler-case</span>
+                                          (<span style="color: #a020f0;">go</span> start-decoding))
+                                        (format t <span style="color: #8b2252;">"~%~%str: ~a~%lin: ~a"</span> in-string (bprint line))
+                                        (<span style="color: #a020f0;">unless</span> (null line)
+                                          (<span style="color: #a020f0;">handler-case</span>
                                               (push line result)
                                             (SB-INT:SIMPLE-PARSE-ERROR () nil))
                                           )))
                                    )
-                               (END-OF-FILE () (<span style="color: #00cdcd; font-weight: bold;">return</span> i)))))))
+                               (END-OF-FILE () (<span style="color: #a020f0;">return</span> i)))))))
                    )))
-    (<span style="color: #00cdcd; font-weight: bold;">declare</span> (ignore output))
-    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">output</span>
+    (<span style="color: #a020f0;">declare</span> (ignore output))
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">output</span>
     (reverse result)))
 </pre>
 </div>
+</div>
+</div>
 
-
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Загрузчик</h3>
+<div class="outline-text-3" id="text-4-2">
 <p>
-Теперь переходи к загрузке данных:
+Теперь переходим к загрузке данных:
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="loader">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="loader">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 &lt;&lt;awhen_file&gt;&gt;
 &lt;&lt;loop_dir&gt;&gt;
 &lt;&lt;assoc_key&gt;&gt;
 &lt;&lt;keyval&gt;&gt;
 &lt;&lt;xls&gt;&gt;
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1077; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;..</span>
-(<span style="color: #00cdcd; font-weight: bold;">loop-dir</span> cmpx ()
-   <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089; &#1080; &#1079;&#1072;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1084; &#1072;&#1076;&#1088;&#1077;&#1089;, &#1077;&#1089;&#1083;&#1080; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1085;&#1072;&#1081;&#1090;&#1080; &#1089;&#1086;&#1086;&#1090;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1091;&#1102;&#1097;&#1080;&#1081; &#1092;&#1072;&#1081;&#1083;</span>
-     (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cmpx-id (id (make-cmpx <span style="color: #0000ee; font-weight: bold;">:name</span> cmpx
-                                   <span style="color: #0000ee; font-weight: bold;">:addr</span> (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1072;&#1076;&#1088;&#1077;&#1089;.txt"</span> files)
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1077; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;..</span>
+(<span style="color: #a020f0;">loop-dir</span> cmpx ()
+   <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089; &#1080; &#1079;&#1072;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1084; &#1072;&#1076;&#1088;&#1077;&#1089;, &#1077;&#1089;&#1083;&#1080; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1085;&#1072;&#1081;&#1090;&#1080; &#1089;&#1086;&#1086;&#1090;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1091;&#1102;&#1097;&#1080;&#1081; &#1092;&#1072;&#1081;&#1083;</span>
+     (format t <span style="color: #8b2252;">"~%-~A"</span> cmpx)
+     (<span style="color: #a020f0;">let</span> ((cmpx-id (id (make-cmpx <span style="color: #483d8b;">:name</span> cmpx
+                                   <span style="color: #483d8b;">:addr</span> (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1072;&#1076;&#1088;&#1077;&#1089;.txt"</span> files)
                                            (string-trim '(#\NewLine #\Tab #\Space )
-                                                        (alexandria:read-file-into-string (format nil <span style="color: #00cd00;">"~A~A/~A"</span> *data-path* cmpx it))))))))
-       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;</span>
-       (<span style="color: #00cdcd; font-weight: bold;">loop-dir</span> plex (cmpx)
-          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
-            (<span style="color: #00cdcd; font-weight: bold;">let</span> ((plex-id (id (make-plex <span style="color: #0000ee; font-weight: bold;">:name</span> plex <span style="color: #0000ee; font-weight: bold;">:cmpx-id</span> cmpx-id))))
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1072;&#1085;&#1085;&#1099;&#1084;&#1080; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1046;&#1050; - &#1086;&#1073;&#1085;&#1086;&#1074;&#1080;&#1084; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1085;&#1091;&#1102; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
-              (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"data.txt"</span> files)
-                (<span style="color: #00cdcd; font-weight: bold;">let</span> ((data (keyval (format nil <span style="color: #00cd00;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))
+                                                        (alexandria:read-file-into-string (format nil <span style="color: #8b2252;">"~A~A/~A"</span> *data-path* cmpx it))))))))
+       <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1086;&#1082;, &#1088;&#1077;&#1085;&#1076;&#1077;&#1088;&#1086;&#1074; &#1080; &#1093;&#1086;&#1076;&#1072; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;:</span>
+       (<span style="color: #a020f0;">loop-dir</span> plex (cmpx)
+          (<span style="color: #a020f0;">unless</span> (or (string= plex <span style="color: #8b2252;">"&#1055;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;"</span>)
+                      (string= plex <span style="color: #8b2252;">"&#1056;&#1077;&#1085;&#1076;&#1077;&#1088;&#1099;"</span>)
+                      (string= plex <span style="color: #8b2252;">"&#1061;&#1086;&#1076; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;"</span>))
+            <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
+            (format t <span style="color: #8b2252;">"~%--~A"</span> plex)
+            (<span style="color: #a020f0;">let</span> ((plex-id (id (make-plex <span style="color: #483d8b;">:name</span> plex <span style="color: #483d8b;">:cmpx-id</span> cmpx-id))))
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1072;&#1085;&#1085;&#1099;&#1084;&#1080; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1046;&#1050; - &#1086;&#1073;&#1085;&#1086;&#1074;&#1080;&#1084; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1085;&#1091;&#1102; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
+              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"data.txt"</span> files)
+                (<span style="color: #a020f0;">let</span> ((data (keyval (format nil <span style="color: #8b2252;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))
                   (upd-plex (get-plex plex-id)
-                            (list <span style="color: #0000ee; font-weight: bold;">:deadline</span>    (assoc-key <span style="color: #00cd00;">"&#1089;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> data)
-                                  <span style="color: #0000ee; font-weight: bold;">:distance</span>    (assoc-key <span style="color: #00cd00;">"&#1088;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077; &#1076;&#1086; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> data)
-                                  <span style="color: #0000ee; font-weight: bold;">:finishing</span>   (assoc-key <span style="color: #00cd00;">"&#1086;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;"</span> data)
-                                  <span style="color: #0000ee; font-weight: bold;">:ipoteka</span>     (or (string= <span style="color: #00cd00;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #00cd00;">"&#1080;&#1087;&#1086;&#1090;&#1077;&#1082;&#1072;"</span> data)))
-                                  <span style="color: #0000ee; font-weight: bold;">:installment</span> (or (string= <span style="color: #00cd00;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #00cd00;">"&#1088;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> data)))
-                                  <span style="color: #0000ee; font-weight: bold;">:subsidy</span>     (or (string= <span style="color: #00cd00;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #00cd00;">"&#1089;&#1091;&#1073;&#1089;&#1080;&#1076;&#1080;&#1103;"</span> data)))
-                                  <span style="color: #0000ee; font-weight: bold;">:district-id</span> (<span style="color: #00cdcd; font-weight: bold;">let</span> ((obj (find-district <span style="color: #0000ee; font-weight: bold;">:name</span> (assoc-key <span style="color: #00cd00;">"&#1088;&#1072;&#1081;&#1086;&#1085;"</span> data))))
-                                                 (<span style="color: #00cdcd; font-weight: bold;">if</span> (null obj)
-                                                     (<span style="color: #cd0000; font-weight: bold;">warn</span> (format nil <span style="color: #00cd00;">"&#1088;&#1072;&#1081;&#1086;&#1085; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1088;&#1072;&#1081;&#1086;&#1085;&#1086;&#1074;"</span> (assoc-key <span style="color: #00cd00;">"&#1088;&#1072;&#1081;&#1086;&#1085;"</span> data)))
+                            (list <span style="color: #483d8b;">:deadline</span>    (assoc-key <span style="color: #8b2252;">"&#1089;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> data)
+                                  <span style="color: #483d8b;">:distance</span>    (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077; &#1076;&#1086; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> data)
+                                  <span style="color: #483d8b;">:finishing</span>   (assoc-key <span style="color: #8b2252;">"&#1086;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;"</span> data)
+                                  <span style="color: #483d8b;">:ipoteka</span>     (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1080;&#1087;&#1086;&#1090;&#1077;&#1082;&#1072;"</span> data)))
+                                  <span style="color: #483d8b;">:installment</span> (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> data)))
+                                  <span style="color: #483d8b;">:subsidy</span>     (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1089;&#1091;&#1073;&#1089;&#1080;&#1076;&#1080;&#1103;"</span> data)))
+                                  <span style="color: #483d8b;">:district-id</span> (<span style="color: #a020f0;">let</span> ((obj (find-district <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1081;&#1086;&#1085;"</span> data))))
+                                                 (<span style="color: #a020f0;">if</span> (null obj)
+                                                     (<span style="color: #ff0000; font-weight: bold;">warn</span> (format nil <span style="color: #8b2252;">"&#1088;&#1072;&#1081;&#1086;&#1085; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1088;&#1072;&#1081;&#1086;&#1085;&#1086;&#1074;"</span> (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1081;&#1086;&#1085;"</span> data)))
                                                      (id (car obj))))
-                                  <span style="color: #0000ee; font-weight: bold;">:metro-id</span>    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((obj (find-metro <span style="color: #0000ee; font-weight: bold;">:name</span> (assoc-key <span style="color: #00cd00;">"&#1084;&#1077;&#1090;&#1088;&#1086;"</span> data))))
-                                                 (<span style="color: #00cdcd; font-weight: bold;">if</span> (null obj)
-                                                     (<span style="color: #cd0000; font-weight: bold;">warn</span> (format nil <span style="color: #00cd00;">"&#1084;&#1077;&#1090;&#1088;&#1086; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;&#1086; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (assoc-key <span style="color: #00cd00;">"&#1084;&#1077;&#1090;&#1088;&#1086;"</span> data)))
+                                  <span style="color: #483d8b;">:metro-id</span>    (<span style="color: #a020f0;">let</span> ((obj (find-metro <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1084;&#1077;&#1090;&#1088;&#1086;"</span> data))))
+                                                 (<span style="color: #a020f0;">if</span> (null obj)
+                                                     (<span style="color: #ff0000; font-weight: bold;">warn</span> (format nil <span style="color: #8b2252;">"&#1084;&#1077;&#1090;&#1088;&#1086; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;&#1086; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (assoc-key <span style="color: #8b2252;">"&#1084;&#1077;&#1090;&#1088;&#1086;"</span> data)))
                                                      (id (car obj))))))))
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;.txt"</span> files)
-                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1090;&#1100;, &#1088;&#1072;&#1079;&#1073;&#1080;&#1090;&#1100; &#1087;&#1086;&#1089;&#1090;&#1088;&#1086;&#1095;&#1085;&#1086;, &#1086;&#1090;&#1076;&#1077;&#1083;&#1080;&#1090;&#1100; &#1082;&#1083;&#1102;&#1095;&#1080; &#1086;&#1090; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1081;, &#1091;&#1073;&#1088;&#1072;&#1090;&#1100; &#1074;&#1077;&#1076;&#1091;&#1097;&#1080;&#1077;, &#1074;&#1077;&#1076;&#1086;&#1084;&#1099;&#1077; &#1080; &#1087;&#1086;&#1074;&#1090;&#1086;&#1088;&#1103;&#1102;&#1097;&#1080;&#1077;&#1089;&#1103; &#1087;&#1088;&#1086;&#1073;&#1077;&#1083;&#1099;</span>
-                (<span style="color: #00cdcd; font-weight: bold;">let</span> ((passport (keyval (format nil <span style="color: #00cd00;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))
-                  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print passport)</span>
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;.txt"</span> files)
+                <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1090;&#1100;, &#1088;&#1072;&#1079;&#1073;&#1080;&#1090;&#1100; &#1087;&#1086;&#1089;&#1090;&#1088;&#1086;&#1095;&#1085;&#1086;, &#1086;&#1090;&#1076;&#1077;&#1083;&#1080;&#1090;&#1100; &#1082;&#1083;&#1102;&#1095;&#1080; &#1086;&#1090; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1081;, &#1091;&#1073;&#1088;&#1072;&#1090;&#1100; &#1074;&#1077;&#1076;&#1091;&#1097;&#1080;&#1077;, &#1074;&#1077;&#1076;&#1086;&#1084;&#1099;&#1077; &#1080; &#1087;&#1086;&#1074;&#1090;&#1086;&#1088;&#1103;&#1102;&#1097;&#1080;&#1077;&#1089;&#1103; &#1087;&#1088;&#1086;&#1073;&#1077;&#1083;&#1099;</span>
+                (<span style="color: #a020f0;">let</span> ((passport (keyval (format nil <span style="color: #8b2252;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))
+                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print passport)</span>
                   ))
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;.txt"</span> files)
-                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print it)</span>
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;.txt"</span> files)
+                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
                 )
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;.txt"</span> files)
-                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print it)</span>
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;.txt"</span> files)
+                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
                 )
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;.txt"</span> files)
-                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print it)</span>
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;.txt"</span> files)
+                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
                 )
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1077;&#1090;&#1100;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1076;&#1077;&#1090;&#1080;.txt"</span> files)
-                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print it)</span>
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1077;&#1090;&#1100;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1076;&#1077;&#1090;&#1080;.txt"</span> files)
+                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
                 )
-              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #00cdcd; font-weight: bold;">awhen-file</span> (<span style="color: #00cd00;">"&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;.csv"</span> files)
-                <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print it)</span>
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;.csv"</span> files)
+                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
                 )
-              ))))
-
-
-(print (xls-processor <span style="color: #00cd00;">"/home/rigidus/repo/moto/data/&#1044;&#1077;&#1089;&#1103;&#1090;&#1082;&#1080;&#1085;&#1086;/1 &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100;/&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;2.xls"</span>))
+              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1046;&#1050;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1086;&#1082;, &#1088;&#1077;&#1085;&#1076;&#1077;&#1088;&#1086;&#1074; &#1080; &#1093;&#1086;&#1076;&#1072; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;:</span>
+              (<span style="color: #a020f0;">loop-dir</span> crps (cmpx plex)
+                   (<span style="color: #a020f0;">unless</span> (or (string= crps <span style="color: #8b2252;">"&#1055;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;"</span>)
+                               (string= crps <span style="color: #8b2252;">"&#1056;&#1077;&#1085;&#1076;&#1077;&#1088;&#1099;"</span>)
+                               (string= crps <span style="color: #8b2252;">"&#1061;&#1086;&#1076; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;"</span>))
+                     <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1088;&#1087;&#1091;&#1089;</span>
+                     (format t <span style="color: #8b2252;">"~%---~A"</span> crps)
+                     (<span style="color: #a020f0;">let</span> ((crps-id (id (make-crps <span style="color: #483d8b;">:name</span> crps <span style="color: #483d8b;">:plex-id</span> plex-id))))
+                       <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1072;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                       (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;.xls"</span> files)
+                         (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> (cdr (xls-processor (format nil <span style="color: #8b2252;">"~A~A/~A/~A/~A"</span> *data-path* cmpx plex crps it))) <span style="color: #483d8b;">:do</span>
+                            (make-flat <span style="color: #483d8b;">:crps-id</span> crps-id
+                                       <span style="color: #483d8b;">:rooms</span> (parse-integer (nth 0 item))
+                                       <span style="color: #483d8b;">:area-sum</span> (nth 1 item)
+                                       <span style="color: #483d8b;">:area-living</span> (nth 2 item)
+                                       <span style="color: #483d8b;">:area-kitchen</span> (nth 3 item)
+                                       <span style="color: #483d8b;">:balcon</span> (nth 4 item)
+                                       <span style="color: #483d8b;">:sanuzel</span> (<span style="color: #a020f0;">if</span> (string= <span style="color: #8b2252;">""</span> (nth 5 item)) t nil)
+                                       <span style="color: #483d8b;">:price</span> (parse-integer (nth 6 item))))
+                         )))))))))
 </pre>
+</div>
 </div>
 </div>
 </div>
@@ -1199,10 +1245,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="trend_tpl"><span style="color: #cd0000;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
-{<span style="color: #00cd00; font-weight: bold;">namespace</span> <span style="color: #0000ee; font-weight: bold;">trendtpl</span>}
+<pre class="src src-closure-template-html" id="trend_tpl"><span style="color: #b22222;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
+{<span style="color: #228b22; font-weight: bold;">namespace</span> <span style="color: #0000ff;">trendtpl</span>}
 
-&lt;&lt;<span style="color: #0000ee; font-weight: bold;">trendtpl_contents</span>&gt;&gt;
+&lt;&lt;<span style="color: #0000ff;">trendtpl_contents</span>&gt;&gt;
 </pre>
 </div>
 
@@ -1212,13 +1258,13 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_prepare">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="trend_prepare">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
 (closure-template:compile-template
- <span style="color: #0000ee; font-weight: bold;">:common-lisp-backend</span>
+ <span style="color: #483d8b;">:common-lisp-backend</span>
  (pathname
-  (concatenate 'string *base-path* <span style="color: #00cd00;">"mod/trend/trend-tpl.htm"</span>)))
+  (concatenate 'string *base-path* <span style="color: #8b2252;">"mod/trend/trend-tpl.htm"</span>)))
 </pre>
 </div>
 
@@ -1228,7 +1274,7 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="trend_fn">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 &lt;&lt;flat_entity&gt;&gt;
 
@@ -1253,36 +1299,185 @@ for the JavaScript code in this tag.
 <div class="outline-text-3" id="text-6-1">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
-(restas:define-route load-data (<span style="color: #00cd00;">"/load"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1079;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1080; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
+(restas:define-route load-data (<span style="color: #8b2252;">"/load"</span>)
+  (<span style="color: #a020f0;">with-wrapper</span>
     (concatenate
      'string
-     <span style="color: #00cd00;">"&lt;h1&gt;&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093; &#1080;&#1079; &#1092;&#1072;&#1081;&#1083;&#1086;&#1074;&lt;/h1&gt;"</span>
-     (<span style="color: #00cdcd; font-weight: bold;">if</span> (null *current-user*)
-         <span style="color: #00cd00;">"Error: &#1053;&#1077;&#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080; &#1085;&#1077; &#1080;&#1084;&#1077;&#1102;&#1090; &#1087;&#1088;&#1072;&#1074;&#1072; &#1079;&#1072;&#1075;&#1088;&#1091;&#1078;&#1072;&#1090;&#1100; &#1076;&#1072;&#1085;&#1085;&#1099;&#1077;"</span>
+     <span style="color: #8b2252;">"&lt;h1&gt;&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093; &#1080;&#1079; &#1092;&#1072;&#1081;&#1083;&#1086;&#1074;&lt;/h1&gt;"</span>
+     (<span style="color: #a020f0;">if</span> (null *current-user*)
+         <span style="color: #8b2252;">"Error: &#1053;&#1077;&#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080; &#1085;&#1077; &#1080;&#1084;&#1077;&#1102;&#1090; &#1087;&#1088;&#1072;&#1074;&#1072; &#1079;&#1072;&#1075;&#1088;&#1091;&#1078;&#1072;&#1090;&#1100; &#1076;&#1072;&#1085;&#1085;&#1099;&#1077;"</span>
          (frm (tbl
                (list
-                (row <span style="color: #00cd00;">""</span> (hid <span style="color: #00cd00;">"load"</span>))
-                (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1080;&#1090;&#1100;"</span>)))))))))
+                (row <span style="color: #8b2252;">""</span> (<span style="color: #a020f0;">let</span> ((cmpx-s))
+                          (<span style="color: #a020f0;">loop-dir</span> cmpx ()
+                               (push cmpx cmpx-s))
+                          (format nil <span style="color: #8b2252;">"~{~A&lt;br/&gt;~}&lt;br /&gt;"</span> cmpx-s)))
+                (row <span style="color: #8b2252;">""</span> (hid <span style="color: #8b2252;">"load"</span>))
+                (row <span style="color: #8b2252;">""</span> (submit <span style="color: #8b2252;">"&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1080;&#1090;&#1100;"</span>)))))))))
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1050;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;</span>
-(restas:define-route load-ctrl (<span style="color: #00cd00;">"/load"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (<span style="color: #00cdcd; font-weight: bold;">if</span> (equal (getf p <span style="color: #0000ee; font-weight: bold;">:load</span>) <span style="color: #00cd00;">""</span>)
-          <span style="color: #00cd00;">"&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1079;&#1072;&#1075;&#1088;&#1091;&#1078;&#1077;&#1085;&#1099;"</span>
-          <span style="color: #00cd00;">"err"</span>))))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1050;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;</span>
+(restas:define-route load-ctrl (<span style="color: #8b2252;">"/load"</span> <span style="color: #483d8b;">:method</span> <span style="color: #483d8b;">:post</span>)
+  (<span style="color: #a020f0;">with-wrapper</span>
+    (<span style="color: #a020f0;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
+      (<span style="color: #a020f0;">if</span> (equal (getf p <span style="color: #483d8b;">:load</span>) <span style="color: #8b2252;">""</span>)
+          <span style="color: #8b2252;">"&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1079;&#1072;&#1075;&#1088;&#1091;&#1078;&#1077;&#1085;&#1099;"</span>
+          <span style="color: #8b2252;">"err"</span>))))
 </pre>
 </div>
 </div>
 </div>
 
 <div id="outline-container-sec-6-2" class="outline-3">
-<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Страничка планировки</h3>
+<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Список ЖК</h3>
 <div class="outline-text-3" id="text-6-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> all-cmpx-s <span style="color: #8b2252;">"/cmpxs"</span>
+  (concatenate 'string <span style="color: #8b2252;">"&lt;h1&gt;"</span> <span style="color: #8b2252;">"&#1046;&#1080;&#1083;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1099;"</span> <span style="color: #8b2252;">"&lt;/h1&gt;"</span> <span style="color: #8b2252;">""</span>
+               <span style="color: #8b2252;">"&lt;br /&gt;&lt;br /&gt;"</span>
+               (tbl
+                (<span style="color: #a020f0;">with-collection</span> (i (funcall #'all-cmpx))
+                  (tr
+                   (td
+                    (format nil <span style="color: #8b2252;">"&lt;a href=\"/~a/~a\"&gt;~a&lt;/a&gt;"</span> <span style="color: #8b2252;">"cmpx"</span>
+                            (id i) (id i)))
+                   (td (name i)) (td (addr i)) (td (frm %del%))))
+                <span style="color: #483d8b;">:border</span> 1))
+  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #a020f0;">progn</span> (del-cmpx (getf p <span style="color: #483d8b;">:data</span>)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-3" class="outline-3">
+<h3 id="sec-6-3"><span class="section-number-3">6.3</span> Страница ЖК</h3>
+<div class="outline-text-3" id="text-6-3">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> cmpx <span style="color: #8b2252;">"/cmpx/:cmpx-id"</span>
+  (<span style="color: #a020f0;">let*</span> ((i (parse-integer cmpx-id))
+         (cmpx (get-cmpx i)))
+    (<span style="color: #a020f0;">if</span> (null cmpx)
+        <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1075;&#1086; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;"</span>
+        (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                (list
+                 (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072; ~A&lt;/h1&gt;"</span> (id cmpx))
+                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072; ~A&lt;/h2&gt;"</span> (name cmpx))
+                 (tbl
+                  (<span style="color: #a020f0;">with-element</span> (cmpx cmpx)
+                    (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (name cmpx))
+                    (row <span style="color: #8b2252;">"&#1040;&#1076;&#1088;&#1077;&#1089;"</span> (addr cmpx)))
+                  <span style="color: #483d8b;">:border</span> 1)
+                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1054;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072; ~A&lt;/h2&gt;~%~A"</span>
+                         (name cmpx)
+                         (tbl
+                          (<span style="color: #a020f0;">with-collection</span> (i (find-plex <span style="color: #483d8b;">:cmpx-id</span> i))
+                            (tr
+                             (td
+                              (format nil <span style="color: #8b2252;">"&lt;a href=\"/~a/~a\"&gt;~a&lt;/a&gt;"</span> <span style="color: #8b2252;">"plex"</span>
+                                      (id i) (id i)))
+                             (td (name i)) (td (deadline i)) (td (frm %del%))))
+                          <span style="color: #483d8b;">:border</span> 1))))))
+  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #a020f0;">progn</span> (del-plex (getf p <span style="color: #483d8b;">:data</span>)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-4" class="outline-3">
+<h3 id="sec-6-4"><span class="section-number-3">6.4</span> Страница очереди ЖК</h3>
+<div class="outline-text-3" id="text-6-4">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> plex <span style="color: #8b2252;">"/plex/:plex-id"</span>
+  (<span style="color: #a020f0;">let*</span> ((i (parse-integer plex-id))
+         (plex (get-plex i)))
+    (<span style="color: #a020f0;">if</span> (null plex)
+        <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1081; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1091; &#1101;&#1090;&#1086;&#1075;&#1086; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;"</span>
+        (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                (list
+                 (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;&lt;/h1&gt;"</span>)
+                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;&lt;/h2&gt;"</span>)
+                 (tbl
+                  (<span style="color: #a020f0;">with-element</span> (plex plex)
+                    (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (name plex))
+                    (row <span style="color: #8b2252;">"&#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> (deadline plex))
+                    (row <span style="color: #8b2252;">"&#1048;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;&#1086;&#1088; &#1088;&#1072;&#1081;&#1086;&#1085;&#1072;"</span> (district-id plex))
+                    (row <span style="color: #8b2252;">"&#1048;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;&#1086;&#1088; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (metro-id plex))
+                    (row <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077; &#1076;&#1086; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (distance plex))
+                    (row <span style="color: #8b2252;">"&#1057;&#1091;&#1073;&#1089;&#1080;&#1076;&#1080;&#1103;"</span> (subsidy plex))
+                    (row <span style="color: #8b2252;">"&#1054;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;"</span> (finishing plex))
+                    (row <span style="color: #8b2252;">"&#1048;&#1087;&#1086;&#1090;&#1077;&#1082;&#1072;"</span> (ipoteka plex))
+                    (row <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> (installment plex)))
+                  <span style="color: #483d8b;">:border</span> 1)
+                  (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1050;&#1086;&#1088;&#1087;&#1091;&#1089;&#1072; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;&lt;/h2&gt;~%~A"</span>
+                         (tbl
+                          (<span style="color: #a020f0;">with-collection</span> (i (find-crps <span style="color: #483d8b;">:plex-id</span> i))
+                            (tr
+                             (td
+                              (format nil <span style="color: #8b2252;">"&lt;a href=\"/~a/~a\"&gt;~a&lt;/a&gt;"</span> <span style="color: #8b2252;">"crps"</span>
+                                      (id i) (id i)))
+                             (td (name i)) (td (frm %del%))))
+                          <span style="color: #483d8b;">:border</span> 1))))))
+  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"del"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #a020f0;">progn</span> (del-plex (getf p <span style="color: #483d8b;">:data</span>)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-5" class="outline-3">
+<h3 id="sec-6-5"><span class="section-number-3">6.5</span> Страница корпуса очереди ЖК</h3>
+<div class="outline-text-3" id="text-6-5">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> crps <span style="color: #8b2252;">"/crps/:crps-id"</span>
+  (<span style="color: #a020f0;">let*</span> ((i (parse-integer crps-id))
+         (crps (get-crps i)))
+    (<span style="color: #a020f0;">if</span> (null crps)
+        <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1081; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1091; &#1101;&#1090;&#1086;&#1075;&#1086; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;"</span>
+        (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                (list
+                 (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1082;&#1086;&#1088;&#1087;&#1091;&#1089;&#1072; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;&lt;/h1&gt;"</span>)
+                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;&lt;/h2&gt;"</span>)
+                 (tbl
+                  (<span style="color: #a020f0;">with-element</span> (crps crps)
+                    (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (name crps)))
+                  <span style="color: #483d8b;">:border</span> 1)
+                  (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1055;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080; &#1082;&#1086;&#1088;&#1087;&#1091;&#1089;&#1072; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;&lt;/h2&gt;~%~A"</span>
+                         (tbl
+                          (<span style="color: #a020f0;">with-collection</span> (i (find-flat <span style="color: #483d8b;">:crps-id</span> i))
+                            (tr
+                             (td
+                              (format nil <span style="color: #8b2252;">"&lt;a href=\"/~a/~a\"&gt;~a&lt;/a&gt;"</span> <span style="color: #8b2252;">"flat"</span>
+                                      (id i) (id i)))
+                             (td (format nil <span style="color: #8b2252;">"~A &#1082;.&#1082;&#1074;."</span> (rooms i)))
+                             (td (format nil <span style="color: #8b2252;">"~:d &#1088;&#1091;&#1073;."</span> (price i)))
+                             (td (frm %del%))))
+                          <span style="color: #483d8b;">:border</span> 1))))))
+  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #a020f0;">progn</span> (del-flat (getf p <span style="color: #483d8b;">:data</span>)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-6" class="outline-3">
+<h3 id="sec-6-6"><span class="section-number-3">6.6</span> Страничка планировки</h3>
+<div class="outline-text-3" id="text-6-6">
 <p>
 <a href="pics/Trend_apartment02.png">Дизайн-макет: Карточка квартиры</a>
 </p>
@@ -1297,9 +1492,9 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="trendtpl_contents">{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">flatpage}</span>
-    &lt;&lt;<span style="color: #0000ee; font-weight: bold;">flatpage_tpl_contents</span>&gt;&gt;
-{<span style="color: #00cd00; font-weight: bold;">/template</span>}
+<pre class="src src-closure-template-html" id="trendtpl_contents">{<span style="color: #228b22; font-weight: bold;">template</span> <span style="color: #0000ff;">flatpage}</span>
+    &lt;&lt;<span style="color: #0000ff;">flatpage_tpl_contents</span>&gt;&gt;
+{<span style="color: #228b22; font-weight: bold;">/template</span>}
 </pre>
 </div>
 
@@ -1309,22 +1504,53 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="trend_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(in-package #:moto)</span>
 
-(restas:define-route flat (<span style="color: #00cd00;">"/flat/:flatid"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((flat (get-flat 1)))
-      (trendtpl:flatpage
-       (list
-        &lt;&lt;flatpage_contents&gt;&gt;
-        )))))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(restas:define-route flat ("/flat/:flatid")</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(with-wrapper</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(let ((flat (get-flat 1)))</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(trendtpl:flatpage</span>
+<span style="color: #b22222;">;;        </span><span style="color: #b22222;">(list</span>
+<span style="color: #b22222;">;;         </span><span style="color: #b22222;">&lt;&lt;flatpage_contents&gt;&gt;</span>
+<span style="color: #b22222;">;;         </span><span style="color: #b22222;">)))))</span>
+</pre>
+</div>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="trend_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> flat <span style="color: #8b2252;">"/flat/:flat-id"</span>
+  (<span style="color: #a020f0;">let*</span> ((i (parse-integer flat-id))
+         (flat (get-flat i)))
+    (<span style="color: #a020f0;">if</span> (null flat)
+        <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1081; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;"</span>
+        (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                (list
+                 (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;&lt;/h1&gt;"</span>)
+                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;&lt;/h2&gt;"</span>)
+                 (tbl
+                  (<span style="color: #a020f0;">with-element</span> (flat flat)
+                    (row <span style="color: #8b2252;">"&#1050;&#1086;&#1083;-&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;"</span> (rooms flat))
+                    (row <span style="color: #8b2252;">"&#1054;&#1073;&#1097;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;"</span> (area-living flat))
+                    (row <span style="color: #8b2252;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1082;&#1091;&#1093;&#1085;&#1080;"</span> (area-kitchen flat))
+                    (row <span style="color: #8b2252;">"&#1094;&#1077;&#1085;&#1072;"</span> (format nil <span style="color: #8b2252;">"~:d"</span>(price flat)))
+                    (row <span style="color: #8b2252;">"&#1073;&#1072;&#1083;&#1082;&#1086;&#1085;/&#1083;&#1086;&#1076;&#1078;&#1080;&#1103;"</span> (balcon flat))
+                    (row <span style="color: #8b2252;">"&#1057;&#1072;&#1085;&#1091;&#1079;&#1077;&#1083;"</span> (sanuzel flat))
+                    (row <span style="color: #8b2252;">""</span> (frm %buy%))
+                    )
+                  <span style="color: #483d8b;">:border</span> 1)))))
+  (<span style="color: #483d8b;">:buy</span> (act-btn <span style="color: #8b2252;">"BUY"</span> <span style="color: #8b2252;">"BUY"</span> <span style="color: #8b2252;">"&#1050;&#1091;&#1087;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #a020f0;">progn</span> 1)))
 </pre>
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-1" class="outline-4">
-<h4 id="sec-6-2-1"><span class="section-number-4">6.2.1</span> <span class="todo TODO">TODO</span> Pop-up</h4>
-<div class="outline-text-4" id="text-6-2-1">
+
+<div id="outline-container-sec-6-6-1" class="outline-4">
+<h4 id="sec-6-6-1"><span class="section-number-4">6.6.1</span> <span class="todo TODO">TODO</span> Pop-up</h4>
+<div class="outline-text-4" id="text-6-6-1">
 <p>
 Есть вариант открывать карточку квартиры в pop-up окне. Но на каждую квартиру должна
 быть прямая ссылка - очевидно надо менять адресную строку.
@@ -1332,40 +1558,40 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-2" class="outline-4">
-<h4 id="sec-6-2-2"><span class="section-number-4">6.2.2</span> <span class="todo TODO">TODO</span> Версия для печати</h4>
-<div class="outline-text-4" id="text-6-2-2">
+<div id="outline-container-sec-6-6-2" class="outline-4">
+<h4 id="sec-6-6-2"><span class="section-number-4">6.6.2</span> <span class="todo TODO">TODO</span> Версия для печати</h4>
+<div class="outline-text-4" id="text-6-6-2">
 <p>
 Также должна быть версия для печати, чтобы распечатать интересующий вариант.
 </p>
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-3" class="outline-4">
-<h4 id="sec-6-2-3"><span class="section-number-4">6.2.3</span> <span class="todo TODO">TODO</span> Менеджер хочет накидать скидок</h4>
-<div class="outline-text-4" id="text-6-2-3">
+<div id="outline-container-sec-6-6-3" class="outline-4">
+<h4 id="sec-6-6-3"><span class="section-number-4">6.6.3</span> <span class="todo TODO">TODO</span> Менеджер хочет накидать скидок</h4>
+<div class="outline-text-4" id="text-6-6-3">
 <p>
 Менеджер по продаже должен иметь возможность на странице квартиры накидать скидок (иногородний
 покупатель, итп), влиящих на цену квартиры. Это очень важное бизнес-требование.
 </p>
 </div>
 </div>
-<div id="outline-container-sec-6-2-4" class="outline-4">
-<h4 id="sec-6-2-4"><span class="section-number-4">6.2.4</span> <span class="todo TODO">TODO</span> Pdf-версия</h4>
+<div id="outline-container-sec-6-6-4" class="outline-4">
+<h4 id="sec-6-6-4"><span class="section-number-4">6.6.4</span> <span class="todo TODO">TODO</span> Pdf-версия</h4>
 </div>
-<div id="outline-container-sec-6-2-5" class="outline-4">
-<h4 id="sec-6-2-5"><span class="section-number-4">6.2.5</span> <span class="todo TODO">TODO</span> Отправить на почту</h4>
+<div id="outline-container-sec-6-6-5" class="outline-4">
+<h4 id="sec-6-6-5"><span class="section-number-4">6.6.5</span> <span class="todo TODO">TODO</span> Отправить на почту</h4>
 </div>
-<div id="outline-container-sec-6-2-6" class="outline-4">
-<h4 id="sec-6-2-6"><span class="section-number-4">6.2.6</span> <span class="todo TODO">TODO</span> Рассказать в социальных сетях</h4>
+<div id="outline-container-sec-6-6-6" class="outline-4">
+<h4 id="sec-6-6-6"><span class="section-number-4">6.6.6</span> <span class="todo TODO">TODO</span> Рассказать в социальных сетях</h4>
 </div>
-<div id="outline-container-sec-6-2-7" class="outline-4">
-<h4 id="sec-6-2-7"><span class="section-number-4">6.2.7</span> Тип квартиры</h4>
-<div class="outline-text-4" id="text-6-2-7">
+<div id="outline-container-sec-6-6-7" class="outline-4">
+<h4 id="sec-6-6-7"><span class="section-number-4">6.6.7</span> Тип квартиры</h4>
+<div class="outline-text-4" id="text-6-6-7">
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="flatpage_tpl_contents">{$<span style="color: #cdcd00;">rooms</span> | noAutoescape}
-&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">{$<span style="color: #a0522d;">rooms</span> | noAutoescape}
+&lt;<span style="color: #0000ff;">br</span> /&gt;
 </pre>
 </div>
 
@@ -1375,25 +1601,25 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:rooms</span> (<span style="color: #00cdcd; font-weight: bold;">let</span> ((r (rooms flat)))
-         (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((equal 0 r) <span style="color: #00cd00;">"&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;-&#1089;&#1090;&#1091;&#1076;&#1080;&#1103;"</span>)
-               ((equal 1 r) <span style="color: #00cd00;">"1-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
-               ((equal 2 r) <span style="color: #00cd00;">"2-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
-               ((equal 3 r) <span style="color: #00cd00;">"3-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
-               ((equal 4 r) <span style="color: #00cd00;">"4-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
-               (t (err <span style="color: #00cd00;">"unknown rooms value"</span>))))
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #483d8b;">:rooms</span> (<span style="color: #a020f0;">let</span> ((r (rooms flat)))
+         (<span style="color: #a020f0;">cond</span> ((equal 0 r) <span style="color: #8b2252;">"&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;-&#1089;&#1090;&#1091;&#1076;&#1080;&#1103;"</span>)
+               ((equal 1 r) <span style="color: #8b2252;">"1-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               ((equal 2 r) <span style="color: #8b2252;">"2-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               ((equal 3 r) <span style="color: #8b2252;">"3-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               ((equal 4 r) <span style="color: #8b2252;">"4-&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;"</span>)
+               (t (err <span style="color: #8b2252;">"unknown rooms value"</span>))))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-8" class="outline-4">
-<h4 id="sec-6-2-8"><span class="section-number-4">6.2.8</span> Идентификатор квартиры</h4>
-<div class="outline-text-4" id="text-6-2-8">
+<div id="outline-container-sec-6-6-8" class="outline-4">
+<h4 id="sec-6-6-8"><span class="section-number-4">6.6.8</span> Идентификатор квартиры</h4>
+<div class="outline-text-4" id="text-6-6-8">
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="flatpage_tpl_contents">id: {$<span style="color: #cdcd00;">id</span> | noAutoescape}
-&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">id: {$<span style="color: #a0522d;">id</span> | noAutoescape}
+&lt;<span style="color: #0000ff;">br</span> /&gt;
 </pre>
 </div>
 
@@ -1403,48 +1629,48 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:id</span> (id flat)
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #483d8b;">:id</span> (id flat)
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-9" class="outline-4">
-<h4 id="sec-6-2-9"><span class="section-number-4">6.2.9</span> Цена при 100% оплате</h4>
-<div class="outline-text-4" id="text-6-2-9">
+<div id="outline-container-sec-6-6-9" class="outline-4">
+<h4 id="sec-6-6-9"><span class="section-number-4">6.6.9</span> Цена при 100% оплате</h4>
+<div class="outline-text-4" id="text-6-6-9">
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&#1062;&#1077;&#1085;&#1072; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099; &#1087;&#1088;&#1080; 100% &#1086;&#1087;&#1083;&#1072;&#1090;&#1077;: {$<span style="color: #cdcd00;">price</span> | noAutoescape}
-&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&#1062;&#1077;&#1085;&#1072; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099; &#1087;&#1088;&#1080; 100% &#1086;&#1087;&#1083;&#1072;&#1090;&#1077;: {$<span style="color: #a0522d;">price</span> | noAutoescape}
+&lt;<span style="color: #0000ff;">br</span> /&gt;
 </pre>
 </div>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:price</span> (price flat)
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #483d8b;">:price</span> (price flat)
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-10" class="outline-4">
-<h4 id="sec-6-2-10"><span class="section-number-4">6.2.10</span> Кнопка "подробности у менедждера"</h4>
-<div class="outline-text-4" id="text-6-2-10">
+<div id="outline-container-sec-6-6-10" class="outline-4">
+<h4 id="sec-6-6-10"><span class="section-number-4">6.6.10</span> Кнопка "подробности у менедждера"</h4>
+<div class="outline-text-4" id="text-6-6-10">
 <p>
 ссылка на контакты
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&lt;<span style="color: #0000ee; font-weight: bold;">a</span> <span style="color: #cdcd00;">href</span>=<span style="color: #00cd00;">"/contacts"</span>&gt;&#1055;&#1086;&#1076;&#1088;&#1086;&#1073;&#1085;&#1086;&#1089;&#1090;&#1080; &#1091; &#1084;&#1077;&#1085;&#1077;&#1076;&#1078;&#1077;&#1088;&#1072;&lt;/<span style="color: #0000ee; font-weight: bold;">a</span>&gt;
-&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&lt;<span style="color: #0000ff;">a</span> <span style="color: #a0522d;">href</span>=<span style="color: #8b2252;">"/contacts"</span>&gt;&#1055;&#1086;&#1076;&#1088;&#1086;&#1073;&#1085;&#1086;&#1089;&#1090;&#1080; &#1091; &#1084;&#1077;&#1085;&#1077;&#1076;&#1078;&#1077;&#1088;&#1072;&lt;/<span style="color: #0000ff;">a</span>&gt;
+&lt;<span style="color: #0000ff;">br</span> /&gt;
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-sec-6-2-11" class="outline-4">
-<h4 id="sec-6-2-11"><span class="section-number-4">6.2.11</span> <span class="todo TODO">TODO</span> Карточка комплекса</h4>
-<div class="outline-text-4" id="text-6-2-11">
+<div id="outline-container-sec-6-6-11" class="outline-4">
+<h4 id="sec-6-6-11"><span class="section-number-4">6.6.11</span> <span class="todo TODO">TODO</span> Карточка комплекса</h4>
+<div class="outline-text-4" id="text-6-6-11">
 <p>
 Справа карточка комплекса идентичная поисковой выдачи - она оттуда
 и берется.
@@ -1464,9 +1690,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-12" class="outline-4">
-<h4 id="sec-6-2-12"><span class="section-number-4">6.2.12</span> <span class="todo TODO">TODO</span> Характеристики квартиры</h4>
-<div class="outline-text-4" id="text-6-2-12">
+<div id="outline-container-sec-6-6-12" class="outline-4">
+<h4 id="sec-6-6-12"><span class="section-number-4">6.6.12</span> <span class="todo TODO">TODO</span> Характеристики квартиры</h4>
+<div class="outline-text-4" id="text-6-6-12">
 <p>
 Нужно иметь возможность добавлять сюда параметры, но в первом прототипе мы это пока не
 делаем
@@ -1474,71 +1700,71 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-&lt;<span style="color: #0000ee; font-weight: bold;">div</span> <span style="color: #cdcd00;">style</span>=<span style="color: #00cd00;">"border: 1px solid blue;"</span>&gt;
-    &#1050;&#1086;&#1083;_&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;: {$<span style="color: #cdcd00;">rooms</span> | noAutoescape}
-    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-    &#1046;&#1080;&#1083;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;: {$<span style="color: #cdcd00;">area</span>_living | noAutoescape}
-    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-    &#1054;&#1073;&#1097;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;: {$<span style="color: #cdcd00;">area</span>_sum | noAutoescape}
-    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-    &#1055;&#1083;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1082;&#1091;&#1093;&#1085;&#1080;: {$<span style="color: #cdcd00;">area</span>_kitchen | noAutoescape}
-    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-    &#1057;&#1072;&#1085;&#1091;&#1079;&#1077;&#1083;: {$<span style="color: #cdcd00;">sanuzel</span> | noAutoescape}
-    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-    &#1054;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;: {$<span style="color: #cdcd00;">finishing</span> | noAutoescape}
-    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-    &#1041;&#1072;&#1083;&#1082;&#1086;&#1085;: {$<span style="color: #cdcd00;">balcon</span> | noAutoescape}
-    &lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
-&lt;/<span style="color: #0000ee; font-weight: bold;">div</span>&gt;
-&lt;<span style="color: #0000ee; font-weight: bold;">br</span> /&gt;
+<pre class="src src-closure-template-html" id="flatpage_tpl_contents">&lt;<span style="color: #0000ff;">br</span> /&gt;
+&lt;<span style="color: #0000ff;">div</span> <span style="color: #a0522d;">style</span>=<span style="color: #8b2252;">"border: 1px solid blue;"</span>&gt;
+    &#1050;&#1086;&#1083;_&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;: {$<span style="color: #a0522d;">rooms</span> | noAutoescape}
+    &lt;<span style="color: #0000ff;">br</span> /&gt;
+    &#1046;&#1080;&#1083;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;: {$<span style="color: #a0522d;">area</span>_living | noAutoescape}
+    &lt;<span style="color: #0000ff;">br</span> /&gt;
+    &#1054;&#1073;&#1097;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;: {$<span style="color: #a0522d;">area</span>_sum | noAutoescape}
+    &lt;<span style="color: #0000ff;">br</span> /&gt;
+    &#1055;&#1083;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1082;&#1091;&#1093;&#1085;&#1080;: {$<span style="color: #a0522d;">area</span>_kitchen | noAutoescape}
+    &lt;<span style="color: #0000ff;">br</span> /&gt;
+    &#1057;&#1072;&#1085;&#1091;&#1079;&#1077;&#1083;: {$<span style="color: #a0522d;">sanuzel</span> | noAutoescape}
+    &lt;<span style="color: #0000ff;">br</span> /&gt;
+    &#1054;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;: {$<span style="color: #a0522d;">finishing</span> | noAutoescape}
+    &lt;<span style="color: #0000ff;">br</span> /&gt;
+    &#1041;&#1072;&#1083;&#1082;&#1086;&#1085;: {$<span style="color: #a0522d;">balcon</span> | noAutoescape}
+    &lt;<span style="color: #0000ff;">br</span> /&gt;
+&lt;/<span style="color: #0000ff;">div</span>&gt;
+&lt;<span style="color: #0000ff;">br</span> /&gt;
 </pre>
 </div>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="flatpage_contents"><span style="color: #0000ee; font-weight: bold;">:rooms</span> (rooms flat)
-<span style="color: #0000ee; font-weight: bold;">:area_living</span> (area-living flat)
-<span style="color: #0000ee; font-weight: bold;">:area_sum</span> (area-sum flat)
-<span style="color: #0000ee; font-weight: bold;">:area_kitchen</span> (area-kitchen flat)
-<span style="color: #0000ee; font-weight: bold;">:sanuzel</span> (sanuzel flat)
-<span style="color: #0000ee; font-weight: bold;">:finishing</span> (finishing flat)
-<span style="color: #0000ee; font-weight: bold;">:balcon</span> (balcon flat)
+<pre class="src src-lisp" id="flatpage_contents"><span style="color: #483d8b;">:rooms</span> (rooms flat)
+<span style="color: #483d8b;">:area_living</span> (area-living flat)
+<span style="color: #483d8b;">:area_sum</span> (area-sum flat)
+<span style="color: #483d8b;">:area_kitchen</span> (area-kitchen flat)
+<span style="color: #483d8b;">:sanuzel</span> (sanuzel flat)
+<span style="color: #483d8b;">:finishing</span> (finishing flat)
+<span style="color: #483d8b;">:balcon</span> (balcon flat)
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-6-2-13" class="outline-4">
-<h4 id="sec-6-2-13"><span class="section-number-4">6.2.13</span> <span class="todo TODO">TODO</span> Добавить в сравнение</h4>
+<div id="outline-container-sec-6-6-13" class="outline-4">
+<h4 id="sec-6-6-13"><span class="section-number-4">6.6.13</span> <span class="todo TODO">TODO</span> Добавить в сравнение</h4>
 </div>
-<div id="outline-container-sec-6-2-14" class="outline-4">
-<h4 id="sec-6-2-14"><span class="section-number-4">6.2.14</span> <span class="todo TODO">TODO</span> Добавить в избранное</h4>
+<div id="outline-container-sec-6-6-14" class="outline-4">
+<h4 id="sec-6-6-14"><span class="section-number-4">6.6.14</span> <span class="todo TODO">TODO</span> Добавить в избранное</h4>
 </div>
-<div id="outline-container-sec-6-2-15" class="outline-4">
-<h4 id="sec-6-2-15"><span class="section-number-4">6.2.15</span> <span class="todo TODO">TODO</span> Четыре ключевых преимущетва из ЖК</h4>
+<div id="outline-container-sec-6-6-15" class="outline-4">
+<h4 id="sec-6-6-15"><span class="section-number-4">6.6.15</span> <span class="todo TODO">TODO</span> Четыре ключевых преимущетва из ЖК</h4>
 </div>
-<div id="outline-container-sec-6-2-16" class="outline-4">
-<h4 id="sec-6-2-16"><span class="section-number-4">6.2.16</span> <span class="todo TODO">TODO</span> калькулятор ипотеки и рассрочки - отдельный кейс</h4>
+<div id="outline-container-sec-6-6-16" class="outline-4">
+<h4 id="sec-6-6-16"><span class="section-number-4">6.6.16</span> <span class="todo TODO">TODO</span> калькулятор ипотеки и рассрочки - отдельный кейс</h4>
 </div>
-<div id="outline-container-sec-6-2-17" class="outline-4">
-<h4 id="sec-6-2-17"><span class="section-number-4">6.2.17</span> <span class="todo TODO">TODO</span> Возможность баннеров (автобусные туры)</h4>
+<div id="outline-container-sec-6-6-17" class="outline-4">
+<h4 id="sec-6-6-17"><span class="section-number-4">6.6.17</span> <span class="todo TODO">TODO</span> Возможность баннеров (автобусные туры)</h4>
 </div>
-<div id="outline-container-sec-6-2-18" class="outline-4">
-<h4 id="sec-6-2-18"><span class="section-number-4">6.2.18</span> <span class="todo TODO">TODO</span> Инфо о жилом комплексе (потому что попадает в распечатку)</h4>
+<div id="outline-container-sec-6-6-18" class="outline-4">
+<h4 id="sec-6-6-18"><span class="section-number-4">6.6.18</span> <span class="todo TODO">TODO</span> Инфо о жилом комплексе (потому что попадает в распечатку)</h4>
 </div>
-<div id="outline-container-sec-6-2-19" class="outline-4">
-<h4 id="sec-6-2-19"><span class="section-number-4">6.2.19</span> <span class="todo TODO">TODO</span> Сссылка "подробно о комплексе" - к ЖК</h4>
+<div id="outline-container-sec-6-6-19" class="outline-4">
+<h4 id="sec-6-6-19"><span class="section-number-4">6.6.19</span> <span class="todo TODO">TODO</span> Сссылка "подробно о комплексе" - к ЖК</h4>
 </div>
-<div id="outline-container-sec-6-2-20" class="outline-4">
-<h4 id="sec-6-2-20"><span class="section-number-4">6.2.20</span> <span class="todo TODO">TODO</span> Квартиры в этом комплексе - ведут в карточку комплекса с открытыми двухкомнатными квартирами.</h4>
+<div id="outline-container-sec-6-6-20" class="outline-4">
+<h4 id="sec-6-6-20"><span class="section-number-4">6.6.20</span> <span class="todo TODO">TODO</span> Квартиры в этом комплексе - ведут в карточку комплекса с открытыми двухкомнатными квартирами.</h4>
 </div>
-<div id="outline-container-sec-6-2-21" class="outline-4">
-<h4 id="sec-6-2-21"><span class="section-number-4">6.2.21</span> <span class="todo TODO">TODO</span> Сообщить об ошибке.</h4>
+<div id="outline-container-sec-6-6-21" class="outline-4">
+<h4 id="sec-6-6-21"><span class="section-number-4">6.6.21</span> <span class="todo TODO">TODO</span> Сообщить об ошибке.</h4>
 </div>
-<div id="outline-container-sec-6-2-22" class="outline-4">
-<h4 id="sec-6-2-22"><span class="section-number-4">6.2.22</span> <span class="todo TODO">TODO</span> Когда было последнее обновление информации о квартире.</h4>
-<div class="outline-text-4" id="text-6-2-22">
+<div id="outline-container-sec-6-6-22" class="outline-4">
+<h4 id="sec-6-6-22"><span class="section-number-4">6.6.22</span> <span class="todo TODO">TODO</span> Когда было последнее обновление информации о квартире.</h4>
+<div class="outline-text-4" id="text-6-6-22">
 <p>
 Обновлено и дату. Чтобы менеджер видел актуальность. Показывать ли клиентам?
 </p>
@@ -2503,10 +2729,10 @@ Trend<sub>favorite</sub><sub>map</sub>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="trend_test"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; trend</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">trend-test</span> ()
+<pre class="src src-lisp" id="trend_test"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; trend</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">trend-test</span> ()
   &lt;&lt;trend_test_contents&gt;&gt;
-  (dbg <span style="color: #00cd00;">"passed: trend-test~%"</span>))
+  (dbg <span style="color: #8b2252;">"passed: trend-test~%"</span>))
 (trend-test)
 </pre>
 </div>
@@ -2523,7 +2749,6 @@ Trend<sub>favorite</sub><sub>map</sub>
 <p>
 Исправить поиск
 Настроить сервер
-Получить стул, монитор и наушники
 </p>
 </div>
 </div>
@@ -2592,29 +2817,18 @@ cian.ru
 </div>
 </div>
 <div id="outline-container-sec-14" class="outline-2">
-<h2 id="sec-14"><span class="section-number-2">14</span> Вопросы</h2>
+<h2 id="sec-14"><span class="section-number-2">14</span> Сборка</h2>
 <div class="outline-text-2" id="text-14">
-<p>
-Планируется ли делать логин.пароль и вход для посетителей, чтобы они, например, могли
-открыть свою сессию с другого устройства, увидеть на своем планшете те объекты, которые
-смотрели на ноутбуке итп.
-Мы как-то отличаем районы города от районов ленинградской области?
-</p>
-</div>
-</div>
-<div id="outline-container-sec-15" class="outline-2">
-<h2 id="sec-15"><span class="section-number-2">15</span> Сборка</h2>
-<div class="outline-text-2" id="text-15">
-</div><div id="outline-container-sec-15-1" class="outline-3">
-<h3 id="sec-15-1"><span class="section-number-3">15.1</span> Сущности и автоматы</h3>
-<div class="outline-text-3" id="text-15-1">
+</div><div id="outline-container-sec-14-1" class="outline-3">
+<h3 id="sec-14-1"><span class="section-number-3">14.1</span> Сущности и автоматы</h3>
+<div class="outline-text-3" id="text-14-1">
 <p>
 Соберем все сущности и автоматы
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_and_automates">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="entity_and_automates">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 &lt;&lt;asm_cmpx()&gt;&gt;
 
@@ -2628,152 +2842,167 @@ cian.ru
 
 &lt;&lt;asm_district()&gt;&gt;
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1056;&#1072;&#1081;&#1086;&#1085;&#1099; &#1075;&#1086;&#1088;&#1086;&#1076;&#1072;</span>
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1040;&#1076;&#1084;&#1080;&#1088;&#1072;&#1083;&#1090;&#1077;&#1081;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1072;&#1089;&#1080;&#1083;&#1077;&#1086;&#1089;&#1090;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1099;&#1073;&#1086;&#1088;&#1075;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1072;&#1083;&#1080;&#1085;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1080;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1086;&#1083;&#1087;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1088;&#1072;&#1089;&#1085;&#1086;&#1075;&#1074;&#1072;&#1088;&#1076;&#1077;&#1081;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1088;&#1072;&#1089;&#1085;&#1086;&#1089;&#1077;&#1083;&#1100;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1088;&#1086;&#1085;&#1096;&#1090;&#1072;&#1076;&#1090;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1091;&#1088;&#1086;&#1088;&#1090;&#1085;&#1099;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1052;&#1086;&#1089;&#1082;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1053;&#1077;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1077;&#1090;&#1088;&#1086;&#1075;&#1088;&#1072;&#1076;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1077;&#1090;&#1088;&#1086;&#1076;&#1074;&#1086;&#1088;&#1094;&#1086;&#1074;&#1099;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1080;&#1084;&#1086;&#1088;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1091;&#1096;&#1082;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1060;&#1088;&#1091;&#1085;&#1079;&#1077;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1062;&#1077;&#1085;&#1090;&#1088;&#1072;&#1083;&#1100;&#1085;&#1099;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1089;&#1077;&#1074;&#1086;&#1083;&#1086;&#1078;&#1082;&#1089;&#1080;"</span>)
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1056;&#1072;&#1081;&#1086;&#1085;&#1099; &#1075;&#1086;&#1088;&#1086;&#1076;&#1072;</span>
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1040;&#1076;&#1084;&#1080;&#1088;&#1072;&#1083;&#1090;&#1077;&#1081;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1072;&#1089;&#1080;&#1083;&#1077;&#1086;&#1089;&#1090;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1086;&#1088;&#1075;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1072;&#1083;&#1080;&#1085;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1080;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1086;&#1083;&#1087;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1088;&#1072;&#1089;&#1085;&#1086;&#1075;&#1074;&#1072;&#1088;&#1076;&#1077;&#1081;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1088;&#1072;&#1089;&#1085;&#1086;&#1089;&#1077;&#1083;&#1100;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1088;&#1086;&#1085;&#1096;&#1090;&#1072;&#1076;&#1090;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1091;&#1088;&#1086;&#1088;&#1090;&#1085;&#1099;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1052;&#1086;&#1089;&#1082;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1053;&#1077;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1077;&#1090;&#1088;&#1086;&#1075;&#1088;&#1072;&#1076;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1077;&#1090;&#1088;&#1086;&#1076;&#1074;&#1086;&#1088;&#1094;&#1086;&#1074;&#1099;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1080;&#1084;&#1086;&#1088;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1091;&#1096;&#1082;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1060;&#1088;&#1091;&#1085;&#1079;&#1077;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1062;&#1077;&#1085;&#1090;&#1088;&#1072;&#1083;&#1100;&#1085;&#1099;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1089;&#1077;&#1074;&#1086;&#1083;&#1086;&#1078;&#1082;&#1089;&#1080;"</span>)
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1056;&#1072;&#1081;&#1086;&#1085;&#1099; &#1086;&#1073;&#1083;&#1072;&#1089;&#1090;&#1080;</span>
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1041;&#1086;&#1082;&#1089;&#1080;&#1090;&#1086;&#1075;&#1086;&#1088;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1086;&#1083;&#1086;&#1089;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1086;&#1083;&#1093;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1089;&#1077;&#1074;&#1086;&#1083;&#1086;&#1078;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1099;&#1073;&#1086;&#1088;&#1075;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1043;&#1072;&#1090;&#1095;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1080;&#1085;&#1075;&#1080;&#1089;&#1077;&#1087;&#1087;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1080;&#1088;&#1080;&#1096;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1080;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1086;&#1076;&#1077;&#1081;&#1085;&#1086;&#1087;&#1086;&#1083;&#1100;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1086;&#1084;&#1086;&#1085;&#1086;&#1089;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1091;&#1078;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1086;&#1076;&#1087;&#1086;&#1088;&#1086;&#1078;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1080;&#1086;&#1079;&#1077;&#1088;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1057;&#1083;&#1072;&#1085;&#1094;&#1077;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1058;&#1080;&#1093;&#1074;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
-(make-district <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1058;&#1086;&#1089;&#1085;&#1077;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1056;&#1072;&#1081;&#1086;&#1085;&#1099; &#1086;&#1073;&#1083;&#1072;&#1089;&#1090;&#1080;</span>
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1041;&#1086;&#1082;&#1089;&#1080;&#1090;&#1086;&#1075;&#1086;&#1088;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1086;&#1083;&#1086;&#1089;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1086;&#1083;&#1093;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1089;&#1077;&#1074;&#1086;&#1083;&#1086;&#1078;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1086;&#1088;&#1075;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1043;&#1072;&#1090;&#1095;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1080;&#1085;&#1075;&#1080;&#1089;&#1077;&#1087;&#1087;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1080;&#1088;&#1080;&#1096;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1080;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1086;&#1076;&#1077;&#1081;&#1085;&#1086;&#1087;&#1086;&#1083;&#1100;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1086;&#1084;&#1086;&#1085;&#1086;&#1089;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1091;&#1078;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1086;&#1076;&#1087;&#1086;&#1088;&#1086;&#1078;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1080;&#1086;&#1079;&#1077;&#1088;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1057;&#1083;&#1072;&#1085;&#1094;&#1077;&#1074;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1058;&#1080;&#1093;&#1074;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
+(make-district <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1058;&#1086;&#1089;&#1085;&#1077;&#1085;&#1089;&#1082;&#1080;&#1081;"</span>)
 
 &lt;&lt;asm_metro()&gt;&gt;
 
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1074;&#1086;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1040;&#1076;&#1084;&#1080;&#1088;&#1072;&#1083;&#1090;&#1077;&#1081;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1040;&#1082;&#1072;&#1076;&#1077;&#1084;&#1080;&#1095;&#1077;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1041;&#1072;&#1083;&#1090;&#1080;&#1081;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1041;&#1091;&#1093;&#1072;&#1088;&#1077;&#1089;&#1090;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1072;&#1089;&#1080;&#1083;&#1077;&#1086;&#1089;&#1090;&#1088;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1083;&#1072;&#1076;&#1080;&#1084;&#1080;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1086;&#1083;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1099;&#1073;&#1086;&#1088;&#1075;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1043;&#1086;&#1088;&#1100;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1043;&#1086;&#1089;&#1090;&#1080;&#1085;&#1099;&#1081; &#1076;&#1074;&#1086;&#1088;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1043;&#1088;&#1072;&#1078;&#1076;&#1072;&#1085;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1044;&#1077;&#1074;&#1103;&#1090;&#1082;&#1080;&#1085;&#1086;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1044;&#1086;&#1089;&#1090;&#1086;&#1077;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1045;&#1083;&#1080;&#1079;&#1072;&#1088;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1047;&#1074;&#1105;&#1079;&#1076;&#1085;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1047;&#1074;&#1077;&#1085;&#1080;&#1075;&#1086;&#1088;&#1086;&#1076;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1080;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081; &#1079;&#1072;&#1074;&#1086;&#1076;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1086;&#1084;&#1077;&#1085;&#1076;&#1072;&#1085;&#1090;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1088;&#1077;&#1089;&#1090;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081; &#1086;&#1089;&#1090;&#1088;&#1086;&#1074;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1050;&#1091;&#1087;&#1095;&#1080;&#1085;&#1086;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1072;&#1076;&#1086;&#1078;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1077;&#1085;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1077;&#1089;&#1085;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1080;&#1075;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1051;&#1086;&#1084;&#1086;&#1085;&#1086;&#1089;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1052;&#1072;&#1103;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1052;&#1077;&#1078;&#1076;&#1091;&#1085;&#1072;&#1088;&#1086;&#1076;&#1085;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1052;&#1086;&#1089;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1052;&#1086;&#1089;&#1082;&#1086;&#1074;&#1089;&#1082;&#1080;&#1077; &#1074;&#1086;&#1088;&#1086;&#1090;&#1072;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1053;&#1072;&#1088;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1053;&#1077;&#1074;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1053;&#1086;&#1074;&#1086;&#1095;&#1077;&#1088;&#1082;&#1072;&#1089;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1054;&#1073;&#1074;&#1086;&#1076;&#1085;&#1099;&#1081; &#1082;&#1072;&#1085;&#1072;&#1083;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1054;&#1073;&#1091;&#1093;&#1086;&#1074;&#1086;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1054;&#1079;&#1077;&#1088;&#1082;&#1080;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1082; &#1055;&#1086;&#1073;&#1077;&#1076;&#1099;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1085;&#1072;&#1089;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1077;&#1090;&#1088;&#1086;&#1075;&#1088;&#1072;&#1076;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1080;&#1086;&#1085;&#1077;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1040;&#1083;&#1077;&#1082;&#1089;&#1072;&#1085;&#1076;&#1088;&#1072; &#1053;&#1077;&#1074;&#1089;&#1082;&#1086;&#1075;&#1086;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1040;&#1083;&#1077;&#1082;&#1089;&#1072;&#1085;&#1076;&#1088;&#1072; &#1053;&#1077;&#1074;&#1089;&#1082;&#1086;&#1075;&#1086;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1042;&#1086;&#1089;&#1089;&#1090;&#1072;&#1085;&#1080;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1051;&#1077;&#1085;&#1080;&#1085;&#1072;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1052;&#1091;&#1078;&#1077;&#1089;&#1090;&#1074;&#1072;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1080;&#1090;&#1077;&#1093;&#1085;&#1080;&#1095;&#1077;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1080;&#1084;&#1086;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1083;&#1077;&#1090;&#1072;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090; &#1041;&#1086;&#1083;&#1100;&#1096;&#1077;&#1074;&#1080;&#1082;&#1086;&#1074;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090; &#1042;&#1077;&#1090;&#1077;&#1088;&#1072;&#1085;&#1086;&#1074;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090; &#1055;&#1088;&#1086;&#1089;&#1074;&#1077;&#1097;&#1077;&#1085;&#1080;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1091;&#1096;&#1082;&#1080;&#1085;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1056;&#1099;&#1073;&#1072;&#1094;&#1082;&#1086;&#1077;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1057;&#1072;&#1076;&#1086;&#1074;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1057;&#1077;&#1085;&#1085;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1057;&#1087;&#1072;&#1089;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1057;&#1087;&#1086;&#1088;&#1090;&#1080;&#1074;&#1085;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1057;&#1090;&#1072;&#1088;&#1072;&#1103; &#1044;&#1077;&#1088;&#1077;&#1074;&#1085;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1058;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1080;&#1085;&#1089;&#1090;&#1080;&#1090;&#1091;&#1090;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1058;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1080;&#1085;&#1089;&#1090;&#1080;&#1090;&#1091;&#1090;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1059;&#1076;&#1077;&#1083;&#1100;&#1085;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1059;&#1083;&#1080;&#1094;&#1072; &#1044;&#1099;&#1073;&#1077;&#1085;&#1082;&#1086;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1060;&#1088;&#1091;&#1085;&#1079;&#1077;&#1085;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1063;&#1105;&#1088;&#1085;&#1072;&#1103; &#1088;&#1077;&#1095;&#1082;&#1072;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1063;&#1077;&#1088;&#1085;&#1099;&#1096;&#1077;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1063;&#1082;&#1072;&#1083;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
-(make-metro <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1069;&#1083;&#1077;&#1082;&#1090;&#1088;&#1086;&#1089;&#1080;&#1083;&#1072;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1040;&#1074;&#1090;&#1086;&#1074;&#1086;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1040;&#1076;&#1084;&#1080;&#1088;&#1072;&#1083;&#1090;&#1077;&#1081;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1040;&#1082;&#1072;&#1076;&#1077;&#1084;&#1080;&#1095;&#1077;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1041;&#1072;&#1083;&#1090;&#1080;&#1081;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1041;&#1091;&#1093;&#1072;&#1088;&#1077;&#1089;&#1090;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1072;&#1089;&#1080;&#1083;&#1077;&#1086;&#1089;&#1090;&#1088;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1083;&#1072;&#1076;&#1080;&#1084;&#1080;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1086;&#1083;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1086;&#1088;&#1075;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1043;&#1086;&#1088;&#1100;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1043;&#1086;&#1089;&#1090;&#1080;&#1085;&#1099;&#1081; &#1076;&#1074;&#1086;&#1088;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1043;&#1088;&#1072;&#1078;&#1076;&#1072;&#1085;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1044;&#1077;&#1074;&#1103;&#1090;&#1082;&#1080;&#1085;&#1086;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1044;&#1086;&#1089;&#1090;&#1086;&#1077;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1045;&#1083;&#1080;&#1079;&#1072;&#1088;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1047;&#1074;&#1105;&#1079;&#1076;&#1085;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1047;&#1074;&#1077;&#1085;&#1080;&#1075;&#1086;&#1088;&#1086;&#1076;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1080;&#1088;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081; &#1079;&#1072;&#1074;&#1086;&#1076;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1086;&#1084;&#1077;&#1085;&#1076;&#1072;&#1085;&#1090;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1088;&#1077;&#1089;&#1090;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081; &#1086;&#1089;&#1090;&#1088;&#1086;&#1074;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1050;&#1091;&#1087;&#1095;&#1080;&#1085;&#1086;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1072;&#1076;&#1086;&#1078;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1077;&#1085;&#1080;&#1085;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1077;&#1089;&#1085;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1080;&#1075;&#1086;&#1074;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1051;&#1086;&#1084;&#1086;&#1085;&#1086;&#1089;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1052;&#1072;&#1103;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1052;&#1077;&#1078;&#1076;&#1091;&#1085;&#1072;&#1088;&#1086;&#1076;&#1085;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1052;&#1086;&#1089;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1052;&#1086;&#1089;&#1082;&#1086;&#1074;&#1089;&#1082;&#1080;&#1077; &#1074;&#1086;&#1088;&#1086;&#1090;&#1072;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1053;&#1072;&#1088;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1053;&#1077;&#1074;&#1089;&#1082;&#1080;&#1081; &#1087;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1053;&#1086;&#1074;&#1086;&#1095;&#1077;&#1088;&#1082;&#1072;&#1089;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1054;&#1073;&#1074;&#1086;&#1076;&#1085;&#1099;&#1081; &#1082;&#1072;&#1085;&#1072;&#1083;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1054;&#1073;&#1091;&#1093;&#1086;&#1074;&#1086;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1054;&#1079;&#1077;&#1088;&#1082;&#1080;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1082; &#1055;&#1086;&#1073;&#1077;&#1076;&#1099;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1085;&#1072;&#1089;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1077;&#1090;&#1088;&#1086;&#1075;&#1088;&#1072;&#1076;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1080;&#1086;&#1085;&#1077;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1040;&#1083;&#1077;&#1082;&#1089;&#1072;&#1085;&#1076;&#1088;&#1072; &#1053;&#1077;&#1074;&#1089;&#1082;&#1086;&#1075;&#1086;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1040;&#1083;&#1077;&#1082;&#1089;&#1072;&#1085;&#1076;&#1088;&#1072; &#1053;&#1077;&#1074;&#1089;&#1082;&#1086;&#1075;&#1086;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1042;&#1086;&#1089;&#1089;&#1090;&#1072;&#1085;&#1080;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1051;&#1077;&#1085;&#1080;&#1085;&#1072;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100; &#1052;&#1091;&#1078;&#1077;&#1089;&#1090;&#1074;&#1072;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1080;&#1090;&#1077;&#1093;&#1085;&#1080;&#1095;&#1077;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1080;&#1084;&#1086;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1083;&#1077;&#1090;&#1072;&#1088;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090; &#1041;&#1086;&#1083;&#1100;&#1096;&#1077;&#1074;&#1080;&#1082;&#1086;&#1074;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090; &#1042;&#1077;&#1090;&#1077;&#1088;&#1072;&#1085;&#1086;&#1074;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1089;&#1087;&#1077;&#1082;&#1090; &#1055;&#1088;&#1086;&#1089;&#1074;&#1077;&#1097;&#1077;&#1085;&#1080;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1055;&#1091;&#1096;&#1082;&#1080;&#1085;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1056;&#1099;&#1073;&#1072;&#1094;&#1082;&#1086;&#1077;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1057;&#1072;&#1076;&#1086;&#1074;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1057;&#1077;&#1085;&#1085;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1057;&#1087;&#1072;&#1089;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1057;&#1087;&#1086;&#1088;&#1090;&#1080;&#1074;&#1085;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1057;&#1090;&#1072;&#1088;&#1072;&#1103; &#1044;&#1077;&#1088;&#1077;&#1074;&#1085;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1058;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1080;&#1085;&#1089;&#1090;&#1080;&#1090;&#1091;&#1090;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1058;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1080;&#1085;&#1089;&#1090;&#1080;&#1090;&#1091;&#1090;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1059;&#1076;&#1077;&#1083;&#1100;&#1085;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1059;&#1083;&#1080;&#1094;&#1072; &#1044;&#1099;&#1073;&#1077;&#1085;&#1082;&#1086;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1060;&#1088;&#1091;&#1085;&#1079;&#1077;&#1085;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1063;&#1105;&#1088;&#1085;&#1072;&#1103; &#1088;&#1077;&#1095;&#1082;&#1072;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1063;&#1077;&#1088;&#1085;&#1099;&#1096;&#1077;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1063;&#1082;&#1072;&#1083;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;"</span>)
+(make-metro <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1069;&#1083;&#1077;&#1082;&#1090;&#1088;&#1086;&#1089;&#1080;&#1083;&#1072;"</span>)
 </pre>
 </div>
 </div>
 
-<div id="outline-container-sec-15-1-1" class="outline-4">
-<h4 id="sec-15-1-1"><span class="section-number-4">15.1.1</span> Жилой комплекс</h4>
+<div id="outline-container-sec-14-1-1" class="outline-4">
+<h4 id="sec-14-1-1"><span class="section-number-4">14.1.1</span> Жилой комплекс</h4>
 </div>
 
-<div id="outline-container-sec-15-1-2" class="outline-4">
-<h4 id="sec-15-1-2"><span class="section-number-4">15.1.2</span> Очередь жилого комплекса</h4>
+<div id="outline-container-sec-14-1-2" class="outline-4">
+<h4 id="sec-14-1-2"><span class="section-number-4">14.1.2</span> Очередь жилого комплекса</h4>
 </div>
 
-<div id="outline-container-sec-15-1-3" class="outline-4">
-<h4 id="sec-15-1-3"><span class="section-number-4">15.1.3</span> Корпус очереди жилого комплекса</h4>
+<div id="outline-container-sec-14-1-3" class="outline-4">
+<h4 id="sec-14-1-3"><span class="section-number-4">14.1.3</span> Корпус очереди жилого комплекса</h4>
 </div>
 
-<div id="outline-container-sec-15-1-4" class="outline-4">
-<h4 id="sec-15-1-4"><span class="section-number-4">15.1.4</span> Планировка</h4>
+<div id="outline-container-sec-14-1-4" class="outline-4">
+<h4 id="sec-14-1-4"><span class="section-number-4">14.1.4</span> Планировка</h4>
 </div>
 
-<div id="outline-container-sec-15-1-5" class="outline-4">
-<h4 id="sec-15-1-5"><span class="section-number-4">15.1.5</span> Город</h4>
+<div id="outline-container-sec-14-1-5" class="outline-4">
+<h4 id="sec-14-1-5"><span class="section-number-4">14.1.5</span> Город</h4>
 </div>
 
-<div id="outline-container-sec-15-1-6" class="outline-4">
-<h4 id="sec-15-1-6"><span class="section-number-4">15.1.6</span> Районы</h4>
+<div id="outline-container-sec-14-1-6" class="outline-4">
+<h4 id="sec-14-1-6"><span class="section-number-4">14.1.6</span> Районы</h4>
 </div>
 
-<div id="outline-container-sec-15-1-7" class="outline-4">
-<h4 id="sec-15-1-7"><span class="section-number-4">15.1.7</span> Метро</h4>
+<div id="outline-container-sec-14-1-7" class="outline-4">
+<h4 id="sec-14-1-7"><span class="section-number-4">14.1.7</span> Метро</h4>
+</div>
+</div>
+
+<div id="outline-container-sec-14-2" class="outline-3">
+<h3 id="sec-14-2"><span class="section-number-3">14.2</span> Загрузчик данных из файлов</h3>
+<div class="outline-text-3" id="text-14-2">
+<p>
+Соберем загрузчик
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="asm_loader">&lt;&lt;loader&gt;&gt;
+</pre>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-11-08 Сб. 01:32</p>
+<p class="date">Created: 2014-11-24 Пн. 04:21</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

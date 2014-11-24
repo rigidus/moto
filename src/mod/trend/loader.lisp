@@ -121,14 +121,19 @@
 ;; Для каждой подпапке в папке данных..
 (loop-dir cmpx ()
    ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
+     (format t "~%-~A" cmpx)
      (let ((cmpx-id (id (make-cmpx :name cmpx
                                    :addr (awhen-file ("адрес.txt" files)
                                            (string-trim '(#\NewLine #\Tab #\Space 
 )
                                                         (alexandria:read-file-into-string (format nil "~A~A/~A" *data-path* cmpx it))))))))
-       ;; Для каждой подпапки в папке комплекса
+       ;; Для каждой подпапки в папке комплекса, кроме планировок, рендеров и хода строительства:
        (loop-dir plex (cmpx)
-          ;; Создаем очередь ЖК
+          (unless (or (string= plex "Планировки")
+                      (string= plex "Рендеры")
+                      (string= plex "Ход строительства"))
+            ;; Создаем очередь ЖК
+            (format t "~%--~A" plex)
             (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
               ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
               (awhen-file ("data.txt" files)
@@ -174,8 +179,24 @@
               (awhen-file ("Квартиры.csv" files)
                 ;; (print it)
                 )
-              ))))
-
-
-(print (xls-processor "/home/rigidus/repo/moto/data/Десяткино/1 очередь/Квартиры2.xls"))
+              ;; Для каждой подпапки в папке очереди ЖК, кроме планировок, рендеров и хода строительства:
+              (loop-dir crps (cmpx plex)
+                   (unless (or (string= crps "Планировки")
+                               (string= crps "Рендеры")
+                               (string= crps "Ход строительства"))
+                     ;; Создаем корпус
+                     (format t "~%---~A" crps)
+                     (let ((crps-id (id (make-crps :name crps :plex-id plex-id))))
+                       ;; Если найден файл с планировками объекта
+                       (awhen-file ("квартиры.xls" files)
+                         (loop :for item :in (cdr (xls-processor (format nil "~A~A/~A/~A/~A" *data-path* cmpx plex crps it))) :do
+                            (make-flat :crps-id crps-id
+                                       :rooms (parse-integer (nth 0 item))
+                                       :area-sum (nth 1 item)
+                                       :area-living (nth 2 item)
+                                       :area-kitchen (nth 3 item)
+                                       :balcon (nth 4 item)
+                                       :sanuzel (if (string= "" (nth 5 item)) t nil)
+                                       :price (parse-integer (nth 6 item))))
+                         )))))))))
 ;; asm_loader ends here
