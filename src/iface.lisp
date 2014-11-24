@@ -24,6 +24,7 @@
     "<a href=\"/roles\">Роли</a>"
     "<a href=\"/groups\">Группы</a>"
     "<a href=\"/cmpxs\">Жилые комплексы</a>"
+    "<a href=\"/find\">Простой поиск</a>"
     (when (null *current-user*)
       "<a href=\"/reg\">Регистрация</a>")
     (when (null *current-user*)

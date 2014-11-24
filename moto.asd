@@ -59,7 +59,8 @@
                                      (:file "trend-prepare")
                                      (:file "entityes")
                                      (:file "loader")
-                                     (:file "trend")))
+                                     (:file "trend")
+                                     (:file "iface")))
                ;; Модуль мотобратан
                (:module "bratan"
                         :serial t
