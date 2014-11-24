@@ -153,12 +153,20 @@
                     (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
                       (format t "~%  ~A - ~A" it (bprint data))
                       (upd-plex (get-plex plex-id)
-                                (list :deadline    (assoc-key "Срок сдачи" data)
+                                (list :deadline-id (let ((dd (assoc-key "Срок сдачи" data)))
+                                                     (format t "~%   dd: ~A | ~A"
+                                                             dd
+                                                             (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
+                                                               (id (car it))))
+                                                     (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
+                                                       (id (car it))))
                                       :finishing   (assoc-key "Отделка" data)
                                       :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
                                       :installment (or (string= "да" (assoc-key "рассрочка" data)))
                                       :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
-                                      :distance    (assoc-key "Расстояние до метро" data)))))
+                                      :distance    (assoc-key "Расстояние до метро" data)))
+                      (format t "~%   rr: ~A" (deadline-id (get,-plex plex-id)))
+                      ))
                   ;; Для каждой подпапки в папке очереди ЖК, кроме планировок, рендеров и хода строительства:
                   (loop-dir crps (cmpx plex)
                        (unless (or (string= crps "Планировки")

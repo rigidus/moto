@@ -16,7 +16,7 @@
    (cmpx-id integer)
    (name (or db-null varchar))
    (distance (or db-null varchar))
-   (deadline (or db-null varchar))
+   (deadline-id (or db-null integer))
    (subsidy (or db-null boolean))
    (finishing (or db-null varchar))
    (ipoteka (or db-null boolean))

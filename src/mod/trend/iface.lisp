@@ -228,6 +228,7 @@
               (row "Кол-во комнат"
                 (tbl
                  (list
+                  (row "" "Выберите не менее одного варианта")
                   (row (input "checkbox" :name "studio" :value t) "Студия")
                   (row (input "checkbox" :name "one" :value t) "Однокомнатная")
                   (row (input "checkbox" :name "two" :value t) "Двухкомнатная")
@@ -241,6 +242,7 @@
               (row "Стоимость квартиры"
                 (tbl
                  (list
+                  (row "" "Обязательные поля")
                   (row "от" (fld "price-from"))
                   (row "до" (fld "price-to")))))
               (row "" %find%))
@@ -248,43 +250,43 @@
             :action "/results")))
   (:find (act-btn "FIND" "FIND" "Искать")
          "Err: redirect to /results!"))
-
 (in-package #:moto)
 
-;; (defmacro assembly-query (&key district metro cmpx)
-;;   `(with-connection *db-spec*
-;;      (query
-;;       (:limit
-;;        (:select 'metro.name 'metro.id 'cmpx.id 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
-;;                 :from 'flat
-;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
-;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
-;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
-;;                 :inner-join 'district :on (:= 'plex.district_id 'district_id)
-;;                 :inner-join 'metro :on (:= 'plex.district_id 'district_id)
-;;                 :where (:and (:or (:= 'rooms 1)
-;;                                   (:= 'rooms 3))
-;;                              (:and (:> 'price 1222000)
-;;                                    (:< 'price 3111000))
-;;                              ,(if district
-;;                                   `(:= 'district_id ,(parse-integer district))
-;;                                   t)
-;;                              ,(if metro
-;;                                   `(:= 'metro_id ,(parse-integer metro))
-;;                                   t)
-;;                              ,(if cmpx
-;;                                   `(:= 'cmpx_id ,(parse-integer cmpx))
-;;                                   t)
-;;                              ;; (:= 'plex.deadline_id 1)
-;;                              )
-;;                 )
-;;        2000))))
-
-
-;; (assembly-query :district "23")
-
-
-;; (print (macroexpand '(assembly-query :cmpx "23")))
+(defmacro find-query (price-from price-to &optional &key district metro deadline cmpx studio one two three)
+  `(with-connection *db-spec*
+     (query
+      (:limit
+       (:select (:as 'district.name 'district)  (:as 'cmpx.name 'cmpx)
+                (:as 'metro.name    'metro)     'distance
+                (:as 'deadline.name 'deadline)  'finishing
+                'ipoteka  'installment  'rooms  'area-sum  'price
+                :from 'flat
+                :inner-join 'crps :on (:= 'flat.crps_id 'crps.id)
+                :inner-join 'plex :on (:= 'crps.plex_id 'plex.id)
+                :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx.id)
+                :inner-join 'district :on (:= 'cmpx.district_id 'district.id)
+                :inner-join 'metro :on (:= 'cmpx.metro_id 'metro.id)
+                :inner-join 'deadline :on (:= 'plex.deadline_id 'deadline.id)
+                :where (:and ,(remove-if #'null
+                                         `(:or ,(when studio `(:= 'rooms 0))
+                                               ,(when one    `(:= 'rooms 1))
+                                               ,(when two    `(:= 'rooms 2))
+                                               ,(when three  `(:= 'rooms 3))))
+                             (:and (:> 'price ,price-from)
+                                   (:< 'price ,price-to))
+                             ,(if district
+                                  `(:= 'district_id ,district)
+                                  t)
+                             ,(if metro
+                                  `(:= 'metro_id ,metro)
+                                  t)
+                             ,(if deadline
+                                  `(:<= 'deadline_id ,deadline)
+                                  t)
+                             ,(if cmpx
+                                  `(:= 'cmpx_id ,cmpx)
+                                  t)))
+       2000))))
 
 (define-page results "/results"
   (format nil "~{~A~}"
@@ -295,41 +297,38 @@
   (:find (act-btn "FIND" "FIND" "Искать")
          (format nil "~{~A~}"
                  (list
-                  (format nil "<h1>Страница поиска</h1>")
-                  (format nil "<h2>Выборка</h2>")
-                  (format nil "<br /><br />Параметры поиска: ~A" (bprint p))
-                  ;; (format nil "<br /><br />Сформированный запрос: ~A" (bprint p))
-                  ;; (format nil "<br /><br />Результат: ~A" (bprint p))
-                  ))))
-
-;; - Район
-;; - Метро
-;; - Название жилищного комплекса
-;; - Количество комнат
-;; - Срок сдачи (не позднее)
-;; - Стоимость квартиры
-
-;; (let ((district 0))
-;;   (print
-;;    (with-connection *db-spec*
-;;      (query
-;;       (:limit
-;;        (:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)
-;;                 :from 'flat
-;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps_id)
-;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex_id)
-;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)
-;;                 :inner-join 'district :on (:= 'plex.district_id 'district_id)
-;;                 :where (:and (:or (:= 'rooms 1)
-;;                                   (:= 'rooms 3))
-;;                              (:and (:> 'price 1222000)
-;;                                    (:< 'price 3111000))
-;;                              (if (string= "0" district)
-;;                                  (:= 'district_id 23))
-;;                              (:= 'metro_id 13)
-;;                              (:ilike 'cmpx.name "Десяткино")
-;;                              ;; (:= 'plex.deadline_id 1)
-;;                              )
-;;                 )
-;;        2000)))))
+                  (format nil "~%<h1>Страница поиска</h1>")
+                  (format nil "~%<h2>Выборка</h2>")
+                  (format nil "~%<br /><br />Параметры поиска: ~A" (bprint p))
+                  (format nil "~%<br /><br />~A"
+                          (let* ((form `(find-query
+                                         ,(parse-integer (getf p :price-from))
+                                         ,(parse-integer (getf p :price-to))
+                                         )))
+                            (unless (equal "0" (getf p :district))
+                              (setf form (append form (list :district (parse-integer (getf p :district))))))
+                            (unless (equal "0" (getf p :metro))
+                              (setf form (append form (list :metro (parse-integer (getf p :metro))))))
+                            (unless (equal "0" (getf p :deadline))
+                              (setf form (append form (list :deadline (parse-integer (getf p :deadline))))))
+                            (unless (equal "0" (getf p :cmpx))
+                              (setf form (append form (list :cmpx (parse-integer (getf p :cmpx))))))
+                            (when (getf p :studio)
+                              (setf form (append form (list :studio t))))
+                            (when (getf p :one)
+                              (setf form (append form (list :one t))))
+                            (when (getf p :two)
+                              (setf form (append form (list :two t))))
+                            (when (getf p :three)
+                              (setf form (append form (list :three t))))
+                            (format nil "~%<br /><br />Запрос: ~A~%<br /><br />Результат: <br/><br />~A"
+                                    (bprint form)
+                                    (format nil "<table border=1><tr>~{~A~}</tr>~{~A~}</table>"
+                                            (loop :for item :in '("Район" "Комплекс" "Метро" "Расстояние" "Срок сдачи"
+                                                                  "Отделка" "Ипотека" "Рассрочка" "Кол-во комнат" "Общая площадь" "Цена") :collect
+                                               (format nil "~%<th>~A</th>" item))
+                                            (loop :for item :in (eval form) :collect
+                                               (format nil "~%<tr>~{~A~}</tr>"
+                                                       (loop :for item :in item :collect
+                                                          (format nil "~%<td>&nbsp;~A&nbsp;</td>" item))))))))))))
 ;; iface ends here

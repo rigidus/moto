@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль Trend и тесты</title>
-<!-- 2014-11-24 Пн. 09:48 -->
+<!-- 2014-11-25 Вт. 00:18 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -200,12 +200,12 @@ for the JavaScript code in this tag.
 <li><a href="#sec-6-6-22">6.6.22. <span class="todo nilTODO">TODO</span> Когда было последнее обновление информации о квартире.</a></li>
 </ul>
 </li>
-<li><a href="#sec-6-7">6.7. <span class="todo nilTODO">TODO</span> Поиск квартиры в новостройке</a>
+<li><a href="#sec-6-7">6.7. <span class="todo nilSTART">START</span> Поиск квартиры в новостройке</a>
 <ul>
 <li><a href="#sec-6-7-1">6.7.1. <span class="todo nilTODO">TODO</span> Простой поиск</a></li>
 <li><a href="#sec-6-7-2">6.7.2. Расширенный поиск</a></li>
 <li><a href="#sec-6-7-3">6.7.3. Поисковая выдача с картой</a></li>
-<li><a href="#sec-6-7-4">6.7.4. <span class="todo nilSTART">START</span> Поисковая выдача таблицей</a></li>
+<li><a href="#sec-6-7-4">6.7.4. <span class="todo nilTODO">TODO</span> Поисковая выдача таблицей</a></li>
 <li><a href="#sec-6-7-5">6.7.5. Карточка ЖК</a></li>
 <li><a href="#sec-6-7-6">6.7.6. Карточка квартиры</a></li>
 </ul>
@@ -549,10 +549,23 @@ for the JavaScript code in this tag.
 <td class="left">(or db-null varchar)</td>
 <td class="left">адрес</td>
 </tr>
+
+<tr>
+<td class="left">district-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор района</td>
+</tr>
+
+<tr>
+<td class="left">metro-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор метро</td>
+</tr>
 </tbody>
 </table>
 </div>
 </div>
+
 
 <div id="outline-container-sec-3-2" class="outline-3">
 <h3 id="sec-3-2"><span class="section-number-3">3.2</span> <span class="done DONE">DONE</span> Очередь жилого комплекса (plex)</h3>
@@ -594,27 +607,15 @@ for the JavaScript code in this tag.
 </tr>
 
 <tr>
-<td class="left">deadline</td>
-<td class="left">(or db-null varchar)</td>
-<td class="left">срок сдачи</td>
-</tr>
-
-<tr>
-<td class="left">district-id</td>
-<td class="left">(or db-null integer)</td>
-<td class="left">идентификатор района</td>
-</tr>
-
-<tr>
-<td class="left">metro-id</td>
-<td class="left">(or db-null integer)</td>
-<td class="left">идентификатор метро</td>
-</tr>
-
-<tr>
 <td class="left">distance</td>
 <td class="left">(or db-null varchar)</td>
 <td class="left">расстояние до метро</td>
+</tr>
+
+<tr>
+<td class="left">deadline-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">срок сдачи</td>
 </tr>
 
 <tr>
@@ -1197,86 +1198,78 @@ for the JavaScript code in this tag.
 &lt;&lt;keyval&gt;&gt;
 &lt;&lt;xls&gt;&gt;
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1077; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;..</span>
-(<span style="color: #a020f0;">loop-dir</span> cmpx ()
-   <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089; &#1080; &#1079;&#1072;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1084; &#1072;&#1076;&#1088;&#1077;&#1089;, &#1077;&#1089;&#1083;&#1080; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1085;&#1072;&#1081;&#1090;&#1080; &#1089;&#1086;&#1086;&#1090;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1091;&#1102;&#1097;&#1080;&#1081; &#1092;&#1072;&#1081;&#1083;</span>
-     (format t <span style="color: #8b2252;">"~%-~A"</span> cmpx)
-     (<span style="color: #a020f0;">let</span> ((cmpx-id (id (make-cmpx <span style="color: #483d8b;">:name</span> cmpx
-                                   <span style="color: #483d8b;">:addr</span> (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1072;&#1076;&#1088;&#1077;&#1089;.txt"</span> files)
-                                           (string-trim '(#\NewLine #\Tab #\Space )
-                                                        (alexandria:read-file-into-string (format nil <span style="color: #8b2252;">"~A~A/~A"</span> *data-path* cmpx it))))))))
-       <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1086;&#1082;, &#1088;&#1077;&#1085;&#1076;&#1077;&#1088;&#1086;&#1074; &#1080; &#1093;&#1086;&#1076;&#1072; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;:</span>
-       (<span style="color: #a020f0;">loop-dir</span> plex (cmpx)
-          (<span style="color: #a020f0;">unless</span> (or (string= plex <span style="color: #8b2252;">"&#1055;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;"</span>)
-                      (string= plex <span style="color: #8b2252;">"&#1056;&#1077;&#1085;&#1076;&#1077;&#1088;&#1099;"</span>)
-                      (string= plex <span style="color: #8b2252;">"&#1061;&#1086;&#1076; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;"</span>))
-            <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
-            (format t <span style="color: #8b2252;">"~%--~A"</span> plex)
-            (<span style="color: #a020f0;">let</span> ((plex-id (id (make-plex <span style="color: #483d8b;">:name</span> plex <span style="color: #483d8b;">:cmpx-id</span> cmpx-id))))
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1072;&#1085;&#1085;&#1099;&#1084;&#1080; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1046;&#1050; - &#1086;&#1073;&#1085;&#1086;&#1074;&#1080;&#1084; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1085;&#1091;&#1102; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
-              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"data.txt"</span> files)
-                (<span style="color: #a020f0;">let</span> ((data (keyval (format nil <span style="color: #8b2252;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))
-                  (upd-plex (get-plex plex-id)
-                            (list <span style="color: #483d8b;">:deadline</span>    (assoc-key <span style="color: #8b2252;">"&#1089;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> data)
-                                  <span style="color: #483d8b;">:distance</span>    (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077; &#1076;&#1086; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> data)
-                                  <span style="color: #483d8b;">:finishing</span>   (assoc-key <span style="color: #8b2252;">"&#1086;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;"</span> data)
-                                  <span style="color: #483d8b;">:ipoteka</span>     (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1080;&#1087;&#1086;&#1090;&#1077;&#1082;&#1072;"</span> data)))
-                                  <span style="color: #483d8b;">:installment</span> (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> data)))
-                                  <span style="color: #483d8b;">:subsidy</span>     (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1089;&#1091;&#1073;&#1089;&#1080;&#1076;&#1080;&#1103;"</span> data)))
-                                  <span style="color: #483d8b;">:district-id</span> (<span style="color: #a020f0;">let</span> ((obj (find-district <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1081;&#1086;&#1085;"</span> data))))
-                                                 (<span style="color: #a020f0;">if</span> (null obj)
-                                                     (<span style="color: #ff0000; font-weight: bold;">warn</span> (format nil <span style="color: #8b2252;">"&#1088;&#1072;&#1081;&#1086;&#1085; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1088;&#1072;&#1081;&#1086;&#1085;&#1086;&#1074;"</span> (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1081;&#1086;&#1085;"</span> data)))
-                                                     (id (car obj))))
-                                  <span style="color: #483d8b;">:metro-id</span>    (<span style="color: #a020f0;">let</span> ((obj (find-metro <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1084;&#1077;&#1090;&#1088;&#1086;"</span> data))))
-                                                 (<span style="color: #a020f0;">if</span> (null obj)
-                                                     (<span style="color: #ff0000; font-weight: bold;">warn</span> (format nil <span style="color: #8b2252;">"&#1084;&#1077;&#1090;&#1088;&#1086; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;&#1086; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (assoc-key <span style="color: #8b2252;">"&#1084;&#1077;&#1090;&#1088;&#1086;"</span> data)))
-                                                     (id (car obj))))))))
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1087;&#1072;&#1089;&#1087;&#1086;&#1088;&#1090;.txt"</span> files)
-                <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1090;&#1100;, &#1088;&#1072;&#1079;&#1073;&#1080;&#1090;&#1100; &#1087;&#1086;&#1089;&#1090;&#1088;&#1086;&#1095;&#1085;&#1086;, &#1086;&#1090;&#1076;&#1077;&#1083;&#1080;&#1090;&#1100; &#1082;&#1083;&#1102;&#1095;&#1080; &#1086;&#1090; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1081;, &#1091;&#1073;&#1088;&#1072;&#1090;&#1100; &#1074;&#1077;&#1076;&#1091;&#1097;&#1080;&#1077;, &#1074;&#1077;&#1076;&#1086;&#1084;&#1099;&#1077; &#1080; &#1087;&#1086;&#1074;&#1090;&#1086;&#1088;&#1103;&#1102;&#1097;&#1080;&#1077;&#1089;&#1103; &#1087;&#1088;&#1086;&#1073;&#1077;&#1083;&#1099;</span>
-                (<span style="color: #a020f0;">let</span> ((passport (keyval (format nil <span style="color: #8b2252;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))
-                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print passport)</span>
-                  ))
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1086;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077;.txt"</span> files)
-                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
-                )
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1084;&#1077;&#1089;&#1090;&#1086;&#1087;&#1086;&#1083;&#1086;&#1078;&#1077;&#1085;&#1080;&#1077;.txt"</span> files)
-                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
-                )
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;&#1086;&#1084; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1082;&#1086;&#1084;&#1092;&#1086;&#1088;&#1090;.txt"</span> files)
-                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
-                )
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1077;&#1090;&#1100;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1076;&#1077;&#1090;&#1080;.txt"</span> files)
-                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
-                )
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1072;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-              (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1050;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;.csv"</span> files)
-                <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print it)</span>
-                )
-              <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1046;&#1050;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1086;&#1082;, &#1088;&#1077;&#1085;&#1076;&#1077;&#1088;&#1086;&#1074; &#1080; &#1093;&#1086;&#1076;&#1072; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;:</span>
-              (<span style="color: #a020f0;">loop-dir</span> crps (cmpx plex)
-                   (<span style="color: #a020f0;">unless</span> (or (string= crps <span style="color: #8b2252;">"&#1055;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;"</span>)
-                               (string= crps <span style="color: #8b2252;">"&#1056;&#1077;&#1085;&#1076;&#1077;&#1088;&#1099;"</span>)
-                               (string= crps <span style="color: #8b2252;">"&#1061;&#1086;&#1076; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;"</span>))
-                     <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1088;&#1087;&#1091;&#1089;</span>
-                     (format t <span style="color: #8b2252;">"~%---~A"</span> crps)
-                     (<span style="color: #a020f0;">let</span> ((crps-id (id (make-crps <span style="color: #483d8b;">:name</span> crps <span style="color: #483d8b;">:plex-id</span> plex-id))))
-                       <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1072;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
-                       (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;.xls"</span> files)
-                         (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> (cdr (xls-processor (format nil <span style="color: #8b2252;">"~A~A/~A/~A/~A"</span> *data-path* cmpx plex crps it))) <span style="color: #483d8b;">:do</span>
-                            (make-flat <span style="color: #483d8b;">:crps-id</span> crps-id
-                                       <span style="color: #483d8b;">:rooms</span> (parse-integer (nth 0 item))
-                                       <span style="color: #483d8b;">:area-sum</span> (nth 1 item)
-                                       <span style="color: #483d8b;">:area-living</span> (nth 2 item)
-                                       <span style="color: #483d8b;">:area-kitchen</span> (nth 3 item)
-                                       <span style="color: #483d8b;">:balcon</span> (nth 4 item)
-                                       <span style="color: #483d8b;">:sanuzel</span> (<span style="color: #a020f0;">if</span> (string= <span style="color: #8b2252;">""</span> (nth 5 item)) t nil)
-                                       <span style="color: #483d8b;">:price</span> (parse-integer (nth 6 item))))
-                         )))))))))
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">load-data</span> ()
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1077; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;..</span>
+  (<span style="color: #a020f0;">loop-dir</span> cmpx ()
+     <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089; &#1080; &#1079;&#1072;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1084; &#1072;&#1076;&#1088;&#1077;&#1089;, &#1077;&#1089;&#1083;&#1080; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1085;&#1072;&#1081;&#1090;&#1080; &#1089;&#1086;&#1086;&#1090;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1091;&#1102;&#1097;&#1080;&#1081; &#1092;&#1072;&#1081;&#1083;</span>
+       (format t <span style="color: #8b2252;">"~%-~A"</span> cmpx)
+       (<span style="color: #a020f0;">let</span> ((cmpx-id (id (make-cmpx <span style="color: #483d8b;">:name</span> cmpx))))
+         <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1072;&#1085;&#1085;&#1099;&#1084;&#1080; &#1046;&#1050; - &#1086;&#1073;&#1085;&#1086;&#1074;&#1080;&#1084; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1085;&#1091;&#1102; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
+         (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"complex.txt"</span> files)
+           <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1090;&#1100;, &#1088;&#1072;&#1079;&#1073;&#1080;&#1090;&#1100; &#1087;&#1086;&#1089;&#1090;&#1088;&#1086;&#1095;&#1085;&#1086;, &#1086;&#1090;&#1076;&#1077;&#1083;&#1080;&#1090;&#1100; &#1082;&#1083;&#1102;&#1095;&#1080; &#1086;&#1090; &#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1081;, &#1091;&#1073;&#1088;&#1072;&#1090;&#1100; &#1074;&#1077;&#1076;&#1091;&#1097;&#1080;&#1077;, &#1074;&#1077;&#1076;&#1086;&#1084;&#1099;&#1077; &#1080; &#1087;&#1086;&#1074;&#1090;&#1086;&#1088;&#1103;&#1102;&#1097;&#1080;&#1077;&#1089;&#1103; &#1087;&#1088;&#1086;&#1073;&#1077;&#1083;&#1099;</span>
+           (<span style="color: #a020f0;">let</span> ((complex (keyval (format nil <span style="color: #8b2252;">"~A~A/~A"</span> *data-path* cmpx it))))
+             (format t <span style="color: #8b2252;">"~% ~A - ~A"</span> it (bprint complex))
+             (upd-cmpx (get-cmpx cmpx-id)
+                       (list
+                        <span style="color: #483d8b;">:addr</span> (assoc-key <span style="color: #8b2252;">"&#1040;&#1076;&#1088;&#1077;&#1089;"</span> complex)
+                        <span style="color: #483d8b;">:district-id</span> (<span style="color: #a020f0;">let</span> ((obj (find-district <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1056;&#1072;&#1081;&#1086;&#1085;"</span> complex))))
+                                       (<span style="color: #a020f0;">if</span> (null obj)
+                                           (<span style="color: #ff0000; font-weight: bold;">warn</span> (format nil <span style="color: #8b2252;">"&#1056;&#1072;&#1081;&#1086;&#1085; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1088;&#1072;&#1081;&#1086;&#1085;&#1086;&#1074;"</span> (assoc-key <span style="color: #8b2252;">"&#1056;&#1072;&#1081;&#1086;&#1085;"</span> complex)))
+                                           (id (car obj))))
+                        <span style="color: #483d8b;">:metro-id</span>    (<span style="color: #a020f0;">let</span> ((obj (find-metro <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1052;&#1077;&#1090;&#1088;&#1086;"</span> complex))))
+                                       (<span style="color: #a020f0;">if</span> (null obj)
+                                           (<span style="color: #ff0000; font-weight: bold;">warn</span> (format nil <span style="color: #8b2252;">"&#1052;&#1077;&#1090;&#1088;&#1086; ~A &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;&#1086; &#1074; &#1090;&#1072;&#1073;&#1083;&#1080;&#1094;&#1077; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (assoc-key <span style="color: #8b2252;">"&#1052;&#1077;&#1090;&#1088;&#1086;"</span> complex)))
+                                           (id (car obj))))))))
+         <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1086;&#1082;, &#1088;&#1077;&#1085;&#1076;&#1077;&#1088;&#1086;&#1074; &#1080; &#1093;&#1086;&#1076;&#1072; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;:</span>
+         (<span style="color: #a020f0;">loop-dir</span> plex (cmpx)
+              (<span style="color: #a020f0;">unless</span> (or (string= plex <span style="color: #8b2252;">"&#1055;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;"</span>)
+                          (string= plex <span style="color: #8b2252;">"&#1056;&#1077;&#1085;&#1076;&#1077;&#1088;&#1099;"</span>)
+                          (string= plex <span style="color: #8b2252;">"&#1061;&#1086;&#1076; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;"</span>))
+                <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
+                (format t <span style="color: #8b2252;">"~%--~A"</span> plex)
+                (<span style="color: #a020f0;">let</span> ((plex-id (id (make-plex <span style="color: #483d8b;">:name</span> plex <span style="color: #483d8b;">:cmpx-id</span> cmpx-id))))
+                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1076;&#1072;&#1085;&#1085;&#1099;&#1084;&#1080; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1046;&#1050; - &#1086;&#1073;&#1085;&#1086;&#1074;&#1080;&#1084; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1085;&#1091;&#1102; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1100; &#1046;&#1050;</span>
+                  (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"data.txt"</span> files)
+                    (<span style="color: #a020f0;">let</span> ((data (keyval (format nil <span style="color: #8b2252;">"~A~A/~A/~A"</span> *data-path* cmpx plex it))))
+                      (format t <span style="color: #8b2252;">"~%  ~A - ~A"</span> it (bprint data))
+                      (upd-plex (get-plex plex-id)
+                                (list <span style="color: #483d8b;">:deadline-id</span> (<span style="color: #a020f0;">let</span> ((dd (assoc-key <span style="color: #8b2252;">"&#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> data)))
+                                                     (format t <span style="color: #8b2252;">"~%   dd: ~A | ~A"</span>
+                                                             dd
+                                                             (awhen (find-deadline <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> data))
+                                                               (id (car it))))
+                                                     (awhen (find-deadline <span style="color: #483d8b;">:name</span> (assoc-key <span style="color: #8b2252;">"&#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> data))
+                                                       (id (car it))))
+                                      <span style="color: #483d8b;">:finishing</span>   (assoc-key <span style="color: #8b2252;">"&#1054;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;"</span> data)
+                                      <span style="color: #483d8b;">:ipoteka</span>     (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1080;&#1087;&#1086;&#1090;&#1077;&#1082;&#1072;"</span> data)))
+                                      <span style="color: #483d8b;">:installment</span> (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1088;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> data)))
+                                      <span style="color: #483d8b;">:subsidy</span>     (or (string= <span style="color: #8b2252;">"&#1076;&#1072;"</span> (assoc-key <span style="color: #8b2252;">"&#1089;&#1091;&#1073;&#1089;&#1080;&#1076;&#1080;&#1103;"</span> data)))
+                                      <span style="color: #483d8b;">:distance</span>    (assoc-key <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077; &#1076;&#1086; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> data)))
+                      (format t <span style="color: #8b2252;">"~%   rr: ~A"</span> (deadline-id (get,-plex plex-id)))
+                      ))
+                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1081; &#1087;&#1086;&#1076;&#1087;&#1072;&#1087;&#1082;&#1080; &#1074; &#1087;&#1072;&#1087;&#1082;&#1077; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1046;&#1050;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1086;&#1082;, &#1088;&#1077;&#1085;&#1076;&#1077;&#1088;&#1086;&#1074; &#1080; &#1093;&#1086;&#1076;&#1072; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;:</span>
+                  (<span style="color: #a020f0;">loop-dir</span> crps (cmpx plex)
+                       (<span style="color: #a020f0;">unless</span> (or (string= crps <span style="color: #8b2252;">"&#1055;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;"</span>)
+                                   (string= crps <span style="color: #8b2252;">"&#1056;&#1077;&#1085;&#1076;&#1077;&#1088;&#1099;"</span>)
+                                   (string= crps <span style="color: #8b2252;">"&#1061;&#1086;&#1076; &#1089;&#1090;&#1088;&#1086;&#1080;&#1090;&#1077;&#1083;&#1100;&#1089;&#1090;&#1074;&#1072;"</span>))
+                         <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1079;&#1076;&#1072;&#1077;&#1084; &#1082;&#1086;&#1088;&#1087;&#1091;&#1089;</span>
+                         (format t <span style="color: #8b2252;">"~%---~A"</span> crps)
+                         (<span style="color: #a020f0;">let</span> ((crps-id (id (make-crps <span style="color: #483d8b;">:name</span> crps <span style="color: #483d8b;">:plex-id</span> plex-id))))
+                           <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1045;&#1089;&#1083;&#1080; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085; &#1092;&#1072;&#1081;&#1083; &#1089; &#1087;&#1083;&#1072;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1072;&#1084;&#1080; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;</span>
+                           (<span style="color: #a020f0;">awhen-file</span> (<span style="color: #8b2252;">"&#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;.xls"</span> files)
+                             (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> (cdr (xls-processor (format nil <span style="color: #8b2252;">"~A~A/~A/~A/~A"</span> *data-path* cmpx plex crps it))) <span style="color: #483d8b;">:do</span>
+                                (format t <span style="color: #8b2252;">"~%   ~A"</span> (bprint item))
+                                (make-flat <span style="color: #483d8b;">:crps-id</span> crps-id
+                                           <span style="color: #483d8b;">:rooms</span> (parse-integer (nth 0 item))
+                                           <span style="color: #483d8b;">:area-sum</span> (nth 1 item)
+                                           <span style="color: #483d8b;">:area-living</span> (nth 2 item)
+                                           <span style="color: #483d8b;">:area-kitchen</span> (nth 3 item)
+                                           <span style="color: #483d8b;">:balcon</span> (nth 4 item)
+                                           <span style="color: #483d8b;">:sanuzel</span> (<span style="color: #a020f0;">if</span> (string= <span style="color: #8b2252;">""</span> (nth 5 item)) t nil)
+                                           <span style="color: #483d8b;">:price</span> (parse-integer (nth 6 item)))))))))))))
+  (format t <span style="color: #8b2252;">"~%-=finish=-"</span>))
+
+(load-data)
 </pre>
 </div>
 </div>
@@ -1399,14 +1392,20 @@ for the JavaScript code in this tag.
   (concatenate 'string <span style="color: #8b2252;">"&lt;h1&gt;"</span> <span style="color: #8b2252;">"&#1046;&#1080;&#1083;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1099;"</span> <span style="color: #8b2252;">"&lt;/h1&gt;"</span> <span style="color: #8b2252;">""</span>
                <span style="color: #8b2252;">"&lt;br /&gt;&lt;br /&gt;"</span>
                (tbl
-                (<span style="color: #a020f0;">with-collection</span> (i (funcall #'all-cmpx))
+                (<span style="color: #a020f0;">with-collection</span> (cmpx (funcall #'all-cmpx))
                   (tr
                    (td
                     (format nil <span style="color: #8b2252;">"&lt;a href=\"/~a/~a\"&gt;~a&lt;/a&gt;"</span> <span style="color: #8b2252;">"cmpx"</span>
-                            (id i) (id i)))
-                   (td (name i)) (td (addr i)) (td (frm %del%))))
+                    (id cmpx) (id cmpx)))
+                   (td (name cmpx))
+                   (td (addr cmpx))
+                   (td (aif (district-id cmpx)
+                            (name (get-district it))))
+                   (td (aif (metro-id cmpx)
+                            (name (get-metro it))))
+                   (td (frm %del%))))
                 <span style="color: #483d8b;">:border</span> 1))
-  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id cmpx) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
         (<span style="color: #a020f0;">progn</span> (del-cmpx (getf p <span style="color: #483d8b;">:data</span>)))))
 </pre>
 </div>
@@ -1432,7 +1431,11 @@ for the JavaScript code in this tag.
                  (tbl
                   (<span style="color: #a020f0;">with-element</span> (cmpx cmpx)
                     (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (name cmpx))
-                    (row <span style="color: #8b2252;">"&#1040;&#1076;&#1088;&#1077;&#1089;"</span> (addr cmpx)))
+                    (row <span style="color: #8b2252;">"&#1040;&#1076;&#1088;&#1077;&#1089;"</span> (addr cmpx))
+                    (row <span style="color: #8b2252;">"&#1056;&#1072;&#1081;&#1086;&#1085;"</span> (aif (district-id cmpx)
+                                      (name (get-district it))))
+                    (row <span style="color: #8b2252;">"&#1052;&#1077;&#1090;&#1088;&#1086;"</span> (aif (metro-id cmpx)
+                                      (name (get-metro it)))))
                   <span style="color: #483d8b;">:border</span> 1)
                  (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1054;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072; ~A&lt;/h2&gt;~%~A"</span>
                          (name cmpx)
@@ -1471,13 +1474,11 @@ for the JavaScript code in this tag.
                   (<span style="color: #a020f0;">with-element</span> (plex plex)
                     (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (name plex))
                     (row <span style="color: #8b2252;">"&#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span> (deadline plex))
-                    (row <span style="color: #8b2252;">"&#1048;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;&#1086;&#1088; &#1088;&#1072;&#1081;&#1086;&#1085;&#1072;"</span> (district-id plex))
-                    (row <span style="color: #8b2252;">"&#1048;&#1076;&#1077;&#1085;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;&#1086;&#1088; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (metro-id plex))
-                    (row <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077; &#1076;&#1086; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (distance plex))
                     (row <span style="color: #8b2252;">"&#1057;&#1091;&#1073;&#1089;&#1080;&#1076;&#1080;&#1103;"</span> (subsidy plex))
                     (row <span style="color: #8b2252;">"&#1054;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;"</span> (finishing plex))
                     (row <span style="color: #8b2252;">"&#1048;&#1087;&#1086;&#1090;&#1077;&#1082;&#1072;"</span> (ipoteka plex))
-                    (row <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> (installment plex)))
+                    (row <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> (installment plex))
+                    (row <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077; &#1076;&#1086; &#1084;&#1077;&#1090;&#1088;&#1086;"</span> (distance plex)))
                   <span style="color: #483d8b;">:border</span> 1)
                   (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1050;&#1086;&#1088;&#1087;&#1091;&#1089;&#1072; &#1086;&#1095;&#1077;&#1088;&#1077;&#1076;&#1080; &#1078;&#1080;&#1083;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;&lt;/h2&gt;~%~A"</span>
                          (tbl
@@ -1829,7 +1830,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-6-7" class="outline-3">
-<h3 id="sec-6-7"><span class="section-number-3">6.7</span> <span class="todo TODO">TODO</span> Поиск квартиры в новостройке</h3>
+<h3 id="sec-6-7"><span class="section-number-3">6.7</span> <span class="todo START">START</span> Поиск квартиры в новостройке</h3>
 <div class="outline-text-3" id="text-6-7">
 <p>
 Клиент может искать квартиру используя <code>простой поиск</code> или <code>расширенный поиск</code>. В сложном
@@ -1911,6 +1912,7 @@ for the JavaScript code in this tag.
               (row <span style="color: #8b2252;">"&#1050;&#1086;&#1083;-&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;"</span>
                 (tbl
                  (list
+                  (row <span style="color: #8b2252;">""</span> <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1085;&#1077; &#1084;&#1077;&#1085;&#1077;&#1077; &#1086;&#1076;&#1085;&#1086;&#1075;&#1086; &#1074;&#1072;&#1088;&#1080;&#1072;&#1085;&#1090;&#1072;"</span>)
                   (row (input <span style="color: #8b2252;">"checkbox"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"studio"</span> <span style="color: #483d8b;">:value</span> t) <span style="color: #8b2252;">"&#1057;&#1090;&#1091;&#1076;&#1080;&#1103;"</span>)
                   (row (input <span style="color: #8b2252;">"checkbox"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"one"</span> <span style="color: #483d8b;">:value</span> t) <span style="color: #8b2252;">"&#1054;&#1076;&#1085;&#1086;&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103;"</span>)
                   (row (input <span style="color: #8b2252;">"checkbox"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"two"</span> <span style="color: #483d8b;">:value</span> t) <span style="color: #8b2252;">"&#1044;&#1074;&#1091;&#1093;&#1082;&#1086;&#1084;&#1085;&#1072;&#1090;&#1085;&#1072;&#1103;"</span>)
@@ -1924,6 +1926,7 @@ for the JavaScript code in this tag.
               (row <span style="color: #8b2252;">"&#1057;&#1090;&#1086;&#1080;&#1084;&#1086;&#1089;&#1090;&#1100; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;"</span>
                 (tbl
                  (list
+                  (row <span style="color: #8b2252;">""</span> <span style="color: #8b2252;">"&#1054;&#1073;&#1103;&#1079;&#1072;&#1090;&#1077;&#1083;&#1100;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1103;"</span>)
                   (row <span style="color: #8b2252;">"&#1086;&#1090;"</span> (fld <span style="color: #8b2252;">"price-from"</span>))
                   (row <span style="color: #8b2252;">"&#1076;&#1086;"</span> (fld <span style="color: #8b2252;">"price-to"</span>)))))
               (row <span style="color: #8b2252;">""</span> %find%))
@@ -2068,7 +2071,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-6-7-4" class="outline-4">
-<h4 id="sec-6-7-4"><span class="section-number-4">6.7.4</span> <span class="todo START">START</span> Поисковая выдача таблицей</h4>
+<h4 id="sec-6-7-4"><span class="section-number-4">6.7.4</span> <span class="todo TODO">TODO</span> Поисковая выдача таблицей</h4>
 <div class="outline-text-4" id="text-6-7-4">
 <p>
 <a href="pics/Trend_search11_list.png">Дизайн-макет: Поисковая выдача таблицей</a>
@@ -2123,6 +2126,42 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">find-query</span> (price-from price-to <span style="color: #228b22;">&amp;optional</span> <span style="color: #228b22;">&amp;key</span> district metro deadline cmpx studio one two three)
+  `(<span style="color: #a020f0;">with-connection</span> *db-spec*
+     (query
+      (<span style="color: #483d8b;">:limit</span>
+       (<span style="color: #483d8b;">:select</span> (<span style="color: #483d8b;">:as</span> 'district.name 'district)  (<span style="color: #483d8b;">:as</span> 'cmpx.name 'cmpx)
+                (<span style="color: #483d8b;">:as</span> 'metro.name    'metro)     'distance
+                (<span style="color: #483d8b;">:as</span> 'deadline.name 'deadline)  'finishing
+                'ipoteka  'installment  'rooms  'area-sum  'price
+                <span style="color: #483d8b;">:from</span> 'flat
+                <span style="color: #483d8b;">:inner-join</span> 'crps <span style="color: #483d8b;">:on</span> (<span style="color: #483d8b;">:=</span> 'flat.crps_id 'crps.id)
+                <span style="color: #483d8b;">:inner-join</span> 'plex <span style="color: #483d8b;">:on</span> (<span style="color: #483d8b;">:=</span> 'crps.plex_id 'plex.id)
+                <span style="color: #483d8b;">:inner-join</span> 'cmpx <span style="color: #483d8b;">:on</span> (<span style="color: #483d8b;">:=</span> 'plex.cmpx_id 'cmpx.id)
+                <span style="color: #483d8b;">:inner-join</span> 'district <span style="color: #483d8b;">:on</span> (<span style="color: #483d8b;">:=</span> 'cmpx.district_id 'district.id)
+                <span style="color: #483d8b;">:inner-join</span> 'metro <span style="color: #483d8b;">:on</span> (<span style="color: #483d8b;">:=</span> 'cmpx.metro_id 'metro.id)
+                <span style="color: #483d8b;">:inner-join</span> 'deadline <span style="color: #483d8b;">:on</span> (<span style="color: #483d8b;">:=</span> 'plex.deadline_id 'deadline.id)
+                <span style="color: #483d8b;">:where</span> (<span style="color: #483d8b;">:and</span> ,(remove-if #'null
+                                         `(<span style="color: #483d8b;">:or</span> ,(<span style="color: #a020f0;">when</span> studio `(<span style="color: #483d8b;">:=</span> 'rooms 0))
+                                               ,(<span style="color: #a020f0;">when</span> one    `(<span style="color: #483d8b;">:=</span> 'rooms 1))
+                                               ,(<span style="color: #a020f0;">when</span> two    `(<span style="color: #483d8b;">:=</span> 'rooms 2))
+                                               ,(<span style="color: #a020f0;">when</span> three  `(<span style="color: #483d8b;">:=</span> 'rooms 3))))
+                             (<span style="color: #483d8b;">:and</span> (<span style="color: #483d8b;">:&gt;</span> 'price ,price-from)
+                                   (<span style="color: #483d8b;">:&lt;</span> 'price ,price-to))
+                             ,(<span style="color: #a020f0;">if</span> district
+                                  `(<span style="color: #483d8b;">:=</span> 'district_id ,district)
+                                  t)
+                             ,(<span style="color: #a020f0;">if</span> metro
+                                  `(<span style="color: #483d8b;">:=</span> 'metro_id ,metro)
+                                  t)
+                             ,(<span style="color: #a020f0;">if</span> deadline
+                                  `(<span style="color: #483d8b;">:&lt;=</span> 'deadline_id ,deadline)
+                                  t)
+                             ,(<span style="color: #a020f0;">if</span> cmpx
+                                  `(<span style="color: #483d8b;">:=</span> 'cmpx_id ,cmpx)
+                                  t)))
+       2000))))
+
 (<span style="color: #a020f0;">define-page</span> results <span style="color: #8b2252;">"/results"</span>
   (format nil <span style="color: #8b2252;">"~{~A~}"</span>
           (list
@@ -2132,43 +2171,40 @@ for the JavaScript code in this tag.
   (<span style="color: #483d8b;">:find</span> (act-btn <span style="color: #8b2252;">"FIND"</span> <span style="color: #8b2252;">"FIND"</span> <span style="color: #8b2252;">"&#1048;&#1089;&#1082;&#1072;&#1090;&#1100;"</span>)
          (format nil <span style="color: #8b2252;">"~{~A~}"</span>
                  (list
-                  (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;&lt;/h1&gt;"</span>)
-                  (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1042;&#1099;&#1073;&#1086;&#1088;&#1082;&#1072;&lt;/h2&gt;"</span>)
-                  (format nil <span style="color: #8b2252;">"&lt;br /&gt;&lt;br /&gt;&#1055;&#1072;&#1088;&#1072;&#1084;&#1077;&#1090;&#1088;&#1099; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;: ~A"</span> (bprint p))
-                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(format nil "&lt;br /&gt;&lt;br /&gt;&#1057;&#1092;&#1086;&#1088;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1081; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;: ~A" (bprint p))</span>
-                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(format nil "&lt;br /&gt;&lt;br /&gt;&#1056;&#1077;&#1079;&#1091;&#1083;&#1100;&#1090;&#1072;&#1090;: ~A" (bprint p))</span>
-                  ))))
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1056;&#1072;&#1081;&#1086;&#1085;</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1052;&#1077;&#1090;&#1088;&#1086;</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077; &#1078;&#1080;&#1083;&#1080;&#1097;&#1085;&#1086;&#1075;&#1086; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1072;</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1050;&#1086;&#1083;&#1080;&#1095;&#1077;&#1089;&#1090;&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080; (&#1085;&#1077; &#1087;&#1086;&#1079;&#1076;&#1085;&#1077;&#1077;)</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">- &#1057;&#1090;&#1086;&#1080;&#1084;&#1086;&#1089;&#1090;&#1100; &#1082;&#1074;&#1072;&#1088;&#1090;&#1080;&#1088;&#1099;</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(let ((district 0))</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(print</span>
-<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(with-connection *db-spec*</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(query</span>
-<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(:limit</span>
-<span style="color: #b22222;">;;        </span><span style="color: #b22222;">(:select 'flat.id 'rooms 'price (:as 'crps.name 'crps) (:as 'plex.name 'plex) 'deadline (:as 'cmpx.name 'cmpx) 'cmpx.addr (:as 'district.name 'district)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:from 'flat</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'crps :on (:= 'flat.crps_id 'crps_id)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'plex :on (:= 'crps.plex_id 'plex_id)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx_id)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:inner-join 'district :on (:= 'plex.district_id 'district_id)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:where (:and (:or (:= 'rooms 1)</span>
-<span style="color: #b22222;">;;                                   </span><span style="color: #b22222;">(:= 'rooms 3))</span>
-<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(:and (:&gt; 'price 1222000)</span>
-<span style="color: #b22222;">;;                                    </span><span style="color: #b22222;">(:&lt; 'price 3111000))</span>
-<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(if (string= "0" district)</span>
-<span style="color: #b22222;">;;                                  </span><span style="color: #b22222;">(:= 'district_id 23))</span>
-<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(:= 'metro_id 13)</span>
-<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(:ilike 'cmpx.name "&#1044;&#1077;&#1089;&#1103;&#1090;&#1082;&#1080;&#1085;&#1086;")</span>
-<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">;; (:= 'plex.deadline_id 1)</span>
-<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">)</span>
-<span style="color: #b22222;">;;        </span><span style="color: #b22222;">2000)))))</span>
+                  (format nil <span style="color: #8b2252;">"~%&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;&lt;/h1&gt;"</span>)
+                  (format nil <span style="color: #8b2252;">"~%&lt;h2&gt;&#1042;&#1099;&#1073;&#1086;&#1088;&#1082;&#1072;&lt;/h2&gt;"</span>)
+                  (format nil <span style="color: #8b2252;">"~%&lt;br /&gt;&lt;br /&gt;&#1055;&#1072;&#1088;&#1072;&#1084;&#1077;&#1090;&#1088;&#1099; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;: ~A"</span> (bprint p))
+                  (format nil <span style="color: #8b2252;">"~%&lt;br /&gt;&lt;br /&gt;~A"</span>
+                          (<span style="color: #a020f0;">let*</span> ((form `(find-query
+                                         ,(parse-integer (getf p <span style="color: #483d8b;">:price-from</span>))
+                                         ,(parse-integer (getf p <span style="color: #483d8b;">:price-to</span>))
+                                         )))
+                            (<span style="color: #a020f0;">unless</span> (equal <span style="color: #8b2252;">"0"</span> (getf p <span style="color: #483d8b;">:district</span>))
+                              (setf form (append form (list <span style="color: #483d8b;">:district</span> (parse-integer (getf p <span style="color: #483d8b;">:district</span>))))))
+                            (<span style="color: #a020f0;">unless</span> (equal <span style="color: #8b2252;">"0"</span> (getf p <span style="color: #483d8b;">:metro</span>))
+                              (setf form (append form (list <span style="color: #483d8b;">:metro</span> (parse-integer (getf p <span style="color: #483d8b;">:metro</span>))))))
+                            (<span style="color: #a020f0;">unless</span> (equal <span style="color: #8b2252;">"0"</span> (getf p <span style="color: #483d8b;">:deadline</span>))
+                              (setf form (append form (list <span style="color: #483d8b;">:deadline</span> (parse-integer (getf p <span style="color: #483d8b;">:deadline</span>))))))
+                            (<span style="color: #a020f0;">unless</span> (equal <span style="color: #8b2252;">"0"</span> (getf p <span style="color: #483d8b;">:cmpx</span>))
+                              (setf form (append form (list <span style="color: #483d8b;">:cmpx</span> (parse-integer (getf p <span style="color: #483d8b;">:cmpx</span>))))))
+                            (<span style="color: #a020f0;">when</span> (getf p <span style="color: #483d8b;">:studio</span>)
+                              (setf form (append form (list <span style="color: #483d8b;">:studio</span> t))))
+                            (<span style="color: #a020f0;">when</span> (getf p <span style="color: #483d8b;">:one</span>)
+                              (setf form (append form (list <span style="color: #483d8b;">:one</span> t))))
+                            (<span style="color: #a020f0;">when</span> (getf p <span style="color: #483d8b;">:two</span>)
+                              (setf form (append form (list <span style="color: #483d8b;">:two</span> t))))
+                            (<span style="color: #a020f0;">when</span> (getf p <span style="color: #483d8b;">:three</span>)
+                              (setf form (append form (list <span style="color: #483d8b;">:three</span> t))))
+                            (format nil <span style="color: #8b2252;">"~%&lt;br /&gt;&lt;br /&gt;&#1047;&#1072;&#1087;&#1088;&#1086;&#1089;: ~A~%&lt;br /&gt;&lt;br /&gt;&#1056;&#1077;&#1079;&#1091;&#1083;&#1100;&#1090;&#1072;&#1090;: &lt;br/&gt;&lt;br /&gt;~A"</span>
+                                    (bprint form)
+                                    (format nil <span style="color: #8b2252;">"&lt;table border=1&gt;&lt;tr&gt;~{~A~}&lt;/tr&gt;~{~A~}&lt;/table&gt;"</span>
+                                            (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> '(<span style="color: #8b2252;">"&#1056;&#1072;&#1081;&#1086;&#1085;"</span> <span style="color: #8b2252;">"&#1050;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;"</span> <span style="color: #8b2252;">"&#1052;&#1077;&#1090;&#1088;&#1086;"</span> <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1090;&#1086;&#1103;&#1085;&#1080;&#1077;"</span> <span style="color: #8b2252;">"&#1057;&#1088;&#1086;&#1082; &#1089;&#1076;&#1072;&#1095;&#1080;"</span>
+                                                                  <span style="color: #8b2252;">"&#1054;&#1090;&#1076;&#1077;&#1083;&#1082;&#1072;"</span> <span style="color: #8b2252;">"&#1048;&#1087;&#1086;&#1090;&#1077;&#1082;&#1072;"</span> <span style="color: #8b2252;">"&#1056;&#1072;&#1089;&#1089;&#1088;&#1086;&#1095;&#1082;&#1072;"</span> <span style="color: #8b2252;">"&#1050;&#1086;&#1083;-&#1074;&#1086; &#1082;&#1086;&#1084;&#1085;&#1072;&#1090;"</span> <span style="color: #8b2252;">"&#1054;&#1073;&#1097;&#1072;&#1103; &#1087;&#1083;&#1086;&#1097;&#1072;&#1076;&#1100;"</span> <span style="color: #8b2252;">"&#1062;&#1077;&#1085;&#1072;"</span>) <span style="color: #483d8b;">:collect</span>
+                                               (format nil <span style="color: #8b2252;">"~%&lt;th&gt;~A&lt;/th&gt;"</span> item))
+                                            (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> (eval form) <span style="color: #483d8b;">:collect</span>
+                                               (format nil <span style="color: #8b2252;">"~%&lt;tr&gt;~{~A~}&lt;/tr&gt;"</span>
+                                                       (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> item <span style="color: #483d8b;">:collect</span>
+                                                          (format nil <span style="color: #8b2252;">"~%&lt;td&gt;&amp;nbsp;~A&amp;nbsp;&lt;/td&gt;"</span> item))))))))))))
 </pre>
 </div>
 </div>
@@ -3198,7 +3234,7 @@ cian.ru
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-11-24 Пн. 09:48</p>
+<p class="date">Created: 2014-11-25 Вт. 00:18</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
