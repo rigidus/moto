@@ -7,7 +7,7 @@
 (in-package #:moto)
 
 ;; Страница загрузки данных
-(restas:define-route load-data ("/load")
+(restas:define-route load-data-page ("/load")
   (with-wrapper
     (concatenate
      'string
@@ -28,7 +28,7 @@
   (with-wrapper
     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
       (if (equal (getf p :load) "")
-          "Данные загружены"
+          (load-data)
           "err"))))
 
 (in-package #:moto)

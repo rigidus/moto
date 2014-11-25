@@ -20,7 +20,15 @@
 (in-package #:moto)
 
 (defmacro assoc-key (key alist)
-  `(cdr (assoc ,key ,alist :test #'string=)))
+  `(cdr (assoc ,key ,alist :test #'(lambda (a b)
+                                     (print (list a b (string= a b) (equal a b)))
+                                     (string= a b)
+                                     (equal a b)))))
+
+;; (assoc-key "Срок сдачи"
+;;            '(("﻿Срок сдачи"."1 квартал 2017") ("Субсидия" . "")
+;;              ("Отделка" . "евроотделка") ("Ипотека" . "да") ("Рассрочка" . "да")
+;;              ("Расстояние до метро" . "1.7 км (21 мин пешком)")))
 (in-package #:moto)
 
 (defun keyval (filename)
@@ -31,11 +39,9 @@
                                (warn (format nil "wrong param: ~A" in))
                                (let ((key (subseq in 0 pos))
                                      (val (subseq in (+ 1 pos))))
-                                 (cons (string-trim '(#\NewLine #\Tab #\Space 
- #\﻿)
+                                 (cons (string-trim '(#\Space #\Tab #\Newline)
                                                     (ppcre:regex-replace-all "\\s+" key " "))
-                                       (string-trim '(#\NewLine #\Tab #\Space 
- #\﻿)
+                                       (string-trim '(#\Space #\Tab #\Newline)
                                                     (ppcre:regex-replace-all "\\s+" val " ")))))))
                      (ppcre:split #\Newline (alexandria:read-file-into-string filename)))))
 (in-package #:moto)
@@ -153,6 +159,9 @@
                     (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
                       (format t "~%  ~A - ~A" it (bprint data))
                       (upd-plex (get-plex plex-id)
+                                ;; (assoc-key "Срок сдачи" '(("﻿Срок сдачи" . "2 квартал 2015") ("Субсидия" . "")
+                                ;;                           ("Отделка" . "предчистовая") ("Ипотека" . "да") ("Рассрочка" . "да")
+                                ;;                           ("Расстояние до метро" . "1.7 км (21 мин пешком)")))
                                 (list :deadline-id (let ((dd (assoc-key "Срок сдачи" data)))
                                                      (format t "~%   dd: ~A | ~A"
                                                              dd
@@ -165,7 +174,7 @@
                                       :installment (or (string= "да" (assoc-key "рассрочка" data)))
                                       :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
                                       :distance    (assoc-key "Расстояние до метро" data)))
-                      (format t "~%   rr: ~A" (deadline-id (get,-plex plex-id)))
+                      (format t "~%   rr: ~A" (deadline-id (get-plex plex-id)))
                       ))
                   ;; Для каждой подпапки в папке очереди ЖК, кроме планировок, рендеров и хода строительства:
                   (loop-dir crps (cmpx plex)
