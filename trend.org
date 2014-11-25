@@ -331,15 +331,7 @@
      (in-package #:moto)
 
      (defmacro assoc-key (key alist)
-       `(cdr (assoc ,key ,alist :test #'(lambda (a b)
-                                          (print (list a b (string= a b) (equal a b)))
-                                          (string= a b)
-                                          (equal a b)))))
-
-     ;; (assoc-key "Срок сдачи"
-     ;;            '(("﻿Срок сдачи"."1 квартал 2017") ("Субсидия" . "")
-     ;;              ("Отделка" . "евроотделка") ("Ипотека" . "да") ("Рассрочка" . "да")
-     ;;              ("Расстояние до метро" . "1.7 км (21 мин пешком)")))
+       `(cdr (assoc ,key ,alist :test #'string=)))
    #+END_SRC
 
    Для работы с данными, извлекаемыми из файлов в формате ключ:значение напишем
@@ -461,7 +453,20 @@
      <<keyval>>
      <<xls>>
 
+     (defun clear-db-trend ()
+       (let ((tables '("cmpx" "plex" "crps" "flat")))
+         (flet ((rmtbl (tblname)
+                  (when (with-connection *db-spec*
+                          (query (:select 'table_name :from 'information_schema.tables :where
+                                          (:and (:= 'table_schema "public")
+                                                (:= 'table_name tblname)))))
+                    (with-connection *db-spec*
+                      (query (:delete-from (intern (string-upcase tblname))))))))
+           (loop :for tblname :in tables :collect
+              (rmtbl tblname)))))
+
      (defun load-data ()
+       (clear-db-trend)
        ;; Для каждой подпапке в папке данных..
        (loop-dir cmpx ()
           ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
