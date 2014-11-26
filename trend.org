@@ -1126,7 +1126,7 @@
                                 (td
                                  (format nil "<a href=\"/~a/~a\">~a</a>" "plex"
                                          (id i) (id i)))
-                                (td (name i)) (td (deadline i)) (td (frm %del%))))
+                                (td (name i)) (td (frm %del%))))
                              :border 1))))))
      (:del (act-btn "DEL" (id i) "Удалить")
            (progn (del-plex (getf p :data)))))
@@ -1151,7 +1151,7 @@
                     (tbl
                      (with-element (plex plex)
                        (row "Название" (name plex))
-                       (row "Срок сдачи" (deadline plex))
+                       (row "Срок сдачи" (name (get-deadline (deadline-id plex))))
                        (row "Субсидия" (subsidy plex))
                        (row "Отделка" (finishing plex))
                        (row "Ипотека" (ipoteka plex))
