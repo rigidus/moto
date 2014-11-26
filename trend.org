@@ -1,6 +1,6 @@
 #+HTML_HEAD: -*- fill-column: 92 -*-
 
-#+TITLE: Модуль Trend и тесты
+#+TITLE: Trend
 
 #+NAME:css
 #+BEGIN_HTML
@@ -296,7 +296,7 @@
    Начнем с макроса поиска файла в наборе. В случае, если файл найден, мы выполняем body
 
    #+NAME: awhen_file
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
 
      (defmacro awhen-file ((file files) &body body)
@@ -309,7 +309,7 @@
    поддиректории и файловое содержимое этих предоставленных поддиректорий.
 
    #+NAME: loop_dir
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
 
      (defmacro loop-dir (var (&rest path) &body body)
@@ -327,7 +327,7 @@
    списка:
 
    #+NAME: assoc_key
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
 
      (defmacro assoc-key (key alist)
@@ -338,7 +338,7 @@
    функцию-парсер:
 
    #+NAME: keyval
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
 
      (defun keyval (filename)
@@ -359,7 +359,7 @@
    Для работы с xls-файлами напишем парсер и декодер:
 
    #+NAME: xls
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
     (in-package #:moto)
 
     (defun decoder-3-csv  (in-string)
@@ -441,11 +441,12 @@
         (reverse result)))
   #+END_SRC
 
-** START Загрузчик
+** DONE Загрузчик
+
    Теперь переходим к загрузке данных:
 
    #+NAME: loader
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
      <<awhen_file>>
      <<loop_dir>>
@@ -548,7 +549,7 @@
   Соберем шаблоны:
 
   #+NAME: trend_tpl
-  #+BEGIN_SRC closure-template-html :tangle src/mod/trend/trend-tpl.htm :noweb tangle :exports code
+  #+BEGIN_SRC closure-template-html :tangle src/mod/trend/trend-tpl.htm :noweb tangle :exports none
     // -*- mode: closure-template-html; fill-column: 140 -*-
     {namespace trendtpl}
 
@@ -558,7 +559,7 @@
   Скомпилируем шаблоны при подготовке модуля
 
   #+NAME: trend_prepare
-  #+BEGIN_SRC lisp :tangle src/mod/trend/trend-prepare.lisp :noweb tangle :exports code
+  #+BEGIN_SRC lisp :tangle src/mod/trend/trend-prepare.lisp :noweb tangle :exports none
     (in-package #:moto)
 
     ;; Скомпилируем шаблон
@@ -571,7 +572,7 @@
   Соберем контроллеры и все функции, которые контроллеры вызывают
 
   #+NAME: trend_fn
-  #+BEGIN_SRC lisp :tangle src/mod/trend/trend.lisp :noweb tangle :exports code
+  #+BEGIN_SRC lisp :tangle src/mod/trend/trend.lisp :noweb tangle :exports none
     (in-package #:moto)
 
     <<flat_entity>>
@@ -584,7 +585,7 @@
 * Шаблоны
 
   #+NAME: trendtpl_contents
-  #+BEGIN_SRC closure-template-html :comments link
+  #+BEGIN_SRC closure-template-html :comments link :noweb tangle :exports none
     // -*- mode: closure-template-html; fill-column: 140 -*-
     {template root}
     <!DOCTYPE HTML>{\n}
@@ -916,7 +917,7 @@
   Соберем веб-интерфейс:
 
   #+NAME: iface
-  #+BEGIN_SRC lisp :tangle src/mod/trend/iface.lisp :noweb tangle :exports code :padline no :comments link
+  #+BEGIN_SRC lisp :tangle src/mod/trend/iface.lisp :noweb tangle :exports none :padline no :comments link
     ;;;; iface.lisp
 
     (in-package #:moto)
@@ -928,7 +929,7 @@
 ** Тестовая страница шаблонов
 
    #+NAME: iface_contents
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
 
      ;; Страница загрузки данных
@@ -945,7 +946,7 @@
 ** Страничка загрузки данных
 
    #+NAME: iface_contents
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
 
      ;; Страница загрузки данных
@@ -977,7 +978,7 @@
 ** Список ЖК
 
  #+NAME: iface_contents
- #+BEGIN_SRC lisp
+ #+BEGIN_SRC lisp :noweb tangle :exports none
 
    (in-package #:moto)
 
@@ -1095,7 +1096,7 @@
 
 
  #+NAME: iface_contents
- #+BEGIN_SRC lisp
+ #+BEGIN_SRC lisp :noweb tangle :exports none
 
    (in-package #:moto)
 
@@ -1134,7 +1135,7 @@
 ** Страница очереди ЖК
 
  #+NAME: iface_contents
- #+BEGIN_SRC lisp
+ #+BEGIN_SRC lisp :noweb tangle :exports none
 
    (in-package #:moto)
 
@@ -1173,7 +1174,7 @@
 ** Страница корпуса очереди ЖК
 
  #+NAME: iface_contents
- #+BEGIN_SRC lisp
+ #+BEGIN_SRC lisp :noweb tangle :exports none
 
    (in-package #:moto)
 
@@ -1271,7 +1272,7 @@
    Соберем шаблоны страницы планировки
 
    #+NAME: trendtpl_contents
-   #+BEGIN_SRC closure-template-html
+   #+BEGIN_SRC closure-template-html :noweb tangle :exports none
      {template flatpage}
          <<flatpage_tpl_contents>>
      {/template}
@@ -1279,21 +1280,8 @@
 
   Соберем определения страниц
 
-  #+NAME: iface_contents
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
-
-    ;; (restas:define-route flat ("/flat/:flatid")
-    ;;   (with-wrapper
-    ;;     (let ((flat (get-flat 1)))
-    ;;       (trendtpl:flatpage
-    ;;        (list
-    ;;         <<flatpage_contents>>
-    ;;         )))))
-  #+END_SRC
-
  #+NAME: iface_contents
- #+BEGIN_SRC lisp
+ #+BEGIN_SRC lisp :noweb tangle :exports none
 
    (in-package #:moto)
 
@@ -1337,7 +1325,7 @@
 *** Тип квартиры
 
     #+NAME: flatpage_tpl_contents
-    #+BEGIN_SRC closure-template-html
+    #+BEGIN_SRC closure-template-html :noweb tangle :exports none
       {$rooms | noAutoescape}
       <br />
     #+END_SRC
@@ -1345,7 +1333,7 @@
     Тип квартиры показывается исходя из кол-ва комнат:
 
     #+NAME: flatpage_contents
-    #+BEGIN_SRC lisp
+    #+BEGIN_SRC lisp :noweb tangle :exports none
       :rooms (let ((r (rooms flat)))
                (cond ((equal 0 r) "Квартира-студия")
                      ((equal 1 r) "1-комнатная квартира")
@@ -1358,7 +1346,7 @@
 *** Идентификатор квартиры
 
     #+NAME: flatpage_tpl_contents
-    #+BEGIN_SRC closure-template-html
+    #+BEGIN_SRC closure-template-html :noweb tangle :exports none
       id: {$id | noAutoescape}
       <br />
     #+END_SRC
@@ -1366,20 +1354,20 @@
     Идентификатор квартиры показывается для быстрого доступа
 
     #+NAME: flatpage_contents
-    #+BEGIN_SRC lisp
+    #+BEGIN_SRC lisp :noweb tangle :exports none
       :id (id flat)
     #+END_SRC
 
 *** Цена при 100% оплате
 
     #+NAME: flatpage_tpl_contents
-    #+BEGIN_SRC closure-template-html
+    #+BEGIN_SRC closure-template-html :noweb tangle :exports none
       Цена квартиры при 100% оплате: {$price | noAutoescape}
       <br />
     #+END_SRC
 
     #+NAME: flatpage_contents
-    #+BEGIN_SRC lisp
+    #+BEGIN_SRC lisp :noweb tangle :exports none
       :price (price flat)
     #+END_SRC
 
@@ -1392,6 +1380,7 @@
       <a href="/contacts">Подробности у менеджера</a>
       <br />
     #+END_SRC
+
 *** TODO Карточка комплекса
 
     Справа карточка комплекса идентичная поисковой выдачи - она оттуда
@@ -1409,7 +1398,7 @@
     делаем
 
     #+NAME: flatpage_tpl_contents
-    #+BEGIN_SRC closure-template-html
+    #+BEGIN_SRC closure-template-html :noweb tangle :exports none
       <br />
       <div style="border: 1px solid blue;">
           Кол_во комнат: {$rooms | noAutoescape}
@@ -1431,7 +1420,7 @@
     #+END_SRC
 
     #+NAME: flatpage_contents
-    #+BEGIN_SRC lisp
+    #+BEGIN_SRC lisp :noweb tangle :exports none
       :rooms (rooms flat)
       :area_living (area-living flat)
       :area_sum (area-sum flat)
@@ -1451,6 +1440,7 @@
 *** TODO Квартиры в этом комплексе - ведут в карточку комплекса с открытыми двухкомнатными квартирами.
 *** TODO Сообщить об ошибке.
 *** TODO Когда было последнее обновление информации о квартире.
+
     Обновлено и дату. Чтобы менеджер видел актуальность. Показывать ли клиентам?
 
 ** START Поиск квартиры в новостройке
@@ -1481,7 +1471,7 @@
     Пользователь, выполнивший простой поиск попадает в выдачу.
 
     #+NAME: iface_contents
-    #+BEGIN_SRC lisp
+    #+BEGIN_SRC lisp :noweb tangle :exports none
 
       (in-package #:moto)
 
@@ -1631,7 +1621,7 @@
     После выдачи идет блок похожих предложений, но возможно откажемся от этого блока здесь.
 
     #+NAME: iface_contents
-    #+BEGIN_SRC lisp
+    #+BEGIN_SRC lisp :noweb tangle :exports none
       (in-package #:moto)
 
       (defmacro find-query (price-from price-to &optional &key district metro deadline cmpx studio one two three)
@@ -1905,7 +1895,7 @@
 * Тесты
 
   #+NAME: trend_test
-  #+BEGIN_SRC lisp
+  #+BEGIN_SRC lisp :noweb tangle :exports none
 
     ;; Тестируем trend
     (defun trend-test ()
@@ -1915,7 +1905,7 @@
   #+END_SRC
 
   #+NAME: trend_test_contents
-  #+BEGIN_SRC lisp
+  #+BEGIN_SRC lisp :noweb tangle :exports none
 
   #+END_SRC
 * Остальное
@@ -1953,7 +1943,7 @@
    Соберем все сущности и автоматы
 
    #+NAME: entity_and_automates
-   #+BEGIN_SRC lisp :tangle src/mod/trend/entityes.lisp :noweb tangle :exports code :padline no :comments link
+   #+BEGIN_SRC lisp :tangle src/mod/trend/entityes.lisp :noweb tangle :exports none :padline no :comments link
      (in-package #:moto)
 
      <<asm_cmpx()>>
@@ -2168,6 +2158,6 @@
    Соберем загрузчик
 
    #+NAME: asm_loader
-   #+BEGIN_SRC lisp :tangle src/mod/trend/loader.lisp :noweb tangle :exports code :padline no :comments link
+   #+BEGIN_SRC lisp :tangle src/mod/trend/loader.lisp :noweb tangle :exports none :padline no :comments link
    <<loader>>
    #+END_SRC
