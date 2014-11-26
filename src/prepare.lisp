@@ -24,7 +24,64 @@
                   *repo-folder*
                   *prj-folder*)))
 
+;; Путь к стилям
+(defparameter *css-path*
+  (format nil "~A~A"
+          (namestring (user-homedir-pathname))
+          (format nil "~A/~A/css/"
+                  *repo-folder*
+                  *prj-folder*)))
+
+;; Путь к картинкам
+(defparameter *img-path*
+  (format nil "~A~A"
+          (namestring (user-homedir-pathname))
+          (format nil "~A/~A/img/"
+                  *repo-folder*
+                  *prj-folder*)))
+
+
+;; Путь к шрифтам
+(defparameter *font-path*
+  (format nil "~A~A"
+          (namestring (user-homedir-pathname))
+          (format nil "~A/~A/fonts/"
+                  *repo-folder*
+                  *prj-folder*)))
+
+;; Путь к скриптам
+(defparameter *js-path*
+  (format nil "~A~A"
+          (namestring (user-homedir-pathname))
+          (format nil "~A/~A/js/"
+                  *repo-folder*
+                  *prj-folder*)))
+
+
 ;; Компилируем шаблоны
 (closure-template:compile-template
  :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
+
+;; submodules
+
+(restas:mount-module -css- (#:restas.directory-publisher)
+  (:url "/css/")
+  (restas.directory-publisher:*directory* *css-path*))
+
+(restas:mount-module -img- (#:restas.directory-publisher)
+  (:url "/img/")
+  (restas.directory-publisher:*directory* *img-path*))
+
+(restas:mount-module -font- (#:restas.directory-publisher)
+  (:url "/font/")
+  (restas.directory-publisher:*directory* *font-path*))
+
+(restas:mount-module -js- (#:restas.directory-publisher)
+  (:url "/js/")
+  (restas.directory-publisher:*directory* *js-path*))
+
+;; (restas:mount-module -resources- (#:restas.directory-publisher)
+;;                      (:url "/resources/")
+;;                      (restas.directory-publisher:*directory* (merge-pathnames (make-pathname :directory '(:relative "repo/moto/resources")) (user-homedir-pathname)))
+;;                      (restas.directory-publisher:*autoindex* t))
 ;; prepare ends here

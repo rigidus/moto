@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>moto</title>
-<!-- 2014-11-24 Пн. 09:49 -->
+<!-- 2014-11-26 Ср. 06:25 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -2716,7 +2716,6 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
         &lt;<span style="color: #0000ff;">head</span>&gt;<span style="color: #228b22; font-weight: bold;">{\n}</span>
             &lt;<span style="color: #0000ff;">title</span>&gt;<span style="font-weight: bold; text-decoration: underline;">{$</span><span style="color: #a0522d; font-weight: bold; text-decoration: underline;">headtitle</span><span style="font-weight: bold; text-decoration: underline;">}</span>&lt;/<span style="color: #0000ff;">title</span>&gt;<span style="color: #228b22; font-weight: bold;">{\n}</span>
             &lt;<span style="color: #0000ff;">meta</span> <span style="color: #a0522d;">http-equiv</span>=<span style="color: #8b2252;">"Content-Type"</span> <span style="color: #a0522d;">content</span>=<span style="color: #8b2252;">"text/html; charset=utf-8"</span> /&gt;<span style="color: #228b22; font-weight: bold;">{\n}</span>
-            &lt;<span style="color: #0000ff;">link</span> <span style="color: #a0522d;">rel</span>=<span style="color: #8b2252;">"stylesheet"</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"text/css"</span> <span style="color: #a0522d;">media</span>=<span style="color: #8b2252;">"screen"</span> <span style="color: #a0522d;">href</span>=<span style="color: #8b2252;">"/css/style.css"</span> /&gt;<span style="color: #228b22; font-weight: bold;">{\n}</span>
             &lt;<span style="color: #0000ff;">link</span> <span style="color: #a0522d;">rel</span>=<span style="color: #8b2252;">"Shortcut Icon"</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"image/x-icon"</span> <span style="color: #a0522d;">href</span>=<span style="color: #8b2252;">"/img/favicon.ico"</span> /&gt;<span style="color: #228b22; font-weight: bold;">{\n}</span>
             &lt;<span style="color: #0000ff;">script</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"text/javascript"</span> <span style="color: #a0522d;">src</span>=<span style="color: #8b2252;">"/js/jquery-1.5.2.min.js"</span>&gt;&lt;/<span style="color: #0000ff;">script</span>&gt;
             &lt;<span style="color: #0000ff;">script</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"text/javascript"</span> <span style="color: #a0522d;">src</span>=<span style="color: #8b2252;">"/js/comment.js"</span>&gt;&lt;/<span style="color: #0000ff;">script</span>&gt;
@@ -2779,7 +2778,9 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 (<span style="color: #a020f0;">defvar</span> <span style="color: #a0522d;">*db-spec*</span> (list <span style="color: #8b2252;">"ylg_new"</span> <span style="color: #8b2252;">"ylg"</span> <span style="color: #8b2252;">"6mEfBjyLrSzlE"</span> <span style="color: #8b2252;">"localhost"</span>))
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">clear db</span>
-(<span style="color: #a020f0;">let</span> ((tables '(<span style="color: #8b2252;">"user"</span> <span style="color: #8b2252;">"role"</span> <span style="color: #8b2252;">"group"</span> <span style="color: #8b2252;">"user2group"</span> <span style="color: #8b2252;">"avatar"</span> <span style="color: #8b2252;">"msg"</span> <span style="color: #8b2252;">"que"</span> <span style="color: #8b2252;">"quelt"</span> <span style="color: #8b2252;">"bratan"</span> <span style="color: #8b2252;">"cmpx"</span> <span style="color: #8b2252;">"plex"</span> <span style="color: #8b2252;">"flat"</span>)))
+(<span style="color: #a020f0;">let</span> ((tables '(<span style="color: #8b2252;">"user"</span> <span style="color: #8b2252;">"role"</span> <span style="color: #8b2252;">"group"</span> <span style="color: #8b2252;">"user2group"</span> <span style="color: #8b2252;">"avatar"</span> <span style="color: #8b2252;">"msg"</span>
+                <span style="color: #8b2252;">"que"</span> <span style="color: #8b2252;">"quelt"</span> <span style="color: #8b2252;">"bratan"</span> <span style="color: #8b2252;">"cmpx"</span> <span style="color: #8b2252;">"plex"</span> <span style="color: #8b2252;">"crps"</span> <span style="color: #8b2252;">"flat"</span>
+                <span style="color: #8b2252;">"city"</span> <span style="color: #8b2252;">"district"</span> <span style="color: #8b2252;">"metro"</span> <span style="color: #8b2252;">"deadline"</span>)))
   (<span style="color: #a020f0;">flet</span> ((rmtbl (tblname)
            (<span style="color: #a020f0;">when</span> (<span style="color: #a020f0;">with-connection</span> *db-spec*
                    (query (<span style="color: #483d8b;">:select</span> 'table_name <span style="color: #483d8b;">:from</span> 'information_schema.tables <span style="color: #483d8b;">:where</span>
@@ -3971,7 +3972,7 @@ neato -Tpng -otester.png -n test.dot
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-11-24 Пн. 09:49</p>
+<p class="date">Created: 2014-11-26 Ср. 06:25</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
