@@ -9,36 +9,35 @@
     -ms-transform: rotate(90deg) ;
 }
 
+html {
+	min-width: 1180px;
+}
+
 
 body {
 	font-family: 'Roboto', sans-serif;
 	line-height: 1.4;
 	padding: 0;
 	margin: 0;
+	min-width: 1180px;
+	background: url(../img/header.jpg) no-repeat center 70px;
 }
 
 header {
 	height: 590px;
+	min-width: 1180px;
 }
 
-.bg-cover {
-	background: url(../img/header.jpg) no-repeat center 70px; 
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-	height: 590px;
-	width: 100%;
-	position: absolute;
-	z-index: -1;
-}
+
 
 header .slagan {
 	font-family: 'Roboto Condensed', sans-serif;
-	font-size: 18px;
+	font-size: 24px;
 	color: #692f8c;
 	padding-top: 12px;
 	line-height: 19px;
+	font-weight: bold;
+	padding-top: 25px;
 }
 
 header .nav {
@@ -103,9 +102,9 @@ header .nav.nav-pills li:last-child {
 
 .tab-panel .tab-content {
 	background: #1DADE9;
-	padding: 20px;
+	padding: 20px 32px 10px 20px;
 	border: 0;
-	border-bottom: 4px solid #E5E5E5;
+	border-bottom: 0;
 }
 
 .tab-panel .nav-tabs {
@@ -157,6 +156,7 @@ footer .form-control {
 
 .tab-panel .cbox {
 	color: #464646;
+	padding: 0;
 	
 	
 }
@@ -231,10 +231,11 @@ footer .form-control {
 	background: #692f8c;
 	font-size: 18px;
 	font-family: 'Roboto Condensed', sans-serif;
-	padding: 8px 27px;
+	padding: 8px 50px;
 	border-bottom: 4px solid #189BD1;
 	margin-top: 30px;
 	margin-bottom: 10px;
+	margin-top: -20px;
 }
 
 .tab-panel .text-right a {
@@ -615,6 +616,240 @@ footer .btn-primary {
 border-top-right-radius: 3px;
 border-bottom-right-radius: 3px;
 }
+
+.tab-panel .price {
+	width: 180px;
+	padding: 0;
+}
+
+.tab-panel .price .col-sm-2 {
+	width: 25px;
+	padding: 0;
+}
+
+.tab-panel .price .col-sm-5 {
+	padding-right: 0;
+	padding-left: 0;
+}
+
+.tab-panel .price .row {
+	margin: 0;
+}
+
+.tab-panel .row.send .col-sm-2 {
+	padding: 0;
+}
+
+.tab-panel .place {
+	width: 230px;
+	margin-right: 50px;
+} 
+
+.tab-panel .cbox {
+	width: 170px;
+	margin-right: 50px;
+}
+
+.tab-panel .select {
+	width: 177px;
+	margin-right: 50px;
+}
+
+.tab-panel input[type="checkbox"] {
+	visibility: hidden;
+}
+
+
+.tab-panel .cbox span {
+	font-size: 18px;
+	color: #464646;
+	position: absolute;
+	z-index: 2;
+}
+
+
+
+
+/* SQUARED ONE */
+input[type=checkbox].css-checkbox {
+	position:absolute; z-index:-1000; left:-1000px; overflow: hidden; clip: rect(0 0 0 0); height:1px; width:1px; margin:-1px; padding:0; border:0;
+}
+
+input[type=checkbox].css-checkbox + label.css-label {
+	padding-left:12px;
+	padding-right: 12px;
+	height:27px; 
+	display:inline-block;
+	line-height:27px;
+	font-family: 'Roboto Condensed', sans-serif;
+	background-repeat:no-repeat;
+	background-position: 0 0;
+	font-size:18px;
+	color: #464646;
+	vertical-align:middle;
+	cursor:pointer;
+	padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 6px;
+    height: 38px;
+    border-radius: 2px;
+	
+}
+
+input[type=checkbox].css-checkbox:checked + label.css-label {
+	background: #fff;
+	opacity: 0.5;
+}
+
+label.css-label {
+	background: #fff;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+select.form-control {
+	border: 0 !important;
+	border-bottom: 3px solid #189BD1 !important;
+}
+
+#promo {
+	padding-top: 90px;
+}
+
+
+.styled-select {
+   background: url(../img/select.png) no-repeat right 2px;
+   height: 41px;
+   overflow: hidden;
+   width: 173px;
+   border: 0;
+   border-bottom: 3px solid #189BD1;
+}
+
+
+
+.styled-select select {
+   background: transparent;
+   border: none;
+   font-size: 14px;
+   height: 41px;
+   padding: 10px; /* If you add too much padding here, the options won't show in IE */
+   width: 187px;
+    border: 0;
+    cursor: pointer;
+}
+
+.styled-select.slate {
+   background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
+   height: 34px;
+   width: 240px;
+}
+
+.styled-select.slate select {
+   border: 1px solid #ccc;
+   font-size: 16px;
+   height: 34px;
+   width: 268px;
+}
+
+/* -------------------- Rounded Corners */
+.rounded {
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+}
+
+
+/* -------------------- Colors: Background */
+.slate   { background-color: #ddd; }
+.green   { background-color: #779126; }
+.blue    { background-color: #fff; }
+.yellow  { background-color: #eec111; }
+.black   { background-color: #000; }
+
+/* -------------------- Colors: Text */
+.slate select   { color: #000; }
+.green select   { color: #fff; }
+.blue select    { color: #fff; }
+.yellow select  { color: #000; }
+.black select   { color: #fff; }
+
+
+/* -------------------- Select Box Styles: danielneumann.com Method */
+/* -------------------- Source: http://danielneumann.com/blog/how-to-style-dropdown-with-css-only/ */
+#mainselection select {
+   border: 0;
+   color: #EEE;
+   background: transparent;
+   font-size: 20px;
+   font-weight: bold;
+   padding: 2px 10px;
+   width: 378px;
+   *width: 350px;
+   *background: #58B14C;
+   -webkit-appearance: none;
+}
+
+#mainselection {
+   overflow:hidden;
+   width:350px;
+   -moz-border-radius: 9px 9px 9px 9px;
+   -webkit-border-radius: 9px 9px 9px 9px;
+   border-radius: 9px 9px 9px 9px;
+   box-shadow: 1px 1px 11px #330033;
+   background: #58B14C url("http://i62.tinypic.com/15xvbd5.png") no-repeat scroll 319px center;
+}
+
+
+/* -------------------- Select Box Styles: stackoverflow.com Method */
+/* -------------------- Source: http://stackoverflow.com/a/5809186 */
+select#soflow, select#soflow-color {
+   -webkit-appearance: button;
+   -webkit-border-radius: 2px;
+   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+   -webkit-padding-end: 20px;
+   -webkit-padding-start: 2px;
+   -webkit-user-select: none;
+   background-image: url(http://i62.tinypic.com/15xvbd5.png), -webkit-linear-gradient(#FAFAFA, #F4F4F4 40%, #E5E5E5);
+   background-position: 97% center;
+   background-repeat: no-repeat;
+   border: 1px solid #AAA;
+   color: #555;
+   font-size: inherit;
+   margin: 20px;
+   overflow: hidden;
+   padding: 5px 10px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+   width: 300px;
+}
+
+select#soflow-color {
+   color: #fff;
+   background-image: url(http://i62.tinypic.com/15xvbd5.png), -webkit-linear-gradient(#779126, #779126 40%, #779126);
+   background-color: #779126;
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+   padding-left: 15px;
+}
+
+.tab-content h4 {
+	margin: 0;
+	font-size: 18px;
+	color: #fff;
+	font-weight: normal;
+	font-family: 'Roboto Condensed', sans-serif;
+	margin-top: -5px;
+	margin-bottom: 15px;
+}
+
+
+
 
 
 

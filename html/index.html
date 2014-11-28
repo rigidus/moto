@@ -6,6 +6,7 @@
 	<title>index</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/not-responsive.css" media="all" />
+    <link href="css/cusel.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="css/theme.css" media="all" />
     <link rel="stylesheet" type="text/css" href="css/fonts.css" media="all" />
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -16,18 +17,20 @@
     <![endif]-->
 </head>
 <body>
-<div class="bg-cover"></div>
 	<!-- header-->
 	<header>
 		<div class="container">
 			<div class="row">
-				<div class="col-md-3 col-xs-3 logo"><a href="#"><img src="img/logo.png" alt="" /></a></div>
-				<div class="col-md-2 col-xs-2 slagan text-center">Первичное жильё <br>из первых рук</div>
-				<div class="col-md-7 col-xs-7">
+				<div class="col-md-4 col-xs-4 logo"><a href="#"><img src="img/logo.png" alt="" /></a></div>
+				<div class="col-md-4 col-xs-4 slagan">Первичное жильё из первых рук</div>
+				
+				<div class="col-md-4 col-xs-4">
 					<ul class="nav nav-pills pull-right">
+						<!--
 						<li><a href="#"><span class="glyphicon glyphicon-align-right" aria-hidden="true"></span></span> Сравнение</a></li>
 						<li><a href="#"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Избранное</a></li>
 						<li><a href="#"><span class="glyphicon glyphicon-book" aria-hidden="true"></span> Просмотрено</a></li>
+						-->
 						<li><a class="btn btn-warning" href="#">Контакты</a></li>
 					</ul>
 				</div>
@@ -44,47 +47,54 @@
 		<div class="container">
 			<div class="tab-panel">
 				<!-- nav tabs -->
+				<!--
   				<ul class="nav nav-tabs" role="tablist">
     				<li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Новостройки</a></li>
     				<li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Вторичное жилье</a></li>
   				</ul>
+  				-->
   				<!-- tab panes -->
   				<div class="tab-content">
   					 <div role="tabpanel" class="tab-pane active" id="home">
+  					 	<!--<h4>Поиск по новостройкам</h4>-->
   					 	<!-- form -->
   					 	<form action="" method="post">
   					 		<div class="row">
   					 			<div class="form-group">
-  					 				<div class="col-sm-3">
+  					 				<div class="col-xs-3 place">
   					 					<label for="" class="control-label">Название, район, метро, id</label>
   					 					<input type="text" name="" class="form-control" id="" placeholder="Балти" />
   					 					<span class="glyphicon glyphicon-search pull-right" aria-hidden="true"></span>
   					 				</div>
-  					 				<div class="col-sm-2 cbox">	
+  					 				<div class="col-xs-3 cbox">	
   					 					<label for="" class="control-label">Количество комнат</label><br>
-  					 					<input type="checkbox" value=""> C
-  					 					<input type="checkbox" value=""> 2
-  					 					<input type="checkbox" value="" disabled> 3
-  					 					<input type="checkbox" value="" disabled> 4
+  					 					<input type="checkbox" name="checkboxG1" id="checkboxG1" class="css-checkbox" /><label for="checkboxG1" class="css-label">C</label>
+  					 					<input type="checkbox" name="checkboxG2" id="checkboxG2" class="css-checkbox" /><label for="checkboxG2" class="css-label">1</label>
+  					 					<input type="checkbox" name="checkboxG1" id="checkboxG3" class="css-checkbox" /><label for="checkboxG3" class="css-label">2</label>
+  					 					<input type="checkbox" name="checkboxG1" id="checkboxG4" class="css-checkbox" /><label for="checkboxG4" class="css-label">3</label>
   					 				</div>
-  					 				<div class="col-sm-2">
+  					 				<div class="col-xs-2 select">
   					 					<label for="" class="control-label">Срок сдачи, от</label>
+  					 					<div class="styled-select blue">
   					 					<select class="form-control">
 											<option>IV квартал 2014</option>
 										</select>
+										</div>
   					 				</div>
-  					 				<div class="col-sm-2">
+  					 				<div class="col-xs-2">
   					 					<label for="" class="control-label">Срок сдачи, до</label>
+  					 					<div class="styled-select blue">
   					 					<select class="form-control">
 											<option>IV квартал 2015</option>
 										</select>
+										</div>
   					 				</div>
-  					 				<div class="col-sm-3">
+  					 				<div class="col-xs-3 col-sm-3 price pull-right">
   					 					<label for="" class="control-label">Стоимость квартиры, т. р.</label>
   					 					<div class="row">
-  					 						<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="2 800" /></div>
-  					 						<div class="col-sm-2 text-center"><span class="entypo-minus"></span></div>
-  					 						<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="3 300" /></div>
+  					 						<div class="col-sm-5 col-xs-5"><input type="text" name="" class="form-control" id="" placeholder="2 800" /></div>
+  					 						<div class="col-xs-2 text-center"><span class="entypo-minus"></span></div>
+  					 						<div class="col-sm-5 col-xs-5"><input type="text" name="" class="form-control" id="" placeholder="3 300" /></div>
   					 					</div>
   					 				</div>
   					 			</div>
@@ -93,44 +103,12 @@
   					 		<span class="label label-default">Улица Адмирала Трибуца <b class="entypo-cancel"></b></span>
   					 		<span class="label label-default">Улица Пограничника Гарькавого <b class="entypo-cancel"></b></span>
   					 		<div class="clearfix"></div>
-  					 		<div class="row line">
-  					 			<div class="col-sm-3"><input type="checkbox" value="" checked> Ипотека </div>
-  					 			<div class="col-sm-3"><input type="checkbox" value="" checked> Рассрочка </div>
-  					 		</div>
-  					 		<div class="row">
-  					 			<div class="col-sm-3">
-  					 				<div class="row">
-  					 					<div class="col-sm-5"><label for="" class="control-label">Перв. взнос</label><input type="text" name="" class="form-control" id="" placeholder="600 000" /></div>
-  					 					<div class="col-sm-2 text-center rid"><div>или</div></div>
-  					 					<div class="col-sm-5"><label for="" class="control-label">В мес. платеж</label><input type="text" name="" class="form-control" id="" placeholder="22 800" /></div>
-  					 				</div>
-  					 			</div>
-  					 			<div class="col-sm-3">
-  					 				<div class="row">
-  					 					<div class="col-sm-5"><label for="" class="control-label">Перв. взнос</label><input type="text" name="" class="form-control" id="" placeholder="" disabled/></div>
-  					 					<div class="col-sm-2 text-center rid"><div>или</div></div>
-  					 					<div class="col-sm-5"><label for="" class="control-label">В мес. платеж</label><input type="text" name="" class="form-control" id="" placeholder="" disabled/></div>
-  					 				</div>
-  					 			</div>
-  					 			<div class="col-sm-2">
-  					 				<label for="" class="control-label">Метраж, м2</label>
-  					 				<div class="row">
-  					 					<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="30" /></div>
-  					 					<div class="col-sm-2 text-center"><b class="entypo-minus"></b></div>
-  					 					<div class="col-sm-5"><input type="text" name="" class="form-control" id="" placeholder="40" /></div>
-  					 				</div>
-  					 			</div>
-  					 			<div class="col-sm-2">
-  					 				<div class="checkbox">
-  					 					<input type="checkbox" value=""> Субсидия <br>
-  					 					<input type="checkbox" value="" checked> Отделка
-  					 				</div>
-  					 			</div>
-  					 			<div class="col-sm-2 text-right">
+  					 		
+  					 		<div class="row send">		
+  					 			<div class="pull-right col-sm-2 text-right">
   					 				<button class="btn btn-primary btn-lg">Подобрать</button>
   					 			</div>
   					 		</div>
-  					 		<div class="text-right top"><a href="#">Быстрый поиск</a></div>
   					 	</form>
   					 	<!-- end form -->
   					 </div>
@@ -288,7 +266,7 @@
 					</div>
 					<div class="col-md-4 col-xs-4">
 						<h3><strong>№ 2.</strong> Бесплатный <br>ипотечный центр</h3>
-						<h3 class="text-primary">Все 3 причины, <br>почему с нами выгодно</h3>
+						<h3 class="text-primary">Все 3 причины, <br>почему с нами выгодно</h3>
 						<form class="form-inline" role="form">
 							 <div class="form-group"><input type="text" class="form-control" id="" placeholder="Ваш e-mail"></div>
 							 <button type="submit" class="btn btn-primary"><span class="entypo-right-open-big"></span></button>
@@ -323,5 +301,6 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/script.js"></script>
 </body>
 </html>
