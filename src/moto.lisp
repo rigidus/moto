@@ -5,9 +5,17 @@
 
 (in-package #:moto)
 
-;; start
-(restas:start '#:moto :port 9997)
-(restas:debug-mode-on)
-;; (restas:debugg-mode-off)
-(setf hunchentoot:*catch-errors-p* t)
+;; (defun main ()
+;;   ;; start
+;;   (restas:start '#:moto :port 9997)
+;;   (restas:debug-mode-on)
+;;   ;; (restas:debugg-mode-off)
+;;   (setf hunchentoot:*catch-errors-p* t))
+
+;; (main)
+
+;; (restas:stop-all :soft t)
+
+;; (defun reload ()
+;;   (restas:start '#:moto :port 9997))
 ;; enter_point ends here

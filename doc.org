@@ -1810,9 +1810,9 @@
        (restas.directory-publisher:*directory* *js-path*))
 
      ;; (restas:mount-module -resources- (#:restas.directory-publisher)
-     ;;                      (:url "/resources/")
-     ;;                      (restas.directory-publisher:*directory* (merge-pathnames (make-pathname :directory '(:relative "repo/moto/resources")) (user-homedir-pathname)))
-     ;;                      (restas.directory-publisher:*autoindex* t))
+     ;;   (:url "/resources/")
+     ;;   (restas.directory-publisher:*directory* "/resources/")
+     ;;   (restas.directory-publisher:*autoindex* t))
    #+END_SRC
 
 ** Точка входа
@@ -1823,11 +1823,14 @@
 
      (in-package #:moto)
 
-     ;; start
-     (restas:start '#:moto :port 9997)
-     (restas:debug-mode-on)
-     ;; (restas:debugg-mode-off)
-     (setf hunchentoot:*catch-errors-p* t)
+     (defun main ()
+       ;; start
+       (restas:start '#:moto :port 9997)
+       (restas:debug-mode-on)
+       ;; (restas:debugg-mode-off)
+       (setf hunchentoot:*catch-errors-p* t))
+
+     (main)
    #+END_SRC
 
 ** Readme
@@ -2602,3 +2605,6 @@ ZR - от 240
 
    Исчерпывающая документация
    http://www.peter-herth.de/ltk/ltkdoc/node52.html
+
+   О генерации кода для дракон-схем:
+   http://drakon-editor.sourceforge.net/howto.html

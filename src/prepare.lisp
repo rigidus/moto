@@ -81,7 +81,7 @@
   (restas.directory-publisher:*directory* *js-path*))
 
 ;; (restas:mount-module -resources- (#:restas.directory-publisher)
-;;                      (:url "/resources/")
-;;                      (restas.directory-publisher:*directory* (merge-pathnames (make-pathname :directory '(:relative "repo/moto/resources")) (user-homedir-pathname)))
-;;                      (restas.directory-publisher:*autoindex* t))
+;;   (:url "/resources/")
+;;   (restas.directory-publisher:*directory* "/resources/")
+;;   (restas.directory-publisher:*autoindex* t))
 ;; prepare ends here
