@@ -1,0 +1,837 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Модуль HeadHunter</title>
+<!-- 2014-11-30 Вс. 05:44 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="rigidus" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+-*- fill-column: 92 -*-
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Модуль HeadHunter</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Введение</a></li>
+<li><a href="#sec-2">2. Сценарии использования</a>
+<ul>
+<li><a href="#sec-2-1">2.1. Поисковые профили и сбор данных</a></li>
+<li><a href="#sec-2-2">2.2. Поиск вакансий</a></li>
+<li><a href="#sec-2-3">2.3. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
+<li><a href="#sec-2-4">2.4. Дашборд</a></li>
+<li><a href="#sec-2-5">2.5. Отзывы соискателей о компаниях и вакансиях</a></li>
+<li><a href="#sec-2-6">2.6. Маршрут</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3. Сущности</a>
+<ul>
+<li><a href="#sec-3-1">3.1. Поисковые профили</a></li>
+<li><a href="#sec-3-2">3.2. Сборки</a></li>
+<li><a href="#sec-3-3">3.3. Вакансии</a></li>
+<li><a href="#sec-3-4">3.4. <span class="todo nilTODO">TODO</span> Перекрестные связи с другими вакансиями</a></li>
+<li><a href="#sec-3-5">3.5. Компании</a></li>
+<li><a href="#sec-3-6">3.6. Действия по вакансии: звонки, скайп-интервью, собеседования</a></li>
+<li><a href="#sec-3-7">3.7. Теги вакансий</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4. Interface</a>
+<ul>
+<li><a href="#sec-4-1">4.1. Дашборд</a></li>
+<li><a href="#sec-4-2">4.2. <span class="todo nilTODO">TODO</span> Интерфейс планирования сбора данных</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5. Тесты</a></li>
+<li><a href="#sec-6">6. Точки входа</a></li>
+<li><a href="#sec-7">7. Сборка</a>
+<ul>
+<li><a href="#sec-7-1">7.1. Сущности и автоматы</a></li>
+<li><a href="#sec-7-2">7.2. Поисковые профили</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+
+<p>
+TODO: Обсудить все нижеследующее с hr-специалистами
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Введение</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
+функционала, особенно нестандартного. Работая с сайтом в автоматическом режиме мы можем
+восполнить этот пробел.
+</p>
+
+<p>
+Кроме того есть множество конкурирующих сайтов для поиска работы, информацию с которых
+можно аггрегировать.
+</p>
+
+<p>
+При поиске работы основной сценарий использования - поиск вакансий, и практически все
+сайты его предоставляют. Однако мне бы хотелось дополнительно иметь:
+</p>
+<ul class="org-ul">
+<li>функционал заметок по каждой вакансии
+</li>
+<li>статусы, такие как: <code>просмотрено</code> (с датой), <code>отобрано</code>, <code>не-берут-трубку</code>,
+<code>не-актуально</code>, <code>приглашен-на-интервью</code>, <code>тестовое-задание</code>, <code>получен-оффер</code>,
+<code>отказано-работодателем</code>, <code>отказ-соискателя</code>, <code>вакансия-снята</code> итп. Более подробно это
+уточняется в секции <a href="#sec-3-3">3.3</a>
+</li>
+</ul>
+
+<p>
+Я бы хотел ранжировать вакансии вручную (по выставленным приоритетам) и автоматически,
+например в зависимости от зарплаты или удаленности от дома.
+</p>
+
+<p>
+В идеале я бы хотел иметь возможность планировать маршрут, когда еду на собеседование и
+иметь календарь, чтобы не пропустить встречу.
+</p>
+
+<p>
+Я бы хотел иметь версии вакансий, чтобы отслеживать их изменения, например изменения
+зарплаты до и после моего интервью - это позволит анализировать рынок и получать больше
+информации.
+</p>
+
+<p>
+Мне также интересно составлять профили компаний и отслеживать как меняется набор
+сотрудников которых они ищут - это поможет планировать долгосрочную стратегию. Особенно в
+этом плане интересны лидеры рынка - Яндекс, Гугл и.т.п.
+</p>
+
+<p>
+Почему сайты поиска работы не предоставляют подобный сервис для соискателей - для меня
+загадка и повод подумать над стартапом :) Кстати похожие кейсы наверное есть и в
+покупке/продаже автотранспорта или барахолках типа авито.
+</p>
+
+<p>
+Позже можно добавить социальный шаринг всего этого дела, чтобы любой соискатель мог
+рассказать о своем опыте взаимодействия с потенциальным работодателем.
+</p>
+
+<p>
+Иногда мне приятно работать с уже знакомыми людьми, так что в целом я бы не отказался
+создавать на таком сайте что-то типа т.н. <code>рабочих коллективов</code>, чтобы наниматься сразу
+командой. Возможно работодателям такой вариант найма тоже будет интересен.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Сценарии использования</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
+запрос и (в будущем) источники данных.
+</p>
+
+<p>
+Потом он планирует сбор данных. Пока сбор будет осуществляеться по запросу, позже можно
+будет запланировать, к примеру "еженедельный сбор"
+</p>
+
+<p>
+Система осуществляет сбор данных и предоставляет пользователю интерфейс доступа к ним
+</p>
+
+<p>
+Пользователь просматривает, дополняет изменяет данные, вносит заметки, звонит по вакансиям
+и отражает это в данных.
+</p>
+</div>
+
+<div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Поисковые профили и сбор данных</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+Чтобы у нас были данные, с которыми мы собираемся работать - их надо откуда-то
+собрать, например, с профильных сайтов, таких как <a href="http://hh.ru/">http://hh.ru/</a>
+</p>
+
+<p>
+Разумеется, лучше собирать не все подряд, а только то что необходимо соискателю. Когда
+соискатель пользуется профильным сайтом он использует поисковые запросы, на основании
+которых мы можем формировать, гм&#x2026; назовем это <code>поисковыми профилями</code>. Поисковый
+профиль - это запрос пользователя, плюс связанные с ним данные - назовем их <code>сборками</code>.
+</p>
+
+<p>
+Сборки по одному поисковому профилю могут осуществляться в разное время. Они часто
+интересны тем, что можно посмотреть как появляются и исчезают вакансии. В каждой сборке
+содержится набор <code>вакансий</code>, при этом одни и те же по сути вакансии в разных сборках
+связываются между собой, чтобы можно было отслеживать изменения вакансии с течением
+времени.
+</p>
+
+<p>
+Вакансии на сайтах размещаются <code>компаниями</code> и привязываются к ним. Мне, как соискателю,
+интересно посмотреть какие вакансии размещала ранее конкретная компания, какие она
+размещает теперь, как изменялись зарплаты - и тому подобная аналитическая информация.
+</p>
+
+<p>
+Загрузка данных начинается с автоматического использования поиска. Мне интересны разные
+поисковые запросы - например, "веб-программист", "менеджер проекта", "руководитель
+отдела" и.т.п. По каждому из них можно составить поисковый профиль, который кроме текущих
+актуальных вакансий в нем содержит еще и "сборки" - с датой и временем получения данных и
+"изменения", т.е диффы между предыдущей сборкой и этой. Таким образом, например, можно
+отслеживать только что появляющиеся вакансии, которые часто представляют наибольший
+интерес.
+</p>
+
+<p>
+Мне бы хотелось осуществлять <code>сбор данных в многопоточном режиме</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Поиск вакансий</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Внутри вакансий необходимо искать по критериям, которые я уточню позже
+</p>
+
+<p>
+Мне хотелось бы чтобы вакансии были упорядочены по зарплате
+</p>
+
+<p>
+Мне бы хотелось сразу получать представление, насколько свежая вакансия
+</p>
+
+<p>
+Мне было бы интересно, сколько интервью было проведено и запланировано по вакансии - эту
+информацию можно узнать из анализа активности по ней других пользователей
+</p>
+
+<p>
+Мне было бы интересно, как менялась вакансия с момента ее размещения компанией - можно
+находить и отслеживать похожие вакансии по расстоянию Левенштейна в описании, к
+примеру. Динамика изменения зарплатного предложения может многое сказать об отношении к
+вакансии.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Просмотр и отбор вакансий, заметки и выставление статусов</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+Когда я читаю вакансию, я бы хотел, чтобы она переходила в статус "просмотрено" (и к ней
+добавлялась дата просмотра)
+</p>
+
+<p>
+Читая вакансию, мне бы хотелось устанавливать ей приоритет и вносить заметки, чтобы
+отслеживать такие моменты, как например: необходимость позвонить позже, или все, что мне
+сказал hr по телефону. Есть типовые вещи, которые можно просто сделать кнопками.
+</p>
+
+<p>
+Если я отправляю отзыв на вакансию или звоню по телефону - я бы хотел, чтобы эти действия
+сопровождались временем и изменением статуса, чтобы потом можно было отследить историю
+взаимодействия с фирмой.
+</p>
+
+<p>
+При этом, мне хотелось бы видеть на дашборде те вакансии, с которыми я договорился о
+встрече и те, по которым нет движения долгое время, чтобы ничего не забывалось.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Дашборд</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+Если у нас есть формализованный алгоритм (а он есть, так как найм - это линейный
+процесс), то я хочу получать напоминания о моем следующем шаге в отношении тех вакансий,
+которые мне интересны.
+</p>
+
+<p>
+Мне бы хотелось видеть на каком я этапе в тех вакансиях, которые меня интересуют.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Отзывы соискателей о компаниях и вакансиях</h3>
+<div class="outline-text-3" id="text-2-5">
+<p>
+Можно сэкономить кучу времени и денег просто не нанимаясь в те компании, в которых "все
+плохо". В этом плане соискатели могут помоч друг другу. Возможно и компании тоже будут
+прислушиваться к такому фидбеку
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-6" class="outline-3">
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Маршрут</h3>
+<div class="outline-text-3" id="text-2-6">
+<p>
+Иногда я хочу спланировать маршрут поездки по собеседованиям. Это сервис с картами,
+которые можно сделать позже.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Сущности</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Поисковые профили</h3>
+<div class="outline-text-3" id="text-3-1">
+<table id="profile_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 1:</span> Данные поискового профиля</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">user-id</td>
+<td class="left">integer</td>
+<td class="left">владелец и создатель</td>
+</tr>
+
+<tr>
+<td class="left">query</td>
+<td class="left">varchar</td>
+<td class="left">поисковый запрос</td>
+</tr>
+
+<tr>
+<td class="left">ts-create</td>
+<td class="left">bigint</td>
+<td class="left">время создания</td>
+</tr>
+
+<tr>
+<td class="left">ts-last</td>
+<td class="left">bigint</td>
+<td class="left">время когда был использован последний раз</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Сборки</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+Сборка создается по запросу пользователя в состоянии <code>sheduled</code>. Это происходит в секции
+<a href="#sec-4-2">4.2</a>
+</p>
+
+<p>
+После сбора данных сборка переходит в состояние <code>executed</code> и ее данные становятся
+доступны для просмотра
+</p>
+
+<table id="collection_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 2:</span> Данные сборки</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">profile-id</td>
+<td class="left">integer</td>
+<td class="left">поисковый профиль</td>
+</tr>
+
+<tr>
+<td class="left">ts-create</td>
+<td class="left">bigint</td>
+<td class="left">время создания</td>
+</tr>
+
+<tr>
+<td class="left">ts-shedule</td>
+<td class="left">bigint</td>
+<td class="left">время когда сборка запланирована</td>
+</tr>
+</tbody>
+</table>
+
+<table id="collection_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 3:</span> Состояния конечного автомата сборки</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">action</th>
+<th scope="col" class="left">from</th>
+<th scope="col" class="left">to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">sheduled</td>
+<td class="left">sheduled</td>
+<td class="left">executed</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Вакансии</h3>
+<div class="outline-text-3" id="text-3-3">
+<table id="collection_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 4:</span> Данные вакансии</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">collection-id</td>
+<td class="left">integer</td>
+<td class="left">идентификатор сборки</td>
+</tr>
+
+<tr>
+<td class="left">contact</td>
+<td class="left">varchar</td>
+<td class="left">телефон контактного лица</td>
+</tr>
+
+<tr>
+<td class="left">salary</td>
+<td class="left">integer</td>
+<td class="left">размер компенсации</td>
+</tr>
+
+<tr>
+<td class="left">text</td>
+<td class="left">varchar</td>
+<td class="left">описание вакансии</td>
+</tr>
+
+<tr>
+<td class="left">ts-created</td>
+<td class="left">bigint</td>
+<td class="left">время создания вакансии</td>
+</tr>
+
+<tr>
+<td class="left">ts-viewed</td>
+<td class="left">bigint</td>
+<td class="left">время когда вакансия была просмотрена</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+TODO: Конечный автомат тут сложен и будет еще уточняться&#x2026; Пока состояния такие:
+ <code>просмотрено</code> (с датой), <code>отобрано</code>, <code>не-берут-трубку</code>, <code>не-актуально</code>,
+ <code>приглашен-на-интервью</code>, <code>тестовое-задание</code>, <code>получен-оффер</code>, <code>отказано-работодателем</code>,
+ <code>отказ-соискателя</code>, <code>вакансия-снята</code> итп.
+</p>
+
+<p>
+С точки зрения соискателя процесс найма выглядит так (неплохо бы приложить временную
+схему протокола):
+</p>
+
+<ul class="org-ul">
+<li>Этап поиска
+<ul class="org-ul">
+<li>Поиск и просмотр вакансий, отсев, ранжирование
+</li>
+<li>Рассылка откликов
+</li>
+</ul>
+</li>
+<li>Этап телефонных переговоров
+<ul class="org-ul">
+<li>Получение звонков, обсуждение деталей по телефону
+</li>
+<li>Опционально: договоренность о еще одном звонке
+</li>
+<li>Опционально: тестовое задание на почту
+</li>
+<li>Опционально: договоренность о skype-интервью
+</li>
+</ul>
+</li>
+<li>Этап удаленного тестирования
+<ul class="org-ul">
+<li>Skype-интервью
+</li>
+<li>Ожидание тестового задания
+</li>
+<li>Выполнение тестового задания
+</li>
+</ul>
+</li>
+<li>Этап очного собеседования
+<ul class="org-ul">
+<li>Приглашение на интервью
+</li>
+<li>Интервью
+</li>
+</ul>
+</li>
+<li>Этап отбора предложений
+<ul class="org-ul">
+<li>Получение предложений
+</li>
+<li>Выбор предложения
+</li>
+</ul>
+</li>
+</ul>
+
+<table id="collection_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 5:</span> Состояния конечного автомата вакансии</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">action</th>
+<th scope="col" class="left">from</th>
+<th scope="col" class="left">to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">view</td>
+<td class="left">created</td>
+<td class="left">viewed</td>
+</tr>
+
+<tr>
+<td class="left">respond</td>
+<td class="left">viewed</td>
+<td class="left">responded</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> <span class="todo TODO">TODO</span> Перекрестные связи с другими вакансиями</h3>
+<div class="outline-text-3" id="text-3-4">
+<p>
+В ряде случаев компании меняют свои вакансии, некоторые делают это методом удаления
+предыдущей и создания новой. Мне как соискателю хотелось бы не обнаруживать уже
+просмотренную и возможно собеседованную вакансию в новых. Поэтому хотелось бы
+предусмотреть механизм, который связывает очень похожие вакансии друг с другом.
+</p>
+
+<p>
+Иногда вакансии меняются, или в них меняются существенные условия. Например, две недели
+назад, когда я смотрел вакансию из предыдущей сборки меня не устроила зарпалата, а
+сегодня вакансия стала интереснее. Я хочу отслеживать что вакансия поменялась.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Компании</h3>
+<div class="outline-text-3" id="text-3-5">
+<p>
+Несколько вакансий могут быть от одной компании. В этом случае мне бы хотелось
+отслеживать это в профиле компании, кроме того интересна аналитика по этой компании за
+определенный период времени.
+</p>
+
+<p>
+С социальной точки зрения интересно получать отзывы о компании от ее работников, в том
+числе и уволенных.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3-6" class="outline-3">
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Действия по вакансии: звонки, скайп-интервью, собеседования</h3>
+<div class="outline-text-3" id="text-3-6">
+<p>
+В эту таблицу заносим что сделано по каждой вакансии, которая находится в разработке
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3-7" class="outline-3">
+<h3 id="sec-3-7"><span class="section-number-3">3.7</span> Теги вакансий</h3>
+<div class="outline-text-3" id="text-3-7">
+<p>
+Помогают ориентироваться, когда вакансий много.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Interface</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Соберем веб-интерфейс:
+</p>
+</div>
+
+<div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Дашборд</h3>
+</div>
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> <span class="todo TODO">TODO</span> Интерфейс планирования сбора данных</h3>
+</div>
+</div>
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Тесты</h2>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Точки входа</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+Соберем шаблоны:
+</p>
+
+<p>
+Скомпилируем шаблоны при подготовке модуля
+</p>
+
+<p>
+Соберем контроллеры и все функции, которые контроллеры вызывают
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Сборка</h2>
+<div class="outline-text-2" id="text-7">
+</div><div id="outline-container-sec-7-1" class="outline-3">
+<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Сущности и автоматы</h3>
+<div class="outline-text-3" id="text-7-1">
+<p>
+Соберем все сущности и автоматы
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-7-2" class="outline-3">
+<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Поисковые профили</h3>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: rigidus</p>
+<p class="date">Created: 2014-11-30 Вс. 05:44</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
