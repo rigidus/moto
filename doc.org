@@ -1130,6 +1130,19 @@
 
    Собственно описание модуля вынесено в файл [[file:trend.org]]
 
+** HeadHunter
+
+   #+NAME: mod_hh
+   #+BEGIN_SRC lisp
+     (:module "hh"
+              :serial t
+              :pathname "mod/hh"
+              :components ((:file "hh")))
+   #+END_SRC
+
+   Собственно описание модуля вынесено в файл [[file:hh.org]]
+
+
 ** Граббер пользователей мотобратана
 
    Опишем из чего состоит модуль, это описание станет частью asd-файла:
@@ -1830,7 +1843,7 @@
        ;; (restas:debugg-mode-off)
        (setf hunchentoot:*catch-errors-p* t))
 
-     (main)
+     ;; (main)
    #+END_SRC
 
 ** Readme

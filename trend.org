@@ -544,44 +544,6 @@
      (load-data)
    #+END_SRC
 
-* Точки входа
-
-  Соберем шаблоны:
-
-  #+NAME: trend_tpl
-  #+BEGIN_SRC closure-template-html :tangle src/mod/trend/trend-tpl.htm :noweb tangle :exports none
-    // -*- mode: closure-template-html; fill-column: 140 -*-
-    {namespace trendtpl}
-
-    <<trendtpl_contents>>
-  #+END_SRC
-
-  Скомпилируем шаблоны при подготовке модуля
-
-  #+NAME: trend_prepare
-  #+BEGIN_SRC lisp :tangle src/mod/trend/trend-prepare.lisp :noweb tangle :exports none
-    (in-package #:moto)
-
-    ;; Скомпилируем шаблон
-    (closure-template:compile-template
-     :common-lisp-backend
-     (pathname
-      (concatenate 'string *base-path* "mod/trend/trend-tpl.htm")))
-  #+END_SRC
-
-  Соберем контроллеры и все функции, которые контроллеры вызывают
-
-  #+NAME: trend_fn
-  #+BEGIN_SRC lisp :tangle src/mod/trend/trend.lisp :noweb tangle :exports none
-    (in-package #:moto)
-
-    <<flat_entity>>
-
-    <<trend_fn_contents>>
-
-    <<trend_test>>
-  #+END_SRC
-
 * Шаблоны
 
   #+NAME: trendtpl_contents
@@ -1936,6 +1898,44 @@
 
   И система автоматически подберет ему подходящие варианты (из числа заранее отобранных
   менеджерами компании)
+
+* Точки входа
+
+  Соберем шаблоны:
+
+  #+NAME: trend_tpl
+  #+BEGIN_SRC closure-template-html :tangle src/mod/trend/trend-tpl.htm :noweb tangle :exports none
+    // -*- mode: closure-template-html; fill-column: 140 -*-
+    {namespace trendtpl}
+
+    <<trendtpl_contents>>
+  #+END_SRC
+
+  Скомпилируем шаблоны при подготовке модуля
+
+  #+NAME: trend_prepare
+  #+BEGIN_SRC lisp :tangle src/mod/trend/trend-prepare.lisp :noweb tangle :exports none
+    (in-package #:moto)
+
+    ;; Скомпилируем шаблон
+    (closure-template:compile-template
+     :common-lisp-backend
+     (pathname
+      (concatenate 'string *base-path* "mod/trend/trend-tpl.htm")))
+  #+END_SRC
+
+  Соберем контроллеры и все функции, которые контроллеры вызывают
+
+  #+NAME: trend_fn
+  #+BEGIN_SRC lisp :tangle src/mod/trend/trend.lisp :noweb tangle :exports none
+    (in-package #:moto)
+
+    <<flat_entity>>
+
+    <<trend_fn_contents>>
+
+    <<trend_test>>
+  #+END_SRC
 
 * Сборка
 ** Сущности и автоматы
