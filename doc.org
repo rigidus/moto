@@ -647,14 +647,14 @@
      | ввод.в.эксплуатацию           | куплен       | используется |
      | возврат.с.угона               | угнан        | используется |
 
-   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+   Теперь мы можем полностью описать поведение мотоцикла как конечный автомат:
 
    #+NAME: moto_state_graph
    #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports none :cache yes
      (mapcar #'(lambda (x)
                  (princ (format "%s -> %s [label =\"%s\"];\n"
                                 (second x) (third x) (first x))))
-             (nthcdr 2 table))
+             table)
    #+END_SRC
 
    #+BEGIN_SRC dot :file img/moto-state.png :var input=moto_state_graph :exports results :cache yes
@@ -1137,11 +1137,12 @@
      (:module "hh"
               :serial t
               :pathname "mod/hh"
-              :components ((:file "hh")))
+              :components ((:file "util")
+                           (:file "entityes")
+                           (:file "hh")))
    #+END_SRC
 
    Собственно описание модуля вынесено в файл [[file:hh.org]]
-
 
 ** Граббер пользователей мотобратана
 
@@ -1564,6 +1565,8 @@
                     <<mod_trend>>
                     ;; Модуль мотобратан
                     <<mod_bratan>>
+                    ;; Модуль HeadHunter
+                    <<mod_hh>>
                     (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
                     ))
@@ -1843,7 +1846,7 @@
        ;; (restas:debugg-mode-off)
        (setf hunchentoot:*catch-errors-p* t))
 
-     ;; (main)
+     (main)
    #+END_SRC
 
 ** Readme

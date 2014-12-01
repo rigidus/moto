@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2014-11-30 Вс. 05:44 -->
+<!-- 2014-12-01 Пн. 02:54 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -151,7 +151,8 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-3">2.3. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
 <li><a href="#sec-2-4">2.4. Дашборд</a></li>
 <li><a href="#sec-2-5">2.5. Отзывы соискателей о компаниях и вакансиях</a></li>
-<li><a href="#sec-2-6">2.6. Маршрут</a></li>
+<li><a href="#sec-2-6">2.6. Размещение резюме</a></li>
+<li><a href="#sec-2-7">2.7. Маршрут</a></li>
 </ul>
 </li>
 <li><a href="#sec-3">3. Сущности</a>
@@ -175,8 +176,10 @@ for the JavaScript code in this tag.
 <li><a href="#sec-6">6. Точки входа</a></li>
 <li><a href="#sec-7">7. Сборка</a>
 <ul>
-<li><a href="#sec-7-1">7.1. Сущности и автоматы</a></li>
-<li><a href="#sec-7-2">7.2. Поисковые профили</a></li>
+<li><a href="#sec-7-1">7.1. Утилиты</a></li>
+<li><a href="#sec-7-2">7.2. Сущности и автоматы</a></li>
+<li><a href="#sec-7-3">7.3. Поисковые профили</a></li>
+<li><a href="#sec-7-4">7.4. Сборки</a></li>
 </ul>
 </li>
 </ul>
@@ -262,7 +265,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
 <div class="outline-text-2" id="text-2">
 <p>
 Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
-запрос и (в будущем) источники данных.
+запрос и (в будущем) источники данных. Поля профиля описаны в секции <a href="#sec-3-1">3.1</a>.
 </p>
 
 <p>
@@ -408,8 +411,19 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 
 <div id="outline-container-sec-2-6" class="outline-3">
-<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Маршрут</h3>
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Размещение резюме</h3>
 <div class="outline-text-3" id="text-2-6">
+<p>
+Пользователь просто размещает свое резюме. На самом деле - несколько резюме, так как
+наиболее продвинутые пользователи пишут резюме под вакансию, а не рассылают одно и то же
+резюме всем подряд
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-7" class="outline-3">
+<h3 id="sec-2-7"><span class="section-number-3">2.7</span> Маршрут</h3>
+<div class="outline-text-3" id="text-2-7">
 <p>
 Иногда я хочу спланировать маршрут поездки по собеседованиям. Это сервис с картами,
 которые можно сделать позже.
@@ -455,7 +469,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </tr>
 
 <tr>
-<td class="left">query</td>
+<td class="left">search-query</td>
 <td class="left">varchar</td>
 <td class="left">поисковый запрос</td>
 </tr>
@@ -473,6 +487,19 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </tr>
 </tbody>
 </table>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="create_profiles">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*profile-all*</span>
+  (make-profile <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1089;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1089;&#1090;&#1086;&#1074;"</span>
+                <span style="color: #483d8b;">:user-id</span> 1
+                <span style="color: #483d8b;">:search-query</span> <span style="color: #8b2252;">"http://spb.hh.ru/search/vacancy?area=2&amp;text=&amp;salary=&amp;currency_code=RUR&amp;specialization=1.221"</span>
+                <span style="color: #483d8b;">:ts-create</span> (get-universal-time)
+                <span style="color: #483d8b;">:ts-last</span> (get-universal-time)))
+</pre>
+</div>
 </div>
 </div>
 
@@ -558,6 +585,18 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </tr>
 </tbody>
 </table>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="create_collections">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*collection-all*</span>
+  (make-collection <span style="color: #483d8b;">:profile-id</span> (id *profile-all*)
+                   <span style="color: #483d8b;">:ts-create</span> (get-universal-time)
+                   <span style="color: #483d8b;">:ts-shedule</span> (get-universal-time)
+                   <span style="color: #483d8b;">:state</span> <span style="color: #483d8b;">:sheduled</span>))
+</pre>
+</div>
 </div>
 </div>
 
@@ -610,6 +649,18 @@ TODO: Обсудить все нижеследующее с hr-специали�
 <td class="left">text</td>
 <td class="left">varchar</td>
 <td class="left">описание вакансии</td>
+</tr>
+
+<tr>
+<td class="left">history</td>
+<td class="left">varchar</td>
+<td class="left">список изменения статусов со временем каждого изменения</td>
+</tr>
+
+<tr>
+<td class="left">reason</td>
+<td class="left">varchar</td>
+<td class="left">добавляем причину действия (позже ссылка на другую таблицу)</td>
 </tr>
 
 <tr>
@@ -687,7 +738,92 @@ TODO: Конечный автомат тут сложен и будет еще �
 </li>
 </ul>
 
-<table id="collection_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<p>
+Вакансия создается в состоянии "новая" - <code>new</code>. После просмотра пользователем вакансия
+автоматически переходит в состояние "просмотрена" - <code>viewed</code>. Однако пользователь может
+перевести ее обратно в состояние <code>new</code> если ему так захотелось.
+</p>
+
+<p>
+Если пользователю вакансия не нравится он может выкинуть ее, чтобы больше к ней не
+возвращаться, после чего она становится <code>hidden</code>. Однако пользователь может передумать и
+тогда ему нужно предоставлять корзину выкинутых вакансий, чтобы он мог ее восстановить. В
+таком случае нам нужно помнить предыдущий статус выкинутой вакансии.
+</p>
+
+<p>
+Если вакансия пользователю понравилась - он может отправить отклик через форму (TODO:
+создать таблицу откликов, чтобы пользователь мог просто выбрать среди них, а не печатать
+одно и то же для каждой вакансии). После посылки отклика (если она прошла успешно)
+вакансия переходит в состяние "отклик послан" - <code>responded</code>.
+</p>
+
+<p>
+Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
+добавить вакансию в закладки - в этом случае ее статус меняется на <code>favorited</code>
+</p>
+
+<p>
+Из <code>favorited</code> мы снова можем отправить отзыв.
+</p>
+
+<p>
+Из <code>favorited</code> пользователь может вернуть вакансию обратно в <code>viewed</code> или выкинуть
+</p>
+
+<p>
+Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
+по вакансиям в статусе <code>responded</code> - пользователь ищет обычно по названию фирмы.
+</p>
+
+<p>
+После звонка вакансия может быть выкинута или переведена из <code>responded</code> в статус "был
+телефонный звонок" - <code>called</code>. Выкидывая вакансию пользователь может выбрать reason - для
+них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
+вакансии. Если в результате телефонного звонка была достигнута договоренность о
+собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
+<code>wait-interview</code> и заносит в вакансию данные о том, куда и во сколько ехать. Если по
+телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
+<code>wait-test</code>. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
+<code>wait-skype-interview</code>.
+</p>
+
+<p>
+Получив тестовое задание пользователь переводит вакансию из статуса <code>wait-test</code> в
+"выполнение тестового задания" <code>run-test</code>, а оттуда либо в <code>test-cancel</code> либо в
+<code>test-sended</code>. Либо выкидывает.
+</p>
+
+<p>
+Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
+часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
+его, наверно пусть можно будет просто изменить данные о времени интервью.
+</p>
+
+<p>
+После интервью или скайп-интервью от вакансии можно либо отказаться (<code>refuse-employer</code>,
+<code>refuse-applicant</code>) либо перевести в статус "ожидание результата" - <code>wait-result</code>. Нужно
+включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
+узнать, как дела.
+</p>
+
+<p>
+Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
+предлагают оффер - <code>offer</code> и соискатель берет время на подумать.
+</p>
+
+<p>
+Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
+<code>refuse-employer</code> или "отказ соискателя" - <code>refuse-аpplicant</code>.
+</p>
+
+<p>
+История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
+примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
+статусов и текущее положение вакансии в нем.
+</p>
+
+<table id="vacancy_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 5:</span> Состояния конечного автомата вакансии</caption>
 
 <colgroup>
@@ -707,19 +843,174 @@ TODO: Конечный автомат тут сложен и будет еще �
 <tbody>
 <tr>
 <td class="left">view</td>
-<td class="left">created</td>
+<td class="left">new</td>
 <td class="left">viewed</td>
 </tr>
 
 <tr>
-<td class="left">respond</td>
+<td class="left">renew</td>
 <td class="left">viewed</td>
+<td class="left">new</td>
+</tr>
+
+<tr>
+<td class="left">hide-after-view</td>
+<td class="left">view</td>
+<td class="left">hidden</td>
+</tr>
+
+<tr>
+<td class="left">restore-from-hidden-to-view</td>
+<td class="left">hidden</td>
+<td class="left">view</td>
+</tr>
+
+<tr>
+<td class="left">send-respond-from-view</td>
+<td class="left">view</td>
 <td class="left">responded</td>
+</tr>
+
+<tr>
+<td class="left">favor</td>
+<td class="left">view</td>
+<td class="left">favorited</td>
+</tr>
+
+<tr>
+<td class="left">send-respond-from-favorited</td>
+<td class="left">favorited</td>
+<td class="left">responded</td>
+</tr>
+
+<tr>
+<td class="left">unfavor</td>
+<td class="left">favorited</td>
+<td class="left">viewed</td>
+</tr>
+
+<tr>
+<td class="left">hide-after-favor</td>
+<td class="left">favirited</td>
+<td class="left">hidden</td>
+</tr>
+
+<tr>
+<td class="left">call</td>
+<td class="left">responded</td>
+<td class="left">called</td>
+</tr>
+
+<tr>
+<td class="left">invite-interview</td>
+<td class="left">called</td>
+<td class="left">wait-interview</td>
+</tr>
+
+<tr>
+<td class="left">invite-skype-interview</td>
+<td class="left">called</td>
+<td class="left">wait-skype-interview</td>
+</tr>
+
+<tr>
+<td class="left">invite-test</td>
+<td class="left">called</td>
+<td class="left">wait-test</td>
+</tr>
+
+<tr>
+<td class="left">refuse-employer-after-interview</td>
+<td class="left">interview</td>
+<td class="left">refuse-employer</td>
+</tr>
+
+<tr>
+<td class="left">refuse-applicant-after-interview</td>
+<td class="left">interview</td>
+<td class="left">refuse-applicant</td>
+</tr>
+
+<tr>
+<td class="left">wait-result-after-interview</td>
+<td class="left">interview</td>
+<td class="left">wait-result</td>
+</tr>
+
+<tr>
+<td class="left">refuse-employer-after-skype-interview</td>
+<td class="left">skype-interview</td>
+<td class="left">refuse-employer</td>
+</tr>
+
+<tr>
+<td class="left">refuse-applicant-after-skype-interview</td>
+<td class="left">skype-interview</td>
+<td class="left">refuse-applicant</td>
+</tr>
+
+<tr>
+<td class="left">wait-result-after-skype-interview</td>
+<td class="left">skype-interview</td>
+<td class="left">wait-result</td>
+</tr>
+
+<tr>
+<td class="left">invite-next-interview</td>
+<td class="left">wait-result</td>
+<td class="left">interview</td>
+</tr>
+
+<tr>
+<td class="left">invite-interview-after-skype</td>
+<td class="left">skype-interview</td>
+<td class="left">interview</td>
+</tr>
+
+<tr>
+<td class="left">invite-offer</td>
+<td class="left">wait-result</td>
+<td class="left">offer</td>
+</tr>
+
+<tr>
+<td class="left">employer-refuse-after-wait-result</td>
+<td class="left">wait-result</td>
+<td class="left">refuse-employer</td>
+</tr>
+
+<tr>
+<td class="left">applicant-refuse-after-wait-result</td>
+<td class="left">wait-result</td>
+<td class="left">refuse-applicant</td>
 </tr>
 </tbody>
 </table>
+
+<p>
+Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+</p>
+
+
+<div class="figure">
+<p><img src="file:///home/rigidus/repo/moto/img/vacancy-state.png" alt="vacancy-state.png" />
+</p>
+</div>
+
+<p>
+Теперь определим функции, которые вызываются на переходахh
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="moto_actions_func">(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">view</span> ()
+  <span style="color: #8b2252;">"new -&gt; viewed"</span>)
+</pre>
 </div>
 </div>
+</div>
+
+
 
 <div id="outline-container-sec-3-4" class="outline-3">
 <h3 id="sec-3-4"><span class="section-number-3">3.4</span> <span class="todo TODO">TODO</span> Перекрестные связи с другими вакансиями</h3>
@@ -814,22 +1105,73 @@ TODO: Конечный автомат тут сложен и будет еще �
 <h2 id="sec-7"><span class="section-number-2">7</span> Сборка</h2>
 <div class="outline-text-2" id="text-7">
 </div><div id="outline-container-sec-7-1" class="outline-3">
-<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Сущности и автоматы</h3>
+<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Утилиты</h3>
 <div class="outline-text-3" id="text-7-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="utility_file">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*user-agent*</span> <span style="color: #8b2252;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0"</span>)
+
+(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*cookies*</span>
+  (list <span style="color: #8b2252;">"portal_tid=1291969547067-10909"</span>
+        <span style="color: #8b2252;">"__utma=189530924.115785001.1291969547.1297497611.1297512149.377"</span>
+        <span style="color: #8b2252;">"__utmc=3521885"</span>))
+
+(setf *drakma-default-external-format* <span style="color: #483d8b;">:utf-8</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">get-headers</span> (referer)
+  `(
+    (<span style="color: #8b2252;">"Accept"</span> . <span style="color: #8b2252;">"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"</span>)
+    (<span style="color: #8b2252;">"Accept-Language"</span> . <span style="color: #8b2252;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
+    (<span style="color: #8b2252;">"Accept-Charset"</span> . <span style="color: #8b2252;">"utf-8"</span>)
+    (<span style="color: #8b2252;">"Referer"</span> . ,referer)
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">("Cookie" . ,(format nil "~{~a; ~}" *cookies*))</span>
+    (<span style="color: #8b2252;">"Cookie"</span> . <span style="color: #8b2252;">"ad20c=2; ad17c=2; __utma=48706362.2093251633.1396569814.1413985658.1413990550.145; __utmz=48706362.1413926450.142.18.utmcsr=vk.com|utmccn=(referral)|utmcmd=referral|utmcct=/im; email=avenger-f%40yandex.ru; password=30e3465569cc7433b34d42baeadff18f; PHPSESSID=ms1rrsgjqvm3lhdl5af1aekvv0; __utmc=48706362; __utmb=48706362.5.10.1413990550"</span>)
+    ))
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">web</span> (to ot)
+  (<span style="color: #a020f0;">let</span> ((x-to (append '(format nil) to))
+        (x-ot (append '(format nil) ot)))
+    `(<span style="color: #a020f0;">let</span> ((r (sb-ext:octets-to-string
+               (drakma:http-request ,x-to
+                                    <span style="color: #483d8b;">:user-agent</span> *user-agent*
+                                    <span style="color: #483d8b;">:additional-headers</span> (get-headers ,x-ot)
+                                    <span style="color: #483d8b;">:force-binary</span> t)
+               <span style="color: #483d8b;">:external-format</span> <span style="color: #483d8b;">:utf-8</span>)))
+       r)))
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">fnd</span> (var pattern)
+  `(<span style="color: #a020f0;">multiple-value-bind</span> (all matches)
+       (ppcre:scan-to-strings ,pattern ,var)
+     (<span style="color: #a020f0;">let</span> ((str (format nil <span style="color: #8b2252;">"~a"</span> matches)))
+       (subseq str 2 (- (length str) 1)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-7-2" class="outline-3">
+<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Сущности и автоматы</h3>
+<div class="outline-text-3" id="text-7-2">
 <p>
 Соберем все сущности и автоматы
 </p>
 </div>
 </div>
 
-<div id="outline-container-sec-7-2" class="outline-3">
-<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Поисковые профили</h3>
+<div id="outline-container-sec-7-3" class="outline-3">
+<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Поисковые профили</h3>
+</div>
+
+<div id="outline-container-sec-7-4" class="outline-3">
+<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Сборки</h3>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-11-30 Вс. 05:44</p>
+<p class="date">Created: 2014-12-01 Пн. 02:54</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

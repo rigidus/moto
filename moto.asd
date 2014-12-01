@@ -66,6 +66,13 @@
                         :serial t
                         :pathname "mod/bratan"
                         :components ((:file "bratan")))
+               ;; Модуль HeadHunter
+               (:module "hh"
+                        :serial t
+                        :pathname "mod/hh"
+                        :components ((:file "util")
+                                     (:file "entityes")
+                                     (:file "hh")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ))

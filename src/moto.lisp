@@ -12,5 +12,5 @@
   ;; (restas:debugg-mode-off)
   (setf hunchentoot:*catch-errors-p* t))
 
-;; (main)
+(main)
 ;; enter_point ends here
