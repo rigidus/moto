@@ -1,0 +1,62 @@
+body {
+	font-family: arial, sans-serif;
+	font-size: 11px;
+	width: 950px;
+	margin: auto;
+}
+h1 {
+	font-size: 14px;
+}
+#data {
+	display: inline-block;
+	width: 400px;
+	height: 600px;
+	margin-right: 5px;
+	overflow-y: auto;
+	vertical-align: top;
+}
+#map {
+	display: inline-block;
+	width: 540px;
+	height: 600px;
+	vertical-align: top;
+}
+#data a {
+	display: block;
+	text-decoration: none;
+	color: #666;
+	background-color: #f6f6f6;
+}
+#data a + a {
+	margin-top: 10px; 
+}
+#data a:after {
+	content: '';
+	display: table;
+	clear: both;
+}
+#data a span {
+	display: block;
+}
+#data a img {
+	width: 150px;
+	height: 73px;
+	float: left;
+	margin-right: 10px;
+}
+#data a .object-name {
+	color: #1EABFF;
+}
+#data a:hover .object-sprice {
+	color: #ff0080;
+}
+.marker {
+	background-color: #800080;
+	color: #fff;
+	padding: 8px 16px;
+	font-family: arial, sans-serif;
+	white-space: nowrap;
+}
+.marker-active {
+	background-color: #ff0080;
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Карта объектов с подсветкой цены</title>
+<link rel="stylesheet" type="text/css" href="map.css" />
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&language=ru"></script>
+<script src="richmarker.js"></script>
+<script src="map.js"></script>
+</head>
+<body>
+	<h1>Карта объектов с подсветкой цены</h1>
+	<div id="data">
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-green-city" rel="59.862519, 30.452840">
+			<img src="http://trend-spb.ru/data/images/catalog/r-539830427c1e4.jpg">
+			<span class="object-name">ЖК Green City</span>
+			<span class="object-address">пр. Александровской фермы</span>
+			<span class="object-metro">м. Пролетарская</span>
+			<span class="object-ofloors">15 мин. пеш.</span>
+			<span class="object-sdacha">Срок сдачи: II кв. 2016 г.</span>
+			<span class="object-sprice"><b>Цена от: 2 497 000</b></span>
+		</a>
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-iq-gatchina" rel="59.582623, 30.143923">
+			<img src="http://trend-spb.ru/data/images/catalog/r-53ec6c6a50c89.jpg">
+			<span class="object-name">ЖК IQ Гатчина</span>
+			<span class="object-address">ЛО Гатчина</span>
+			<span class="object-metro">м. Московская</span>
+			<span class="object-ofloors">20 мин. тр.</span>
+			<span class="object-sdacha">Срок сдачи: IV кв. 2015 г.</span>
+			<span class="object-sprice"><b>Цена от: 1 851 000</b></span>
+		</a>
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-life" rel="59.983078, 30.237537">
+			<img src="http://trend-spb.ru/data/images/catalog/r-53e320f6a5eca.jpg">
+			<span class="object-name">ЖК Life</span>
+			<span class="object-address">Приморский проспект</span>
+			<span class="object-metro">м. Старая деревня</span>
+			<span class="object-ofloors">10 мин. пеш.</span>
+			<span class="object-sdacha">Срок сдачи: I кв. 2016 г.</span>
+			<span class="object-sprice"><b>Цена от: 3 378 000</b></span>
+		</a>
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-mistola-hills" rel="60.120132,30.423705">
+			<img src="http://trend-spb.ru/data/images/catalog/r-4fae5ef45bc76.png">
+			<span class="object-name">ЖК Mistola Hills</span>
+			<span class="object-address">Всеволожский район, пос. Мистолово</span>
+			<span class="object-metro">м. Парнас</span>
+			<span class="object-ofloors">10 мин. тр.</span>
+			<span class="object-sdacha">Срок сдачи: III кв. 2014 г.</span>
+			<span class="object-sprice"><b>Цена от: 3 129 000</b></span>
+		</a>
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-time" rel="59.906479,30.323461">
+			<img src="http://trend-spb.ru/data/images/catalog/r-52a83cc44f163.jpg">
+			<span class="object-name">ЖК Time</span>
+			<span class="object-address">ул. Заозёрая</span>
+			<span class="object-metro">м. Фрунзенская</span>
+			<span class="object-ofloors">5 мин. пеш.</span>
+			<span class="object-sdacha">Срок сдачи: IV кв. 2016 г.</span>
+			<span class="object-sprice"><b>Цена от: 4 273 000</b></span>
+		</a>
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-ultra-city" rel="60.035671, 30.222762">
+			<img src="http://trend-spb.ru/data/images/catalog/r-5444fbdcedfaf.jpg">
+			<span class="object-name">ЖК Ultra City</span>
+			<span class="object-address">ул. Парашютная</span>
+			<span class="object-metro">м. Комендантский проспект</span>
+			<span class="object-ofloors">10 мин. тр.</span>
+			<span class="object-sdacha">Срок сдачи: III кв. 2017 г.</span>
+			<span class="object-sprice"><b>Цена от: 2 406 000</b></span>
+		</a>
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-ye039s" rel="60.05362,30.327058">
+			<img src="http://trend-spb.ru/data/images/catalog/r-4df8a029548a6.jpg">
+			<span class="object-name">ЖК Yes</span>
+			<span class="object-address">Ул.ХоШиМина, д. 14, литера А (уч.1)</span>
+			<span class="object-metro">м. пр. Просвещения</span>
+			<span class="object-ofloors">5 мин. пеш.</span>
+			<span class="object-sdacha">Срок сдачи: Сдан</span>
+			<span class="object-sprice"><b>Цена от: 3 440 000</b></span>
+		</a>
+		<a target="_blank" href="http://trend-spb.ru/object/zhk-youpiter" rel="60.051319, 30.438118">
+			<img src="http://trend-spb.ru/data/images/catalog/r-547dba5e95715.jpg">
+			<span class="object-name">ЖК YOUПитер</span>
+			<span class="object-address">Мурино, Ручьи.</span>
+			<span class="object-metro">м. Девяткино</span>
+			<span class="object-ofloors">10 мин. пеш.</span>
+			<span class="object-sdacha">Срок сдачи: II кв. 2017 г.</span>
+			<span class="object-sprice"><b>Цена от: 2 050 000</b></span>
+		</a>
+		<a href="/object/zhk-graffiti" rel="60.027959, 30.251195">
+			<img src="http://trend-spb.ru/data/images/catalog/r-53be397048a77.jpg">
+			<span class="object-name">ЖК Граффити</span>
+			<span class="object-address">Пересечение пр. Королёва и Парашютной ул.</span>
+			<span class="object-metro">м. Комендантский проспект</span>
+			<span class="object-ofloors">5 мин. тр.</span>
+			<span class="object-sdacha">Срок сдачи: IV кв. 2015 г.</span>
+			<span class="object-sprice"><b>Цена от: 2 433 000</b></span>
+		</a>
+		<a href="/object/zhk-dom-na-tuhachevskogo" rel="59.967728,30.428953">
+			<img src="http://trend-spb.ru/data/images/catalog/r-51685bba522aa.jpg">
+			<span class="object-name">ЖК Дом на Тухачевского</span>
+			<span class="object-address">ул. Тухачевского</span>
+			<span class="object-metro">м. Площадь Ленина</span>
+			<span class="object-ofloors">15 мин. тр.</span>
+			<span class="object-sdacha">Срок сдачи: III кв. 2014 г.</span>
+			<span class="object-sprice"><b>Цена от: 3 865 000</b></span>
+		</a>
+		<a href="/object/zhk-dom-s-kurantami" rel="59.996304,30.21644">
+			<img src="http://trend-spb.ru/data/images/catalog/r-516ebc386f645.jpg">
+			<span class="object-name">ЖК Дом с курантами</span>
+			<span class="object-address">ул. Оптиков, участок 6</span>
+			<span class="object-metro">м. Старая деревня</span>
+			<span class="object-ofloors">5 мин. тр.</span>
+			<span class="object-sdacha">Срок сдачи: IV кв. 2015 г.</span>
+			<span class="object-sprice"><b>Цена от: 3 537 000</b></span>
+		</a>
+		<a href="/object/zhk-dyuna" rel="60.091678,29.954515">
+			<img src="http://trend-spb.ru/data/images/catalog/r-51add89a1719a.jpg">
+			<span class="object-name">ЖК Дюна</span>
+			<span class="object-address">Дубковское ш./ул.Токарева</span>
+			<span class="object-metro">м. Старая деревня</span>
+			<span class="object-ofloors">30 мин. тр.</span>
+			<span class="object-sdacha">Срок сдачи: III кв. 2015 г.</span>
+			<span class="object-sprice"><b>Цена от: 3 105 000</b></span>
+		</a>
+	</div>
+	<div id="map">
+	</div>
+</body>
+</html>

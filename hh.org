@@ -136,8 +136,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defparameter *standart-plus* nil)
-
      (defun hh-get-main-page-vacancyes (hh-main-page)
        "Получение всех вакансий с главной страницы"
        (let* ((cut (ppcre:scan-to-strings
@@ -153,45 +151,50 @@ TODO: Обсудить все нижеследующее с hr-специали�
               (standard-plus))
          (loop :for row :in rows :collect
             (cond ((ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
-                   (progn
-                     (setf premium (append premium (list row)))
-                     1))
+                   (parse-vacancy-teaser row))
                   ((string= "b-vacancy-list-standard" (car (cdaadr row)))
-                   (let* ((data (nth 3 row))
-                          (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
-                          (hh-vacancy-name (car (last hh-vacancy-a)))
-                          (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
-                          (hh-vacancy-date (caddr (cadddr (caddr data))))
-                          (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
-                          (hh-employer-name (car (last hh-vacancy-placetime)))
-                          (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t))
-                          (hh-salary-div (nth 5 (caddr data))))
-                     (format t "~%hh-vacancy-name: ~A ~%" hh-vacancy-name)
-                     (format t "hh-vacancy-id: ~A ~%" hh-vacancy-id)
-                     (format t "hh-vacancy-date: ~A ~%" hh-vacancy-date)
-                     (format t "hh-employer-name: ~A ~%" hh-employer-name)
-                     (format t "hh-employer-id: ~A ~%" hh-employer-id)
-                     (when hh-salary-div
-                       (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
-                             (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
-                             (hh-salary-text (car (last hh-salary-div))))
-                         (format t "hh-salary-currency: ~A ~%" hh-salary-currency)
-                         (format t "hh-salary-base: ~A ~%" hh-salary-base)
-                         (format t "hh-salary-text: ~A ~%" hh-salary-text)))
-                     (setf standard (append standard (list row)))
-                     2))
+                   (parse-vacancy-teaser row))
                   ((string= "b-vacancy-list-standard_plus" (car (cdaadr row)))
-                   (progn
-                     (setf standard-plus (append standard-plus (list row)))
-                     3))
+                   (parse-vacancy-teaser row))
                   (t 0)))
-         (setf *standart-plus* standard-plus)
+         (setf *premium* premium)
          ))
 
      (hh-get-main-page-vacancyes *main-page*)
+   #+END_SRC
 
+   При обработке стандартных вакансий мы получаем:
+   - название вакансии
+   - идентификатор (ссылку)
+   - дату размещения
+   - название работодателя
+   - идентификатор работодателя
 
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
+     (defun parse-vacancy-teaser (param)
+       (let* ((data (nth 3 param))
+              (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
+              (hh-vacancy-name (car (last hh-vacancy-a)))
+              (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
+              (hh-vacancy-date (caddr (cadddr (caddr data))))
+              (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
+              (hh-employer-name (car (last hh-vacancy-placetime)))
+              (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t))
+              (hh-salary-div (nth 5 (caddr data))))
+         (format t "~%hh-vacancy-name: ~A ~%" hh-vacancy-name)
+         (format t "hh-vacancy-id: ~A ~%" hh-vacancy-id)
+         (format t "hh-vacancy-date: ~A ~%" hh-vacancy-date)
+         (format t "hh-employer-name: ~A ~%" hh-employer-name)
+         (format t "hh-employer-id: ~A ~%" hh-employer-id)
+         (when hh-salary-div
+           (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
+                 (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
+                 (hh-salary-text (car (last hh-salary-div))))
+             (format t "hh-salary-currency: ~A ~%" hh-salary-currency)
+             (format t "hh-salary-base: ~A ~%" hh-salary-base)
+             (format t "hh-salary-text: ~A ~%" hh-salary-text)))))
    #+END_SRC
 
    Несколько позже мы разберем и их
