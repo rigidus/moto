@@ -94,15 +94,80 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
    Мне бы хотелось осуществлять =сбор данных в многопоточном режиме=.
 
+** Парсинг данных
+
+   Начнем с того, что будем собирать все ит-вакансии с http://spb.hh.ru
+
+   Они размещаются постранично, поэтому первое, что необходимо сделать - это получить
+   первую страницу с вакансиями, на которой будут первые вакансии и ссылки на остальные
+   страницы:
+
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
      (defun hh-get-main-search-page (url)
-       "Получение главной страницы поиска")
+       "Получение главной страницы поиска"
+       (flexi-streams:octets-to-string
+        (drakma:http-request url
+                             :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+                             :additional-headers `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                                   ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                                   ("Accept-Charset" . "utf-8")
+                                                   ("Referer" . "http://spb.hh.ru/")
+                                                   ("Cookie" . "redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=85014f262b894a1e9fc57b4b838e48e8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616")
+                                                   ("Cache-Control" . "max-age=0"))
+                             :force-binary t)
+        :external-format :utf-8))
+
+     (defparameter *main-page* (hh-get-main-search-page "http://spb.hh.ru/search/vacancy?area=2&text=&salary=&currency_code=RUR&specialization=1.221"))
+   #+END_SRC
+
+   Теперь, чтобы получить вакансии с этой страницы - вырежем таблицу с ними и воспользуемся
+   парсером, который переведет полученный html в более удобный лисп-спискок. Этот список
+   содержит строки таблицы, которые бывают четырех видов:
+   - премиум вакансии
+   - разделитель между блоками премиум и обычных вакансий
+   - обычные вакансии
+   - обычный вакансии плюс.
+
+   Для каждого из интересующих нас блоков мы напишем обработчик, а пока просто отделим их
+   друг от друга:
+
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
      (defun hh-get-main-page-vacancyes (hh-main-page)
-       "Получение всех вакансий с главной страницы")
+       "Получение всех вакансий с главной страницы"
+       (let* ((cut (ppcre:scan-to-strings
+                    (format nil "~A(.*)~A"
+                            "<table class=\"l-table entry-content\" data-qa=\"vacancy-serp__results\">"
+                            "<div class=\"g-hidden b-select-icon-popup HH-VacancyToFavorite-LimitPopup\">")
+                    hh-main-page))
+              (cut-without-tail (subseq cut 0 (- (length cut) 74)))
+              (parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment cut-without-tail)))
+              (rows   (cddr (nth 2 (car parsed))))
+              (premium)
+              (standard)
+              (standard-plus))
+         (loop :for row :in rows :collect
+            (cond ((ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
+                   (progn
+                     (setf premium (append premium (list row)))
+                     1))
+                  ((string= "b-vacancy-list-standard" (car (cdaadr row)))
+                   (progn
+                     (setf standard (append standard (list row)))
+                     2))
+                  ((string= "b-vacancy-list-standard_plus" (car (cdaadr row)))
+                   (progn
+                     (setf standard-plus (append standard-plus (list row)))
+                     3))
+                  (t 0)))))
 
+     (hh-get-main-page-vacancyes *main-page*)
+   #+END_SRC
+
+   #+BEGIN_SRC lisp
      (defun hh-get-search-pages (hh-main-page)
        "Получение списка адресов остальных страниц, кроме главной")
 
@@ -112,14 +177,16 @@ TODO: Обсудить все нижеследующее с hr-специали�
      (defun get-profile-vacancyes (profile)
        (let* ((url (search-query profile))
               (main-page (hh-get-main-search-page url))
-              (vacancyes (hh-get-main-page-vacancyes main-page))
-              (hh-pages  (hh-get-search-pages main-page)))
-         (loop :for hh-page :in hh-pages :do
-            (setf vacancyes (append vacancyes
-                                    (get-page-vacancyes hh-page))))
-         vacancyes))
+              ;;      (vacancyes (hh-get-main-page-vacancyes main-page))
+              ;;      (hh-pages  (hh-get-search-pages main-page))
+              )
+         ;; (loop :for hh-page :in hh-pages :do
+         ;;    (setf vacancyes (append vacancyes
+         ;;                            (get-page-vacancyes hh-page))))
+         ;; vacancyes))
+         main-page))
 
-     (loop :for profile :in (all-profile) :do
+     (loop :for profile :in (all-profile) :collect
         (get-profile-vacancyes profile))
    #+END_SRC
 
