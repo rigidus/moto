@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2014-12-01 Пн. 02:54 -->
+<!-- 2014-12-06 Сб. 06:37 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -325,6 +325,37 @@ TODO: Обсудить все нижеследующее с hr-специали�
 <p>
 Мне бы хотелось осуществлять <code>сбор данных в многопоточном режиме</code>.
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-get-main-search-page</span> (url)
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1075;&#1083;&#1072;&#1074;&#1085;&#1086;&#1081; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;"</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-get-main-page-vacancyes</span> (hh-main-page)
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1074;&#1089;&#1077;&#1093; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1089; &#1075;&#1083;&#1072;&#1074;&#1085;&#1086;&#1081; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;"</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-get-search-pages</span> (hh-main-page)
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1072;&#1076;&#1088;&#1077;&#1089;&#1086;&#1074; &#1086;&#1089;&#1090;&#1072;&#1083;&#1100;&#1085;&#1099;&#1093; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1075;&#1083;&#1072;&#1074;&#1085;&#1086;&#1081;"</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-page-vacancyes</span> (hh-page)
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1089;&#1086; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;"</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-profile-vacancyes</span> (profile)
+  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((url (search-query profile))
+         (main-page (hh-get-main-search-page url))
+         (vacancyes (hh-get-main-page-vacancyes main-page))
+         (hh-pages  (hh-get-search-pages main-page)))
+    (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> hh-page <span style="color: #0000ee; font-weight: bold;">:in</span> hh-pages <span style="color: #0000ee; font-weight: bold;">:do</span>
+       (setf vacancyes (append vacancyes
+                               (get-page-vacancyes hh-page))))
+    vacancyes))
+
+(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> profile <span style="color: #0000ee; font-weight: bold;">:in</span> (all-profile) <span style="color: #0000ee; font-weight: bold;">:do</span>
+   (get-profile-vacancyes profile))
+</pre>
+</div>
 </div>
 </div>
 
@@ -490,14 +521,14 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="create_profiles">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="create_profiles">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*profile-all*</span>
-  (make-profile <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"&#1042;&#1089;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1089;&#1090;&#1086;&#1074;"</span>
-                <span style="color: #483d8b;">:user-id</span> 1
-                <span style="color: #483d8b;">:search-query</span> <span style="color: #8b2252;">"http://spb.hh.ru/search/vacancy?area=2&amp;text=&amp;salary=&amp;currency_code=RUR&amp;specialization=1.221"</span>
-                <span style="color: #483d8b;">:ts-create</span> (get-universal-time)
-                <span style="color: #483d8b;">:ts-last</span> (get-universal-time)))
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*profile-all*</span>
+  (make-profile <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1089;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1089;&#1090;&#1086;&#1074;"</span>
+                <span style="color: #0000ee; font-weight: bold;">:user-id</span> 1
+                <span style="color: #0000ee; font-weight: bold;">:search-query</span> <span style="color: #00cd00;">"http://spb.hh.ru/search/vacancy?area=2&amp;text=&amp;salary=&amp;currency_code=RUR&amp;specialization=1.221"</span>
+                <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
+                <span style="color: #0000ee; font-weight: bold;">:ts-last</span> (get-universal-time)))
 </pre>
 </div>
 </div>
@@ -588,13 +619,13 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="create_collections">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="create_collections">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*collection-all*</span>
-  (make-collection <span style="color: #483d8b;">:profile-id</span> (id *profile-all*)
-                   <span style="color: #483d8b;">:ts-create</span> (get-universal-time)
-                   <span style="color: #483d8b;">:ts-shedule</span> (get-universal-time)
-                   <span style="color: #483d8b;">:state</span> <span style="color: #483d8b;">:sheduled</span>))
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*collection-all*</span>
+  (make-collection <span style="color: #0000ee; font-weight: bold;">:profile-id</span> (id *profile-all*)
+                   <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
+                   <span style="color: #0000ee; font-weight: bold;">:ts-shedule</span> (get-universal-time)
+                   <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #0000ee; font-weight: bold;">:sheduled</span>))
 </pre>
 </div>
 </div>
@@ -824,7 +855,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </p>
 
 <table id="vacancy_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 5:</span> Состояния конечного автомата вакансии</caption>
+<caption class="t-above"><span class="table-number">Table 5:</span> Состояния конечного автомата мотоцикла</caption>
 
 <colgroup>
 <col  class="left" />
@@ -855,25 +886,25 @@ TODO: Конечный автомат тут сложен и будет еще �
 
 <tr>
 <td class="left">hide-after-view</td>
-<td class="left">view</td>
+<td class="left">viewed</td>
 <td class="left">hidden</td>
 </tr>
 
 <tr>
 <td class="left">restore-from-hidden-to-view</td>
 <td class="left">hidden</td>
-<td class="left">view</td>
+<td class="left">viewed</td>
 </tr>
 
 <tr>
 <td class="left">send-respond-from-view</td>
-<td class="left">view</td>
+<td class="left">viewed</td>
 <td class="left">responded</td>
 </tr>
 
 <tr>
 <td class="left">favor</td>
-<td class="left">view</td>
+<td class="left">viewed</td>
 <td class="left">favorited</td>
 </tr>
 
@@ -891,7 +922,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 
 <tr>
 <td class="left">hide-after-favor</td>
-<td class="left">favirited</td>
+<td class="left">favorited</td>
 <td class="left">hidden</td>
 </tr>
 
@@ -904,113 +935,136 @@ TODO: Конечный автомат тут сложен и будет еще �
 <tr>
 <td class="left">invite-interview</td>
 <td class="left">called</td>
-<td class="left">wait-interview</td>
+<td class="left">wait<sub>interview</sub></td>
 </tr>
 
 <tr>
 <td class="left">invite-skype-interview</td>
 <td class="left">called</td>
-<td class="left">wait-skype-interview</td>
+<td class="left">wait<sub>skype</sub><sub>interview</sub></td>
 </tr>
 
 <tr>
 <td class="left">invite-test</td>
 <td class="left">called</td>
-<td class="left">wait-test</td>
+<td class="left">wait<sub>test</sub></td>
+</tr>
+
+<tr>
+<td class="left">interview</td>
+<td class="left">wait<sub>interview</sub></td>
+<td class="left">interview</td>
+</tr>
+
+<tr>
+<td class="left">skype-interview</td>
+<td class="left">wait<sub>skype</sub><sub>interview</sub></td>
+<td class="left">skype<sub>interview</sub></td>
+</tr>
+
+<tr>
+<td class="left">call-after-skype-interview</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">called</td>
+</tr>
+
+<tr>
+<td class="left">execute-test</td>
+<td class="left">wait<sub>test</sub></td>
+<td class="left">run<sub>test</sub></td>
+</tr>
+
+<tr>
+<td class="left">send-test</td>
+<td class="left">run<sub>test</sub></td>
+<td class="left">send<sub>test</sub></td>
+</tr>
+
+<tr>
+<td class="left">called-after-test</td>
+<td class="left">send<sub>test</sub></td>
+<td class="left">called</td>
 </tr>
 
 <tr>
 <td class="left">refuse-employer-after-interview</td>
 <td class="left">interview</td>
-<td class="left">refuse-employer</td>
+<td class="left">refuse<sub>employer</sub></td>
 </tr>
 
 <tr>
 <td class="left">refuse-applicant-after-interview</td>
 <td class="left">interview</td>
-<td class="left">refuse-applicant</td>
+<td class="left">refuse<sub>applicant</sub></td>
 </tr>
 
 <tr>
 <td class="left">wait-result-after-interview</td>
 <td class="left">interview</td>
-<td class="left">wait-result</td>
+<td class="left">wait<sub>result</sub></td>
 </tr>
 
 <tr>
 <td class="left">refuse-employer-after-skype-interview</td>
-<td class="left">skype-interview</td>
-<td class="left">refuse-employer</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">refuse<sub>employer</sub></td>
 </tr>
 
 <tr>
 <td class="left">refuse-applicant-after-skype-interview</td>
-<td class="left">skype-interview</td>
-<td class="left">refuse-applicant</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">refuse<sub>applicant</sub></td>
 </tr>
 
 <tr>
 <td class="left">wait-result-after-skype-interview</td>
-<td class="left">skype-interview</td>
-<td class="left">wait-result</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">wait<sub>result</sub></td>
 </tr>
 
 <tr>
 <td class="left">invite-next-interview</td>
-<td class="left">wait-result</td>
+<td class="left">wait<sub>result</sub></td>
 <td class="left">interview</td>
 </tr>
 
 <tr>
 <td class="left">invite-interview-after-skype</td>
-<td class="left">skype-interview</td>
+<td class="left">skype<sub>interview</sub></td>
 <td class="left">interview</td>
 </tr>
 
 <tr>
 <td class="left">invite-offer</td>
-<td class="left">wait-result</td>
+<td class="left">wait<sub>result</sub></td>
 <td class="left">offer</td>
 </tr>
 
 <tr>
 <td class="left">employer-refuse-after-wait-result</td>
-<td class="left">wait-result</td>
-<td class="left">refuse-employer</td>
+<td class="left">wait<sub>result</sub></td>
+<td class="left">refuse<sub>employer</sub></td>
 </tr>
 
 <tr>
 <td class="left">applicant-refuse-after-wait-result</td>
-<td class="left">wait-result</td>
-<td class="left">refuse-applicant</td>
+<td class="left">wait<sub>result</sub></td>
+<td class="left">refuse<sub>applicant</sub></td>
 </tr>
 </tbody>
 </table>
 
 <p>
-Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 </p>
 
 
 <div class="figure">
-<p><img src="file:///home/rigidus/repo/moto/img/vacancy-state.png" alt="vacancy-state.png" />
+<p><img src="img/vacancy-state.png" alt="vacancy-state.png" />
 </p>
 </div>
-
-<p>
-Теперь определим функции, которые вызываются на переходахh
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="moto_actions_func">(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">view</span> ()
-  <span style="color: #8b2252;">"new -&gt; viewed"</span>)
-</pre>
 </div>
 </div>
-</div>
-
-
 
 <div id="outline-container-sec-3-4" class="outline-3">
 <h3 id="sec-3-4"><span class="section-number-3">3.4</span> <span class="todo TODO">TODO</span> Перекрестные связи с другими вакансиями</h3>
@@ -1026,6 +1080,11 @@ TODO: Конечный автомат тут сложен и будет еще �
 Иногда вакансии меняются, или в них меняются существенные условия. Например, две недели
 назад, когда я смотрел вакансию из предыдущей сборки меня не устроила зарпалата, а
 сегодня вакансия стала интереснее. Я хочу отслеживать что вакансия поменялась.
+</p>
+
+<p>
+Таким образом при создании вакансии мы должны проверять, может она уже есть в базе и
+тогда указывать, что эта вакансия включена в несколько сборок (требует таблицы связи)
 </p>
 </div>
 </div>
@@ -1109,42 +1168,42 @@ TODO: Конечный автомат тут сложен и будет еще �
 <div class="outline-text-3" id="text-7-1">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="utility_file">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="utility_file">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*user-agent*</span> <span style="color: #8b2252;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*user-agent*</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0"</span>)
 
-(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*cookies*</span>
-  (list <span style="color: #8b2252;">"portal_tid=1291969547067-10909"</span>
-        <span style="color: #8b2252;">"__utma=189530924.115785001.1291969547.1297497611.1297512149.377"</span>
-        <span style="color: #8b2252;">"__utmc=3521885"</span>))
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*cookies*</span>
+  (list <span style="color: #00cd00;">"portal_tid=1291969547067-10909"</span>
+        <span style="color: #00cd00;">"__utma=189530924.115785001.1291969547.1297497611.1297512149.377"</span>
+        <span style="color: #00cd00;">"__utmc=3521885"</span>))
 
-(setf *drakma-default-external-format* <span style="color: #483d8b;">:utf-8</span>)
+(setf *drakma-default-external-format* <span style="color: #0000ee; font-weight: bold;">:utf-8</span>)
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">get-headers</span> (referer)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-headers</span> (referer)
   `(
-    (<span style="color: #8b2252;">"Accept"</span> . <span style="color: #8b2252;">"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"</span>)
-    (<span style="color: #8b2252;">"Accept-Language"</span> . <span style="color: #8b2252;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
-    (<span style="color: #8b2252;">"Accept-Charset"</span> . <span style="color: #8b2252;">"utf-8"</span>)
-    (<span style="color: #8b2252;">"Referer"</span> . ,referer)
-    <span style="color: #b22222;">;; </span><span style="color: #b22222;">("Cookie" . ,(format nil "~{~a; ~}" *cookies*))</span>
-    (<span style="color: #8b2252;">"Cookie"</span> . <span style="color: #8b2252;">"ad20c=2; ad17c=2; __utma=48706362.2093251633.1396569814.1413985658.1413990550.145; __utmz=48706362.1413926450.142.18.utmcsr=vk.com|utmccn=(referral)|utmcmd=referral|utmcct=/im; email=avenger-f%40yandex.ru; password=30e3465569cc7433b34d42baeadff18f; PHPSESSID=ms1rrsgjqvm3lhdl5af1aekvv0; __utmc=48706362; __utmb=48706362.5.10.1413990550"</span>)
+    (<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"</span>)
+    (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
+    (<span style="color: #00cd00;">"Accept-Charset"</span> . <span style="color: #00cd00;">"utf-8"</span>)
+    (<span style="color: #00cd00;">"Referer"</span> . ,referer)
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Cookie" . ,(format nil "~{~a; ~}" *cookies*))</span>
+    (<span style="color: #00cd00;">"Cookie"</span> . <span style="color: #00cd00;">"ad20c=2; ad17c=2; __utma=48706362.2093251633.1396569814.1413985658.1413990550.145; __utmz=48706362.1413926450.142.18.utmcsr=vk.com|utmccn=(referral)|utmcmd=referral|utmcct=/im; email=avenger-f%40yandex.ru; password=30e3465569cc7433b34d42baeadff18f; PHPSESSID=ms1rrsgjqvm3lhdl5af1aekvv0; __utmc=48706362; __utmb=48706362.5.10.1413990550"</span>)
     ))
 
-(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">web</span> (to ot)
-  (<span style="color: #a020f0;">let</span> ((x-to (append '(format nil) to))
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">web</span> (to ot)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((x-to (append '(format nil) to))
         (x-ot (append '(format nil) ot)))
-    `(<span style="color: #a020f0;">let</span> ((r (sb-ext:octets-to-string
+    `(<span style="color: #00cdcd; font-weight: bold;">let</span> ((r (sb-ext:octets-to-string
                (drakma:http-request ,x-to
-                                    <span style="color: #483d8b;">:user-agent</span> *user-agent*
-                                    <span style="color: #483d8b;">:additional-headers</span> (get-headers ,x-ot)
-                                    <span style="color: #483d8b;">:force-binary</span> t)
-               <span style="color: #483d8b;">:external-format</span> <span style="color: #483d8b;">:utf-8</span>)))
+                                    <span style="color: #0000ee; font-weight: bold;">:user-agent</span> *user-agent*
+                                    <span style="color: #0000ee; font-weight: bold;">:additional-headers</span> (get-headers ,x-ot)
+                                    <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+               <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>)))
        r)))
 
-(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">fnd</span> (var pattern)
-  `(<span style="color: #a020f0;">multiple-value-bind</span> (all matches)
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">fnd</span> (var pattern)
+  `(<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (all matches)
        (ppcre:scan-to-strings ,pattern ,var)
-     (<span style="color: #a020f0;">let</span> ((str (format nil <span style="color: #8b2252;">"~a"</span> matches)))
+     (<span style="color: #00cdcd; font-weight: bold;">let</span> ((str (format nil <span style="color: #00cd00;">"~a"</span> matches)))
        (subseq str 2 (- (length str) 1)))))
 </pre>
 </div>
@@ -1171,7 +1230,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-12-01 Пн. 02:54</p>
+<p class="date">Created: 2014-12-06 Сб. 06:37</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
