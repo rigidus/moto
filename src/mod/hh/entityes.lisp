@@ -20,7 +20,14 @@
                 :ts-create (get-universal-time)
                 :ts-last (get-universal-time)))
 
-(gen-automat "collection" "сборки" flds states)
+(define-automat collection "Автомат сборки"
+  ((id serial)
+   (profile-id integer)
+   (ts-create bigint)
+   (ts-shedule bigint))
+  (:executed :thesheduled)
+  ((:thesheduled :executed :shedule)))
+
 
 (in-package #:moto)
 
@@ -28,5 +35,5 @@
   (make-collection :profile-id (id *profile-all*)
                    :ts-create (get-universal-time)
                    :ts-shedule (get-universal-time)
-                   :state :sheduled))
+                   :state ":SHEDULED"))
 ;; entity_and_automates ends here

@@ -195,9 +195,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
    #+CAPTION: Состояния конечного автомата сборки
    #+NAME: collection_state
-     | action         | from     | to          |
-     |----------------+----------+-------------|
-     | sheduled       | sheduled | executed    |
+     | action  | from        | to       |
+     |---------+-------------+----------|
+     | shedule | thesheduled | executed |
 
    #+NAME: create_collections
    #+BEGIN_SRC lisp
@@ -207,7 +207,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
        (make-collection :profile-id (id *profile-all*)
                         :ts-create (get-universal-time)
                         :ts-shedule (get-universal-time)
-                        :state :sheduled))
+                        :state ":SHEDULED"))
    #+END_SRC
 
 ** Вакансии
@@ -516,7 +516,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
      <<create_profiles>>
 
-     <<asm_collection>>
+     <<asm_collection()>>
 
      <<create_collections>>
 
@@ -532,6 +532,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
 ** Сборки
 
     #+NAME: asm_collection
-    #+BEGIN_SRC emacs-lisp :var flds=collection_flds states="collection_state" :exports none
+    #+BEGIN_SRC emacs-lisp :var flds=collection_flds states=collection_state :exports none
       (gen-automat "collection" "сборки" flds states)
     #+END_SRC
