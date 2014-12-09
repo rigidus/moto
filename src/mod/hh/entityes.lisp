@@ -4,6 +4,7 @@
 (define-entity profile "Сущность поисковые профили"
   ((id serial)
    (user-id integer)
+   (name varchar)
    (search-query varchar)
    (ts-create bigint)
    (ts-last bigint)))

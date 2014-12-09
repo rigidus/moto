@@ -72,6 +72,7 @@
                         :serial t
                         :pathname "mod/hh"
                         :components ((:file "util")
+                                     (:file "globals")
                                      (:file "entityes")
                                      (:file "hh")))
                (:file "events")     ;; события системы

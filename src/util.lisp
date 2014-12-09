@@ -249,4 +249,17 @@
                     (push x files)))
             raw)
     (values dirs files raw)))
+
+;; clear-db
+(defun drop (tbl-lst)
+  (let ((tables tbl-lst))
+    (flet ((rmtbl (tblname)
+             (when (with-connection *db-spec*
+                     (query (:select 'table_name :from 'information_schema.tables :where
+                                     (:and (:= 'table_schema "public")
+                                           (:= 'table_name tblname)))))
+               (with-connection *db-spec*
+                 (query (:drop-table (intern (string-upcase tblname))))))))
+      (loop :for tblname :in tables :collect
+         (rmtbl tblname)))))
 ;; utility_file ends here
