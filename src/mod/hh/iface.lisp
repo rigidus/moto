@@ -57,26 +57,50 @@
                 (list
                  (format nil "<h1>Страница поискового профиля ~A</h1>" (id u))
                  (format nil "<h2>Данные поискового профиля ~A</h2>" (name u))
-                 (tbl
-                  (with-element (u u)
-                    (row "Имя профиля" (fld "name" (name u)))
-                    (row "Запрос" (fld "search" (search-query u)))
-                    (row "" %change%))
-                  :border 1)
-                 (format nil "<h2>Вакансий: ~A</h2>" (length vacs))
                  (frm
                   (tbl
-                   (with-collection (i vacs)
-                     (tr
-                      (td (input "checkbox" :name (format nil "~A" i) :value "on"))
-                      (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id i) (name i)))
-                      (td (salary-text i))))
+                   (with-element (u u)
+                     (row "Имя профиля" (fld "name" (name u)))
+                     (row "Запрос" (fld "search" (search-query u)))
+                     (row (hid "profile_id" (id u)) %change%))
                    :border 1))
+                 (format nil "<h2>Вакансий: ~A</h2>" (length vacs))
+                 (frm
+                  (list
+                   %clarify%
+                   (tbl
+                    (with-collection (vac vacs)
+                      (tr
+                       (td
+                        (state vac))
+                       (td
+                        (format nil "<div style=\"background-color:green\">~A</div>"
+                                (input "radio" :name (format nil "R~A" (id vac)) :value "y"
+                                       :other (if (string= ":INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                       (td
+                        (format nil "<div style=\"background-color:red\">~A</div>"
+                                (input "radio" :name (format nil "R~A" (id vac)) :value "n"
+                                       :other (if (string= ":NOT_INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                       (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id vac) (name vac)))
+                       (td (salary-text vac))
+                       (td (currency vac))))
+                    :border 1)
+                   ))
                  ))))
-  (:change (act-btn "CHANGE" "" "Изменить")
-           (let* ((i (parse-integer userid))
-                  (u (get-user i)))
-             (aif (getf p :role)
-                  (role-id (upd-user u (list :role-id (parse-integer it))))
-                  ":null"))))
+  (:change  (act-btn "CHANGE" "" "Изменить")
+            (id (upd-profile (get-profile (parse-integer userid))
+                             (list :name (getf p :name) :search-query (getf p :query)))))
+  (:clarify (act-btn "CLARIFY" "" "Уточнить")
+            (loop :for key :in (cddddr p) :by #'cddr :collect
+               (let* ((val (getf p key))
+                      (id  (parse-integer (subseq (symbol-name key) 1)))
+                      (vac (get-vacancy id)))
+                 (list id
+                       (cond ((string= "y" val)
+                              (unless (string= ":INTERESTED" (state vac))
+                                (takt vac :interested)))
+                             ((string= "n" val)
+                              (unless (string= ":NOT_INTERESTED" (state vac))
+                                (takt vac :not_interested)))
+                             (t "err param")))))))
 ;; iface ends here

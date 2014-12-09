@@ -1262,10 +1262,11 @@
 
      ;; Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
 
-     (defun input (type &key name value)
-       (format nil "~%<input type=\"~A\"~A~A/>" type
+     (defun input (type &key name value other)
+       (format nil "~%<input type=\"~A\"~A~A~A/>" type
                (if name  (format nil " name=\"~A\"" name) "")
-               (if value (format nil " value=\"~A\"" value) "")))
+               (if value (format nil " value=\"~A\"" value) "")
+               (if other (format nil " ~A" other) "")))
 
      ;; (input "text" :name "zzz" :value 111)
      ;; (input "submit" :name "submit-btn" :value "send")

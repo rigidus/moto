@@ -360,6 +360,12 @@ TODO: Обсудить все нижеследующее с hr-специали�
    =teaser=, чтобы потом получить все остальные данные. На втором этапе мы получаем данные
    со страницы вакансии и устанавливаем состояние =new=.
 
+   Если пользователю не нравится тизер и он решает скрыть вакансию - она сразу из состояния
+   =teaser= попадает в состояние =not_interested=.
+
+   Если же пользователю наоборот, нравится вакансия, она из состояния =teaser= попадает в
+   состояние =interested=.
+
    Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
    реагировать, устанавливая статус =archive=
 
@@ -454,6 +460,8 @@ TODO: Обсудить все нижеследующее с hr-специали�
    #+NAME: vacancy_state
      | action                                 | from                 | to                   |
      |----------------------------------------+----------------------+----------------------|
+     | teaser-rejection                       | teaser               | not_interested       |
+     | rejection-favorite                     | teaser               | interested           |
      | parsing                                | teaser               | new                  |
      | view                                   | new                  | viewed               |
      | renew                                  | viewed               | new                  |
@@ -504,8 +512,18 @@ TODO: Обсудить все нижеследующее с hr-специали�
      }
    #+END_SRC
 
-   #+results:
-   [[file:img/vacancy-state.png]]
+
+   #+NAME: hh_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun teaser-rejection ()
+       "teaser-rejection")
+
+     (defun rejection-favorite ()
+       "rejection-favorite")
+   #+END_SRC
+
 
 ** TODO Перекрестные связи с другими вакансиями
 
@@ -598,7 +616,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
               (del-profile (getf p :data)))))
   #+END_SRC
 
-** Страничка поискового профиля
+** COMMENT Страничка поискового профиля
 
    На страничке поискового профиля мы выводим все собранные по этому поисковому профилю
    вакансии. Будем считать что нас не особо интересуют вакансии без указания зарплаты,
@@ -625,33 +643,52 @@ TODO: Обсудить все нижеследующее с hr-специали�
                      (list
                       (format nil "<h1>Страница поискового профиля ~A</h1>" (id u))
                       (format nil "<h2>Данные поискового профиля ~A</h2>" (name u))
-                      (tbl
-                       (with-element (u u)
-                         (row "Имя профиля" (fld "name" (name u)))
-                         (row "Запрос" (fld "search" (search-query u)))
-                         (row "" %change%))
-                       :border 1)
-                      (format nil "<h2>Вакансий: ~A</h2>" (length vacs))
                       (frm
                        (tbl
-                        (with-collection (i vacs)
-                          (tr
-                           (td
-                            (format nil "<div style=\"background-color:green\">~A</div>"
-                                    (input "radio" :name (format nil "~A" i) :value "yes")))
-                           (td
-                            (format nil "<div style=\"background-color:red\">~A</div>"
-                                    (input "radio" :name (format nil "~A" i) :value "no")))
-                           (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id i) (name i)))
-                           (td (salary-text i))))
+                        (with-element (u u)
+                          (row "Имя профиля" (fld "name" (name u)))
+                          (row "Запрос" (fld "search" (search-query u)))
+                          (row (hid "profile_id" (id u)) %change%))
                         :border 1))
+                      (format nil "<h2>Вакансий: ~A</h2>" (length vacs))
+                      (frm
+                       (list
+                        %clarify%
+                        (tbl
+                         (with-collection (vac vacs)
+                           (tr
+                            (td
+                             (state vac))
+                            (td
+                             (format nil "<div style=\"background-color:green\">~A</div>"
+                                     (input "radio" :name (format nil "R~A" (id vac)) :value "y"
+                                            :other (if (string= ":INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                            (td
+                             (format nil "<div style=\"background-color:red\">~A</div>"
+                                     (input "radio" :name (format nil "R~A" (id vac)) :value "n"
+                                            :other (if (string= ":NOT_INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                            (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id vac) (name vac)))
+                            (td (salary-text vac))
+                            (td (currency vac))))
+                         :border 1)
+                        ))
                       ))))
-       (:change (act-btn "CHANGE" "" "Изменить")
-                (let* ((i (parse-integer userid))
-                       (u (get-user i)))
-                  (aif (getf p :role)
-                       (role-id (upd-user u (list :role-id (parse-integer it))))
-                       ":null"))))
+       (:change  (act-btn "CHANGE" "" "Изменить")
+                 (id (upd-profile (get-profile (parse-integer userid))
+                                  (list :name (getf p :name) :search-query (getf p :query)))))
+       (:clarify (act-btn "CLARIFY" "" "Уточнить")
+                 (loop :for key :in (cddddr p) :by #'cddr :collect
+                    (let* ((val (getf p key))
+                           (id  (parse-integer (subseq (symbol-name key) 1)))
+                           (vac (get-vacancy id)))
+                      (list id
+                            (cond ((string= "y" val)
+                                   (unless (string= ":INTERESTED" (state vac))
+                                     (takt vac :interested)))
+                                  ((string= "n" val)
+                                   (unless (string= ":NOT_INTERESTED" (state vac))
+                                     (takt vac :not_interested)))
+                                  (t "err param")))))))
    #+END_SRC
 
 ** Дашборд

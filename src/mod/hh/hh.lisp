@@ -58,6 +58,13 @@
                                                   :salary-base hh-salary-base
                                                   :salary-text hh-salary-text)))))
             result))))))
+(in-package #:moto)
+
+(defun teaser-rejection ()
+  "teaser-rejection")
+
+(defun rejection-favorite ()
+  "rejection-favorite")
 
 (in-package #:moto)
 
