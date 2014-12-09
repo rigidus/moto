@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2014-12-06 Сб. 06:37 -->
+<!-- 2014-12-10 Ср. 00:21 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -147,12 +147,20 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2">2. Сценарии использования</a>
 <ul>
 <li><a href="#sec-2-1">2.1. Поисковые профили и сбор данных</a></li>
-<li><a href="#sec-2-2">2.2. Поиск вакансий</a></li>
-<li><a href="#sec-2-3">2.3. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
-<li><a href="#sec-2-4">2.4. Дашборд</a></li>
-<li><a href="#sec-2-5">2.5. Отзывы соискателей о компаниях и вакансиях</a></li>
-<li><a href="#sec-2-6">2.6. Размещение резюме</a></li>
-<li><a href="#sec-2-7">2.7. Маршрут</a></li>
+<li><a href="#sec-2-2">2.2. Парсинг данных</a>
+<ul>
+<li><a href="#sec-2-2-1">2.2.1. Получение страниц</a></li>
+<li><a href="#sec-2-2-2">2.2.2. Разбор тизеров</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-3">2.3. Поиск вакансий</a></li>
+<li><a href="#sec-2-4">2.4. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
+<li><a href="#sec-2-5">2.5. Дашборд</a></li>
+<li><a href="#sec-2-6">2.6. Отзывы соискателей о компаниях и вакансиях</a></li>
+<li><a href="#sec-2-7">2.7. Размещение резюме</a></li>
+<li><a href="#sec-2-8">2.8. Маршрут</a></li>
+<li><a href="#sec-2-9">2.9. Создание вакансии работодателем</a></li>
+<li><a href="#sec-2-10">2.10. Вакансия становится неактуальной</a></li>
 </ul>
 </li>
 <li><a href="#sec-3">3. Сущности</a>
@@ -168,8 +176,11 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#sec-4">4. Interface</a>
 <ul>
-<li><a href="#sec-4-1">4.1. Дашборд</a></li>
-<li><a href="#sec-4-2">4.2. <span class="todo nilTODO">TODO</span> Интерфейс планирования сбора данных</a></li>
+<li><a href="#sec-4-1">4.1. Главная страница модуля</a></li>
+<li><a href="#sec-4-2">4.2. Список поисковых профилей</a></li>
+<li><a href="#sec-4-3">4.3. Страничка поискового профиля</a></li>
+<li><a href="#sec-4-4">4.4. Дашборд</a></li>
+<li><a href="#sec-4-5">4.5. <span class="todo nilTODO">TODO</span> Интерфейс планирования сбора данных</a></li>
 </ul>
 </li>
 <li><a href="#sec-5">5. Тесты</a></li>
@@ -177,9 +188,11 @@ for the JavaScript code in this tag.
 <li><a href="#sec-7">7. Сборка</a>
 <ul>
 <li><a href="#sec-7-1">7.1. Утилиты</a></li>
-<li><a href="#sec-7-2">7.2. Сущности и автоматы</a></li>
-<li><a href="#sec-7-3">7.3. Поисковые профили</a></li>
-<li><a href="#sec-7-4">7.4. Сборки</a></li>
+<li><a href="#sec-7-2">7.2. Глобальные определения</a></li>
+<li><a href="#sec-7-3">7.3. Сущности и автоматы</a></li>
+<li><a href="#sec-7-4">7.4. Поисковые профили</a></li>
+<li><a href="#sec-7-5">7.5. Сборки</a></li>
+<li><a href="#sec-7-6">7.6. Вакансии</a></li>
 </ul>
 </li>
 </ul>
@@ -274,7 +287,12 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </p>
 
 <p>
-Система осуществляет сбор данных и предоставляет пользователю интерфейс доступа к ним
+Система осуществляет сбор данных (собираются тизеры вакансий) и предоставляет пользователю
+интерфейс для того чтобы он отобрал интересные ему.
+</p>
+
+<p>
+После того как пользователь отобрал интересные вакансии - они собираются со страниц вакансий.
 </p>
 
 <p>
@@ -295,7 +313,8 @@ TODO: Обсудить все нижеследующее с hr-специали�
 Разумеется, лучше собирать не все подряд, а только то что необходимо соискателю. Когда
 соискатель пользуется профильным сайтом он использует поисковые запросы, на основании
 которых мы можем формировать, гм&#x2026; назовем это <code>поисковыми профилями</code>. Поисковый
-профиль - это запрос пользователя, плюс связанные с ним данные - назовем их <code>сборками</code>.
+профиль - это запрос пользователя, плюс несколько наборов связанных с ним данных -
+назовем их <code>сборками</code>.
 </p>
 
 <p>
@@ -325,43 +344,224 @@ TODO: Обсудить все нижеследующее с hr-специали�
 <p>
 Мне бы хотелось осуществлять <code>сбор данных в многопоточном режиме</code>.
 </p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Парсинг данных</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Они размещаются постранично, по 20 штук на странице, и мы можем собрать все страницы,
+если будем получать страницу за страницей, пока не получим страницу, на которой вакансий
+нет. Для того чтобы это реализовать нам нужно уметь получить страницу
+(<code>hh-get-page(url)</code>) и разобрать тизеры вакансий (<code>hh-parse-vacancy-teasers(html)</code>).
+</p>
+
+<p>
+Начнем с того, что будем собирать все ит-вакансии с <a href="http://spb.hh.ru/">http://spb.hh.ru/</a>
+</p>
+
+<p>
+Как только у нас это есть - код становится простым
+</p>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="hh_parse">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-get-main-search-page</span> (url)
-  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1075;&#1083;&#1072;&#1074;&#1085;&#1086;&#1081; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1087;&#1086;&#1080;&#1089;&#1082;&#1072;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*programmin-and-development-profile*</span>
+  (make-profile <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077; &#1080; &#1088;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>
+                <span style="color: #0000ee; font-weight: bold;">:user-id</span> 1
+                <span style="color: #0000ee; font-weight: bold;">:search-query</span> <span style="color: #00cd00;">"http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=~A"</span>
+                <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
+                <span style="color: #0000ee; font-weight: bold;">:ts-last</span> (get-universal-time)))
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-get-main-page-vacancyes</span> (hh-main-page)
-  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1074;&#1089;&#1077;&#1093; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1089; &#1075;&#1083;&#1072;&#1074;&#1085;&#1086;&#1081; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*collection*</span>
+  (make-collection <span style="color: #0000ee; font-weight: bold;">:profile-id</span> (id *programmin-and-development-profile*)
+                   <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
+                   <span style="color: #0000ee; font-weight: bold;">:ts-shedule</span> (get-universal-time)
+                   <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":SHEDULED"</span>))
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-get-search-pages</span> (hh-main-page)
-  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1072;&#1076;&#1088;&#1077;&#1089;&#1086;&#1074; &#1086;&#1089;&#1090;&#1072;&#1083;&#1100;&#1085;&#1099;&#1093; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;, &#1082;&#1088;&#1086;&#1084;&#1077; &#1075;&#1083;&#1072;&#1074;&#1085;&#1086;&#1081;"</span>)
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-page-vacancyes</span> (hh-page)
-  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1089;&#1086; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">run-collect</span> (collection)
+  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((profile      (get-profile (profile-id collection)))
+         (search-str   (search-query profile))
+         (all-teasers  nil))
+    (<span style="color: #00cdcd; font-weight: bold;">block</span> get-all-hh-teasers
+      (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> num <span style="color: #0000ee; font-weight: bold;">:from</span> 0 <span style="color: #0000ee; font-weight: bold;">:to</span> 100 <span style="color: #0000ee; font-weight: bold;">:do</span>
+         (print num)
+         (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((url (format nil search-str num))
+                (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+           (<span style="color: #00cdcd; font-weight: bold;">if</span> (equal 0 (length teasers))
+               (<span style="color: #00cdcd; font-weight: bold;">return-from</span> get-all-hh-teasers)
+               (setf all-teasers (append all-teasers teasers)))))
+      (print <span style="color: #00cd00;">"over-100"</span>))
+    all-teasers))
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-profile-vacancyes</span> (profile)
-  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((url (search-query profile))
-         (main-page (hh-get-main-search-page url))
-         (vacancyes (hh-get-main-page-vacancyes main-page))
-         (hh-pages  (hh-get-search-pages main-page)))
-    (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> hh-page <span style="color: #0000ee; font-weight: bold;">:in</span> hh-pages <span style="color: #0000ee; font-weight: bold;">:do</span>
-       (setf vacancyes (append vacancyes
-                               (get-page-vacancyes hh-page))))
-    vacancyes))
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*teasers*</span> (run-collect *collection*))
 
-(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> profile <span style="color: #0000ee; font-weight: bold;">:in</span> (all-profile) <span style="color: #0000ee; font-weight: bold;">:do</span>
-   (get-profile-vacancyes profile))
+(length *teasers*)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">save-collect</span> (all-teasers)
+  (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> tea <span style="color: #0000ee; font-weight: bold;">:in</span> *teasers* <span style="color: #0000ee; font-weight: bold;">:do</span>
+     (print tea)
+     (make-vacancy <span style="color: #0000ee; font-weight: bold;">:collection-id</span> (id *collection*)
+                   <span style="color: #0000ee; font-weight: bold;">:name</span> (getf tea <span style="color: #0000ee; font-weight: bold;">:vacancy-name</span>)
+                   <span style="color: #0000ee; font-weight: bold;">:rem-id</span> (getf tea <span style="color: #0000ee; font-weight: bold;">:vacancy-id</span>)
+                   <span style="color: #0000ee; font-weight: bold;">:rem-date</span> (getf tea <span style="color: #0000ee; font-weight: bold;">:vacancy-date</span>)
+                   <span style="color: #0000ee; font-weight: bold;">:rem-employer-name</span> (getf tea <span style="color: #0000ee; font-weight: bold;">:employer-name</span>)
+                   <span style="color: #0000ee; font-weight: bold;">:rem-employer-id</span> (aif (getf tea <span style="color: #0000ee; font-weight: bold;">:employer-id</span>)
+                                         it
+                                         0)
+                   <span style="color: #0000ee; font-weight: bold;">:currency</span> (getf tea <span style="color: #0000ee; font-weight: bold;">:salary-currency</span>)
+                   <span style="color: #0000ee; font-weight: bold;">:salary</span> (aif (getf tea <span style="color: #0000ee; font-weight: bold;">:salary-base</span>)
+                                it
+                                0)
+                   <span style="color: #0000ee; font-weight: bold;">:salary-text</span> (getf tea <span style="color: #0000ee; font-weight: bold;">:salary-text</span>)
+                   <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":TEASER"</span>
+                   )))
+
+(save-collect *teasers*)
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2-1" class="outline-4">
+<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> Получение страниц</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<p>
+Вот так мы можем получать страницы:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-get-page</span> (url)
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;"</span>
+  (flexi-streams:octets-to-string
+   (drakma:http-request url
+                        <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"</span>
+                        <span style="color: #0000ee; font-weight: bold;">:additional-headers</span> `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"</span>)
+                                              (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
+                                              (<span style="color: #00cd00;">"Accept-Charset"</span> . <span style="color: #00cd00;">"utf-8"</span>)
+                                              (<span style="color: #00cd00;">"Referer"</span> . <span style="color: #00cd00;">"http://spb.hh.ru/"</span>)
+                                              (<span style="color: #00cd00;">"Cookie"</span> . <span style="color: #00cd00;">"redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=85014f262b894a1e9fc57b4b838e48e8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616"</span>)
+                                              (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"max-age=0"</span>))
+                        <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+   <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-2" class="outline-3">
-<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Поиск вакансий</h3>
-<div class="outline-text-3" id="text-2-2">
+<div id="outline-container-sec-2-2-2" class="outline-4">
+<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> Разбор тизеров</h4>
+<div class="outline-text-4" id="text-2-2-2">
+<p>
+Теперь, чтобы получить вакансии с этой страницы - вырежем таблицу с ними и воспользуемся
+парсером, который переведет полученный html в более удобный лисп-список. Этот список
+содержит строки таблицы, которые бывают четырех видов:
+</p>
+<ul class="org-ul">
+<li>премиум вакансии
+</li>
+<li>разделитель между блоками премиум и обычных вакансий
+</li>
+<li>обычные вакансии
+</li>
+<li>обычный вакансии плюс.
+</li>
+</ul>
+
+<p>
+Нас интересуют все типы кроме разделителя, внутри они устроены сходно. При обработке
+строк интересующих типов мы получаем:
+</p>
+<ul class="org-ul">
+<li>название вакансии
+</li>
+<li>идентификатор (ссылку)
+</li>
+<li>дату размещения
+</li>
+<li>название работодателя
+</li>
+<li>идентификатор работодателя
+</li>
+</ul>
+
+<p>
+Если в вакансии указана зарплата, мы также получаем
+</p>
+<ul class="org-ul">
+<li>Валюту зарплаты (3х-буквенный идентификатор)
+</li>
+<li>Сумму
+</li>
+<li>Текстовое выражение, содержащее "от" или "от и до"
+</li>
+</ul>
+
+<p>
+Иногда HeadHunter синдицирует вакансии с других платформ, к примеру с CAREER.RU, тогда в
+вакансии может отсутствовать работодатель. Мы явно отрабатываем этот момент.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-parse-vacancy-teasers</span> (html)
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1080;&#1079; html"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((cut (ppcre:scan-to-strings
+               (format nil <span style="color: #00cd00;">"~A(.*)~A"</span>
+                       <span style="color: #00cd00;">"&lt;table class=\"l-table entry-content\" data-qa=\"vacancy-serp__results\"&gt;"</span>
+                       <span style="color: #00cd00;">"&lt;div class=\"g-hidden b-select-icon-popup HH-VacancyToFavorite-LimitPopup\"&gt;"</span>)
+               html))
+         (cut-without-tail (subseq cut 0 (- (length cut) 74)))
+         (parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment cut-without-tail)))
+         (rows   (cddr (nth 2 (car parsed)))))
+    (remove-if
+     #'null
+     (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> row <span style="color: #0000ee; font-weight: bold;">:in</span> rows <span style="color: #0000ee; font-weight: bold;">:collect</span>
+        (<span style="color: #00cdcd; font-weight: bold;">when</span> (or (ppcre:scan-to-strings <span style="color: #00cd00;">"vacancy-serp__vacancy_premium"</span> (car (cdaadr row)))
+                  (string= <span style="color: #00cd00;">"b-vacancy-list-standard"</span> (car (cdaadr row)))
+                  (string= <span style="color: #00cd00;">"b-vacancy-list-standard_plus"</span> (car (cdaadr row))))
+          (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((data (nth 3 row))
+                 (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
+                 (hh-vacancy-name (car (last hh-vacancy-a)))
+                 (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) <span style="color: #0000ee; font-weight: bold;">:junk-allowed</span> t))
+                 (hh-vacancy-date (caddr (cadddr (caddr data))))
+                 (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
+                 (hh-salary-div (nth 5 (caddr data)))
+                 (result (list <span style="color: #0000ee; font-weight: bold;">:vacancy-name</span> hh-vacancy-name
+                               <span style="color: #0000ee; font-weight: bold;">:vacancy-id</span> hh-vacancy-id
+                               <span style="color: #0000ee; font-weight: bold;">:vacancy-date</span> hh-vacancy-date
+                               )))
+            (<span style="color: #00cdcd; font-weight: bold;">when</span> hh-vacancy-placetime
+              (<span style="color: #00cdcd; font-weight: bold;">let</span> ((hh-employer-name (car (last hh-vacancy-placetime)))
+                    (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) <span style="color: #0000ee; font-weight: bold;">:junk-allowed</span> t)))
+                (setf result (append result (list <span style="color: #0000ee; font-weight: bold;">:employer-name</span> hh-employer-name
+                                                  <span style="color: #0000ee; font-weight: bold;">:employer-id</span> hh-employer-id)))))
+            (<span style="color: #00cdcd; font-weight: bold;">when</span> (and hh-salary-div
+                       (string= <span style="color: #00cd00;">"b-vacancy-list-salary"</span>  (car (cdaadr hh-salary-div))))
+              (<span style="color: #00cdcd; font-weight: bold;">let</span> ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
+                    (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) <span style="color: #0000ee; font-weight: bold;">:junk-allowed</span> t))
+                    (hh-salary-text (car (last hh-salary-div))))
+                (setf result (append result (list <span style="color: #0000ee; font-weight: bold;">:salary-currency</span> hh-salary-currency
+                                                  <span style="color: #0000ee; font-weight: bold;">:salary-base</span> hh-salary-base
+                                                  <span style="color: #0000ee; font-weight: bold;">:salary-text</span> hh-salary-text)))))
+            result))))))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Поиск вакансий</h3>
+<div class="outline-text-3" id="text-2-3">
 <p>
 Внутри вакансий необходимо искать по критериям, которые я уточню позже
 </p>
@@ -388,9 +588,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 </div>
 
-<div id="outline-container-sec-2-3" class="outline-3">
-<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Просмотр и отбор вакансий, заметки и выставление статусов</h3>
-<div class="outline-text-3" id="text-2-3">
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Просмотр и отбор вакансий, заметки и выставление статусов</h3>
+<div class="outline-text-3" id="text-2-4">
 <p>
 Когда я читаю вакансию, я бы хотел, чтобы она переходила в статус "просмотрено" (и к ней
 добавлялась дата просмотра)
@@ -415,9 +615,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 </div>
 
-<div id="outline-container-sec-2-4" class="outline-3">
-<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Дашборд</h3>
-<div class="outline-text-3" id="text-2-4">
+<div id="outline-container-sec-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Дашборд</h3>
+<div class="outline-text-3" id="text-2-5">
 <p>
 Если у нас есть формализованный алгоритм (а он есть, так как найм - это линейный
 процесс), то я хочу получать напоминания о моем следующем шаге в отношении тех вакансий,
@@ -430,9 +630,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 </div>
 
-<div id="outline-container-sec-2-5" class="outline-3">
-<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Отзывы соискателей о компаниях и вакансиях</h3>
-<div class="outline-text-3" id="text-2-5">
+<div id="outline-container-sec-2-6" class="outline-3">
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Отзывы соискателей о компаниях и вакансиях</h3>
+<div class="outline-text-3" id="text-2-6">
 <p>
 Можно сэкономить кучу времени и денег просто не нанимаясь в те компании, в которых "все
 плохо". В этом плане соискатели могут помоч друг другу. Возможно и компании тоже будут
@@ -441,9 +641,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 </div>
 
-<div id="outline-container-sec-2-6" class="outline-3">
-<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Размещение резюме</h3>
-<div class="outline-text-3" id="text-2-6">
+<div id="outline-container-sec-2-7" class="outline-3">
+<h3 id="sec-2-7"><span class="section-number-3">2.7</span> Размещение резюме</h3>
+<div class="outline-text-3" id="text-2-7">
 <p>
 Пользователь просто размещает свое резюме. На самом деле - несколько резюме, так как
 наиболее продвинутые пользователи пишут резюме под вакансию, а не рассылают одно и то же
@@ -452,12 +652,26 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 </div>
 
-<div id="outline-container-sec-2-7" class="outline-3">
-<h3 id="sec-2-7"><span class="section-number-3">2.7</span> Маршрут</h3>
-<div class="outline-text-3" id="text-2-7">
+<div id="outline-container-sec-2-8" class="outline-3">
+<h3 id="sec-2-8"><span class="section-number-3">2.8</span> Маршрут</h3>
+<div class="outline-text-3" id="text-2-8">
 <p>
 Иногда я хочу спланировать маршрут поездки по собеседованиям. Это сервис с картами,
 которые можно сделать позже.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-9" class="outline-3">
+<h3 id="sec-2-9"><span class="section-number-3">2.9</span> Создание вакансии работодателем</h3>
+</div>
+<div id="outline-container-sec-2-10" class="outline-3">
+<h3 id="sec-2-10"><span class="section-number-3">2.10</span> Вакансия становится неактуальной</h3>
+<div class="outline-text-3" id="text-2-10">
+<p>
+Вакансия может стать неактуальной если работодатель снимет ее, но работодатели могут
+забывать это сделать, поэтому можно предусмотреть тайм-аут или даже некоторое кол-во
+голосов соискателей, которые дозвонились но им сказали, что вакансия уже неактуальна.
 </p>
 </div>
 </div>
@@ -500,6 +714,12 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </tr>
 
 <tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">название профиля</td>
+</tr>
+
+<tr>
 <td class="left">search-query</td>
 <td class="left">varchar</td>
 <td class="left">поисковый запрос</td>
@@ -518,19 +738,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </tr>
 </tbody>
 </table>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="create_profiles">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*profile-all*</span>
-  (make-profile <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"&#1042;&#1089;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1089;&#1090;&#1086;&#1074;"</span>
-                <span style="color: #0000ee; font-weight: bold;">:user-id</span> 1
-                <span style="color: #0000ee; font-weight: bold;">:search-query</span> <span style="color: #00cd00;">"http://spb.hh.ru/search/vacancy?area=2&amp;text=&amp;salary=&amp;currency_code=RUR&amp;specialization=1.221"</span>
-                <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
-                <span style="color: #0000ee; font-weight: bold;">:ts-last</span> (get-universal-time)))
-</pre>
-</div>
 </div>
 </div>
 
@@ -539,7 +746,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
 <div class="outline-text-3" id="text-3-2">
 <p>
 Сборка создается по запросу пользователя в состоянии <code>sheduled</code>. Это происходит в секции
-<a href="#sec-4-2">4.2</a>
+<a href="#sec-4-5">4.5</a>
 </p>
 
 <p>
@@ -610,31 +817,19 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </thead>
 <tbody>
 <tr>
-<td class="left">sheduled</td>
-<td class="left">sheduled</td>
+<td class="left">shedule</td>
+<td class="left">thesheduled</td>
 <td class="left">executed</td>
 </tr>
 </tbody>
 </table>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="create_collections">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*collection-all*</span>
-  (make-collection <span style="color: #0000ee; font-weight: bold;">:profile-id</span> (id *profile-all*)
-                   <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
-                   <span style="color: #0000ee; font-weight: bold;">:ts-shedule</span> (get-universal-time)
-                   <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #0000ee; font-weight: bold;">:sheduled</span>))
-</pre>
-</div>
 </div>
 </div>
 
 <div id="outline-container-sec-3-3" class="outline-3">
 <h3 id="sec-3-3"><span class="section-number-3">3.3</span> Вакансии</h3>
 <div class="outline-text-3" id="text-3-3">
-<table id="collection_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<table id="vacancy_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 4:</span> Данные вакансии</caption>
 
 <colgroup>
@@ -665,48 +860,113 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </tr>
 
 <tr>
-<td class="left">contact</td>
+<td class="left">name</td>
 <td class="left">varchar</td>
-<td class="left">телефон контактного лица</td>
+<td class="left">название вакансии</td>
+</tr>
+
+<tr>
+<td class="left">rem-id</td>
+<td class="left">integer</td>
+<td class="left">идентификатор вакансии на удаленном ресурсе</td>
+</tr>
+
+<tr>
+<td class="left">rem-date</td>
+<td class="left">varchar</td>
+<td class="left">дата создания вакансии на удаленном ресурсе</td>
+</tr>
+
+<tr>
+<td class="left">rem-employer-name</td>
+<td class="left">varchar</td>
+<td class="left">имя работодателя на удаленном ресурсе</td>
+</tr>
+
+<tr>
+<td class="left">rem-employer-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор работодателя на удаленном ресурсе</td>
+</tr>
+
+<tr>
+<td class="left">currency</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">валюта зарплаты</td>
 </tr>
 
 <tr>
 <td class="left">salary</td>
-<td class="left">integer</td>
+<td class="left">(or db-null integer)</td>
 <td class="left">размер компенсации</td>
 </tr>
 
 <tr>
+<td class="left">salary-text</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">размер компенсации</td>
+</tr>
+
+<tr>
+<td class="left">contact</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">телефон контактного лица</td>
+</tr>
+
+<tr>
 <td class="left">text</td>
-<td class="left">varchar</td>
+<td class="left">(or db-null varchar)</td>
 <td class="left">описание вакансии</td>
 </tr>
 
 <tr>
 <td class="left">history</td>
-<td class="left">varchar</td>
+<td class="left">(or db-null varchar)</td>
 <td class="left">список изменения статусов со временем каждого изменения</td>
 </tr>
 
 <tr>
 <td class="left">reason</td>
-<td class="left">varchar</td>
+<td class="left">(or db-null varchar)</td>
 <td class="left">добавляем причину действия (позже ссылка на другую таблицу)</td>
 </tr>
 
 <tr>
 <td class="left">ts-created</td>
-<td class="left">bigint</td>
+<td class="left">(or db-null bigint)</td>
 <td class="left">время создания вакансии</td>
 </tr>
 
 <tr>
 <td class="left">ts-viewed</td>
-<td class="left">bigint</td>
+<td class="left">(or db-null bigint)</td>
 <td class="left">время когда вакансия была просмотрена</td>
 </tr>
 </tbody>
 </table>
+
+
+<p>
+Вакансии могут появляться у нас следующими путями:
+</p>
+<ul class="org-ul">
+<li>Работодатель может создать вакансию
+</li>
+<li>Мы можем получить вакансию анализируя другой сайт
+</li>
+</ul>
+
+<p>
+В случае, если мы получаем вакансию анализируя другой сайт, мы получаем ее в 2 этапа. На
+первом этапе мы разобрали т.н. "тизер вакансии" и занесли ее в базу данных в состоянии
+<code>teaser</code>, чтобы потом получить все остальные данные. На втором этапе мы получаем данные
+со страницы вакансии и устанавливаем состояние <code>new</code>.
+</p>
+
+<p>
+Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
+реагировать, устанавливая статус <code>archive</code>
+</p>
 
 <p>
 TODO: Конечный автомат тут сложен и будет еще уточняться&#x2026; Пока состояния такие:
@@ -768,6 +1028,11 @@ TODO: Конечный автомат тут сложен и будет еще �
 </ul>
 </li>
 </ul>
+
+<p>
+Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
+состояние на этих сайтах. Мы узнаем о вакансии, ко
+</p>
 
 <p>
 Вакансия создается в состоянии "новая" - <code>new</code>. После просмотра пользователем вакансия
@@ -855,7 +1120,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </p>
 
 <table id="vacancy_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 5:</span> Состояния конечного автомата мотоцикла</caption>
+<caption class="t-above"><span class="table-number">Table 5:</span> Состояния конечного автомата вакансии</caption>
 
 <colgroup>
 <col  class="left" />
@@ -872,6 +1137,12 @@ TODO: Конечный автомат тут сложен и будет еще �
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="left">parsing</td>
+<td class="left">teaser</td>
+<td class="left">new</td>
+</tr>
+
 <tr>
 <td class="left">view</td>
 <td class="left">new</td>
@@ -1133,10 +1404,108 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 
 <div id="outline-container-sec-4-1" class="outline-3">
-<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Дашборд</h3>
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Главная страница модуля</h3>
+<div class="outline-text-3" id="text-4-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(restas:define-route hh-main (<span style="color: #00cd00;">"/hh"</span>)
+  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
+      <span style="color: #00cd00;">"&lt;h1&gt;&#1043;&#1083;&#1072;&#1074;&#1085;&#1072;&#1103; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072;&lt;/h1&gt;"</span>
+    ))
+</pre>
 </div>
+</div>
+</div>
+
 <div id="outline-container-sec-4-2" class="outline-3">
-<h3 id="sec-4-2"><span class="section-number-3">4.2</span> <span class="todo TODO">TODO</span> Интерфейс планирования сбора данных</h3>
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Список поисковых профилей</h3>
+<div class="outline-text-3" id="text-4-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">define-iface-add-del-entity</span> all-profiles <span style="color: #00cd00;">"/profiles"</span>
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1077; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1080;"</span>
+  <span style="color: #00cd00;">"&#1053;&#1086;&#1074;&#1099;&#1081; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100;"</span>
+  <span style="color: #00cd00;">"&#1050;&#1086;&#1075;&#1076;&#1072;</span>
+<span style="color: #00cd00;">   &#1089;&#1086;&#1080;&#1089;&#1082;&#1072;&#1090;&#1077;&#1083;&#1100; &#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090;&#1089;&#1103; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100;&#1085;&#1099;&#1084; &#1089;&#1072;&#1081;&#1090;&#1086;&#1084; &#1086;&#1085; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1091;&#1077;&#1090; &#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1077; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1099;, &#1085;&#1072; &#1086;&#1089;&#1085;&#1086;&#1074;&#1072;&#1085;&#1080;&#1080;</span>
+<span style="color: #00cd00;">   &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1093; &#1084;&#1099; &#1084;&#1086;&#1078;&#1077;&#1084; &#1092;&#1086;&#1088;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;, &#1075;&#1084;... &#1085;&#1072;&#1079;&#1086;&#1074;&#1077;&#1084; &#1101;&#1090;&#1086; =&#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1084;&#1080; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1103;&#1084;&#1080;=. &#1055;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1081;</span>
+<span style="color: #00cd00;">   &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100; - &#1101;&#1090;&#1086; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;, &#1087;&#1083;&#1102;&#1089; &#1085;&#1077;&#1089;&#1082;&#1086;&#1083;&#1100;&#1082;&#1086; &#1085;&#1072;&#1073;&#1086;&#1088;&#1086;&#1074; &#1089;&#1074;&#1103;&#1079;&#1072;&#1085;&#1085;&#1099;&#1093; &#1089; &#1085;&#1080;&#1084; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093; -</span>
+<span style="color: #00cd00;">   &#1085;&#1072;&#1079;&#1086;&#1074;&#1077;&#1084; &#1080;&#1093; =&#1089;&#1073;&#1086;&#1088;&#1082;&#1072;&#1084;&#1080;=."</span>
+  #'all-profile <span style="color: #00cd00;">"profile"</span>
+  (name)
+  (frm
+   (tbl
+    (list
+     (row <span style="color: #00cd00;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #00cd00;">"name"</span>))
+     (row <span style="color: #00cd00;">"&#1047;&#1072;&#1087;&#1088;&#1086;&#1089;"</span> (fld <span style="color: #00cd00;">"search"</span>))
+     (row <span style="color: #00cd00;">""</span> %new%))))
+  (<span style="color: #0000ee; font-weight: bold;">:new</span> (act-btn <span style="color: #00cd00;">"NEW"</span> <span style="color: #00cd00;">""</span> <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (make-profile <span style="color: #0000ee; font-weight: bold;">:name</span> (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>)
+                        <span style="color: #0000ee; font-weight: bold;">:user-id</span> 1
+                        <span style="color: #0000ee; font-weight: bold;">:search-query</span> (getf p <span style="color: #0000ee; font-weight: bold;">:search</span>)
+                        <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)
+                        <span style="color: #0000ee; font-weight: bold;">:ts-last</span> (get-universal-time))
+          <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;"</span>))
+  (<span style="color: #0000ee; font-weight: bold;">:del</span> (act-btn <span style="color: #00cd00;">"DEL"</span> (id i) <span style="color: #00cd00;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
+        (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+          (del-profile (getf p <span style="color: #0000ee; font-weight: bold;">:data</span>)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Страничка поискового профиля</h3>
+<div class="outline-text-3" id="text-4-3">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">define-page</span> profile <span style="color: #00cd00;">"/profile/:userid"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((i (parse-integer userid))
+         (u (get-profile i)))
+    (<span style="color: #00cdcd; font-weight: bold;">if</span> (null u)
+        <span style="color: #00cd00;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1075;&#1086; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1103;"</span>
+        (format nil <span style="color: #00cd00;">"~{~A~}"</span>
+                (list
+                 (format nil <span style="color: #00cd00;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1086;&#1075;&#1086; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1103; ~A&lt;/h1&gt;"</span> (id u))
+                 (format nil <span style="color: #00cd00;">"&lt;h2&gt;&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1086;&#1075;&#1086; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1103; ~A&lt;/h2&gt;"</span> (name u))
+                 (tbl
+                  (<span style="color: #00cdcd; font-weight: bold;">with-element</span> (u u)
+                    (row <span style="color: #00cd00;">"&#1048;&#1084;&#1103; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1103;"</span> (fld <span style="color: #00cd00;">"name"</span> (name u)))
+                    (row <span style="color: #00cd00;">"&#1047;&#1072;&#1087;&#1088;&#1086;&#1089;"</span> (fld <span style="color: #00cd00;">"search"</span> (search-query u)))
+                    (row <span style="color: #00cd00;">""</span> %change%))
+                  <span style="color: #0000ee; font-weight: bold;">:border</span> 1)
+                 (format nil <span style="color: #00cd00;">"&lt;h2&gt;&#1057;&#1073;&#1086;&#1088;&#1082;&#1080; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;&lt;/h2&gt;"</span>)
+                 (frm
+                  (tbl
+                   (<span style="color: #00cdcd; font-weight: bold;">with-collection</span> (i (all-vacancy))
+                     (tr
+                      (td (input <span style="color: #00cd00;">"checkbox"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> (format nil <span style="color: #00cd00;">"~A"</span> i) <span style="color: #0000ee; font-weight: bold;">:value</span> <span style="color: #00cd00;">"on"</span>))
+                      (td (format nil <span style="color: #00cd00;">"&lt;a href=\"/vacancy/~A\"&gt;~A&lt;/a&gt;"</span> (id i) (name i)))
+                      (td (salary-text i))))
+                   <span style="color: #0000ee; font-weight: bold;">:border</span> 1))
+                 ))))
+  (<span style="color: #0000ee; font-weight: bold;">:change</span> (act-btn <span style="color: #00cd00;">"CHANGE"</span> <span style="color: #00cd00;">""</span> <span style="color: #00cd00;">"&#1048;&#1079;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100;"</span>)
+           (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((i (parse-integer userid))
+                  (u (get-user i)))
+             (aif (getf p <span style="color: #0000ee; font-weight: bold;">:role</span>)
+                  (role-id (upd-user u (list <span style="color: #0000ee; font-weight: bold;">:role-id</span> (parse-integer it))))
+                  <span style="color: #00cd00;">":null"</span>))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-4" class="outline-3">
+<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Дашборд</h3>
+</div>
+<div id="outline-container-sec-4-5" class="outline-3">
+<h3 id="sec-4-5"><span class="section-number-3">4.5</span> <span class="todo TODO">TODO</span> Интерфейс планирования сбора данных</h3>
 </div>
 </div>
 <div id="outline-container-sec-5" class="outline-2">
@@ -1211,26 +1580,44 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 
 <div id="outline-container-sec-7-2" class="outline-3">
-<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Сущности и автоматы</h3>
+<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Глобальные определения</h3>
 <div class="outline-text-3" id="text-7-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="globals">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">clear db</span>
+(drop '(<span style="color: #00cd00;">"profile"</span> <span style="color: #00cd00;">"collection"</span> <span style="color: #00cd00;">"vacancy"</span>))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-7-3" class="outline-3">
+<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Сущности и автоматы</h3>
+<div class="outline-text-3" id="text-7-3">
 <p>
 Соберем все сущности и автоматы
 </p>
 </div>
 </div>
 
-<div id="outline-container-sec-7-3" class="outline-3">
-<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Поисковые профили</h3>
+<div id="outline-container-sec-7-4" class="outline-3">
+<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Поисковые профили</h3>
 </div>
 
-<div id="outline-container-sec-7-4" class="outline-3">
-<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Сборки</h3>
+<div id="outline-container-sec-7-5" class="outline-3">
+<h3 id="sec-7-5"><span class="section-number-3">7.5</span> Сборки</h3>
+</div>
+
+<div id="outline-container-sec-7-6" class="outline-3">
+<h3 id="sec-7-6"><span class="section-number-3">7.6</span> Вакансии</h3>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-12-06 Сб. 06:37</p>
+<p class="date">Created: 2014-12-10 Ср. 00:21</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

@@ -74,7 +74,8 @@
                         :components ((:file "util")
                                      (:file "globals")
                                      (:file "entityes")
-                                     (:file "hh")))
+                                     (:file "hh")
+                                     (:file "iface")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ))

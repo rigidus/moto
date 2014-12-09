@@ -12,18 +12,9 @@
 (make-profile-table)
 
 
-(define-automat collection "Автомат сборки"
-  ((id serial)
-   (profile-id integer)
-   (ts-create bigint)
-   (ts-shedule bigint))
-  (:executed :thesheduled)
-  ((:thesheduled :executed :shedule)))
-
-
 (define-automat vacancy "Автомат вакансии"
   ((id serial)
-   (collection-id integer)
+   (profile-id integer)
    (name varchar)
    (rem-id integer)
    (rem-date varchar)

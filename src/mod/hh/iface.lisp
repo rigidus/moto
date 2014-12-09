@@ -11,18 +11,16 @@
   (with-wrapper
       "<h1>Главная страница</h1>"
     ))
-
 (in-package #:moto)
 
 (define-iface-add-del-entity all-profiles "/profiles"
   "Поисковые профили"
   "Новый профиль"
-  "Когда
-   соискатель пользуется профильным сайтом он использует поисковые запросы, на основании
-   которых мы можем формировать, гм... назовем это =поисковыми профилями=. Поисковый
-   профиль - это запрос пользователя, плюс несколько наборов связанных с ним данных -
-   назовем их =сборками=."
-  #'all-profile "profile"
+  "Когда соискатель пользуется профильным сайтом он использует
+   поисковые запросы, на основании которых мы можем формировать,
+   гм... назовем это =поисковыми профилями=. Поисковый профиль - это
+   запрос пользователя, плюс набор связанных с ним вакансий"
+   #'all-profile "profile"
   (name)
   (frm
    (tbl
@@ -46,7 +44,13 @@
 
 (define-page profile "/profile/:userid"
   (let* ((i (parse-integer userid))
-         (u (get-profile i)))
+         (page-id (parse-integer userid))
+         (u (get-profile i))
+         (vacs (sort (remove-if #'(lambda (x)
+                                    (equal 0 (salary x)))
+                                (find-vacancy :profile-id page-id))
+                     #'(lambda (a b)
+                         (> (salary a) (salary b))))))
     (if (null u)
         "Нет такого профиля"
         (format nil "~{~A~}"
@@ -59,10 +63,10 @@
                     (row "Запрос" (fld "search" (search-query u)))
                     (row "" %change%))
                   :border 1)
-                 (format nil "<h2>Сборки данных</h2>")
+                 (format nil "<h2>Вакансий: ~A</h2>" (length vacs))
                  (frm
                   (tbl
-                   (with-collection (i (all-vacancy))
+                   (with-collection (i vacs)
                      (tr
                       (td (input "checkbox" :name (format nil "~A" i) :value "on"))
                       (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id i) (name i)))

@@ -68,16 +68,8 @@
                 :ts-create (get-universal-time)
                 :ts-last (get-universal-time)))
 
-(defparameter *collection*
-  (make-collection :profile-id (id *programmin-and-development-profile*)
-                   :ts-create (get-universal-time)
-                   :ts-shedule (get-universal-time)
-                   :state ":SHEDULED"))
-
-
-(defun run-collect (collection)
-  (let* ((profile      (get-profile (profile-id collection)))
-         (search-str   (search-query profile))
+(defun run-collect (profile)
+  (let* ((search-str   (search-query profile))
          (all-teasers  nil))
     (block get-all-hh-teasers
       (loop :for num :from 0 :to 100 :do
@@ -90,14 +82,14 @@
       (print "over-100"))
     all-teasers))
 
-(defparameter *teasers* (run-collect *collection*))
+(defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
 (length *teasers*)
 
 (defun save-collect (all-teasers)
   (loop :for tea :in *teasers* :do
      (print tea)
-     (make-vacancy :collection-id (id *collection*)
+     (make-vacancy :profile-id (id *programmin-and-development-profile*)
                    :name (getf tea :vacancy-name)
                    :rem-id (getf tea :vacancy-id)
                    :rem-date (getf tea :vacancy-date)
