@@ -96,44 +96,75 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
 ** Парсинг данных
 
-   Начнем с того, что будем собирать все ит-вакансии с http://spb.hh.ru
-
    Они размещаются постранично, по 20 штук на странице, и мы можем собрать все страницы,
    если будем получать страницу за страницей, пока не получим страницу, на которой вакансий
    нет. Для того чтобы это реализовать нам нужно уметь получить страницу
    (=hh-get-page(url)=) и разобрать тизеры вакансий (=hh-parse-vacancy-teasers(html)=).
+
+   Начнем с того, что будем собирать все ит-вакансии с http://spb.hh.ru
 
    Как только у нас это есть - код становится простым
 
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defparameter *teasers* nil)
+     (defparameter *programmin-and-development-profile*
+       (make-profile :name "Программирование и разработка"
+                     :user-id 1
+                     :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
+                     :ts-create (get-universal-time)
+                     :ts-last (get-universal-time)))
 
-     (block get-all-hh-teasers
-       (loop :for num :from 0 :to 100 :do
-          (print num)
-          (let* ((url (format nil "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A" num))
-                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-            (if (equal 0 (length teasers))
-                (return-from get-all-hh-teasers)
-                (setf *teasers* (append *teasers* teasers)))))
-       (print "over-100"))
+     (defparameter *collection*
+       (make-collection :profile-id (id *programmin-and-development-profile*)
+                        :ts-create (get-universal-time)
+                        :ts-shedule (get-universal-time)
+                        :state ":SHEDULED"))
 
-      ;; (defun get-profile-vacancyes (profile)
-      ;;   (let* ((url (search-query profile))
-      ;;          (main-page (hh-get-main-search-page url))
-      ;;          ;;      (vacancyes (hh-get-main-page-vacancyes main-page))
-      ;;          ;;      (hh-pages  (hh-get-search-pages main-page))
-      ;;          )
-      ;;     ;; (loop :for hh-page :in hh-pages :do
-      ;;     ;;    (setf vacancyes (append vacancyes
-      ;;     ;;                            (get-page-vacancyes hh-page))))
-      ;;     ;; vacancyes))
-      ;;     main-page))
 
-      ;; (loop :for profile :in (all-profile) :collect
-      ;;    (get-profile-vacancyes profile))
+     (defun run-collect (collection)
+       (let* ((profile      (get-profile (profile-id collection)))
+              (search-str   (search-query profile))
+              (all-teasers  nil))
+         (block get-all-hh-teasers
+           (loop :for num :from 0 :to 100 :do
+              (print num)
+              (let* ((url (format nil search-str num))
+                     (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+                (if (equal 0 (length teasers))
+                    (return-from get-all-hh-teasers)
+                    (setf all-teasers (append all-teasers teasers)))))
+           (print "over-100"))
+         all-teasers))
+
+     (defparameter *teasers* (run-collect *collection*))
+
+     (length *teasers*)
+
+     ;; clear db
+     (let ((tables '("vacancy")))
+       (flet ((rmtbl (tblname)
+                (when (with-connection *db-spec*
+                        (query (:select 'table_name :from 'information_schema.tables :where
+                                        (:and (:= 'table_schema "public")
+                                              (:= 'table_name tblname)))))
+                  (with-connection *db-spec*
+                    (query (:drop-table (intern (string-upcase tblname))))))))
+         (loop :for tblname :in tables :collect
+            (rmtbl tblname))))
+
+     (loop :for tea :in *teasers* :do
+        (make-vacancy :collection-id (id *collection-all*)
+                      :name (getf tea :vacancy-name)
+                      :rem-id (getf tea :vacancy-id)
+                      :rem-date (getf tea :vacancy-date)
+                      :rem-employer-name (getf tea :empoiyer-name)
+                      ;; :rem-employer-id (getf tea :empoiyer-id)
+                      :currency (getf tea :salary-currency)
+                      ;; :salary (getf tea :salary-base)
+                      :salary-text (getf tea :salary-text)
+                      :state ":TEASER"
+                      ))
    #+END_SRC
 
 *** Получение страниц
@@ -288,6 +319,13 @@ TODO: Обсудить все нижеследующее с hr-специали�
    Иногда я хочу спланировать маршрут поездки по собеседованиям. Это сервис с картами,
    которые можно сделать позже.
 
+** Создание вакансии работодателем
+** Вакансия становится неактуальной
+
+   Вакансия может стать неактуальной если работодатель снимет ее, но работодатели могут
+   забывать это сделать, поэтому можно предусмотреть тайм-аут или даже некоторое кол-во
+   голосов соискателей, которые дозвонились но им сказали, что вакансия уже неактуальна.
+
 * Сущности
 ** Поисковые профили
 
@@ -300,18 +338,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
      | search-query | varchar    | поисковый запрос                          |
      | ts-create    | bigint     | время создания                            |
      | ts-last      | bigint     | время когда был использован последний раз |
-
-   #+NAME: create_profiles
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defparameter *profile-all*
-       (make-profile :name "Все вакансии программистов"
-                     :user-id 1
-                     :search-query "http://spb.hh.ru/search/vacancy?area=2&text=&salary=&currency_code=RUR&specialization=1.221"
-                     :ts-create (get-universal-time)
-                     :ts-last (get-universal-time)))
-   #+END_SRC
 
 ** Сборки
 
@@ -336,32 +362,41 @@ TODO: Обсудить все нижеследующее с hr-специали�
      |---------+-------------+----------|
      | shedule | thesheduled | executed |
 
-   #+NAME: create_collections
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defparameter *collection-all*
-       (make-collection :profile-id (id *profile-all*)
-                        :ts-create (get-universal-time)
-                        :ts-shedule (get-universal-time)
-                        :state ":SHEDULED"))
-   #+END_SRC
-
 ** Вакансии
 
    #+CAPTION: Данные вакансии
-   #+NAME: collection_flds
-     | field name    | field type | note                                                        |
-     |---------------+------------+-------------------------------------------------------------|
-     | id            | serial     | идентификатор                                               |
-     | collection-id | integer    | идентификатор сборки                                        |
-     | contact       | varchar    | телефон контактного лица                                    |
-     | salary        | integer    | размер компенсации                                          |
-     | text          | varchar    | описание вакансии                                           |
-     | history       | varchar    | список изменения статусов со временем каждого изменения     |
-     | reason        | varchar    | добавляем причину действия (позже ссылка на другую таблицу) |
-     | ts-created    | bigint     | время создания вакансии                                     |
-     | ts-viewed     | bigint     | время когда вакансия была просмотрена                       |
+   #+NAME: vacancy_flds
+     | field name        | field type           | note                                                        |
+     |-------------------+----------------------+-------------------------------------------------------------|
+     | id                | serial               | идентификатор                                               |
+     | collection-id     | integer              | идентификатор сборки                                        |
+     | name              | varchar              | название вакансии                                           |
+     | rem-id            | integer              | идентификатор вакансии на удаленном ресурсе                 |
+     | rem-date          | varchar              | дата создания вакансии на удаленном ресурсе                 |
+     | rem-employer-name | varchar              | имя работодателя на удаленном ресурсе                       |
+     | rem-employer-id   | (or db-null integer) | идентификатор работодателя на удаленном ресурсе             |
+     | currency          | (or db-null varchar) | валюта зарплаты                                             |
+     | salary            | (or db-null integer) | размер компенсации                                          |
+     | salary-text       | (or db-null varchar) | размер компенсации                                          |
+     | contact           | (or db-null varchar) | телефон контактного лица                                    |
+     | text              | (or db-null varchar) | описание вакансии                                           |
+     | history           | (or db-null varchar) | список изменения статусов со временем каждого изменения     |
+     | reason            | (or db-null varchar) | добавляем причину действия (позже ссылка на другую таблицу) |
+     | ts-created        | (or db-null bigint)  | время создания вакансии                                     |
+     | ts-viewed         | (or db-null bigint)  | время когда вакансия была просмотрена                       |
+
+
+   Вакансии могут появляться у нас следующими путями:
+   - Работодатель может создать вакансию
+   - Мы можем получить вакансию анализируя другой сайт
+
+   В случае, если мы получаем вакансию анализируя другой сайт, мы получаем ее в 2 этапа. На
+   первом этапе мы разобрали т.н. "тизер вакансии" и занесли ее в базу данных в состоянии
+   =teaser=, чтобы потом получить все остальные данные. На втором этапе мы получаем данные
+   со страницы вакансии и устанавливаем состояние =new=.
+
+   Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
+   реагировать, устанавливая статус =archive=
 
    TODO: Конечный автомат тут сложен и будет еще уточняться... Пока состояния такие:
     =просмотрено= (с датой), =отобрано=, =не-берут-трубку=, =не-актуально=,
@@ -389,6 +424,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
    - Этап отбора предложений
      - Получение предложений
      - Выбор предложения
+
+   Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
+   состояние на этих сайтах. Мы узнаем о вакансии, ко
 
    Вакансия создается в состоянии "новая" - =new=. После просмотра пользователем вакансия
    автоматически переходит в состояние "просмотрена" - =viewed=. Однако пользователь может
@@ -447,10 +485,11 @@ TODO: Обсудить все нижеследующее с hr-специали�
    примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
    статусов и текущее положение вакансии в нем.
 
-   #+CAPTION: Состояния конечного автомата мотоцикла
+   #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
      | action                                 | from                 | to                   |
      |----------------------------------------+----------------------+----------------------|
+     | parsing                                | teaser               | new                  |
      | view                                   | new                  | viewed               |
      | renew                                  | viewed               | new                  |
      | hide-after-view                        | viewed               | hidden               |
@@ -499,6 +538,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
        $input
      }
    #+END_SRC
+
+   #+results:
+   [[file:img/vacancy-state.png]]
 
 ** TODO Перекрестные связи с другими вакансиями
 
@@ -655,12 +697,9 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
      <<asm_profile()>>
 
-     <<create_profiles>>
-
      <<asm_collection()>>
 
-     <<create_collections>>
-
+     <<asm_vacancy()>>
    #+END_SRC
 
 ** Поисковые профили
@@ -675,4 +714,11 @@ TODO: Обсудить все нижеследующее с hr-специали�
     #+NAME: asm_collection
     #+BEGIN_SRC emacs-lisp :var flds=collection_flds states=collection_state :exports none
       (gen-automat "collection" "сборки" flds states)
+    #+END_SRC
+
+** Вакансии
+
+    #+NAME: asm_vacancy
+    #+BEGIN_SRC emacs-lisp :var flds=vacancy_flds states=vacancy_state :exports none
+      (gen-automat "vacancy" "вакансии" flds states)
     #+END_SRC
