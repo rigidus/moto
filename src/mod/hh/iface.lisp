@@ -42,6 +42,31 @@
 
 (in-package #:moto)
 
+(defun vacancy-table (raw)
+  (let ((vacs (sort (remove-if #'(lambda (x)
+                                   (equal 0 (salary x)))
+                               raw)
+                    #'(lambda (a b)
+                        (> (salary a) (salary b))))))
+    (format nil "<h2>Вакансий: ~A</h2>~%~A" (length vacs)
+            (tbl
+             (with-collection (vac vacs)
+               (tr
+                (td
+                 (state vac))
+                (td
+                 (format nil "<div style=\"background-color:green\">~A</div>"
+                         (input "radio" :name (format nil "R~A" (id vac)) :value "y"
+                                :other (if (string= ":INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                (td
+                 (format nil "<div style=\"background-color:red\">~A</div>"
+                         (input "radio" :name (format nil "R~A" (id vac)) :value "n"
+                                :other (if (string= ":NOT_INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id vac) (name vac)))
+                (td (salary-text vac))
+                (td (currency vac))))
+             :border 1))))
+
 (define-page profile "/profile/:userid"
   (let* ((i (parse-integer userid))
          (page-id (parse-integer userid))
@@ -55,6 +80,17 @@
         "Нет такого профиля"
         (format nil "~{~A~}"
                 (list
+                 "<script>
+                         function test (param) {
+                            $.post(
+                               \"/profile/1\",
+                               {act: param},
+                               function(data) {
+                                  $(\"#dvtest\").html(data);
+                               }
+                           );
+                         };
+                  </script>"
                  (format nil "<h1>Страница поискового профиля ~A</h1>" (id u))
                  (format nil "<h2>Данные поискового профиля ~A</h2>" (name u))
                  (frm
@@ -64,29 +100,17 @@
                      (row "Запрос" (fld "search" (search-query u)))
                      (row (hid "profile_id" (id u)) %change%))
                    :border 1))
-                 (format nil "<h2>Вакансий: ~A</h2>" (length vacs))
+                 (tbl
+                  (tr
+                   (td %show-all%)
+                   (td %show-interests%)
+                   (td %show-not-interests%)
+                   (td %show-other%)))
                  (frm
                   (list
+                   "<br /><br />"
                    %clarify%
-                   (tbl
-                    (with-collection (vac vacs)
-                      (tr
-                       (td
-                        (state vac))
-                       (td
-                        (format nil "<div style=\"background-color:green\">~A</div>"
-                                (input "radio" :name (format nil "R~A" (id vac)) :value "y"
-                                       :other (if (string= ":INTERESTED" (state vac)) "checked=\"checked\"" ""))))
-                       (td
-                        (format nil "<div style=\"background-color:red\">~A</div>"
-                                (input "radio" :name (format nil "R~A" (id vac)) :value "n"
-                                       :other (if (string= ":NOT_INTERESTED" (state vac)) "checked=\"checked\"" ""))))
-                       (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id vac) (name vac)))
-                       (td (salary-text vac))
-                       (td (currency vac))))
-                    :border 1)
-                   ))
-                 ))))
+                   "<div id=\"dvtest\">dvtest</div>"))))))
   (:change  (act-btn "CHANGE" "" "Изменить")
             (id (upd-profile (get-profile (parse-integer userid))
                              (list :name (getf p :name) :search-query (getf p :query)))))
@@ -102,5 +126,16 @@
                              ((string= "n" val)
                               (unless (string= ":NOT_INTERESTED" (state vac))
                                 (takt vac :not_interested)))
-                             (t "err param")))))))
+                             (t "err param"))))))
+  (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"Показать все\">")
+             (error 'ajax :output (vacancy-table (find-vacancy :profile-id 1))))
+  (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"Показать интересные\">")
+                   (error 'ajax :output (vacancy-table (find-vacancy :state ":INTERESTED" :profile-id 1))))
+  (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"Показать неинтересные\">")
+                       (error 'ajax :output (vacancy-table (find-vacancy :state ":NOT_INTERESTED" :profile-id 1))))
+  (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"Показать остальные\">")
+               (error 'ajax :output (vacancy-table (remove-if #'(lambda (x)
+                                                                  (or (string= ":NOT_INTERESTED" (state x) )
+                                                                      (string= ":INTERESTED" (state x))))
+                                                              (find-vacancy :profile-id 1))))))
 ;; iface ends here
