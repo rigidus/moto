@@ -1229,36 +1229,43 @@
               :nconc (list (anything-to-keyword key) value))))
 
      ;; Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
+     ;; Если необходимо вывести ajax-данные, использует специальный тип ошибки
+
+     (define-condition ajax (error)
+       ((output :initarg :output :reader output)))
+
      (defmacro with-wrapper (&body body)
        `(progn
           (hunchentoot:start-session)
           (let* ((*current-user* (hunchentoot:session-value 'current-user))
-                 (retval)
-                 (output (with-output-to-string (*standard-output*)
-                           (setf retval ,@body))))
+                 (retval))
             (declare (special *current-user*))
-            (tpl:root
-             (list
-              :title "title"
-              :content
-              (format
-               nil "~{~A~}"
-               (list
-                (tpl:dbgblock (list :dbgout output))
-                (tpl:userblock (list :currentuser (if (null *current-user*)
-                                                      "none"
-                                                      ,*current-user*)))
-                (if *current-user*
-                    (tpl:msgblock
-                     (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
-                    "")
-                (tpl:menublock
-                 (list
-                  :menu
-                  (format
-                   nil "~{~A<br />~}"
-                   (menu))))
-                (tpl:retvalblock (list :retval retval)))))))))
+            (handler-case
+                (let ((output (with-output-to-string (*standard-output*)
+                                (setf retval ,@body))))
+                  (tpl:root
+                   (list
+                    :title "title"
+                    :content
+                    (format
+                     nil "~{~A~}"
+                     (list
+                      (tpl:dbgblock (list :dbgout output))
+                      (tpl:userblock (list :currentuser (if (null *current-user*)
+                                                            "none"
+                                                            ,*current-user*)))
+                      (if *current-user*
+                          (tpl:msgblock
+                           (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
+                          "")
+                      (tpl:menublock
+                       (list
+                        :menu
+                        (format
+                         nil "~{~A<br />~}"
+                         (menu))))
+                      (tpl:retvalblock (list :retval retval)))))))
+              (ajax (ajax) (output ajax))))))
 
      ;; Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
 
@@ -1451,8 +1458,7 @@
                  <title>{$headtitle}</title>{\n}
                  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />{\n}
                  <link rel="Shortcut Icon" type="image/x-icon" href="/img/favicon.ico" />{\n}
-                 <script type="text/javascript" src="/js/jquery-1.5.2.min.js"></script>
-                 <script type="text/javascript" src="/js/comment.js"></script>
+                 <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
              </head>{\n}
              <body id="top">{\n}
                  {$content | noAutoescape}{\n}
