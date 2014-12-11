@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2014-12-10 Ср. 07:28 -->
+<!-- 2014-12-11 Чт. 11:45 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -150,7 +150,8 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-2">2.2. Парсинг данных</a>
 <ul>
 <li><a href="#sec-2-2-1">2.2.1. Получение страниц</a></li>
-<li><a href="#sec-2-2-2">2.2.2. Разбор тизеров</a></li>
+<li><a href="#sec-2-2-2">2.2.2. Разбор тизеров вакансий</a></li>
+<li><a href="#sec-2-2-3">2.2.3. Разбор вакансий</a></li>
 </ul>
 </li>
 <li><a href="#sec-2-3">2.3. Поиск вакансий</a></li>
@@ -436,7 +437,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 
 <div id="outline-container-sec-2-2-2" class="outline-4">
-<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> Разбор тизеров</h4>
+<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> Разбор тизеров вакансий</h4>
 <div class="outline-text-4" id="text-2-2-2">
 <p>
 Теперь, чтобы получить вакансии с этой страницы - вырежем таблицу с ними и воспользуемся
@@ -537,7 +538,148 @@ TODO: Обсудить все нижеследующее с hr-специали�
 </div>
 </div>
 </div>
+
+<div id="outline-container-sec-2-2-3" class="outline-4">
+<h4 id="sec-2-2-3"><span class="section-number-4">2.2.3</span> Разбор вакансий</h4>
+<div class="outline-text-4" id="text-2-2-3">
+<p>
+Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии) мы
+разберем всю полученную страницу в список, который из которого извлечем необходимые нам
+элементы сопоставлением с образцом.
+</p>
+
+<p>
+Чтобы проходить по дереву, сопоставляя узлы с функцией-предикатом, в которую
+скомпилируется образец, напишем функцию parse-match. Она содержит в себе рекурсивную
+внутреннюю функцию, которая выполняет работу до тех пор пока не обнаружит в дереве
+элемент, совпадающий с образцом. Обнаружив, она выполняет возврат из внешней функции.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">parse-match</span> (par func)
+  (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">in-parse-match</span> (par func)
+    (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((null par) nil)
+          ((atom par) (print par))
+          (t (<span style="color: #00cdcd; font-weight: bold;">if</span> (funcall func par)
+                 (<span style="color: #00cdcd; font-weight: bold;">return-from</span> parse-match par)
+                 (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+                   (in-parse-match (car par) func)
+                   (in-parse-match (cdr par) func))))))
+  (in-parse-match par func))
+</pre>
 </div>
+
+<p>
+Это уже можно использовать вот таким образом:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*test*</span> (hh-parse-vacancy (hh-get-page <span style="color: #00cd00;">"http://spb.hh.ru/vacancy/12325429"</span>)))
+
+(print
+ (parse-match *test*
+      #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+          (<span style="color: #00cdcd; font-weight: bold;">handler-case</span>
+              (<span style="color: #00cdcd; font-weight: bold;">destructuring-bind</span> (a ((b c)) <span style="color: #00cd00;">&amp;rest</span> d)
+                  x
+                (string= c <span style="color: #00cd00;">"b-vacancy-custom g-round"</span>))
+            (sb-kernel::arg-count-error nil)
+            (sb-kernel::defmacro-bogus-sublist-error nil)))))
+</pre>
+</div>
+
+<p>
+Но для удобной работы этого недостаточно, поэтому напишем компилятор шаблона в
+соответствующий ему предикат:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">compile-pattern</span> ((pattern) <span style="color: #00cd00;">&amp;body</span> constraints)
+  `#'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+       (<span style="color: #00cdcd; font-weight: bold;">handler-case</span>
+           (<span style="color: #00cdcd; font-weight: bold;">destructuring-bind</span> ,pattern
+               x
+             (<span style="color: #00cdcd; font-weight: bold;">progn</span> ,@constraints))
+         (sb-kernel::arg-count-error nil)
+         (sb-kernel::defmacro-bogus-sublist-error nil))))
+</pre>
+</div>
+
+<p>
+Теперь мы можем использовать это более простым и понятным образом
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(print
+ (parse-match *test* (compile-pattern ((a ((b c)) <span style="color: #00cd00;">&amp;rest</span> d))
+                       (string= c <span style="color: #00cd00;">"b-vacancy-custom g-round"</span>))))
+</pre>
+</div>
+
+<p>
+Теперь когда у нас есть необходимые инструменты, переходим к практической части. Мы
+должны извлечь несколько блоков&#x2026;
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-parse-vacancy</span> (html)
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080; &#1080;&#1079; html"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+    (print parsed)))
+
+
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(remove-if</span>
+    <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">#'null</span>
+    <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(loop :for row :in rows :collect</span>
+    <span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(when (or (ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))</span>
+    <span style="color: #cd0000;">;;               </span><span style="color: #cd0000;">(string= "b-vacancy-list-standard" (car (cdaadr row)))</span>
+    <span style="color: #cd0000;">;;               </span><span style="color: #cd0000;">(string= "b-vacancy-list-standard_plus" (car (cdaadr row))))</span>
+    <span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(let* ((data (nth 3 row))</span>
+    <span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))</span>
+    <span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(hh-vacancy-name (car (last hh-vacancy-a)))</span>
+    <span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))</span>
+    <span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(hh-vacancy-date (caddr (cadddr (caddr data))))</span>
+    <span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))</span>
+    <span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(hh-salary-div (nth 5 (caddr data)))</span>
+    <span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(result (list :vacancy-name hh-vacancy-name</span>
+    <span style="color: #cd0000;">;;                            </span><span style="color: #cd0000;">:vacancy-id hh-vacancy-id</span>
+    <span style="color: #cd0000;">;;                            </span><span style="color: #cd0000;">:vacancy-date hh-vacancy-date</span>
+    <span style="color: #cd0000;">;;                            </span><span style="color: #cd0000;">)))</span>
+    <span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">(when hh-vacancy-placetime</span>
+    <span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(let ((hh-employer-name (car (last hh-vacancy-placetime)))</span>
+    <span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t)))</span>
+    <span style="color: #cd0000;">;;             </span><span style="color: #cd0000;">(setf result (append result (list :employer-name hh-employer-name</span>
+    <span style="color: #cd0000;">;;                                               </span><span style="color: #cd0000;">:employer-id hh-employer-id)))))</span>
+    <span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">(when (and hh-salary-div</span>
+    <span style="color: #cd0000;">;;                    </span><span style="color: #cd0000;">(string= "b-vacancy-list-salary"  (car (cdaadr hh-salary-div))))</span>
+    <span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))</span>
+    <span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))</span>
+    <span style="color: #cd0000;">;;                 </span><span style="color: #cd0000;">(hh-salary-text (car (last hh-salary-div))))</span>
+    <span style="color: #cd0000;">;;             </span><span style="color: #cd0000;">(setf result (append result (list :salary-currency hh-salary-currency</span>
+    <span style="color: #cd0000;">;;                                               </span><span style="color: #cd0000;">:salary-base hh-salary-base</span>
+    <span style="color: #cd0000;">;;                                               </span><span style="color: #cd0000;">:salary-text hh-salary-text)))))</span>
+    <span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">result))))))</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
 
 <div id="outline-container-sec-2-3" class="outline-3">
 <h3 id="sec-2-3"><span class="section-number-3">2.3</span> Поиск вакансий</h3>
@@ -1466,6 +1608,7 @@ TODO: Конечный автомат тут сложен и будет еще �
                    (td %show-interests%)
                    (td %show-not-interests%)
                    (td %show-other%)))
+                 (frm %proceess-interests%)
                  (frm
                   (list
                    <span style="color: #00cd00;">"&lt;br /&gt;&lt;br /&gt;"</span>
@@ -1487,17 +1630,19 @@ TODO: Конечный автомат тут сложен и будет еще �
                               (<span style="color: #00cdcd; font-weight: bold;">unless</span> (string= <span style="color: #00cd00;">":NOT_INTERESTED"</span> (state vac))
                                 (takt vac <span style="color: #0000ee; font-weight: bold;">:not_interested</span>)))
                              (t <span style="color: #00cd00;">"err param"</span>))))))
-  (<span style="color: #0000ee; font-weight: bold;">:show-all</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"&#1055;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1100; &#1074;&#1089;&#1077;\"&gt;"</span>)
+  (<span style="color: #0000ee; font-weight: bold;">:show-all</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"&#1074;&#1089;&#1077;\"&gt;"</span>)
              (<span style="color: #cd0000; font-weight: bold;">error</span> 'ajax <span style="color: #0000ee; font-weight: bold;">:output</span> (vacancy-table (find-vacancy <span style="color: #0000ee; font-weight: bold;">:profile-id</span> 1))))
-  (<span style="color: #0000ee; font-weight: bold;">:show-interests</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"&#1055;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1100; &#1080;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077;\"&gt;"</span>)
+  (<span style="color: #0000ee; font-weight: bold;">:show-interests</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"&#1080;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077;\"&gt;"</span>)
                    (<span style="color: #cd0000; font-weight: bold;">error</span> 'ajax <span style="color: #0000ee; font-weight: bold;">:output</span> (vacancy-table (find-vacancy <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":INTERESTED"</span> <span style="color: #0000ee; font-weight: bold;">:profile-id</span> 1))))
-  (<span style="color: #0000ee; font-weight: bold;">:show-not-interests</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"&#1055;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1100; &#1085;&#1077;&#1080;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077;\"&gt;"</span>)
+  (<span style="color: #0000ee; font-weight: bold;">:show-not-interests</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"&#1085;&#1077;&#1080;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077;\"&gt;"</span>)
                        (<span style="color: #cd0000; font-weight: bold;">error</span> 'ajax <span style="color: #0000ee; font-weight: bold;">:output</span> (vacancy-table (find-vacancy <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":NOT_INTERESTED"</span> <span style="color: #0000ee; font-weight: bold;">:profile-id</span> 1))))
-  (<span style="color: #0000ee; font-weight: bold;">:show-other</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"&#1055;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1100; &#1086;&#1089;&#1090;&#1072;&#1083;&#1100;&#1085;&#1099;&#1077;\"&gt;"</span>)
+  (<span style="color: #0000ee; font-weight: bold;">:show-other</span> (format nil <span style="color: #00cd00;">"&lt;input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"&#1086;&#1089;&#1090;&#1072;&#1083;&#1100;&#1085;&#1099;&#1077;\"&gt;"</span>)
                (<span style="color: #cd0000; font-weight: bold;">error</span> 'ajax <span style="color: #0000ee; font-weight: bold;">:output</span> (vacancy-table (remove-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
                                                                   (or (string= <span style="color: #00cd00;">":NOT_INTERESTED"</span> (state x) )
                                                                       (string= <span style="color: #00cd00;">":INTERESTED"</span> (state x))))
-                                                              (find-vacancy <span style="color: #0000ee; font-weight: bold;">:profile-id</span> 1))))))
+                                                              (find-vacancy <span style="color: #0000ee; font-weight: bold;">:profile-id</span> 1)))))
+  (<span style="color: #0000ee; font-weight: bold;">:proceess-interests</span> (act-btn <span style="color: #00cd00;">"PROCEESS-INTERESTS"</span> <span style="color: #00cd00;">""</span> <span style="color: #00cd00;">"&#1057;&#1086;&#1073;&#1088;&#1072;&#1090;&#1100; &#1076;&#1072;&#1085;&#1085;&#1099;&#1077; &#1080;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1093; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081;"</span>)
+                       <span style="color: #00cd00;">"TODO"</span>))
 </pre>
 </div>
 </div>
@@ -1612,7 +1757,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2014-12-10 Ср. 07:28</p>
+<p class="date">Created: 2014-12-11 Чт. 11:45</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

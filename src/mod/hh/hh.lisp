@@ -60,6 +60,67 @@
             result))))))
 (in-package #:moto)
 
+(defun parse-match (par func)
+  (defun in-parse-match (par func)
+    (cond ((null par) nil)
+          ((atom par) (print par))
+          (t (if (funcall func par)
+                 (return-from parse-match par)
+                 (progn
+                   (in-parse-match (car par) func)
+                   (in-parse-match (cdr par) func))))))
+  (in-parse-match par func))
+(in-package #:moto)
+
+(defmacro compile-pattern ((pattern) &body constraints)
+  `#'(lambda (x)
+       (handler-case
+           (destructuring-bind ,pattern
+               x
+             (progn ,@constraints))
+         (sb-kernel::arg-count-error nil)
+         (sb-kernel::defmacro-bogus-sublist-error nil))))
+(in-package #:moto)
+
+(defun hh-parse-vacancy (html)
+  "Получение вакансии из html"
+  (let ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+    (print parsed)))
+
+
+    ;; (remove-if
+    ;;  #'null
+    ;;  (loop :for row :in rows :collect
+    ;;     (when (or (ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
+    ;;               (string= "b-vacancy-list-standard" (car (cdaadr row)))
+    ;;               (string= "b-vacancy-list-standard_plus" (car (cdaadr row))))
+    ;;       (let* ((data (nth 3 row))
+    ;;              (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
+    ;;              (hh-vacancy-name (car (last hh-vacancy-a)))
+    ;;              (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
+    ;;              (hh-vacancy-date (caddr (cadddr (caddr data))))
+    ;;              (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
+    ;;              (hh-salary-div (nth 5 (caddr data)))
+    ;;              (result (list :vacancy-name hh-vacancy-name
+    ;;                            :vacancy-id hh-vacancy-id
+    ;;                            :vacancy-date hh-vacancy-date
+    ;;                            )))
+    ;;         (when hh-vacancy-placetime
+    ;;           (let ((hh-employer-name (car (last hh-vacancy-placetime)))
+    ;;                 (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t)))
+    ;;             (setf result (append result (list :employer-name hh-employer-name
+    ;;                                               :employer-id hh-employer-id)))))
+    ;;         (when (and hh-salary-div
+    ;;                    (string= "b-vacancy-list-salary"  (car (cdaadr hh-salary-div))))
+    ;;           (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
+    ;;                 (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
+    ;;                 (hh-salary-text (car (last hh-salary-div))))
+    ;;             (setf result (append result (list :salary-currency hh-salary-currency
+    ;;                                               :salary-base hh-salary-base
+    ;;                                               :salary-text hh-salary-text)))))
+    ;;         result))))))
+(in-package #:moto)
+
 (defun teaser-rejection ()
   "teaser-rejection")
 

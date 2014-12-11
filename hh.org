@@ -176,7 +176,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
          :external-format :utf-8))
     #+END_SRC
 
-*** Разбор тизеров
+*** Разбор тизеров вакансий
 
     Теперь, чтобы получить вакансии с этой страницы - вырежем таблицу с ними и воспользуемся
     парсером, который переведет полученный html в более удобный лисп-список. Этот список
@@ -248,6 +248,126 @@ TODO: Обсудить все нижеследующее с hr-специали�
                                                         :salary-text hh-salary-text)))))
                   result))))))
     #+END_SRC
+
+*** Разбор вакансий
+
+    Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии) мы
+    разберем всю полученную страницу в список, который из которого извлечем необходимые нам
+    элементы сопоставлением с образцом.
+
+    Чтобы проходить по дереву, сопоставляя узлы с функцией-предикатом, в которую
+    скомпилируется образец, напишем функцию parse-match. Она содержит в себе рекурсивную
+    внутреннюю функцию, которая выполняет работу до тех пор пока не обнаружит в дереве
+    элемент, совпадающий с образцом. Обнаружив, она выполняет возврат из внешней функции.
+
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defun parse-match (par func)
+        (defun in-parse-match (par func)
+          (cond ((null par) nil)
+                ((atom par) (print par))
+                (t (if (funcall func par)
+                       (return-from parse-match par)
+                       (progn
+                         (in-parse-match (car par) func)
+                         (in-parse-match (cdr par) func))))))
+        (in-parse-match par func))
+    #+END_SRC
+
+    Это уже можно использовать вот таким образом:
+
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defparameter *test* (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+
+      (print
+       (parse-match *test*
+            #'(lambda (x)
+                (handler-case
+                    (destructuring-bind (a ((b c)) &rest d)
+                        x
+                      (string= c "b-vacancy-custom g-round"))
+                  (sb-kernel::arg-count-error nil)
+                  (sb-kernel::defmacro-bogus-sublist-error nil)))))
+    #+END_SRC
+
+    Но для удобной работы этого недостаточно, поэтому напишем компилятор шаблона в
+    соответствующий ему предикат:
+
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defmacro compile-pattern ((pattern) &body constraints)
+        `#'(lambda (x)
+             (handler-case
+                 (destructuring-bind ,pattern
+                     x
+                   (progn ,@constraints))
+               (sb-kernel::arg-count-error nil)
+               (sb-kernel::defmacro-bogus-sublist-error nil))))
+    #+END_SRC
+
+    Теперь мы можем использовать это более простым и понятным образом
+
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (print
+       (parse-match *test* (compile-pattern ((a ((b c)) &rest d))
+                             (string= c "b-vacancy-custom g-round"))))
+
+    #+END_SRC
+
+    Теперь когда у нас есть необходимые инструменты, переходим к практической части. Мы
+    должны извлечь несколько блоков...
+
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defun hh-parse-vacancy (html)
+        "Получение вакансии из html"
+        (let ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+          (print parsed)))
+
+
+          ;; (remove-if
+          ;;  #'null
+          ;;  (loop :for row :in rows :collect
+          ;;     (when (or (ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
+          ;;               (string= "b-vacancy-list-standard" (car (cdaadr row)))
+          ;;               (string= "b-vacancy-list-standard_plus" (car (cdaadr row))))
+          ;;       (let* ((data (nth 3 row))
+          ;;              (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
+          ;;              (hh-vacancy-name (car (last hh-vacancy-a)))
+          ;;              (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
+          ;;              (hh-vacancy-date (caddr (cadddr (caddr data))))
+          ;;              (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
+          ;;              (hh-salary-div (nth 5 (caddr data)))
+          ;;              (result (list :vacancy-name hh-vacancy-name
+          ;;                            :vacancy-id hh-vacancy-id
+          ;;                            :vacancy-date hh-vacancy-date
+          ;;                            )))
+          ;;         (when hh-vacancy-placetime
+          ;;           (let ((hh-employer-name (car (last hh-vacancy-placetime)))
+          ;;                 (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t)))
+          ;;             (setf result (append result (list :employer-name hh-employer-name
+          ;;                                               :employer-id hh-employer-id)))))
+          ;;         (when (and hh-salary-div
+          ;;                    (string= "b-vacancy-list-salary"  (car (cdaadr hh-salary-div))))
+          ;;           (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
+          ;;                 (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
+          ;;                 (hh-salary-text (car (last hh-salary-div))))
+          ;;             (setf result (append result (list :salary-currency hh-salary-currency
+          ;;                                               :salary-base hh-salary-base
+          ;;                                               :salary-text hh-salary-text)))))
+          ;;         result))))))
+    #+END_SRC
+
 
 ** Поиск вакансий
 
@@ -692,6 +812,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
                         (td %show-interests%)
                         (td %show-not-interests%)
                         (td %show-other%)))
+                      (frm %proceess-interests%)
                       (frm
                        (list
                         "<br /><br />"
@@ -713,17 +834,19 @@ TODO: Обсудить все нижеследующее с hr-специали�
                                    (unless (string= ":NOT_INTERESTED" (state vac))
                                      (takt vac :not_interested)))
                                   (t "err param"))))))
-       (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"Показать все\">")
+       (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"все\">")
                   (error 'ajax :output (vacancy-table (find-vacancy :profile-id 1))))
-       (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"Показать интересные\">")
+       (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"интересные\">")
                         (error 'ajax :output (vacancy-table (find-vacancy :state ":INTERESTED" :profile-id 1))))
-       (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"Показать неинтересные\">")
+       (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"неинтересные\">")
                             (error 'ajax :output (vacancy-table (find-vacancy :state ":NOT_INTERESTED" :profile-id 1))))
-       (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"Показать остальные\">")
+       (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"остальные\">")
                     (error 'ajax :output (vacancy-table (remove-if #'(lambda (x)
                                                                        (or (string= ":NOT_INTERESTED" (state x) )
                                                                            (string= ":INTERESTED" (state x))))
-                                                                   (find-vacancy :profile-id 1))))))
+                                                                   (find-vacancy :profile-id 1)))))
+       (:proceess-interests (act-btn "PROCEESS-INTERESTS" "" "Собрать данные интересных вакансий")
+                            "TODO"))
    #+END_SRC
 
 ** Дашборд

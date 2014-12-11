@@ -106,6 +106,7 @@
                    (td %show-interests%)
                    (td %show-not-interests%)
                    (td %show-other%)))
+                 (frm %proceess-interests%)
                  (frm
                   (list
                    "<br /><br />"
@@ -127,15 +128,17 @@
                               (unless (string= ":NOT_INTERESTED" (state vac))
                                 (takt vac :not_interested)))
                              (t "err param"))))))
-  (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"Показать все\">")
+  (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"все\">")
              (error 'ajax :output (vacancy-table (find-vacancy :profile-id 1))))
-  (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"Показать интересные\">")
+  (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"интересные\">")
                    (error 'ajax :output (vacancy-table (find-vacancy :state ":INTERESTED" :profile-id 1))))
-  (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"Показать неинтересные\">")
+  (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"неинтересные\">")
                        (error 'ajax :output (vacancy-table (find-vacancy :state ":NOT_INTERESTED" :profile-id 1))))
-  (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"Показать остальные\">")
+  (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"остальные\">")
                (error 'ajax :output (vacancy-table (remove-if #'(lambda (x)
                                                                   (or (string= ":NOT_INTERESTED" (state x) )
                                                                       (string= ":INTERESTED" (state x))))
-                                                              (find-vacancy :profile-id 1))))))
+                                                              (find-vacancy :profile-id 1)))))
+  (:proceess-interests (act-btn "PROCEESS-INTERESTS" "" "Собрать данные интересных вакансий")
+                       "TODO"))
 ;; iface ends here
