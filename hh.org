@@ -267,7 +267,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
       (defun parse-match (par func)
         (defun in-parse-match (par func)
           (cond ((null par) nil)
-                ((atom par) (print par))
+                ((atom par) #|(print par)|#)
                 (t (if (funcall func par)
                        (return-from parse-match par)
                        (progn
@@ -289,26 +289,77 @@ TODO: Обсудить все нижеследующее с hr-специали�
                 (handler-case
                     (destructuring-bind (a ((b c)) &rest d)
                         x
-                      (string= c "b-vacancy-custom g-round"))
+                      (aif (and (string= a "div")
+                                (string= c "b-vacancy-custom g-round"))
+                           it))
                   (sb-kernel::arg-count-error nil)
                   (sb-kernel::defmacro-bogus-sublist-error nil)))))
     #+END_SRC
 
-    Но для удобной работы этого недостаточно, поэтому напишем компилятор шаблона в
-    соответствующий ему предикат:
+    Но для удобной работы этого недостаточно, поэтому напишем компилер шаблона в
+    соответствующий ему предикат. Этот компилер будет макросом, принимающим в качестве
+    параметра форму, которая будет связываться с элементами шаблона с помощью
+    =destructuring-bind=. Попытка связывания будет провоиться для каждого элемента дерева,
+    ошибки которые возникают в случае невозможности связывания игнорируются.
+
+    После того, как совпадающий с образцом элемент дерева будет найден, я хотел бы иметь
+    возможность работать с составляющими его элементами. Это можно обеспечить, если предикат
+    будет записывать в создаваемые глобальные переменные компоненты шаблона.
+
+    Чтобы это обеспечить, мы используем внутренний макрос =binder=, который превращает
+    шаблон вида =(a ((b c)) d &rest e)= в код вида:
+
+    #+BEGIN_SRC lisp
+      (PROGN
+        (SETF **A** A)
+        (SETF **B** B)
+        (SETF **C** C)
+        (SETF **D** D)
+        (SETF **E** E))
+    #+END_SRC
+
+    Там где будет раскрываться этот макрос переменные =A B C D E= определены посредством
+    =destructuring-bind=. Таким образом мы инжектируем переменные шаблона в глобальную
+    область видимости.
 
     #+NAME: hh_fn_contents
     #+BEGIN_SRC lisp
       (in-package #:moto)
+
+      (defmacro binder (varlist)
+        (let ((result))
+          (defun in-binder-linearizer (par)
+            (cond ((null par) nil)
+                  ((atom par) (cond ((equal par '&rest) nil)
+                                    (t (setf result (append result (list par))))))
+                  (t (progn
+                       (in-binder-linearizer (car par))
+                       (in-binder-linearizer (cdr par))))))
+          (in-binder-linearizer varlist)
+          `(progn
+             ,@(mapcar #'(lambda (x)
+                           `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
+                       result))))
+
+      ;; (macroexpand-1
+      ;;  '(binder (a ((b c)) d &rest e)))
 
       (defmacro compile-pattern ((pattern) &body constraints)
         `#'(lambda (x)
              (handler-case
                  (destructuring-bind ,pattern
                      x
-                   (progn ,@constraints))
+                   (aif (and ,@constraints)
+                        (progn
+                          (binder ,pattern)
+                          it)))
                (sb-kernel::arg-count-error nil)
                (sb-kernel::defmacro-bogus-sublist-error nil))))
+
+      ;; (macroexpand-1 '(compile-pattern ((a ((b c)) d &rest e))
+      ;;                  (string= a "div")
+      ;;                  (string= c "title b-vacancy-title")))
+
     #+END_SRC
 
     Теперь мы можем использовать это более простым и понятным образом
@@ -318,21 +369,63 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
       (print
        (parse-match *test* (compile-pattern ((a ((b c)) &rest d))
+                             (string= a "div")
                              (string= c "b-vacancy-custom g-round"))))
 
+      ;; => '("div" (("class" "b-vacancy-custom g-round"))
+      ;;      ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
+      ;;      ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
+      ;;      ("table" (("class" "l"))
+      ;;       ("tbody" NIL
+      ;;        ("tr" NIL
+      ;;              ("td" (("colspan" "2") ("class" "l-cell"))
+      ;;                    ("div" (("class" "employer-marks g-clearfix"))
+      ;;                           ("div" (("class" "companyname"))
+      ;;                                  ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
+      ;;                                       "ООО Нимбл"))))
+      ;;              ("td" (("class" "l-cell")))))))
+
+      (print **c**)
+      ;; => "b-vacancy-custom g-round"
     #+END_SRC
 
     Теперь когда у нас есть необходимые инструменты, переходим к практической части. Мы
-    должны извлечь несколько блоков...
+    должны извлечь несколько блоков:
+    - блок заголовка
+    - общие данные, такие как уровень зарплаты, город, требуемый опыт работы
+    - собственно описание вакансии
+    Из каждого блока будем извлекать конкретные данные, возвращаемы как plist
 
     #+NAME: hh_fn_contents
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
+
       (defun hh-parse-vacancy (html)
         "Получение вакансии из html"
-        (let ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
-          (print parsed)))
+        (let* ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+               (header (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+                                             (string= c "b-vacancy-custom g-round"))))
+               (summary (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+                                              (string= c "b-important b-vacancy-info"))))
+               (infoblock (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+                                                (string= c "l-content-2colums b-vacancy-container"))))
+               (h1 (parse-match header (compile-pattern ((a ((b c)) title &rest archive-block))
+                                         (print e)
+                                         (string= c "title b-vacancy-title"))))
+               (name **title**)
+               (archive (if (car (last (car **archive-block**))) t nil))
+               (employerblock (parse-match header (compile-pattern ((a ((b c) (d lnk)) emp))
+                                                    (string= c "hiringOrganization"))))
+               (employer-name **emp**)
+               (employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ **lnk**))) :junk-allowed t)))
+          employer-id))
+
+      (print
+       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
+
+      (print
+       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
 
           ;; (remove-if
@@ -366,6 +459,22 @@ TODO: Обсудить все нижеследующее с hr-специали�
           ;;                                               :salary-base hh-salary-base
           ;;                                               :salary-text hh-salary-text)))))
           ;;         result))))))
+
+          (defparameter *header* '("div" (("class" "b-vacancy-custom g-round"))
+                                   ("meta"
+                                    (("itemprop" "title") ("content" "Senior QA Automation (SELENIUM + C#)")))
+                                   ("h1" (("class" "title b-vacancy-title"))
+                                    "Senior QA Automation (SELENIUM + C#)"
+                                    ("span" (("class" "archive__flag")) "Вакансия в архиве"))
+                                   ("table" (("class" "l"))
+                                    ("tbody" NIL
+                                     ("tr" NIL
+                                           ("td" (("colspan" "2") ("class" "l-cell"))
+                                                 ("div" (("class" "employer-marks g-clearfix"))
+                                                        ("div" (("class" "companyname"))
+                                                               ("a" (("itemprop" "hiringOrganization") ("href" "/employer/69961"))
+                                                                    "DataArt"))))
+                                           ("td" (("class" "l-cell"))))))))
     #+END_SRC
 
 
