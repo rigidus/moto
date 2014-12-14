@@ -63,7 +63,7 @@
 (defun parse-match (par func)
   (defun in-parse-match (par func)
     (cond ((null par) nil)
-          ((atom par) (print par))
+          ((atom par) #|(print par)|#)
           (t (if (funcall func par)
                  (return-from parse-match par)
                  (progn
@@ -72,53 +72,321 @@
   (in-parse-match par func))
 (in-package #:moto)
 
+(defmacro binder (varlist)
+  `(progn
+     ,@(mapcar #'(lambda (x)
+                   `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
+               (remove-if #'(lambda (x)
+                              (or (equal x '&rest)))
+                          (alexandria:flatten varlist)))))
+
+;; (macroexpand-1
+;;  '(binder (a ((b c)) d &rest e)))
+
 (defmacro compile-pattern ((pattern) &body constraints)
   `#'(lambda (x)
        (handler-case
            (destructuring-bind ,pattern
                x
-             (progn ,@constraints))
+             (aif (and ,@constraints)
+                  (progn
+                    (binder ,pattern)
+                    it)))
          (sb-kernel::arg-count-error nil)
          (sb-kernel::defmacro-bogus-sublist-error nil))))
+
+;; (macroexpand-1 '(compile-pattern ((a ((b c)) d &rest e))
+;;                  (string= a "div")
+;;                  (string= c "title b-vacancy-title")))
 (in-package #:moto)
+
 
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
-  (let ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
-    (print parsed)))
+  (let* ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+         (header (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+                                       (string= c "b-vacancy-custom g-round"))))
+         (summary (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+                                        (string= c "b-important b-vacancy-info"))))
+         (infoblock (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+                                          (string= c "l-content-2colums b-vacancy-container"))))
+         (h1 (parse-match header (compile-pattern ((a ((b c)) title &rest archive-block))
+                                   (string= c "title b-vacancy-title"))))
+         (name **title**)
+         (archive (if (car (last (car **archive-block**))) t nil))
+         (employerblock (parse-match header (compile-pattern ((a ((b c) (d lnk)) emp))
+                                              (string= c "hiringOrganization"))))
+         (employer-name **emp**)
+         (employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ **lnk**))) :junk-allowed t))
+         (salaryblock (parse-match summary (compile-pattern ((div ((class l-paddings))
+                                                                  (meta-1 ((itemprop-1 salaryCurrency) (content-1 CURRENCY)))
+                                                                  (meta-2 ((itemprop-2 baseSalary) (content-2 VALUE)))
+                                                                  SALARY-TEXT))
+                                             (string= div "div")
+                                             (string= class "class")
+                                             (string= l-paddings "l-paddings")
+                                             (string= salaryCurrency "salaryCurrency")
+                                             (string= baseSalary "baseSalary")
+                                             )))
+         (salary-currency **currency**)
+         (salary **value**)
+         (salary-text **salary-text**)
+         (cityblock (parse-match summary (compile-pattern ((a ((b c)) (d ((e f)) x)))
+                                           (string= c "l-content-colum-2 b-v-info-content"))))
+         (city **x**)
+         (expblock (parse-match summary (compile-pattern ((a ((b c) (d e)) x))
+                                          (string= e "experienceRequirements"))))
+         (exp **x**)
+         (description (parse-match infoblock (compile-pattern ((a ((b c) (d e)) &rest descr))
+                                               (string= c "b-vacancy-desc-wrapper")
+                                               (string= e "description"))))
+         )
+    description))
+
+(print
+ (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+
+(print
+ (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
 
 
-    ;; (remove-if
-    ;;  #'null
-    ;;  (loop :for row :in rows :collect
-    ;;     (when (or (ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
-    ;;               (string= "b-vacancy-list-standard" (car (cdaadr row)))
-    ;;               (string= "b-vacancy-list-standard_plus" (car (cdaadr row))))
-    ;;       (let* ((data (nth 3 row))
-    ;;              (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
-    ;;              (hh-vacancy-name (car (last hh-vacancy-a)))
-    ;;              (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
-    ;;              (hh-vacancy-date (caddr (cadddr (caddr data))))
-    ;;              (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
-    ;;              (hh-salary-div (nth 5 (caddr data)))
-    ;;              (result (list :vacancy-name hh-vacancy-name
-    ;;                            :vacancy-id hh-vacancy-id
-    ;;                            :vacancy-date hh-vacancy-date
-    ;;                            )))
-    ;;         (when hh-vacancy-placetime
-    ;;           (let ((hh-employer-name (car (last hh-vacancy-placetime)))
-    ;;                 (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t)))
-    ;;             (setf result (append result (list :employer-name hh-employer-name
-    ;;                                               :employer-id hh-employer-id)))))
-    ;;         (when (and hh-salary-div
-    ;;                    (string= "b-vacancy-list-salary"  (car (cdaadr hh-salary-div))))
-    ;;           (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
-    ;;                 (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
-    ;;                 (hh-salary-text (car (last hh-salary-div))))
-    ;;             (setf result (append result (list :salary-currency hh-salary-currency
-    ;;                                               :salary-base hh-salary-base
-    ;;                                               :salary-text hh-salary-text)))))
-    ;;         result))))))
+(alexandria:flatten '(1 (2 3) (4 (5 6 (7 8) 9)) 10))
+
+;;     (defun in-descr (par)
+;;       (cond ((null par) nil)
+;;             ((atom par) ;; (cond ((equal par '&rest) nil)
+;;                         ;;       (t (setf result (append result (list par)))))
+;;              (print par)
+;;              )
+;;             (t (progn
+;;                  (in-descr (car par))
+;;                  (in-descr (cdr par))))))
+
+;;     (in-descr **descr**)
+;;     ))
+
+;;   (mapt
+
+
+
+;; (defun map-tree (f tree)
+;;   (typecase tree
+;;     (cons
+;;      (cons (map-tree f (car tree))
+;;            (if (cdr tree)
+;;                (map-tree f (cdr tree))
+;;                nil)))
+;;     (t (funcall f tree))))
+
+;; (map-tree #'(lambda (x)
+;;               (print x))
+;;           '(compile-pattern ((a ((b c) (d e)) &rest descr))
+;;             (string= c "b-vacancy-desc-wrapper")
+;;             (string= e "description")))
+
+;; (mapcar
+
+
+;; (defun fold-left (function accumulator list)
+;;   (typecase list
+;;     (null accumulator)
+;;     (cons (fold-left function
+;;                      (funcall function accumulator (car list))
+;;                      (cdr list)))))
+
+;; (let ((res "xyz"))
+;;   (fold-left #'(lambda (acc elt)
+;;                  (concatenate 'string acc elt))
+;;              res
+;;              '("a" "b" "c" "d" "e")))
+
+;; (defun fold-left* (function list)
+;;     (fold-left function (car list) (cdr list)))
+
+;; (fold-left* #'(lambda (acc elt)
+;;                 (concatenate 'string acc elt))
+;;             '("a" "b" "c" "d" "e"))
+
+;; (defun left-folder (function accumulator)
+;;   (lambda (list)
+;;     (typecase list
+;;       (null accumulator)
+;;       (cons (fold-left function
+;;                        (funcall function accumulator (car list))
+;;                        (cdr list))))))
+
+;; (let ((res "xyz"))
+;;   (funcall (left-folder #'(lambda (acc elt)
+;;                             (concatenate 'string acc elt))
+;;                         res)
+;;            '("a" "b" "c")))
+
+;; (defun left-folder* (function)
+;;   (lambda (list)
+;;     (funcall (left-folder function (car list))
+;;              (cdr list))))
+
+;; (funcall (left-folder* #'(lambda (acc elt)
+;;                            (concatenate 'string acc elt)))
+;;          '("a" "b" "c"))
+
+;; (defun fold-rigth (function accumulator list)
+;;   (typecase list
+;;     (null accumulator)
+;;     (cons (let ((temp (fold-rigth function accumulator (cdr list))))
+;;             (funcall function (car list) temp)))))
+
+;; (let ((res "xyz"))
+;;   (fold-rigth #'(lambda (acc elt)
+;;                   (concatenate 'string acc elt))
+;;               res
+;;               '("a" "b" "c" "d" "e")))
+
+;; (defun fold-rigth* (function list)
+;;   (fold-rigth function (car list) (cdr list)))
+
+;; (fold-rigth* #'(lambda (acc elt)
+;;                  (concatenate 'string acc elt)) '("a" "b" "c" "d" "e"))
+
+;; (defun right-folder* (function)
+;;   (lambda (list)
+;;     (funcall (right-folder function (car list))
+;;              (cdr list))))
+
+
+;; (funcall (right-folder* #'(lambda (acc elt)
+;;                             (concatenate 'string acc elt)))
+;;          nil)
+;;          '("a" "b" "c"))
+
+;; (defun flatten (tree)
+;;   (fold-tree tree
+;;              (lambda (e) e)
+;;              (lambda (l r) (list l r))))
+
+;; (defun flatten(lst)
+;;   (mapcan #'(lambda(x)
+;;               (if (consp x)
+;;                   (flatten x)
+;;                   (list x)))
+;;           lst))
+
+;; (defun flatten-1 (tree)
+;;   (labels ((lbl (tree acc)
+;;              (cond ((null tree) acc)
+;;                    ((atom tree) (cons tree acc))
+;;                    (t (lbl (car tree)
+;;                            (lbl (cdr tree)
+;;                                 acc))))))
+;;     (lbl tree nil)))
+
+
+;; (defstruct (node (:print-function
+;;                   (lambda (n s d)
+;;                     (declare (ignore d))
+;;                     (format s "#<~A>" (node-elt n)))))
+;;   elt
+;;   (l nil)
+;;   (r nil))
+
+;; (node-elt (make-node :elt 'aaa))
+
+;; (defun bst-insert (obj bst <)
+;;   (if (null bst)
+;;       (make-node :elt obj)
+;;       (let ((elt (node-elt bst)))
+;;         (if (eql obj elt)
+;;             bst
+;;             (if (funcall < obj elt)
+;;                 (make-node
+;;                  :elt elt
+;;                  :l   (bst-insert obj (node-l bst) <)
+;;                  :r   (node-r bst))
+;;                 (make-node
+;;                  :elt elt
+;;                  :r   (bst-insert obj (node-r bst) <)
+;;                  :l   (node-l bst)))))))
+
+;; (defun bst-find (obj bst <)
+;;   (if (null bst)
+;;       nil
+;;       (let ((elt (node-elt bst)))
+;;         (if (eql obj elt)
+;;             bst
+;;             (if (funcall < obj elt)
+;;                 (bst-find obj (node-l bst) <)
+;;                 (bst-find obj (node-r bst) <))))))
+
+;; (defun bst-min (bst)
+;;   (and bst
+;;        (or (bst-min (node-l bst)) bst)))
+
+;; (defun bst-max (bst)
+;;   (and bst
+;;        (or (bst-max (node-r bst)) bst)))
+
+;; (defun bst-traverse (fn bst)
+;;   (when bst
+;;     (bst-traverse fn (node-l bst))
+;;     (funcall fn (node-elt bst))
+;;     (bst-traverse fn (node-r bst))))
+
+;; ;; >>> Replaces bst-remove from book, which was broken.
+
+;; (defun bst-remove (obj bst <)
+;;   (if (null bst)
+;;       nil
+;;       (let ((elt (node-elt bst)))
+;;         (if (eql obj elt)
+;;             (percolate bst)
+;;             (if (funcall < obj elt)
+;;                 (make-node
+;;                  :elt elt
+;;                  :l (bst-remove obj (node-l bst) <)
+;;                  :r (node-r bst))
+;;                 (make-node
+;;                  :elt elt
+;;                  :r (bst-remove obj (node-r bst) <)
+;;                  :l (node-l bst)))))))
+
+;; (defun percolate (bst)
+;;   (let ((l (node-l bst)) (r (node-r bst)))
+;;     (cond ((null l) r)
+;;           ((null r) l)
+;;           (t (if (zerop (random 2))
+;;                  (make-node :elt (node-elt (bst-max l))
+;;                             :r r
+;;                             :l (bst-remove-max l))
+;;                  (make-node :elt (node-elt (bst-min r))
+;;                             :r (bst-remove-min r)
+;;                             :l l))))))
+
+;; (defun bst-remove-min (bst)
+;;   (if (null (node-l bst))
+;;       (node-r bst)
+;;       (make-node :elt (node-elt bst)
+;;                  :l   (bst-remove-min (node-l bst))
+;;                  :r   (node-r bst))))
+
+;; (defun bst-remove-max (bst)
+;;   (if (null (node-r bst))
+;;       (node-l bst)
+;;       (make-node :elt (node-elt bst)
+;;                  :l (node-l bst)
+;;                  :r (bst-remove-max (node-r bst)))))
+
+
+;; (bst-traverse #'print #S(node :elt 1 :l #S(node :elt 2)))
+
+;; (bst-traverse #'print
+;;               (make-node
+;;                :elt 1
+;;                :l (make-node
+;;                    :elt 2
+;;                    :l (make-node
+;;                        :elt 3))))
+
+;; (define 1)
 (in-package #:moto)
 
 (defun teaser-rejection ()

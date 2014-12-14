@@ -327,19 +327,12 @@ TODO: Обсудить все нижеследующее с hr-специали�
       (in-package #:moto)
 
       (defmacro binder (varlist)
-        (let ((result))
-          (defun in-binder-linearizer (par)
-            (cond ((null par) nil)
-                  ((atom par) (cond ((equal par '&rest) nil)
-                                    (t (setf result (append result (list par))))))
-                  (t (progn
-                       (in-binder-linearizer (car par))
-                       (in-binder-linearizer (cdr par))))))
-          (in-binder-linearizer varlist)
-          `(progn
-             ,@(mapcar #'(lambda (x)
-                           `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
-                       result))))
+        `(progn
+           ,@(mapcar #'(lambda (x)
+                         `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
+                     (remove-if #'(lambda (x)
+                                    (or (equal x '&rest)))
+                                (alexandria:flatten varlist)))))
 
       ;; (macroexpand-1
       ;;  '(binder (a ((b c)) d &rest e)))
@@ -359,7 +352,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
       ;; (macroexpand-1 '(compile-pattern ((a ((b c)) d &rest e))
       ;;                  (string= a "div")
       ;;                  (string= c "title b-vacancy-title")))
-
     #+END_SRC
 
     Теперь мы можем использовать это более простым и понятным образом
@@ -411,70 +403,282 @@ TODO: Обсудить все нижеследующее с hr-специали�
                (infoblock (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
                                                 (string= c "l-content-2colums b-vacancy-container"))))
                (h1 (parse-match header (compile-pattern ((a ((b c)) title &rest archive-block))
-                                         (print e)
                                          (string= c "title b-vacancy-title"))))
                (name **title**)
                (archive (if (car (last (car **archive-block**))) t nil))
                (employerblock (parse-match header (compile-pattern ((a ((b c) (d lnk)) emp))
                                                     (string= c "hiringOrganization"))))
                (employer-name **emp**)
-               (employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ **lnk**))) :junk-allowed t)))
-          employer-id))
-
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
+               (employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ **lnk**))) :junk-allowed t))
+               (salaryblock (parse-match summary (compile-pattern ((div ((class l-paddings))
+                                                                        (meta-1 ((itemprop-1 salaryCurrency) (content-1 CURRENCY)))
+                                                                        (meta-2 ((itemprop-2 baseSalary) (content-2 VALUE)))
+                                                                        SALARY-TEXT))
+                                                   (string= div "div")
+                                                   (string= class "class")
+                                                   (string= l-paddings "l-paddings")
+                                                   (string= salaryCurrency "salaryCurrency")
+                                                   (string= baseSalary "baseSalary")
+                                                   )))
+               (salary-currency **currency**)
+               (salary **value**)
+               (salary-text **salary-text**)
+               (cityblock (parse-match summary (compile-pattern ((a ((b c)) (d ((e f)) x)))
+                                                 (string= c "l-content-colum-2 b-v-info-content"))))
+               (city **x**)
+               (expblock (parse-match summary (compile-pattern ((a ((b c) (d e)) x))
+                                                (string= e "experienceRequirements"))))
+               (exp **x**)
+               (description (parse-match infoblock (compile-pattern ((a ((b c) (d e)) &rest descr))
+                                                     (string= c "b-vacancy-desc-wrapper")
+                                                     (string= e "description"))))
+               )
+          description))
 
       (print
        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
+      (print
+       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
 
-          ;; (remove-if
-          ;;  #'null
-          ;;  (loop :for row :in rows :collect
-          ;;     (when (or (ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
-          ;;               (string= "b-vacancy-list-standard" (car (cdaadr row)))
-          ;;               (string= "b-vacancy-list-standard_plus" (car (cdaadr row))))
-          ;;       (let* ((data (nth 3 row))
-          ;;              (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
-          ;;              (hh-vacancy-name (car (last hh-vacancy-a)))
-          ;;              (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
-          ;;              (hh-vacancy-date (caddr (cadddr (caddr data))))
-          ;;              (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
-          ;;              (hh-salary-div (nth 5 (caddr data)))
-          ;;              (result (list :vacancy-name hh-vacancy-name
-          ;;                            :vacancy-id hh-vacancy-id
-          ;;                            :vacancy-date hh-vacancy-date
-          ;;                            )))
-          ;;         (when hh-vacancy-placetime
-          ;;           (let ((hh-employer-name (car (last hh-vacancy-placetime)))
-          ;;                 (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t)))
-          ;;             (setf result (append result (list :employer-name hh-employer-name
-          ;;                                               :employer-id hh-employer-id)))))
-          ;;         (when (and hh-salary-div
-          ;;                    (string= "b-vacancy-list-salary"  (car (cdaadr hh-salary-div))))
-          ;;           (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
-          ;;                 (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
-          ;;                 (hh-salary-text (car (last hh-salary-div))))
-          ;;             (setf result (append result (list :salary-currency hh-salary-currency
-          ;;                                               :salary-base hh-salary-base
-          ;;                                               :salary-text hh-salary-text)))))
-          ;;         result))))))
 
-          (defparameter *header* '("div" (("class" "b-vacancy-custom g-round"))
-                                   ("meta"
-                                    (("itemprop" "title") ("content" "Senior QA Automation (SELENIUM + C#)")))
-                                   ("h1" (("class" "title b-vacancy-title"))
-                                    "Senior QA Automation (SELENIUM + C#)"
-                                    ("span" (("class" "archive__flag")) "Вакансия в архиве"))
-                                   ("table" (("class" "l"))
-                                    ("tbody" NIL
-                                     ("tr" NIL
-                                           ("td" (("colspan" "2") ("class" "l-cell"))
-                                                 ("div" (("class" "employer-marks g-clearfix"))
-                                                        ("div" (("class" "companyname"))
-                                                               ("a" (("itemprop" "hiringOrganization") ("href" "/employer/69961"))
-                                                                    "DataArt"))))
-                                           ("td" (("class" "l-cell"))))))))
+      (alexandria:flatten '(1 (2 3) (4 (5 6 (7 8) 9)) 10))
+
+      ;;     (defun in-descr (par)
+      ;;       (cond ((null par) nil)
+      ;;             ((atom par) ;; (cond ((equal par '&rest) nil)
+      ;;                         ;;       (t (setf result (append result (list par)))))
+      ;;              (print par)
+      ;;              )
+      ;;             (t (progn
+      ;;                  (in-descr (car par))
+      ;;                  (in-descr (cdr par))))))
+
+      ;;     (in-descr **descr**)
+      ;;     ))
+
+      ;;   (mapt
+
+
+
+      ;; (defun map-tree (f tree)
+      ;;   (typecase tree
+      ;;     (cons
+      ;;      (cons (map-tree f (car tree))
+      ;;            (if (cdr tree)
+      ;;                (map-tree f (cdr tree))
+      ;;                nil)))
+      ;;     (t (funcall f tree))))
+
+      ;; (map-tree #'(lambda (x)
+      ;;               (print x))
+      ;;           '(compile-pattern ((a ((b c) (d e)) &rest descr))
+      ;;             (string= c "b-vacancy-desc-wrapper")
+      ;;             (string= e "description")))
+
+      ;; (mapcar
+
+
+      ;; (defun fold-left (function accumulator list)
+      ;;   (typecase list
+      ;;     (null accumulator)
+      ;;     (cons (fold-left function
+      ;;                      (funcall function accumulator (car list))
+      ;;                      (cdr list)))))
+
+      ;; (let ((res "xyz"))
+      ;;   (fold-left #'(lambda (acc elt)
+      ;;                  (concatenate 'string acc elt))
+      ;;              res
+      ;;              '("a" "b" "c" "d" "e")))
+
+      ;; (defun fold-left* (function list)
+      ;;     (fold-left function (car list) (cdr list)))
+
+      ;; (fold-left* #'(lambda (acc elt)
+      ;;                 (concatenate 'string acc elt))
+      ;;             '("a" "b" "c" "d" "e"))
+
+      ;; (defun left-folder (function accumulator)
+      ;;   (lambda (list)
+      ;;     (typecase list
+      ;;       (null accumulator)
+      ;;       (cons (fold-left function
+      ;;                        (funcall function accumulator (car list))
+      ;;                        (cdr list))))))
+
+      ;; (let ((res "xyz"))
+      ;;   (funcall (left-folder #'(lambda (acc elt)
+      ;;                             (concatenate 'string acc elt))
+      ;;                         res)
+      ;;            '("a" "b" "c")))
+
+      ;; (defun left-folder* (function)
+      ;;   (lambda (list)
+      ;;     (funcall (left-folder function (car list))
+      ;;              (cdr list))))
+
+      ;; (funcall (left-folder* #'(lambda (acc elt)
+      ;;                            (concatenate 'string acc elt)))
+      ;;          '("a" "b" "c"))
+
+      ;; (defun fold-rigth (function accumulator list)
+      ;;   (typecase list
+      ;;     (null accumulator)
+      ;;     (cons (let ((temp (fold-rigth function accumulator (cdr list))))
+      ;;             (funcall function (car list) temp)))))
+
+      ;; (let ((res "xyz"))
+      ;;   (fold-rigth #'(lambda (acc elt)
+      ;;                   (concatenate 'string acc elt))
+      ;;               res
+      ;;               '("a" "b" "c" "d" "e")))
+
+      ;; (defun fold-rigth* (function list)
+      ;;   (fold-rigth function (car list) (cdr list)))
+
+      ;; (fold-rigth* #'(lambda (acc elt)
+      ;;                  (concatenate 'string acc elt)) '("a" "b" "c" "d" "e"))
+
+      ;; (defun right-folder* (function)
+      ;;   (lambda (list)
+      ;;     (funcall (right-folder function (car list))
+      ;;              (cdr list))))
+
+
+      ;; (funcall (right-folder* #'(lambda (acc elt)
+      ;;                             (concatenate 'string acc elt)))
+      ;;          nil)
+      ;;          '("a" "b" "c"))
+
+      ;; (defun flatten (tree)
+      ;;   (fold-tree tree
+      ;;              (lambda (e) e)
+      ;;              (lambda (l r) (list l r))))
+
+      ;; (defun flatten(lst)
+      ;;   (mapcan #'(lambda(x)
+      ;;               (if (consp x)
+      ;;                   (flatten x)
+      ;;                   (list x)))
+      ;;           lst))
+
+      ;; (defun flatten-1 (tree)
+      ;;   (labels ((lbl (tree acc)
+      ;;              (cond ((null tree) acc)
+      ;;                    ((atom tree) (cons tree acc))
+      ;;                    (t (lbl (car tree)
+      ;;                            (lbl (cdr tree)
+      ;;                                 acc))))))
+      ;;     (lbl tree nil)))
+
+
+      ;; (defstruct (node (:print-function
+      ;;                   (lambda (n s d)
+      ;;                     (declare (ignore d))
+      ;;                     (format s "#<~A>" (node-elt n)))))
+      ;;   elt
+      ;;   (l nil)
+      ;;   (r nil))
+
+      ;; (node-elt (make-node :elt 'aaa))
+
+      ;; (defun bst-insert (obj bst <)
+      ;;   (if (null bst)
+      ;;       (make-node :elt obj)
+      ;;       (let ((elt (node-elt bst)))
+      ;;         (if (eql obj elt)
+      ;;             bst
+      ;;             (if (funcall < obj elt)
+      ;;                 (make-node
+      ;;                  :elt elt
+      ;;                  :l   (bst-insert obj (node-l bst) <)
+      ;;                  :r   (node-r bst))
+      ;;                 (make-node
+      ;;                  :elt elt
+      ;;                  :r   (bst-insert obj (node-r bst) <)
+      ;;                  :l   (node-l bst)))))))
+
+      ;; (defun bst-find (obj bst <)
+      ;;   (if (null bst)
+      ;;       nil
+      ;;       (let ((elt (node-elt bst)))
+      ;;         (if (eql obj elt)
+      ;;             bst
+      ;;             (if (funcall < obj elt)
+      ;;                 (bst-find obj (node-l bst) <)
+      ;;                 (bst-find obj (node-r bst) <))))))
+
+      ;; (defun bst-min (bst)
+      ;;   (and bst
+      ;;        (or (bst-min (node-l bst)) bst)))
+
+      ;; (defun bst-max (bst)
+      ;;   (and bst
+      ;;        (or (bst-max (node-r bst)) bst)))
+
+      ;; (defun bst-traverse (fn bst)
+      ;;   (when bst
+      ;;     (bst-traverse fn (node-l bst))
+      ;;     (funcall fn (node-elt bst))
+      ;;     (bst-traverse fn (node-r bst))))
+
+      ;; ;; >>> Replaces bst-remove from book, which was broken.
+
+      ;; (defun bst-remove (obj bst <)
+      ;;   (if (null bst)
+      ;;       nil
+      ;;       (let ((elt (node-elt bst)))
+      ;;         (if (eql obj elt)
+      ;;             (percolate bst)
+      ;;             (if (funcall < obj elt)
+      ;;                 (make-node
+      ;;                  :elt elt
+      ;;                  :l (bst-remove obj (node-l bst) <)
+      ;;                  :r (node-r bst))
+      ;;                 (make-node
+      ;;                  :elt elt
+      ;;                  :r (bst-remove obj (node-r bst) <)
+      ;;                  :l (node-l bst)))))))
+
+      ;; (defun percolate (bst)
+      ;;   (let ((l (node-l bst)) (r (node-r bst)))
+      ;;     (cond ((null l) r)
+      ;;           ((null r) l)
+      ;;           (t (if (zerop (random 2))
+      ;;                  (make-node :elt (node-elt (bst-max l))
+      ;;                             :r r
+      ;;                             :l (bst-remove-max l))
+      ;;                  (make-node :elt (node-elt (bst-min r))
+      ;;                             :r (bst-remove-min r)
+      ;;                             :l l))))))
+
+      ;; (defun bst-remove-min (bst)
+      ;;   (if (null (node-l bst))
+      ;;       (node-r bst)
+      ;;       (make-node :elt (node-elt bst)
+      ;;                  :l   (bst-remove-min (node-l bst))
+      ;;                  :r   (node-r bst))))
+
+      ;; (defun bst-remove-max (bst)
+      ;;   (if (null (node-r bst))
+      ;;       (node-l bst)
+      ;;       (make-node :elt (node-elt bst)
+      ;;                  :l (node-l bst)
+      ;;                  :r (bst-remove-max (node-r bst)))))
+
+
+      ;; (bst-traverse #'print #S(node :elt 1 :l #S(node :elt 2)))
+
+      ;; (bst-traverse #'print
+      ;;               (make-node
+      ;;                :elt 1
+      ;;                :l (make-node
+      ;;                    :elt 2
+      ;;                    :l (make-node
+      ;;                        :elt 3))))
+
+      ;; (define 1)
     #+END_SRC
 
 
@@ -1014,6 +1218,233 @@ TODO: Обсудить все нижеследующее с hr-специали�
   #+END_SRC
 
 * Сборка
+** Фунциональные утилиты
+
+   #+NAME: f_util
+   #+BEGIN_SRC lisp :tangle src/mod/hh/f-util.lisp :noweb tangle :exports none :padline no :comments link
+     (in-package #:moto)
+
+     <<f_util_contents>>
+   #+END_SRC
+
+*** Point-free определения:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (defmacro define (form* form)
+        (etypecase form*
+          (symbol (etypecase form
+                    ;; alias for function or macro
+                    (symbol `(defmacro ,form* (&rest args)
+                               `(,',form ,@args)))
+                    ;; alias for lambda
+                    (cons   `(defun ,form* (&rest args)
+                               (apply ,form args)))))
+          (cons     ;; scheme-like function definition
+           ` (defun ,(first form*) ,(rest form*)
+               ,form))))
+    #+END_SRC
+
+    Тут typecase используется до генерации кода - в зависимости от того символы или списки
+    связываются друг с другом генерируются различные определения. Можно определять
+    псевдонимы для функций и маросов, псевдоним будет макросом:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (define head car)
+      (define tail cdr)
+      (define \\   lambda)
+      (define $    funcall)
+    #+END_SRC
+
+    Можно определить функцию f2, которая является псевдонимом для лямбды, возвращённой
+    формой (f1 a1):
+
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (define f2 (f1 a1))
+      (f2 a2) ~ (apply (f1 a1) a2)
+    #+END_SRC
+
+    Простое определение функций в Scheme-стиле, более соответствующее представлению о
+    редукции форм:
+
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (define (f1 a1) (f2 a2))
+      (f1 a1) ~ (defun f1 (a1) (f2 a2))
+    #+END_SRC
+
+    Также, чтобы определять функции миксующую аргументы с другой функцией, можно ввести
+    такой макрос:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (defmacro define* (form* form)
+        `(defun ,(first form*) ,(rest form*)
+           (,(first form) ,@(rest form) ,@(rest form*))))
+    #+END_SRC
+
+    Пример:
+
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (define* (f1 a1) (f2 a2))
+      (f1 a1) ~ (f2 a2 a1)
+    #+END_SRC
+
+    Либо использовать карринг.
+
+*** Flip, карринг, композиции:
+
+    далее f, g, ... обозначают функции,
+          a, b, ... - их аргументы.
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (define (self object) object)
+      (define (flip f)      (\\ (a b) ($ f b a)))
+      (define (curry f a)   (\\ (b)   ($ f a b)))
+      (define (curry* f g)  (\\ (a b) ($ f g a b)))
+      (define (compose f g) (\\ (a)   ($ f ($ g a))))
+    #+END_SRC
+
+*** Свёртки и "развёртки":
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (define (foldl f a list)
+          (typecase list
+            (null a)
+            (cons (foldl f ($ f a (head list)) (tail list)))))
+
+      (define (foldr f a list)
+          (typecase list
+            (null a)
+            (cons ($ f (head list) (foldr f a (tail list))))))
+
+      (define (unfold f i p)
+          (if ($ p i)
+              (cons i '())
+              (cons i (unfold f ($ f i) p))))
+
+      (define fold foldl)
+      (define my-reduce fold)
+    #+END_SRC
+
+*** Отображения и фильтрации:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      ;; map & filter
+      (define (my-map f list) (foldr (\\ (x y) (cons ($ f x) y)) '() list))
+      (define (filter p list) (foldr (\\ (x y) (if ($ p x) (cons x y) y)) '() list))
+    #+END_SRC
+
+*** Функции для списков на основе карринга и свёрток:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      ;; functions for lists
+      (define (my-list &rest objs)         objs)
+      (define (my-length list)             (fold (\\ (x y) (1+ x)) 0 list))
+      (define (my-reverse list)            (fold (flip 'cons) '() list))
+      (define (my-append list &rest lists) (fold (flip (curry* 'foldr 'cons)) list lists))
+    #+END_SRC
+
+*** Функции для чисел:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      ;; functions for numbers
+      (define zero?                    (curry '= 0))
+      (define positive?                (curry '< 0))
+      (define negative?                (curry '> 0))
+      (define (odd? number)            (= (mod number 2) 1))
+      (define (even? number)           (= (mod number 2) 0))
+      (define (my-max a &rest numbers) (fold (\\ (y z) (if (> y z) y z)) a numbers))
+      (define (my-min a &rest numbers) (fold (\\ (y z) (if (< y z) y z)) a numbers))
+      (define (summa &rest numbers)    (fold '+ 0 numbers))
+      (define (product &rest numbers)  (fold '* 1 numbers))
+    #+END_SRC
+
+*** И для булевых чисел:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      ;; functions for booleans
+      (define (my-and &rest list)   (fold 'and t list))
+      (define (my-or &rest list)    (fold 'or nil list))
+      (define (any? p &rest list)   (apply 'my-or (my-map p list)))
+      (define (every? p &rest list) (apply 'my-and (my-map p list)))
+
+    #+END_SRC
+
+*** Многие другие функции представляются свёртками, например:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      ;; member & assoc
+      (flet ((helper (p op)
+               (\\ (a next) (if (and (not a) ($ p ($ op next))) next a))))
+
+        (define (my-member object list &key (test 'equal))
+            (fold (helper (curry test object) 'self) nil list))
+
+        (define (my-assoc object alist &key (test 'equal))
+            (fold (helper (curry test object) 'car) nil alist)))
+   #+END_SRC
+
+*** Свёртки для деревьев:
+
+    Теперь, собственно, код для деревьев. Нужно заметить, что учитывая весь код для
+    "абстракций", получается существенно меньше, чем при реализации "в лоб" (как у Грэхама,
+    например).
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      ;; for (1 . (2 . 3)) trees
+
+      (define (my-append a b)
+          (append (if (atom a) (list a) a)
+                  (if (atom b) (list b) b)))
+
+      (define (fold-tree f g tree)
+          (typecase tree
+            (atom ($ f tree))
+            (cons ($ g (fold-tree f g (head tree))
+                     (fold-tree f g (tail tree))))))
+
+      (define* (summa/tree tree) (fold-tree 'self '+))
+      (define* (depth/tree tree) (fold-tree 'one 'max+1))
+      (define* (flatten tree)    (fold-tree 'self 'my-append))
+    #+END_SRC
+
 ** Утилиты
 
    #+NAME: utility_file
