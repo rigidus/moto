@@ -264,16 +264,16 @@ TODO: Обсудить все нижеследующее с hr-специали�
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      (defun parse-match (par func)
-        (defun in-parse-match (par func)
-          (cond ((null par) nil)
-                ((atom par) #|(print par)|#)
-                (t (if (funcall func par)
-                       (return-from parse-match par)
-                       (progn
-                         (in-parse-match (car par) func)
-                         (in-parse-match (cdr par) func))))))
-        (in-parse-match par func))
+      (defun parse-match (tree predict)
+        (flet ((match-tree (tree f-predict f-in)
+                 (cond ((null tree) nil)
+                       ((atom tree) nil)
+                       (t (if (funcall f-predict tree)
+                              (return-from parse-match tree)
+                              (progn
+                                (funcall f-in (car tree) f-predict f-in)
+                                (funcall f-in (cdr tree) f-predict f-in)))))))
+          (match-tree tree predict #'match-tree)))
     #+END_SRC
 
     Это уже можно использовать вот таким образом:
@@ -281,26 +281,25 @@ TODO: Обсудить все нижеследующее с hr-специали�
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      (defparameter *test* (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
-
-      (print
-       (parse-match *test*
-            #'(lambda (x)
-                (handler-case
-                    (destructuring-bind (a ((b c)) &rest d)
-                        x
-                      (aif (and (string= a "div")
-                                (string= c "b-vacancy-custom g-round"))
-                           it))
-                  (sb-kernel::arg-count-error nil)
-                  (sb-kernel::defmacro-bogus-sublist-error nil)))))
+      (parse-match (html5-parser:node-to-xmls
+                    (html5-parser:parse-html5-fragment
+                     (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+                   #'(lambda (x)
+                       (handler-case
+                           (destructuring-bind (a ((b c)) &rest d)
+                               x
+                             (aif (and (string= a "div")
+                                       (string= c "b-vacancy-custom g-round"))
+                                  it))
+                         (sb-kernel::arg-count-error nil)
+                         (sb-kernel::defmacro-bogus-sublist-error nil))))
     #+END_SRC
 
     Но для удобной работы этого недостаточно, поэтому напишем компилер шаблона в
     соответствующий ему предикат. Этот компилер будет макросом, принимающим в качестве
     параметра форму, которая будет связываться с элементами шаблона с помощью
-    =destructuring-bind=. Попытка связывания будет провоиться для каждого элемента дерева,
-    ошибки которые возникают в случае невозможности связывания игнорируются.
+    =destructuring-bind=. Попытка связывания будет проводиться для каждого элемента дерева,
+    ошибки, которые возникают в случае невозможности связывания, игнорируются.
 
     После того, как совпадающий с образцом элемент дерева будет найден, я хотел бы иметь
     возможность работать с составляющими его элементами. Это можно обеспечить, если предикат
@@ -310,12 +309,12 @@ TODO: Обсудить все нижеследующее с hr-специали�
     шаблон вида =(a ((b c)) d &rest e)= в код вида:
 
     #+BEGIN_SRC lisp
-      (PROGN
-        (SETF **A** A)
-        (SETF **B** B)
-        (SETF **C** C)
-        (SETF **D** D)
-        (SETF **E** E))
+      (progn
+        (setf **a** a)
+        (setf **b** b)
+        (setf **c** c)
+        (setf **d** d)
+        (setf **e** e))
     #+END_SRC
 
     Там где будет раскрываться этот макрос переменные =A B C D E= определены посредством
@@ -331,7 +330,15 @@ TODO: Обсудить все нижеследующее с hr-специали�
            ,@(mapcar #'(lambda (x)
                          `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
                      (remove-if #'(lambda (x)
-                                    (or (equal x '&rest)))
+                                    (or (equal x '&rest)
+                                        (equal x '&optional)
+                                        (equal x '&body)
+                                        (equal x '&key)
+                                        (equal x '&allow-other-keys)
+                                        (equal x '&environment)
+                                        (equal x '&aux)
+                                        (equal x '&whole)
+                                        (equal x '&allow-other-keys)))
                                 (alexandria:flatten varlist)))))
 
       ;; (macroexpand-1
@@ -360,9 +367,12 @@ TODO: Обсудить все нижеследующее с hr-специали�
       (in-package #:moto)
 
       (print
-       (parse-match *test* (compile-pattern ((a ((b c)) &rest d))
-                             (string= a "div")
-                             (string= c "b-vacancy-custom g-round"))))
+       (parse-match (html5-parser:node-to-xmls
+                     (html5-parser:parse-html5-fragment
+                      (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+                    (compile-pattern ((a ((b c)) &rest d))
+                      (string= a "div")
+                      (string= c "b-vacancy-custom g-round"))))
 
       ;; => '("div" (("class" "b-vacancy-custom g-round"))
       ;;      ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
@@ -436,13 +446,12 @@ TODO: Обсудить все нижеследующее с hr-специали�
           description))
 
       (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429"))))
 
       (print
        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
 
 
-      (alexandria:flatten '(1 (2 3) (4 (5 6 (7 8) 9)) 10))
 
       ;;     (defun in-descr (par)
       ;;       (cond ((null par) nil)
