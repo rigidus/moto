@@ -60,16 +60,142 @@
             result))))))
 (in-package #:moto)
 
-(defun parse-match (par func)
-  (defun in-parse-match (par func)
-    (cond ((null par) nil)
-          ((atom par) #|(print par)|#)
-          (t (if (funcall func par)
-                 (return-from parse-match par)
-                 (progn
-                   (in-parse-match (car par) func)
-                   (in-parse-match (cdr par) func))))))
-  (in-parse-match par func))
+(defun tree-match (tree predict &key (if-match :return-first-match) (if-atom #'identity))
+  (let ((collect))
+    (flet ((match-tree (tree f-predict f-in &key
+                             (if-atom #'identity)
+                             (if-match :return-first-match))
+             (cond ((null tree) nil)
+                   ((atom tree)
+                    (funcall if-atom tree))
+                   (t
+                    (if (funcall f-predict tree)
+                        (cond ((equal if-match :return-first-match)
+                               (return-from tree-match
+                                 (if (equal if-atom #'identity)
+                                     tree
+                                     (funcall f-in
+                                              tree
+                                              #'(lambda (x)
+                                                  (declare (ignore x))
+                                                  nil)
+                                              f-in
+                                              :if-match if-match :if-atom if-atom))))
+                              ((equal if-match :return-first-level-match)
+                               (setf collect
+                                     (append collect
+                                             (if (equal if-atom #'identity)
+                                                 tree
+                                                 (funcall f-in
+                                                          tree
+                                                          #'(lambda (x)
+                                                              (declare (ignore x))
+                                                              nil)
+                                                          f-in
+                                                          :if-match if-match :if-atom if-atom)))))
+                              ((equal if-match :return-all-match)
+                               (progn
+                                 (setf collect
+                                       (append collect
+                                               (if (equal if-atom #'identity)
+                                                   tree
+                                                   (funcall f-in
+                                                            tree
+                                                            #'(lambda (x)
+                                                                (declare (ignore x))
+                                                                nil)
+                                                            f-in
+                                                            :if-match if-match :if-atom if-atom))))
+                                 (cons
+                                  (funcall f-in (car tree) f-predict f-in :if-match if-match :if-atom if-atom)
+                                  (funcall f-in (cdr tree) f-predict f-in :if-match if-match :if-atom if-atom))))
+                              ((equal 'function (type-of if-match))
+                               (funcall if-match tree))
+                              (t (error 'strategy-not-implemented)))
+                        (cons
+                         (funcall f-in (car tree) f-predict f-in :if-match if-match :if-atom if-atom)
+                         (funcall f-in (cdr tree) f-predict f-in :if-match if-match :if-atom if-atom)))))))
+      (let ((result (match-tree tree predict #'match-tree :if-match if-match :if-atom if-atom)))
+        (if (or (equal if-match :return-first-level-match)
+                (equal if-match :return-all-match))
+            collect
+            result))
+      )))
+
+(tree-match '("div"
+              (("class" "b-vacancy-custom g-round"
+                ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
+                ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
+                ("table" (("class" "l"))
+                         ("tbody" NIL
+                                  ("tr" NIL
+                                        ("td" (("colspan" "2") ("class" "l-cell"))
+                                              ("div" (("class" "employer-marks g-clearfix"))
+                                                     ("div" (("class" "companyname"))
+                                                            ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
+                                                                 "ООО Нимбл"))))
+                                        ("td" (("class" "l-cell"))))))))
+              (("class" "g-round plus"))
+              ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик"))))
+            #'(lambda (x)
+                (handler-case
+                    (destructuring-bind ((a b &rest c))
+                        x
+                      (aif (and (stringp a)
+                                (string= a "class"))
+                           it))
+                  (sb-kernel::arg-count-error nil)
+                  (sb-kernel::defmacro-bogus-sublist-error nil)))
+            :if-match :return-first-level-match
+            :if-atom #'(lambda (atom)
+                         (if (stringp atom)
+                             (intern (string-upcase atom))
+                             atom)))
+
+(tree-match (html5-parser:node-to-xmls
+              (html5-parser:parse-html5-fragment
+               (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+             #'(lambda (x)
+                 (handler-case
+                     (destructuring-bind (a ((b c)) &rest d)
+                         x
+                       (aif (and (string= a "div")
+                                 (string= c "b-vacancy-custom g-round"))
+                            it))
+                   (sb-kernel::arg-count-error nil)
+                   (sb-kernel::defmacro-bogus-sublist-error nil)))
+             :if-match :return-first-match
+             :if-atom #'(lambda (atom)
+                          (if (stringp atom)
+                              (intern (string-upcase atom))
+                              atom)))
+
+(tree-match '("div" (("class" "b-vacancy-custom g-round"))
+               ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
+               ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
+               ("table" (("class" "l"))
+                ("tbody" NIL
+                 ("tr" NIL
+                       ("td" (("colspan" "2") ("class" "l-cell"))
+                             ("div" (("class" "employer-marks g-clearfix"))
+                                    ("div" (("class" "companyname"))
+                                           ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
+                                                "ООО Нимбл"))))
+                       ("td" (("class" "l-cell")))))))
+             #'(lambda (x)
+                 (handler-case
+                     (destructuring-bind (a ((b c)) &rest d)
+                         x
+                       (aif (and (string= a "table"))
+                            it))
+                   (sb-kernel::arg-count-error nil)
+                   (sb-kernel::defmacro-bogus-sublist-error nil)))
+             :if-match :return-transform
+             :if-atom #'(lambda (atom)
+                          (if (stringp atom)
+                              (intern (string-upcase atom))
+                              atom)))
+
 (in-package #:moto)
 
 (defmacro binder (varlist)
@@ -77,7 +203,15 @@
      ,@(mapcar #'(lambda (x)
                    `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
                (remove-if #'(lambda (x)
-                              (or (equal x '&rest)))
+                              (or (equal x '&rest)
+                                  (equal x '&optional)
+                                  (equal x '&body)
+                                  (equal x '&key)
+                                  (equal x '&allow-other-keys)
+                                  (equal x '&environment)
+                                  (equal x '&aux)
+                                  (equal x '&whole)
+                                  (equal x '&allow-other-keys)))
                           (alexandria:flatten varlist)))))
 
 ;; (macroexpand-1
@@ -144,13 +278,12 @@
     description))
 
 (print
- (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429"))))
 
 (print
  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
 
 
-(alexandria:flatten '(1 (2 3) (4 (5 6 (7 8) 9)) 10))
 
 ;;     (defun in-descr (par)
 ;;       (cond ((null par) nil)
