@@ -3,6 +3,44 @@
 
 (in-package #:moto)
 
+(defun maptree-if (predicate transformer tree)
+  (multiple-value-bind (t-tree control)
+      (if (funcall predicate tree)
+          (funcall transformer tree)
+          (values tree #'mapcar))
+    (if (and (consp t-tree)
+             control)
+        (funcall control
+                 #'(lambda (x)
+                     (maptree-if predicate transformer x))
+                 t-tree)
+        t-tree)))
+(in-package #:moto)
+
+(defmacro with-predict-maptree (pattern condition replace tree)
+  (let ((lambda-param (gensym)))
+    `(maptree-if #'(lambda (,lambda-param)
+                     (and (consp ,lambda-param)
+                        (funcall (with-predict-if ,pattern
+                                   ,condition)
+                                 ,lambda-param)))
+                 ,replace
+                 ,tree)))
+
+;; (macroexpand-1
+;;  '(with-predict-maptree (a b &rest c)
+;;    (and (equal b 'ping))
+;;    #'(lambda (x)
+;;        (values `(,**a** pong ,@(cddr x)) #'mapcar))
+;;    '(progn (ping (ping ping (ping 1))) ping)))
+
+;; (with-predict-maptree (a b &rest c)
+;;   (and (equal b 'ping))
+;;   #'(lambda (x)
+;;       (values `(,**a** pong ,@(cddr x)) #'mapcar))
+;;   '(progn (ping (ping ping (ping 1))) ping))
+(in-package #:moto)
+
 (defmacro define (form* form)
   (etypecase form*
     (symbol (etypecase form
@@ -114,50 +152,6 @@
 (define* (flatten tree)    (fold-tree 'self 'my-append))
 
 (in-package #:moto)
-
-(defun tutorial1 (req ent)
-  (declare (ignore req ent))
-  (html
-   (:html
-    (:head (:title "ParenScript tutorial: 1st example"))
-    (:body (:h1 "ParenScript tutorial: 1st example")
-           (:p "Please click the link below." :br
-               ((:a :href "#" :onclick (ps-inline
-                                        (alert "Hello World")))
-                "Hello World"))))))
-
-(defun maptree-if (predicate transformer tree)
-  "
-Returns a new tree by recursively calling @arg{transformer} on sub-trees which satisfy the @arg{predicate}.
-@arg{predicate} : tree -> boolean
-@arg{transformer}: tree -> (or tree atom) *control
-If the transformer returns a @arg{control} function, then the tree returned by
-the transformer is replaced in-turn by the result of:
-> (funcall @arg{control} #'(lambda (x) (maptree-if @arg{predicate} @arg{transformer} x)) transformed-tree)
-, otherwise it is left as it is.
-Example:
-@lisp
-> (maptree-if #'(λ (x) (and (consp x) (eq (car x) 'ping)))
-#'(λ (x) `(pong ,@(cdr x)))
-'(progn (ping (ping (ping 1)))))
->= (PROGN (PONG (PING (PING 1))))
-> (maptree-if #'(λ (x) (and (consp x) (eq (car x) 'ping)))
-#'(λ (x) (values `(pong ,@(cdr x)) #'mapcar))
-'(progn (ping (ping (ping 1)))))
->= (PROGN (PONG (PONG (PONG 1))))
-@end lisp
-"
-  (multiple-value-bind (t-tree control)
-      (if (funcall predicate tree)
-          (funcall transformer tree)
-          (values tree #'mapcar))
-    (if (and (consp t-tree)
-             control)
-        (funcall control
-                 #'(lambda (x)
-                     (maptree-if predicate transformer x))
-                 t-tree)
-        t-tree)))
 
 (defun my-range (n)
   (let ((i 0))

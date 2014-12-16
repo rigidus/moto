@@ -553,12 +553,167 @@ TODO: Обсудить все нижеследующее с hr-специали�
     - блок заголовка
     - общие данные, такие как уровень зарплаты, город, требуемый опыт работы
     - собственно описание вакансии
-    Из каждого блока будем извлекать конкретные данные, возвращаемы как plist
+    Из каждого блока будем извлекать конкретные данные, возвращаемы как plist.
+
+    Однако с описанием вакансии есть некоторые сложности - оно представляет из себя дерево,
+    в котором нам важна структура, так как требования, обязанности и прочее описываются
+    списком. В этом списке много лишнего форматирования, для удаления которого нам
+    необходимо уметь преобразовывать дерево.
+
+    Напишем для этого рекурсивный преобразователь, который возвращает новое дерево,
+    рекурсивно вызывая аргумент =transformer= на =sub-tree=, которые удовлетворяют аргументу
+    =predicate=.
+
+    Аргумент =predicate= должен быть лямбда-функцией, которая принимает на вход =subtree= и
+    возвращает T или NIL
+
+    Аргумент =transformer= должен быть лямбда-функцией, которая принимает на вход =subtree= и
+    возвращает =atom= или =subtree= в первом параметре, а во втором может возвратить функцию
+    =control=. Если эта функция возвращена, тогда дерево возвращается с замененным
+    =transformer=-ом узлами по следующему алгоритму:
+
+    #+BEGIN_SRC lisp :exports none
+      (funcall control
+               #'(lambda (x)
+                   (maptree-if predicate transformer x))
+               transformed-tree)
+    #+END_SRC
+
+    В противном случае оно возвращается как есть.
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (defun maptree-if (predicate transformer tree)
+        (multiple-value-bind (t-tree control)
+            (if (funcall predicate tree)
+                (funcall transformer tree)
+                (values tree #'mapcar))
+          (if (and (consp t-tree)
+                   control)
+              (funcall control
+                       #'(lambda (x)
+                           (maptree-if predicate transformer x))
+                       t-tree)
+              t-tree)))
+    #+END_SRC
+
+    Несколько примеров работы:
+
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      ;; Нерекурсивная замена
+      (maptree-if #'(lambda (x)
+                      (and (consp x)
+                           (eq (car x) 'ping)))
+                  #'(lambda (x)
+                      `(pong ,@(cdr x)))
+                  '(progn (ping (ping (ping 1)))))
+      ;; => (PROGN (PONG (PING (PING 1))))
+
+      ;; Рекурсивная замена
+      (maptree-if #'(lambda (x)
+                      (and (consp x)
+                           (eq (car x) 'ping)))
+                  #'(lambda (x)
+                      (values `(pong ,@(cdr x)) #'mapcar))
+                  '(progn (ping (ping (ping 1)))
+                    ping))
+      ;; => (PROGN (PONG (PONG (PONG 1))))
+
+      ;; Применение совместно с with-predict-if и использованием **переменных**
+      (maptree-if #'(lambda (x)
+                      (and (consp x)
+                           (funcall (with-predict-if (a b &rest c)
+                                      (and (equal b 'ping)))
+                                    x)))
+                  #'(lambda (x)
+                      (values `(,**a** pong ,@(cddr x)) #'mapcar))
+                  '(progn (ping (ping ping (ping 1)))
+                    ping))
+    #+END_SRC
+
+    И макрос для более лаконичной записи того же:
+
+    #+NAME: f_util_contents
+    #+BEGIN_SRC lisp :exports none
+      (in-package #:moto)
+
+      (defmacro with-predict-maptree (pattern condition replace tree)
+        (let ((lambda-param (gensym)))
+          `(maptree-if #'(lambda (,lambda-param)
+                           (and (consp ,lambda-param)
+                              (funcall (with-predict-if ,pattern
+                                         ,condition)
+                                       ,lambda-param)))
+                       ,replace
+                       ,tree)))
+
+      ;; (macroexpand-1
+      ;;  '(with-predict-maptree (a b &rest c)
+      ;;    (and (equal b 'ping))
+      ;;    #'(lambda (x)
+      ;;        (values `(,**a** pong ,@(cddr x)) #'mapcar))
+      ;;    '(progn (ping (ping ping (ping 1))) ping)))
+
+      ;; (with-predict-maptree (a b &rest c)
+      ;;   (and (equal b 'ping))
+      ;;   #'(lambda (x)
+      ;;       (values `(,**a** pong ,@(cddr x)) #'mapcar))
+      ;;   '(progn (ping (ping ping (ping 1))) ping))
+    #+END_SRC
+
+    Теперь, когда вся теоретическая подготовка проведена, можно заняться практикой и
+    написать функцию, которая трансформирует описание, очищая его от всего лишнего:
 
     #+NAME: hh_fn_contents
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
+      (defun transform-description (tree-descr)
+        (let ((result)
+              (header))
+          (mapcar #'(lambda (item)
+                      (unless (equal " " item)
+                        (cond ((and (null header) (consp item) (equal 1 (length item)))
+                               (setf header (car item)))
+                              ((and (not (null header)) (consp item) (not (equal 1 (length item))))
+                               (progn
+                                 (setf result (append result (list (list header item))))
+                                 (setf header nil)))
+                              (t (setf result (append result (list item)))))))
+                  (cddr
+                   (with-predict-maptree (ul nil-1 &rest tail)
+                          (and (or (equal ul "ul")
+                                   (equal ul "p"))
+                               (equal nil-1 'nil))
+                          #'(lambda (x)
+                              (values (remove-if #'(lambda (y)
+                                                     (and (not (consp y)) (equal y " ")))
+                                                 ,**tail**)
+                                      #'mapcar))
+                          (with-predict-maptree (tag nil-1 point)
+                            (and (or (equal tag "li")
+                                     (equal tag "em"))
+                                 (equal nil-1 'nil))
+                            #'(lambda (x)
+                                (values **point** #'mapcar))
+                            (with-predict-maptree (tag nil-1 point)
+                              (and (equal tag "strong")
+                                   (equal nil-1 'nil))
+                              #'(lambda (x)
+                                  (values **point** #'mapcar))
+                              tree-descr)))))
+          result))
+    #+END_SRC
+
+    И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
+
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
 
       (defun hh-parse-vacancy (html)
         "Получение вакансии из html"
@@ -566,7 +721,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
                (header (tree-match tree (with-predict-if (a ((b c)) &rest d)
                                           (string= c "b-vacancy-custom g-round"))))
                (summary (tree-match tree (with-predict-if (a ((b c)) &rest d)
-                                              (string= c "b-important b-vacancy-info"))))
+                                           (string= c "b-important b-vacancy-info"))))
                (infoblock (tree-match tree (with-predict-if (a ((b c)) &rest d)
                                              (string= c "l-content-2colums b-vacancy-container"))))
                (h1 (tree-match header (with-predict-if (a ((b c)) title &rest archive-block)
@@ -590,7 +745,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
                                                    (string= l-paddings "l-paddings")
                                                    (string= salaryCurrency "salaryCurrency")
                                                    (string= baseSalary "baseSalary")
-                                                  ))))
+                                                   ))))
                (-salary-currency- **currency**)
                (-salary- **value**)
                (-salary-text- **salary-text**)
@@ -600,264 +755,18 @@ TODO: Обсудить все нижеследующее с hr-специали�
                (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) x)
                                                (string= e "experienceRequirements"))))
                (-exp- **x**)
-               (description (tree-match infoblock (with-predict-if (a ((b c) (d e)) &rest descr)
-                                                    (string= c "b-vacancy-desc-wrapper")
-                                                    (string= e "description"))))
-               )
-          description
+               (-description-
+                (transform-description
+                 (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
+                                    (string= c "b-vacancy-desc-wrapper"))))))
+          -description-
           ))
 
-          (print
-           (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
-
-          ;; Когда мы получаем description, в нем много лишнего, поэтому мы попытаемся его преобразовать
-          ;; Удалив nil после тегов
-          (tree-match description
-          description))
-
       (print
-        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
       (print
        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
-
-
-
-      ;;     (defun in-descr (par)
-      ;;       (cond ((null par) nil)
-      ;;             ((atom par) ;; (cond ((equal par '&rest) nil)
-      ;;                         ;;       (t (setf result (append result (list par)))))
-      ;;              (print par)
-      ;;              )
-      ;;             (t (progn
-      ;;                  (in-descr (car par))
-      ;;                  (in-descr (cdr par))))))
-
-      ;;     (in-descr **descr**)
-      ;;     ))
-
-      ;;   (mapt
-
-
-
-      ;; (defun map-tree (f tree)
-      ;;   (typecase tree
-      ;;     (cons
-      ;;      (cons (map-tree f (car tree))
-      ;;            (if (cdr tree)
-      ;;                (map-tree f (cdr tree))
-      ;;                nil)))
-      ;;     (t (funcall f tree))))
-
-      ;; (map-tree #'(lambda (x)
-      ;;               (print x))
-      ;;           '(compile-pattern ((a ((b c) (d e)) &rest descr))
-      ;;             (string= c "b-vacancy-desc-wrapper")
-      ;;             (string= e "description")))
-
-      ;; (mapcar
-
-
-      ;; (defun fold-left (function accumulator list)
-      ;;   (typecase list
-      ;;     (null accumulator)
-      ;;     (cons (fold-left function
-      ;;                      (funcall function accumulator (car list))
-      ;;                      (cdr list)))))
-
-      ;; (let ((res "xyz"))
-      ;;   (fold-left #'(lambda (acc elt)
-      ;;                  (concatenate 'string acc elt))
-      ;;              res
-      ;;              '("a" "b" "c" "d" "e")))
-
-      ;; (defun fold-left* (function list)
-      ;;     (fold-left function (car list) (cdr list)))
-
-      ;; (fold-left* #'(lambda (acc elt)
-      ;;                 (concatenate 'string acc elt))
-      ;;             '("a" "b" "c" "d" "e"))
-
-      ;; (defun left-folder (function accumulator)
-      ;;   (lambda (list)
-      ;;     (typecase list
-      ;;       (null accumulator)
-      ;;       (cons (fold-left function
-      ;;                        (funcall function accumulator (car list))
-      ;;                        (cdr list))))))
-
-      ;; (let ((res "xyz"))
-      ;;   (funcall (left-folder #'(lambda (acc elt)
-      ;;                             (concatenate 'string acc elt))
-      ;;                         res)
-      ;;            '("a" "b" "c")))
-
-      ;; (defun left-folder* (function)
-      ;;   (lambda (list)
-      ;;     (funcall (left-folder function (car list))
-      ;;              (cdr list))))
-
-      ;; (funcall (left-folder* #'(lambda (acc elt)
-      ;;                            (concatenate 'string acc elt)))
-      ;;          '("a" "b" "c"))
-
-      ;; (defun fold-rigth (function accumulator list)
-      ;;   (typecase list
-      ;;     (null accumulator)
-      ;;     (cons (let ((temp (fold-rigth function accumulator (cdr list))))
-      ;;             (funcall function (car list) temp)))))
-
-      ;; (let ((res "xyz"))
-      ;;   (fold-rigth #'(lambda (acc elt)
-      ;;                   (concatenate 'string acc elt))
-      ;;               res
-      ;;               '("a" "b" "c" "d" "e")))
-
-      ;; (defun fold-rigth* (function list)
-      ;;   (fold-rigth function (car list) (cdr list)))
-
-      ;; (fold-rigth* #'(lambda (acc elt)
-      ;;                  (concatenate 'string acc elt)) '("a" "b" "c" "d" "e"))
-
-      ;; (defun right-folder* (function)
-      ;;   (lambda (list)
-      ;;     (funcall (right-folder function (car list))
-      ;;              (cdr list))))
-
-
-      ;; (funcall (right-folder* #'(lambda (acc elt)
-      ;;                             (concatenate 'string acc elt)))
-      ;;          nil)
-      ;;          '("a" "b" "c"))
-
-      ;; (defun flatten (tree)
-      ;;   (fold-tree tree
-      ;;              (lambda (e) e)
-      ;;              (lambda (l r) (list l r))))
-
-      ;; (defun flatten(lst)
-      ;;   (mapcan #'(lambda(x)
-      ;;               (if (consp x)
-      ;;                   (flatten x)
-      ;;                   (list x)))
-      ;;           lst))
-
-      ;; (defun flatten-1 (tree)
-      ;;   (labels ((lbl (tree acc)
-      ;;              (cond ((null tree) acc)
-      ;;                    ((atom tree) (cons tree acc))
-      ;;                    (t (lbl (car tree)
-      ;;                            (lbl (cdr tree)
-      ;;                                 acc))))))
-      ;;     (lbl tree nil)))
-
-
-      ;; (defstruct (node (:print-function
-      ;;                   (lambda (n s d)
-      ;;                     (declare (ignore d))
-      ;;                     (format s "#<~A>" (node-elt n)))))
-      ;;   elt
-      ;;   (l nil)
-      ;;   (r nil))
-
-      ;; (node-elt (make-node :elt 'aaa))
-
-      ;; (defun bst-insert (obj bst <)
-      ;;   (if (null bst)
-      ;;       (make-node :elt obj)
-      ;;       (let ((elt (node-elt bst)))
-      ;;         (if (eql obj elt)
-      ;;             bst
-      ;;             (if (funcall < obj elt)
-      ;;                 (make-node
-      ;;                  :elt elt
-      ;;                  :l   (bst-insert obj (node-l bst) <)
-      ;;                  :r   (node-r bst))
-      ;;                 (make-node
-      ;;                  :elt elt
-      ;;                  :r   (bst-insert obj (node-r bst) <)
-      ;;                  :l   (node-l bst)))))))
-
-      ;; (defun bst-find (obj bst <)
-      ;;   (if (null bst)
-      ;;       nil
-      ;;       (let ((elt (node-elt bst)))
-      ;;         (if (eql obj elt)
-      ;;             bst
-      ;;             (if (funcall < obj elt)
-      ;;                 (bst-find obj (node-l bst) <)
-      ;;                 (bst-find obj (node-r bst) <))))))
-
-      ;; (defun bst-min (bst)
-      ;;   (and bst
-      ;;        (or (bst-min (node-l bst)) bst)))
-
-      ;; (defun bst-max (bst)
-      ;;   (and bst
-      ;;        (or (bst-max (node-r bst)) bst)))
-
-      ;; (defun bst-traverse (fn bst)
-      ;;   (when bst
-      ;;     (bst-traverse fn (node-l bst))
-      ;;     (funcall fn (node-elt bst))
-      ;;     (bst-traverse fn (node-r bst))))
-
-      ;; ;; >>> Replaces bst-remove from book, which was broken.
-
-      ;; (defun bst-remove (obj bst <)
-      ;;   (if (null bst)
-      ;;       nil
-      ;;       (let ((elt (node-elt bst)))
-      ;;         (if (eql obj elt)
-      ;;             (percolate bst)
-      ;;             (if (funcall < obj elt)
-      ;;                 (make-node
-      ;;                  :elt elt
-      ;;                  :l (bst-remove obj (node-l bst) <)
-      ;;                  :r (node-r bst))
-      ;;                 (make-node
-      ;;                  :elt elt
-      ;;                  :r (bst-remove obj (node-r bst) <)
-      ;;                  :l (node-l bst)))))))
-
-      ;; (defun percolate (bst)
-      ;;   (let ((l (node-l bst)) (r (node-r bst)))
-      ;;     (cond ((null l) r)
-      ;;           ((null r) l)
-      ;;           (t (if (zerop (random 2))
-      ;;                  (make-node :elt (node-elt (bst-max l))
-      ;;                             :r r
-      ;;                             :l (bst-remove-max l))
-      ;;                  (make-node :elt (node-elt (bst-min r))
-      ;;                             :r (bst-remove-min r)
-      ;;                             :l l))))))
-
-      ;; (defun bst-remove-min (bst)
-      ;;   (if (null (node-l bst))
-      ;;       (node-r bst)
-      ;;       (make-node :elt (node-elt bst)
-      ;;                  :l   (bst-remove-min (node-l bst))
-      ;;                  :r   (node-r bst))))
-
-      ;; (defun bst-remove-max (bst)
-      ;;   (if (null (node-r bst))
-      ;;       (node-l bst)
-      ;;       (make-node :elt (node-elt bst)
-      ;;                  :l (node-l bst)
-      ;;                  :r (bst-remove-max (node-r bst)))))
-
-
-      ;; (bst-traverse #'print #S(node :elt 1 :l #S(node :elt 2)))
-
-      ;; (bst-traverse #'print
-      ;;               (make-node
-      ;;                :elt 1
-      ;;                :l (make-node
-      ;;                    :elt 2
-      ;;                    :l (make-node
-      ;;                        :elt 3))))
-
-      ;; (define 1)
     #+END_SRC
 
 ** Поиск вакансий
@@ -1624,97 +1533,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
     #+END_SRC
 
 ** Другие утилиты
-
-   Возвращает новое дерево рекурсивно вызывая аргумент =transformer= на под-деревья, которые
-   удовлетворяют аргументу =predicate=.
-
-   Аргумент =predicate= должен быть лямбда-функцией, которая принимает на вход =subtree= и
-   возвращает T или NIL
-
-   Аргумент =transformer= должен быть лямбда-функцией, которая принимает на вход =subtree= и
-   возвращает =atom= или =subtree= в первом параметре, а во втором может возвратить функцию
-   =control=. Если эта функция возвращена, тогда дерево возвращается с замененным
-   =transformer=-ом узлами:
-
-   #+BEGIN_SRC lisp :exports none
-     (funcall control
-              #'(lambda (x)
-                  (maptree-if predicate transformer x))
-              transformed-tree)
-   #+END_SRC
-
-   В противном случае оно возвращается как есть.
-
-   #+NAME: f_util_contents
-   #+BEGIN_SRC lisp :exports none
-     (in-package #:moto)
-
-     (defun maptree-if (predicate transformer tree)
-       (multiple-value-bind (t-tree control)
-           (if (funcall predicate tree)
-               (funcall transformer tree)
-               (values tree #'mapcar))
-         (if (and (consp t-tree)
-                  control)
-             (funcall control
-                      #'(lambda (x)
-                          (maptree-if predicate transformer x))
-                      t-tree)
-             t-tree)))
-   #+END_SRC
-
-   Например:
-
-   #+BEGIN_SRC lisp :exports none
-     (in-package #:moto)
-
-     (maptree-if #'(lambda (x)
-                     (and (consp x)
-                          (eq (car x) 'ping)))
-                 #'(lambda (x)
-                     `(pong ,@(cdr x)))
-                 '(progn (ping (ping (ping 1)))))
-
-     ;; => (PROGN (PONG (PING (PING 1))))
-
-     (trace maptree-if)
-
-     (maptree-if #'(lambda (x)
-                     (and (consp x)
-                          (eq (car x) 'ping)))
-                 #'(lambda (x)
-                     (values `(pong ,@(cdr x)) #'mapcar))
-                 '(progn (ping (ping (ping 1)))
-                    ping))
-
-     ;; => (PROGN (PONG (PONG (PONG 1))))
-
-     (maptree-if #'(lambda (x)
-                     (and
-                      (consp x)
-                      (equal (cadr x) 'ping)))
-                 #'(lambda (x)
-                     (let ((r x))
-                       (setf (nth 1 r) 'ppp)
-                       (values r  #'mapcar)))
-                 '(progn (ping (ping ping (ping 1)))
-                   ping))
-
-
-     (maptree-if #'(lambda (x)
-                     (and
-                      (consp x)
-                      (funcall (with-predict-if (a b &rest c)
-                                 (and (equal a 'ping)))
-                               x)))
-                 #'(lambda (x)
-                     (let ((r x))
-                       (setf (nth 1 r) 'ppp)
-                       (values r  #'mapcar)))
-                 '(progn (ping (ping ping (ping 1)))
-                   ping))
-   #+END_SRC
-
 
    #+NAME: f_util_contents
    #+BEGIN_SRC lisp :exports none
