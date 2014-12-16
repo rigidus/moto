@@ -276,36 +276,18 @@ TODO: Обсудить все нижеследующее с hr-специали�
       (flet ((match-tree (tree f-predict f-in &key
                                <<params>>)
                (cond ((null tree) nil)
-                     ((atom tree)
-                      <<atom>>)
+                     ((atom tree) nil)
                      (t
                       <<cons>>))))
         <<call>>
         )
     #+END_SRC
 
-    Теперь рассмотрим, что происходит, когда в дереве обнаруживается =atom=. Мы можем
-    воспользоваться этим местом, чтобы провести какое-либо преобразование над атомарными
-    элементами дерева, при этом задавая это преобразование снаружи, передавая в параметрах
-    лямбда-функцию. Тогда заполним плейсхолдер =atom= так:
-
-    #+NAME: atom
-    #+BEGIN_SRC lisp
-      (funcall if-atom tree)
-    #+END_SRC
-
-    А в параметры добавим ключевой параметр =if-atom=:
-
-    #+NAME: params
-    #+BEGIN_SRC lisp
-      (if-atom #'identity)
-    #+END_SRC
-
     Теперь переходим к рассмотрению плейсхолдера =cons=, который выполняет основную
     работу. В первую очередь нам следует сравнить текущий узел с параметром =predict= и в
     случае если =predict= вернул T - выполнить какие-то действия. В противном случае -
     обрабатываем поддеревья этого узла. Поскольку мы пока еще не определили полный список
-    параметров функции, то в месте ее вызова оставить плейсхолдер =call_params=
+    параметров функции, то в месте ее вызова оставим плейсхолдер =call_params=
 
     #+NAME: cons
     #+BEGIN_SRC lisp
@@ -332,8 +314,8 @@ TODO: Обсудить все нижеследующее с hr-специали�
       высоком уровне.
     Реализуем эти стратегии друг за другом.
 
-    Для того, чтобы иметь возможность передавать стратегию в функцию расширим список
-    ключевых параметров еще одним =if-match=:
+    Для того, чтобы иметь возможность передавать стратегию в функцию, определим ключевой
+    параметр =if-match=:
 
     #+NAME: params
     #+BEGIN_SRC lisp
@@ -345,14 +327,14 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
     #+NAME: call_params
     #+BEGIN_SRC lisp
-      :if-match if-match :if-atom if-atom
+      :if-match if-match
     #+END_SRC
 
     Реализуем выбор стратегии в общих чертах - будем использовать =cond= по параметру
     =if-match=. В случае, если в этом параметре не лежит keyword symbol с именем стратегии -
     считаем, что там функция, если это не так - сигнализируем ошибку
     =strategy-not-implemented= (которая пока нигде не определена - я считаю что ее имя
-    говорить само за себя).
+    говорит само за себя).
 
     #+NAME: match_ok
     #+BEGIN_SRC lisp
@@ -370,45 +352,23 @@ TODO: Обсудить все нижеследующее с hr-специали�
     Теперь приступим к реализации (первой) стратегии: немедленного возврата совпавшего
     узла. Для этого нам понадобится определить внешнюю функцию =tree-match=, чтобы
     возвращаться из нее, а не из текущего рекурсивного вызова =match-tree=. Мы сделаем это
-    несколько позже, а пока заполним плейсхолдер =return-first-match=. Здесь следует
-    пояснить, что мы считаем, что если в параметре =if-atom= передано что-то отличное от
-    #'identity - то это значит, что перед возвратом все атомы должны быть преобразованы в
-    соответствии с этой лямбдой. Чтобы при этом не задействовать механизм сопоставления с
-    образцом - передаем в параметре =predict= лямбду, которая всегда возвращает
-    nil. Поскольку этот код будет встречаться и в дальнейшем, вынесем его в отдельный блок:
-
-    #+NAME: convert_if_necessary
-    #+BEGIN_SRC lisp
-      (if (equal if-atom #'identity)
-          tree
-          (funcall f-in
-                   tree
-                   #'(lambda (x)
-                       (declare (ignore x))
-                       nil)
-                   f-in
-                   <<call_params>>))
-    #+END_SRC
-
-    Теперь нам просто оформить возврат из внешнй функции:
+    несколько позже, а пока заполним плейсхолдер =return-first-match=:
 
     #+NAME: return-first-match
     #+BEGIN_SRC lisp
-      (return-from tree-match
-        <<convert_if_necessary>>)
+      (return-from tree-match tree)
     #+END_SRC
 
     Теперь переходим ко второй стратегии - прекратить обработку всех подузлов сопавшего
     узла, запомнить его и перейти к обработке следующего за ним. Нам понадобиться переменная
     =collect= чтобы хранить значения, запомним это и реализуем добавление узла в нее. После
-    того, как узел сохранен мы не проводим обработку его под-деревьев, а переходим в
+    того, как узел сохранен, мы не проводим обработку его под-деревьев, а переходим в
     следующему узлу этого уровня.
 
     #+NAME: return-first-level-match
     #+BEGIN_SRC lisp
       (setf collect
-            (append collect
-                    <<convert_if_necessary>>))
+            (append collect (list tree)))
     #+END_SRC
 
     И наконец, реализуем последнюю оставшуюся стратегию, которая представляет из себя
@@ -421,84 +381,149 @@ TODO: Обсудить все нижеследующее с hr-специали�
         <<sub_trees>>)
     #+END_SRC
 
-    Теперь нам осталось лишь правильно возвращать результат в зависимости от того
-    используются ли аккумулирующие стратегии:
+    Теперь нам осталось лишь правильно возвращать результат. Если используются
+    аккумулирующие стратегии, то мы возвращаем содержимое переменной =collect=, в случае
+    немедленного возврата совпавшего узла мы никогда не окажемся в этом месте, а в случае
+    передачи в =if-match= лямбда-фукции - мы будем считать, что она как-нибудь сама
+    заботится о передачи значений. Поэтому всегда будем возвращать =collect=.
 
     #+NAME: call
     #+BEGIN_SRC lisp
-      (let ((result (match-tree tree predict #'match-tree :if-match if-match :if-atom if-atom)))
-        (if (or (equal if-match :return-first-level-match)
-                (equal if-match :return-all-match))
-            collect
-            result))
+      (match-tree tree predict #'match-tree :if-match if-match)
+      collect
     #+END_SRC
 
-    И обернуть это все во внешнюю функцию, с аккумулятором:
+    Осталось обернуть это все во внешнюю функцию, с аккумулятором:
 
     #+NAME: tree-match
     #+BEGIN_SRC lisp
-      (defun tree-match (tree predict &key (if-match :return-first-match) (if-atom #'identity))
+      (defun tree-match (tree predict &key (if-match :return-first-match))
         (let ((collect))
           <<cond_tree>>))
     #+END_SRC
 
-    Здесь некоторые тесты:
+    И теперь мы можем поместить все это в выходной файл
 
     #+NAME: hh_fn_contents
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
       <<tree-match>>
+    #+END_SRC
+
+    Но для удобной работы этого недостаточно, поэтому напишем компилер шаблона в
+    соответствующий ему =predict=. Этот компилер будет принимать в качестве параметра форму,
+    которая будет связываться с элементами шаблона с помощью =destructuring-bind=. Попытка
+    связывания будет проводиться для каждого элемента дерева, ошибки, которые возникают в
+    случае невозможности связывания, игнорируются.
+
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defmacro with-predict (pattern &body body)
+        `#'(lambda (lambda-param)
+             (handler-case
+                 (destructuring-bind ,pattern
+                     lambda-param
+                   ,@body)
+               (sb-kernel::arg-count-error nil)
+               (sb-kernel::defmacro-bogus-sublist-error nil))))
+
+      ;; (macroexpand-1 '
+      ;;  (with-predict (a ((b c)) d &rest e)
+      ;;    (aif (and (string= a "div")
+      ;;              (string= c "title b-vacancy-title"))
+      ;;         (prog1 it
+      ;;           (setf **a** a)
+      ;;           (setf **b** b)))))
+
+      ;; => #'(LAMBDA (LAMBDA-PARAM)
+      ;;        (HANDLER-CASE
+      ;;            (DESTRUCTURING-BIND
+      ;;                  (A ((B C)) D &REST E)
+      ;;                LAMBDA-PARAM
+      ;;              (AIF (AND (STRING= A "div") (STRING= C "title b-vacancy-title"))
+      ;;                   (PROG1 IT (SETF **A** A) (SETF **B** B))))
+      ;;          (SB-KERNEL::ARG-COUNT-ERROR NIL)
+      ;;          (SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T
+    #+END_SRC
+
+    Я намеренно оставляю возможность доступа к =lambda-param= из =&body= и не определяю его
+    через =gensym=.
+
+    Вот так, к примеру, это можно совместить с поиском по дереву:
+
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
 
       (tree-match '("div"
                     (("class" "b-vacancy-custom g-round"
                       ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
                       ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
                       ("table" (("class" "l"))
-                               ("tbody" NIL
-                                        ("tr" NIL
-                                              ("td" (("colspan" "2") ("class" "l-cell"))
-                                                    ("div" (("class" "employer-marks g-clearfix"))
-                                                           ("div" (("class" "companyname"))
-                                                                  ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
-                                                                       "ООО Нимбл"))))
-                                              ("td" (("class" "l-cell"))))))))
-                    (("class" "g-round plus"))
+                               ("tr" NIL
+                                     ("td" (("colspan" "2") ("class" "l-cell")))
+                                     ("td" (("class" "l-cell")))))))
+                    (("class" "g-round plus"))`
                     ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик"))))
-                  #'(lambda (x)
-                      (handler-case
-                          (destructuring-bind ((a b &rest c))
-                              x
-                            (aif (and (stringp a)
-                                      (string= a "class"))
-                                 it))
-                        (sb-kernel::arg-count-error nil)
-                        (sb-kernel::defmacro-bogus-sublist-error nil)))
-                  :if-match :return-first-level-match
-                  :if-atom #'(lambda (atom)
-                               (if (stringp atom)
-                                   (intern (string-upcase atom))
-                                   atom)))
+                  (with-predict (a b &rest c)
+                    (aif (and (stringp a)
+                              (string= a "class"))
+                         (prog1 it
+                           (setf **a** a)
+                           (setf **b** b))))
+                  :if-match :return-all-match)
+    #+END_SRC
 
-      (tree-match (html5-parser:node-to-xmls
-                    (html5-parser:parse-html5-fragment
-                     (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
-                   #'(lambda (x)
-                       (handler-case
-                           (destructuring-bind (a ((b c)) &rest d)
-                               x
-                             (aif (and (string= a "div")
-                                       (string= c "b-vacancy-custom g-round"))
-                                  it))
-                         (sb-kernel::arg-count-error nil)
-                         (sb-kernel::defmacro-bogus-sublist-error nil)))
-                   :if-match :return-first-match
-                   :if-atom #'(lambda (atom)
-                                (if (stringp atom)
-                                    (intern (string-upcase atom))
-                                    atom)))
+    Для еще большей лаконичности мы можем определить оборачивающий макрос, который позволит
+    нам не писать ничего, кроме условия в =aif=:
 
-      (tree-match '("div" (("class" "b-vacancy-custom g-round"))
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defmacro with-predict-if (pattern &body condition)
+        `(with-predict (a b &rest c)
+           (aif ,@condition
+                (prog1 it
+                  ,@(mapcar #'(lambda (x)
+                                `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
+                            (remove-if #'(lambda (x)
+                                           (or (equal x '&rest)
+                                               (equal x '&optional)
+                                               (equal x '&body)
+                                               (equal x '&key)
+                                               (equal x '&allow-other-keys)
+                                               (equal x '&environment)
+                                               (equal x '&aux)
+                                               (equal x '&whole)
+                                               (equal x '&allow-other-keys)))
+                                       (alexandria:flatten pattern)))))))
+
+      ;; (macroexpand-1 '
+      ;;  (with-predict-if (a b &rest c)
+      ;;    (and (stringp a)
+      ;;         (string= a "class"))))
+
+      ;; => (WITH-PREDICT (A B &REST C)
+      ;;      (AIF (AND (STRINGP A) (STRING= A "class"))
+      ;;           (PROG1 IT
+      ;;             (SETF **A** A)
+      ;;             (SETF **B** B)
+      ;;             (SETF **C** C))))
+    #+END_SRC
+
+    Таким образом мы инжектируем переменные шаблона в глобальную область видимости, если они
+    не определены в более высокоуровневом =let=.
+
+    Теперь мы можем вызывать =compile-pattern= так:
+
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (print
+       (tree-match '("div" (("class" "b-vacancy-custom g-round"))
                      ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
                      ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
                      ("table" (("class" "l"))
@@ -510,116 +535,17 @@ TODO: Обсудить все нижеследующее с hr-специали�
                                                  ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
                                                       "ООО Нимбл"))))
                              ("td" (("class" "l-cell")))))))
-                   #'(lambda (x)
-                       (handler-case
-                           (destructuring-bind (a ((b c)) &rest d)
-                               x
-                             (aif (and (string= a "table"))
-                                  it))
-                         (sb-kernel::arg-count-error nil)
-                         (sb-kernel::defmacro-bogus-sublist-error nil)))
-                   :if-match :return-transform
-                   :if-atom #'(lambda (atom)
-                                (if (stringp atom)
-                                    (intern (string-upcase atom))
-                                    atom)))
+                   (with-predict-if (a b &rest c)
+                     (and (stringp a)
+                          (string= a "class")))
+                   :if-match :return-all-match))
 
-    #+END_SRC
+      ;; => (("class" "b-vacancy-custom g-round") ("class" "title b-vacancy-title")
+      ;;     ("class" "l") ("class" "l-cell") ("class" "employer-marks g-clearfix")
+      ;;     ("class" "companyname") ("class" "l-cell"))
 
-    Но для удобной работы этого недостаточно, поэтому напишем компилер шаблона в
-    соответствующий ему предикат. Этот компилер будет макросом, принимающим в качестве
-    параметра форму, которая будет связываться с элементами шаблона с помощью
-    =destructuring-bind=. Попытка связывания будет проводиться для каждого элемента дерева,
-    ошибки, которые возникают в случае невозможности связывания, игнорируются.
-
-    После того, как совпадающий с образцом элемент дерева будет найден, я хотел бы иметь
-    возможность работать с составляющими его элементами. Это можно обеспечить, если предикат
-    будет записывать в создаваемые глобальные переменные компоненты шаблона.
-
-    Чтобы это обеспечить, мы используем внутренний макрос =binder=, который превращает
-    шаблон вида =(a ((b c)) d &rest e)= в код вида:
-
-    #+BEGIN_SRC lisp
-      (progn
-        (setf **a** a)
-        (setf **b** b)
-        (setf **c** c)
-        (setf **d** d)
-        (setf **e** e))
-    #+END_SRC
-
-    Там где будет раскрываться этот макрос переменные =A B C D E= определены посредством
-    =destructuring-bind=. Таким образом мы инжектируем переменные шаблона в глобальную
-    область видимости.
-
-    #+NAME: hh_fn_contents
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (defmacro binder (varlist)
-        `(progn
-           ,@(mapcar #'(lambda (x)
-                         `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
-                     (remove-if #'(lambda (x)
-                                    (or (equal x '&rest)
-                                        (equal x '&optional)
-                                        (equal x '&body)
-                                        (equal x '&key)
-                                        (equal x '&allow-other-keys)
-                                        (equal x '&environment)
-                                        (equal x '&aux)
-                                        (equal x '&whole)
-                                        (equal x '&allow-other-keys)))
-                                (alexandria:flatten varlist)))))
-
-      ;; (macroexpand-1
-      ;;  '(binder (a ((b c)) d &rest e)))
-
-      (defmacro compile-pattern ((pattern) &body constraints)
-        `#'(lambda (x)
-             (handler-case
-                 (destructuring-bind ,pattern
-                     x
-                   (aif (and ,@constraints)
-                        (progn
-                          (binder ,pattern)
-                          it)))
-               (sb-kernel::arg-count-error nil)
-               (sb-kernel::defmacro-bogus-sublist-error nil))))
-
-      ;; (macroexpand-1 '(compile-pattern ((a ((b c)) d &rest e))
-      ;;                  (string= a "div")
-      ;;                  (string= c "title b-vacancy-title")))
-    #+END_SRC
-
-    Теперь мы можем использовать это более простым и понятным образом
-
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (print
-       (parse-match (html5-parser:node-to-xmls
-                     (html5-parser:parse-html5-fragment
-                      (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
-                    (compile-pattern ((a ((b c)) &rest d))
-                      (string= a "div")
-                      (string= c "b-vacancy-custom g-round"))))
-
-      ;; => '("div" (("class" "b-vacancy-custom g-round"))
-      ;;      ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
-      ;;      ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
-      ;;      ("table" (("class" "l"))
-      ;;       ("tbody" NIL
-      ;;        ("tr" NIL
-      ;;              ("td" (("colspan" "2") ("class" "l-cell"))
-      ;;                    ("div" (("class" "employer-marks g-clearfix"))
-      ;;                           ("div" (("class" "companyname"))
-      ;;                                  ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
-      ;;                                       "ООО Нимбл"))))
-      ;;              ("td" (("class" "l-cell")))))))
-
-      (print **c**)
-      ;; => "b-vacancy-custom g-round"
+      (print **b**)
+      ;; => "l-cell"
     #+END_SRC
 
     Теперь когда у нас есть необходимые инструменты, переходим к практической части. Мы
@@ -637,21 +563,21 @@ TODO: Обсудить все нижеследующее с hr-специали�
       (defun hh-parse-vacancy (html)
         "Получение вакансии из html"
         (let* ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-               (header (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+               (header (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
                                              (string= c "b-vacancy-custom g-round"))))
-               (summary (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+               (summary (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
                                               (string= c "b-important b-vacancy-info"))))
-               (infoblock (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+               (infoblock (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
                                                 (string= c "l-content-2colums b-vacancy-container"))))
-               (h1 (parse-match header (compile-pattern ((a ((b c)) title &rest archive-block))
+               (h1 (tree-match header (compile-pattern ((a ((b c)) title &rest archive-block))
                                          (string= c "title b-vacancy-title"))))
                (name **title**)
                (archive (if (car (last (car **archive-block**))) t nil))
-               (employerblock (parse-match header (compile-pattern ((a ((b c) (d lnk)) emp))
+               (employerblock (tree-match header (compile-pattern ((a ((b c) (d lnk)) emp))
                                                     (string= c "hiringOrganization"))))
                (employer-name **emp**)
                (employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ **lnk**))) :junk-allowed t))
-               (salaryblock (parse-match summary (compile-pattern ((div ((class l-paddings))
+               (salaryblock (tree-match summary (compile-pattern ((div ((class l-paddings))
                                                                         (meta-1 ((itemprop-1 salaryCurrency) (content-1 CURRENCY)))
                                                                         (meta-2 ((itemprop-2 baseSalary) (content-2 VALUE)))
                                                                         SALARY-TEXT))
@@ -664,20 +590,23 @@ TODO: Обсудить все нижеследующее с hr-специали�
                (salary-currency **currency**)
                (salary **value**)
                (salary-text **salary-text**)
-               (cityblock (parse-match summary (compile-pattern ((a ((b c)) (d ((e f)) x)))
+               (cityblock (tree-match summary (compile-pattern ((a ((b c)) (d ((e f)) x)))
                                                  (string= c "l-content-colum-2 b-v-info-content"))))
                (city **x**)
-               (expblock (parse-match summary (compile-pattern ((a ((b c) (d e)) x))
+               (expblock (tree-match summary (compile-pattern ((a ((b c) (d e)) x))
                                                 (string= e "experienceRequirements"))))
                (exp **x**)
-               (description (parse-match infoblock (compile-pattern ((a ((b c) (d e)) &rest descr))
+               (description (tree-match infoblock (compile-pattern ((a ((b c) (d e)) &rest descr))
                                                      (string= c "b-vacancy-desc-wrapper")
                                                      (string= e "description"))))
                )
+          ;; Когда мы получаем description, в нем много лишнего, поэтому мы попытаемся его преобразовать
+          ;; Удалив nil после тегов
+          (tree-match description
           description))
 
       (print
-        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429"))))
+        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
       (print
        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))

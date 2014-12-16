@@ -60,199 +60,115 @@
             result))))))
 (in-package #:moto)
 
-(defun tree-match (tree predict &key (if-match :return-first-match) (if-atom #'identity))
+(defun tree-match (tree predict &key (if-match :return-first-match))
   (let ((collect))
     (flet ((match-tree (tree f-predict f-in &key
-                             (if-atom #'identity)
                              (if-match :return-first-match))
              (cond ((null tree) nil)
-                   ((atom tree)
-                    (funcall if-atom tree))
+                   ((atom tree) nil)
                    (t
                     (if (funcall f-predict tree)
                         (cond ((equal if-match :return-first-match)
-                               (return-from tree-match
-                                 (if (equal if-atom #'identity)
-                                     tree
-                                     (funcall f-in
-                                              tree
-                                              #'(lambda (x)
-                                                  (declare (ignore x))
-                                                  nil)
-                                              f-in
-                                              :if-match if-match :if-atom if-atom))))
+                               (return-from tree-match tree))
                               ((equal if-match :return-first-level-match)
                                (setf collect
-                                     (append collect
-                                             (if (equal if-atom #'identity)
-                                                 tree
-                                                 (funcall f-in
-                                                          tree
-                                                          #'(lambda (x)
-                                                              (declare (ignore x))
-                                                              nil)
-                                                          f-in
-                                                          :if-match if-match :if-atom if-atom)))))
+                                     (append collect (list tree))))
                               ((equal if-match :return-all-match)
                                (progn
                                  (setf collect
-                                       (append collect
-                                               (if (equal if-atom #'identity)
-                                                   tree
-                                                   (funcall f-in
-                                                            tree
-                                                            #'(lambda (x)
-                                                                (declare (ignore x))
-                                                                nil)
-                                                            f-in
-                                                            :if-match if-match :if-atom if-atom))))
+                                       (append collect (list tree)))
                                  (cons
-                                  (funcall f-in (car tree) f-predict f-in :if-match if-match :if-atom if-atom)
-                                  (funcall f-in (cdr tree) f-predict f-in :if-match if-match :if-atom if-atom))))
+                                  (funcall f-in (car tree) f-predict f-in :if-match if-match)
+                                  (funcall f-in (cdr tree) f-predict f-in :if-match if-match))))
                               ((equal 'function (type-of if-match))
                                (funcall if-match tree))
                               (t (error 'strategy-not-implemented)))
                         (cons
-                         (funcall f-in (car tree) f-predict f-in :if-match if-match :if-atom if-atom)
-                         (funcall f-in (cdr tree) f-predict f-in :if-match if-match :if-atom if-atom)))))))
-      (let ((result (match-tree tree predict #'match-tree :if-match if-match :if-atom if-atom)))
-        (if (or (equal if-match :return-first-level-match)
-                (equal if-match :return-all-match))
-            collect
-            result))
+                         (funcall f-in (car tree) f-predict f-in :if-match if-match)
+                         (funcall f-in (cdr tree) f-predict f-in :if-match if-match)))))))
+      (match-tree tree predict #'match-tree :if-match if-match)
+      collect
       )))
-
-(tree-match '("div"
-              (("class" "b-vacancy-custom g-round"
-                ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
-                ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
-                ("table" (("class" "l"))
-                         ("tbody" NIL
-                                  ("tr" NIL
-                                        ("td" (("colspan" "2") ("class" "l-cell"))
-                                              ("div" (("class" "employer-marks g-clearfix"))
-                                                     ("div" (("class" "companyname"))
-                                                            ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
-                                                                 "ООО Нимбл"))))
-                                        ("td" (("class" "l-cell"))))))))
-              (("class" "g-round plus"))
-              ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик"))))
-            #'(lambda (x)
-                (handler-case
-                    (destructuring-bind ((a b &rest c))
-                        x
-                      (aif (and (stringp a)
-                                (string= a "class"))
-                           it))
-                  (sb-kernel::arg-count-error nil)
-                  (sb-kernel::defmacro-bogus-sublist-error nil)))
-            :if-match :return-first-level-match
-            :if-atom #'(lambda (atom)
-                         (if (stringp atom)
-                             (intern (string-upcase atom))
-                             atom)))
-
-(tree-match (html5-parser:node-to-xmls
-              (html5-parser:parse-html5-fragment
-               (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
-             #'(lambda (x)
-                 (handler-case
-                     (destructuring-bind (a ((b c)) &rest d)
-                         x
-                       (aif (and (string= a "div")
-                                 (string= c "b-vacancy-custom g-round"))
-                            it))
-                   (sb-kernel::arg-count-error nil)
-                   (sb-kernel::defmacro-bogus-sublist-error nil)))
-             :if-match :return-first-match
-             :if-atom #'(lambda (atom)
-                          (if (stringp atom)
-                              (intern (string-upcase atom))
-                              atom)))
-
-(tree-match '("div" (("class" "b-vacancy-custom g-round"))
-               ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
-               ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
-               ("table" (("class" "l"))
-                ("tbody" NIL
-                 ("tr" NIL
-                       ("td" (("colspan" "2") ("class" "l-cell"))
-                             ("div" (("class" "employer-marks g-clearfix"))
-                                    ("div" (("class" "companyname"))
-                                           ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
-                                                "ООО Нимбл"))))
-                       ("td" (("class" "l-cell")))))))
-             #'(lambda (x)
-                 (handler-case
-                     (destructuring-bind (a ((b c)) &rest d)
-                         x
-                       (aif (and (string= a "table"))
-                            it))
-                   (sb-kernel::arg-count-error nil)
-                   (sb-kernel::defmacro-bogus-sublist-error nil)))
-             :if-match :return-transform
-             :if-atom #'(lambda (atom)
-                          (if (stringp atom)
-                              (intern (string-upcase atom))
-                              atom)))
-
 (in-package #:moto)
 
-(defmacro binder (varlist)
-  `(progn
-     ,@(mapcar #'(lambda (x)
-                   `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
-               (remove-if #'(lambda (x)
-                              (or (equal x '&rest)
-                                  (equal x '&optional)
-                                  (equal x '&body)
-                                  (equal x '&key)
-                                  (equal x '&allow-other-keys)
-                                  (equal x '&environment)
-                                  (equal x '&aux)
-                                  (equal x '&whole)
-                                  (equal x '&allow-other-keys)))
-                          (alexandria:flatten varlist)))))
-
-;; (macroexpand-1
-;;  '(binder (a ((b c)) d &rest e)))
-
-(defmacro compile-pattern ((pattern) &body constraints)
-  `#'(lambda (x)
+(defmacro with-predict (pattern &body body)
+  `#'(lambda (lambda-param)
        (handler-case
            (destructuring-bind ,pattern
-               x
-             (aif (and ,@constraints)
-                  (progn
-                    (binder ,pattern)
-                    it)))
+               lambda-param
+             ,@body)
          (sb-kernel::arg-count-error nil)
          (sb-kernel::defmacro-bogus-sublist-error nil))))
 
-;; (macroexpand-1 '(compile-pattern ((a ((b c)) d &rest e))
-;;                  (string= a "div")
-;;                  (string= c "title b-vacancy-title")))
+;; (macroexpand-1 '
+;;  (with-predict (a ((b c)) d &rest e)
+;;    (aif (and (string= a "div")
+;;              (string= c "title b-vacancy-title"))
+;;         (prog1 it
+;;           (setf **a** a)
+;;           (setf **b** b)))))
+
+;; => #'(LAMBDA (LAMBDA-PARAM)
+;;        (HANDLER-CASE
+;;            (DESTRUCTURING-BIND
+;;                  (A ((B C)) D &REST E)
+;;                LAMBDA-PARAM
+;;              (AIF (AND (STRING= A "div") (STRING= C "title b-vacancy-title"))
+;;                   (PROG1 IT (SETF **A** A) (SETF **B** B))))
+;;          (SB-KERNEL::ARG-COUNT-ERROR NIL)
+;;          (SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T
+(in-package #:moto)
+
+(defmacro with-predict-if (pattern &body condition)
+  `(with-predict (a b &rest c)
+     (aif ,@condition
+          (prog1 it
+            ,@(mapcar #'(lambda (x)
+                          `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
+                      (remove-if #'(lambda (x)
+                                     (or (equal x '&rest)
+                                         (equal x '&optional)
+                                         (equal x '&body)
+                                         (equal x '&key)
+                                         (equal x '&allow-other-keys)
+                                         (equal x '&environment)
+                                         (equal x '&aux)
+                                         (equal x '&whole)
+                                         (equal x '&allow-other-keys)))
+                                 (alexandria:flatten pattern)))))))
+
+;; (macroexpand-1 '
+;;  (with-predict-if (a b &rest c)
+;;    (and (stringp a)
+;;         (string= a "class"))))
+
+;; => (WITH-PREDICT (A B &REST C)
+;;      (AIF (AND (STRINGP A) (STRING= A "class"))
+;;           (PROG1 IT
+;;             (SETF **A** A)
+;;             (SETF **B** B)
+;;             (SETF **C** C))))
 (in-package #:moto)
 
 
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
   (let* ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-         (header (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+         (header (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
                                        (string= c "b-vacancy-custom g-round"))))
-         (summary (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+         (summary (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
                                         (string= c "b-important b-vacancy-info"))))
-         (infoblock (parse-match parsed (compile-pattern ((a ((b c)) &rest d))
+         (infoblock (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
                                           (string= c "l-content-2colums b-vacancy-container"))))
-         (h1 (parse-match header (compile-pattern ((a ((b c)) title &rest archive-block))
+         (h1 (tree-match header (compile-pattern ((a ((b c)) title &rest archive-block))
                                    (string= c "title b-vacancy-title"))))
          (name **title**)
          (archive (if (car (last (car **archive-block**))) t nil))
-         (employerblock (parse-match header (compile-pattern ((a ((b c) (d lnk)) emp))
+         (employerblock (tree-match header (compile-pattern ((a ((b c) (d lnk)) emp))
                                               (string= c "hiringOrganization"))))
          (employer-name **emp**)
          (employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ **lnk**))) :junk-allowed t))
-         (salaryblock (parse-match summary (compile-pattern ((div ((class l-paddings))
+         (salaryblock (tree-match summary (compile-pattern ((div ((class l-paddings))
                                                                   (meta-1 ((itemprop-1 salaryCurrency) (content-1 CURRENCY)))
                                                                   (meta-2 ((itemprop-2 baseSalary) (content-2 VALUE)))
                                                                   SALARY-TEXT))
@@ -265,20 +181,23 @@
          (salary-currency **currency**)
          (salary **value**)
          (salary-text **salary-text**)
-         (cityblock (parse-match summary (compile-pattern ((a ((b c)) (d ((e f)) x)))
+         (cityblock (tree-match summary (compile-pattern ((a ((b c)) (d ((e f)) x)))
                                            (string= c "l-content-colum-2 b-v-info-content"))))
          (city **x**)
-         (expblock (parse-match summary (compile-pattern ((a ((b c) (d e)) x))
+         (expblock (tree-match summary (compile-pattern ((a ((b c) (d e)) x))
                                           (string= e "experienceRequirements"))))
          (exp **x**)
-         (description (parse-match infoblock (compile-pattern ((a ((b c) (d e)) &rest descr))
+         (description (tree-match infoblock (compile-pattern ((a ((b c) (d e)) &rest descr))
                                                (string= c "b-vacancy-desc-wrapper")
                                                (string= e "description"))))
          )
+    ;; Когда мы получаем description, в нем много лишнего, поэтому мы попытаемся его преобразовать
+    ;; Удалив nil после тегов
+    (tree-match description
     description))
 
 (print
-  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429"))))
+  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
 (print
  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
