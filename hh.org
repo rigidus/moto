@@ -484,7 +484,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
       (in-package #:moto)
 
       (defmacro with-predict-if (pattern &body condition)
-        `(with-predict (a b &rest c)
+        `(with-predict ,pattern
            (aif ,@condition
                 (prog1 it
                   ,@(mapcar #'(lambda (x)
@@ -562,44 +562,54 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
       (defun hh-parse-vacancy (html)
         "Получение вакансии из html"
-        (let* ((parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-               (header (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
-                                             (string= c "b-vacancy-custom g-round"))))
-               (summary (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
+        (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+               (header (tree-match tree (with-predict-if (a ((b c)) &rest d)
+                                          (string= c "b-vacancy-custom g-round"))))
+               (summary (tree-match tree (with-predict-if (a ((b c)) &rest d)
                                               (string= c "b-important b-vacancy-info"))))
-               (infoblock (tree-match parsed (compile-pattern ((a ((b c)) &rest d))
-                                                (string= c "l-content-2colums b-vacancy-container"))))
-               (h1 (tree-match header (compile-pattern ((a ((b c)) title &rest archive-block))
-                                         (string= c "title b-vacancy-title"))))
-               (name **title**)
-               (archive (if (car (last (car **archive-block**))) t nil))
-               (employerblock (tree-match header (compile-pattern ((a ((b c) (d lnk)) emp))
-                                                    (string= c "hiringOrganization"))))
-               (employer-name **emp**)
-               (employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ **lnk**))) :junk-allowed t))
-               (salaryblock (tree-match summary (compile-pattern ((div ((class l-paddings))
-                                                                        (meta-1 ((itemprop-1 salaryCurrency) (content-1 CURRENCY)))
-                                                                        (meta-2 ((itemprop-2 baseSalary) (content-2 VALUE)))
-                                                                        SALARY-TEXT))
+               (infoblock (tree-match tree (with-predict-if (a ((b c)) &rest d)
+                                             (string= c "l-content-2colums b-vacancy-container"))))
+               (h1 (tree-match header (with-predict-if (a ((b c)) title &rest archive-block)
+                                        (string= c "title b-vacancy-title"))))
+               (-name- **title**)
+               (-archive- (if (car (last (car **archive-block**))) t nil))
+               (employerblock (tree-match header (with-predict-if (a ((b c) (d lnk)) emp)
+                                                   (string= c "hiringOrganization"))))
+               (-employer-name- **emp**)
+               (-employer-id- (parse-integer
+                               (car (last (split-sequence:split-sequence #\/ **lnk**)))
+                               :junk-allowed t))
+               (salaryblock (tree-match summary (with-predict-if
+                                                    (div ((class l-paddings))
+                                                         (meta-1 ((itemprop-1 salaryCurrency) (content-1 CURRENCY)))
+                                                         (meta-2 ((itemprop-2 baseSalary) (content-2 VALUE)))
+                                                         SALARY-TEXT)
+                                                  (and
                                                    (string= div "div")
                                                    (string= class "class")
                                                    (string= l-paddings "l-paddings")
                                                    (string= salaryCurrency "salaryCurrency")
                                                    (string= baseSalary "baseSalary")
-                                                   )))
-               (salary-currency **currency**)
-               (salary **value**)
-               (salary-text **salary-text**)
-               (cityblock (tree-match summary (compile-pattern ((a ((b c)) (d ((e f)) x)))
-                                                 (string= c "l-content-colum-2 b-v-info-content"))))
-               (city **x**)
-               (expblock (tree-match summary (compile-pattern ((a ((b c) (d e)) x))
-                                                (string= e "experienceRequirements"))))
-               (exp **x**)
-               (description (tree-match infoblock (compile-pattern ((a ((b c) (d e)) &rest descr))
-                                                     (string= c "b-vacancy-desc-wrapper")
-                                                     (string= e "description"))))
+                                                  ))))
+               (-salary-currency- **currency**)
+               (-salary- **value**)
+               (-salary-text- **salary-text**)
+               (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
+                                                (string= c "l-content-colum-2 b-v-info-content"))))
+               (-city- **x**)
+               (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) x)
+                                               (string= e "experienceRequirements"))))
+               (-exp- **x**)
+               (description (tree-match infoblock (with-predict-if (a ((b c) (d e)) &rest descr)
+                                                    (string= c "b-vacancy-desc-wrapper")
+                                                    (string= e "description"))))
                )
+          description
+          ))
+
+          (print
+           (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+
           ;; Когда мы получаем description, в нем много лишнего, поэтому мы попытаемся его преобразовать
           ;; Удалив nil после тегов
           (tree-match description
@@ -1615,42 +1625,31 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
 ** Другие утилиты
 
+   Возвращает новое дерево рекурсивно вызывая аргумент =transformer= на под-деревья, которые
+   удовлетворяют аргументу =predicate=.
+
+   Аргумент =predicate= должен быть лямбда-функцией, которая принимает на вход =subtree= и
+   возвращает T или NIL
+
+   Аргумент =transformer= должен быть лямбда-функцией, которая принимает на вход =subtree= и
+   возвращает =atom= или =subtree= в первом параметре, а во втором может возвратить функцию
+   =control=. Если эта функция возвращена, тогда дерево возвращается с замененным
+   =transformer=-ом узлами:
+
+   #+BEGIN_SRC lisp :exports none
+     (funcall control
+              #'(lambda (x)
+                  (maptree-if predicate transformer x))
+              transformed-tree)
+   #+END_SRC
+
+   В противном случае оно возвращается как есть.
+
    #+NAME: f_util_contents
    #+BEGIN_SRC lisp :exports none
      (in-package #:moto)
 
-     (defun tutorial1 (req ent)
-       (declare (ignore req ent))
-       (html
-        (:html
-         (:head (:title "ParenScript tutorial: 1st example"))
-         (:body (:h1 "ParenScript tutorial: 1st example")
-                (:p "Please click the link below." :br
-                    ((:a :href "#" :onclick (ps-inline
-                                             (alert "Hello World")))
-                     "Hello World"))))))
-
      (defun maptree-if (predicate transformer tree)
-       "
-     Returns a new tree by recursively calling @arg{transformer} on sub-trees which satisfy the @arg{predicate}.
-     @arg{predicate} : tree -> boolean
-     @arg{transformer}: tree -> (or tree atom) *control
-     If the transformer returns a @arg{control} function, then the tree returned by
-     the transformer is replaced in-turn by the result of:
-     > (funcall @arg{control} #'(lambda (x) (maptree-if @arg{predicate} @arg{transformer} x)) transformed-tree)
-     , otherwise it is left as it is.
-     Example:
-     @lisp
-     > (maptree-if #'(λ (x) (and (consp x) (eq (car x) 'ping)))
-     #'(λ (x) `(pong ,@(cdr x)))
-     '(progn (ping (ping (ping 1)))))
-     >= (PROGN (PONG (PING (PING 1))))
-     > (maptree-if #'(λ (x) (and (consp x) (eq (car x) 'ping)))
-     #'(λ (x) (values `(pong ,@(cdr x)) #'mapcar))
-     '(progn (ping (ping (ping 1)))))
-     >= (PROGN (PONG (PONG (PONG 1))))
-     @end lisp
-     "
        (multiple-value-bind (t-tree control)
            (if (funcall predicate tree)
                (funcall transformer tree)
@@ -1662,6 +1661,64 @@ TODO: Обсудить все нижеследующее с hr-специали�
                           (maptree-if predicate transformer x))
                       t-tree)
              t-tree)))
+   #+END_SRC
+
+   Например:
+
+   #+BEGIN_SRC lisp :exports none
+     (in-package #:moto)
+
+     (maptree-if #'(lambda (x)
+                     (and (consp x)
+                          (eq (car x) 'ping)))
+                 #'(lambda (x)
+                     `(pong ,@(cdr x)))
+                 '(progn (ping (ping (ping 1)))))
+
+     ;; => (PROGN (PONG (PING (PING 1))))
+
+     (trace maptree-if)
+
+     (maptree-if #'(lambda (x)
+                     (and (consp x)
+                          (eq (car x) 'ping)))
+                 #'(lambda (x)
+                     (values `(pong ,@(cdr x)) #'mapcar))
+                 '(progn (ping (ping (ping 1)))
+                    ping))
+
+     ;; => (PROGN (PONG (PONG (PONG 1))))
+
+     (maptree-if #'(lambda (x)
+                     (and
+                      (consp x)
+                      (equal (cadr x) 'ping)))
+                 #'(lambda (x)
+                     (let ((r x))
+                       (setf (nth 1 r) 'ppp)
+                       (values r  #'mapcar)))
+                 '(progn (ping (ping ping (ping 1)))
+                   ping))
+
+
+     (maptree-if #'(lambda (x)
+                     (and
+                      (consp x)
+                      (funcall (with-predict-if (a b &rest c)
+                                 (and (equal a 'ping)))
+                               x)))
+                 #'(lambda (x)
+                     (let ((r x))
+                       (setf (nth 1 r) 'ppp)
+                       (values r  #'mapcar)))
+                 '(progn (ping (ping ping (ping 1)))
+                   ping))
+   #+END_SRC
+
+
+   #+NAME: f_util_contents
+   #+BEGIN_SRC lisp :exports none
+     (in-package #:moto)
 
      (defun my-range (n)
        (let ((i 0))
