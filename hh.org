@@ -153,6 +153,19 @@ TODO: Обсудить все нижеследующее с hr-специали�
      (save-collect *teasers*)
    #+END_SRC
 
+   Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
+   интересуют больше чем остальные их можно будет получить по статусу:
+
+   #+NAME: hh_parse_deep
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (find-vacancy :profile-id 1)
+
+     (all-vacancy)
+   #+END_SRC
+
+
 *** Получение страниц
 
     Вот так мы можем получать страницы:
@@ -176,7 +189,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
          :external-format :utf-8))
     #+END_SRC
 
-*** Разбор тизеров вакансий
+*** COMMENT Разбор тизеров вакансий
 
     Теперь, чтобы получить вакансии с этой страницы - вырежем таблицу с ними и воспользуемся
     парсером, который переведет полученный html в более удобный лисп-список. Этот список
@@ -208,45 +221,75 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
       (defun hh-parse-vacancy-teasers (html)
         "Получение списка вакансий из html"
-        (let* ((cut (ppcre:scan-to-strings
-                     (format nil "~A(.*)~A"
-                             "<table class=\"l-table entry-content\" data-qa=\"vacancy-serp__results\">"
-                             "<div class=\"g-hidden b-select-icon-popup HH-VacancyToFavorite-LimitPopup\">")
-                     html))
-               (cut-without-tail (subseq cut 0 (- (length cut) 74)))
-               (parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment cut-without-tail)))
-               (rows   (cddr (nth 2 (car parsed)))))
-          (remove-if
-           #'null
-           (loop :for row :in rows :collect
-              (when (or (ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
-                        (string= "b-vacancy-list-standard" (car (cdaadr row)))
-                        (string= "b-vacancy-list-standard_plus" (car (cdaadr row))))
-                (let* ((data (nth 3 row))
-                       (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
-                       (hh-vacancy-name (car (last hh-vacancy-a)))
-                       (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
-                       (hh-vacancy-date (caddr (cadddr (caddr data))))
-                       (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
-                       (hh-salary-div (nth 5 (caddr data)))
-                       (result (list :vacancy-name hh-vacancy-name
-                                     :vacancy-id hh-vacancy-id
-                                     :vacancy-date hh-vacancy-date
-                                     )))
-                  (when hh-vacancy-placetime
-                    (let ((hh-employer-name (car (last hh-vacancy-placetime)))
-                          (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t)))
-                      (setf result (append result (list :employer-name hh-employer-name
-                                                        :employer-id hh-employer-id)))))
-                  (when (and hh-salary-div
-                             (string= "b-vacancy-list-salary"  (car (cdaadr hh-salary-div))))
-                    (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
-                          (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
-                          (hh-salary-text (car (last hh-salary-div))))
-                      (setf result (append result (list :salary-currency hh-salary-currency
-                                                        :salary-base hh-salary-base
-                                                        :salary-text hh-salary-text)))))
-                  result))))))
+        (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+               (searchblock (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
+                                                 (string= c "search-result")))))
+          (with-predict-maptree (a ((b class) (c d)) &rest z)
+            (and (equal class "search-result"))
+            #'(lambda (x) (values **z** #'mapcar))
+            (with-predict-maptree (a ((b class) (c d)) &rest z)
+              (and (or (equal class "search-result-item search-result-item_standard")
+                       (equal class "search-result-item search-result-item_standard_plus")
+                       (equal class "search-result-item search-result-item_premium search-result-item_premium")))
+              #'(lambda (x) (values
+                             (let ((in (remove-if #'null **z**))
+                                   (rs))
+                               (assert (equal 1 (length in)))
+                               (setf in (car in))
+                               (mapcar #'(lambda (y)
+                                           (setf rs (append rs y)))
+                                       in)
+                               rs)
+                             #'mapcar))
+              (with-predict-maptree (a ((b class)) logo)
+                (and (equal class "search-result-item__image"))
+                #'(lambda (x) (values nil #'mapcar))
+                (with-predict-maptree (a ((b class) (c d)))
+                  (and (equal class "HH/VacancyResponseTrigger"))
+                  #'(lambda (x) (values nil #'mapcar))
+                  (with-predict-maptree (a ((b class) (c d)) z)
+                    (and (equal class "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"))
+                    #'(lambda (x) (values nil #'mapcar))
+                    (with-predict-maptree (a ((b class)))
+                      (and (equal class "search-result-item__star"))
+                      #'(lambda (x) (values nil #'mapcar))
+                      (with-predict-maptree (a ((b class)) c d e &optional f)
+                        (and (equal class "search-result-item__description"))
+                        #'(lambda (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
+                        (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
+                          (and (equal class "search-result-item__head")
+                               (or  (equal e "search-result-item__name search-result-item__name_standard")
+                                    (equal e "search-result-item__name search-result-item__name_standard_plus")
+                                    (equal e "search-result-item__name search-result-item__name_premium")))
+                          #'(lambda (x) (values (list :vac-id **i** :vac-name **z**) #'mapcar))
+                          (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
+                            (and (equal class "b-vacancy-list-salary"))
+                            #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
+                            (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i)) z))
+                              (and (equal class "search-result-item__company"))
+                              #'(lambda (x) (values (list :emp-id **e** :emp-name **z**) #'mapcar))
+                              (with-predict-maptree (a ((b class)) (c ((d sr-addr) (qa serp-addr)) city)
+                                                       star (k ((l class-date) (m n)) date))
+                                (and (equal class "search-result-item__info")
+                                     (equal sr-addr "searchresult__address")
+                                     (equal serp-addr "vacancy-serp__vacancy-address")
+                                     (equal class-date "b-vacancy-list-date"))
+                                #'(lambda (x) (values (list :city **city** :date **date**) #'mapcar))
+                                (with-predict-maptree (a ((b class)) (c ((d sr-addr) (qa serp-addr)) city (br nil-1)
+                                                                        (e ((f metro-station)) (g ((h metro-point) (i j))) metro))
+                                                         star (k ((l class-date) (m n)) date))
+                                  (and (equal class "search-result-item__info")
+                                       (equal sr-addr "searchresult__address")
+                                       (equal serp-addr "vacancy-serp__vacancy-address")
+                                       (equal metro-station "metro-station")
+                                       (equal metro-point "metro-point")
+                                       (equal class-date "b-vacancy-list-date"))
+                                  #'(lambda (x) (values (list :city **city** :metro **metro** :date **date**) #'mapcar))
+                                  searchblock))))))))))))))
+
+      (print
+       (hh-parse-vacancy-teasers
+        (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~1")))
     #+END_SRC
 
 *** Разбор вакансий
@@ -751,10 +794,10 @@ TODO: Обсудить все нижеследующее с hr-специали�
                (-salary-text- **salary-text**)
                (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
                                                 (string= c "l-content-colum-2 b-v-info-content"))))
-               (-city- **x**)
-               (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) x)
+               (-city- **city**)
+               (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
                                                (string= e "experienceRequirements"))))
-               (-exp- **x**)
+               (-exp- **exp**)
                (-description-
                 (transform-description
                  (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
@@ -1538,236 +1581,215 @@ TODO: Обсудить все нижеследующее с hr-специали�
    #+BEGIN_SRC lisp :exports none
      (in-package #:moto)
 
-     (defun my-range (n)
-       (let ((i 0))
-         #'(lambda ()
-             (if (< i n) (incf i) nil))))
+     ;; (defun my-range (n)
+     ;;   (let ((i 0))
+     ;;     #'(lambda ()
+     ;;         (if (< i n) (incf i) nil))))
 
-     (let ((f (my-range 3)))
-       (list
-        (funcall f)
-        (funcall f)
-        (funcall f)
-        (funcall f)
-        (funcall f)
-     ))
+     ;; (let ((f (my-range 3)))
+     ;;   (list
+     ;;    (funcall f)
+     ;;    (funcall f)
+     ;;    (funcall f)
+     ;;    (funcall f)
+     ;;    (funcall f)
+     ;; ))
 
-     (range 3)
+     ;; (range 3)
 
-     (defmacro do-closure ((i clos) &body body)
-       (let ((c (gensym)))
-         `(let ((,c ,clos))
-            (loop for ,i = (funcall ,c)
-               while ,i do ,@body))))
+     ;; (defmacro do-closure ((i clos) &body body)
+     ;;   (let ((c (gensym)))
+     ;;     `(let ((,c ,clos))
+     ;;        (loop for ,i = (funcall ,c)
+     ;;           while ,i do ,@body))))
 
-     (do-closure (i (my-range 100)) (print i))
+     ;; (do-closure (i (my-range 100)) (print i))
 
-      ;; (maptree-if #'(lambda (x)
-      ;;                 (and (consp x)
-      ;;                      (eq (car x) 'ping)))
-      ;;             #'(lambda (x)
-      ;;                 `(pong ,@(cdr x)))
-      ;;             '(progn (ping (ping (ping 1)))))
 
-      ;; (maptree-if #'(lambda (x)
-      ;;                 (and (consp x)
-      ;;                      (eq (car x) 'ping)))
-      ;;               #'(lambda (x)
-      ;;                   (values `(pong ,@(cdr x))
-      ;;                           #'mapcar))
-      ;;               '(progn (ping (ping (ping 1)))))
+     (declaim (inline zip))
+     (defun zip (&rest args)
+       "
+     Zips the elements of @arg{args}.
+     Example:
+     @lisp
+     > (zip '(2 3 4) '(a b c) '(j h c s))
+     => ((2 A J) (3 B H) (4 C C))
+     @end lisp
+     "
+       (apply #'map 'list #'list args))
 
-      ;; (defun map-in-tree (keys transformer tree)
-      ;;   (maptree-if #'(lambda (x)
-      ;;                   (and (consp x)
-      ;;                        (member (car x) keys)))
-      ;;               transformer
-      ;;               tree))
+     (defun symstuff (l)
+       "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html
+     Helper function to (build-symbol)"
+       `(concatenate 'string
+                     ,@(for (x :in l)
+                            (cond ((stringp x)
+                                   `',x)
+                                  ((atom x)
+                                   `',(format nil "~a" x))
+                                  ((eq (car x) ':<)
+                                   `(format nil "~a" ,(cadr x)))
+                                  ((eq (car x) ':++)
+                                   `(format nil "~a" (incf ,(cadr x))))
+                                  (t
+                                   `(format nil "~a" ,x))))))
 
-      (declaim (inline zip))
-      (defun zip (&rest args)
-        "
-      Zips the elements of @arg{args}.
-      Example:
-      @lisp
-      > (zip '(2 3 4) '(a b c) '(j h c s))
-      => ((2 A J) (3 B H) (4 C C))
-      @end lisp
-      "
-        (apply #'map 'list #'list args))
+     (defmacro build-symbol (&rest l)
+       "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html"
+       (let ((p (find-if (lambda (x) (and (consp x) (eq (car x) ':package)))
+                         l)))
+         (cond (p
+                (setq l (remove p l))))
+         (let ((pkg (cond ((eq (cadr p) 'nil)
+                           nil)
+                          (t `(find-package ',(cadr p))))))
+           (cond (p
+                  (cond (pkg
+                         `(values (intern ,(symstuff l) ,pkg)))
+                        (t
+                         `(make-symbol ,(symstuff l)))))
+                 (t
+                  `(values (intern ,(symstuff l))))))))
 
-      (defun symstuff (l)
-        "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html
-      Helper function to (build-symbol)"
-        `(concatenate 'string
-                      ,@(for (x :in l)
-                             (cond ((stringp x)
-                                    `',x)
-                                   ((atom x)
-                                    `',(format nil "~a" x))
-                                   ((eq (car x) ':<)
-                                    `(format nil "~a" ,(cadr x)))
-                                   ((eq (car x) ':++)
-                                    `(format nil "~a" (incf ,(cadr x))))
-                                   (t
-                                    `(format nil "~a" ,x))))))
+     (defun remove-nth (n seq)
+       "Remove nth element from sequence"
+       (remove-if (constantly t) seq :start n :count 1))
 
-      (defmacro build-symbol (&rest l)
-        "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html"
-        (let ((p (find-if (lambda (x) (and (consp x) (eq (car x) ':package)))
-                          l)))
-          (cond (p
-                 (setq l (remove p l))))
-          (let ((pkg (cond ((eq (cadr p) 'nil)
-                            nil)
-                           (t `(find-package ',(cadr p))))))
-            (cond (p
-                   (cond (pkg
-                          `(values (intern ,(symstuff l) ,pkg)))
-                         (t
-                          `(make-symbol ,(symstuff l)))))
-                  (t
-                   `(values (intern ,(symstuff l))))))))
+     (defun make-hash (&rest keyvals)
+       "Create a hash table given keys and values"
+       (plist-hash-table keyvals))
 
-      (defun remove-nth (n seq)
-        "Remove nth element from sequence"
-        (remove-if (constantly t) seq :start n :count 1))
+     (defmacro make-hash* (&rest keyvals)
+       "Make a hash table given key/value pairs, allowing use of prior key/val pairs in late r definitions"
+       (loop while keyvals
+          for k = (intern (symbol-name (pop keyvals)))
+          for v = (pop keyvals)
+          collect `(,k ,v) into letargs
+          collect (make-keyword k) into objargs
+          collect k into objargs
+          finally (return
+                    `(let* (,@letargs)
+                       (make-hash ,@objargs)))))
 
-      (defun make-hash (&rest keyvals)
-        "Create a hash table given keys and values"
-        (plist-hash-table keyvals))
+     (defun maphash2 (fn ht)
+       "Returns a hash-table with the results of the function of key & value as values"
+       (let ((ht-out (make-hash-table
+                      :test (hash-table-test ht)
+                      :size (hash-table-size ht)
+                      :rehash-size (hash-table-rehash-size ht)
+                      :rehash-threshold (hash-table-rehash-threshold ht))))
+         (maphash #'(lambda (k v)
+                      (setf (gethash k ht-out) (funcall fn k v)))
+                  ht)
+         ht-out))
 
-      (defmacro make-hash* (&rest keyvals)
-        "Make a hash table given key/value pairs, allowing use of prior key/val pairs in late r definitions"
-        (loop while keyvals
-           for k = (intern (symbol-name (pop keyvals)))
-           for v = (pop keyvals)
-           collect `(,k ,v) into letargs
-           collect (make-keyword k) into objargs
-           collect k into objargs
-           finally (return
-                     `(let* (,@letargs)
-                        (make-hash ,@objargs)))))
+     (defun maphash-values2 (fn ht)
+       "Returns a hash-table with the results of the function of value as values"
+       (let ((ht-out (make-hash-table)))
+         (maphash #'(lambda (k v) (setf (gethash k ht-out) (funcall fn v))) ht)
+         ht-out))
 
-      (defun maphash2 (fn ht)
-        "Returns a hash-table with the results of the function of key & value as values"
-        (let ((ht-out (make-hash-table
-                       :test (hash-table-test ht)
-                       :size (hash-table-size ht)
-                       :rehash-size (hash-table-rehash-size ht)
-                       :rehash-threshold (hash-table-rehash-threshold ht))))
-          (maphash #'(lambda (k v)
-                       (setf (gethash k ht-out) (funcall fn k v)))
-                   ht)
-          ht-out))
+     (defmacro swap (pl1 pl2)
+       "Macro to swap two places"
+       (let ((temp1-name (gensym)) ; don't clobber existing names
+             (temp2-name (gensym)))
+         `(let ((,temp1-name ,pl1)
+                (,temp2-name ,pl2))
+            (setf ,pl1 ,temp2-name)
+            (setf ,pl2 ,temp1-name))))
 
-      (defun maphash-values2 (fn ht)
-        "Returns a hash-table with the results of the function of value as values"
-        (let ((ht-out (make-hash-table)))
-          (maphash #'(lambda (k v) (setf (gethash k ht-out) (funcall fn v))) ht)
-          ht-out))
+     (defun print-hash-key-or-val (kv stream)
+       (format stream (typecase kv
+                        (keyword " :~a")
+                        (string " \"~a\"")
+                        (symbol " '~a")
+                        (list " '~a")
+                        (t " ~a")) kv))
 
-      (defmacro swap (pl1 pl2)
-        "Macro to swap two places"
-        (let ((temp1-name (gensym)) ; don't clobber existing names
-              (temp2-name (gensym)))
-          `(let ((,temp1-name ,pl1)
-                 (,temp2-name ,pl2))
-             (setf ,pl1 ,temp2-name)
-             (setf ,pl2 ,temp1-name))))
+     (defun printhash (h &optional (stream t))
+       "Pretty print a hash table as :KEY VAL on separate lines"
+       (format stream "#<HASH-TABLE~{~a~a~^~&~}>"
+               (loop for k being the hash-keys in h using (hash-value v)
+                  collect (print-hash-key-or-val k nil)
+                  collect (print-hash-key-or-val v nil))))
 
-      (defun print-hash-key-or-val (kv stream)
-        (format stream (typecase kv
-                         (keyword " :~a")
-                         (string " \"~a\"")
-                         (symbol " '~a")
-                         (list " '~a")
-                         (t " ~a")) kv))
+     (defmacro lethash (keys h &body body)
+       "Let form binding hash table entries to let variables names"
+       (let ((ht (gensym)))
+         `(let ((,ht ,h))
+            (let ,(loop for key in keys
+                     collect `(,key (gethash ,(make-keyword key) ,ht)))
+              ,@body))))
 
-      (defun printhash (h &optional (stream t))
-        "Pretty print a hash table as :KEY VAL on separate lines"
-        (format stream "#<HASH-TABLE~{~a~a~^~&~}>"
-                (loop for k being the hash-keys in h using (hash-value v)
-                   collect (print-hash-key-or-val k nil)
-                   collect (print-hash-key-or-val v nil))))
+     (defmacro with-keys (keys h &body body)
+       "Make keys of hash table available to body for use & changable via setf"
+       (let ((ht (gensym)))
+         (loop for key in keys
+            for newbody = (subst `(gethash ,(make-keyword key) ,ht) key body)
+            then (subst `(gethash ,(make-keyword key) ,ht) key newbody)
+            finally (return `(let ((,ht ,h))
+                               ,@newbody)))))
 
-      (defmacro lethash (keys h &body body)
-        "Let form binding hash table entries to let variables names"
-        (let ((ht (gensym)))
-          `(let ((,ht ,h))
-             (let ,(loop for key in keys
-                      collect `(,key (gethash ,(make-keyword key) ,ht)))
-               ,@body))))
+     (defun linear-interpolation (ys xs x)
+       "Linear interpolation: calculate y(x) at x given table of ys and xs. Also returns ind ex of lookup table interval. Works from first x to less than last x."
+       (let* ((i (position x xs :test #'>= :from-end t))
+              (x0 (elt xs i))
+              (x1 (elt xs (1+ i)))
+              (y0 (elt ys i))
+              (y1 (elt ys (1+ i))))
+         (+ y0 (* (- y1 y0) (- x x0) (/ (- x1 x0))))))
 
-      (defmacro with-keys (keys h &body body)
-        "Make keys of hash table available to body for use & changable via setf"
-        (let ((ht (gensym)))
-          (loop for key in keys
-             for newbody = (subst `(gethash ,(make-keyword key) ,ht) key body)
-             then (subst `(gethash ,(make-keyword key) ,ht) key newbody)
-             finally (return `(let ((,ht ,h))
-                                ,@newbody)))))
+     (defun maptree (f tree)
+       "Map a function on the leaves of a tree"
+       (cond
+         ((null tree) nil)
+         ((atom tree) (funcall f tree))
+         (t (cons (maptree f (car tree))
+                  (maptree f (cdr tree))))))
 
-      (defun linear-interpolation (ys xs x)
-        "Linear interpolation: calculate y(x) at x given table of ys and xs. Also returns ind ex of lookup table interval. Works from first x to less than last x."
-        (let* ((i (position x xs :test #'>= :from-end t))
-               (x0 (elt xs i))
-               (x1 (elt xs (1+ i)))
-               (y0 (elt ys i))
-               (y1 (elt ys (1+ i))))
-          (+ y0 (* (- y1 y0) (- x x0) (/ (- x1 x0))))))
+     (defmethod diff ((l list))
+       "Return list of the 1st differences of given list: l(1)-l(0),...,l(n)-l(n-1)"
+         (loop for i below (1- (length l))
+            for li in l
+            collect (- (elt l (1+ i)) li)))
 
-      (defun maptree (f tree)
-        "Map a function on the leaves of a tree"
-        (cond
-          ((null tree) nil)
-          ((atom tree) (funcall f tree))
-          (t (cons (maptree f (car tree))
-                   (maptree f (cdr tree))))))
+     (defmethod diff ((v vector))
+       "Return vector of the 1st differences of given vector: v(1)-v(0),...,v(n)-v(n-1)"
+       (let* ((n (length v))
+              (v2 (make-array (1- n))))
+         (dotimes (i (1- n))
+           (setf (aref v2 i) (- (aref v (1+ i)) (aref v i))))
+         v2))
 
-      (defmethod diff ((l list))
-        "Return list of the 1st differences of given list: l(1)-l(0),...,l(n)-l(n-1)"
-          (loop for i below (1- (length l))
-             for li in l
-             collect (- (elt l (1+ i)) li)))
+     (defun slot-ref (obj slots)
+       "Reference nested objects by a list of successive slot names. For example, (slot-ref  o 'foo 'bar 'baz) should return (slot-value (slot-value (slot-value o 'foo) 'bar) 'baz) "
+       (cond
+         ((atom slots) (slot-value obj slots))
+         ((null (cdr slots)) (slot-value obj (car slots)))
+         (t (slot-ref (slot-value obj (first slots)) (rest slots)))))
 
-      (defmethod diff ((v vector))
-        "Return vector of the 1st differences of given vector: v(1)-v(0),...,v(n)-v(n-1)"
-        (let* ((n (length v))
-               (v2 (make-array (1- n))))
-          (dotimes (i (1- n))
-            (setf (aref v2 i) (- (aref v (1+ i)) (aref v i))))
-          v2))
+     (defun slot-ref-set (obj slots val)
+       "Set nested object slot reference to new value"
+       (cond
+         ((atom slots) (setf (slot-value obj slots) val))
+         ((null (cdr slots)) (setf (slot-value obj (car slots)) val))
+         (t (slot-ref-set (slot-value obj (first slots)) (rest slots) val))))
 
-      (defun slot-ref (obj slots)
-        "Reference nested objects by a list of successive slot names. For example, (slot-ref  o 'foo 'bar 'baz) should return (slot-value (slot-value (slot-value o 'foo) 'bar) 'baz) "
-        (cond
-          ((atom slots) (slot-value obj slots))
-          ((null (cdr slots)) (slot-value obj (car slots)))
-          (t (slot-ref (slot-value obj (first slots)) (rest slots)))))
+     (defsetf slot-ref slot-ref-set)
 
-      (defun slot-ref-set (obj slots val)
-        "Set nested object slot reference to new value"
-        (cond
-          ((atom slots) (setf (slot-value obj slots) val))
-          ((null (cdr slots)) (setf (slot-value obj (car slots)) val))
-          (t (slot-ref-set (slot-value obj (first slots)) (rest slots) val))))
+     (defmacro bind-nested-slots (forms obj &body body)
+       "For each form of (VAR SLOT1 SLOT2 ...) bind VAR to (NESTED-SLOT OBJ SLOT1 SLOT2 ...) "
+       `(let ,(loop for form in forms
+                 collect `(,(first form) (slot-ref ,obj ',(rest form))))
+          ,@body))
 
-      (defsetf slot-ref slot-ref-set)
-
-      (defmacro bind-nested-slots (forms obj &body body)
-        "For each form of (VAR SLOT1 SLOT2 ...) bind VAR to (NESTED-SLOT OBJ SLOT1 SLOT2 ...) "
-        `(let ,(loop for form in forms
-                  collect `(,(first form) (slot-ref ,obj ',(rest form))))
-           ,@body))
-
-      (defmacro defpfun (name args pargs &body body)
-        "Define pandoric function given name, arguments, pandoric arguments,
-      & body forms."
-        `(setf (symbol-function ',name)
-               (plambda ,args ,pargs
-                        ,@body)))
-    #+END_SRC
+     (defmacro defpfun (name args pargs &body body)
+       "Define pandoric function given name, arguments, pandoric arguments,
+     & body forms."
+       `(setf (symbol-function ',name)
+              (plambda ,args ,pargs
+                       ,@body)))
+   #+END_SRC
 
 ** Утилиты
 

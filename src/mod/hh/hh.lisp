@@ -223,10 +223,10 @@
          (-salary-text- **salary-text**)
          (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
                                           (string= c "l-content-colum-2 b-v-info-content"))))
-         (-city- **x**)
-         (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) x)
+         (-city- **city**)
+         (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
                                          (string= e "experienceRequirements"))))
-         (-exp- **x**)
+         (-exp- **exp**)
          (-description-
           (transform-description
            (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
