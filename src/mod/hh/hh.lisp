@@ -123,8 +123,11 @@
                              (rs))
                          (if (not (equal 1 (length in)))
                              (err "parsing failed, data NOT printed")
-                             (mapcar #'(lambda (y)
-                                         (setf rs (append rs y)))
+                             (mapcar #'(lambda (item)
+                                         (when (and (consp item)
+                                                    (not (null item))
+                                                    (keywordp (car item)))
+                                           (setf rs (append rs item))))
                                      (car in)))
                          rs)
                        #'mapcar))
@@ -185,7 +188,19 @@
 
 (print
  (hh-parse-vacancy-teasers
-  (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~1")))
+  (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=29")))
+
+("div" (("class" "search-result-item__description"))
+       (:VAC-ID "http://spb.hh.ru/vacancy/12215964" :VAC-NAME "C# Developer / Программист C#")
+       (:CURRENCY "RUR" :SALARY "40000" :SALARY-TEXT "от 40 000 руб.")
+       ("a"
+        (("class"
+          "interview-insider__link                   m-interview-insider__link-searchresult")
+         ("href" "/article/8628")
+         ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+        "Посмотреть интервью с представителем компании")
+       (:EMP-ID "/employer/15092" :EMP-NAME "Veeam Software")
+       (:CITY "Санкт-Петербург" :METRO NIL :DATE "11 декабря"))
 (in-package #:moto)
 
 (defun transform-description (tree-descr)
@@ -287,51 +302,60 @@
 
 (in-package #:moto)
 
-;; (defparameter *programmin-and-development-profile*
-;;   (make-profile :name "Программирование и разработка"
-;;                 :user-id 1
-;;                 :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
-;;                 :ts-create (get-universal-time)
-;;                 :ts-last (get-universal-time)))
+(defparameter *programmin-and-development-profile*
+  (make-profile :name "Программирование и разработка"
+                :user-id 1
+                :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
+                :ts-create (get-universal-time)
+                :ts-last (get-universal-time)))
 
-;; (defun run-collect (profile)
-;;   (let* ((search-str   (search-query profile))
-;;          (all-teasers  nil))
-;;     (block get-all-hh-teasers
-;;       (loop :for num :from 0 :to 100 :do
-;;          (print num)
-;;          (let* ((url (format nil search-str num))
-;;                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-;;            (if (equal 0 (length teasers))
-;;                (return-from get-all-hh-teasers)
-;;                (setf all-teasers (append all-teasers teasers)))))
-;;       (print "over-100"))
-;;     all-teasers))
+(defun run-collect (profile)
+  (let* ((search-str   (search-query profile))
+         (all-teasers  nil))
+    (block get-all-hh-teasers
+      (loop :for num :from 0 :to 100 :do
+         (print num)
+         (let* ((url (format nil search-str num))
+                (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+           (if (equal 0 (length teasers))
+               (return-from get-all-hh-teasers)
+               (setf all-teasers (append all-teasers teasers)))))
+      (print "over-100"))
+    all-teasers))
 
-;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
+(print
+ (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
 
-;; (length *teasers*)
+(defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
-;; (defun save-collect (all-teasers)
-;;   (loop :for tea :in *teasers* :do
-;;      (print tea)
-;;      (make-vacancy :profile-id (id *programmin-and-development-profile*)
-;;                    :name (getf tea :vacancy-name)
-;;                    :rem-id (getf tea :vacancy-id)
-;;                    :rem-date (getf tea :vacancy-date)
-;;                    :rem-employer-name (getf tea :employer-name)
-;;                    :rem-employer-id (aif (getf tea :employer-id)
-;;                                          it
-;;                                          0)
-;;                    :currency (getf tea :salary-currency)
-;;                    :salary (aif (getf tea :salary-base)
-;;                                 it
-;;                                 0)
-;;                    :salary-text (getf tea :salary-text)
-;;                    :state ":TEASER"
-;;                    )))
+(length *teasers*)
 
-;; (save-collect *teasers*)
+(defun save-collect (all-teasers)
+  (loop :for tea :in all-teasers :do
+     (print tea)
+     (make-vacancy :profile-id (id *programmin-and-development-profile*)
+                   :name (getf tea :vac-name)
+                   :rem-id (parse-integer
+                            (car (last (split-sequence:split-sequence
+                                        #\/ (getf tea :vac-id)))))
+                   :rem-date (getf tea :vacancy-date)
+                   :rem-employer-name (getf tea :employer-name)
+                   :rem-employer-id (aif (getf tea :employer-id)
+                                         (parse-integer
+                                          (car (last (split-sequence:split-sequence
+                                                      #\/ it))))
+                                         0)
+                   :currency (getf tea :salary-currency)
+                   :salary (aif (getf tea :salary-base)
+                                it
+                                0)
+                   :salary-text (getf tea :salary-text)
+                   :state ":TEASER"
+                   )))
+
+(save-collect *teasers*)
+
+(length (all-vacancy))
 
 
 ;; Тестируем hh
