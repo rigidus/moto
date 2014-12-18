@@ -17,53 +17,9 @@
    :external-format :utf-8))
 (in-package #:moto)
 
-(defun hh-parse-vacancy-teasers (html)
-  "Получение списка вакансий из html"
-  (let* ((cut (ppcre:scan-to-strings
-               (format nil "~A(.*)~A"
-                       "<table class=\"l-table entry-content\" data-qa=\"vacancy-serp__results\">"
-                       "<div class=\"g-hidden b-select-icon-popup HH-VacancyToFavorite-LimitPopup\">")
-               html))
-         (cut-without-tail (subseq cut 0 (- (length cut) 74)))
-         (parsed (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment cut-without-tail)))
-         (rows   (cddr (nth 2 (car parsed)))))
-    (remove-if
-     #'null
-     (loop :for row :in rows :collect
-        (when (or (ppcre:scan-to-strings "vacancy-serp__vacancy_premium" (car (cdaadr row)))
-                  (string= "b-vacancy-list-standard" (car (cdaadr row)))
-                  (string= "b-vacancy-list-standard_plus" (car (cdaadr row))))
-          (let* ((data (nth 3 row))
-                 (hh-vacancy-a (cdr (caddr (caddr (caddr (caddr data))))))
-                 (hh-vacancy-name (car (last hh-vacancy-a)))
-                 (hh-vacancy-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaddr (car hh-vacancy-a)))))) :junk-allowed t))
-                 (hh-vacancy-date (caddr (cadddr (caddr data))))
-                 (hh-vacancy-placetime (nth 4 (nth 4 (caddr data))))
-                 (hh-salary-div (nth 5 (caddr data)))
-                 (result (list :vacancy-name hh-vacancy-name
-                               :vacancy-id hh-vacancy-id
-                               :vacancy-date hh-vacancy-date
-                               )))
-            (when hh-vacancy-placetime
-              (let ((hh-employer-name (car (last hh-vacancy-placetime)))
-                    (hh-employer-id (parse-integer (car (last (split-sequence:split-sequence #\/ (car (cdaadr hh-vacancy-placetime))))) :junk-allowed t)))
-                (setf result (append result (list :employer-name hh-employer-name
-                                                  :employer-id hh-employer-id)))))
-            (when (and hh-salary-div
-                       (string= "b-vacancy-list-salary"  (car (cdaadr hh-salary-div))))
-              (let ((hh-salary-currency (cadr (cadadr (caddr hh-salary-div))))
-                    (hh-salary-base (parse-integer (cadr (cadadr (cadddr hh-salary-div))) :junk-allowed t))
-                    (hh-salary-text (car (last hh-salary-div))))
-                (setf result (append result (list :salary-currency hh-salary-currency
-                                                  :salary-base hh-salary-base
-                                                  :salary-text hh-salary-text)))))
-            result))))))
-(in-package #:moto)
-
-(defun tree-match (tree predict &key (if-match :return-first-match))
+(defun tree-match (tree predict &optional (if-match :return-first-match))
   (let ((collect))
-    (flet ((match-tree (tree f-predict f-in &key
-                             (if-match :return-first-match))
+    (labels ((match-tree (tree f-predict &optional (if-match :return-first-match))
              (cond ((null tree) nil)
                    ((atom tree) nil)
                    (t
@@ -78,27 +34,27 @@
                                  (setf collect
                                        (append collect (list tree)))
                                  (cons
-                                  (funcall f-in (car tree) f-predict f-in :if-match if-match)
-                                  (funcall f-in (cdr tree) f-predict f-in :if-match if-match))))
+                                  (funcall #'match-tree (car tree) f-predict if-match)
+                                  (funcall #'match-tree (cdr tree) f-predict if-match))))
                               ((equal 'function (type-of if-match))
                                (funcall if-match tree))
                               (t (error 'strategy-not-implemented)))
                         (cons
-                         (funcall f-in (car tree) f-predict f-in :if-match if-match)
-                         (funcall f-in (cdr tree) f-predict f-in :if-match if-match)))))))
-      (match-tree tree predict #'match-tree :if-match if-match)
-      collect
-      )))
+                         (funcall #'match-tree (car tree) f-predict if-match)
+                         (funcall #'match-tree (cdr tree) f-predict if-match)))))))
+      (match-tree tree predict if-match)
+      collect)))
 (in-package #:moto)
 
 (defmacro with-predict (pattern &body body)
-  `#'(lambda (lambda-param)
-       (handler-case
-           (destructuring-bind ,pattern
-               lambda-param
-             ,@body)
-         (sb-kernel::arg-count-error nil)
-         (sb-kernel::defmacro-bogus-sublist-error nil))))
+  (let ((lambda-param (gensym)))
+    `#'(lambda (,lambda-param)
+         (handler-case
+             (destructuring-bind ,pattern
+                 ,lambda-param
+               ,@body)
+           (sb-kernel::arg-count-error nil)
+           (sb-kernel::defmacro-bogus-sublist-error nil)))))
 
 ;; (macroexpand-1 '
 ;;  (with-predict (a ((b c)) d &rest e)
@@ -148,6 +104,88 @@
 ;;             (SETF **A** A)
 ;;             (SETF **B** B)
 ;;             (SETF **C** C))))
+(in-package #:moto)
+
+(defun hh-parse-vacancy-teasers (html)
+  "Получение списка вакансий из html"
+  (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+         (searchblock (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
+                                         (string= c "search-result")))))
+    (with-predict-maptree (a ((b class) (c d)) &rest z)
+      (and (equal class "search-result"))
+      #'(lambda (x) (values **z** #'mapcar))
+      (with-predict-maptree (a ((b class) (c d)) &rest z)
+        (and (or (equal class "search-result-item search-result-item_standard")
+                 (equal class "search-result-item search-result-item_standard_plus")
+                 (equal class "search-result-item search-result-item_premium search-result-item_premium")))
+        #'(lambda (x) (values
+                       (let ((in (remove-if #'(lambda (x) (or (equal x nil) (equal x "noindex") (equal x "/noindex"))) **z**))
+                             (rs))
+                         (if (not (equal 1 (length in)))
+                             (err "parsing failed, data NOT printed")
+                             (mapcar #'(lambda (y)
+                                         (setf rs (append rs y)))
+                                     (car in)))
+                         rs)
+                       #'mapcar))
+        (with-predict-maptree  (a ((b  c ) (d  e) (f  g) (h i) (j k)) l)
+          (and (equal c "Премия HRBrand"))
+          #'(lambda (x) (values nil #'mapcar))
+          (with-predict-maptree (a ((b class)) logo)
+            (and (equal class "search-result-item__image"))
+            #'(lambda (x) (values nil #'mapcar))
+            (with-predict-maptree (a ((b class) (c d)))
+              (and (equal class "HH/VacancyResponseTrigger"))
+              #'(lambda (x) (values nil #'mapcar))
+              (with-predict-maptree (a ((b class) (c d)) z)
+                (and (equal class "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"))
+                #'(lambda (x) (values nil #'mapcar))
+                (with-predict-maptree (a ((b class)))
+                  (and (equal class "search-result-item__star"))
+                  #'(lambda (x) (values nil #'mapcar))
+                  (with-predict-maptree (a ((b class)) c d e &optional f)
+                    (and (equal class "search-result-item__description"))
+                    #'(lambda (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
+                    (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
+                      (and (equal class "search-result-item__head")
+                           (or  (equal e "search-result-item__name search-result-item__name_standard")
+                                (equal e "search-result-item__name search-result-item__name_standard_plus")
+                                (equal e "search-result-item__name search-result-item__name_premium")))
+                      #'(lambda (x) (values (list :vac-id **i** :vac-name **z**) #'mapcar))
+                      (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
+                        (and (equal class "b-vacancy-list-salary"))
+                        #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
+                        (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i)) z))
+                          (and (equal class "search-result-item__company"))
+                          #'(lambda (x) (values (list :emp-id **e** :emp-name **z**) #'mapcar))
+                          (with-predict-maptree (a ((b class)) &rest rest)
+                            (and (equal class "search-result-item__info"))
+                            #'(lambda (x) (values (let ((rs))
+                                                    (loop :for item :in **rest** :do
+                                                       (when (and (consp item) (keywordp (car item)))
+                                                         (setf rs (append rs item))))
+                                                    rs)
+                                                  #'mapcar))
+                            (with-predict-maptree (c ((d sr-addr) (qa serp-addr)) city &rest rest)
+                              (and (equal sr-addr "searchresult__address")
+                                   (equal serp-addr "vacancy-serp__vacancy-address"))
+                              #'(lambda (x) (values (let ((metro (loop :for item in **rest** :do
+                                                                    (when (and (consp item) (equal :metro (car item)))
+                                                                      (return (cadr item))))))
+                                                      (list :city **city** :metro metro))
+                                                    #'mapcar))
+                              (with-predict-maptree (a ((b class)) (c ((d metro-point) (i j))) metro)
+                                (and (equal class "metro-station")
+                                     (equal metro-point "metro-point"))
+                                #'(lambda (x) (values (list :metro **metro**) #'mapcar))
+                                (with-predict-maptree (a ((b class) (c d)) date)
+                                  (and (equal class "b-vacancy-list-date"))
+                                  #'(lambda (x) (values (list :date **date**) #'mapcar))
+                                  searchblock)))))))))))))))))
+
+(print
+ (hh-parse-vacancy-teasers
+  (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~1")))
 (in-package #:moto)
 
 (defun transform-description (tree-descr)
@@ -234,11 +272,11 @@
     -description-
     ))
 
-(print
- (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+;; (print
+;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
-(print
- (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
+;; (print
+;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
 (in-package #:moto)
 
 (defun teaser-rejection ()
@@ -249,51 +287,51 @@
 
 (in-package #:moto)
 
-(defparameter *programmin-and-development-profile*
-  (make-profile :name "Программирование и разработка"
-                :user-id 1
-                :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
-                :ts-create (get-universal-time)
-                :ts-last (get-universal-time)))
+;; (defparameter *programmin-and-development-profile*
+;;   (make-profile :name "Программирование и разработка"
+;;                 :user-id 1
+;;                 :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
+;;                 :ts-create (get-universal-time)
+;;                 :ts-last (get-universal-time)))
 
-(defun run-collect (profile)
-  (let* ((search-str   (search-query profile))
-         (all-teasers  nil))
-    (block get-all-hh-teasers
-      (loop :for num :from 0 :to 100 :do
-         (print num)
-         (let* ((url (format nil search-str num))
-                (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-           (if (equal 0 (length teasers))
-               (return-from get-all-hh-teasers)
-               (setf all-teasers (append all-teasers teasers)))))
-      (print "over-100"))
-    all-teasers))
+;; (defun run-collect (profile)
+;;   (let* ((search-str   (search-query profile))
+;;          (all-teasers  nil))
+;;     (block get-all-hh-teasers
+;;       (loop :for num :from 0 :to 100 :do
+;;          (print num)
+;;          (let* ((url (format nil search-str num))
+;;                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+;;            (if (equal 0 (length teasers))
+;;                (return-from get-all-hh-teasers)
+;;                (setf all-teasers (append all-teasers teasers)))))
+;;       (print "over-100"))
+;;     all-teasers))
 
-(defparameter *teasers* (run-collect *programmin-and-development-profile*))
+;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
-(length *teasers*)
+;; (length *teasers*)
 
-(defun save-collect (all-teasers)
-  (loop :for tea :in *teasers* :do
-     (print tea)
-     (make-vacancy :profile-id (id *programmin-and-development-profile*)
-                   :name (getf tea :vacancy-name)
-                   :rem-id (getf tea :vacancy-id)
-                   :rem-date (getf tea :vacancy-date)
-                   :rem-employer-name (getf tea :employer-name)
-                   :rem-employer-id (aif (getf tea :employer-id)
-                                         it
-                                         0)
-                   :currency (getf tea :salary-currency)
-                   :salary (aif (getf tea :salary-base)
-                                it
-                                0)
-                   :salary-text (getf tea :salary-text)
-                   :state ":TEASER"
-                   )))
+;; (defun save-collect (all-teasers)
+;;   (loop :for tea :in *teasers* :do
+;;      (print tea)
+;;      (make-vacancy :profile-id (id *programmin-and-development-profile*)
+;;                    :name (getf tea :vacancy-name)
+;;                    :rem-id (getf tea :vacancy-id)
+;;                    :rem-date (getf tea :vacancy-date)
+;;                    :rem-employer-name (getf tea :employer-name)
+;;                    :rem-employer-id (aif (getf tea :employer-id)
+;;                                          it
+;;                                          0)
+;;                    :currency (getf tea :salary-currency)
+;;                    :salary (aif (getf tea :salary-base)
+;;                                 it
+;;                                 0)
+;;                    :salary-text (getf tea :salary-text)
+;;                    :state ":TEASER"
+;;                    )))
 
-(save-collect *teasers*)
+;; (save-collect *teasers*)
 
 
 ;; Тестируем hh

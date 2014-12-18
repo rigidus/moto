@@ -7,8 +7,6 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
-TODO: Обсудить все нижеследующее с hr-специалистами
-
 * Введение
 
   Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
@@ -93,82 +91,16 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
 ** Парсинг данных
 
-   Они размещаются постранично, по 20 штук на странице, и мы можем собрать все страницы,
-   если будем получать страницу за страницей, пока не получим страницу, на которой вакансий
-   нет. Для того чтобы это реализовать нам нужно уметь получить страницу
-   (=hh-get-page(url)=) и разобрать тизеры вакансий (=hh-parse-vacancy-teasers(html)=).
-
    Начнем с того, что будем собирать все ит-вакансии с http://spb.hh.ru
 
-   Как только у нас это есть - код становится простым
-
-   #+NAME: hh_parse
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defparameter *programmin-and-development-profile*
-       (make-profile :name "Программирование и разработка"
-                     :user-id 1
-                     :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
-                     :ts-create (get-universal-time)
-                     :ts-last (get-universal-time)))
-
-     (defun run-collect (profile)
-       (let* ((search-str   (search-query profile))
-              (all-teasers  nil))
-         (block get-all-hh-teasers
-           (loop :for num :from 0 :to 100 :do
-              (print num)
-              (let* ((url (format nil search-str num))
-                     (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-                (if (equal 0 (length teasers))
-                    (return-from get-all-hh-teasers)
-                    (setf all-teasers (append all-teasers teasers)))))
-           (print "over-100"))
-         all-teasers))
-
-     (defparameter *teasers* (run-collect *programmin-and-development-profile*))
-
-     (length *teasers*)
-
-     (defun save-collect (all-teasers)
-       (loop :for tea :in *teasers* :do
-          (print tea)
-          (make-vacancy :profile-id (id *programmin-and-development-profile*)
-                        :name (getf tea :vacancy-name)
-                        :rem-id (getf tea :vacancy-id)
-                        :rem-date (getf tea :vacancy-date)
-                        :rem-employer-name (getf tea :employer-name)
-                        :rem-employer-id (aif (getf tea :employer-id)
-                                              it
-                                              0)
-                        :currency (getf tea :salary-currency)
-                        :salary (aif (getf tea :salary-base)
-                                     it
-                                     0)
-                        :salary-text (getf tea :salary-text)
-                        :state ":TEASER"
-                        )))
-
-     (save-collect *teasers*)
-   #+END_SRC
-
-   Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
-   интересуют больше чем остальные их можно будет получить по статусу:
-
-   #+NAME: hh_parse_deep
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (find-vacancy :profile-id 1)
-
-     (all-vacancy)
-   #+END_SRC
-
+   Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
+   страницы, если будем получать страницу за страницей, пока не получим страницу, на которой
+   вакансий нет. Для того чтобы это реализовать нам нужно уметь получить страницу
+   (=hh-get-page(url)=) и разобрать тизеры вакансий (=hh-parse-vacancy-teasers(html)=).
 
 *** Получение страниц
 
-    Вот так мы можем получать страницы:
+    Вот так мы можем получать страницы, на который находятся тизеры:
 
     #+NAME: hh_fn_contents
     #+BEGIN_SRC lisp
@@ -189,110 +121,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
          :external-format :utf-8))
     #+END_SRC
 
-*** COMMENT Разбор тизеров вакансий
-
-    Теперь, чтобы получить вакансии с этой страницы - вырежем таблицу с ними и воспользуемся
-    парсером, который переведет полученный html в более удобный лисп-список. Этот список
-    содержит строки таблицы, которые бывают четырех видов:
-    - премиум вакансии
-    - разделитель между блоками премиум и обычных вакансий
-    - обычные вакансии
-    - обычный вакансии плюс.
-
-    Нас интересуют все типы кроме разделителя, внутри они устроены сходно. При обработке
-    строк интересующих типов мы получаем:
-    - название вакансии
-    - идентификатор (ссылку)
-    - дату размещения
-    - название работодателя
-    - идентификатор работодателя
-
-    Если в вакансии указана зарплата, мы также получаем
-    - Валюту зарплаты (3х-буквенный идентификатор)
-    - Сумму
-    - Текстовое выражение, содержащее "от" или "от и до"
-
-    Иногда HeadHunter синдицирует вакансии с других платформ, к примеру с CAREER.RU, тогда в
-    вакансии может отсутствовать работодатель. Мы явно отрабатываем этот момент.
-
-    #+NAME: hh_fn_contents
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (defun hh-parse-vacancy-teasers (html)
-        "Получение списка вакансий из html"
-        (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-               (searchblock (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
-                                                 (string= c "search-result")))))
-          (with-predict-maptree (a ((b class) (c d)) &rest z)
-            (and (equal class "search-result"))
-            #'(lambda (x) (values **z** #'mapcar))
-            (with-predict-maptree (a ((b class) (c d)) &rest z)
-              (and (or (equal class "search-result-item search-result-item_standard")
-                       (equal class "search-result-item search-result-item_standard_plus")
-                       (equal class "search-result-item search-result-item_premium search-result-item_premium")))
-              #'(lambda (x) (values
-                             (let ((in (remove-if #'null **z**))
-                                   (rs))
-                               (assert (equal 1 (length in)))
-                               (setf in (car in))
-                               (mapcar #'(lambda (y)
-                                           (setf rs (append rs y)))
-                                       in)
-                               rs)
-                             #'mapcar))
-              (with-predict-maptree (a ((b class)) logo)
-                (and (equal class "search-result-item__image"))
-                #'(lambda (x) (values nil #'mapcar))
-                (with-predict-maptree (a ((b class) (c d)))
-                  (and (equal class "HH/VacancyResponseTrigger"))
-                  #'(lambda (x) (values nil #'mapcar))
-                  (with-predict-maptree (a ((b class) (c d)) z)
-                    (and (equal class "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"))
-                    #'(lambda (x) (values nil #'mapcar))
-                    (with-predict-maptree (a ((b class)))
-                      (and (equal class "search-result-item__star"))
-                      #'(lambda (x) (values nil #'mapcar))
-                      (with-predict-maptree (a ((b class)) c d e &optional f)
-                        (and (equal class "search-result-item__description"))
-                        #'(lambda (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
-                        (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
-                          (and (equal class "search-result-item__head")
-                               (or  (equal e "search-result-item__name search-result-item__name_standard")
-                                    (equal e "search-result-item__name search-result-item__name_standard_plus")
-                                    (equal e "search-result-item__name search-result-item__name_premium")))
-                          #'(lambda (x) (values (list :vac-id **i** :vac-name **z**) #'mapcar))
-                          (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
-                            (and (equal class "b-vacancy-list-salary"))
-                            #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
-                            (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i)) z))
-                              (and (equal class "search-result-item__company"))
-                              #'(lambda (x) (values (list :emp-id **e** :emp-name **z**) #'mapcar))
-                              (with-predict-maptree (a ((b class)) (c ((d sr-addr) (qa serp-addr)) city)
-                                                       star (k ((l class-date) (m n)) date))
-                                (and (equal class "search-result-item__info")
-                                     (equal sr-addr "searchresult__address")
-                                     (equal serp-addr "vacancy-serp__vacancy-address")
-                                     (equal class-date "b-vacancy-list-date"))
-                                #'(lambda (x) (values (list :city **city** :date **date**) #'mapcar))
-                                (with-predict-maptree (a ((b class)) (c ((d sr-addr) (qa serp-addr)) city (br nil-1)
-                                                                        (e ((f metro-station)) (g ((h metro-point) (i j))) metro))
-                                                         star (k ((l class-date) (m n)) date))
-                                  (and (equal class "search-result-item__info")
-                                       (equal sr-addr "searchresult__address")
-                                       (equal serp-addr "vacancy-serp__vacancy-address")
-                                       (equal metro-station "metro-station")
-                                       (equal metro-point "metro-point")
-                                       (equal class-date "b-vacancy-list-date"))
-                                  #'(lambda (x) (values (list :city **city** :metro **metro** :date **date**) #'mapcar))
-                                  searchblock))))))))))))))
-
-      (print
-       (hh-parse-vacancy-teasers
-        (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~1")))
-    #+END_SRC
-
-*** Разбор вакансий
+*** Сопоставление узлов
 
     Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии) мы
     разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -300,37 +129,28 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
     Чтобы делать это будем обходить дерево, сопоставляя каждый узел с предикатом, в который
     скомпилируется образец. Начнем с обхода дерева, для этого напишем рекурсивную функцию
-    =match-tree=, которую определим с помощью flet, для того, чтобы разрешить противоречие,
-    когда функции, чтобы вызвать саму себя требуется уже быть определенной, а она еще не
-    определена.
+    =match-tree=, которую определим с помощью =labels=, чтобы иметь окружить ее формой =let=
+    с аккумулятором.
 
-    Определим первые три параметра этой функции:
+    Определим параметры этой функции:
     - =tree= - под-дерево, которое мы рекурсивно обходим и должны для этого передавать
     - =predict= - функция-предикат, которая может совпасть с обходимым поддеревом
-    - =f-in= - функция, которая будет вызвана для обхода под-деревьев этого под-дерева (в
-      общем случае это и есть наша функция =match-tree=, но вообще говоря вполне можно
-      обходить дерево сначала одним способом, а потом, по достижении искомого узла - уже
-      другим)
-    Остальные (ключевые) параметры, влияющие на ход выполнения определим чуть позже, оставив
-    для них плейсхолдер =params=.
+    - =if-match= - параметр чтобы иметь возможность передавать стратегию
 
     #+NAME: cond_tree
     #+BEGIN_SRC lisp
-      (flet ((match-tree (tree f-predict f-in &key
-                               <<params>>)
+      (labels ((match-tree (tree f-predict &optional (if-match :return-first-match))
                (cond ((null tree) nil)
                      ((atom tree) nil)
                      (t
                       <<cons>>))))
-        <<call>>
-        )
+        <<call>>)
     #+END_SRC
 
     Теперь переходим к рассмотрению плейсхолдера =cons=, который выполняет основную
     работу. В первую очередь нам следует сравнить текущий узел с параметром =predict= и в
     случае если =predict= вернул T - выполнить какие-то действия. В противном случае -
-    обрабатываем поддеревья этого узла. Поскольку мы пока еще не определили полный список
-    параметров функции, то в месте ее вызова оставим плейсхолдер =call_params=
+    обрабатываем поддеревья этого узла.
 
     #+NAME: cons
     #+BEGIN_SRC lisp
@@ -342,8 +162,8 @@ TODO: Обсудить все нижеследующее с hr-специали�
     #+NAME: sub_trees
     #+BEGIN_SRC lisp
       (cons
-       (funcall f-in (car tree) f-predict f-in <<call_params>>)
-       (funcall f-in (cdr tree) f-predict f-in <<call_params>>))
+       (funcall #'match-tree (car tree) f-predict if-match)
+       (funcall #'match-tree (cdr tree) f-predict if-match))
     #+END_SRC
 
     В случае, когда узел совпал с =predict= мы можем реализовать следующие стратегии:
@@ -356,22 +176,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
       может с ним что-то сделать - например записать в какую-нибудь переменную на более
       высоком уровне.
     Реализуем эти стратегии друг за другом.
-
-    Для того, чтобы иметь возможность передавать стратегию в функцию, определим ключевой
-    параметр =if-match=:
-
-    #+NAME: params
-    #+BEGIN_SRC lisp
-      (if-match :return-first-match)
-    #+END_SRC
-
-    Поскольку теперь все параметры определены, мы, наконец-то, можем сформулировать
-    =call_params=:
-
-    #+NAME: call_params
-    #+BEGIN_SRC lisp
-      :if-match if-match
-    #+END_SRC
 
     Реализуем выбор стратегии в общих чертах - будем использовать =cond= по параметру
     =if-match=. В случае, если в этом параметре не лежит keyword symbol с именем стратегии -
@@ -432,7 +236,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
     #+NAME: call
     #+BEGIN_SRC lisp
-      (match-tree tree predict #'match-tree :if-match if-match)
+      (match-tree tree predict if-match)
       collect
     #+END_SRC
 
@@ -440,7 +244,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
 
     #+NAME: tree-match
     #+BEGIN_SRC lisp
-      (defun tree-match (tree predict &key (if-match :return-first-match))
+      (defun tree-match (tree predict &optional (if-match :return-first-match))
         (let ((collect))
           <<cond_tree>>))
     #+END_SRC
@@ -465,13 +269,14 @@ TODO: Обсудить все нижеследующее с hr-специали�
       (in-package #:moto)
 
       (defmacro with-predict (pattern &body body)
-        `#'(lambda (lambda-param)
-             (handler-case
-                 (destructuring-bind ,pattern
-                     lambda-param
-                   ,@body)
-               (sb-kernel::arg-count-error nil)
-               (sb-kernel::defmacro-bogus-sublist-error nil))))
+        (let ((lambda-param (gensym)))
+          `#'(lambda (,lambda-param)
+               (handler-case
+                   (destructuring-bind ,pattern
+                       ,lambda-param
+                     ,@body)
+                 (sb-kernel::arg-count-error nil)
+                 (sb-kernel::defmacro-bogus-sublist-error nil)))))
 
       ;; (macroexpand-1 '
       ;;  (with-predict (a ((b c)) d &rest e)
@@ -491,9 +296,6 @@ TODO: Обсудить все нижеследующее с hr-специали�
       ;;          (SB-KERNEL::ARG-COUNT-ERROR NIL)
       ;;          (SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T
     #+END_SRC
-
-    Я намеренно оставляю возможность доступа к =lambda-param= из =&body= и не определяю его
-    через =gensym=.
 
     Вот так, к примеру, это можно совместить с поиском по дереву:
 
@@ -516,7 +318,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
                          (prog1 it
                            (setf **a** a)
                            (setf **b** b))))
-                  :if-match :return-all-match)
+                  :return-all-match)
     #+END_SRC
 
     Для еще большей лаконичности мы можем определить оборачивающий макрос, который позволит
@@ -581,7 +383,7 @@ TODO: Обсудить все нижеследующее с hr-специали�
                    (with-predict-if (a b &rest c)
                      (and (stringp a)
                           (string= a "class")))
-                   :if-match :return-all-match))
+                   :return-all-match))
 
       ;; => (("class" "b-vacancy-custom g-round") ("class" "title b-vacancy-title")
       ;;     ("class" "l") ("class" "l-cell") ("class" "employer-marks g-clearfix")
@@ -591,8 +393,115 @@ TODO: Обсудить все нижеследующее с hr-специали�
       ;; => "l-cell"
     #+END_SRC
 
-    Теперь когда у нас есть необходимые инструменты, переходим к практической части. Мы
-    должны извлечь несколько блоков:
+*** Разбор тизеров вакансий
+
+    Теперь, чтобы получить вакансии со страниц поискоой выдачи - воспользуемся парсером,
+    который переведет полученный html в более удобное лисп-дерево. Используя сопоставление с
+    образцом мы раз за разом преобразуем его до тех пор, пока там не остануться только
+    интересующие нас данные:
+    - название вакансии
+    - идентификатор (ссылку)
+    - дату размещения
+    - название работодателя
+    - идентификатор работодателя
+
+    Если в вакансии указана зарплата, мы также получаем
+    - Валюту зарплаты (3х-буквенный идентификатор)
+    - Сумму
+    - Текстовое выражение, содержащее "от" или "от и до"
+
+    Иногда HeadHunter синдицирует вакансии с других платформ, к примеру с CAREER.RU, тогда в
+    вакансии может отсутствовать работодатель.
+
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defun hh-parse-vacancy-teasers (html)
+        "Получение списка вакансий из html"
+        (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+               (searchblock (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
+                                               (string= c "search-result")))))
+          (with-predict-maptree (a ((b class) (c d)) &rest z)
+            (and (equal class "search-result"))
+            #'(lambda (x) (values **z** #'mapcar))
+            (with-predict-maptree (a ((b class) (c d)) &rest z)
+              (and (or (equal class "search-result-item search-result-item_standard")
+                       (equal class "search-result-item search-result-item_standard_plus")
+                       (equal class "search-result-item search-result-item_premium search-result-item_premium")))
+              #'(lambda (x) (values
+                             (let ((in (remove-if #'(lambda (x) (or (equal x nil) (equal x "noindex") (equal x "/noindex"))) **z**))
+                                   (rs))
+                               (if (not (equal 1 (length in)))
+                                   (err "parsing failed, data NOT printed")
+                                   (mapcar #'(lambda (y)
+                                               (setf rs (append rs y)))
+                                           (car in)))
+                               rs)
+                             #'mapcar))
+              (with-predict-maptree  (a ((b  c ) (d  e) (f  g) (h i) (j k)) l)
+                (and (equal c "Премия HRBrand"))
+                #'(lambda (x) (values nil #'mapcar))
+                (with-predict-maptree (a ((b class)) logo)
+                  (and (equal class "search-result-item__image"))
+                  #'(lambda (x) (values nil #'mapcar))
+                  (with-predict-maptree (a ((b class) (c d)))
+                    (and (equal class "HH/VacancyResponseTrigger"))
+                    #'(lambda (x) (values nil #'mapcar))
+                    (with-predict-maptree (a ((b class) (c d)) z)
+                      (and (equal class "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"))
+                      #'(lambda (x) (values nil #'mapcar))
+                      (with-predict-maptree (a ((b class)))
+                        (and (equal class "search-result-item__star"))
+                        #'(lambda (x) (values nil #'mapcar))
+                        (with-predict-maptree (a ((b class)) c d e &optional f)
+                          (and (equal class "search-result-item__description"))
+                          #'(lambda (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
+                          (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
+                            (and (equal class "search-result-item__head")
+                                 (or  (equal e "search-result-item__name search-result-item__name_standard")
+                                      (equal e "search-result-item__name search-result-item__name_standard_plus")
+                                      (equal e "search-result-item__name search-result-item__name_premium")))
+                            #'(lambda (x) (values (list :vac-id **i** :vac-name **z**) #'mapcar))
+                            (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
+                              (and (equal class "b-vacancy-list-salary"))
+                              #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
+                              (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i)) z))
+                                (and (equal class "search-result-item__company"))
+                                #'(lambda (x) (values (list :emp-id **e** :emp-name **z**) #'mapcar))
+                                (with-predict-maptree (a ((b class)) &rest rest)
+                                  (and (equal class "search-result-item__info"))
+                                  #'(lambda (x) (values (let ((rs))
+                                                          (loop :for item :in **rest** :do
+                                                             (when (and (consp item) (keywordp (car item)))
+                                                               (setf rs (append rs item))))
+                                                          rs)
+                                                        #'mapcar))
+                                  (with-predict-maptree (c ((d sr-addr) (qa serp-addr)) city &rest rest)
+                                    (and (equal sr-addr "searchresult__address")
+                                         (equal serp-addr "vacancy-serp__vacancy-address"))
+                                    #'(lambda (x) (values (let ((metro (loop :for item in **rest** :do
+                                                                          (when (and (consp item) (equal :metro (car item)))
+                                                                            (return (cadr item))))))
+                                                            (list :city **city** :metro metro))
+                                                          #'mapcar))
+                                    (with-predict-maptree (a ((b class)) (c ((d metro-point) (i j))) metro)
+                                      (and (equal class "metro-station")
+                                           (equal metro-point "metro-point"))
+                                      #'(lambda (x) (values (list :metro **metro**) #'mapcar))
+                                      (with-predict-maptree (a ((b class) (c d)) date)
+                                        (and (equal class "b-vacancy-list-date"))
+                                        #'(lambda (x) (values (list :date **date**) #'mapcar))
+                                        searchblock)))))))))))))))))
+
+      (print
+       (hh-parse-vacancy-teasers
+        (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~1")))
+    #+END_SRC
+
+*** Разбор вакансий
+
+    Разбирая вакансию мы должны извлечь несколько блоков:
     - блок заголовка
     - общие данные, такие как уровень зарплаты, город, требуемый опыт работы
     - собственно описание вакансии
@@ -805,12 +714,78 @@ TODO: Обсудить все нижеследующее с hr-специали�
           -description-
           ))
 
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+      ;; (print
+      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
+      ;; (print
+      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
     #+END_SRC
+
+*** Сохранение данных
+   Как только у нас это есть - код становится простым
+
+   #+NAME: hh_parse
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; (defparameter *programmin-and-development-profile*
+     ;;   (make-profile :name "Программирование и разработка"
+     ;;                 :user-id 1
+     ;;                 :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
+     ;;                 :ts-create (get-universal-time)
+     ;;                 :ts-last (get-universal-time)))
+
+     ;; (defun run-collect (profile)
+     ;;   (let* ((search-str   (search-query profile))
+     ;;          (all-teasers  nil))
+     ;;     (block get-all-hh-teasers
+     ;;       (loop :for num :from 0 :to 100 :do
+     ;;          (print num)
+     ;;          (let* ((url (format nil search-str num))
+     ;;                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+     ;;            (if (equal 0 (length teasers))
+     ;;                (return-from get-all-hh-teasers)
+     ;;                (setf all-teasers (append all-teasers teasers)))))
+     ;;       (print "over-100"))
+     ;;     all-teasers))
+
+     ;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
+
+     ;; (length *teasers*)
+
+     ;; (defun save-collect (all-teasers)
+     ;;   (loop :for tea :in *teasers* :do
+     ;;      (print tea)
+     ;;      (make-vacancy :profile-id (id *programmin-and-development-profile*)
+     ;;                    :name (getf tea :vacancy-name)
+     ;;                    :rem-id (getf tea :vacancy-id)
+     ;;                    :rem-date (getf tea :vacancy-date)
+     ;;                    :rem-employer-name (getf tea :employer-name)
+     ;;                    :rem-employer-id (aif (getf tea :employer-id)
+     ;;                                          it
+     ;;                                          0)
+     ;;                    :currency (getf tea :salary-currency)
+     ;;                    :salary (aif (getf tea :salary-base)
+     ;;                                 it
+     ;;                                 0)
+     ;;                    :salary-text (getf tea :salary-text)
+     ;;                    :state ":TEASER"
+     ;;                    )))
+
+     ;; (save-collect *teasers*)
+   #+END_SRC
+
+   Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
+   интересуют больше чем остальные их можно будет получить по статусу:
+
+   #+NAME: hh_parse_deep
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; (find-vacancy :profile-id 1)
+
+     ;; (all-vacancy)
+   #+END_SRC
 
 ** Поиск вакансий
 
