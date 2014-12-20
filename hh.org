@@ -1429,13 +1429,18 @@
            (:script :type "text/javascript"
                     (str (ps
                            (defun up (id)
-                             (alert id))
+                             (let* ((obj ((@ $) (+ "#tr" id))))
+                               ((@ obj after) ((@ obj prev)))))
+                           (defun down (id)
+                             (let* ((obj ((@ $) (+ "#tr" id))))
+                               ((@ obj before) ((@ obj next)))))
                            (defun asm-teaser (i id name state salary salary-text currency)
-                             (s+ "<tr id='" id "'>"
+                             (s+ "<tr id='tr" id "'>"
                                  (s+ "<td nowrap>" id "</td>")
                                  (s+ "<td nowrap>" state "</td>")
                                  (s+ "<td nowrap>"
-                                     (btn+ "up" "up" (s+ "up(" id ")"))
+                                     (btn+ "up" "↑" (s+ "up(" id ")"))
+                                     (btn+ "down" "↓" (s+ "down(" id ")"))
                                      "</td>")
                                  (s+ "<td>" name "</td>")
                                  (s+ "<td nowrap>" (if (equal "false" salary-text) "" salary-text) "</td>")
