@@ -240,34 +240,137 @@
   (slideshow-handler "img"))
 (in-package #:moto)
 
-(restas:define-route collection ("/collection")
-  (with-wrapper
-    (with-html-output-to-string (s)
-      (:script :type "text/javascript"
-               (str (ps
-                      (defun load-elts (param)
-                        ((@ $ post) "/collection" (create :act param)
-                         (lambda (data)
-                           ((@ ((@ $) "#vacancy-container")  html) "")
-                           ((@ $ each) data
-                            (lambda (i data)
-                              ((@ ((@ $) "#vacancy-container")  append) (+ "<br/> name: (" i ") " (@ data vac-name))))))
-                         :json)))
-                    ))
-      (:div :id "control-container"
-            :style "width:100%; border: 1px solid red;"
-            (:input :type "button"
-                    :name "load-elts"
-                    :value "Загрузить элементы"
-                    :onclick (ps (load-elts "load-elts") (return false))))
-      (:div :id "vacancy-container"
-            :style "width:100%; border: 1px solid green;"
-            "wefewfew"))))
+(defmacro/ps s+ (&body body)
+  `(concatenate 'string ,@body))
 
+(defmacro/ps btn+ (name value onclick)
+  `(s+ "<input type='button' name='" ,name
+       "' value='" ,value
+       "' onclick='" ,onclick
+       ";return false;' />"))
+
+(defparameter *style*
+  ".connected, .sortable, .exclude, .handles {
+       margin: auto;
+       padding: 0;
+       width: 300px;
+       -webkit-touch-callout: none;
+       -webkit-user-select: none;
+       -khtml-user-select: none;
+       -moz-user-select: none;
+       -ms-user-select: none;
+       user-select: none;
+   }
+   .connected li, .sortable li, .exclude li, .handles li {
+       list-style: none;
+       border: 1px solid #CCC;
+       background: #F6F6F6;
+       font-family: \"Tahoma\";
+       color: #1C94C4;
+       margin: 5px;
+       padding: 5px;
+       height: 22px;
+   }
+   li.highlight {
+       background: #FEE25F;
+   }
+   #connected {
+       width: 1530px;
+       overflow: hidden;
+       margin: auto;
+   }
+   .connected {
+       float: left;
+       width: 500px;
+   }
+   .connected.no2 {
+       float: right;
+   }")
+
+(defparameter *script*
+  "$(function() {
+        $('.sortable').sortable();
+        $('.handles').sortable({
+                               handle: 'span'
+                               });
+        $('.connected').sortable({
+                                 connectWith: '.connected'
+                                 });
+        $('.exclude').sortable({
+                               items: ':not(.disabled)'
+                               });
+        });")
+
+(restas:define-route collection ("/collection")
+  (let ((teaser-nodes (format nil "~{~A~}"
+                              (mapcar #'(lambda (x)
+                                          (ps-html (:li (format nil "~A &nbsp;&nbsp;&nbsp;<span style='color: red'>~A</span>"
+                                                                (name x)
+                                                                (let ((salary-text (salary-text x)))
+                                                                  (if (equal "false" salary-text)
+                                                                      ""
+                                                                      salary-text))))))
+                                      (sort (aif (find-vacancy :profile-id 1)
+                                                 it
+                                                 (err "null vacancy"))
+                                            #'(lambda (a b)
+                                                (> (salary a) (salary b))))))))
+    (with-wrapper
+      (ps-html
+       (:style *style*)
+       ((:script :src "/js/jquery.sortable.js"))
+       (:script *script*)
+       (:script (ps
+                  (defun up (id)
+                    (let* ((obj ((@ $) (+ "#tr" id))))
+                      ((@ obj after) ((@ obj prev)))))
+                  (defun down (id)
+                    (let* ((obj ((@ $) (+ "#tr" id))))
+                      ((@ obj before) ((@ obj next)))))
+                  (defun asm-teaser (i id name state salary salary-text currency)
+                    (s+ "<li id='tr" id "'>"
+                        (s+ "<li>" name "</td>")
+                        "</li>"))
+                  (defun load-elts (param)
+                    ((@ $ post) "/collection" (create :act param)
+                     (lambda (data)
+                       ((@ ((@ $) "#vacancy-container")  html) "")
+                       ((@ $ each) data
+                        (lambda (i data)
+                          ((@ ((@ $) "#vacancy-container")  append)
+                           (asm-teaser i (@ data id) (@ data name) (@ data state)
+                                       (@ data salary) (@ data salary-text) (@ data currency))))))
+                     :json))))
+       ((:table :border 0 :style "font-size: small;")
+        ((:th) "Интересные")
+        ((:th) "Неразобранные")
+        ((:th) "Неинтересные")
+        ((:tr)
+         ((:td :width 500 :valign "top")
+          ((:ul :class "connected list no2")
+           ((:li :class "highlight") "Item 1")
+           ((:li :class "highlight") "Item 2")
+           ((:li :class "highlight") "Item 3")
+           ((:li :class "highlight") "Item 4")
+           ((:li :class "highlight") "Item 5")
+           ))
+         ((:td :width 500 :valign "top")
+          ((:ul :id "vacancy-container" :class "connected list")
+           teaser-nodes))
+         ((:td :width 500 :valign "top")
+          ((:ul :class "connected list no2")
+           ((:li :class "highlight") "Item 1")
+           ((:li :class "highlight") "Item 2")
+           ((:li :class "highlight") "Item 3")
+           ((:li :class "highlight") "Item 4")
+           ((:li :class "highlight") "Item 5")
+           ))))))))
 
 (restas:define-route collection-post ("/collection" :method :post)
+  ;; Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
   (with-wrapper
-    (error 'ajax :output (format nil "[~{~A~^,~}]"
-                                 (mapcar #'cl-json:encode-json-plist-to-string
-                                         *teasers*)))))
+    (error 'ajax :output (cl-json:encode-json-to-string
+                          (aif (find-vacancy :profile-id 1)
+                               it
+                               (err "null vacancy"))))))
 ;; iface ends here
