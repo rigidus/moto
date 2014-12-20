@@ -1305,6 +1305,12 @@
      ;;              (salary x))
      ;;          (find-vacancy :profile-id 1))
 
+   #+END_SRC
+
+** Галлерея (parenscript)
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
      (defparameter *slideshows* (make-hash-table :test 'equalp))
 
      (defun add-slideshow (slideshow-name image-folder)
@@ -1385,6 +1391,43 @@
 
      (restas:define-route z ("/z")
        (slideshow-handler "img"))
+   #+END_SRC
+
+** Список вакансий
+
+   Мне бы хотелось иметь интерфейс для того чтобы управлять собранными элементами - в первую
+   очередь ранжировать их по интересности. Для этого, мне нужно уметь перемещать эти
+   элементы в коллекции.
+
+   Но перед этим мне нужно сделать отображение этих элементов через ajax
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route collection ("/collection")
+       (with-wrapper
+         (with-html-output-to-string (s)
+           (:script :type "text/javascript"
+                    (str (ps
+                           (defun load-elts (param)
+                             ((@ $ post) "/collection" (create :act param)
+                              (lambda (data)
+                                ((@ ((@ $) "#vacancy-container")  html) data)))))))
+           (:div :id "control-container"
+                 :style "width:100%;  border: 1px solid red;"
+                 (:input :type "button"
+                         :name "load-elts"
+                         :value "Загрузить элементы"
+                         :onclick (ps (load-elts "load-elts") (return false))))
+           (:div :id "vacancy-container"
+                 :style "width:100%; text-align:center; border: 1px solid green;"
+                 "wefewfew"))))
+
+     (restas:define-route collection-post ("/collection" :method :post)
+       (with-html-output-to-string (s)
+         (:div
+          "zzz")))
    #+END_SRC
 
 ** Дашборд
