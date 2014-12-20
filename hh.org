@@ -1413,7 +1413,12 @@
                            (defun load-elts (param)
                              ((@ $ post) "/collection" (create :act param)
                               (lambda (data)
-                                ((@ ((@ $) "#vacancy-container")  html) data)))))))
+                                ((@ ((@ $) "#vacancy-container")  html) "")
+                                ((@ $ each) data
+                                 (lambda (i data)
+                                   ((@ ((@ $) "#vacancy-container")  append) (+ "<br/> name: " (@ data vac-name))))))
+                              :json)))
+                         ))
            (:div :id "control-container"
                  :style "width:100%;  border: 1px solid red;"
                  (:input :type "button"
@@ -1424,10 +1429,15 @@
                  :style "width:100%; text-align:center; border: 1px solid green;"
                  "wefewfew"))))
 
+     (defparameter *teaser*
+       (hh-parse-vacancy-teasers
+        (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=29")))
+
      (restas:define-route collection-post ("/collection" :method :post)
-       (with-html-output-to-string (s)
-         (:div
-          "zzz")))
+       (with-wrapper
+         (error 'ajax :output (format nil "[~{~A~^,~}]"
+                                      (mapcar #'cl-json:encode-json-plist-to-string
+                                              ,*teaser*)))))
    #+END_SRC
 
 ** Дашборд
