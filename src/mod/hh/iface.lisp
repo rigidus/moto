@@ -144,11 +144,20 @@
 
 ;; (profile-id (car (all-vacancy)))
 
-;; (vacancy-table
-;;  (mapcar #'(lambda (x)
-;;              (salary x))
-;;          (find-vacancy :profile-id 1))
+;; (mapcar #'(lambda (x)
+;;             (salary x))
+;;         (find-vacancy :profile-id 1))
 
+;; (car
+;;  (remove-if #'(lambda (x)
+;;                 (null (getf x :salary)))
+;;             *teasers*))
+
+;; (currency
+;;  (car
+;;   (remove-if #'(lambda (x)
+;;                  (equal (salary x) 0))
+;;              (all-vacancy))))
 (defparameter *slideshows* (make-hash-table :test 'equalp))
 
 (defun add-slideshow (slideshow-name image-folder)
@@ -219,8 +228,7 @@
                   :onclick (ps (previous-image) (return false))
                   "Previous")
               " "
-              (:a :href (format nil "~a?image=~a"
-                                slideshow-name (elt images next-image-index))
+              (:a :href (format nil "?image=~a" (elt images next-image-index))
                   :onclick (ps (next-image) (return false))
                   "Next")
               ))))))
@@ -230,4 +238,36 @@
 
 (restas:define-route z ("/z")
   (slideshow-handler "img"))
+(in-package #:moto)
+
+(restas:define-route collection ("/collection")
+  (with-wrapper
+    (with-html-output-to-string (s)
+      (:script :type "text/javascript"
+               (str (ps
+                      (defun load-elts (param)
+                        ((@ $ post) "/collection" (create :act param)
+                         (lambda (data)
+                           ((@ ((@ $) "#vacancy-container")  html) "")
+                           ((@ $ each) data
+                            (lambda (i data)
+                              ((@ ((@ $) "#vacancy-container")  append) (+ "<br/> name: (" i ") " (@ data vac-name))))))
+                         :json)))
+                    ))
+      (:div :id "control-container"
+            :style "width:100%; border: 1px solid red;"
+            (:input :type "button"
+                    :name "load-elts"
+                    :value "Загрузить элементы"
+                    :onclick (ps (load-elts "load-elts") (return false))))
+      (:div :id "vacancy-container"
+            :style "width:100%; border: 1px solid green;"
+            "wefewfew"))))
+
+
+(restas:define-route collection-post ("/collection" :method :post)
+  (with-wrapper
+    (error 'ajax :output (format nil "[~{~A~^,~}]"
+                                 (mapcar #'cl-json:encode-json-plist-to-string
+                                         *teasers*)))))
 ;; iface ends here

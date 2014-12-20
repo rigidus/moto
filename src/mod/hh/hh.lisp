@@ -314,7 +314,7 @@
 ;; (print
 ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
 
-;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
+(defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
 ;; (length *teasers*)
 
@@ -333,7 +333,7 @@
                                           (car (last (split-sequence:split-sequence
                                                       #\/ it))))
                                          0)
-                   :currency (getf tea :salary-currency)
+                   :currency (getf tea :currency)
                    :salary (aif (getf tea :salary)
                                 it
                                 0)
@@ -341,7 +341,7 @@
                    :state ":TEASER"
                    )))
 
-;; (save-collect *teasers*)
+(save-collect *teasers*)
 
 ;; (length (all-vacancy))
 
