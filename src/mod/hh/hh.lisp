@@ -190,17 +190,17 @@
  (hh-parse-vacancy-teasers
   (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=29")))
 
-("div" (("class" "search-result-item__description"))
-       (:VAC-ID "http://spb.hh.ru/vacancy/12215964" :VAC-NAME "C# Developer / Программист C#")
-       (:CURRENCY "RUR" :SALARY "40000" :SALARY-TEXT "от 40 000 руб.")
-       ("a"
-        (("class"
-          "interview-insider__link                   m-interview-insider__link-searchresult")
-         ("href" "/article/8628")
-         ("data-qa" "vacancy-serp__vacancy-interview-insider"))
-        "Посмотреть интервью с представителем компании")
-       (:EMP-ID "/employer/15092" :EMP-NAME "Veeam Software")
-       (:CITY "Санкт-Петербург" :METRO NIL :DATE "11 декабря"))
+;; ("div" (("class" "search-result-item__description"))
+;;        (:VAC-ID "http://spb.hh.ru/vacancy/12215964" :VAC-NAME "C# Developer / Программист C#")
+;;        (:CURRENCY "RUR" :SALARY "40000" :SALARY-TEXT "от 40 000 руб.")
+;;        ("a"
+;;         (("class"
+;;           "interview-insider__link                   m-interview-insider__link-searchresult")
+;;          ("href" "/article/8628")
+;;          ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+;;         "Посмотреть интервью с представителем компании")
+;;        (:EMP-ID "/employer/15092" :EMP-NAME "Veeam Software")
+;;        (:CITY "Санкт-Петербург" :METRO NIL :DATE "11 декабря"))
 (in-package #:moto)
 
 (defun transform-description (tree-descr)
@@ -249,43 +249,31 @@
                                      (string= c "b-important b-vacancy-info"))))
          (infoblock (tree-match tree (with-predict-if (a ((b c)) &rest d)
                                        (string= c "l-content-2colums b-vacancy-container"))))
-         (h1 (tree-match header (with-predict-if (a ((b c)) title &rest archive-block)
+         (h1 (tree-match header (with-predict-if (a ((b c)) name &rest archive-block)
                                   (string= c "title b-vacancy-title"))))
-         (-name- **title**)
-         (-archive- (if (car (last (car **archive-block**))) t nil))
-         (employerblock (tree-match header (with-predict-if (a ((b c) (d lnk)) emp)
+         (employerblock (tree-match header (with-predict-if (a ((b c) (d emp-lnk)) emp-name)
                                              (string= c "hiringOrganization"))))
-         (-employer-name- **emp**)
-         (-employer-id- (parse-integer
-                         (car (last (split-sequence:split-sequence #\/ **lnk**)))
-                         :junk-allowed t))
-         (salaryblock (tree-match summary (with-predict-if
-                                              (div ((class l-paddings))
-                                                   (meta-1 ((itemprop-1 salaryCurrency) (content-1 CURRENCY)))
-                                                   (meta-2 ((itemprop-2 baseSalary) (content-2 VALUE)))
-                                                   SALARY-TEXT)
-                                            (and
-                                             (string= div "div")
-                                             (string= class "class")
-                                             (string= l-paddings "l-paddings")
-                                             (string= salaryCurrency "salaryCurrency")
-                                             (string= baseSalary "baseSalary")
-                                             ))))
-         (-salary-currency- **currency**)
-         (-salary- **value**)
-         (-salary-text- **salary-text**)
+         (salaryblock (tree-match summary (with-predict-if (a ((b c))
+                                                              (d ((e f) (g currency)))
+                                                              (h ((i j) (k base-salary)))
+                                                              salary-text)
+                                            (string= f "salaryCurrency"))))
          (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
                                           (string= c "l-content-colum-2 b-v-info-content"))))
-         (-city- **city**)
          (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
-                                         (string= e "experienceRequirements"))))
-         (-exp- **exp**)
-         (-description-
-          (transform-description
-           (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
-                              (string= c "b-vacancy-desc-wrapper"))))))
-    -description-
-    ))
+                                         (string= e "experienceRequirements")))))
+    (list :name **name**
+          :archive (if (car (last (car **archive-block**))) t nil)
+          :emp-name **emp-name**
+          :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))))
+          :currency (if (null salaryblock) nil **currency**)
+          :base-salary (if (null salaryblock) nil **base-salary**)
+          :salary-text (if (null salaryblock) nil **salary-text**)
+          :city **city**
+          :exp **exp**
+          :description (transform-description
+                        (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
+                                           (string= c "b-vacancy-desc-wrapper")))))))
 
 ;; (print
 ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
@@ -323,8 +311,8 @@
       (print "over-100"))
     all-teasers))
 
-(print
- (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
+;; (print
+;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
 
 (defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
@@ -356,6 +344,12 @@
 (save-collect *teasers*)
 
 (length (all-vacancy))
+
+
+(print
+ (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
+
+
 
 
 ;; Тестируем hh

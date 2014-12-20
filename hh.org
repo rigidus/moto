@@ -617,20 +617,20 @@
        (hh-parse-vacancy-teasers
         (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=29")))
 
-      ("div" (("class" "search-result-item__description"))
-             (:VAC-ID "http://spb.hh.ru/vacancy/12215964" :VAC-NAME "C# Developer / Программист C#")
-             (:CURRENCY "RUR" :SALARY "40000" :SALARY-TEXT "от 40 000 руб.")
-             ("a"
-              (("class"
-                "interview-insider__link                   m-interview-insider__link-searchresult")
-               ("href" "/article/8628")
-               ("data-qa" "vacancy-serp__vacancy-interview-insider"))
-              "Посмотреть интервью с представителем компании")
-             (:EMP-ID "/employer/15092" :EMP-NAME "Veeam Software")
-             (:CITY "Санкт-Петербург" :METRO NIL :DATE "11 декабря"))
+      ;; ("div" (("class" "search-result-item__description"))
+      ;;        (:VAC-ID "http://spb.hh.ru/vacancy/12215964" :VAC-NAME "C# Developer / Программист C#")
+      ;;        (:CURRENCY "RUR" :SALARY "40000" :SALARY-TEXT "от 40 000 руб.")
+      ;;        ("a"
+      ;;         (("class"
+      ;;           "interview-insider__link                   m-interview-insider__link-searchresult")
+      ;;          ("href" "/article/8628")
+      ;;          ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+      ;;         "Посмотреть интервью с представителем компании")
+      ;;        (:EMP-ID "/employer/15092" :EMP-NAME "Veeam Software")
+      ;;        (:CITY "Санкт-Петербург" :METRO NIL :DATE "11 декабря"))
     #+END_SRC
 
-*** Разбор вакансий
+*** COMMENT Разбор вакансий
 
     Теперь, когда вся теоретическая подготовка проведена, можно заняться практикой и
     написать функцию, которая трансформирует описание, очищая его от всего лишнего:
@@ -699,36 +699,29 @@
                                                                     (d ((e f) (g currency)))
                                                                     (h ((i j) (k base-salary)))
                                                                     salary-text)
-                                                  (and (string= **c** "l-content-colum-1 b-v-info-content"))
-                                                  #'identity)))
+                                                  (string= f "salaryCurrency"))))
                (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
                                                 (string= c "l-content-colum-2 b-v-info-content"))))
                (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
                                                (string= e "experienceRequirements")))))
           (list :name **name**
                 :archive (if (car (last (car **archive-block**))) t nil)
-                :emp **emp-name**
-                :employer (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))))
-                :currency **currency**
-                :base-salary **base-salary**
-                :salary-text **salary-text**
+                :emp-name **emp-name**
+                :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))))
+                :currency (if (null salaryblock) nil **currency**)
+                :base-salary (if (null salaryblock) nil **base-salary**)
+                :salary-text (if (null salaryblock) nil **salary-text**)
                 :city **city**
                 :exp **exp**
                 :description (transform-description
                               (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
                                                  (string= c "b-vacancy-desc-wrapper")))))))
 
+      ;; (print
+      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
 
-
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
-
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
-
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12450876"))
-
+      ;; (print
+      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
     #+END_SRC
 
 *** Сохранение данных
@@ -794,8 +787,8 @@
      (length (all-vacancy))
 
 
-
-     (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1)))))
+     (print
+      (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
 
 
    #+END_SRC
