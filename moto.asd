@@ -1,7 +1,7 @@
 ;; [[file:doc.org::*Каркас проекта][defsystem]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
-;;;; Licensed under the GNU AGPLv3
-;;;; moto.asd
+     ;;;; Licensed under the GNU AGPLv3
+     ;;;; moto.asd
 
 (asdf:defsystem #:moto
   :serial t
@@ -17,7 +17,10 @@
                #:cl-base64
                #:drakma
                #:split-sequence
-               #:cl-html5-parser)
+               #:cl-html5-parser
+               #:cl-who
+               #:parenscript
+               #:cl-fad)
   :description "site for bikers"
   :author "rigidus"
   :version "0.0.3"
@@ -53,15 +56,15 @@
                                      (:file "msg-prepare")
                                      (:file "msg")))
                ;; Модуль trend
-               (:module "trend"
-                        :serial t
-                        :pathname "mod/trend"
-                        :components ((:static-file "trend-tpl.htm")
-                                     (:file "trend-prepare")
-                                     (:file "entityes")
-                                     (:file "loader")
-                                     (:file "trend")
-                                     (:file "iface")))
+               ;; (:module "trend"
+               ;;          :serial t
+               ;;          :pathname "mod/trend"
+               ;;          :components ((:static-file "trend-tpl.htm")
+               ;;                       (:file "trend-prepare")
+               ;;                       (:file "entityes")
+               ;;                       (:file "loader")
+               ;;                       (:file "trend")
+               ;;                       (:file "iface")))
                ;; Модуль мотобратан
                (:module "bratan"
                         :serial t

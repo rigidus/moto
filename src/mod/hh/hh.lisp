@@ -314,9 +314,9 @@
 ;; (print
 ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
 
-(defparameter *teasers* (run-collect *programmin-and-development-profile*))
+;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
-(length *teasers*)
+;; (length *teasers*)
 
 (defun save-collect (all-teasers)
   (loop :for tea :in all-teasers :do
@@ -334,22 +334,21 @@
                                                       #\/ it))))
                                          0)
                    :currency (getf tea :salary-currency)
-                   :salary (aif (getf tea :salary-base)
+                   :salary (aif (getf tea :salary)
                                 it
                                 0)
                    :salary-text (getf tea :salary-text)
                    :state ":TEASER"
                    )))
 
-(save-collect *teasers*)
+;; (save-collect *teasers*)
 
-(length (all-vacancy))
+;; (length (all-vacancy))
 
+;; (print
+;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
 
-(print
- (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
-
-
+;; (car *teasers*)
 
 
 ;; Тестируем hh

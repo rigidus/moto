@@ -1117,15 +1117,15 @@
 
    #+NAME: mod_trend
    #+BEGIN_SRC lisp
-     (:module "trend"
-              :serial t
-              :pathname "mod/trend"
-              :components ((:static-file "trend-tpl.htm")
-                           (:file "trend-prepare")
-                           (:file "entityes")
-                           (:file "loader")
-                           (:file "trend")
-                           (:file "iface")))
+     ;; (:module "trend"
+     ;;          :serial t
+     ;;          :pathname "mod/trend"
+     ;;          :components ((:static-file "trend-tpl.htm")
+     ;;                       (:file "trend-prepare")
+     ;;                       (:file "entityes")
+     ;;                       (:file "loader")
+     ;;                       (:file "trend")
+     ;;                       (:file "iface")))
    #+END_SRC
 
    Собственно описание модуля вынесено в файл [[file:trend.org]]
@@ -1506,6 +1506,14 @@
      ;;;; <<copyright>>
      (in-package #:moto)
 
+     ;; One thing we have to do is make sure that CL-WHO and Parenscript
+     ;; use different string delimiters so that literal strings will
+     ;; work as intended in JavaScript code inlined in HTML element properties.
+     (setf *js-string-delimiter* #\")
+
+     ;; без этого происходит ошибка при компиляции в js
+     (defparameter PARENSCRIPT::SUPPRESS-VALUES nil)
+
      ;; Подключение к базе данных
      (defvar *db-name* "ylg_new")
      (defvar *db-user* "ylg")
@@ -1539,8 +1547,8 @@
 
    #+NAME: defsystem
    #+BEGIN_SRC lisp :tangle moto.asd :noweb tangle :exports code :padline no :comments link
-     ;;;; <<copyright>>
-     ;;;; moto.asd
+          ;;;; <<copyright>>
+          ;;;; moto.asd
 
      (asdf:defsystem #:moto
        :serial t
@@ -1556,7 +1564,10 @@
                     #:cl-base64
                     #:drakma
                     #:split-sequence
-                    #:cl-html5-parser)
+                    #:cl-html5-parser
+                    #:cl-who
+                    #:parenscript
+                    #:cl-fad)
        :description "site for bikers"
        :author "rigidus"
        :version "0.0.3"
@@ -1597,7 +1608,7 @@
      ;;;; package.lisp
 
      (restas:define-module #:moto
-       (:use  #:cl #:closer-mop #:postmodern #:anaphora #:hunchentoot)
+       (:use  #:cl #:closer-mop #:postmodern #:anaphora #:hunchentoot #:cl-who #:parenscript #:cl-fad)
        (:shadowing-import-from #:closer-mop
                                #:defclass
                                #:defmethod
@@ -1799,7 +1810,12 @@
                (format nil "~A/~A/img/"
                        ,*repo-folder*
                        ,*prj-folder*)))
-
+     (defparameter *pic-path*
+       (format nil "~A~A"
+               (namestring (user-homedir-pathname))
+               (format nil "~A/~A/pic/"
+                       ,*repo-folder*
+                       ,*prj-folder*)))
 
      ;; Путь к шрифтам
      (defparameter *font-path*
@@ -1831,6 +1847,10 @@
      (restas:mount-module -img- (#:restas.directory-publisher)
        (:url "/img/")
        (restas.directory-publisher:*directory* *img-path*))
+
+     (restas:mount-module -pic- (#:restas.directory-publisher)
+       (:url "/pic/")
+       (restas.directory-publisher:*directory* *pic-path*))
 
      (restas:mount-module -font- (#:restas.directory-publisher)
        (:url "/font/")

@@ -3,6 +3,14 @@
 ;;;; Licensed under the GNU AGPLv3
 (in-package #:moto)
 
+;; One thing we have to do is make sure that CL-WHO and Parenscript
+;; use different string delimiters so that literal strings will
+;; work as intended in JavaScript code inlined in HTML element properties.
+(setf *js-string-delimiter* #\")
+
+;; без этого происходит ошибка при компиляции в js
+(defparameter PARENSCRIPT::SUPPRESS-VALUES nil)
+
 ;; Подключение к базе данных
 (defvar *db-name* "ylg_new")
 (defvar *db-user* "ylg")

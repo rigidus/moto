@@ -39,7 +39,12 @@
           (format nil "~A/~A/img/"
                   *repo-folder*
                   *prj-folder*)))
-
+(defparameter *pic-path*
+  (format nil "~A~A"
+          (namestring (user-homedir-pathname))
+          (format nil "~A/~A/pic/"
+                  *repo-folder*
+                  *prj-folder*)))
 
 ;; Путь к шрифтам
 (defparameter *font-path*
@@ -71,6 +76,10 @@
 (restas:mount-module -img- (#:restas.directory-publisher)
   (:url "/img/")
   (restas.directory-publisher:*directory* *img-path*))
+
+(restas:mount-module -pic- (#:restas.directory-publisher)
+  (:url "/pic/")
+  (restas.directory-publisher:*directory* *pic-path*))
 
 (restas:mount-module -font- (#:restas.directory-publisher)
   (:url "/font/")
