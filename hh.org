@@ -1414,31 +1414,55 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+     (defmacro/ps s+ (&body body)
+       `(concatenate 'string ,@body))
+
+     (defmacro/ps btn+ (name value onclick)
+       `(s+ "<input type='button' name='" ,name
+            "' value='" ,value
+            "' onclick='" ,onclick
+            ";return false;' />"))
+
      (restas:define-route collection ("/collection")
        (with-wrapper
          (with-html-output-to-string (s)
            (:script :type "text/javascript"
                     (str (ps
+                           (defun up (id)
+                             (alert id))
+                           (defun asm-teaser (i id name state salary salary-text currency)
+                             (s+ "<tr id='" id "'>"
+                                 (s+ "<td nowrap>" id "</td>")
+                                 (s+ "<td nowrap>" state "</td>")
+                                 (s+ "<td nowrap>"
+                                     (btn+ "up" "up" (s+ "up(" id ")"))
+                                     "</td>")
+                                 (s+ "<td>" name "</td>")
+                                 (s+ "<td nowrap>" (if (equal "false" salary-text) "" salary-text) "</td>")
+                                 "</tr>"))
                            (defun load-elts (param)
                              ((@ $ post) "/collection" (create :act param)
                               (lambda (data)
                                 ((@ ((@ $) "#vacancy-container")  html) "")
                                 ((@ $ each) data
                                  (lambda (i data)
-                                   ((@ ((@ $) "#vacancy-container")  append) (+ "<br/> name: (" i ") " (@ data name))))))
-                              :json)))
-                         ))
+                                   ((@ ((@ $) "#vacancy-container")  append)
+                                    (asm-teaser i (@ data id) (@ data name) (@ data state)
+                                                (@ data salary) (@ data salary-text) (@ data currency))))))
+                              :json)))))
            (:div :id "control-container"
                  :style "width:100%; border: 1px solid red;"
                  (:input :type "button"
                          :name "load-elts"
                          :value "Загрузить элементы"
                          :onclick (ps (load-elts "load-elts") (return false))))
-           (:div :id "vacancy-container"
-                 :style "width:100%; border: 1px solid green;"
-                 "wefewfew"))))
+           (:table :border 1
+                   :id "vacancy-container"
+                   :style "width:100%; border: 1px solid green; font-size: small;"
+                   (:tr (:td "stub"))))))
 
      (restas:define-route collection-post ("/collection" :method :post)
+       ;; Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
        (with-wrapper
          (error 'ajax :output (cl-json:encode-json-to-string
                                (find-vacancy :profile-id 1)))))
