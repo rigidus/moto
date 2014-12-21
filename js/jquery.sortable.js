@@ -1,7 +1,7 @@
 /*
  * HTML5 Sortable jQuery Plugin
  * http://farhadi.ir/projects/html5sortable
- * 
+ *
  * Copyright 2012, Ali Farhadi
  * Released under the MIT license.
  */
@@ -59,6 +59,7 @@ $.fn.sortable = function(options) {
 			if (e.type == 'drop') {
 				e.stopPropagation();
 				placeholders.filter(':visible').after(dragging);
+              // alert(3);
 				return false;
 			}
 			e.preventDefault();
@@ -79,3 +80,22 @@ $.fn.sortable = function(options) {
 	});
 };
 })(jQuery);
+
+
+$(function() {
+  $('.connected').sortable({
+    connectWith: '.connected'
+  });
+});
+
+function getChildIds (selector) {
+  return $(selector).children().map(function (i, elt) {
+    return $(elt).attr("id");
+  }).get();
+}
+
+$(function() {
+  $('#button').bind('click', function(){
+    alert(getChildIds("#interesting-container"));
+  });
+});

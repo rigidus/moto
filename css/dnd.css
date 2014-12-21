@@ -1,0 +1,36 @@
+.connected, .sortable, .exclude, .handles {
+    margin: auto;
+    padding: 0;
+    width: 300px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.connected li, .sortable li, .exclude li, .handles li {
+    list-style: none;
+    border: 1px solid #CCC;
+    background: #F6F6F6;
+    font-family: \"Tahoma\";
+    color: #1C94C4;
+    margin: 5px;
+    padding: 5px;
+    height: 22px;
+}
+li.highlight {
+    background: #FEE25F;
+}
+#connected {
+    width: 1530px;
+    overflow: hidden;
+    margin: auto;
+}
+.connected {
+    float: left;
+    width: 500px;
+}
+.connected.no2 {
+    float: right;
+}
