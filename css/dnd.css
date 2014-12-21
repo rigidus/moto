@@ -1,4 +1,4 @@
-.connected, .sortable, .exclude, .handles {
+.connected {
     margin: auto;
     padding: 0;
     width: 300px;
@@ -8,8 +8,10 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    float: left;
+    width: 520px;
 }
-.connected li, .sortable li, .exclude li, .handles li {
+.connected li {
     list-style: none;
     border: 1px solid #CCC;
     background: #F6F6F6;
@@ -17,20 +19,10 @@
     color: #1C94C4;
     margin: 5px;
     padding: 5px;
-    height: 22px;
-}
-li.highlight {
-    background: #FEE25F;
+    min-height: 22px;
 }
 #connected {
     width: 1530px;
     overflow: hidden;
     margin: auto;
-}
-.connected {
-    float: left;
-    width: 500px;
-}
-.connected.no2 {
-    float: right;
 }
