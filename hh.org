@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
-* Введение
+* Хотелки
 
   Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
   функционала, особенно нестандартного. Работая с сайтом в автоматическом режиме мы можем
@@ -16,19 +16,27 @@
   Кроме того есть множество конкурирующих сайтов для поиска работы, информацию с которых
   можно аггрегировать.
 
-  При поиске работы основной сценарий использования - поиск вакансий, и практически все
-  сайты его предоставляют. Однако мне бы хотелось дополнительно иметь:
-  - функционал заметок по каждой вакансии
-  - статусы, такие как: =просмотрено= (с датой), =отобрано=, =не-берут-трубку=,
-    =не-актуально=, =приглашен-на-интервью=, =тестовое-задание=, =получен-оффер=,
-    =отказано-работодателем=, =отказ-соискателя=, =вакансия-снята= итп. Более подробно это
-    уточняется в секции [[Вакансии]]
+  При поиске работы основной сценарий использования - =поиск вакансий=, и практически все
+  сайты его предоставляют. Однако мне бы хотелось дополнительно иметь дополнительный
+  функционал:
 
-  Я бы хотел ранжировать вакансии вручную (по выставленным приоритетам) и автоматически,
-  например в зависимости от зарплаты или удаленности от дома.
+  - заметки по каждой вакансии
+  - статусы или теги, такие как:
+    - =просмотрено= (с датой),
+    - =отобрано=,
+    - =не-берут-трубку=,
+    - =не-актуально=,
+    - =приглашен-на-интервью=,
+    - =выслали-тестовое-задание=,
+    - =отправил-тестовое-задание=,
+    - =получен-оффер=,
+    - =вакансия-закрыта= итп.
 
-  В идеале я бы хотел иметь возможность планировать маршрут, когда еду на собеседование и
-  иметь календарь, чтобы не пропустить встречу.
+  Я бы хотел ранжировать вакансии вручную (по выставленным приоритетам) и автоматически
+  (т.е. скриптом), например в зависимости от зарплаты или удаленности.
+
+  Я бы хотел иметь возможность планировать маршрут, когда еду на собеседование и иметь
+  календарь, чтобы не пропустить встречу.
 
   Я бы хотел иметь версии вакансий, чтобы отслеживать их изменения, например изменения
   зарплаты до и после моего интервью - это позволит анализировать рынок и получать больше
@@ -38,83 +46,245 @@
   сотрудников которых они ищут - это поможет планировать долгосрочную стратегию. Особенно в
   этом плане интересны лидеры рынка - Яндекс, Гугл и.т.п.
 
-  Почему сайты поиска работы не предоставляют подобный сервис для соискателей - для меня
-  загадка и повод подумать над стартапом :) Кстати похожие кейсы наверное есть и в
-  покупке/продаже автотранспорта или барахолках типа авито.
-
-  Позже можно добавить социальный шаринг всего этого дела, чтобы любой соискатель мог
-  рассказать о своем опыте взаимодействия с потенциальным работодателем.
+  Я бы хотел иметь возможность пообщаться с теми кто работал или работает в интересующей
+  меня компании, иметь подмножество функционала социальных сетей или интеграцию с ними
 
   Иногда мне приятно работать с уже знакомыми людьми, так что в целом я бы не отказался
   создавать на таком сайте что-то типа т.н. =рабочих коллективов=, чтобы наниматься сразу
   командой. Возможно работодателям такой вариант найма тоже будет интересен.
 
+** Процесс найма с т.з. соискателя
+
+   С точки зрения соискателя процесс найма выглядит так:
+
+   - Этап составления резюме
+   - Этап опубликования резюме
+   - Этап поиска
+     - Поиск и просмотр вакансий, отсев, ранжирование
+     - Рассылка откликов
+   - Этап телефонных переговоров
+     - Получение звонков, обсуждение деталей по телефону
+     - Договоренность о еще одном звонке
+     - Тестовое задание на почту
+     - Договоренность о skype-интервью
+   - Этап удаленного тестирования
+     - Skype-интервью
+     - Ожидание тестового задания
+     - Выполнение тестового задания
+   - Этап очного собеседования
+     - Приглашение на интервью
+     - Интервью
+   - Этап отбора предложений
+     - Получение предложений
+     - Выбор предложения
+
+** Процесс найма с т.з. HR-а
+
+   Когда HR-специалист ищет вакансии, он пользуется несколькими путями:
+   - Личные знакомства
+   - Рекомендации
+   - Социальные сети
+     - LinkedIn
+     - vkontakte
+   - Помощь коллег
+   - Специализированные сайты
+
+   Как правило, HR-специалист менее компетентен в предметной области, чем нанимаемый
+   сотрудник, поэтому для него имеет большой вес мнение рекомендателей и коллег
+   соискателя. Вероятно, рекомендательный сервис был бы очень актуален.
+
+   Компании-работодатели выбирают одну из моделей найма, в соответствии со своим бюджетом и
+   задачами:
+   - Всегда (на любую позицию) нанимать (переманивать) лучших
+   - Нанимать начинающих в подчинение лучшим
+   - Нанимать начинающих (конвеерная разработка, большая текучка)
+   - Нанимать тех, кто понравится лидеру отдела
+   - Нанимать тех, кто лучше соответствует корпоративной культуре
+
+   Для каждой из этих моделей характерны свои необходимые сервисы. К примеру, для модели
+   "нанимать лучших" совершенно необходимо вести и актуализировать базу этих "лучших", чтобы
+   вовремя сделать предложение кандидату. О примерах внедрения таких сервисов мне ничего не
+   известно. Также интересно уточнить у HR-специалистов из =разных= компаний их методы
+   работы.
+
+   Для HR-специалиста процесс найма выгядит (в общих чертах) так.
+
+   - Этап составления вакансий
+   - Этап опубликования вакансий
+   - Этап поиска резюме
+     - По ключевым словам
+     - По фильтру
+     - Используя автоподбор
+   - Этап анализа откликов (неразобранные, подумать, приглашенные, отклоненные)
+   - Телефонный звонок соискателю (с целью уточнить детали или пригласить)
+   - Возможно отправка тестового задания
+   - Получение тестового задания
+   - Проверка тестового задания
+   - Скайп-интервью
+   - Этап собеседования
+     - Опциоанльно: заполнение анкеты
+     - Собеседование с HR-специалистом (об условиях)
+     - Тесты (например: на знание языка, ООП, БД, многопоточность)
+     - Тестовое задание
+     - Проверка тестового задания
+     - Собеседование с тех. спецом, (как правило нач. отдела)
+
+   HR-специалист анализирует обратную связь о составляемых им вакансиях - у него есть
+   статистическая информация о кол-ве просмотров вакансий и количестве поступивших
+   откликов. Из этих данных можно, например, сделать вывод, что предложенная зарплата
+   неактуальна на рынке.
+
+   Также HR-специалист заинтересован в технической поддержке при решении задач типа:
+   - Мониторинг резюме (сообщения о обновлении резюме, просмотр старой версии)
+   - Ведение базы кандидатов (часто в экселе)
+
+   HR-специалист заинтересован в том, чтобы иметь возможность построить процесс найма под
+   себя.
+
+** Состояния вакансий
+
+   После того, как тизер вакансии будет загружен системой, вакансия получает статус =new= и
+   помечается в интерфейсе специальным значком, чтобы обратить на себя внимание
+   пользователя. В дальнейшем эти тизеры попадают на автоматическую и ручную сортировку и
+   могут принять один из статусов: =unsorted=, =interested= или =not-interested=
+
+   После того, как пользователь определился с интересными ему тизерами, он иницирует
+   загрузку полной информции о вакансиях и они становятся доступны для просмотра и внесения
+   заметок.
+
+   Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
+   действия, переводящие вакансию из одного состояния в другое: когда пользователь
+   отправляет отзыв  вакансия становится =responded=. Если пользователь, просмотрев
+   вакансию, принял решение отзыв не отправлять, он может сделать вакансию =hidden=.
+
+   Важно: Для обеспечения социальных взаимодействий нужно предусмотреть, чтобы вакансию
+   можно было "передать", т.е. у нее минимум должен быть URI.
+
+   Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
+   добавить вакансию в закладки - в этом случае ее статус меняется на =favorited=
+
+   Из =favorited= мы снова можем отправить отзыв.
+
+   Из =favorited= пользователь может вернуть вакансию обратно в =interested= или =hidden=.
+
+   Из =hidden= пользователь может вернуть вакансию в =interested=.
+
+   Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
+   по вакансиям в статусе =responded= - пользователь ищет обычно по названию фирмы.
+
+   После звонка вакансия может быть выкинута или переведена из =responded= в статус "был
+   телефонный звонок" - =called=. Выкидывая вакансию пользователь может выбрать reason - для
+   них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
+   вакансии. Если в результате телефонного звонка была достигнута договоренность о
+   собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
+   =wait-interview= и заносит в вакансию данные о том, куда и во сколько ехать. Если по
+   телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
+   =wait-test=. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
+   =wait-skype-interview=.
+
+   Получив тестовое задание пользователь переводит вакансию из статуса =wait-test= в
+   "выполнение тестового задания" =run-test=, а оттуда либо в =test-cancel= либо в
+   =test-sended=. Либо выкидывает.
+
+   Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
+   часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
+   его, наверно пусть можно будет просто изменить данные о времени интервью.
+
+   После интервью или скайп-интервью от вакансии можно либо отказаться (=refuse-employer=,
+   =refuse-applicant=) либо перевести в статус "ожидание результата" - =wait-result=. Нужно
+   включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
+   узнать, как дела.
+
+   Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
+   предлагают оффер - =offer= и соискатель берет время на подумать.
+
+   Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
+   =refuse-employer= или "отказ соискателя" - =refuse-аpplicant=.
+
+   История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
+   примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
+   статусов и текущее положение вакансии в нем.
+
+   #+CAPTION: Состояния конечного автомата вакансии
+   #+NAME: vacancy_state
+     | action                                 | from                 | to                   |
+     |----------------------------------------+----------------------+----------------------|
+     | view                                   | new                  | unsorted             |
+     | refuse-new                             | new                  | not-interested       |
+     | set-interested                         | new                  | interested           |
+     | refuse-interested                      | interested           | hidden               |
+     | respond                                | interested           | responded            |
+     | favor                                  | interested           | favorited            |
+     | send-respond-from-favorited            | favorited            | responded            |
+     | unfavor                                | favorited            | interested           |
+     | hide-after-favor                       | favorited            | hidden               |
+     | call                                   | responded            | called               |
+     | invite-interview                       | called               | wait_interview       |
+     | invite-skype-interview                 | called               | wait_skype_interview |
+     | invite-test                            | called               | wait_test            |
+     | interview                              | wait_interview       | interview            |
+     | skype-interview                        | wait_skype_interview | skype_interview      |
+     | call-after-skype-interview             | skype_interview      | called               |
+     | execute-test                           | wait_test            | run_test             |
+     | send-test                              | run_test             | send_test            |
+     | called-after-test                      | send_test            | called               |
+     | refuse-employer-after-interview        | interview            | refuse_employer      |
+     | refuse-applicant-after-interview       | interview            | refuse_applicant     |
+     | wait-result-after-interview            | interview            | wait_result          |
+     | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
+     | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
+     | wait-result-after-skype-interview      | skype_interview      | wait_result          |
+     | invite-next-interview                  | wait_result          | interview            |
+     | invite-interview-after-skype           | skype_interview      | interview            |
+     | invite-offer                           | wait_result          | offer                |
+     | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
+     | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
+
+   Теперь мы можем полностью описать поведение вакансии как конечный автомат:
+
+   #+NAME: vacancy_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=vacancy_state :results output :exports none
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+
+   #+BEGIN_SRC dot :file img/vacancy-state.png :var input=vacancy_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+
+   #+NAME: hh_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun teaser-rejection ()
+       "teaser-rejection")
+
+     (defun rejection-favorite ()
+       "rejection-favorite")
+   #+END_SRC
+
 * Сценарии использования
+** Системные
+*** Парсинг и сохранение данных
 
-  Основные этапы:
-  - Регистрация/логин (цель - войти на сайт)
-  - Заполнение профиля (цель - определить поисковые запросы)
-  - Написание резюме (несколько резюме, возможно под каждую особо-интересную вакансию)
-  - Написание сопроводительных писем (тоже несколько, под вакансии)
-  - Сбор тизеров по поисковому запросу
-  - Ранжирование тизеров (положительный/отрицательный отсев)
-  - Таггирование тизеров
-  - Написание автоматических скриптов ранжирования по тегам (для продвинутых)
-  - Сбор заинтересовавших вакансий (выше чем определенный ранг)
-  - Ранжирование вакансий (положительный/отрицательный отсев)
-  - Связывание с резюме и сопроводительными письмами
-  - Отправка отзывов
-  - Внесение заметок
-  - Остальные переводы статуса и действия
+**** Сбор вакансий
 
-  Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
-  запрос и (в будущем) источники данных. Поля профиля описаны в секции [[Поисковые профили]].
+     Система, ориентируясь на предпочтения пользователей собирает, разбирает в собственное
+     представление, и сохраняет к себе в базу данных вакансии из различных источников
 
-  Потом он запрашивает сбор данных по этому поисковому профилю. Собираются тизеры
-  вакансий. Если появились новые вакансии они добавляются в набор. Изменившиеся вакансии
-  обновляются и помечаются как обновившиеся, не изменившиеся - не попадают в набор.
+     Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
+     страницы, если будем получать страницу за страницей, пока не получим страницу, на
+     которой вакансий нет. Для того чтобы это реализовать нам нужно уметь получить страницу
+     (=hh-get-page(url)=) и разобрать тизеры вакансий (=hh-parse-vacancy-teasers(html)=).
 
-  После сбора данных пользователь просматривает набор и фильтрует его, отсеивая неинтересные
-  вакансии, (которые скрываются) и помечая особенно понравившиеся (звездочкой).
-
-  После фильтрации у отобранных вакансий скачиваются описания
-
-  Выбрав вакансию, пользователь может оставить к ней заметки и начинает движение по графу состояний.
-
-** Поисковые профили и сбор данных
-
-   Чтобы у нас были данные, с которыми мы собираемся работать - их надо откуда-то
-   собрать, например, с профильных сайтов, таких как http://hh.ru
-
-   Разумеется, лучше собирать не все подряд, а только то что необходимо соискателю. Когда
-   соискатель пользуется профильным сайтом он использует поисковые запросы, на основании
-   которых мы можем формировать, гм... назовем это =поисковыми профилями=. Поисковый
-   профиль - это запрос пользователя, плюс набор связанных с ним вакансий=.
-
-   Вакансии на сайтах размещаются =компаниями= и привязываются к ним. Мне, как соискателю,
-   интересно посмотреть какие вакансии размещала ранее конкретная компания, какие она
-   размещает теперь, как изменялись зарплаты - и тому подобная аналитическая информация.
-
-   Загрузка данных начинается с автоматического использования поиска. Мне интересны разные
-   поисковые запросы - например, "веб-программист", "менеджер проекта", "руководитель
-   отдела" и.т.п. По каждому из них можно составить поисковый профиль, который кроме текущих
-   актуальных вакансий в нем содержит еще и "сборки" - с датой и временем получения данных и
-   "изменения", т.е диффы между предыдущей сборкой и этой. Таким образом, например, можно
-   отслеживать только что появляющиеся вакансии, которые часто представляют наибольший
-   интерес.
-
-   Мне бы хотелось осуществлять =сбор данных в многопоточном режиме=.
-
-** Парсинг данных
-
-   Начнем с того, что будем собирать все ит-вакансии с http://spb.hh.ru
-
-   Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
-   страницы, если будем получать страницу за страницей, пока не получим страницу, на которой
-   вакансий нет. Для того чтобы это реализовать нам нужно уметь получить страницу
-   (=hh-get-page(url)=) и разобрать тизеры вакансий (=hh-parse-vacancy-teasers(html)=).
-
-*** Получение страниц
+***** Получение страниц
 
     Вот так мы можем получать страницы, на который находятся тизеры:
 
@@ -137,7 +307,7 @@
          :external-format :utf-8))
     #+END_SRC
 
-*** Обход дерева и извлечение узлов
+***** Обход дерева и извлечение узлов
 
     Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии) мы
     разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -409,7 +579,7 @@
       ;; => "l-cell"
     #+END_SRC
 
-*** Сопоставление и преобразование узлов
+***** Сопоставление и преобразование узлов
     Разбирая вакансию мы должны извлечь несколько блоков:
     - блок заголовка
     - общие данные, такие как уровень зарплаты, город, требуемый опыт работы
@@ -525,7 +695,7 @@
       ;;   '(progn (ping (ping ping (ping 1))) ping))
     #+END_SRC
 
-*** Разбор тизеров вакансий
+***** Разбор тизеров вакансий
 
     Теперь, чтобы получить вакансии со страниц поискоой выдачи - воспользуемся парсером,
     который переведет полученный html в более удобное лисп-дерево. Используя сопоставление с
@@ -565,7 +735,7 @@
                              (let ((in (remove-if #'(lambda (x) (or (equal x nil) (equal x "noindex") (equal x "/noindex"))) **z**))
                                    (rs))
                                (if (not (equal 1 (length in)))
-                                   (err "parsing failed, data NOT printed")
+                                   (err "parsing failed, data NOT printed") ;; (print in)
                                    (mapcar #'(lambda (item)
                                                (when (and (consp item)
                                                           (not (null item))
@@ -574,79 +744,72 @@
                                            (car in)))
                                rs)
                              #'mapcar))
-              (with-predict-maptree  (a ((b  c ) (d  e) (f  g) (h i) (j k)) l)
-                (and (equal c "Премия HRBrand"))
+              (with-predict-maptree (a (b c (d e) (f g)) h)
+                (and (equal e "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
+                     (equal g "vacancy-serp__vacancy_responded")
+                     (equal h "Вы откликнулись"))
                 #'(lambda (x) (values nil #'mapcar))
-                (with-predict-maptree (a ((b class)) logo)
-                  (and (equal class "search-result-item__image"))
+                (with-predict-maptree  (a ((b  c ) (d  e) (f  g) (h i) (j k)) l)
+                  (and (equal c "Премия HRBrand"))
                   #'(lambda (x) (values nil #'mapcar))
-                  (with-predict-maptree (a ((b class) (c d)))
-                    (and (equal class "HH/VacancyResponseTrigger"))
+                  (with-predict-maptree (a ((b class)) logo)
+                    (and (equal class "search-result-item__image"))
                     #'(lambda (x) (values nil #'mapcar))
-                    (with-predict-maptree (a ((b class) (c d)) z)
-                      (and (equal class "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"))
+                    (with-predict-maptree (a ((b class) (c d)))
+                      (and (equal class "HH/VacancyResponseTrigger"))
                       #'(lambda (x) (values nil #'mapcar))
-                      (with-predict-maptree (a ((b class)))
-                        (and (equal class "search-result-item__star"))
+                      (with-predict-maptree (a ((b class) (c d)) z)
+                        (and (equal class "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"))
                         #'(lambda (x) (values nil #'mapcar))
-                        (with-predict-maptree (a ((b class)) c d e &optional f)
-                          (and (equal class "search-result-item__description"))
-                          #'(lambda (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
-                          (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
-                            (and (equal class "search-result-item__head")
-                                 (or  (equal e "search-result-item__name search-result-item__name_standard")
-                                      (equal e "search-result-item__name search-result-item__name_standard_plus")
-                                      (equal e "search-result-item__name search-result-item__name_premium")))
-                            #'(lambda (x) (values (list :vac-id **i** :vac-name **z**) #'mapcar))
-                            (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
-                              (and (equal class "b-vacancy-list-salary"))
-                              #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
-                              (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i)) z))
-                                (and (equal class "search-result-item__company"))
-                                #'(lambda (x) (values (list :emp-id **e** :emp-name **z**) #'mapcar))
-                                (with-predict-maptree (a ((b class)) &rest rest)
-                                  (and (equal class "search-result-item__info"))
-                                  #'(lambda (x) (values (let ((rs))
-                                                          (loop :for item :in **rest** :do
-                                                             (when (and (consp item) (keywordp (car item)))
-                                                               (setf rs (append rs item))))
-                                                          rs)
-                                                        #'mapcar))
-                                  (with-predict-maptree (c ((d sr-addr) (qa serp-addr)) city &rest rest)
-                                    (and (equal sr-addr "searchresult__address")
-                                         (equal serp-addr "vacancy-serp__vacancy-address"))
-                                    #'(lambda (x) (values (let ((metro (loop :for item in **rest** :do
-                                                                          (when (and (consp item) (equal :metro (car item)))
-                                                                            (return (cadr item))))))
-                                                            (list :city **city** :metro metro))
+                        (with-predict-maptree (a ((b class)))
+                          (and (equal class "search-result-item__star"))
+                          #'(lambda (x) (values nil #'mapcar))
+                          (with-predict-maptree (a ((b class)) c d e &optional f)
+                            (and (equal class "search-result-item__description"))
+                            #'(lambda (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
+                            (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
+                              (and (equal class "search-result-item__head")
+                                   (or  (equal e "search-result-item__name search-result-item__name_standard")
+                                        (equal e "search-result-item__name search-result-item__name_standard_plus")
+                                        (equal e "search-result-item__name search-result-item__name_premium")))
+                              #'(lambda (x) (values (list :vac-id **i** :vac-name **z**) #'mapcar))
+                              (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
+                                (and (equal class "b-vacancy-list-salary"))
+                                #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
+                                (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i)) z))
+                                  (and (equal class "search-result-item__company"))
+                                  #'(lambda (x) (values (list :emp-id **e** :emp-name **z**) #'mapcar))
+                                  (with-predict-maptree (a ((b class)) &rest rest)
+                                    (and (equal class "search-result-item__info"))
+                                    #'(lambda (x) (values (let ((rs))
+                                                            (loop :for item :in **rest** :do
+                                                               (when (and (consp item) (keywordp (car item)))
+                                                                 (setf rs (append rs item))))
+                                                            rs)
                                                           #'mapcar))
-                                    (with-predict-maptree (a ((b class)) (c ((d metro-point) (i j))) metro)
-                                      (and (equal class "metro-station")
-                                           (equal metro-point "metro-point"))
-                                      #'(lambda (x) (values (list :metro **metro**) #'mapcar))
-                                      (with-predict-maptree (a ((b class) (c d)) date)
-                                        (and (equal class "b-vacancy-list-date"))
-                                        #'(lambda (x) (values (list :date **date**) #'mapcar))
-                                        searchblock)))))))))))))))))
+                                    (with-predict-maptree (c ((d sr-addr) (qa serp-addr)) city &rest rest)
+                                      (and (equal sr-addr "searchresult__address")
+                                           (equal serp-addr "vacancy-serp__vacancy-address"))
+                                      #'(lambda (x) (values (let ((metro (loop :for item in **rest** :do
+                                                                            (when (and (consp item) (equal :metro (car item)))
+                                                                              (return (cadr item))))))
+                                                              (list :city **city** :metro metro))
+                                                            #'mapcar))
+                                      (with-predict-maptree (a ((b class)) (c ((d metro-point) (i j))) metro)
+                                        (and (equal class "metro-station")
+                                             (equal metro-point "metro-point"))
+                                        #'(lambda (x) (values (list :metro **metro**) #'mapcar))
+                                        (with-predict-maptree (a ((b class) (c d)) date)
+                                          (and (equal class "b-vacancy-list-date"))
+                                          #'(lambda (x) (values (list :date **date**) #'mapcar))
+                                          searchblock))))))))))))))))))
 
       (print
        (hh-parse-vacancy-teasers
         (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=29")))
-
-      ;; ("div" (("class" "search-result-item__description"))
-      ;;        (:VAC-ID "http://spb.hh.ru/vacancy/12215964" :VAC-NAME "C# Developer / Программист C#")
-      ;;        (:CURRENCY "RUR" :SALARY "40000" :SALARY-TEXT "от 40 000 руб.")
-      ;;        ("a"
-      ;;         (("class"
-      ;;           "interview-insider__link                   m-interview-insider__link-searchresult")
-      ;;          ("href" "/article/8628")
-      ;;          ("data-qa" "vacancy-serp__vacancy-interview-insider"))
-      ;;         "Посмотреть интервью с представителем компании")
-      ;;        (:EMP-ID "/employer/15092" :EMP-NAME "Veeam Software")
-      ;;        (:CITY "Санкт-Петербург" :METRO NIL :DATE "11 декабря"))
     #+END_SRC
 
-*** Разбор вакансий
+***** Разбор вакансий
 
     Теперь, когда вся теоретическая подготовка проведена, можно заняться практикой и
     написать функцию, которая трансформирует описание, очищая его от всего лишнего:
@@ -740,85 +903,361 @@
       ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
     #+END_SRC
 
-*** Сохранение данных
-   Как только у нас это есть - код становится простым
+***** Сохранение данных
 
-   #+NAME: hh_parse
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
+    Как только у нас это есть - код становится простым
 
-     (defparameter *programmin-and-development-profile*
-       (make-profile :name "Программирование и разработка"
-                     :user-id 1
-                     :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
-                     :ts-create (get-universal-time)
-                     :ts-last (get-universal-time)))
+    #+NAME: hh_parse
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
 
-     (defun run-collect (profile)
-       (let* ((search-str   (search-query profile))
-              (all-teasers  nil))
-         (block get-all-hh-teasers
-           (loop :for num :from 0 :to 100 :do
-              (print num)
-              (let* ((url (format nil search-str num))
-                     (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-                (if (equal 0 (length teasers))
-                    (return-from get-all-hh-teasers)
-                    (setf all-teasers (append all-teasers teasers)))))
-           (print "over-100"))
-         all-teasers))
+      (defparameter *programmin-and-development-profile*
+        (make-profile :name "Программирование и разработка"
+                      :user-id 1
+                      :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
+                      :ts-create (get-universal-time)
+                      :ts-last (get-universal-time)))
 
-     ;; (print
-     ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
+      (defun run-collect (profile)
+        (let* ((search-str   (search-query profile))
+               (all-teasers  nil))
+          (block get-all-hh-teasers
+            (loop :for num :from 0 :to 100 :do
+               (print num)
+               (let* ((url (format nil search-str num))
+                      (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+                 (if (equal 0 (length teasers))
+                     (return-from get-all-hh-teasers)
+                     (setf all-teasers (append all-teasers teasers)))))
+            (print "over-100"))
+          all-teasers))
 
-     (defparameter *teasers* (run-collect *programmin-and-development-profile*))
+      ;; (print
+      ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
 
-     ;; (length *teasers*)
+      (defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
-     (defun save-collect (all-teasers)
-       (loop :for tea :in all-teasers :do
-          (print tea)
-          (make-vacancy :profile-id (id *programmin-and-development-profile*)
-                        :name (getf tea :vac-name)
-                        :rem-id (parse-integer
-                                 (car (last (split-sequence:split-sequence
-                                             #\/ (getf tea :vac-id)))))
-                        :rem-date (getf tea :vacancy-date)
-                        :rem-employer-name (getf tea :employer-name)
-                        :rem-employer-id (aif (getf tea :employer-id)
-                                              (parse-integer
-                                               (car (last (split-sequence:split-sequence
-                                                           #\/ it))))
-                                              0)
-                        :currency (getf tea :currency)
-                        :salary (aif (getf tea :salary)
-                                     it
-                                     0)
-                        :salary-text (getf tea :salary-text)
-                        :state ":TEASER"
-                        )))
+      ;; (length *teasers*)
 
-     (save-collect *teasers*)
+      (defun save-collect (all-teasers)
+        (loop :for tea :in all-teasers :do
+           (print tea)
+           (make-vacancy :profile-id (id *programmin-and-development-profile*)
+                         :name (getf tea :vac-name)
+                         :rem-id (parse-integer
+                                  (car (last (split-sequence:split-sequence
+                                              #\/ (getf tea :vac-id)))))
+                         :rem-date (getf tea :vacancy-date)
+                         :rem-employer-name (getf tea :employer-name)
+                         :rem-employer-id (aif (getf tea :employer-id)
+                                               (parse-integer
+                                                (car (last (split-sequence:split-sequence
+                                                            #\/ it))))
+                                               0)
+                         :currency (getf tea :currency)
+                         :salary (aif (getf tea :salary)
+                                      it
+                                      0)
+                         :salary-text (getf tea :salary-text)
+                         :state ":TEASER"
+                         )))
 
-     ;; (length (all-vacancy))
+      (save-collect *teasers*)
 
-     ;; (print
-     ;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
+      ;; (length (all-vacancy))
 
-     ;; (car *teasers*)
-   #+END_SRC
+      ;; (print
+      ;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
 
-   Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
-   интересуют больше чем остальные их можно будет получить по статусу:
+      ;; (car *teasers*)
+    #+END_SRC
 
-   #+NAME: hh_parse_deep
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
+    Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
+    интересуют больше чем остальные их можно будет получить по статусу:
 
-     ;; (find-vacancy :profile-id 1)
+    #+NAME: hh_parse_deep
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
 
-     ;; (all-vacancy)
-   #+END_SRC
+      ;; (find-vacancy :profile-id 1)
+
+      ;; (all-vacancy)
+    #+END_SRC
+
+**** TODO Анализ компаний
+
+     Система анализирует компании с т.з. выставляемых вакансий и формирует профиль
+     компании. По выставляемым вакансиям можно сделать интересные выводы - например когда у
+     компании внезапно появляются вакансии на одного сеньера и нескольких линейных
+     разработчиков - это напоминает открытие нового отдела/проекта.
+
+*** TODO Классификация
+
+    Система классифицирует сохраненные вакансии по формальным признакам, таким как:
+    - новые вакансии
+    - измененные
+    - закрытые (о закрытости вакансии можно судить по ряду критериев)
+    - особенно интересные
+    - необычные
+
+*** TODO Мониторинг
+
+    В случае изменений или появления новых интересующих пользователя вакансий пользователю отправляется
+    уведомление (через систему очередей сообщений и по email).
+
+** Пользовательские
+*** Авторизация/регистрация
+
+    Пользователь регистрируется и авторизуется для получения доступа к своем аккаунту. За
+    это отвечает модуль auth.
+
+*** Формализация предпочтений
+
+    Пользователь формулирует свои предпочтения относительно вакансий (и фирм их размещающих)
+    в виде некоторых формализованных утверждений.
+
+*** Отбор и сортировка вакансий
+
+    Пользователь отбирает интересные и неинтересные ему вакансии вручную и автоматически -
+    путем применения к ним скриптов
+
+*** Внесение заметок к вакансиям
+
+    Пользователь вносит свои соображения и заметки связанные с вакансией, или
+    фирмой-работодателем
+
+*** Заполнение резюме
+
+    Пользователь заполняет резюме
+
+*** Написание сопроводительных писем
+
+    Пользователь пишет шаблоны сопроводительных писем, которые будут отправлены вместе с
+    отзывом на вакансию
+
+*** Отправка отзывов
+
+    Пользователь отправляет отзыв на вакансию.
+
+
+
+  Основные этапы:
+  - Регистрация/логин (цель - войти на сайт)
+  - Заполнение профиля (цель - определить поисковые запросы)
+  - Написание резюме (несколько резюме, возможно под каждую особо-интересную вакансию)
+  - Написание сопроводительных писем (тоже несколько, под вакансии)
+  - Сбор тизеров по поисковому запросу
+  - Ранжирование тизеров (положительный/отрицательный отсев)
+  - Таггирование тизеров
+  - Написание автоматических скриптов ранжирования по тегам (для продвинутых)
+  - Сбор заинтересовавших вакансий (выше чем определенный ранг)
+  - Ранжирование вакансий (положительный/отрицательный отсев)
+  - Связывание с резюме и сопроводительными письмами
+  - Отправка отзывов
+  - Внесение заметок
+  - Остальные переводы статуса и действия
+
+  Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
+  запрос и (в будущем) источники данных. Поля профиля описаны в секции [[Поисковые профили]].
+
+  Потом он запрашивает сбор данных по этому поисковому профилю. Собираются тизеры
+  вакансий. Если появились новые вакансии они добавляются в набор. Изменившиеся вакансии
+  обновляются и помечаются как обновившиеся, не изменившиеся - не попадают в набор.
+
+  После сбора данных пользователь просматривает набор и фильтрует его, отсеивая неинтересные
+  вакансии, (которые скрываются) и помечая особенно понравившиеся (звездочкой).
+
+  После фильтрации у отобранных вакансий скачиваются описания
+
+  Выбрав вакансию, пользователь может оставить к ней заметки и начинает движение по графу состояний.
+
+** Поисковые профили
+
+   Разумеется, лучше собирать не все подряд, а только то что необходимо соискателю. Когда
+   соискатель пользуется профильным сайтом он использует поисковые запросы, на основании
+   которых мы можем формировать, гм... назовем это =поисковыми профилями=. Поисковый
+   профиль - это запрос пользователя, плюс набор связанных с ним вакансий=.
+
+   Вакансии на сайтах размещаются =компаниями= и привязываются к ним. Мне, как соискателю,
+   интересно посмотреть какие вакансии размещала ранее конкретная компания, какие она
+   размещает теперь, как изменялись зарплаты - и тому подобная аналитическая информация.
+
+   Загрузка данных начинается с автоматического использования поиска. Мне интересны разные
+   поисковые запросы - например, "веб-программист", "менеджер проекта", "руководитель
+   отдела" и.т.п. По каждому из них можно составить поисковый профиль, который кроме текущих
+   актуальных вакансий в нем содержит еще и "сборки" - с датой и временем получения данных и
+   "изменения", т.е диффы между предыдущей сборкой и этой. Таким образом, например, можно
+   отслеживать только что появляющиеся вакансии, которые часто представляют наибольший
+   интерес.
+
+   Мне бы хотелось осуществлять =сбор данных в многопоточном режиме=.
+
+*** Список поисковых профилей
+
+    Чтобы управлять поисковыми профилями нам понадобится страничка на которой их можно
+    создать, удалить и просмотреть.
+
+    #+NAME: iface_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (define-iface-add-del-entity all-profiles "/profiles"
+        "Поисковые профили"
+        "Новый профиль"
+        "Когда соискатель пользуется профильным сайтом он использует
+         поисковые запросы, на основании которых мы можем формировать,
+         гм... назовем это =поисковыми профилями=. Поисковый профиль - это
+         запрос пользователя, плюс набор связанных с ним вакансий"
+         #'all-profile "profile"
+        (name)
+        (frm
+         (tbl
+          (list
+           (row "Название" (fld "name"))
+           (row "Запрос" (fld "search"))
+           (row "" %new%))))
+        (:new (act-btn "NEW" "" "Создать")
+              (progn
+                (make-profile :name (getf p :name)
+                              :user-id 1
+                              :search-query (getf p :search)
+                              :ts-create (get-universal-time)
+                              :ts-last (get-universal-time))
+                "Профиль создан"))
+        (:del (act-btn "DEL" (id i) "Удалить")
+              (progn
+                (del-profile (getf p :data)))))
+    #+END_SRC
+
+*** Страничка поискового профиля
+
+    На страничке поискового профиля мы выводим все собранные по этому поисковому профилю
+    вакансии. Будем считать что нас не особо интересуют вакансии без указания зарплаты,
+    поэтому мы их просто отфильтровываем. После фильтрации сортируем в направлении уменьшения
+    зарплаты.
+
+    #+NAME: iface_contents
+    #+BEGIN_SRC lisp
+
+      (in-package #:moto)
+
+      (defun vacancy-table (raw)
+        (let ((vacs (sort (remove-if #'(lambda (x)
+                                         (equal 0 (salary x)))
+                                     raw)
+                          #'(lambda (a b)
+                              (> (salary a) (salary b))))))
+          (format nil "<h2>Вакансий: ~A</h2>~%~A" (length vacs)
+                  (tbl
+                   (with-collection (vac vacs)
+                     (tr
+                      (td
+                       (state vac))
+                      (td
+                       (format nil "<div style=\"background-color:green\">~A</div>"
+                               (input "radio" :name (format nil "R~A" (id vac)) :value "y"
+                                      :other (if (string= ":INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                      (td
+                       (format nil "<div style=\"background-color:red\">~A</div>"
+                               (input "radio" :name (format nil "R~A" (id vac)) :value "n"
+                                      :other (if (string= ":NOT_INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+                      (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id vac) (name vac)))
+                      (td (salary-text vac))
+                      (td (currency vac))))
+                   :border 1))))
+
+      (define-page profile "/profile/:userid"
+        (let* ((i (parse-integer userid))
+               (page-id (parse-integer userid))
+               (u (get-profile i))
+               (vacs (sort (remove-if #'(lambda (x)
+                                          (equal 0 (salary x)))
+                                      (find-vacancy :profile-id page-id))
+                           #'(lambda (a b)
+                               (> (salary a) (salary b))))))
+          (if (null u)
+              "Нет такого профиля"
+              (format nil "~{~A~}"
+                      (list
+                       "<script>
+                               function test (param) {
+                                  $.post(
+                                     \"/profile/1\",
+                                     {act: param},
+                                     function(data) {
+                                        $(\"#dvtest\").html(data);
+                                     }
+                                 );
+                               };
+                        </script>"
+                       (format nil "<h1>Страница поискового профиля ~A</h1>" (id u))
+                       (format nil "<h2>Данные поискового профиля ~A</h2>" (name u))
+                       (frm
+                        (tbl
+                         (with-element (u u)
+                           (row "Имя профиля" (fld "name" (name u)))
+                           (row "Запрос" (fld "search" (search-query u)))
+                           (row (hid "profile_id" (id u)) %change%))
+                         :border 1))
+                       (tbl
+                        (tr
+                         (td %show-all%)
+                         (td %show-interests%)
+                         (td %show-not-interests%)
+                         (td %show-other%)))
+                       (frm %proceess-interests%)
+                       (frm
+                        (list
+                         "<br /><br />"
+                         %clarify%
+                         "<div id=\"dvtest\">dvtest</div>"))))))
+        (:change  (act-btn "CHANGE" "" "Изменить")
+                  (id (upd-profile (get-profile (parse-integer userid))
+                                   (list :name (getf p :name) :search-query (getf p :query)))))
+        (:clarify (act-btn "CLARIFY" "" "Уточнить")
+                  (loop :for key :in (cddddr p) :by #'cddr :collect
+                     (let* ((val (getf p key))
+                            (id  (parse-integer (subseq (symbol-name key) 1)))
+                            (vac (get-vacancy id)))
+                       (list id
+                             (cond ((string= "y" val)
+                                    (unless (string= ":INTERESTED" (state vac))
+                                      (takt vac :interested)))
+                                   ((string= "n" val)
+                                    (unless (string= ":NOT_INTERESTED" (state vac))
+                                      (takt vac :not_interested)))
+                                   (t "err param"))))))
+        (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"все\">")
+                   (error 'ajax :output (vacancy-table (find-vacancy :profile-id 1))))
+        (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"интересные\">")
+                         (error 'ajax :output (vacancy-table (find-vacancy :state ":INTERESTED" :profile-id 1))))
+        (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"неинтересные\">")
+                             (error 'ajax :output (vacancy-table (find-vacancy :state ":NOT_INTERESTED" :profile-id 1))))
+        (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"остальные\">")
+                     (error 'ajax :output (vacancy-table (remove-if #'(lambda (x)
+                                                                        (or (string= ":NOT_INTERESTED" (state x) )
+                                                                            (string= ":INTERESTED" (state x))))
+                                                                    (find-vacancy :profile-id 1)))))
+        (:proceess-interests (act-btn "PROCEESS-INTERESTS" "" "Собрать данные интересных вакансий")
+                             "TODO"))
+
+      ;; (profile-id (car (all-vacancy)))
+
+      ;; (mapcar #'(lambda (x)
+      ;;             (salary x))
+      ;;         (find-vacancy :profile-id 1))
+
+      ;; (car
+      ;;  (remove-if #'(lambda (x)
+      ;;                 (null (getf x :salary)))
+      ;;             *teasers*))
+
+      ;; (currency
+      ;;  (car
+      ;;   (remove-if #'(lambda (x)
+      ;;                  (equal (salary x) 0))
+      ;;              (all-vacancy))))
+    #+END_SRC
 
 ** Поиск вакансий
 
@@ -836,6 +1275,9 @@
    примеру. Динамика изменения зарплатного предложения может многое сказать об отношении к
    вакансии.
 
+** Ручной отбор вакансий
+** Автоматический отбор вакансий
+** Внесение заметок по вакансии
 ** Просмотр и отбор вакансий, заметки и выставление статусов
 
    Когда я читаю вакансию, я бы хотел, чтобы она переходила в статус "просмотрено" (и к ней
@@ -945,157 +1387,10 @@
     =приглашен-на-интервью=, =тестовое-задание=, =получен-оффер=, =отказано-работодателем=,
     =отказ-соискателя=, =вакансия-снята= итп.
 
-   С точки зрения соискателя процесс найма выглядит так (неплохо бы приложить временную
-   схему протокола):
-
-   - Этап поиска
-     - Поиск и просмотр вакансий, отсев, ранжирование
-     - Рассылка откликов
-   - Этап телефонных переговоров
-     - Получение звонков, обсуждение деталей по телефону
-     - Опционально: договоренность о еще одном звонке
-     - Опционально: тестовое задание на почту
-     - Опционально: договоренность о skype-интервью
-   - Этап удаленного тестирования
-     - Skype-интервью
-     - Ожидание тестового задания
-     - Выполнение тестового задания
-   - Этап очного собеседования
-     - Приглашение на интервью
-     - Интервью
-   - Этап отбора предложений
-     - Получение предложений
-     - Выбор предложения
-
    Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
    состояние на этих сайтах. Мы узнаем о вакансии, ко
 
-   Вакансия создается в состоянии "новая" - =new=. После просмотра пользователем вакансия
-   автоматически переходит в состояние "просмотрена" - =viewed=. Однако пользователь может
-   перевести ее обратно в состояние =new= если ему так захотелось.
-
-   Если пользователю вакансия не нравится он может выкинуть ее, чтобы больше к ней не
-   возвращаться, после чего она становится =hidden=. Однако пользователь может передумать и
-   тогда ему нужно предоставлять корзину выкинутых вакансий, чтобы он мог ее восстановить. В
-   таком случае нам нужно помнить предыдущий статус выкинутой вакансии.
-
-   Если вакансия пользователю понравилась - он может отправить отклик через форму (TODO:
-   создать таблицу откликов, чтобы пользователь мог просто выбрать среди них, а не печатать
-   одно и то же для каждой вакансии). После посылки отклика (если она прошла успешно)
-   вакансия переходит в состяние "отклик послан" - =responded=.
-
-   Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
-   добавить вакансию в закладки - в этом случае ее статус меняется на =favorited=
-
-   Из =favorited= мы снова можем отправить отзыв.
-
-   Из =favorited= пользователь может вернуть вакансию обратно в =viewed= или выкинуть
-
-   Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
-   по вакансиям в статусе =responded= - пользователь ищет обычно по названию фирмы.
-
-   После звонка вакансия может быть выкинута или переведена из =responded= в статус "был
-   телефонный звонок" - =called=. Выкидывая вакансию пользователь может выбрать reason - для
-   них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
-   вакансии. Если в результате телефонного звонка была достигнута договоренность о
-   собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
-   =wait-interview= и заносит в вакансию данные о том, куда и во сколько ехать. Если по
-   телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
-   =wait-test=. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
-   =wait-skype-interview=.
-
-   Получив тестовое задание пользователь переводит вакансию из статуса =wait-test= в
-   "выполнение тестового задания" =run-test=, а оттуда либо в =test-cancel= либо в
-   =test-sended=. Либо выкидывает.
-
-   Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
-   часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
-   его, наверно пусть можно будет просто изменить данные о времени интервью.
-
-   После интервью или скайп-интервью от вакансии можно либо отказаться (=refuse-employer=,
-   =refuse-applicant=) либо перевести в статус "ожидание результата" - =wait-result=. Нужно
-   включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
-   узнать, как дела.
-
-   Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
-   предлагают оффер - =offer= и соискатель берет время на подумать.
-
-   Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
-   =refuse-employer= или "отказ соискателя" - =refuse-аpplicant=.
-
-   История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
-   примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
-   статусов и текущее положение вакансии в нем.
-
-   #+CAPTION: Состояния конечного автомата вакансии
-   #+NAME: vacancy_state
-     | action                                 | from                 | to                   |
-     |----------------------------------------+----------------------+----------------------|
-     | teaser-rejection                       | teaser               | not_interested       |
-     | rejection-favorite                     | teaser               | interested           |
-     | parsing                                | teaser               | new                  |
-     | view                                   | new                  | viewed               |
-     | renew                                  | viewed               | new                  |
-     | hide-after-view                        | viewed               | hidden               |
-     | restore-from-hidden-to-view            | hidden               | viewed               |
-     | send-respond-from-view                 | viewed               | responded            |
-     | favor                                  | viewed               | favorited            |
-     | send-respond-from-favorited            | favorited            | responded            |
-     | unfavor                                | favorited            | viewed               |
-     | hide-after-favor                       | favorited            | hidden               |
-     | call                                   | responded            | called               |
-     | invite-interview                       | called               | wait_interview       |
-     | invite-skype-interview                 | called               | wait_skype_interview |
-     | invite-test                            | called               | wait_test            |
-     | interview                              | wait_interview       | interview            |
-     | skype-interview                        | wait_skype_interview | skype_interview      |
-     | call-after-skype-interview             | skype_interview      | called               |
-     | execute-test                           | wait_test            | run_test             |
-     | send-test                              | run_test             | send_test            |
-     | called-after-test                      | send_test            | called               |
-     | refuse-employer-after-interview        | interview            | refuse_employer      |
-     | refuse-applicant-after-interview       | interview            | refuse_applicant     |
-     | wait-result-after-interview            | interview            | wait_result          |
-     | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
-     | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
-     | wait-result-after-skype-interview      | skype_interview      | wait_result          |
-     | invite-next-interview                  | wait_result          | interview            |
-     | invite-interview-after-skype           | skype_interview      | interview            |
-     | invite-offer                           | wait_result          | offer                |
-     | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
-     | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
-
-   Теперь мы можем полностью описать поведение вакансии как конечный автомат:
-
-   #+NAME: vacancy_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=vacancy_state :results output :exports none
-     (mapcar #'(lambda (x)
-                 (princ (format "%s -> %s [label =\"%s\"];\n"
-                                (second x) (third x) (first x))))
-             table)
-   #+END_SRC
-
-
-   #+BEGIN_SRC dot :file img/vacancy-state.png :var input=vacancy_state_graph :exports results
-     digraph G {
-       rankdir = LR;
-       $input
-     }
-   #+END_SRC
-
-
-   #+NAME: hh_fn_contents
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defun teaser-rejection ()
-       "teaser-rejection")
-
-     (defun rejection-favorite ()
-       "rejection-favorite")
-   #+END_SRC
-
-** TODO Перекрестные связи с другими вакансиями
+** Перекрестные связи с другими вакансиями
 
    В ряде случаев компании меняют свои вакансии, некоторые делают это методом удаления
    предыдущей и создания новой. Мне как соискателю хотелось бы не обнаруживать уже
@@ -1150,170 +1445,6 @@
        (with-wrapper
            "<h1>Главная страница HH</h1>"
          ))
-   #+END_SRC
-
-** Список поисковых профилей
-
-  #+NAME: iface_contents
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
-
-    (define-iface-add-del-entity all-profiles "/profiles"
-      "Поисковые профили"
-      "Новый профиль"
-      "Когда соискатель пользуется профильным сайтом он использует
-       поисковые запросы, на основании которых мы можем формировать,
-       гм... назовем это =поисковыми профилями=. Поисковый профиль - это
-       запрос пользователя, плюс набор связанных с ним вакансий"
-       #'all-profile "profile"
-      (name)
-      (frm
-       (tbl
-        (list
-         (row "Название" (fld "name"))
-         (row "Запрос" (fld "search"))
-         (row "" %new%))))
-      (:new (act-btn "NEW" "" "Создать")
-            (progn
-              (make-profile :name (getf p :name)
-                            :user-id 1
-                            :search-query (getf p :search)
-                            :ts-create (get-universal-time)
-                            :ts-last (get-universal-time))
-              "Профиль создан"))
-      (:del (act-btn "DEL" (id i) "Удалить")
-            (progn
-              (del-profile (getf p :data)))))
-  #+END_SRC
-
-** Страничка поискового профиля
-
-   На страничке поискового профиля мы выводим все собранные по этому поисковому профилю
-   вакансии. Будем считать что нас не особо интересуют вакансии без указания зарплаты,
-   поэтому мы их просто отфильтровываем. После фильтрации сортируем в направлении уменьшения
-   зарплаты.
-
-   #+NAME: iface_contents
-   #+BEGIN_SRC lisp
-
-     (in-package #:moto)
-
-     (defun vacancy-table (raw)
-       (let ((vacs (sort (remove-if #'(lambda (x)
-                                        (equal 0 (salary x)))
-                                    raw)
-                         #'(lambda (a b)
-                             (> (salary a) (salary b))))))
-         (format nil "<h2>Вакансий: ~A</h2>~%~A" (length vacs)
-                 (tbl
-                  (with-collection (vac vacs)
-                    (tr
-                     (td
-                      (state vac))
-                     (td
-                      (format nil "<div style=\"background-color:green\">~A</div>"
-                              (input "radio" :name (format nil "R~A" (id vac)) :value "y"
-                                     :other (if (string= ":INTERESTED" (state vac)) "checked=\"checked\"" ""))))
-                     (td
-                      (format nil "<div style=\"background-color:red\">~A</div>"
-                              (input "radio" :name (format nil "R~A" (id vac)) :value "n"
-                                     :other (if (string= ":NOT_INTERESTED" (state vac)) "checked=\"checked\"" ""))))
-                     (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id vac) (name vac)))
-                     (td (salary-text vac))
-                     (td (currency vac))))
-                  :border 1))))
-
-     (define-page profile "/profile/:userid"
-       (let* ((i (parse-integer userid))
-              (page-id (parse-integer userid))
-              (u (get-profile i))
-              (vacs (sort (remove-if #'(lambda (x)
-                                         (equal 0 (salary x)))
-                                     (find-vacancy :profile-id page-id))
-                          #'(lambda (a b)
-                              (> (salary a) (salary b))))))
-         (if (null u)
-             "Нет такого профиля"
-             (format nil "~{~A~}"
-                     (list
-                      "<script>
-                              function test (param) {
-                                 $.post(
-                                    \"/profile/1\",
-                                    {act: param},
-                                    function(data) {
-                                       $(\"#dvtest\").html(data);
-                                    }
-                                );
-                              };
-                       </script>"
-                      (format nil "<h1>Страница поискового профиля ~A</h1>" (id u))
-                      (format nil "<h2>Данные поискового профиля ~A</h2>" (name u))
-                      (frm
-                       (tbl
-                        (with-element (u u)
-                          (row "Имя профиля" (fld "name" (name u)))
-                          (row "Запрос" (fld "search" (search-query u)))
-                          (row (hid "profile_id" (id u)) %change%))
-                        :border 1))
-                      (tbl
-                       (tr
-                        (td %show-all%)
-                        (td %show-interests%)
-                        (td %show-not-interests%)
-                        (td %show-other%)))
-                      (frm %proceess-interests%)
-                      (frm
-                       (list
-                        "<br /><br />"
-                        %clarify%
-                        "<div id=\"dvtest\">dvtest</div>"))))))
-       (:change  (act-btn "CHANGE" "" "Изменить")
-                 (id (upd-profile (get-profile (parse-integer userid))
-                                  (list :name (getf p :name) :search-query (getf p :query)))))
-       (:clarify (act-btn "CLARIFY" "" "Уточнить")
-                 (loop :for key :in (cddddr p) :by #'cddr :collect
-                    (let* ((val (getf p key))
-                           (id  (parse-integer (subseq (symbol-name key) 1)))
-                           (vac (get-vacancy id)))
-                      (list id
-                            (cond ((string= "y" val)
-                                   (unless (string= ":INTERESTED" (state vac))
-                                     (takt vac :interested)))
-                                  ((string= "n" val)
-                                   (unless (string= ":NOT_INTERESTED" (state vac))
-                                     (takt vac :not_interested)))
-                                  (t "err param"))))))
-       (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"все\">")
-                  (error 'ajax :output (vacancy-table (find-vacancy :profile-id 1))))
-       (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"интересные\">")
-                        (error 'ajax :output (vacancy-table (find-vacancy :state ":INTERESTED" :profile-id 1))))
-       (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"неинтересные\">")
-                            (error 'ajax :output (vacancy-table (find-vacancy :state ":NOT_INTERESTED" :profile-id 1))))
-       (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"остальные\">")
-                    (error 'ajax :output (vacancy-table (remove-if #'(lambda (x)
-                                                                       (or (string= ":NOT_INTERESTED" (state x) )
-                                                                           (string= ":INTERESTED" (state x))))
-                                                                   (find-vacancy :profile-id 1)))))
-       (:proceess-interests (act-btn "PROCEESS-INTERESTS" "" "Собрать данные интересных вакансий")
-                            "TODO"))
-
-     ;; (profile-id (car (all-vacancy)))
-
-     ;; (mapcar #'(lambda (x)
-     ;;             (salary x))
-     ;;         (find-vacancy :profile-id 1))
-
-     ;; (car
-     ;;  (remove-if #'(lambda (x)
-     ;;                 (null (getf x :salary)))
-     ;;             *teasers*))
-
-     ;; (currency
-     ;;  (car
-     ;;   (remove-if #'(lambda (x)
-     ;;                  (equal (salary x) 0))
-     ;;              (all-vacancy))))
    #+END_SRC
 
 ** Галлерея (parenscript)
@@ -1423,73 +1554,174 @@
             "' onclick='" ,onclick
             ";return false;' />"))
 
+     (defmacro/ps asm+ (id name salary-text)
+       `(s+ "<li id=\"" ,id "\">"
+            "<span class=\"handle\">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;"
+            ,name
+            "&nbsp;"
+            "<span style='color: red'>" ,salary-text "</span>"
+            "</li>"))
+
      (restas:define-route collection ("/collection")
        (labels ((asm-node (x)
-                  (ps-html ((:li :id (id x))
-                            (format nil "~A &nbsp;<span style='color: red'>~A</span>"
-                                    (name x)
-                                    (let ((it (salary-text x)))
-                                      (if (equal it "false") "" it))))))
+                  (asm+ (format nil "~A" (id x))
+                        (name x)
+                        (let ((it (salary-text x)))
+                          (if (equal it "false") "" it))))
                 (mrg (param)
-                  (reduce #'(lambda (x y)
-                              (concatenate 'string x (string #\NewLine) y))
-                          (mapcar #'(lambda (x)
-                                      (asm-node x))
-                                  param))))
-       (let* ((vacs (aif (find-vacancy :profile-id 1) it (err "null vacancy")))
-              (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
-              (not-interesting (remove-if #'(lambda (x)
-                                              (< 0 (salary x)))
-                                          sorted-vacs))
-              (border 3)
-              (interesting (subseq sorted-vacs 0 border))
-              (unsort (nthcdr border
-                              (remove-if #'(lambda (x)
-                                             (equal 0 (salary x)))
-                                         sorted-vacs))))
-         (with-wrapper
-           (ps-html
-            ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
-            ((:script :src "/js/jquery.sortable.js"))
-            (:script (ps
-                       (defun up (id)
-                         (let* ((obj ((@ $) (+ "#tr" id))))
-                           ((@ obj after) ((@ obj prev)))))
-                       (defun down (id)
-                         (let* ((obj ((@ $) (+ "#tr" id))))
-                           ((@ obj before) ((@ obj next)))))
-                       (defun asm-teaser (i id name state salary salary-text currency)
-                         (s+ "<li id='tr" id "'>"
-                             (s+ "<li>" name "</td>")
-                             "</li>"))
-                       (defun load-elts (param)
-                         ((@ $ post) "/collection" (create :act param)
-                          (lambda (data)
-                            ((@ ((@ $) "#vacancy-container")  html) "")
-                            ((@ $ each) data
-                             (lambda (i data)
-                               ((@ ((@ $) "#vacancy-container")  append)
-                                (asm-teaser i (@ data id) (@ data name) (@ data state)
-                                            (@ data salary) (@ data salary-text) (@ data currency))))))
-                          :json))))
-            ((:input :type "button" :name "button" :id "button" :class "button" :value "button"))
-            ((:table :border 0 :style "font-size: small;")
-             ((:th) "Интересные")
-             ((:th) "Неразобранные")
-             ((:th) "Неинтересные")
-             ((:tr)
-              ((:td :width 500 :valign "top")
-               ((:ul :class "connected" :id "interesting-container")
-                (mrg interesting)))
-              ((:td :width 500 :valign "top")
-               ((:ul :id "vacancy-container" :class "connected list")
-                (mrg unsort)))
-              ((:td :id "not-interesting-container" :width 500 :valign "top")
-               ((:ul :class "connected")
-                (mrg not-interesting))))))))))
+                  (if (null param)
+                      (ps-html ((:li :id 0)
+                                "Нет вакансий"))
+                      (reduce #'(lambda (x y)
+                                  (concatenate 'string x (string #\NewLine) y))
+                              (mapcar #'(lambda (x)
+                                          (asm-node x))
+                                      param)))))
+         (let* ((vacs (aif (find-vacancy :profile-id 1) it (err "null vacancy")))
+                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
+                (not-interesting)
+                (interesting)
+                (unsort))
+           (loop :for vac :in sorted-vacs :do
+              (if (equal 0 (salary vac))
+                  (setf not-interesting (append not-interesting (list vac)))
+                  (if (or (search "android" (string-downcase (name vac)))
+                          (search ".net" (string-downcase (name vac)))
+                          (search "python" (string-downcase (name vac)))
+                          (search "javascript" (string-downcase (name vac)))
+                          (search "с#" (string-downcase (name vac)))
+                          (search "с++" (string-downcase (name vac)))
+                          (search "ruby" (string-downcase (name vac)))
+                          (search "SAP" (name vac))
+                          (search "1С" (name vac))
+                          (search "QA" (name vac))
+                          (search "objective-c" (string-downcase (name vac)))
+                          (search "ios" (string-downcase (name vac)))
+                          (search "delphi" (string-downcase (name vac)))
+                          (search "sharepoint" (string-downcase (name vac)))
+                          (search "flash" (string-downcase (name vac)))
+                          (search "windows" (string-downcase (name vac)))
+                          (search "pl/sql" (string-downcase (name vac)))
+                          (search "front-end" (string-downcase (name vac)))
+                          (and (equal "RUR" (currency vac))
+                               (> 50000 (salary vac)))
+                          )
+                      (setf not-interesting (append not-interesting (list vac)))
+                      (if (or (search "php" (string-downcase (name vac)))
+                              (search "java" (string-downcase (name vac)))
+                              (search "web" (string-downcase (name vac)))
+                              (search "backend" (string-downcase (name vac)))
+                              (search "back-end" (string-downcase (name vac)))
+                              )
+                          (setf interesting (append interesting (list vac)))
+                          ;; (setf unsort (append unsort (list vac)))
+                          ))))
+           (with-wrapper
+             (ps-html
+              ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
+              ((:script :src "/js/jquery.sortable.js"))
+              ;; (:script (ps
+              ;;            (defun up (id)
+              ;;              (let* ((obj ((@ $) (+ "#tr" id))))
+              ;;                ((@ obj after) ((@ obj prev)))))
+              ;;            (defun down (id)
+              ;;              (let* ((obj ((@ $) (+ "#tr" id))))
+              ;;                ((@ obj before) ((@ obj next)))))
+              ;;            (defun asm-teaser (i id name state salary salary-text currency)
+              ;;              (s+ "<li id='tr" id "'>"
+              ;;                  (s+ "<li>" name "</td>")
+              ;;                  "</li>"))
+              ;;            (defun load-elts (param)
+              ;;              ((@ $ post) "/collection" (create :act param)
+              ;;               (lambda (data)
+              ;;                 ((@ ((@ $) "#vacancy-container")  html) "")
+              ;;                 ((@ $ each) data
+              ;;                  (lambda (i data)
+              ;;                    ((@ ((@ $) "#vacancy-container")  append)
+              ;;                     (asm-teaser i (@ data id) (@ data name) (@ data state)
+              ;;                                 (@ data salary) (@ data salary-text) (@ data currency))))))
+              ;;               :json))))
+              ((:table :border 0)
+               ((:tr)
+                ((:td)
+                 ((:textarea :name "code" :id "code" :rows 20 :cols 160)
+                  (ps
+                    (defun load-elts (param)
+                      ((@ $ post) "/collection" (create :act param)
+                       (lambda (data)
+                         ((@ ((@ $) "#vacancy-container")  html) "")
+                         ((@ $ each) data
+                          (lambda (i data)
+                            ((@ ((@ $) "#vacancy-container")  append)
+                             (s+ "<li id='" (@ data id) "'>" (@ data name) "</li>")))))
+                       :json))
+                    (defun vac-hook (vac)
+                      ;; (if (equal 0 (salary vac))
+                      ;;     (setf not-interesting (append not-interesting (list vac)))
+                      ;;     (if (or (search "android" (string-downcase (name vac)))
+                      ;;             (search ".net" (string-downcase (name vac)))
+                      ;;             (search "python" (string-downcase (name vac)))
+                      ;;             (search "javascript" (string-downcase (name vac)))
+                      ;;             (search "с#" (string-downcase (name vac)))
+                      ;;             (search "с++" (string-downcase (name vac)))
+                      ;;             (search "ruby" (string-downcase (name vac)))
+                      ;;             (search "SAP" (name vac))
+                      ;;             (search "1С" (name vac))
+                      ;;             (search "QA" (name vac))
+                      ;;             (search "objective-c" (string-downcase (name vac)))
+                      ;;             (search "ios" (string-downcase (name vac)))
+                      ;;             (search "delphi" (string-downcase (name vac)))
+                      ;;             (search "sharepoint" (string-downcase (name vac)))
+                      ;;             (search "flash" (string-downcase (name vac)))
+                      ;;             (search "windows" (string-downcase (name vac)))
+                      ;;             (search "pl/sql" (string-downcase (name vac)))
+                      ;;             (search "front-end" (string-downcase (name vac)))
+                      ;;             (and (equal "RUR" (currency vac))
+                      ;;                  (> 50000 (salary vac)))
+                      ;;             )
+                      ;;         (setf not-interesting (append not-interesting (list vac)))
+                      ;;         (if (or (search "php" (string-downcase (name vac)))
+                      ;;                 (search "java" (string-downcase (name vac)))
+                      ;;                 (search "web" (string-downcase (name vac)))
+                      ;;                 (search "backend" (string-downcase (name vac)))
+                      ;;                 (search "back-end" (string-downcase (name vac)))
+                      ;;                 )
+                      ;;             (setf interesting (append interesting (list vac)))
+                      ;;             (setf unsort (append unsort (list vac)))
+                      ;;             )))
+                      )
+                    (load-elts "stub")
+                    )))
+                ((:td)
+                 ((:a :onclick "loadElts(1); return false") "loadElts(1);")
+                 (:br)
+                 ((:a :onclick "eval($('#code').val()); return false;") "eval #code")
+                 (:br)
+                 ((:a :onclick "alert(getChildIds('#interesting-container')); return false;") "childs")
+                 (:br)
+                 ((:a :onclick "$('.connected').sortable('destroy'); return false;") "destroy")
+                 (:br)
+                 ((:a :onclick "$('.connected').sortable({ connectWith: '.connected', handle: '.handle'}); return false;") "make")
+                 (:br))))
+              ((:table :border 0 :style "font-size: small;")
+               ((:th) "Интересные")
+               ((:th) "Неразобранные")
+               ((:th) "Неинтересные")
+               ((:tr)
+                ((:td :width 500 :valign "top")
+                 ((:ul :class "connected" :id "interesting-container")
+                  (mrg interesting)))
+                ((:td :width 500 :valign "top")
+                 ((:ul :class "connected" :id "unsort-container")
+                  (mrg unsort)))
+                ((:td :width 500 :valign "top")
+                 ((:ul :class "connected" :id "not-interesting-container")
+                  (mrg not-interesting))))))))))
+
+
 
      (restas:define-route collection-post ("/collection" :method :post)
-       ;; Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
+       ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
        (with-wrapper
          (error 'ajax :output (cl-json:encode-json-to-string
                                (aif (find-vacancy :profile-id 1)

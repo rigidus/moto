@@ -10,6 +10,12 @@
     user-select: none;
     float: left;
     width: 520px;
+    border: 1px solid red;
+    min-height: 900px;
+
+}
+.connected ul {
+    min-height: 800px;
 }
 .connected li {
     list-style: none;
@@ -25,4 +31,340 @@
     width: 1530px;
     overflow: hidden;
     margin: auto;
+}
+.handle {
+    background-color: lightgray;
+    cursor: pointer;
+    border: 1px solid gray;
+}
+
+
+
+@import url(http://fonts.googleapis.com/css?family=Droid+Serif|Droid+Sans);
+
+article, footer, header, hgroup, nav, section {
+    display: block;
+}
+
+img {
+    border: 0;
+}
+
+body {
+    margin: 0;
+    font-family: 'Droid Sans', sans-serif;
+    background: url(images/bg.png);
+    color: #555;
+}
+
+li {
+    line-height: 1.4em;
+    list-style: circle;
+}
+
+h1 a {
+    color: #555;
+}
+
+h1 a:hover {
+    color: #55D;
+}
+
+code, pre, kbd, samp {
+    font-family: Menlo,Monaco,'DejaVu Sans Mono','Bitstream Vera Sans Mono','Consolas','Courier New',Courier,monospace;
+    font-size: 0.9em;
+}
+
+pre code {
+    overflow: auto;
+    border-left-width: 5px;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.1);
+}
+
+code {
+    background: #FDF6E3;
+    color: #657B83;
+    border: 1px solid #DDD;
+    padding: 1px;
+}
+
+#header nav {
+    position: absolute;
+    text-align: right;
+    font-size: 1.2em;
+    font-family: 'Droid Serif', serif;
+    top: 120px;
+    left: 150px;
+}
+
+#header nav ul {
+    padding: 0;
+}
+
+#feed {
+    position: fixed;
+    top: 0;
+    right: 0;
+    background: url(images/logos.png) -160px 32px;
+    width: 32px;
+    height: 32px;
+}
+
+#header nav li {
+    list-style: none;
+    margin: 10px;
+}
+
+hgroup h1 {
+    font-size: 3em;
+    margin-bottom: 0;
+}
+
+hgroup h2 {
+    font-size: 1.2em;
+    margin-top: 0;
+}
+
+h1, h2 {
+    font-weight: normal;
+    font-family: 'Droid Serif', serif;
+}
+
+a {
+    color: #55D;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #00F;
+}
+
+a:hover,
+a:active {
+    outline: 0;
+}
+
+a:focus {
+    outline: thin dotted;
+}
+
+#header, .main {
+    margin: 0 50px 0 300px;
+}
+
+#header {
+    border-bottom: 1px dashed #BBB;
+}
+
+#error {
+    margin-bottom: 110px;
+}
+
+article h1, section h1 {
+    font-size: 2.3em;
+    margin: 0.8em 0 0 0;
+}
+
+#posts h1 {
+    font-size: 1.8em;
+}
+
+section article h1, article section h1 {
+    font-size: 1.6em;
+}
+
+article section section h1 {
+    font-size: 1.3em;
+}
+
+#projects article {
+    border-bottom: 1px dashed #CCC;
+}
+
+article p {
+    line-height: 1.4em;
+}
+
+article time {
+    font-size: 0.9em;
+    color: #888;
+    display: block;
+}
+
+#archives li {
+    overflow: hidden;
+    max-width: 500px;
+    padding: 10px;
+    list-style: none;
+    clear: both;
+    border-bottom: 1px dashed #CCC;
+    font-family: 'Droid Serif', serif;
+}
+
+#archives a {
+    display: block;
+    float: left;
+}
+
+#archives time {
+    display: block;
+    float: right;
+}
+
+#footer ul {
+    padding: 0;
+    margin: 0;
+}
+
+#footer li {
+    background: url(images/logos.png);
+    float: right;
+    list-style: none;
+    display: block;
+    margin: 10px;
+}
+
+#footer li a, #feed a {
+    background: url(images/logos.png) -160px 0;
+    font-size: 0;
+    color: trasparent;
+    display: block;
+    width: 32px;
+    height: 32px;
+    opacity: 0;
+}
+
+#footer li a, #feed a, #header nav {
+    -moz-transition: all 0.6s;
+    -webkit-transition: all 0.6s;
+    -ms-transition: all 0.6s;
+    -o-transition: all 0.6s;
+    transition: all 0.6s;
+}
+
+#footer li a:hover, #feed a:hover{
+    opacity: 1;
+}
+
+#footer li a:focus, #feed a:focus{
+    opacity: 1;
+}
+
+li#html5 a {
+    background-position: 0 0;
+}
+
+li#github a {
+    background-position: -32px 0;
+}
+
+li#twitter a {
+    background-position: -64px 0;
+}
+
+li#ohloh a {
+    background-position: -96px 0;
+}
+
+li#flattr a {
+    background-position: -128px 0;
+}
+
+li#html5 {
+    background-position: 0 32px;
+}
+
+li#github {
+    background-position: -32px 32px;
+}
+
+li#twitter {
+    background-position: -64px 32px;
+}
+
+li#ohloh {
+    background-position: -96px 32px;
+}
+
+li#flattr {
+    background-position: -128px 32px;
+}
+
+#footer {
+    overflow: hidden;
+    clear: both;
+    font-size: 0.8em;
+    background: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    margin-top: 40px;
+}
+
+#footer section {
+    float: right;
+}
+
+section#license {
+    float: left;
+    max-width: 480px;
+}
+
+#license p {
+    margin: 10px;
+}
+
+#cc-badge {
+    opacity: 0.6;
+    float: left;
+    margin: 10px;
+    display: block;
+}
+
+#fork-me {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 149px;
+    height: 149px;
+    font-size: 0;
+    color: transparent;
+    background: url(https://s3.amazonaws.com/github/ribbons/forkme_left_green_007200.png);
+}
+
+#dynamic-demo {
+    float: right;
+    border: 1px dashed #AAA;
+    margin: 10px;
+    padding: 10px;
+}
+
+#dynamic-demo iframe {
+    width: 260px;
+    height: 430px;
+}
+
+#dynamic-demo h1 {
+    text-align: center;
+    margin-top: 0;
+}
+
+@media only screen and (max-width: 991px) {
+    #header, .main {
+        margin: 0 50px;
+        }
+
+    #header nav {
+        position: static;
+        text-align: left;
+        }
+
+    #header nav ul {
+        overflow: hidden;
+        margin-left: -10px;
+        }
+
+    #header nav li {
+        float: left;
+        }
 }

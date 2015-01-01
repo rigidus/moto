@@ -4,13 +4,6 @@
 (in-package #:moto)
 
 ;; Страницы
-
-(in-package #:moto)
-
-(restas:define-route hh-main ("/hh")
-  (with-wrapper
-      "<h1>Главная страница HH</h1>"
-    ))
 (in-package #:moto)
 
 (define-iface-add-del-entity all-profiles "/profiles"
@@ -158,6 +151,13 @@
 ;;   (remove-if #'(lambda (x)
 ;;                  (equal (salary x) 0))
 ;;              (all-vacancy))))
+
+(in-package #:moto)
+
+(restas:define-route hh-main ("/hh")
+  (with-wrapper
+      "<h1>Главная страница HH</h1>"
+    ))
 (defparameter *slideshows* (make-hash-table :test 'equalp))
 
 (defun add-slideshow (slideshow-name image-folder)
@@ -249,122 +249,155 @@
        "' onclick='" ,onclick
        ";return false;' />"))
 
-(defparameter *style*
-  ".connected, .sortable, .exclude, .handles {
-       margin: auto;
-       padding: 0;
-       width: 300px;
-       -webkit-touch-callout: none;
-       -webkit-user-select: none;
-       -khtml-user-select: none;
-       -moz-user-select: none;
-       -ms-user-select: none;
-       user-select: none;
-   }
-   .connected li, .sortable li, .exclude li, .handles li {
-       list-style: none;
-       border: 1px solid #CCC;
-       background: #F6F6F6;
-       font-family: \"Tahoma\";
-       color: #1C94C4;
-       margin: 5px;
-       padding: 5px;
-       height: 22px;
-   }
-   li.highlight {
-       background: #FEE25F;
-   }
-   #connected {
-       width: 1530px;
-       overflow: hidden;
-       margin: auto;
-   }
-   .connected {
-       float: left;
-       width: 500px;
-   }
-   .connected.no2 {
-       float: right;
-   }")
-
-(defparameter *script*
-  "$(function() {
-        $('.sortable').sortable();
-        $('.handles').sortable({
-                               handle: 'span'
-                               });
-        $('.connected').sortable({
-                                 connectWith: '.connected'
-                                 });
-        $('.exclude').sortable({
-                               items: ':not(.disabled)'
-                               });
-        });")
-
 (restas:define-route collection ("/collection")
-  (let ((teaser-nodes (format nil "~{~A~}"
-                              (mapcar #'(lambda (x)
-                                          (ps-html (:li (format nil "~A &nbsp;&nbsp;&nbsp;<span style='color: red'>~A</span>"
-                                                                (name x)
-                                                                (let ((salary-text (salary-text x)))
-                                                                  (if (equal "false" salary-text)
-                                                                      ""
-                                                                      salary-text))))))
-                                      (sort (aif (find-vacancy :profile-id 1)
-                                                 it
-                                                 (err "null vacancy"))
-                                            #'(lambda (a b)
-                                                (> (salary a) (salary b))))))))
-    (with-wrapper
-      (ps-html
-       (:style *style*)
-       ((:script :src "/js/jquery.sortable.js"))
-       (:script *script*)
-       (:script (ps
-                  (defun up (id)
-                    (let* ((obj ((@ $) (+ "#tr" id))))
-                      ((@ obj after) ((@ obj prev)))))
-                  (defun down (id)
-                    (let* ((obj ((@ $) (+ "#tr" id))))
-                      ((@ obj before) ((@ obj next)))))
-                  (defun asm-teaser (i id name state salary salary-text currency)
-                    (s+ "<li id='tr" id "'>"
-                        (s+ "<li>" name "</td>")
-                        "</li>"))
-                  (defun load-elts (param)
-                    ((@ $ post) "/collection" (create :act param)
-                     (lambda (data)
-                       ((@ ((@ $) "#vacancy-container")  html) "")
-                       ((@ $ each) data
-                        (lambda (i data)
-                          ((@ ((@ $) "#vacancy-container")  append)
-                           (asm-teaser i (@ data id) (@ data name) (@ data state)
-                                       (@ data salary) (@ data salary-text) (@ data currency))))))
-                     :json))))
-       ((:table :border 0 :style "font-size: small;")
-        ((:th) "Интересные")
-        ((:th) "Неразобранные")
-        ((:th) "Неинтересные")
-        ((:tr)
-         ((:td :width 500 :valign "top")
-          ((:ul :class "connected list no2")
-           ((:li :class "highlight") "Item 1")
-           ((:li :class "highlight") "Item 2")
-           ((:li :class "highlight") "Item 3")
-           ((:li :class "highlight") "Item 4")
-           ((:li :class "highlight") "Item 5")
-           ))
-         ((:td :width 500 :valign "top")
-          ((:ul :id "vacancy-container" :class "connected list")
-           teaser-nodes))
-         ((:td :width 500 :valign "top")
-          ((:ul :class "connected list no2")
-           ((:li :class "highlight") "Item 1")
-           ((:li :class "highlight") "Item 2")
-           ((:li :class "highlight") "Item 3")
-           ((:li :class "highlight") "Item 4")
-           ((:li :class "highlight") "Item 5")
-           ))))))))
+  (labels ((asm-node (x)
+             (ps-html ((:li :id (id x))
+                       (format nil "~A &nbsp;<span style='color: red'>~A</span>"
+                               (name x)
+                               (let ((it (salary-text x)))
+                                 (if (equal it "false") "" it))))))
+           (mrg (param)
+             (if (null param)
+                 (ps-html ((:li :id 0)
+                           "Нет вакансий"))
+                 (reduce #'(lambda (x y)
+                             (concatenate 'string x (string #\NewLine) y))
+                         (mapcar #'(lambda (x)
+                                     (asm-node x))
+                                 param)))))
+    (let* ((vacs (aif (find-vacancy :profile-id 1) it (err "null vacancy")))
+           (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
+           (not-interesting)
+           (interesting)
+           (unsort))
+      (loop :for vac :in sorted-vacs :do
+         (if (equal 0 (salary vac))
+             (setf not-interesting (append not-interesting (list vac)))
+             (if (or (search "android" (string-downcase (name vac)))
+                     (search ".net" (string-downcase (name vac)))
+                     (search "python" (string-downcase (name vac)))
+                     (search "javascript" (string-downcase (name vac)))
+                     (search "с#" (string-downcase (name vac)))
+                     (search "с++" (string-downcase (name vac)))
+                     (search "ruby" (string-downcase (name vac)))
+                     (search "SAP" (name vac))
+                     (search "1С" (name vac))
+                     (search "QA" (name vac))
+                     (search "objective-c" (string-downcase (name vac)))
+                     (search "ios" (string-downcase (name vac)))
+                     (search "delphi" (string-downcase (name vac)))
+                     (search "sharepoint" (string-downcase (name vac)))
+                     (search "flash" (string-downcase (name vac)))
+                     (search "windows" (string-downcase (name vac)))
+                     (search "pl/sql" (string-downcase (name vac)))
+                     (search "front-end" (string-downcase (name vac)))
+                     (and (equal "RUR" (currency vac))
+                          (> 50000 (salary vac)))
+                     )
+                 (setf not-interesting (append not-interesting (list vac)))
+                 (if (or (search "php" (string-downcase (name vac)))
+                         (search "java" (string-downcase (name vac)))
+                         (search "web" (string-downcase (name vac)))
+                         (search "backend" (string-downcase (name vac)))
+                         (search "back-end" (string-downcase (name vac)))
+                         )
+                     (setf interesting (append interesting (list vac)))
+                     ;; (setf unsort (append unsort (list vac)))
+                   ))))
+      (with-wrapper
+        (ps-html
+         ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
+         ((:script :src "/js/jquery.sortable.js"))
+         (:script (ps
+                    (defun up (id)
+                      (let* ((obj ((@ $) (+ "#tr" id))))
+                        ((@ obj after) ((@ obj prev)))))
+                    (defun down (id)
+                      (let* ((obj ((@ $) (+ "#tr" id))))
+                        ((@ obj before) ((@ obj next)))))
+                    (defun asm-teaser (i id name state salary salary-text currency)
+                      (s+ "<li id='tr" id "'>"
+                          (s+ "<li>" name "</td>")
+                          "</li>"))
+                    (defun load-elts (param)
+                      ((@ $ post) "/collection" (create :act param)
+                       (lambda (data)
+                         ((@ ((@ $) "#vacancy-container")  html) "")
+                         ((@ $ each) data
+                          (lambda (i data)
+                            ((@ ((@ $) "#vacancy-container")  append)
+                             (asm-teaser i (@ data id) (@ data name) (@ data state)
+                                         (@ data salary) (@ data salary-text) (@ data currency))))))
+                       :json))))
+         ((:table :border 0)
+          ((:tr)
+           ((:td)
+            ((:textarea :name "code" :id "code" :rows 20 :cols 160)
+             (ps
+               (defun load-elts (param)
+                 ((@ $ post) "/collection" (create :act param)
+                  (lambda (data)
+                    ((@ ((@ $) "#vacancy-container")  html) "")
+                    ((@ $ each) data
+                     (lambda (i data)
+                       ((@ ((@ $) "#vacancy-container")  append)
+                        (s+ "<li id='" (@ data id) "'>" (@ data name) "</li>")))))
+                  :json))
+               (defun vac-hook (vac)
+                   ;; (if (equal 0 (salary vac))
+                   ;;     (setf not-interesting (append not-interesting (list vac)))
+                   ;;     (if (or (search "android" (string-downcase (name vac)))
+                   ;;             (search ".net" (string-downcase (name vac)))
+                   ;;             (search "python" (string-downcase (name vac)))
+                   ;;             (search "javascript" (string-downcase (name vac)))
+                   ;;             (search "с#" (string-downcase (name vac)))
+                   ;;             (search "с++" (string-downcase (name vac)))
+                   ;;             (search "ruby" (string-downcase (name vac)))
+                   ;;             (search "SAP" (name vac))
+                   ;;             (search "1С" (name vac))
+                   ;;             (search "QA" (name vac))
+                   ;;             (search "objective-c" (string-downcase (name vac)))
+                   ;;             (search "ios" (string-downcase (name vac)))
+                   ;;             (search "delphi" (string-downcase (name vac)))
+                   ;;             (search "sharepoint" (string-downcase (name vac)))
+                   ;;             (search "flash" (string-downcase (name vac)))
+                   ;;             (search "windows" (string-downcase (name vac)))
+                   ;;             (search "pl/sql" (string-downcase (name vac)))
+                   ;;             (search "front-end" (string-downcase (name vac)))
+                   ;;             (and (equal "RUR" (currency vac))
+                   ;;                  (> 50000 (salary vac)))
+                   ;;             )
+                   ;;         (setf not-interesting (append not-interesting (list vac)))
+                   ;;         (if (or (search "php" (string-downcase (name vac)))
+                   ;;                 (search "java" (string-downcase (name vac)))
+                   ;;                 (search "web" (string-downcase (name vac)))
+                   ;;                 (search "backend" (string-downcase (name vac)))
+                   ;;                 (search "back-end" (string-downcase (name vac)))
+                   ;;                 )
+                   ;;             (setf interesting (append interesting (list vac)))
+                   ;;             (setf unsort (append unsort (list vac)))
+                   ;;             )))
+                 )
+               (load-elts "stub")
+               )))
+           ((:td)
+            ((:input :type "button" :name "run" :id "run" :class "button" :value "run"))
+            (:br)
+            ((:input :type "button" :name "button" :id "button" :class "button" :value "button")))))
+         ((:table :border 0 :style "font-size: small;")
+          ((:th) "Интересные")
+          ((:th) "Неразобранные")
+          ((:th) "Неинтересные")
+          ((:tr)
+           ((:td :width 500 :valign "top")
+            ((:ul :class "connected" :id "interesting-container")
+             (mrg interesting)))
+           ((:td :width 500 :valign "top")
+            ((:ul :id "vacancy-container" :class "connected")
+             (mrg unsort)))
+           ((:td :id "not-interesting-container" :width 500 :valign "top")
+            ((:ul :class "connected")
+             (mrg not-interesting))))))))))
 
 (restas:define-route collection-post ("/collection" :method :post)
   ;; Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
