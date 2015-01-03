@@ -91,12 +91,12 @@ function getChildIds (selector) {
   }).get();
 }
 
-// $(function() {
-//   $('.connected').sortable({
-//     connectWith: '.connected',
-//     handle: '.handle'
-//   });
-// });
+$(function() {
+  $('.connected').sortable({
+    connectWith: '.connected',
+    handle: '.handle'
+  });
+});
 
 
 
@@ -125,6 +125,11 @@ function contains(str, ptrn) {
 }
 
 function loadElts(param) {
+
+  $('.connected').sortable('destroy');
+
+  alert(8);
+
   $.post("/collection", { "act" : param }, function (data) {
     $("#unsort-container").html("");
     $("#interesting-container").html("");
@@ -147,14 +152,14 @@ function loadElts(param) {
     });
   }, "json");
 
-  // $('.connected').sortable({
-  //   connectWith: '.connected',
-  //   handle: '.handle'
-  // });
+  alert(6);
+
+  $('.connected').sortable({ connectWith: '.connected', handle: '.handle'});
 
   return false;
 
 };
+
 function vacHook(vac) {
   return null;
 };
