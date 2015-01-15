@@ -32,8 +32,10 @@
     (in-package #:moto)
 
     (defmethod process-teaser (current-teaser)
-      (dbg ":: ~A" current-teaser)
-      (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
+      ;; (hh-parse-vacancy (hh-get-page (getf current-teaser :id)))
+      ;; (dbg ":b: ~A" (bprint current-teaser))
+      current-teaser
+      )
 
     (defun metagen (vac-src city prof-area &optional spec)
       (ecase vac-src
@@ -42,11 +44,11 @@
                   (teasers nil))
               (alexandria:named-lambda get-vacancy ()
                 (labels ((load-next-teasers-page ()
-                           (dbg "тизеры исчерпаны, надо загрузить и попробовать снова (page=~A)" page)
+                           (dbg "~~ LOAD (page=~A)" page)
                            (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
                            (incf page)
                            (when (equal 0 (length teasers))
-                             (dbg "тизеры кончились в источнике, завершаем работу")
+                             (dbg "~~ FIN")
                              (return-from get-vacancy 'nil)))
                          (get-teaser ()
                            (when (equal 0 (length teasers))
@@ -57,19 +59,24 @@
                   (tagbody get-new-teaser
                      (let ((current-teaser (get-teaser)))
                        (let ((current-vacancy (process-teaser current-teaser)))
+                         ;; (dbg ":c: ~A" (bprint current-vacancy))
                          (if (null current-vacancy)
                              (progn
-                               (dbg "вакансия - nil, пробуем снова")
+                               ;; (dbg "~~ вакансия - nil, пробуем снова")
                                (go get-new-teaser))
                              (progn
-                               (dbg "вакансия ок, мерджим с тизером и возвращаем")
+                               ;; (dbg "~~ вакансия ок, мерджим с тизером и возвращаем")
                                (return-from get-vacancy (merge-plists current-teaser current-vacancy)))))))))))))
 
     (defparameter *tmp*
       (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
 
-    (loop :for i from 1 to 100 :do
-       (print (funcall *tmp*)))
+    (loop :for i :from 1 :to 100 :do
+       (dbg "~A" i)
+       (let ((vacancy (funcall *tmp*)))
+         (when (null vacancy)
+           (return))
+         (dbg "~A" (bprint vacancy))))
   #+END_SRC
 
   Для работы этому генератору нужно уметь:
@@ -141,20 +148,17 @@
     (in-package #:moto)
 
     (defun process (vacancy rules)
-      (tagbody renew
-         (loop
-            :for rule :in rules
-            :for num :from 0 :to 5
-            :do
+      (tagbody
+       renew
+         (loop :for rule :in rules :do
             (multiple-value-bind (vacancy-result rule-result)
                 (funcall rule vacancy)
               (setf vacancy vacancy-result)
               (when (equal rule-result :stop)
                 (return-from process vacancy))
               (when (equal rule-result :renew)
-                (go renew)))
-              )
-       vacancy))
+                (go renew)))))
+      vacancy)
 
     ;; test
 
@@ -183,22 +187,49 @@
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
+    (defmacro drop-by-name (text)
+      `(define-rule (contains (getf vacancy :name) ,text)
+           (dbg "drop: name contains ~A" ,text)
+         (setf vacancy nil)
+         :stop))
+
+    (defparameter *rules-drop-teaser*
+      (list
+       (define-rule (null (getf vacancy :salary))
+         (dbg "drop: Нет зарплаты")
+         (setf vacancy nil)
+         :stop)
+       (define-rule (< (parse-integer (getf vacancy :salary)) 90000)
+         (dbg "drop: Маленькая зарплата")
+         (setf vacancy nil)
+         :stop)
+       (drop-by-name "IOS")
+       (drop-by-name "1С")
+       (drop-by-name "C++")
+       (drop-by-name "Ruby on Rails")
+       (drop-by-name "Frontend")
+       (drop-by-name "Go")
+       (drop-by-name "Go")
+       (drop-by-name "Qa")
+       (drop-by-name "C#")
+       (drop-by-name ".NET")
+       (drop-by-name "Unity3D")
+       (drop-by-name "Flash")
+       (drop-by-name "Java")
+       (drop-by-name "Android")
+       (drop-by-name "ASP")
+       (drop-by-name "Objective-C")
+       (drop-by-name "Front End")
+       (drop-by-name "Go")
+       ))
+
     (defmethod process-teaser :around (current-teaser)
-      (let ((current-result (call-next-method)))
-        (print current-result)))
-
-        ;; (process current-result
-        ;;        (list
-        ;;         (define-rule (equal 12 tmp)
-        ;;           (setf (getf vacancy :tmp) tmp)
-        ;;           :stop)
-        ;;         (define-rule (and (> (getf vacancy :salary) 70000)
-        ;;                           (not (contains "Java" (getf vacancy :name))))
-        ;;           (print (incf tmp))
-        ;;           :renew)
-        ;;         )))
+      (aif (process current-teaser *rules-drop-teaser*)
+           (progn
+             ;; (dbg ":a: ~A" (bprint current-teaser))
+             (call-next-method it))
+           nil))
   #+END_SRC
-
 
   Теперь мы можем построить бесконечный цикл, которому Гена дает вакансии, а он применяет
   правила и выполняет действия (продукционная система)
@@ -1062,7 +1093,7 @@
             (with-predict-maptree
                 (a ((b c) (d class)) &rest z)
               (and (or (equal class "search-result-item search-result-item_standard ")
-                       (equal class "search-result-item search-result-item_standard_plus")
+                       (equal class "search-result-item search-result-item_standard_plus ")
                        (equal class "search-result-item search-result-item_premium search-result-item_premium")
                        (equal class "search-result-item search-result-item_premium  search-result-item_premium")))
               #'(lambda (x) (values
