@@ -54,56 +54,102 @@
   - Разбирать вакансии (=hh-parse-vacancy=)
   Но мы не будем сейчас на всем этом останавливаться и опишем это потом, в соотвествующих разделах
 
-  Пусть у нас есть возможность создавать элементарные =правила отбора=, которые получают на
-  вход вакансию, анализирует ее, и возвращает некое значение. Например, правило может
-  возвращать =ложь=, если нам это вакансия не подходит.
+  Пусть у нас есть возможность создавать =правила=, которые получают на вход вакансию,
+  анализируют ее, и выполняют некие действия. Например, мы могли бы создать правило, которое
+  добавляет к вакансии поле =interested= если зарплата и язык разработки нас устраивает.
 
-  #+NAME: define-rile
+  Примем соглашение, что правило возвращает =ложь= если вакансия нам не интересна.
+
+  #+NAME: define-rule
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
-    (defmacro define-rule (name &body body)
+    (defmacro define-rule (name condition &body body)
       `(alexandria:named-lambda ,name (vacancy)
-         ,@body))
+         (if ,condition
+             ,@body)
+         vacancy))
 
     ;; expand
 
-    ;; (macroexpand-1 '(define-rule test-rule
-    ;;                  'return-value))
+    ;; (macroexpand-1 ' (define-rule test-rule
+    ;;                      (or
+    ;;                       (< (getf vacancy :salary) 50000)
+    ;;                       (contains (getf vacancy :name) "Java"))
+    ;;                    (return-from test-rule nil)))
 
     ;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA TEST-RULE
-    ;;               (VACANCY)
-    ;;           'RETURN-VALUE), T
+    ;;        (VACANCY)
+    ;;      (IF (OR (< (GETF VACANCY :SALARY) 50000)
+    ;;              (CONTAINS (GETF VACANCY :NAME) "Java"))
+    ;;          (RETURN-FROM TEST-RULE NIL))
+    ;;      VACANCY), T
 
     ;; test
 
     ;; (funcall
     ;;  (define-rule test-rule
-    ;;    'return-value)
-    ;;  'the-vacancy)
+    ;;    (and
+    ;;       (> (getf vacancy :salary) 70000)
+    ;;       (not (contains "Java" (getf vacancy :name))))
+    ;;    (setf (getf vacancy :interested) t))
+    ;;  '(:name "Python" :salary 80000)
+
+    ;; => (:INTERESTED T :NAME "Python" :SALARY 80000)
+
+    ;; (funcall
+    ;;  (define-rule test-rule
+    ;;      (or
+    ;;       (< (getf vacancy :salary) 50000)
+    ;;       (contains (getf vacancy :name) "Java"))
+    ;;    (return-from test-rule nil))
+    ;;  '(:name "Java Developer" :salary 120000))
+
+    ;; => NIL
   #+END_SRC
 
-  Пусть у нас есть возможность создавать =комбинаторы правил=, которые умеют последовательно применять
-  несколько [правил] к вакансии, анализировать возвращаемые значения, и по результатам
-  производить некие действия, например, отсев (ну или ранжирование).
+  Теперь мы можем создать комбинатор правил =process-vacancy=, который последовательно
+  применяет переданный ему набор правил к вакансии. Если одно из правил возвратило =ложь= -
+  остальные правила не применяются и возвращается =ложь=.
 
-  #+NAME: define-rile
+  #+NAME: combinator
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
-    (defmacro define-combinator (name rules &body action)
-      `(alexandria:named-lambda ,name (vacancy)
-         `(progn
-            ,(loop :for rule :in rules
-         ,@body))
+    (defmacro maybe-rules (vacancy &rest rules)
+      `(maybecall
+        ,vacancy
+        ,@(loop :for (name condition action) :in rules :collect
+             `(define-rule ,name ,condition ,action))))
 
-    ;; test
-    ;; (funcall
-    ;;  (define-rule test-rule
-    ;;    'return-value)
-    ;;  'the-vacancy)
+    (print
+     (macroexpand-1 '(maybe-rules '(:name "Android Developer" :salary 90000)
+                      (test-rule
+                       (or
+                        (< (getf vacancy :salary) 50000)
+                        (contains (getf vacancy :name) "Java"))
+                       (return-from test-rule nil))
+                      (test-rule
+                       (or
+                        (< (getf vacancy :salary) 50000)
+                        (contains (getf vacancy :name) "Android"))
+                       (setf (getf vacancy :stack) "mobile")))))
+
+    (defun process-vacancy (vacancy)
+      (maybe-rules
+       vacancy
+       (drop-java-low-price (or
+                             (< (getf vacancy :salary) 50000)
+                             (contains (getf vacancy :name) "Java"))
+                            (return-from test-rule nil))
+       (stack-mobile
+        (or
+         (< (getf vacancy :salary) 50000)
+         (contains (getf vacancy :name) "Android"))
+        (setf (getf vacancy :stack) "mobile"))))
+
+    (process-vacancy '(:name "Android Developer" :salary 80000))
   #+END_SRC
-
 
   Теперь мы можем построить бесконечный цикл, которому Гена дает вакансии, а он применяет
   правила и выполняет действия (продукционная система)
@@ -273,13 +319,7 @@
                      (setf all-teasers (append all-teasers teasers)))))
             (print "over-100"))
           all-teasers))
-
-
-
   #+END_SRC
-
-
-
 
 * Хотелки
 
@@ -2565,6 +2605,109 @@ http://romka.eu/blog/jquery-table-drag-and-drop
               ((not oldpl))
            (setf (getf result prop) value)))
        result))
+
+     (defun contains (string pattern)
+       (if (search pattern string)
+           t))
+
+     ;; eval-always
+
+     (defmacro eval-always (&body body)
+       "Wrap <_:arg body /> in <_:fun eval-when /> with all keys \(compile, load and execute) mentioned"
+       `(eval-when (:compile-toplevel :load-toplevel :execute)
+          ,@body))
+
+     ;; #` syntax
+
+     (eval-always
+       (defun |#`-reader| (stream char arg)
+         "Literal syntax for zero/one/two argument lambdas.
+     Use @ as the function's argument, % as the second.
+     Examples:
+     CL-USER> #`(+ 2 @)
+     \(lambda (&optional x y)
+        (+ 2 x))
+     CL-USER>  #`((1+ @) (print @))
+     \(lambda (&optional x y)
+        (1+ x)
+        (print x))
+     CL-USER> #`(+ 1 2)
+     \(lambda (&optional x y)
+        (+ 1 2))
+     CL-USER>  #`(+ @ %)
+     \(lambda (&optional x y)
+        (+ x y))
+     "
+         (declare (ignore char arg))
+         (let ((sexp (read stream t nil t))
+               (x (gensym "X"))
+               (y (gensym "Y")))
+           `(lambda (&optional ,x ,y)
+              (declare (ignorable ,x)
+                       (ignorable ,y))
+              ,@(subst y '%
+                       (subst x '@
+                              (if (listp (car sexp))
+                                  sexp
+                                  (list sexp)))))))
+       ;; set #`
+       (set-dispatch-macro-character #\# #\` #'|#`-reader|))
+
+
+     ;; anaphoric
+
+     (eval-always
+      (defmacro if-it (test then &optional else)
+        "Like IF. IT is bound to TEST."
+        `(let ((it ,test))
+           (if it ,then ,else))))
+
+     (eval-always
+      (defmacro when-it (test &body body)
+        "Like WHEN. IT is bound to TEST."
+        `(let ((it ,test))
+           (when it
+             ,@body))))
+
+     (eval-always
+      (defmacro and-it (&rest args)
+        "Like AND. IT is bound to the value of the previous AND form."
+        (cond ((null args) t)
+              ((null (cdr args)) (car args))
+              (t `(when-it ,(car args) (and-it ,@(cdr args)))))))
+
+     (eval-always
+      (defmacro dowhile-it (test &body body)
+        "Like DOWHILE. IT is bound to TEST."
+        `(do ((it ,test ,test))
+             ((not it))
+           ,@body)))
+
+     (eval-always
+      (defmacro cond-it (&body body)
+        "Like COND. IT is bound to the passed COND test."
+        `(let (it)
+           (cond
+             ,@(mapcar #``((setf it ,(car @)) ,(cadr @))
+                       ;; uses the fact, that SETF returns the value set
+                       body)))))
+     ;; maybe
+
+
+     (defmacro maybecall (val &rest funs)
+       `(and-it ,val
+                ,@(mapcar (lambda (fun)
+                            `(funcall ,fun it))
+                          funs)))
+
+     (defmacro maybe (form)
+       "Return a value, returned by a <_:arg form /> or nil, if <_:class error /> is signalled"
+       `(restart-case
+            (handler-bind ((error #'(lambda (c)
+                                      (declare (ignore condition))
+                                      (invoke-restart 'skip))))
+              ,form)
+          (skip () nil)))
    #+END_SRC
 
 ** Глобальные определения
@@ -2647,4 +2790,3 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 
    Создание гипотезы, проверка гипотезы, построение следствий
 =======
-* Переосмысление
