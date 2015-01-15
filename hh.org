@@ -32,10 +32,8 @@
     (in-package #:moto)
 
     (defmethod process-teaser (current-teaser)
-      ;; (hh-parse-vacancy (hh-get-page (getf current-teaser :id)))
       ;; (dbg ":b: ~A" (bprint current-teaser))
-      current-teaser
-      )
+      (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
 
     (defun metagen (vac-src city prof-area &optional spec)
       (ecase vac-src
@@ -193,7 +191,7 @@
          (setf vacancy nil)
          :stop))
 
-    (defparameter *rules-drop-teaser*
+    (defparameter *rules-for-teaser*
       (list
        (define-rule (null (getf vacancy :salary))
          (dbg "drop: Нет зарплаты")
@@ -223,11 +221,20 @@
        (drop-by-name "Go")
        ))
 
+    (defparameter *rules-for-vacancy*
+      (list
+       (define-rule (null (getf vacancy :salary))
+         (dbg "drop: Нет зарплаты")
+         (setf vacancy nil)
+         :stop)
+       ))
+
     (defmethod process-teaser :around (current-teaser)
-      (aif (process current-teaser *rules-drop-teaser*)
+      (aif (process current-teaser *rules-for-teaser*)
            (progn
              ;; (dbg ":a: ~A" (bprint current-teaser))
-             (call-next-method it))
+             (let ((current-vacancy (call-next-method it)))
+               (process current-vacancy *rules-for-vacancy*)))
            nil))
   #+END_SRC
 
