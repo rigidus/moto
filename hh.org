@@ -31,149 +31,151 @@
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
+    (defmethod process-teaser (current-teaser)
+      (dbg ":: ~A" current-teaser)
+      (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
+
     (defun metagen (vac-src city prof-area &optional spec)
       (ecase vac-src
         (hh (let ((url     (make-hh-url 'hh city prof-area spec))
                   (page    0)
                   (teasers nil))
               (alexandria:named-lambda get-vacancy ()
-                (tagbody get-new-teasers
-                   (if (equal 0 (length teasers))
-                       (progn
-                         (dbg "тизеры исчерпаны, надо загрузить и попробовать снова (page=~A)" page)
-                         (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
-                         (incf page)
-                         (when (equal 0 (length teasers))
-                           (dbg "тизеры кончились в источнике, завершаем работу")
-                           (return-from get-vacancy 'nil))
-                         (go get-new-teasers))
-                       (progn
-                         (dbg "else - еще есть тизеры")
-                         (let ((current-teaser (car teasers)))
-                           (setf teasers (cdr teasers))
-                           (dbg "~A" (getf current-teaser :id))
-                           (let ((current-vacancy (hh-parse-vacancy (hh-get-page (getf current-teaser :id)))))
-                             (if (null current-vacancy)
-                                 (progn
-                                   (dbg "вакансия - nil, пробуем снова")
-                                   (go get-new-teasers))
-                                 (progn
-                                   (dbg "вакансия ок, мерджим с тизером и возвращаем")
-                                   (return-from get-vacancy (merge-plists current-teaser current-vacancy))))))))))))))
+                (labels ((load-next-teasers-page ()
+                           (dbg "тизеры исчерпаны, надо загрузить и попробовать снова (page=~A)" page)
+                           (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
+                           (incf page)
+                           (when (equal 0 (length teasers))
+                             (dbg "тизеры кончились в источнике, завершаем работу")
+                             (return-from get-vacancy 'nil)))
+                         (get-teaser ()
+                           (when (equal 0 (length teasers))
+                             (load-next-teasers-page))
+                           (let ((current-teaser (car teasers)))
+                             (setf teasers (cdr teasers))
+                             current-teaser)))
+                  (tagbody get-new-teaser
+                     (let ((current-teaser (get-teaser)))
+                       (let ((current-vacancy (process-teaser current-teaser)))
+                         (if (null current-vacancy)
+                             (progn
+                               (dbg "вакансия - nil, пробуем снова")
+                               (go get-new-teaser))
+                             (progn
+                               (dbg "вакансия ок, мерджим с тизером и возвращаем")
+                               (return-from get-vacancy (merge-plists current-teaser current-vacancy)))))))))))))
 
-    (defparameter *tmp*
-      (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
+    ;; (defparameter *tmp*
+    ;;   (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
 
-    (loop :for i from 1 to 10 :do
-       (funcall *tmp*))
+    ;; (loop :for i from 1 to 100 :do
+    ;;    (print (funcall *tmp*)))
   #+END_SRC
 
   Для работы этому генератору нужно уметь:
-  - Собирать URL страницы, где лежат тизеры (краткие описания) вакансий (=make-hh-url=)
+  - Собирать URL страницы, где лежат тизеры (краткие описания) вакансий из параметов запроса
+    (=make-hh-url=)
   - Скачивать HTML-страницы (=hh-get-page=)
-  - Разбирать тизеры (=hh-parse-vacancy-teasers=)
-  - Разбирать вакансии (=hh-parse-vacancy=)
+  - Разбирать тизеры из html-кода (=hh-parse-vacancy-teasers=)
+  - Обрабатывать разобранные тизеры (=process-teaser=), чтобы получить по ним вакансии
   Но мы не будем сейчас на этом останавливаться и опишем это потом, в соотвествующих
   разделах.
 
   Пусть у нас есть возможность создавать именованные =правила=, которые получают на вход
-  вакансию, анализируют ее, и выполняют некие действия. Например, мы могли бы создать
-  правило, которое добавляет к вакансии поле =interested= если зарплата и язык разработки
-  нас устраивает.
+  список, представляющий собой тизер или вакансию, анализируют его, и выполняют какие-то
+  действия. Например, мы могли бы создать правило, которое добавляет к вакансии поле
+  =interested= если зарплата и язык разработки нас устраивает.
 
-  Примем соглашение, что правило возвращает =ложь= если вакансия нам не интересна. Тогда мы
-  сможем остановить обработку вакансии правилами как только одно из них вернуло =ложь=.
+  Примем соглашение, что правило возвращает два значения:
+  - первое - вакансию (возможно измененную)
+  - второе - указание процессору правил (например, прекратить обработку)
 
   #+NAME: define-rule
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
-    (defmacro define-rule (name condition &body body)
-      `(alexandria:named-lambda ,name (vacancy)
+    (defmacro define-rule (condition &body body)
+      `(alexandria:named-lambda ,(gensym "RULE-") (vacancy)
          (if ,condition
-             ,@body)
-         vacancy))
+             (let ((result (progn ,@body)))
+               (values vacancy result))
+             vacancy)))
 
     ;; expand
+    ;; (macroexpand-1 '(define-rule (and (> (getf vacancy :salary) 70000)
+    ;;                                   (not (contains "Java" (getf vacancy :name))))
+    ;;                  (setf (getf vacancy :interested) t)
+    ;;                  :stop))
 
-    ;; (macroexpand-1 ' (define-rule test-rule (or (< (getf vacancy :salary) 50000)
-    ;;                                             (contains (getf vacancy :name) "Java"))
-    ;;                    (return-from test-rule nil)))
-
-    ;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA TEST-RULE (VACANCY)
-    ;;      (IF (OR (< (GETF VACANCY :SALARY) 50000)
-    ;;              (CONTAINS (GETF VACANCY :NAME) "Java"))
-    ;;          (RETURN-FROM TEST-RULE NIL))
-    ;;      VACANCY), T
+    ;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA #:RULE-3676 (VACANCY)
+    ;;      (IF (AND (> (GETF VACANCY :SALARY) 70000)
+    ;;               (NOT (CONTAINS "Java" (GETF VACANCY :NAME))))
+    ;;          (LET ((RESULT (PROGN (SETF (GETF VACANCY :INTERESTED) T) :STOP)))
+    ;;            (VALUES VACANCY RESULT))
+    ;;          VACANCY)), T
 
     ;; test
 
-    ;; (funcall
-    ;;  (define-rule test-rule (and (> (getf vacancy :salary) 70000)
-    ;;                              (not (contains "Java" (getf vacancy :name))))
-    ;;    (setf (getf vacancy :interested) t))
-    ;;  '(:name "Python" :salary 80000)
+    ;; (multiple-value-bind (vacancy rule-result)
+    ;;     (funcall
+    ;;      (define-rule (and (> (getf vacancy :salary) 70000)
+    ;;                        (not (contains "Java" (getf vacancy :name))))
+    ;;        (setf (getf vacancy :interested) t)
+    ;;        :stop)
+    ;;      '(:name "Python" :salary 80000))
+    ;;   (dbg "vacancy: ~A ~% rule-result: ~A" (bprint vacancy) (bprint rule-result)))
 
-    ;; => (:INTERESTED T :NAME "Python" :SALARY 80000)
-
-    ;; (funcall
-    ;;  (define-rule test-rule (or (< (getf vacancy :salary) 50000)
-    ;;                             (contains (getf vacancy :name) "Java"))
-    ;;    (return-from test-rule nil))
-    ;;  '(:name "Java Developer" :salary 120000))
-
-    ;; => NIL
+    ;; ->  vacancy: (:INTERESTED T :NAME "Python" :SALARY 80000)
+    ;; ->  rule-result: :STOP
   #+END_SRC
 
-  Теперь мы можем создать комбинатор правил =process-vacancy=, который последовательно
-  применяет набор правил. Если одно из правил возвратило =ложь= - остальные правила не
-  применяются и возвращается =ложь=.
+  Теперь мы можем создать процессор правил =process=, который применяет к вакансии правила
+  поочередно. Процессор обрабатывает следущие особые случаи:
+  - Если какое-то из правил возвращает во втором параметре =:stop= - обработка прекращается
+    и возвращается текущий обработанный результат
+  - Если какое-то из правил возвращает во втором параметре =:renew= - то обработка текущего
+    входного результата начинается с самого первого правила.
 
-  #+NAME: combinator
+  #+NAME: process
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
-    (defmacro maybe-rules (vacancy &rest rules)
-      `(maybecall
-        ,vacancy
-        ,@(loop :for (name condition action) :in rules :collect
-             `(define-rule ,name ,condition ,action))))
+    (defun process (vacancy rules)
+      (tagbody renew
+         (loop
+            :for rule :in rules
+            :for num :from 0 :to 5
+            :do
+            (multiple-value-bind (vacancy-result rule-result)
+                (funcall rule vacancy)
+              (setf vacancy vacancy-result)
+              (when (equal rule-result :stop)
+                (return-from process vacancy))
+              (when (equal rule-result :renew)
+                (go renew)))
+              )
+       vacancy))
 
-    ;; expand
+    ;; test
 
-    ;; (print
-    ;;  (macroexpand-1 '(maybe-rules '(:name "Android Developer" :salary 90000)
-    ;;                   (drop-java-low-price  (or (< (getf vacancy :salary) 50000)
-    ;;                                          (contains (getf vacancy :name) "Java"))
-    ;;                    (return-from drop-java-low-price nil))
-    ;;                   (stack-mobile        (or (< (getf vacancy :salary) 50000)
-    ;;                                         (contains (getf vacancy :name) "Android"))
-    ;;                    (setf (getf vacancy :stack) "mobile")))))
-
-    ;; => (MAYBECALL '(:NAME "Android Developer" :SALARY 90000)
-    ;;               (DEFINE-RULE DROP-JAVA-LOW-PRICE (OR (< (GETF VACANCY :SALARY) 50000)
-    ;;                                                    (CONTAINS (GETF VACANCY :NAME) "Java"))
-    ;;                 (RETURN-FROM DROP-JAVA-LOW-PRICE NIL))
-    ;;               (DEFINE-RULE STACK-MOBILE (OR (< (GETF VACANCY :SALARY) 50000)
-    ;;                                             (CONTAINS (GETF VACANCY :NAME) "Android"))
-    ;;                 (SETF (GETF VACANCY :STACK) "mobile")))
-
-
-    (defun process-vacancy (vacancy)
-      (maybe-rules
-       vacancy
-       (drop-java-low-price  (or (< (getf vacancy :salary) 50000)
-                                 (contains (getf vacancy :name) "Java"))
-                             (return-from drop-java-low-price nil))
-       (stack-mobile         (or (< (getf vacancy :salary) 50000)
-                                 (contains (getf vacancy :name) "Android"))
-                             (setf (getf vacancy :stack) "mobile"))
-       ))
-
-    (process-vacancy '(:name "Android Developer" :salary 80000))
-
-    ;; => (:STACK "mobile" :NAME "Android Developer" :SALARY 80000)
+    ;; (let ((tmp 0))
+    ;;   (process '(:name "Python" :salary 80000)
+    ;;            (list
+    ;;             (define-rule (equal 12 tmp)
+    ;;               (setf (getf vacancy :tmp) tmp)
+    ;;               :stop)
+    ;;             (define-rule (and (> (getf vacancy :salary) 70000)
+    ;;                               (not (contains "Java" (getf vacancy :name))))
+    ;;               (print (incf tmp))
+    ;;               :renew)
+    ;;             )))
   #+END_SRC
+
+  Поскольку и вакансии и их тизеры представлены у нас одинаково, мы можем применять правила
+  и к тем и к другим. Это позволит отфильтровать некоторые вакансии только анализируя их
+  тизеры, (опираясь, например, на размер зараплаты) и не загружать лишнего
+
+  Для того, чтобы сделать это удобным образом, декорируем =
 
   Теперь мы можем построить бесконечный цикл, которому Гена дает вакансии, а он применяет
   правила и выполняет действия (продукционная система)
