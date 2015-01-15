@@ -32,7 +32,6 @@
     (in-package #:moto)
 
     (defmethod process-teaser (current-teaser)
-      ;; (dbg ":b: ~A" (bprint current-teaser))
       (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
 
     (defun metagen (vac-src city prof-area &optional spec)
@@ -65,16 +64,6 @@
                              (progn
                                ;; (dbg "~~ вакансия ок, мерджим с тизером и возвращаем")
                                (return-from get-vacancy (merge-plists current-teaser current-vacancy)))))))))))))
-
-    (defparameter *tmp*
-      (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
-
-    (loop :for i :from 1 :to 100 :do
-       (dbg "~A" i)
-       (let ((vacancy (funcall *tmp*)))
-         (when (null vacancy)
-           (return))
-         (dbg "~A" (bprint vacancy))))
   #+END_SRC
 
   Для работы этому генератору нужно уметь:
@@ -223,23 +212,38 @@
 
     (defparameter *rules-for-vacancy*
       (list
-       (define-rule (null (getf vacancy :salary))
-         (dbg "drop: Нет зарплаты")
-         (setf vacancy nil)
-         :stop)
+       ;; (define-rule nil
+       ;;   (dbg "empty")
+       ;;   ;; (setf vacancy nil)
+       ;;   :stop)
        ))
 
     (defmethod process-teaser :around (current-teaser)
       (aif (process current-teaser *rules-for-teaser*)
-           (progn
-             ;; (dbg ":a: ~A" (bprint current-teaser))
-             (let ((current-vacancy (call-next-method it)))
-               (process current-vacancy *rules-for-vacancy*)))
+           (process (call-next-method it) *rules-for-vacancy*)
            nil))
   #+END_SRC
 
-  Теперь мы можем построить бесконечный цикл, которому Гена дает вакансии, а он применяет
-  правила и выполняет действия (продукционная система)
+  Теперь мы можем построить получить генератор, и, вызывая его, забирать вакансии, пока они
+  не закончатся, и все вакансии будут корректно обработаны правилами - сначала на этапе
+  получения тизеров, а потом на этапе получения вакансий
+
+  #+NAME: run
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (let ((gen (metagen 'hh "spb" "Информационные технологии, интернет, телеком"
+                        "Программирование, Разработка")))
+      (loop :for i :from 1 :to 100 :do
+         (dbg "~A" i)
+         (let ((vacancy (funcall gen)))
+           (when (null vacancy)
+             (return))
+           (dbg "~A" (bprint vacancy)))))
+  #+END_SRC
+
+
+  -----------------------------------------------------------
 
   Какие же правила и действия можно составить? А какие мы захотим:
 
@@ -264,7 +268,7 @@
   - напоминание мне о собеседованиях, звонках (календарь)
   - автоматическое ранжирование вакансий (по перспективам найма, зарплате и.т.п)
 
-  #+NAME: metagen
+  #+NAME: dddddd
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
@@ -1259,7 +1263,7 @@
           (list :name **name**
                 :archive (if (car (last (car **archive-block**))) t nil)
                 :emp-name **emp-name**
-                :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))))
+                :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))) :junk-allowed t)
                 :currency (if (null salaryblock) nil **currency**)
                 :base-salary (if (null salaryblock) nil **base-salary**)
                 :salary-text (if (null salaryblock) nil **salary-text**)
