@@ -15,12 +15,17 @@
 
 * Суть
 
-  Пусть у нас есть источник вакансий, например, hh.ru
+  Пусть у нас есть источник вакансий, например, hh.ru. На нем можно сформулировать запрос и
+  получить выборку в виде списка тизеров вакансий, каждый из которых ведет на полное
+  описание вакансии. К сожалению, сложные запросы не поддерживаются.
 
   Пусть у нас есть =генератор функций=, назовем его =metagen=, который принимает источник
   вакансий и параметры запроса (например: профессиональную область, специализацию, город) и
   возвращает функцию, которая при каждом своем вызове вернет одну вакансию или =ложь= если
   вакансии кончились.
+
+  Эта функция по мере необходимости загружает и разбирает сначала тизеры вакансий, а потом и
+  сами вакансии.
 
   #+NAME: metagen
   #+BEGIN_SRC lisp
@@ -32,19 +37,30 @@
                   (page    0)
                   (teasers nil))
               (alexandria:named-lambda get-vacancy ()
-                (labels ((next-vac ()
-                               (let* ((current-teaser  (car teasers))
-                                      (current-vacancy (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
-                                      (result (merge-plists current-teaser current-vacancy)))
-                                 (setf teasers (cdr teasers))
-                                 result)))
-                  (if (null teasers)
-                      (progn
-                        (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
-                        (if (null teasers)
-                            (return-from get-vacancy 'nil)
-                          (next-vac)))
-                      (next-vac))))))))
+                (tagbody get-new-teasers
+                   (if (equal 0 (length teasers))
+                       ;; тизеры исчерпаны, надо загрузить и попробовать снова
+                       (progn
+                         (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
+                         (incf page)
+                         (when (equal 0 (length teasers))
+                           ;; тизеры кончились в источнике, завершаем работу
+                           (return-from get-vacancy 'nil))
+                         (go get-new-teasers))
+                       ;; else - еще есть тизеры
+                       (let ((current-teaser (car teasers)))
+                         (setf teasers (cdr teasers))
+                         (let ((current-vacancy (hh-parse-vacancy (hh-get-page (getf current-teaser :id)))))
+                           (if (null current-vacancy)
+                               ;; если вакансия - nil, пробуем снова
+                               (go get-new-teasers)
+                               ;; если вакансия - ок, мерджим с тизером и возвращаем
+                               (merge-plists current-teaser current-vacancy)))))))))))
+
+    (defparameter *tmp*
+      (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
+
+    (funcall *tmp*)
   #+END_SRC
 
   Для работы этому генератору нужно уметь:
@@ -52,13 +68,17 @@
   - Скачивать HTML-страницы (=hh-get-page=)
   - Разбирать тизеры (=hh-parse-vacancy-teasers=)
   - Разбирать вакансии (=hh-parse-vacancy=)
-  Но мы не будем сейчас на всем этом останавливаться и опишем это потом, в соотвествующих разделах
+  Но мы не будем сейчас на этом останавливаться и опишем это потом, в соотвествующих
+  разделах.
 
-  Пусть у нас есть возможность создавать =правила=, которые получают на вход вакансию,
-  анализируют ее, и выполняют некие действия. Например, мы могли бы создать правило, которое
-  добавляет к вакансии поле =interested= если зарплата и язык разработки нас устраивает.
+  Пусть у нас есть возможность создавать именованные =правила=, которые получают на вход
+  вакансию, анализируют ее, и выполняют некие действия. Например, мы могли бы создать
+  правило, которое добавляет к вакансии поле =interested= если зарплата и язык разработки
+  нас устраивает.
 
-  Примем соглашение, что правило возвращает =ложь= если вакансия нам не интересна.
+  Примем соглашение, что правило возвращает =ложь= если вакансия нам не интересна. Тогда
+  позже мы сможем остановить обработку вакансии правилами как только одно из них вернуло
+  =ложь=
 
   #+NAME: define-rule
   #+BEGIN_SRC lisp
@@ -72,14 +92,11 @@
 
     ;; expand
 
-    ;; (macroexpand-1 ' (define-rule test-rule
-    ;;                      (or
-    ;;                       (< (getf vacancy :salary) 50000)
-    ;;                       (contains (getf vacancy :name) "Java"))
+    ;; (macroexpand-1 ' (define-rule test-rule (or (< (getf vacancy :salary) 50000)
+    ;;                                             (contains (getf vacancy :name) "Java"))
     ;;                    (return-from test-rule nil)))
 
-    ;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA TEST-RULE
-    ;;        (VACANCY)
+    ;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA TEST-RULE (VACANCY)
     ;;      (IF (OR (< (GETF VACANCY :SALARY) 50000)
     ;;              (CONTAINS (GETF VACANCY :NAME) "Java"))
     ;;          (RETURN-FROM TEST-RULE NIL))
@@ -88,25 +105,26 @@
     ;; test
 
     ;; (funcall
-    ;;  (define-rule test-rule
-    ;;    (and
-    ;;       (> (getf vacancy :salary) 70000)
-    ;;       (not (contains "Java" (getf vacancy :name))))
+    ;;  (define-rule test-rule (and (> (getf vacancy :salary) 70000)
+    ;;                              (not (contains "Java" (getf vacancy :name))))
     ;;    (setf (getf vacancy :interested) t))
     ;;  '(:name "Python" :salary 80000)
 
     ;; => (:INTERESTED T :NAME "Python" :SALARY 80000)
 
     ;; (funcall
-    ;;  (define-rule test-rule
-    ;;      (or
-    ;;       (< (getf vacancy :salary) 50000)
-    ;;       (contains (getf vacancy :name) "Java"))
+    ;;  (define-rule test-rule (or (< (getf vacancy :salary) 50000)
+    ;;                             (contains (getf vacancy :name) "Java"))
     ;;    (return-from test-rule nil))
     ;;  '(:name "Java Developer" :salary 120000))
 
     ;; => NIL
   #+END_SRC
+
+  Чтобы удобнее определять наборы правил, не заморачиваясь с именами определим макрос,
+  который создает список правил
+
+
 
   Теперь мы можем создать комбинатор правил =process-vacancy=, который последовательно
   применяет переданный ему набор правил к вакансии. Если одно из правил возвратило =ложь= -
@@ -183,11 +201,7 @@
 
   #+NAME: metagen
   #+BEGIN_SRC lisp
-    (defparameter *tmp*
-      (meta-gen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
-
-    (print (funcall *tmp*))
-
+    (in-package #:moto)
 
     (defparameter *prof-areas*
       '(("Все профессиональные области" . (""))
