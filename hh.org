@@ -66,7 +66,7 @@
                                (return-from get-vacancy (merge-plists current-teaser current-vacancy)))))))))))))
 
     (defparameter *tmp*
-      (metagen 'hh "spb" "Информационные технологии, интернет, телеком")) "Программирование, Разработка"))
+      (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
 
     (loop :for i from 1 to 100 :do
        (print (funcall *tmp*)))
@@ -1059,10 +1059,12 @@
           (with-predict-maptree (a ((b class) (c d)) &rest z)
             (and (equal class "search-result"))
             #'(lambda (x) (values **z** #'mapcar))
-            (with-predict-maptree (a ((b class) (c d)) &rest z)
-              (and (or (equal class "search-result-item search-result-item_standard")
+            (with-predict-maptree
+                (a ((b c) (d class)) &rest z)
+              (and (or (equal class "search-result-item search-result-item_standard ")
                        (equal class "search-result-item search-result-item_standard_plus")
-                       (equal class "search-result-item search-result-item_premium search-result-item_premium")))
+                       (equal class "search-result-item search-result-item_premium search-result-item_premium")
+                       (equal class "search-result-item search-result-item_premium  search-result-item_premium")))
               #'(lambda (x) (values
                              (let ((in (remove-if #'(lambda (x) (or (equal x nil) (equal x "noindex") (equal x "/noindex"))) **z**))
                                    (rs))
@@ -1137,8 +1139,9 @@
                                           searchblock))))))))))))))))))
 
       (print
-       (hh-parse-vacancy-teasers
-        (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=29")))
+       (car
+        (hh-parse-vacancy-teasers
+         (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=0"))))
     #+END_SRC
 
 ***** Разбор вакансий
