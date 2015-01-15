@@ -35,11 +35,19 @@
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
+    <<make_hh_url>>
+
+    <<hh_get_page>>
+
+    <<hh_parse_vacancy_teasers>>
+
+    <<hh_parse_vacancy>>
+
     (defmethod process-teaser (current-teaser)
       (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
 
     (defmethod metagen ((vac-src (eql 'hh)) city prof-area &optional spec)
-      (let ((url     (make-hh-url 'hh city prof-area spec))
+      (let ((url     (make-hh-url city prof-area spec))
             (page    0)
             (teasers nil))
         (alexandria:named-lambda get-vacancy ()
@@ -87,7 +95,7 @@
   - первое - вакансию (возможно измененную)
   - второе - указание процессору правил (например, прекратить обработку)
 
-  #+NAME: define-rule
+  #+NAME: define_rule
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
@@ -181,7 +189,7 @@
   превратиться в вакансию мы применим к ней другой список правил, которые реализуют все
   остальную логику.
 
-  #+NAME: process-teaser-around
+  #+NAME: process_teaser_around
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
@@ -217,7 +225,7 @@
 
    Чтобы записать правила их более компактно, подстластим синтаксис, используя макросы
 
-   #+NAME: rules_for_teasers
+   #+NAME: rules
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -314,13 +322,13 @@
    и =area= не меняются. Поэтому, единственная сложность построения URL - это правильно
    сформировать =специализации=.
 
-  #+NAME: make-hh-url
+  #+NAME: make_hh_url
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
     <<make-specialization-hh-url-string>>
 
-    (defun make-hh-url (vac-src city prof-area &optional specs)
+    (defun make-hh-url (city prof-area &optional specs)
       (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
               city
               (make-specialization-hh-url-string prof-area specs)
@@ -328,7 +336,7 @@
 
     ;; test
 
-    (make-hh-url 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
+    (make-hh-url "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
   #+END_SRC
 
 *** Построение специализаций
@@ -383,7 +391,7 @@
     не стал заполнять его целиком, ограничившись только профессиональной областью "ИТ". По
     необходимости заполню остальное.
 
-    #+NAME: make-specialization-hh-url-string
+    #+NAME: prof_areas
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
@@ -459,7 +467,7 @@
 
    Вот так мы можем получать страницы, к примеру те, на который находятся тизеры:
 
-   #+NAME: hh-get-page
+   #+NAME: hh_get_page
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -500,7 +508,7 @@
    Иногда HeadHunter синдицирует вакансии с других платформ, к примеру с CAREER.RU, тогда в
    вакансии может отсутствовать работодатель.
 
-   #+NAME: hh-parse-vacancy-teasers
+   #+NAME: hh_parse_vacancy_teasers
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -916,7 +924,7 @@
 
     И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
 
-    #+NAME: hh_fn_contents
+    #+NAME: hh_parse_vacancy_teasers
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
@@ -1088,67 +1096,67 @@
 
     #+NAME: hh_parse
     #+BEGIN_SRC lisp
-      (in-package #:moto)
+      ;; (in-package #:moto)
 
-      (defparameter *programmin-and-development-profile*
-        (make-profile :name "Программирование и разработка"
-                      :user-id 1
-                      :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
-                      :ts-create (get-universal-time)
-                      :ts-last (get-universal-time)))
+      ;; (defparameter *programmin-and-development-profile*
+      ;;   (make-profile :name "Программирование и разработка"
+      ;;                 :user-id 1
+      ;;                 :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
+      ;;                 :ts-create (get-universal-time)
+      ;;                 :ts-last (get-universal-time)))
 
-      (defun run-collect (profile)
-        (let* ((search-str   (search-query profile))
-               (all-teasers  nil))
-          (block get-all-hh-teasers
-            (loop :for num :from 0 :to 100 :do
-               (print num)
-               (let* ((url (format nil search-str num))
-                      (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-                 (if (equal 0 (length teasers))
-                     (return-from get-all-hh-teasers)
-                     (setf all-teasers (append all-teasers teasers)))))
-            (print "over-100"))
-          all-teasers))
+      ;; (defun run-collect (profile)
+      ;;   (let* ((search-str   (search-query profile))
+      ;;          (all-teasers  nil))
+      ;;     (block get-all-hh-teasers
+      ;;       (loop :for num :from 0 :to 100 :do
+      ;;          (print num)
+      ;;          (let* ((url (format nil search-str num))
+      ;;                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+      ;;            (if (equal 0 (length teasers))
+      ;;                (return-from get-all-hh-teasers)
+      ;;                (setf all-teasers (append all-teasers teasers)))))
+      ;;       (print "over-100"))
+      ;;     all-teasers))
 
-      ;; (print
-      ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
+      ;; ;; (print
+      ;; ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
 
-      (defparameter *teasers* (run-collect *programmin-and-development-profile*))
+      ;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
 
-      ;; (length *teasers*)
+      ;; ;; (length *teasers*)
 
-      (defun save-collect (all-teasers)
-        (loop :for tea :in all-teasers :do
-           (print tea)
-           (make-vacancy :profile-id (id *programmin-and-development-profile*)
-                         :name (getf tea :vac-name)
-                         :rem-id (parse-integer
-                                  (car (last (split-sequence:split-sequence
-                                              #\/ (getf tea :vac-id)))))
-                         :rem-date (getf tea :vacancy-date)
-                         :rem-employer-name (getf tea :employer-name)
-                         :rem-employer-id (aif (getf tea :employer-id)
-                                               (parse-integer
-                                                (car (last (split-sequence:split-sequence
-                                                            #\/ it))))
-                                               0)
-                         :currency (getf tea :currency)
-                         :salary (aif (getf tea :salary)
-                                      it
-                                      0)
-                         :salary-text (getf tea :salary-text)
-                         :state ":TEASER"
-                         )))
+      ;; (defun save-collect (all-teasers)
+      ;;   (loop :for tea :in all-teasers :do
+      ;;      (print tea)
+      ;;      (make-vacancy :profile-id (id *programmin-and-development-profile*)
+      ;;                    :name (getf tea :vac-name)
+      ;;                    :rem-id (parse-integer
+      ;;                             (car (last (split-sequence:split-sequence
+      ;;                                         #\/ (getf tea :vac-id)))))
+      ;;                    :rem-date (getf tea :vacancy-date)
+      ;;                    :rem-employer-name (getf tea :employer-name)
+      ;;                    :rem-employer-id (aif (getf tea :employer-id)
+      ;;                                          (parse-integer
+      ;;                                           (car (last (split-sequence:split-sequence
+      ;;                                                       #\/ it))))
+      ;;                                          0)
+      ;;                    :currency (getf tea :currency)
+      ;;                    :salary (aif (getf tea :salary)
+      ;;                                 it
+      ;;                                 0)
+      ;;                    :salary-text (getf tea :salary-text)
+      ;;                    :state ":TEASER"
+      ;;                    )))
 
-      (save-collect *teasers*)
+      ;; (save-collect *teasers*)
 
-      ;; (length (all-vacancy))
+      ;; ;; (length (all-vacancy))
 
-      ;; (print
-      ;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
+      ;; ;; (print
+      ;; ;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
 
-      ;; (car *teasers*)
+      ;; ;; (car *teasers*)
     #+END_SRC
 
     Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
@@ -2261,6 +2269,16 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   #+NAME: hh_fn
   #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle :exports none
     (in-package #:moto)
+
+    <<metagen>>
+
+    <<define_rule>>
+
+    <<process>>
+
+    <<process_teaser_around>>
+
+    <<run>>
 
     <<hh_fn_contents>>
 
