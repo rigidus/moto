@@ -65,11 +65,11 @@
                                (dbg "вакансия ок, мерджим с тизером и возвращаем")
                                (return-from get-vacancy (merge-plists current-teaser current-vacancy)))))))))))))
 
-    ;; (defparameter *tmp*
-    ;;   (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
+    (defparameter *tmp*
+      (metagen 'hh "spb" "Информационные технологии, интернет, телеком")) "Программирование, Разработка"))
 
-    ;; (loop :for i from 1 to 100 :do
-    ;;    (print (funcall *tmp*)))
+    (loop :for i from 1 to 100 :do
+       (print (funcall *tmp*)))
   #+END_SRC
 
   Для работы этому генератору нужно уметь:
@@ -173,9 +173,32 @@
 
   Поскольку и вакансии и их тизеры представлены у нас одинаково, мы можем применять правила
   и к тем и к другим. Это позволит отфильтровать некоторые вакансии только анализируя их
-  тизеры, (опираясь, например, на размер зараплаты) и не загружать лишнего
+  тизеры и не загружать лишнего.
 
-  Для того, чтобы сделать это удобным образом, декорируем =
+  Для того, чтобы сделать это удобным образом, обернем (:around method) =process-teaser=
+  так, чтобы исключить те тизеры, которые нам не нравятся, например те, у которых нет
+  указания зарплаты или она слишком низка:
+
+  #+NAME: process-teaser-around
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defmethod process-teaser :around (current-teaser)
+      (let ((current-result (call-next-method)))
+        (print current-result)))
+
+        ;; (process current-result
+        ;;        (list
+        ;;         (define-rule (equal 12 tmp)
+        ;;           (setf (getf vacancy :tmp) tmp)
+        ;;           :stop)
+        ;;         (define-rule (and (> (getf vacancy :salary) 70000)
+        ;;                           (not (contains "Java" (getf vacancy :name))))
+        ;;           (print (incf tmp))
+        ;;           :renew)
+        ;;         )))
+  #+END_SRC
+
 
   Теперь мы можем построить бесконечный цикл, которому Гена дает вакансии, а он применяет
   правила и выполняет действия (продукционная система)
@@ -314,29 +337,6 @@
               2))
 
     (make-hh-url 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
-
-
-
-      (defparameter *programmin-and-development-profile*
-        (make-profile :name "Программирование и разработка"
-                      :user-id 1
-                      :search-query
-                      :ts-create (get-universal-time)
-                      :ts-last (get-universal-time)))
-
-      (defun run-collect (profile)
-        (let* ((search-str   (search-query profile))
-               (all-teasers  nil))
-          (block get-all-hh-teasers
-            (loop :for num :from 0 :to 100 :do
-               (print num)
-               (let* ((url (format nil search-str num))
-                      (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-                 (if (equal 0 (length teasers))
-                     (return-from get-all-hh-teasers)
-                     (setf all-teasers (append all-teasers teasers)))))
-            (print "over-100"))
-          all-teasers))
   #+END_SRC
 
 * Хотелки
