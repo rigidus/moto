@@ -39,28 +39,33 @@
               (alexandria:named-lambda get-vacancy ()
                 (tagbody get-new-teasers
                    (if (equal 0 (length teasers))
-                       ;; тизеры исчерпаны, надо загрузить и попробовать снова
                        (progn
+                         (dbg "тизеры исчерпаны, надо загрузить и попробовать снова (page=~A)" page)
                          (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
                          (incf page)
                          (when (equal 0 (length teasers))
-                           ;; тизеры кончились в источнике, завершаем работу
+                           (dbg "тизеры кончились в источнике, завершаем работу")
                            (return-from get-vacancy 'nil))
                          (go get-new-teasers))
-                       ;; else - еще есть тизеры
-                       (let ((current-teaser (car teasers)))
-                         (setf teasers (cdr teasers))
-                         (let ((current-vacancy (hh-parse-vacancy (hh-get-page (getf current-teaser :id)))))
-                           (if (null current-vacancy)
-                               ;; если вакансия - nil, пробуем снова
-                               (go get-new-teasers)
-                               ;; если вакансия - ок, мерджим с тизером и возвращаем
-                               (merge-plists current-teaser current-vacancy)))))))))))
+                       (progn
+                         (dbg "else - еще есть тизеры")
+                         (let ((current-teaser (car teasers)))
+                           (setf teasers (cdr teasers))
+                           (dbg "~A" (getf current-teaser :id))
+                           (let ((current-vacancy (hh-parse-vacancy (hh-get-page (getf current-teaser :id)))))
+                             (if (null current-vacancy)
+                                 (progn
+                                   (dbg "вакансия - nil, пробуем снова")
+                                   (go get-new-teasers))
+                                 (progn
+                                   (dbg "вакансия ок, мерджим с тизером и возвращаем")
+                                   (return-from get-vacancy (merge-plists current-teaser current-vacancy))))))))))))))
 
     (defparameter *tmp*
       (metagen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
 
-    (funcall *tmp*)
+    (loop :for i from 1 to 10 :do
+       (funcall *tmp*))
   #+END_SRC
 
   Для работы этому генератору нужно уметь:
@@ -76,9 +81,8 @@
   правило, которое добавляет к вакансии поле =interested= если зарплата и язык разработки
   нас устраивает.
 
-  Примем соглашение, что правило возвращает =ложь= если вакансия нам не интересна. Тогда
-  позже мы сможем остановить обработку вакансии правилами как только одно из них вернуло
-  =ложь=
+  Примем соглашение, что правило возвращает =ложь= если вакансия нам не интересна. Тогда мы
+  сможем остановить обработку вакансии правилами как только одно из них вернуло =ложь=.
 
   #+NAME: define-rule
   #+BEGIN_SRC lisp
@@ -121,14 +125,9 @@
     ;; => NIL
   #+END_SRC
 
-  Чтобы удобнее определять наборы правил, не заморачиваясь с именами определим макрос,
-  который создает список правил
-
-
-
   Теперь мы можем создать комбинатор правил =process-vacancy=, который последовательно
-  применяет переданный ему набор правил к вакансии. Если одно из правил возвратило =ложь= -
-  остальные правила не применяются и возвращается =ложь=.
+  применяет набор правил. Если одно из правил возвратило =ложь= - остальные правила не
+  применяются и возвращается =ложь=.
 
   #+NAME: combinator
   #+BEGIN_SRC lisp
@@ -140,33 +139,40 @@
         ,@(loop :for (name condition action) :in rules :collect
              `(define-rule ,name ,condition ,action))))
 
-    (print
-     (macroexpand-1 '(maybe-rules '(:name "Android Developer" :salary 90000)
-                      (test-rule
-                       (or
-                        (< (getf vacancy :salary) 50000)
-                        (contains (getf vacancy :name) "Java"))
-                       (return-from test-rule nil))
-                      (test-rule
-                       (or
-                        (< (getf vacancy :salary) 50000)
-                        (contains (getf vacancy :name) "Android"))
-                       (setf (getf vacancy :stack) "mobile")))))
+    ;; expand
+
+    ;; (print
+    ;;  (macroexpand-1 '(maybe-rules '(:name "Android Developer" :salary 90000)
+    ;;                   (drop-java-low-price  (or (< (getf vacancy :salary) 50000)
+    ;;                                          (contains (getf vacancy :name) "Java"))
+    ;;                    (return-from drop-java-low-price nil))
+    ;;                   (stack-mobile        (or (< (getf vacancy :salary) 50000)
+    ;;                                         (contains (getf vacancy :name) "Android"))
+    ;;                    (setf (getf vacancy :stack) "mobile")))))
+
+    ;; => (MAYBECALL '(:NAME "Android Developer" :SALARY 90000)
+    ;;               (DEFINE-RULE DROP-JAVA-LOW-PRICE (OR (< (GETF VACANCY :SALARY) 50000)
+    ;;                                                    (CONTAINS (GETF VACANCY :NAME) "Java"))
+    ;;                 (RETURN-FROM DROP-JAVA-LOW-PRICE NIL))
+    ;;               (DEFINE-RULE STACK-MOBILE (OR (< (GETF VACANCY :SALARY) 50000)
+    ;;                                             (CONTAINS (GETF VACANCY :NAME) "Android"))
+    ;;                 (SETF (GETF VACANCY :STACK) "mobile")))
+
 
     (defun process-vacancy (vacancy)
       (maybe-rules
        vacancy
-       (drop-java-low-price (or
-                             (< (getf vacancy :salary) 50000)
-                             (contains (getf vacancy :name) "Java"))
-                            (return-from test-rule nil))
-       (stack-mobile
-        (or
-         (< (getf vacancy :salary) 50000)
-         (contains (getf vacancy :name) "Android"))
-        (setf (getf vacancy :stack) "mobile"))))
+       (drop-java-low-price  (or (< (getf vacancy :salary) 50000)
+                                 (contains (getf vacancy :name) "Java"))
+                             (return-from drop-java-low-price nil))
+       (stack-mobile         (or (< (getf vacancy :salary) 50000)
+                                 (contains (getf vacancy :name) "Android"))
+                             (setf (getf vacancy :stack) "mobile"))
+       ))
 
     (process-vacancy '(:name "Android Developer" :salary 80000))
+
+    ;; => (:STACK "mobile" :NAME "Android Developer" :SALARY 80000)
   #+END_SRC
 
   Теперь мы можем построить бесконечный цикл, которому Гена дает вакансии, а он применяет
@@ -194,10 +200,6 @@
 
   - напоминание мне о собеседованиях, звонках (календарь)
   - автоматическое ранжирование вакансий (по перспективам найма, зарплате и.т.п)
-
-
-
-
 
   #+NAME: metagen
   #+BEGIN_SRC lisp
