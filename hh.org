@@ -7,6 +7,280 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
+* Цель
+
+  Мы все ищем работу на профильных сайтах время от времени. Иногда на это уходит
+  значительное время, т.к. мы выполняем множество рутинных действий, которых могли бы
+  избежать. Попробуем автоматизировать этот процесс.
+
+* Суть
+
+  Пусть у нас есть источник вакансий, например, hh.ru
+
+  Пусть у нас есть =генератор функций=, назовем его =metagen=, который принимает источник
+  вакансий и параметры запроса (например: профессиональную область, специализацию, город) и
+  возвращает функцию, которая при каждом своем вызове вернет одну вакансию или =ложь= если
+  вакансии кончились.
+
+  #+NAME: metagen
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defun metagen (vac-src city prof-area &optional spec)
+      (ecase vac-src
+        (hh (let ((url     (make-hh-url 'hh city prof-area spec))
+                  (page    0)
+                  (teasers nil))
+              (alexandria:named-lambda get-vacancy ()
+                (labels ((next-vac ()
+                               (let* ((current-teaser  (car teasers))
+                                      (current-vacancy (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
+                                      (result (merge-plists current-teaser current-vacancy)))
+                                 (setf teasers (cdr teasers))
+                                 result)))
+                  (if (null teasers)
+                      (progn
+                        (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
+                        (if (null teasers)
+                            (return-from get-vacancy 'nil)
+                          (next-vac)))
+                      (next-vac))))))))
+  #+END_SRC
+
+  Для работы этому генератору нужно уметь:
+  - Собирать URL страницы, где лежат тизеры (краткие описания) вакансий (=make-hh-url=)
+  - Скачивать HTML-страницы (=hh-get-page=)
+  - Разбирать тизеры (=hh-parse-vacancy-teasers=)
+  - Разбирать вакансии (=hh-parse-vacancy=)
+  Но мы не будем сейчас на всем этом останавливаться и опишем это потом, в соотвествующих разделах
+
+  Пусть у нас есть возможность создавать элементарные =правила отбора=, которые получают на
+  вход вакансию, анализирует ее, и возвращает некое значение. Например, правило может
+  возвращать =ложь=, если нам это вакансия не подходит.
+
+  #+NAME: define-rile
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defmacro define-rule (name &body body)
+      `(alexandria:named-lambda ,name (vacancy)
+         ,@body))
+
+    ;; expand
+
+    ;; (macroexpand-1 '(define-rule test-rule
+    ;;                  'return-value))
+
+    ;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA TEST-RULE
+    ;;               (VACANCY)
+    ;;           'RETURN-VALUE), T
+
+    ;; test
+
+    ;; (funcall
+    ;;  (define-rule test-rule
+    ;;    'return-value)
+    ;;  'the-vacancy)
+  #+END_SRC
+
+  Пусть у нас есть возможность создавать =комбинаторы правил=, которые умеют последовательно применять
+  несколько [правил] к вакансии, анализировать возвращаемые значения, и по результатам
+  производить некие действия, например, отсев (ну или ранжирование).
+
+  #+NAME: define-rile
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defmacro define-combinator (name rules &body action)
+      `(alexandria:named-lambda ,name (vacancy)
+         `(progn
+            ,(loop :for rule :in rules
+         ,@body))
+
+    ;; test
+    ;; (funcall
+    ;;  (define-rule test-rule
+    ;;    'return-value)
+    ;;  'the-vacancy)
+  #+END_SRC
+
+
+  Теперь мы можем построить бесконечный цикл, которому Гена дает вакансии, а он применяет
+  правила и выполняет действия (продукционная система)
+
+  Какие же правила и действия можно составить? А какие мы захотим:
+
+  - Я не хочу даже смотреть на вакансии, в которых нет указания з/п
+  - Если это уже существующая в базе вакансия и ничего не изменилось - игнорируем, иначе
+    заносим в базу.
+  - Я не хочу смотреть на вакансии, у которых в названии вакансии есть слово Java
+  - Я не хочу смотреть на вакансии, в компаниях где я уже работал.
+  - Я хочу присвоить вакансии определенный ранг, в зависимости от з\п
+  - Я хочу увеличивать этот ранг за упоминание в тексте описания вакансии слов Lisp, Erlang
+  - Я хочу [отправить отклик] на вакансии, у которых ранг выше [порогового ранга]
+
+  Отправка отклика, заметьте, происходит автоматически. После этого мне внезапно звонит
+  работодатель и приглашает на интервью.
+
+  В этот момент я хочу [найти вакансию], глянуть ее и в зависимости от того до чего мы
+  договорились с работодателем выставить ей некоторое состояние.
+
+  Я также хочу чтобы система проходила по вакансиям и в зависимости от сочетания условий
+  выполняла какие-то действия
+
+  - напоминание мне о собеседованиях, звонках (календарь)
+  - автоматическое ранжирование вакансий (по перспективам найма, зарплате и.т.п)
+
+
+
+
+
+  #+NAME: metagen
+  #+BEGIN_SRC lisp
+    (defparameter *tmp*
+      (meta-gen 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка"))
+
+    (print (funcall *tmp*))
+
+
+    (defparameter *prof-areas*
+      '(("Все профессиональные области" . (""))
+        ("Информационные технологии, интернет, телеком"
+         . ("1" (("CRM системы" . "536")
+                 ("CTO, CIO, Директор по IT" . "3")
+                 ("Web инженер" . "9")
+                 ("Web мастер" . "10")
+                 ("Администратор баз данных" . "420")
+                 ("Аналитик" . "25")
+                 ("Арт-директор" . "30")
+                 ("Банковское ПО" . "395")
+                 ("Игровое ПО" . "475")
+                 ("Инженер" . "82")
+                 ("Интернет" . "89")
+                 ("Компьютерная безопасность" . "110")
+                 ("Консалтинг, Аутсорсинг" . "113")
+                 ("Контент" . "116")
+                 ("Маркетинг" . "137")
+                 ("Мультимедиа" . "161")
+                 ("Начальный уровень, Мало опыта" . "172")
+                 ("Оптимизация сайта (SEO)" . "400")
+                 ("Передача данных и доступ в интернет" . "203")
+                 ("Поддержка, Helpdesk" . "211")
+                 ("Программирование, Разработка" . "221")
+                 ("Продажи" . "225")
+                 ("Продюсер" . "232")
+                 ("Развитие бизнеса" . "246")
+                 ("Сетевые технологии" . "270")
+                 ("Системная интеграция" . "272")
+                 ("Системный администратор" . "273")
+                 ("Системы автоматизированного проектирования" . "274")
+                 ("Системы управления предприятием (ERP)" . "50")
+                 ("Сотовые, Беспроводные технологии" . "277")
+                 ("Стартапы" . "474")
+                 ("Телекоммуникации" . "295")
+                 ("Тестирование" . "117")
+                 ("Технический писатель" . "296")
+                 ("Управление проектами" . "327")
+                 ("Электронная коммерция" . "359"))))
+        ("Бухгалтерия, управленческий учет, финансы предприятия" . ("2"))
+        ("Маркетинг, реклама, PR" . ("3"))
+        ("Административный персонал" . ("4"))
+        ("Банки, инвестиции, лизинг" . ("5"))
+        ("Управление персоналом, тренинги" . ("6"))
+        ("Автомобильный бизнес" . ("7"))
+        ("Безопасность" . ("8"))
+        ("Высший менеджмент" . ("9"))
+        ("Добыча сырья" . ("10"))
+        ("Искусство, развлечения, масс-медиа" . ("11"))
+        ("Консультирование" . ("12"))
+        ("Медицина, фармацевтика" . ("13"))
+        ("Наука, образование" . ("14"))
+        ("Государственная служба, некоммерческие организации" . ("16"))
+        ("Продажи" . ("17"))
+        ("Производство" . ("18"))
+        ("Страхование" . ("19"))
+        ("Строительство, недвижимость" . ("20"))
+        ("Транспорт, логистика" . ("21"))
+        ("Туризм, гостиницы, рестораны" . ("22"))
+        ("Юристы" . ("23"))
+        ("Спортивные клубы, фитнес, салоны красоты" . ("24"))
+        ("Инсталляция и сервис" . ("25"))
+        ("Закупки" . ("26"))
+        ("Начало карьеры, студенты" . ("15"))
+        ("Домашний персонал" . ("27"))
+        ("Рабочий персонал" . ("29"))))
+
+
+    (defun make-specialization-hh-url-string (prof-area &optional specs)
+      (let ((specialization (assoc prof-area *prof-areas* :test #'equal)))
+        (when (null specialization)
+          (err 'specialization-not-found))
+        (when (stringp specs)
+          (setf specs (list specs)))
+        (if (null specs)
+            (concatenate 'string
+                         "&specialization="
+                         (cadr specialization))
+            (format nil "~{&~A~}"
+                    (loop :for spec :in specs :collect
+                       (let ((spec (cdr (assoc spec (caddr specialization) :test #'equal))))
+                         (when (null spec)
+                           (err 'spec-not-found))
+                         (concatenate 'string "specialization=" (cadr specialization) "." spec)))))))
+
+    (make-specialization-hh-url-string "Информационные технологии, интернет, телеком")
+    (make-specialization-hh-url-string "Информационные технологии, интернет, телеком" '("Программирование, Разработка"))
+    (make-specialization-hh-url-string "Информационные технологии, интернет, телеком" "Программирование, Разработка")
+    (make-specialization-hh-url-string "Информационные технологии, интернет, телеком"
+                                    '("Программирование, Разработка"
+                                      "Web инженер"
+                                      "Web мастер"
+                                      "Инженер"
+                                      "Системы управления предприятием (ERP)"
+                                      "Сотовые, Беспроводные технологии"
+                                      "Стартапы"
+                                      "Телекоммуникации"
+                                      "Управление проектами"
+                                      "Электронная коммерция"))
+
+    (defun make-hh-url (vac-src city prof-area &optional specs)
+      (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
+              city
+              (make-specialization-hh-url-string prof-area specs)
+              2))
+
+    (make-hh-url 'hh "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
+
+
+
+      (defparameter *programmin-and-development-profile*
+        (make-profile :name "Программирование и разработка"
+                      :user-id 1
+                      :search-query
+                      :ts-create (get-universal-time)
+                      :ts-last (get-universal-time)))
+
+      (defun run-collect (profile)
+        (let* ((search-str   (search-query profile))
+               (all-teasers  nil))
+          (block get-all-hh-teasers
+            (loop :for num :from 0 :to 100 :do
+               (print num)
+               (let* ((url (format nil search-str num))
+                      (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+                 (if (equal 0 (length teasers))
+                     (return-from get-all-hh-teasers)
+                     (setf all-teasers (append all-teasers teasers)))))
+            (print "over-100"))
+          all-teasers))
+
+
+
+  #+END_SRC
+
+
+
+
 * Хотелки
 
   Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
@@ -772,7 +1046,7 @@
                                    (or  (equal e "search-result-item__name search-result-item__name_standard")
                                         (equal e "search-result-item__name search-result-item__name_standard_plus")
                                         (equal e "search-result-item__name search-result-item__name_premium")))
-                              #'(lambda (x) (values (list :vac-id **i** :vac-name **z**) #'mapcar))
+                              #'(lambda (x) (values (list :id **i** :name **z**) #'mapcar))
                               (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
                                 (and (equal class "b-vacancy-list-salary"))
                                 #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
@@ -2273,6 +2547,24 @@ http://romka.eu/blog/jquery-table-drag-and-drop
             (ppcre:scan-to-strings ,pattern ,var)
           (let ((str (format nil "~a" matches)))
             (subseq str 2 (- (length str) 1)))))
+
+     (defun merge-plists (&rest plists)
+       "Merge all the given plists into a new plist. The new plist has all
+     the keys from each plist, with values of keys in later lists
+     overriding the values of the same keys in earlier plists.
+     No particular order of key/value pairs is guaranteed.
+     E.g.:
+     > (merge-plists '(:a 1 :b 2) '(:a 3 :c 4) '(:d 5))
+     (:D 5 :C 4 :A 3 :B 2)"
+     (let ((result (copy-list (first plists))))
+       (dolist (plist (rest plists))
+         (do* ((prop (first plist) (first plist))
+               (value (second plist) (second plist))
+               (oldpl plist plist)
+               (plist plist (cddr plist)))
+              ((not oldpl))
+           (setf (getf result prop) value)))
+       result))
    #+END_SRC
 
 ** Глобальные определения
@@ -2311,6 +2603,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
     #+BEGIN_SRC emacs-lisp :var flds=vacancy_flds states=vacancy_state :exports none
       (gen-automat "vacancy" "вакансии" flds states)
     #+END_SRC
+
 * Экспертная система
 
   Предоставление рекомендаций и отбор вакансий на основе модифицируемых правил и фактах
@@ -2353,3 +2646,5 @@ http://romka.eu/blog/jquery-table-drag-and-drop
    Состояние, Поведение, Отношение. Вывод
 
    Создание гипотезы, проверка гипотезы, построение следствий
+=======
+* Переосмысление
