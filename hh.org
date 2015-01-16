@@ -994,7 +994,7 @@
     =control=. Если эта функция возвращена, тогда дерево возвращается с замененным
     =transformer=-ом узлами по следующему алгоритму:
 
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (funcall control
                #'(lambda (x)
                    (maptree-if predicate transformer x))
@@ -1004,7 +1004,7 @@
     В противном случае оно возвращается как есть.
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (defun maptree-if (predicate transformer tree)
@@ -1023,7 +1023,7 @@
 
     Несколько примеров работы:
 
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       ;; Нерекурсивная замена
@@ -1060,7 +1060,7 @@
     И макрос для более лаконичной записи того же:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (defmacro with-predict-maptree (pattern condition replace tree)
@@ -1472,7 +1472,7 @@
    Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 
    #+NAME: vacancy_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=vacancy_state :results output :exports none
+   #+BEGIN_SRC emacs-lisp :var table=vacancy_state :results output
      (mapcar #'(lambda (x)
                  (princ (format "%s -> %s [label =\"%s\"];\n"
                                 (second x) (third x) (first x))))
@@ -1921,7 +1921,7 @@
   Соберем веб-интерфейс:
 
   #+NAME: iface
-  #+BEGIN_SRC lisp :tangle src/mod/hh/iface.lisp :noweb tangle :exports none :padline no :comments link
+  #+BEGIN_SRC lisp :tangle src/mod/hh/iface.lisp :noweb tangle :padline no :comments link
     ;;;; iface.lisp
 
     (in-package #:moto)
@@ -2231,7 +2231,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 * Тесты
 
   #+NAME: hh_test
-  #+BEGIN_SRC lisp :noweb tangle :exports none
+  #+BEGIN_SRC lisp :noweb tangle
 
     ;; Тестируем hh
     (defun hh-test ()
@@ -2241,7 +2241,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   #+END_SRC
 
   #+NAME: hh_test_contents
-  #+BEGIN_SRC lisp :noweb tangle :exports none
+  #+BEGIN_SRC lisp :noweb tangle
 
   #+END_SRC
 * Точки входа
@@ -2249,7 +2249,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   Соберем шаблоны:
 
   #+NAME: hh_tpl
-  #+BEGIN_SRC closure-template-html :tangle src/mod/hh/hh-tpl.htm :noweb tangle :exports none
+  #+BEGIN_SRC closure-template-html :tangle src/mod/hh/hh-tpl.htm :noweb tangle
     // -*- mode: closure-template-html; fill-column: 140 -*-
     {namespace hhtpl}
 
@@ -2259,7 +2259,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   Скомпилируем шаблоны при подготовке модуля
 
   #+NAME: hh_prepare
-  #+BEGIN_SRC lisp :tangle src/mod/hh/hh-prepare.lisp :noweb tangle :exports none
+  #+BEGIN_SRC lisp :tangle src/mod/hh/hh-prepare.lisp :noweb tangle
     (in-package #:moto)
 
     ;; Скомпилируем шаблон
@@ -2272,7 +2272,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   Соберем контроллеры и все функции, которые контроллеры вызывают
 
   #+NAME: hh_fn
-  #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle :exports none
+  #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle
     (in-package #:moto)
 
     <<metagen>>
@@ -2296,7 +2296,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 ** Фунциональные утилиты
 
    #+NAME: f_util
-   #+BEGIN_SRC lisp :tangle src/mod/hh/f-util.lisp :noweb tangle :exports none :padline no :comments link
+   #+BEGIN_SRC lisp :tangle src/mod/hh/f-util.lisp :noweb tangle :padline no :comments link
      (in-package #:moto)
 
      <<f_util_contents>>
@@ -2305,7 +2305,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** Point-free определения:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (defmacro define (form* form)
@@ -2327,7 +2327,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
     псевдонимы для функций и маросов, псевдоним будет макросом:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (define head car)
@@ -2339,7 +2339,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
     Можно определить функцию f2, которая является псевдонимом для лямбды, возвращённой
     формой (f1 a1):
 
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (define f2 (f1 a1))
@@ -2349,7 +2349,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
     Простое определение функций в Scheme-стиле, более соответствующее представлению о
     редукции форм:
 
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (define (f1 a1) (f2 a2))
@@ -2360,7 +2360,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
     такой макрос:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (defmacro define* (form* form)
@@ -2370,7 +2370,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 
     Пример:
 
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (define* (f1 a1) (f2 a2))
@@ -2385,7 +2385,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
           a, b, ... - их аргументы.
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (define (self object) object)
@@ -2398,7 +2398,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** Свёртки и "развёртки":
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (define (foldl f a list)
@@ -2423,7 +2423,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** Отображения и фильтрации:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       ;; map & filter
@@ -2434,7 +2434,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** Функции для списков на основе карринга и свёрток:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       ;; functions for lists
@@ -2447,7 +2447,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** Функции для чисел:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       ;; functions for numbers
@@ -2465,7 +2465,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** И для булевых чисел:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       ;; functions for booleans
@@ -2479,7 +2479,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** Многие другие функции представляются свёртками, например:
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       ;; member & assoc
@@ -2500,7 +2500,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
     например).
 
     #+NAME: f_util_contents
-    #+BEGIN_SRC lisp :exports none
+    #+BEGIN_SRC lisp
       (in-package #:moto)
 
       ;; for (1 . (2 . 3)) trees
@@ -2524,7 +2524,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 ** Другие утилиты
 
    #+NAME: f_util_contents
-   #+BEGIN_SRC lisp :exports none
+   #+BEGIN_SRC lisp
      (in-package #:moto)
 
      ;; (defun my-range (n)
@@ -2916,7 +2916,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
    Соберем все сущности и автоматы
 
    #+NAME: entity_and_automates
-   #+BEGIN_SRC lisp :tangle src/mod/hh/entityes.lisp :noweb tangle :exports none :padline no :comments link
+   #+BEGIN_SRC lisp :tangle src/mod/hh/entityes.lisp :noweb tangle :padline no :comments link
      (in-package #:moto)
 
      <<asm_profile()>>
@@ -2927,13 +2927,13 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 ** Поисковые профили
 
     #+NAME: asm_profile
-    #+BEGIN_SRC emacs-lisp :var flds=profile_flds :exports none
+    #+BEGIN_SRC emacs-lisp :var flds=profile_flds
       (gen-entity "profile" "поисковые профили" flds)
     #+END_SRC
 
 ** Вакансии
 
     #+NAME: asm_vacancy
-    #+BEGIN_SRC emacs-lisp :var flds=vacancy_flds states=vacancy_state :exports none
+    #+BEGIN_SRC emacs-lisp :var flds=vacancy_flds states=vacancy_state
       (gen-automat "vacancy" "вакансии" flds states)
     #+END_SRC
