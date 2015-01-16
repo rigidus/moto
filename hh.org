@@ -20,18 +20,32 @@
   получить выборку в виде списка тизеров вакансий, каждый из которых ведет на полное
   описание вакансии.
 
-** Генератор генератора вакансий
+  #+CAPTION: Это источник вакансий
+  #+NAME: fig:vacancy_source
+  [[./img/warehouse.jpg]]
 
-  Пусть у нас есть =генератор функций=, назовем его =metagen=, который принимает источник
-  вакансий и параметры запроса (например: профессиональную область, специализацию, город) и
-  возвращает функцию в замыкании, которая при каждом своем вызове вернет одну вакансию или
-  =ложь= если все вакансии кончились.
+** Фабрика генераторов вакансий
+
+  Пусть у нас есть фабрика =генераторов функций= назовем его =factory=, которая принимает
+  =источник вакансий= и параметры запроса (например: =профессиональную область=, =специализацию=,
+  =город=) и возвращает =функцию-генератор в замыкании=.
+
+  #+CAPTION: Фабрика генераторов вакансий
+  #+NAME: fig:factory
+  [[./img/factory.jpg]]
+
+  Эта функция-генератор при каждом своем вызове вернет одну вакансию или =ложь= если все
+  вакансии кончились.
+
+  #+CAPTION: Функция-генератор в замыкании
+  #+NAME: fig:generator
+  [[./img/generator.jpg]]
 
   Внутри себя эта функция по мере необходимости загружает и разбирает сначала тизеры
   вакансий, а потом и сами вакансии, при этом процесс превращения тизера в вакансию
   (=process-teaser=) вынесен из замыкания, т.к. не зависит от замкнутых переменных.
 
-  #+NAME: metagen
+  #+NAME: factory
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
@@ -46,7 +60,7 @@
     (defmethod process-teaser (current-teaser)
       (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
 
-    (defmethod metagen ((vac-src (eql 'hh)) city prof-area &optional spec)
+    (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
       (let ((url     (make-hh-url city prof-area spec))
             (page    0)
             (teasers nil))
@@ -211,7 +225,7 @@
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
-    (let ((gen (metagen 'hh "spb" "Информационные технологии, интернет, телеком"
+    (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
                         "Программирование, Разработка")))
       (loop :for i :from 1 :to 100 :do
          (dbg "~A" i)
@@ -2275,7 +2289,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle
     (in-package #:moto)
 
-    <<metagen>>
+    <<factory>>
 
     <<define_rule>>
 

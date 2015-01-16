@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-16 Пт. 01:23 -->
+<!-- 2015-01-17 Сб. 02:13 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -147,7 +147,7 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2">2. Как это работает?</a>
 <ul>
 <li><a href="#sec-2-1">2.1. Источник вакансий</a></li>
-<li><a href="#sec-2-2">2.2. Генератор генератора вакансий</a></li>
+<li><a href="#sec-2-2">2.2. Фабрика генераторов вакансий</a></li>
 <li><a href="#sec-2-3">2.3. Определение правила обработки</a></li>
 <li><a href="#sec-2-4">2.4. Процессор правил</a></li>
 <li><a href="#sec-2-5">2.5. Декоратор для <code>process-teaser</code></a></li>
@@ -158,28 +158,27 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-7-2">2.7.2. <span class="todo nilTODO">TODO</span> Правила анализа вакансий</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-8">2.8. <span class="todo nilTODO">TODO</span> Хранимая сущность вакансии</a></li>
-<li><a href="#sec-2-9">2.9. <span class="todo nilTODO">TODO</span> Состояния вакансии</a></li>
-<li><a href="#sec-2-10">2.10. Построение URL-ов, для скачивания тизеров</a>
+<li><a href="#sec-2-8">2.8. Построение URL-ов, для скачивания тизеров</a>
 <ul>
-<li><a href="#sec-2-10-1">2.10.1. Построение специализаций</a></li>
+<li><a href="#sec-2-8-1">2.8.1. Построение специализаций</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-11">2.11. Получение страниц</a></li>
-<li><a href="#sec-2-12">2.12. Разбор тизеров вакансий</a>
+<li><a href="#sec-2-9">2.9. Получение страниц</a></li>
+<li><a href="#sec-2-10">2.10. Разбор тизеров вакансий</a>
 <ul>
-<li><a href="#sec-2-12-1">2.12.1. Обход дерева и извлечение узлов</a></li>
+<li><a href="#sec-2-10-1">2.10.1. Обход дерева и извлечение узлов</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-13">2.13. Разбор вакансий</a>
+<li><a href="#sec-2-11">2.11. Разбор вакансий</a>
 <ul>
-<li><a href="#sec-2-13-1">2.13.1. Сопоставление и преобразование узлов</a></li>
+<li><a href="#sec-2-11-1">2.11.1. Сопоставление и преобразование узлов</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-14">2.14. <span class="todo nilTODO">TODO</span> Незавершенное</a>
+<li><a href="#sec-2-12">2.12. <span class="todo nilTODO">TODO</span> Незавершенное</a>
 <ul>
-<li><a href="#sec-2-14-1">2.14.1. Сохранение данных</a></li>
-<li><a href="#sec-2-14-2">2.14.2. Еще кое-что</a></li>
+<li><a href="#sec-2-12-1">2.12.1. Сохранение данных</a></li>
+<li><a href="#sec-2-12-2">2.12.2. Состояния вакансии</a></li>
+<li><a href="#sec-2-12-3">2.12.3. Еще кое-что</a></li>
 </ul>
 </li>
 </ul>
@@ -293,18 +292,43 @@ for the JavaScript code in this tag.
 получить выборку в виде списка тизеров вакансий, каждый из которых ведет на полное
 описание вакансии.
 </p>
+
+
+<div id="fig:vacancy_source" class="figure">
+<p><img src="./img/warehouse.jpg" alt="warehouse.jpg" />
+</p>
+<p><span class="figure-number">Figure 1:</span> Это источник вакансий</p>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-2-2" class="outline-3">
-<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Генератор генератора вакансий</h3>
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Фабрика генераторов вакансий</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
-Пусть у нас есть <code>генератор функций</code>, назовем его <code>metagen</code>, который принимает источник
-вакансий и параметры запроса (например: профессиональную область, специализацию, город) и
-возвращает функцию в замыкании, которая при каждом своем вызове вернет одну вакансию или
-<code>ложь</code> если все вакансии кончились.
+Пусть у нас есть фабрика <code>генераторов функций</code> назовем его <code>factory</code>, которая принимает
+<code>источник вакансий</code> и параметры запроса (например: <code>профессиональную область</code>, <code>специализацию</code>,
+<code>город</code>) и возвращает <code>функцию-генератор в замыкании</code>.
 </p>
+
+
+<div id="fig:factory" class="figure">
+<p><img src="./img/factory.jpg" alt="factory.jpg" />
+</p>
+<p><span class="figure-number">Figure 2:</span> Фабрика генераторов вакансий</p>
+</div>
+
+<p>
+Эта функция-генератор при каждом своем вызове вернет одну вакансию или <code>ложь</code> если все
+вакансии кончились.
+</p>
+
+
+<div id="fig:generator" class="figure">
+<p><img src="./img/generator.jpg" alt="generator.jpg" />
+</p>
+<p><span class="figure-number">Figure 3:</span> Функция-генератор в замыкании</p>
+</div>
 
 <p>
 Внутри себя эта функция по мере необходимости загружает и разбирает сначала тизеры
@@ -314,7 +338,7 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="metagen">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="factory">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
 &lt;&lt;make_hh_url&gt;&gt;
 
@@ -327,7 +351,7 @@ for the JavaScript code in this tag.
 (<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">process-teaser</span> (current-teaser)
   (hh-parse-vacancy (hh-get-page (getf current-teaser <span style="color: #0000ee; font-weight: bold;">:id</span>))))
 
-(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">metagen</span> ((vac-src (eql 'hh)) city prof-area <span style="color: #00cd00;">&amp;optional</span> spec)
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">factory</span> ((vac-src (eql 'hh)) city prof-area <span style="color: #00cd00;">&amp;optional</span> spec)
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((url     (make-hh-url city prof-area spec))
         (page    0)
         (teasers nil))
@@ -542,7 +566,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="run">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #00cdcd; font-weight: bold;">let</span> ((gen (metagen 'hh <span style="color: #00cd00;">"spb"</span> <span style="color: #00cd00;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
+(<span style="color: #00cdcd; font-weight: bold;">let</span> ((gen (factory 'hh <span style="color: #00cd00;">"spb"</span> <span style="color: #00cd00;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
                     <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>)))
   (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> i <span style="color: #0000ee; font-weight: bold;">:from</span> 1 <span style="color: #0000ee; font-weight: bold;">:to</span> 100 <span style="color: #0000ee; font-weight: bold;">:do</span>
      (dbg <span style="color: #00cd00;">"~A"</span> i)
@@ -559,7 +583,7 @@ for the JavaScript code in this tag.
 <h3 id="sec-2-7"><span class="section-number-3">2.7</span> Составление правил</h3>
 <div class="outline-text-3" id="text-2-7">
 <p>
-Чтобы записать правила их более компактно, подстластим синтаксис, используя макросы
+Чтобы записать правила их более компактно, подсластим синтаксис, используя макросы
 </p>
 
 <div class="org-src-container">
@@ -669,14 +693,8 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-2-8" class="outline-3">
-<h3 id="sec-2-8"><span class="section-number-3">2.8</span> <span class="todo TODO">TODO</span> Хранимая сущность вакансии</h3>
-</div>
-<div id="outline-container-sec-2-9" class="outline-3">
-<h3 id="sec-2-9"><span class="section-number-3">2.9</span> <span class="todo TODO">TODO</span> Состояния вакансии</h3>
-</div>
-<div id="outline-container-sec-2-10" class="outline-3">
-<h3 id="sec-2-10"><span class="section-number-3">2.10</span> Построение URL-ов, для скачивания тизеров</h3>
-<div class="outline-text-3" id="text-2-10">
+<h3 id="sec-2-8"><span class="section-number-3">2.8</span> Построение URL-ов, для скачивания тизеров</h3>
+<div class="outline-text-3" id="text-2-8">
 <p>
 Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
 страницы, если будем получать страницу за страницей, пока не получим страницу, на которой
@@ -708,9 +726,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-10-1" class="outline-4">
-<h4 id="sec-2-10-1"><span class="section-number-4">2.10.1</span> Построение специализаций</h4>
-<div class="outline-text-4" id="text-2-10-1">
+<div id="outline-container-sec-2-8-1" class="outline-4">
+<h4 id="sec-2-8-1"><span class="section-number-4">2.8.1</span> Построение специализаций</h4>
+<div class="outline-text-4" id="text-2-8-1">
 <p>
 Специализации задаются в формате "1.221", где цифра слева от точки представляет
 профессиональное направление, а справа - собственно специализацию. В интерфейсе
@@ -844,9 +862,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-11" class="outline-3">
-<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Получение страниц</h3>
-<div class="outline-text-3" id="text-2-11">
+<div id="outline-container-sec-2-9" class="outline-3">
+<h3 id="sec-2-9"><span class="section-number-3">2.9</span> Получение страниц</h3>
+<div class="outline-text-3" id="text-2-9">
 <p>
 Вот так мы можем получать страницы, к примеру те, на который находятся тизеры:
 </p>
@@ -873,9 +891,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-12" class="outline-3">
-<h3 id="sec-2-12"><span class="section-number-3">2.12</span> Разбор тизеров вакансий</h3>
-<div class="outline-text-3" id="text-2-12">
+<div id="outline-container-sec-2-10" class="outline-3">
+<h3 id="sec-2-10"><span class="section-number-3">2.10</span> Разбор тизеров вакансий</h3>
+<div class="outline-text-3" id="text-2-10">
 <p>
 <b>TODO: Необходимо разработать более удобное сопоставление с образцом</b>
 </p>
@@ -891,7 +909,7 @@ for the JavaScript code in this tag.
 </li>
 <li>идентификатор (ссылку)
 </li>
-<li>дату размещения
+<li>дата размещения
 </li>
 <li>название работодателя
 </li>
@@ -1023,9 +1041,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-12-1" class="outline-4">
-<h4 id="sec-2-12-1"><span class="section-number-4">2.12.1</span> Обход дерева и извлечение узлов</h4>
-<div class="outline-text-4" id="text-2-12-1">
+<div id="outline-container-sec-2-10-1" class="outline-4">
+<h4 id="sec-2-10-1"><span class="section-number-4">2.10.1</span> Обход дерева и извлечение узлов</h4>
+<div class="outline-text-4" id="text-2-10-1">
 <p>
 Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
 разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -1035,7 +1053,7 @@ for the JavaScript code in this tag.
 <p>
 Чтобы делать это будем обходить дерево, сопоставляя каждый узел с предикатом, в который
 скомпилируется образец. Начнем с обхода дерева, для этого напишем рекурсивную функцию
-<code>match-tree</code>, которую определим с помощью <code>labels</code>, чтобы иметь окружить ее формой <code>let</code>
+<code>match-tree</code>, которую определим с помощью <code>labels</code>, чтобы окружить ее формой <code>let</code>
 с аккумулятором.
 </p>
 
@@ -1350,9 +1368,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-2-13" class="outline-3">
-<h3 id="sec-2-13"><span class="section-number-3">2.13</span> Разбор вакансий</h3>
-<div class="outline-text-3" id="text-2-13">
+<div id="outline-container-sec-2-11" class="outline-3">
+<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Разбор вакансий</h3>
+<div class="outline-text-3" id="text-2-11">
 <p>
 Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
 лишнего:
@@ -1454,9 +1472,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-2-13-1" class="outline-4">
-<h4 id="sec-2-13-1"><span class="section-number-4">2.13.1</span> Сопоставление и преобразование узлов</h4>
-<div class="outline-text-4" id="text-2-13-1">
+<div id="outline-container-sec-2-11-1" class="outline-4">
+<h4 id="sec-2-11-1"><span class="section-number-4">2.11.1</span> Сопоставление и преобразование узлов</h4>
+<div class="outline-text-4" id="text-2-11-1">
 <p>
 Разбирая вакансию мы должны извлечь несколько блоков:
 </p>
@@ -1496,27 +1514,127 @@ collect
 <code>transformer</code>-ом узлами по следующему алгоритму:
 </p>
 
+<div class="org-src-container">
+
+<pre class="src src-lisp">(funcall control
+         #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+             (maptree-if predicate transformer x))
+         transformed-tree)
+</pre>
+</div>
+
 <p>
 В противном случае оно возвращается как есть.
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">maptree-if</span> (predicate transformer tree)
+  (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (t-tree control)
+      (<span style="color: #00cdcd; font-weight: bold;">if</span> (funcall predicate tree)
+          (funcall transformer tree)
+          (values tree #'mapcar))
+    (<span style="color: #00cdcd; font-weight: bold;">if</span> (and (consp t-tree)
+             control)
+        (funcall control
+                 #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                     (maptree-if predicate transformer x))
+                 t-tree)
+        t-tree)))
+</pre>
+</div>
 
 <p>
 Несколько примеров работы:
 </p>
 
+<div class="org-src-container">
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1053;&#1077;&#1088;&#1077;&#1082;&#1091;&#1088;&#1089;&#1080;&#1074;&#1085;&#1072;&#1103; &#1079;&#1072;&#1084;&#1077;&#1085;&#1072;</span>
+(maptree-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                (and (consp x)
+                     (eq (car x) 'ping)))
+            #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                `(pong ,@(cdr x)))
+            '(<span style="color: #00cdcd; font-weight: bold;">progn</span> (ping (ping (ping 1)))))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; (PROGN (PONG (PING (PING 1))))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1056;&#1077;&#1082;&#1091;&#1088;&#1089;&#1080;&#1074;&#1085;&#1072;&#1103; &#1079;&#1072;&#1084;&#1077;&#1085;&#1072;</span>
+(maptree-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                (and (consp x)
+                     (eq (car x) 'ping)))
+            #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                (values `(pong ,@(cdr x)) #'mapcar))
+            '(<span style="color: #00cdcd; font-weight: bold;">progn</span> (ping (ping (ping 1)))
+              ping))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; (PROGN (PONG (PONG (PONG 1))))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1080;&#1084;&#1077;&#1085;&#1077;&#1085;&#1080;&#1077; &#1089;&#1086;&#1074;&#1084;&#1077;&#1089;&#1090;&#1085;&#1086; &#1089; with-predict-if &#1080; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;&#1084; **&#1087;&#1077;&#1088;&#1077;&#1084;&#1077;&#1085;&#1085;&#1099;&#1093;**</span>
+(maptree-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                (and (consp x)
+                     (funcall (<span style="color: #00cdcd; font-weight: bold;">with-predict-if</span> (a b <span style="color: #00cd00;">&amp;rest</span> c)
+                                (and (equal b 'ping)))
+                              x)))
+            #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                (values `(,**a** pong ,@(cddr x)) #'mapcar))
+            '(<span style="color: #00cdcd; font-weight: bold;">progn</span> (ping (ping ping (ping 1)))
+              ping))
+</pre>
+</div>
+
 <p>
 И макрос для более лаконичной записи того же:
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-predict-maptree</span> (pattern condition replace tree)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((lambda-param (gensym)))
+    `(maptree-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (,lambda-param)
+                     (and (consp ,lambda-param)
+                        (funcall (<span style="color: #00cdcd; font-weight: bold;">with-predict-if</span> ,pattern
+                                   ,condition)
+                                 ,lambda-param)))
+                 ,replace
+                 ,tree)))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">'(with-predict-maptree (a b &amp;rest c)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(and (equal b 'ping))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">#'(lambda (x)</span>
+<span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">(values `(,**a** pong ,@(cddr x)) #'mapcar))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">'(progn (ping (ping ping (ping 1))) ping)))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(with-predict-maptree (a b &amp;rest c)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(and (equal b 'ping))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">#'(lambda (x)</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(values `(,**a** pong ,@(cddr x)) #'mapcar))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">'(progn (ping (ping ping (ping 1))) ping))</span>
+</pre>
+</div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-14" class="outline-3">
-<h3 id="sec-2-14"><span class="section-number-3">2.14</span> <span class="todo TODO">TODO</span> Незавершенное</h3>
-<div class="outline-text-3" id="text-2-14">
-</div><div id="outline-container-sec-2-14-1" class="outline-4">
-<h4 id="sec-2-14-1"><span class="section-number-4">2.14.1</span> Сохранение данных</h4>
-<div class="outline-text-4" id="text-2-14-1">
+<div id="outline-container-sec-2-12" class="outline-3">
+<h3 id="sec-2-12"><span class="section-number-3">2.12</span> <span class="todo TODO">TODO</span> Незавершенное</h3>
+<div class="outline-text-3" id="text-2-12">
+<p>
+Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
+открыть файл, например, в емаксте, т.к. в гитхабе про отображении файла не видно имен
+блоков кода.
+</p>
+</div>
+
+<div id="outline-container-sec-2-12-1" class="outline-4">
+<h4 id="sec-2-12-1"><span class="section-number-4">2.12.1</span> Сохранение данных</h4>
+<div class="outline-text-4" id="text-2-12-1">
 <p>
 Как только у нас это есть - код становится простым
 </p>
@@ -1603,9 +1721,13 @@ collect
 </div>
 </div>
 </div>
-<div id="outline-container-sec-2-14-2" class="outline-4">
-<h4 id="sec-2-14-2"><span class="section-number-4">2.14.2</span> Еще кое-что</h4>
-<div class="outline-text-4" id="text-2-14-2">
+
+<div id="outline-container-sec-2-12-2" class="outline-4">
+<h4 id="sec-2-12-2"><span class="section-number-4">2.12.2</span> Состояния вакансии</h4>
+</div>
+<div id="outline-container-sec-2-12-3" class="outline-4">
+<h4 id="sec-2-12-3"><span class="section-number-4">2.12.3</span> Еще кое-что</h4>
+<div class="outline-text-4" id="text-2-12-3">
 <p>
 После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
 интерфейсная часть.
@@ -2288,6 +2410,16 @@ HR-специалист заинтересован в том, чтобы име�
 <p>
 Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp" id="vacancy_state_graph">(mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+            (princ (format <span style="color: #00cd00;">"%s -&gt; %s [label =\"%s\"];\n"</span>
+                           (second x) (third x) (first x))))
+        table)
+</pre>
+</div>
+
 
 
 <div class="figure">
@@ -3077,6 +3209,17 @@ TODO: Конечный автомат тут сложен и будет еще �
 <p>
 Соберем веб-интерфейс:
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">iface.lisp</span>
+
+(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;</span>
+&lt;&lt;iface_contents&gt;&gt;
+</pre>
+</div>
 </div>
 
 <div id="outline-container-sec-6-1" class="outline-3">
@@ -3400,8 +3543,23 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 <div id="outline-container-sec-7" class="outline-2">
 <h2 id="sec-7"><span class="section-number-2">7</span> Тесты</h2>
+<div class="outline-text-2" id="text-7">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_test"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; hh</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-test</span> ()
+  &lt;&lt;hh_test_contents&gt;&gt;
+  (dbg <span style="color: #00cd00;">"passed: hh-test~%"</span>))
+(hh-test)
+</pre>
 </div>
 
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_test_contents"></pre>
+</div>
+</div>
+</div>
 <div id="outline-container-sec-8" class="outline-2">
 <h2 id="sec-8"><span class="section-number-2">8</span> Точки входа</h2>
 <div class="outline-text-2" id="text-8">
@@ -3409,13 +3567,56 @@ TODO: Конечный автомат тут сложен и будет еще �
 Соберем шаблоны:
 </p>
 
+<div class="org-src-container">
+
+<pre class="src src-closure-template-html" id="hh_tpl"><span style="color: #cd0000;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
+{<span style="color: #00cd00; font-weight: bold;">namespace</span> <span style="color: #0000ee; font-weight: bold;">hhtpl</span>}
+
+&lt;&lt;<span style="color: #0000ee; font-weight: bold;">hhtpl_contents</span>&gt;&gt;
+</pre>
+</div>
+
 <p>
 Скомпилируем шаблоны при подготовке модуля
 </p>
 
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_prepare">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
+(closure-template:compile-template
+ <span style="color: #0000ee; font-weight: bold;">:common-lisp-backend</span>
+ (pathname
+  (concatenate 'string *base-path* <span style="color: #00cd00;">"mod/hh/hh-tpl.htm"</span>)))
+</pre>
+</div>
+
 <p>
 Соберем контроллеры и все функции, которые контроллеры вызывают
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;factory&gt;&gt;
+
+&lt;&lt;define_rule&gt;&gt;
+
+&lt;&lt;process&gt;&gt;
+
+&lt;&lt;process_teaser_around&gt;&gt;
+
+&lt;&lt;run&gt;&gt;
+
+&lt;&lt;hh_fn_contents&gt;&gt;
+
+&lt;&lt;hh_parse&gt;&gt;
+
+&lt;&lt;hh_test&gt;&gt;
+</pre>
+</div>
 </div>
 </div>
 
@@ -3425,33 +3626,109 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div><div id="outline-container-sec-9-1" class="outline-3">
 <h3 id="sec-9-1"><span class="section-number-3">9.1</span> Фунциональные утилиты</h3>
 <div class="outline-text-3" id="text-9-1">
-</div><div id="outline-container-sec-9-1-1" class="outline-4">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;f_util_contents&gt;&gt;
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-9-1-1" class="outline-4">
 <h4 id="sec-9-1-1"><span class="section-number-4">9.1.1</span> Point-free определения:</h4>
 <div class="outline-text-4" id="text-9-1-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define</span> (form* form)
+  (<span style="color: #00cdcd; font-weight: bold;">etypecase</span> form*
+    (symbol (<span style="color: #00cdcd; font-weight: bold;">etypecase</span> form
+              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">alias for function or macro</span>
+              (symbol `(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> ,form* (<span style="color: #00cd00;">&amp;rest</span> args)
+                         `(,',form ,@args)))
+              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">alias for lambda</span>
+              (cons   `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,form* (<span style="color: #00cd00;">&amp;rest</span> args)
+                         (apply ,form args)))))
+    (cons     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">scheme-like function definition</span>
+     ` (<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(first form*) ,(rest form*)
+         ,form))))
+</pre>
+</div>
+
 <p>
 Тут typecase используется до генерации кода - в зависимости от того символы или списки
 связываются друг с другом генерируются различные определения. Можно определять
 псевдонимы для функций и маросов, псевдоним будет макросом:
 </p>
 
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(define head car)
+(define tail cdr)
+(define \\   lambda)
+(define $    funcall)
+</pre>
+</div>
+
 <p>
 Можно определить функцию f2, которая является псевдонимом для лямбды, возвращённой
 формой (f1 a1):
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(define f2 (f1 a1))
+(f2 a2) ~ (apply (f1 a1) a2)
+</pre>
+</div>
 
 <p>
 Простое определение функций в Scheme-стиле, более соответствующее представлению о
 редукции форм:
 </p>
 
+<div class="org-src-container">
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(define (f1 a1) (f2 a2))
+(f1 a1) ~ (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">f1</span> (a1) (f2 a2))
+</pre>
+</div>
+
 <p>
 Также, чтобы определять функции миксующую аргументы с другой функцией, можно ввести
 такой макрос:
 </p>
 
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define*</span> (form* form)
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(first form*) ,(rest form*)
+     (,(first form) ,@(rest form) ,@(rest form*))))
+</pre>
+</div>
+
 <p>
 Пример:
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(define* (f1 a1) (f2 a2))
+(f1 a1) ~ (f2 a2 a1)
+</pre>
+</div>
 
 <p>
 Либо использовать карринг.
@@ -3466,31 +3743,140 @@ TODO: Конечный автомат тут сложен и будет еще �
 далее f, g, &#x2026; обозначают функции,
       a, b, &#x2026; - их аргументы.
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(define (self object) object)
+(define (flip f)      (\\ (a b) ($ f b a)))
+(define (curry f a)   (\\ (b)   ($ f a b)))
+(define (curry* f g)  (\\ (a b) ($ f g a b)))
+(define (compose f g) (\\ (a)   ($ f ($ g a))))
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-9-1-3" class="outline-4">
 <h4 id="sec-9-1-3"><span class="section-number-4">9.1.3</span> Свёртки и "развёртки":</h4>
+<div class="outline-text-4" id="text-9-1-3">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(define (foldl f a list)
+    (<span style="color: #00cdcd; font-weight: bold;">typecase</span> list
+      (null a)
+      (cons (foldl f ($ f a (head list)) (tail list)))))
+
+(define (foldr f a list)
+    (<span style="color: #00cdcd; font-weight: bold;">typecase</span> list
+      (null a)
+      (cons ($ f (head list) (foldr f a (tail list))))))
+
+(define (unfold f i p)
+    (<span style="color: #00cdcd; font-weight: bold;">if</span> ($ p i)
+        (cons i '())
+        (cons i (unfold f ($ f i) p))))
+
+(define fold foldl)
+(define my-reduce fold)
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-1-4" class="outline-4">
 <h4 id="sec-9-1-4"><span class="section-number-4">9.1.4</span> Отображения и фильтрации:</h4>
+<div class="outline-text-4" id="text-9-1-4">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">map &amp; filter</span>
+(define (my-map f list) (foldr (\\ (x y) (cons ($ f x) y)) '() list))
+(define (filter p list) (foldr (\\ (x y) (<span style="color: #00cdcd; font-weight: bold;">if</span> ($ p x) (cons x y) y)) '() list))
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-1-5" class="outline-4">
 <h4 id="sec-9-1-5"><span class="section-number-4">9.1.5</span> Функции для списков на основе карринга и свёрток:</h4>
+<div class="outline-text-4" id="text-9-1-5">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">functions for lists</span>
+(define (my-list <span style="color: #00cd00;">&amp;rest</span> objs)         objs)
+(define (my-length list)             (fold (\\ (x y) (1+ x)) 0 list))
+(define (my-reverse list)            (fold (flip 'cons) '() list))
+(define (my-append list <span style="color: #00cd00;">&amp;rest</span> lists) (fold (flip (curry* 'foldr 'cons)) list lists))
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-1-6" class="outline-4">
 <h4 id="sec-9-1-6"><span class="section-number-4">9.1.6</span> Функции для чисел:</h4>
+<div class="outline-text-4" id="text-9-1-6">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">functions for numbers</span>
+(define zero?                    (curry '= 0))
+(define positive?                (curry '&lt; 0))
+(define negative?                (curry '&gt; 0))
+(define (odd? number)            (= (mod number 2) 1))
+(define (even? number)           (= (mod number 2) 0))
+(define (my-max a <span style="color: #00cd00;">&amp;rest</span> numbers) (fold (\\ (y z) (<span style="color: #00cdcd; font-weight: bold;">if</span> (&gt; y z) y z)) a numbers))
+(define (my-min a <span style="color: #00cd00;">&amp;rest</span> numbers) (fold (\\ (y z) (<span style="color: #00cdcd; font-weight: bold;">if</span> (&lt; y z) y z)) a numbers))
+(define (summa <span style="color: #00cd00;">&amp;rest</span> numbers)    (fold '+ 0 numbers))
+(define (product <span style="color: #00cd00;">&amp;rest</span> numbers)  (fold '* 1 numbers))
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-1-7" class="outline-4">
 <h4 id="sec-9-1-7"><span class="section-number-4">9.1.7</span> И для булевых чисел:</h4>
+<div class="outline-text-4" id="text-9-1-7">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">functions for booleans</span>
+(define (my-and <span style="color: #00cd00;">&amp;rest</span> list)   (fold 'and t list))
+(define (my-or <span style="color: #00cd00;">&amp;rest</span> list)    (fold 'or nil list))
+(define (any? p <span style="color: #00cd00;">&amp;rest</span> list)   (apply 'my-or (my-map p list)))
+(define (every? p <span style="color: #00cd00;">&amp;rest</span> list) (apply 'my-and (my-map p list)))
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-1-8" class="outline-4">
 <h4 id="sec-9-1-8"><span class="section-number-4">9.1.8</span> Многие другие функции представляются свёртками, например:</h4>
+<div class="outline-text-4" id="text-9-1-8">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">member &amp; assoc</span>
+(<span style="color: #00cdcd; font-weight: bold;">flet</span> ((helper (p op)
+         (\\ (a next) (<span style="color: #00cdcd; font-weight: bold;">if</span> (and (not a) ($ p ($ op next))) next a))))
+
+  (define (my-member object list <span style="color: #00cd00;">&amp;key</span> (test 'equal))
+      (fold (helper (curry test object) 'self) nil list))
+
+  (define (my-assoc object alist <span style="color: #00cd00;">&amp;key</span> (test 'equal))
+      (fold (helper (curry test object) 'car) nil alist)))
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-1-9" class="outline-4">
@@ -3501,12 +3887,250 @@ TODO: Конечный автомат тут сложен и будет еще �
 "абстракций", получается существенно меньше, чем при реализации "в лоб" (как у Грэхама,
 например).
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">for (1 . (2 . 3)) trees</span>
+
+(define (my-append a b)
+    (append (<span style="color: #00cdcd; font-weight: bold;">if</span> (atom a) (list a) a)
+            (<span style="color: #00cdcd; font-weight: bold;">if</span> (atom b) (list b) b)))
+
+(define (fold-tree f g tree)
+    (<span style="color: #00cdcd; font-weight: bold;">typecase</span> tree
+      (atom ($ f tree))
+      (cons ($ g (fold-tree f g (head tree))
+               (fold-tree f g (tail tree))))))
+
+(define* (summa/tree tree) (fold-tree 'self '+))
+(define* (depth/tree tree) (fold-tree 'one 'max+1))
+(define* (flatten tree)    (fold-tree 'self 'my-append))
+</pre>
+</div>
 </div>
 </div>
 </div>
 
 <div id="outline-container-sec-9-2" class="outline-3">
 <h3 id="sec-9-2"><span class="section-number-3">9.2</span> Другие утилиты</h3>
+<div class="outline-text-3" id="text-9-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(defun my-range (n)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(let ((i 0))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">#'(lambda ()</span>
+<span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">(if (&lt; i n) (incf i) nil))))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(let ((f (my-range 3)))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(list</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(range 3)</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(defmacro do-closure ((i clos) &amp;body body)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(let ((c (gensym)))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">`(let ((,c ,clos))</span>
+<span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">(loop for ,i = (funcall ,c)</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">while ,i do ,@body))))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(do-closure (i (my-range 100)) (print i))</span>
+
+
+(<span style="color: #00cdcd; font-weight: bold;">declaim</span> (<span style="color: #00cdcd; font-weight: bold;">inline</span> zip))
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">zip</span> (<span style="color: #00cd00;">&amp;rest</span> args)
+  <span style="color: #00cd00;">"</span>
+<span style="color: #00cd00;">Zips the elements of @arg{args}.</span>
+<span style="color: #00cd00;">Example:</span>
+<span style="color: #00cd00;">@lisp</span>
+<span style="color: #00cd00;">&gt; (zip '(2 3 4) '(a b c) '(j h c s))</span>
+<span style="color: #00cd00;">=&gt; ((2 A J) (3 B H) (4 C C))</span>
+<span style="color: #00cd00;">@end lisp</span>
+<span style="color: #00cd00;">"</span>
+  (apply #'map 'list #'list args))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">symstuff</span> (l)
+  <span style="color: #00cd00;">"From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html</span>
+<span style="color: #00cd00;">Helper function to (build-symbol)"</span>
+  `(concatenate 'string
+                ,@(for (x <span style="color: #0000ee; font-weight: bold;">:in</span> l)
+                       (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((stringp x)
+                              `',x)
+                             ((atom x)
+                              `',(format nil <span style="color: #00cd00;">"~a"</span> x))
+                             ((eq (car x) '<span style="color: #0000ee; font-weight: bold;">:&lt;</span>)
+                              `(format nil <span style="color: #00cd00;">"~a"</span> ,(cadr x)))
+                             ((eq (car x) '<span style="color: #0000ee; font-weight: bold;">:++</span>)
+                              `(format nil <span style="color: #00cd00;">"~a"</span> (incf ,(cadr x))))
+                             (t
+                              `(format nil <span style="color: #00cd00;">"~a"</span> ,x))))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">build-symbol</span> (<span style="color: #00cd00;">&amp;rest</span> l)
+  <span style="color: #00cd00;">"From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((p (find-if (<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (and (consp x) (eq (car x) '<span style="color: #0000ee; font-weight: bold;">:package</span>)))
+                    l)))
+    (<span style="color: #00cdcd; font-weight: bold;">cond</span> (p
+           (setq l (remove p l))))
+    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((pkg (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((eq (cadr p) 'nil)
+                      nil)
+                     (t `(find-package ',(cadr p))))))
+      (<span style="color: #00cdcd; font-weight: bold;">cond</span> (p
+             (<span style="color: #00cdcd; font-weight: bold;">cond</span> (pkg
+                    `(values (intern ,(symstuff l) ,pkg)))
+                   (t
+                    `(make-symbol ,(symstuff l)))))
+            (t
+             `(values (intern ,(symstuff l))))))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">remove-nth</span> (n seq)
+  <span style="color: #00cd00;">"Remove nth element from sequence"</span>
+  (remove-if (constantly t) seq <span style="color: #0000ee; font-weight: bold;">:start</span> n <span style="color: #0000ee; font-weight: bold;">:count</span> 1))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">make-hash</span> (<span style="color: #00cd00;">&amp;rest</span> keyvals)
+  <span style="color: #00cd00;">"Create a hash table given keys and values"</span>
+  (plist-hash-table keyvals))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">make-hash*</span> (<span style="color: #00cd00;">&amp;rest</span> keyvals)
+  <span style="color: #00cd00;">"Make a hash table given key/value pairs, allowing use of prior key/val pairs in late r definitions"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">loop</span> while keyvals
+     for k = (intern (symbol-name (pop keyvals)))
+     for v = (pop keyvals)
+     collect `(,k ,v) into letargs
+     collect (make-keyword k) into objargs
+     collect k into objargs
+     finally (<span style="color: #00cdcd; font-weight: bold;">return</span>
+               `(<span style="color: #00cdcd; font-weight: bold;">let*</span> (,@letargs)
+                  (make-hash ,@objargs)))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">maphash2</span> (fn ht)
+  <span style="color: #00cd00;">"Returns a hash-table with the results of the function of key &amp; value as values"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((ht-out (make-hash-table
+                 <span style="color: #0000ee; font-weight: bold;">:test</span> (hash-table-test ht)
+                 <span style="color: #0000ee; font-weight: bold;">:size</span> (hash-table-size ht)
+                 <span style="color: #0000ee; font-weight: bold;">:rehash-size</span> (hash-table-rehash-size ht)
+                 <span style="color: #0000ee; font-weight: bold;">:rehash-threshold</span> (hash-table-rehash-threshold ht))))
+    (maphash #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (k v)
+                 (setf (gethash k ht-out) (funcall fn k v)))
+             ht)
+    ht-out))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">maphash-values2</span> (fn ht)
+  <span style="color: #00cd00;">"Returns a hash-table with the results of the function of value as values"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((ht-out (make-hash-table)))
+    (maphash #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (k v) (setf (gethash k ht-out) (funcall fn v))) ht)
+    ht-out))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">swap</span> (pl1 pl2)
+  <span style="color: #00cd00;">"Macro to swap two places"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((temp1-name (gensym)) <span style="color: #cd0000;">; </span><span style="color: #cd0000;">don't clobber existing names</span>
+        (temp2-name (gensym)))
+    `(<span style="color: #00cdcd; font-weight: bold;">let</span> ((,temp1-name ,pl1)
+           (,temp2-name ,pl2))
+       (setf ,pl1 ,temp2-name)
+       (setf ,pl2 ,temp1-name))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">print-hash-key-or-val</span> (kv stream)
+  (format stream (<span style="color: #00cdcd; font-weight: bold;">typecase</span> kv
+                   (keyword <span style="color: #00cd00;">" :~a"</span>)
+                   (string <span style="color: #00cd00;">" \"~a\""</span>)
+                   (symbol <span style="color: #00cd00;">" '~a"</span>)
+                   (list <span style="color: #00cd00;">" '~a"</span>)
+                   (t <span style="color: #00cd00;">" ~a"</span>)) kv))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">printhash</span> (h <span style="color: #00cd00;">&amp;optional</span> (stream t))
+  <span style="color: #00cd00;">"Pretty print a hash table as :KEY VAL on separate lines"</span>
+  (format stream <span style="color: #00cd00;">"#&lt;HASH-TABLE~{~a~a~^~&amp;~}&gt;"</span>
+          (<span style="color: #00cdcd; font-weight: bold;">loop</span> for k being the hash-keys in h using (hash-value v)
+             collect (print-hash-key-or-val k nil)
+             collect (print-hash-key-or-val v nil))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">lethash</span> (keys h <span style="color: #00cd00;">&amp;body</span> body)
+  <span style="color: #00cd00;">"Let form binding hash table entries to let variables names"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((ht (gensym)))
+    `(<span style="color: #00cdcd; font-weight: bold;">let</span> ((,ht ,h))
+       (<span style="color: #00cdcd; font-weight: bold;">let</span> ,(<span style="color: #00cdcd; font-weight: bold;">loop</span> for key in keys
+                collect `(,key (gethash ,(make-keyword key) ,ht)))
+         ,@body))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">with-keys</span> (keys h <span style="color: #00cd00;">&amp;body</span> body)
+  <span style="color: #00cd00;">"Make keys of hash table available to body for use &amp; changable via setf"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((ht (gensym)))
+    (<span style="color: #00cdcd; font-weight: bold;">loop</span> for key in keys
+       for newbody = (subst `(gethash ,(make-keyword key) ,ht) key body)
+       then (subst `(gethash ,(make-keyword key) ,ht) key newbody)
+       finally (<span style="color: #00cdcd; font-weight: bold;">return</span> `(<span style="color: #00cdcd; font-weight: bold;">let</span> ((,ht ,h))
+                          ,@newbody)))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">linear-interpolation</span> (ys xs x)
+  <span style="color: #00cd00;">"Linear interpolation: calculate y(x) at x given table of ys and xs. Also returns ind ex of lookup table interval. Works from first x to less than last x."</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((i (position x xs <span style="color: #0000ee; font-weight: bold;">:test</span> #'&gt;= <span style="color: #0000ee; font-weight: bold;">:from-end</span> t))
+         (x0 (elt xs i))
+         (x1 (elt xs (1+ i)))
+         (y0 (elt ys i))
+         (y1 (elt ys (1+ i))))
+    (+ y0 (* (- y1 y0) (- x x0) (/ (- x1 x0))))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">maptree</span> (f tree)
+  <span style="color: #00cd00;">"Map a function on the leaves of a tree"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">cond</span>
+    ((null tree) nil)
+    ((atom tree) (funcall f tree))
+    (t (cons (maptree f (car tree))
+             (maptree f (cdr tree))))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">diff</span> ((l list))
+  <span style="color: #00cd00;">"Return list of the 1st differences of given list: l(1)-l(0),...,l(n)-l(n-1)"</span>
+    (<span style="color: #00cdcd; font-weight: bold;">loop</span> for i below (1- (length l))
+       for li in l
+       collect (- (elt l (1+ i)) li)))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">diff</span> ((v vector))
+  <span style="color: #00cd00;">"Return vector of the 1st differences of given vector: v(1)-v(0),...,v(n)-v(n-1)"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((n (length v))
+         (v2 (make-array (1- n))))
+    (<span style="color: #00cdcd; font-weight: bold;">dotimes</span> (i (1- n))
+      (setf (aref v2 i) (- (aref v (1+ i)) (aref v i))))
+    v2))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">slot-ref</span> (obj slots)
+  <span style="color: #00cd00;">"Reference nested objects by a list of successive slot names. For example, (slot-ref  o 'foo 'bar 'baz) should return (slot-value (slot-value (slot-value o 'foo) 'bar) 'baz) "</span>
+  (<span style="color: #00cdcd; font-weight: bold;">cond</span>
+    ((atom slots) (slot-value obj slots))
+    ((null (cdr slots)) (slot-value obj (car slots)))
+    (t (slot-ref (slot-value obj (first slots)) (rest slots)))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">slot-ref-set</span> (obj slots val)
+  <span style="color: #00cd00;">"Set nested object slot reference to new value"</span>
+  (<span style="color: #00cdcd; font-weight: bold;">cond</span>
+    ((atom slots) (setf (slot-value obj slots) val))
+    ((null (cdr slots)) (setf (slot-value obj (car slots)) val))
+    (t (slot-ref-set (slot-value obj (first slots)) (rest slots) val))))
+
+(<span style="color: #00cdcd; font-weight: bold;">defsetf</span> <span style="color: #0000ee; font-weight: bold;">slot-ref</span> slot-ref-set)
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">bind-nested-slots</span> (forms obj <span style="color: #00cd00;">&amp;body</span> body)
+  <span style="color: #00cd00;">"For each form of (VAR SLOT1 SLOT2 ...) bind VAR to (NESTED-SLOT OBJ SLOT1 SLOT2 ...) "</span>
+  `(<span style="color: #00cdcd; font-weight: bold;">let</span> ,(<span style="color: #00cdcd; font-weight: bold;">loop</span> for form in forms
+            collect `(,(first form) (slot-ref ,obj ',(rest form))))
+     ,@body))
+
+(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">defpfun</span> (name args pargs <span style="color: #00cd00;">&amp;body</span> body)
+  <span style="color: #00cd00;">"Define pandoric function given name, arguments, pandoric arguments,</span>
+<span style="color: #00cd00;">&amp; body forms."</span>
+  `(setf (symbol-function ',name)
+         (plambda ,args ,pargs
+                  ,@body)))
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-3" class="outline-3">
@@ -3697,21 +4321,45 @@ TODO: Конечный автомат тут сложен и будет еще �
 <p>
 Соберем все сущности и автоматы
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="entity_and_automates">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+&lt;&lt;asm_profile()&gt;&gt;
+
+&lt;&lt;asm_vacancy()&gt;&gt;
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-9-6" class="outline-3">
 <h3 id="sec-9-6"><span class="section-number-3">9.6</span> Поисковые профили</h3>
+<div class="outline-text-3" id="text-9-6">
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp" id="asm_profile">(gen-entity <span style="color: #00cd00;">"profile"</span> <span style="color: #00cd00;">"&#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1077; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1080;"</span> flds)
+</pre>
+</div>
+</div>
 </div>
 
 <div id="outline-container-sec-9-7" class="outline-3">
 <h3 id="sec-9-7"><span class="section-number-3">9.7</span> Вакансии</h3>
+<div class="outline-text-3" id="text-9-7">
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp" id="asm_vacancy">(gen-automat <span style="color: #00cd00;">"vacancy"</span> <span style="color: #00cd00;">"&#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;"</span> flds states)
+</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-16 Пт. 01:23</p>
+<p class="date">Created: 2015-01-17 Сб. 02:13</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
