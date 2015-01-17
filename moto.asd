@@ -20,7 +20,8 @@
                #:cl-html5-parser
                #:cl-who
                #:parenscript
-               #:cl-fad)
+               #:cl-fad
+               #:optima)
   :description "site for bikers"
   :author "rigidus"
   :version "0.0.3"

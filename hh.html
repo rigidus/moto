@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-17 Сб. 05:58 -->
+<!-- 2015-01-17 Сб. 13:10 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -167,12 +167,13 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-9">2.9. Получение страниц</a></li>
 <li><a href="#sec-2-10">2.10. Разбор тизеров вакансий</a>
 <ul>
-<li><a href="#sec-2-10-1">2.10.1. Обход дерева и извлечение узлов</a></li>
+<li><a href="#sec-2-10-1">2.10.1. Трансформация дерева</a></li>
+<li><a href="#sec-2-10-2">2.10.2. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-11">2.11. Разбор вакансий</a>
+<li><a href="#sec-2-11">2.11. <span class="todo nilWAIT">WAIT</span> Разбор вакансий</a>
 <ul>
-<li><a href="#sec-2-11-1">2.11.1. Сопоставление и преобразование узлов</a></li>
+<li><a href="#sec-2-11-1">2.11.1. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
 </ul>
 </li>
 <li><a href="#sec-2-12">2.12. <span class="todo nilTODO">TODO</span> Незавершенное</a>
@@ -592,6 +593,14 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="run">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
+&lt;&lt;define_rule&gt;&gt;
+
+&lt;&lt;process&gt;&gt;
+
+&lt;&lt;process_teaser_around&gt;&gt;
+
+&lt;&lt;factory&gt;&gt;
+
 (<span style="color: #a020f0;">let</span> ((gen (factory 'hh <span style="color: #8b2252;">"spb"</span> <span style="color: #8b2252;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
                     <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>)))
   (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> i <span style="color: #483d8b;">:from</span> 1 <span style="color: #483d8b;">:to</span> 100 <span style="color: #483d8b;">:do</span>
@@ -737,7 +746,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="make_hh_url">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-&lt;&lt;make-specialization-hh-url-string&gt;&gt;
+&lt;&lt;make_specialization_hh_url_string&gt;&gt;
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">make-hh-url</span> (city prof-area <span style="color: #228b22;">&amp;optional</span> specs)
   (format nil <span style="color: #8b2252;">"http://~A.hh.ru/search/vacancy?clusters=true&amp;specialization=~A&amp;area=~A&amp;page=~~A"</span>
@@ -770,7 +779,7 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="make-specialization-hh-url-string">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="make_specialization_hh_url_string">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 &lt;&lt;prof_areas&gt;&gt;
 
@@ -921,10 +930,6 @@ for the JavaScript code in this tag.
 <h3 id="sec-2-10"><span class="section-number-3">2.10</span> Разбор тизеров вакансий</h3>
 <div class="outline-text-3" id="text-2-10">
 <p>
-<b>TODO: Необходимо разработать более удобное сопоставление с образцом</b>
-</p>
-
-<p>
 Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
 который переведет полученный html в более удобное лисп-дерево. Используя сопоставление с
 образцом мы раз за разом преобразуем его до тех пор, пока там не остануться только
@@ -964,112 +969,129 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="hh_parse_vacancy_teasers">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-&lt;&lt;tree-match&gt;&gt;
-
-&lt;&lt;with-predict&gt;&gt;
-
-&lt;&lt;with-predict-if&gt;&gt;
+&lt;&lt;maptree_transform&gt;&gt;
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy-teasers</span> (html)
   <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1080;&#1079; html"</span>
-  (<span style="color: #a020f0;">let*</span> ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-         (searchblock (tree-match tree (<span style="color: #a020f0;">with-predict-if</span> (a ((b c) (d e)) <span style="color: #228b22;">&amp;rest</span> f)
-                                         (string= c <span style="color: #8b2252;">"search-result"</span>)))))
-    (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class) (c d)) <span style="color: #228b22;">&amp;rest</span> z)
-      (and (equal class <span style="color: #8b2252;">"search-result"</span>))
-      #'(<span style="color: #a020f0;">lambda</span> (x) (values **z** #'mapcar))
-      (<span style="color: #a020f0;">with-predict-maptree</span>
-          (a ((b c) (d class)) <span style="color: #228b22;">&amp;rest</span> z)
-        (and (or (equal class <span style="color: #8b2252;">"search-result-item search-result-item_standard "</span>)
-                 (equal class <span style="color: #8b2252;">"search-result-item search-result-item_standard_plus "</span>)
-                 (equal class <span style="color: #8b2252;">"search-result-item search-result-item_premium search-result-item_premium"</span>)
-                 (equal class <span style="color: #8b2252;">"search-result-item search-result-item_premium  search-result-item_premium"</span>)))
-        #'(<span style="color: #a020f0;">lambda</span> (x) (values
-                       (<span style="color: #a020f0;">let</span> ((in (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (or (equal x nil) (equal x <span style="color: #8b2252;">"noindex"</span>) (equal x <span style="color: #8b2252;">"/noindex"</span>))) **z**))
-                             (rs))
-                         (<span style="color: #a020f0;">if</span> (not (equal 1 (length in)))
-                             (err <span style="color: #8b2252;">"parsing failed, data NOT printed"</span>) <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print in)</span>
-                             (mapcar #'(<span style="color: #a020f0;">lambda</span> (item)
-                                         (<span style="color: #a020f0;">when</span> (and (consp item)
-                                                    (not (null item))
-                                                    (keywordp (car item)))
-                                           (setf rs (append rs item))))
-                                     (car in)))
-                         rs)
-                       #'mapcar))
-        (<span style="color: #a020f0;">with-predict-maptree</span> (a (b c (d e) (f g)) h)
-          (and (equal e <span style="color: #8b2252;">"search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"</span>)
-               (equal g <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)
-               (equal h <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>))
-          #'(<span style="color: #a020f0;">lambda</span> (x) (values nil #'mapcar))
-          (<span style="color: #a020f0;">with-predict-maptree</span>  (a ((b  c ) (d  e) (f  g) (h i) (j k)) l)
-            (and (equal c <span style="color: #8b2252;">"&#1055;&#1088;&#1077;&#1084;&#1080;&#1103; HRBrand"</span>))
-            #'(<span style="color: #a020f0;">lambda</span> (x) (values nil #'mapcar))
-            (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class)) logo)
-              (and (equal class <span style="color: #8b2252;">"search-result-item__image"</span>))
-              #'(<span style="color: #a020f0;">lambda</span> (x) (values nil #'mapcar))
-              (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class) (c d)))
-                (and (equal class <span style="color: #8b2252;">"HH/VacancyResponseTrigger"</span>))
-                #'(<span style="color: #a020f0;">lambda</span> (x) (values nil #'mapcar))
-                (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class) (c d)) z)
-                  (and (equal class <span style="color: #8b2252;">"search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"</span>))
-                  #'(<span style="color: #a020f0;">lambda</span> (x) (values nil #'mapcar))
-                  (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class)))
-                    (and (equal class <span style="color: #8b2252;">"search-result-item__star"</span>))
-                    #'(<span style="color: #a020f0;">lambda</span> (x) (values nil #'mapcar))
-                    (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class)) c d e <span style="color: #228b22;">&amp;optional</span> f)
-                      (and (equal class <span style="color: #8b2252;">"search-result-item__description"</span>))
-                      #'(<span style="color: #a020f0;">lambda</span> (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
-                      (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
-                        (and (equal class <span style="color: #8b2252;">"search-result-item__head"</span>)
-                             (or  (equal e <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard"</span>)
-                                  (equal e <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard_plus"</span>)
-                                  (equal e <span style="color: #8b2252;">"search-result-item__name search-result-item__name_premium"</span>)))
-                        #'(<span style="color: #a020f0;">lambda</span> (x) (values (list <span style="color: #483d8b;">:id</span> **i** <span style="color: #483d8b;">:name</span> **z**) #'mapcar))
-                        (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
-                          (and (equal class <span style="color: #8b2252;">"b-vacancy-list-salary"</span>))
-                          #'(<span style="color: #a020f0;">lambda</span> (x) (values (list <span style="color: #483d8b;">:currency</span> **i** <span style="color: #483d8b;">:salary</span> **n** <span style="color: #483d8b;">:salary-text</span> **z**) #'mapcar))
-                          (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class)) (c ((d e) (f g) (h i)) z))
-                            (and (equal class <span style="color: #8b2252;">"search-result-item__company"</span>))
-                            #'(<span style="color: #a020f0;">lambda</span> (x) (values (list <span style="color: #483d8b;">:emp-id</span> **e** <span style="color: #483d8b;">:emp-name</span> **z**) #'mapcar))
-                            (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class)) <span style="color: #228b22;">&amp;rest</span> rest)
-                              (and (equal class <span style="color: #8b2252;">"search-result-item__info"</span>))
-                              #'(<span style="color: #a020f0;">lambda</span> (x) (values (<span style="color: #a020f0;">let</span> ((rs))
-                                                      (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> **rest** <span style="color: #483d8b;">:do</span>
-                                                         (<span style="color: #a020f0;">when</span> (and (consp item) (keywordp (car item)))
-                                                           (setf rs (append rs item))))
-                                                      rs)
-                                                    #'mapcar))
-                              (<span style="color: #a020f0;">with-predict-maptree</span> (c ((d sr-addr) (qa serp-addr)) city <span style="color: #228b22;">&amp;rest</span> rest)
-                                (and (equal sr-addr <span style="color: #8b2252;">"searchresult__address"</span>)
-                                     (equal serp-addr <span style="color: #8b2252;">"vacancy-serp__vacancy-address"</span>))
-                                #'(<span style="color: #a020f0;">lambda</span> (x) (values (<span style="color: #a020f0;">let</span> ((metro (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item in **rest** <span style="color: #483d8b;">:do</span>
-                                                                      (<span style="color: #a020f0;">when</span> (and (consp item) (equal <span style="color: #483d8b;">:metro</span> (car item)))
-                                                                        (<span style="color: #a020f0;">return</span> (cadr item))))))
-                                                        (list <span style="color: #483d8b;">:city</span> **city** <span style="color: #483d8b;">:metro</span> metro))
-                                                      #'mapcar))
-                                (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class)) (c ((d metro-point) (i j))) metro)
-                                  (and (equal class <span style="color: #8b2252;">"metro-station"</span>)
-                                       (equal metro-point <span style="color: #8b2252;">"metro-point"</span>))
-                                  #'(<span style="color: #a020f0;">lambda</span> (x) (values (list <span style="color: #483d8b;">:metro</span> **metro**) #'mapcar))
-                                  (<span style="color: #a020f0;">with-predict-maptree</span> (a ((b class) (c d)) date)
-                                    (and (equal class <span style="color: #8b2252;">"b-vacancy-list-date"</span>))
-                                    #'(<span style="color: #a020f0;">lambda</span> (x) (values (list <span style="color: #483d8b;">:date</span> **date**) #'mapcar))
-                                    searchblock))))))))))))))))))
+  (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>)) ,@rest) (mapcar #'car rest))
+       (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"data-qa"</span> ,_) (<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item search-result-item_premium  search-result-item_premium"</span>
+                                                   <span style="color: #8b2252;">"search-result-item search-result-item_standard "</span>
+                                                   <span style="color: #8b2252;">"search-result-item search-result-item_standard_plus "</span>))) ,@rest)
+              (<span style="color: #a020f0;">let</span> ((in (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (or (equal x 'z) (equal x <span style="color: #8b2252;">"noindex"</span>) (equal x <span style="color: #8b2252;">"/noindex"</span>))) rest)))
+                (<span style="color: #a020f0;">if</span> (not (equal 1 (length in)))
+                    (<span style="color: #a020f0;">progn</span> (print in)
+                           (err <span style="color: #8b2252;">"parsing failed, data NOT printed"</span>)) <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print in)</span>
+                    in)))
+            (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"</span>)
+                         (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
+                 (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"title"</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1077;&#1084;&#1080;&#1103; HRBrand"</span>) (<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"rel"</span> <span style="color: #8b2252;">"nofollow"</span>)
+                              (<span style="color: #8b2252;">"class"</span> ,_)
+                              (<span style="color: #8b2252;">"data-qa"</span> ,_)) <span style="color: #8b2252;">"&#160;"</span>) 'Z)
+                      (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__image"</span>)) ,_) 'Z)
+                           (mtm (`(<span style="color: #8b2252;">"script"</span> ((<span style="color: #8b2252;">"data-name"</span> <span style="color: #8b2252;">"HH/VacancyResponseTrigger"</span>) (<span style="color: #8b2252;">"data-params"</span> <span style="color: #8b2252;">""</span>))) 'Z)
+                                (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"</span>)
+                                             (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
+                                     (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__star"</span>))) 'Z)
+                                          (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__description"</span>)) ,@rest)
+                                                 (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
+                                               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__head"</span>))
+                                                             (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard"</span>
+                                                                                 <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard_plus"</span>
+                                                                                 <span style="color: #8b2252;">"search-result-item__name search-result-item__name_premium"</span>))
+                                                                   (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-title"</span>) (<span style="color: #8b2252;">"href"</span> ,id) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>)) ,name))
+                                                      (list <span style="color: #483d8b;">:id</span> id <span style="color: #483d8b;">:name</span> name))
+                                                    (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-salary"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-compensation"</span>))
+                                                                  (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
+                                                                  (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,salary))) ,salary-text)
+                                                           (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:salary</span> salary <span style="color: #483d8b;">:salary-text</span> salary-text))
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">test</span>
+                                                         (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>)) ,emp-name)
+                                                                (list <span style="color: #483d8b;">:emp-name</span> emp-name))
+                                                              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>))
+                                                                            (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,emp-id)
+                                                                                  (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company-link"</span>)
+                                                                                  (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-employer"</span>))
+                                                                                 ,emp-name))
+                                                                     (list <span style="color: #483d8b;">:emp-id</span> emp-id <span style="color: #483d8b;">:emp-name</span> emp-name))
+                                                                   (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__info"</span>)) ,@rest)
+                                                                          (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
+                                                                        (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"searchresult__address"</span>)
+                                                                                        (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-address"</span>)) ,city ,@rest)
+                                                                               (<span style="color: #a020f0;">let</span> ((metro (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item in rest <span style="color: #483d8b;">:do</span>
+                                                                                               (<span style="color: #a020f0;">when</span> (and (consp item) (equal <span style="color: #483d8b;">:metro</span> (car item)))
+                                                                                                 (<span style="color: #a020f0;">return</span> (cadr item))))))
+                                                                                 (list <span style="color: #483d8b;">:city</span> city <span style="color: #483d8b;">:metro</span> metro)))
+                                                                             (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-station"</span>))
+                                                                                            (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-point"</span>) (<span style="color: #8b2252;">"style"</span> ,_))) ,metro)
+                                                                                    (list <span style="color: #483d8b;">:metro</span> metro))
+                                                                                  (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-date"</span>)
+                                                                                                  (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-date"</span>)) ,date)
+                                                                                         (list <span style="color: #483d8b;">:date</span> date))
+                                                                                       (mtm (`(<span style="color: #8b2252;">"span"</span>
+                                                                                               ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform"</span>)
+                                                                                                (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_career"</span>))
+                                                                                               <span style="color: #8b2252;">"&#160;&#160;&#8226;&#160;&#160;"</span> (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform__name"</span>))
+                                                                                                               <span style="color: #8b2252;">"CAREER.RU"</span>))
+                                                                                              (list <span style="color: #483d8b;">:platform</span> 'career.ru))
+                                                                                            (print
+                                                                                             (tree-match (html5-parser:node-to-xmls
+                                                                                                          (html5-parser:parse-html5-fragment html))
+                                                                                                         #'(<span style="color: #a020f0;">lambda</span> (in)
+                                                                                                             (match in (`(<span style="color: #8b2252;">"div"</span>
+                                                                                                                          ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>)
+                                                                                                                           (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>))
+                                                                                                                          ,@rest)
+                                                                                                                         rest))))))))))))))))))))))))
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
-<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(car</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">;; (car</span>
 <span style="color: #b22222;">;;   </span><span style="color: #b22222;">(hh-parse-vacancy-teasers</span>
-<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=0"))))</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=12")))</span>
 </pre>
 </div>
 </div>
 
 <div id="outline-container-sec-2-10-1" class="outline-4">
-<h4 id="sec-2-10-1"><span class="section-number-4">2.10.1</span> Обход дерева и извлечение узлов</h4>
+<h4 id="sec-2-10-1"><span class="section-number-4">2.10.1</span> Трансформация дерева</h4>
 <div class="outline-text-4" id="text-2-10-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="maptree_transform">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1042;&#1082;&#1083;&#1102;&#1095;&#1072;&#1077;&#1084; &#1089;&#1087;&#1077;&#1094;&#1080;&#1072;&#1083;&#1100;&#1085;&#1099;&#1081; &#1089;&#1080;&#1085;&#1090;&#1072;&#1082;&#1089;&#1080;&#1089; &#1076;&#1083;&#1103; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;&#1086;&#1074;</span>
+(ql:quickload '(<span style="color: #8b2252;">"fare-quasiquote-optima"</span> <span style="color: #8b2252;">"fare-quasiquote-readtable"</span>))
+(named-readtables:in-readtable <span style="color: #483d8b;">:fare-quasiquote</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1069;&#1090;&#1086; &#1072;&#1085;&#1072;&#1083;&#1086;&#1075; maptree-if, &#1085;&#1086; &#1079;&#1076;&#1077;&#1089;&#1100; &#1086;&#1076;&#1085;&#1072; &#1092;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1080; &#1080;&#1097;&#1077;&#1090; &#1080; &#1090;&#1088;&#1072;&#1085;&#1089;&#1092;&#1086;&#1088;&#1084;&#1080;&#1088;&#1091;&#1077;&#1090; &#1091;&#1079;&#1077;&#1083; &#1076;&#1077;&#1088;&#1077;&#1074;&#1072;</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">maptree</span> (predicate-transformer tree)
+  (<span style="color: #a020f0;">multiple-value-bind</span> (t-tree control)
+      (aif (funcall predicate-transformer tree)
+           it
+           (values tree #'mapcar))
+    (<span style="color: #a020f0;">if</span> (and (consp t-tree)
+             control)
+        (funcall control
+                 #'(<span style="color: #a020f0;">lambda</span> (x)
+                     (maptree predicate-transformer x))
+                 t-tree)
+        t-tree)))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">maptree-transformer - &#1089;&#1080;&#1085;&#1090;&#1072;&#1082;&#1089;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1089;&#1072;&#1093;&#1072;&#1088; &#1076;&#1083;&#1103; maptree</span>
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">mtm</span> (transformer tree)
+  (<span style="color: #a020f0;">let</span> ((lambda-param (gensym)))
+    `(maptree #'(<span style="color: #a020f0;">lambda</span> (,lambda-param)
+                  (values (and <span style="color: #b22222;">;;</span><span style="color: #b22222;">(consp ,lambda-param)</span>
+                           (match ,lambda-param ,transformer))
+                          #'mapcar))
+              ,tree)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-10-2" class="outline-4">
+<h4 id="sec-2-10-2"><span class="section-number-4">2.10.2</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
+<div class="outline-text-4" id="text-2-10-2">
 <p>
 Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
 разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -1091,7 +1113,8 @@ for the JavaScript code in this tag.
 </li>
 <li><code>predict</code> - функция-предикат, которая может совпасть с обходимым поддеревом
 </li>
-<li><code>if-match</code> - параметр чтобы иметь возможность передавать стратегию
+<li><code>if-match</code> - параметр чтобы иметь возможность передавать <code>стратегию</code>. Про стратегии
+поговорим чуть позже.
 </li>
 </ul>
 
@@ -1130,12 +1153,16 @@ for the JavaScript code in this tag.
 </div>
 
 <p>
+<b>Теперь о стратегиях</b>
+</p>
+
+<p>
 В случае, когда узел совпал с <code>predict</code> мы можем реализовать следующие стратегии:
 </p>
 <ul class="org-ul">
 <li>Немедленно вернуть совпавший узел и более не обрабатывать никакие узлы.
 </li>
-<li>Прекратить обработку всех подузлов сопавшего узла, запомнить его и перейти к обработке
+<li>Прекратить обработку всех подузлов совпавшего узла, запомнить его и перейти к обработке
 следующего за ним.
 </li>
 <li>Запомнить совпавший узел и продолжить обработку вглубь совпавшего узла, а затем и всех
@@ -1161,11 +1188,11 @@ for the JavaScript code in this tag.
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="match_ok">(<span style="color: #a020f0;">cond</span> ((equal if-match <span style="color: #483d8b;">:return-first-match</span>)
-       &lt;&lt;return-first-match&gt;&gt;)
+       &lt;&lt;return_first_match&gt;&gt;)
       ((equal if-match <span style="color: #483d8b;">:return-first-level-match</span>)
-       &lt;&lt;return-first-level-match&gt;&gt;)
+       &lt;&lt;return_first_level_match&gt;&gt;)
       ((equal if-match <span style="color: #483d8b;">:return-all-match</span>)
-       &lt;&lt;return-all-match&gt;&gt;)
+       &lt;&lt;return_all_match&gt;&gt;)
       ((equal 'function (type-of if-match))
        (funcall if-match tree))
       (t (<span style="color: #ff0000; font-weight: bold;">error</span> 'strategy-not-implemented)))
@@ -1181,13 +1208,13 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="return-first-match">(<span style="color: #a020f0;">return-from</span> tree-match tree)
+<pre class="src src-lisp" id="return_first_match">(<span style="color: #a020f0;">return-from</span> tree-match tree)
 </pre>
 </div>
 
 <p>
 Теперь переходим ко второй стратегии - прекратить обработку всех подузлов сопавшего
-узла, запомнить его и перейти к обработке следующего за ним. Нам понадобиться переменная
+узла, запомнить его и перейти к обработке следующего за ним. Нам понадобится переменная
 <code>collect</code> чтобы хранить значения, запомним это и реализуем добавление узла в нее. После
 того, как узел сохранен, мы не проводим обработку его под-деревьев, а переходим в
 следующему узлу этого уровня.
@@ -1195,7 +1222,7 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="return-first-level-match">(setf collect
+<pre class="src src-lisp" id="return_first_level_match">(setf collect
       (append collect (list tree)))
 </pre>
 </div>
@@ -1207,9 +1234,9 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="return-all-match">(<span style="color: #a020f0;">progn</span>
-  &lt;&lt;return-first-level-match&gt;&gt;
-  &lt;&lt;sub_trees&gt;&gt;)
+<pre class="src src-lisp" id="return_all_match">(<span style="color: #a020f0;">progn</span>
+    &lt;&lt;return_first_level_match&gt;&gt;
+    &lt;&lt;sub_trees&gt;&gt;)
 </pre>
 </div>
 
@@ -1234,7 +1261,7 @@ collect
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="tree-match">(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">tree-match</span> (tree predict <span style="color: #228b22;">&amp;optional</span> (if-match <span style="color: #483d8b;">:return-first-match</span>))
+<pre class="src src-lisp" id="tree_match">(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">tree-match</span> (tree predict <span style="color: #228b22;">&amp;optional</span> (if-match <span style="color: #483d8b;">:return-first-match</span>))
   (<span style="color: #a020f0;">let</span> ((collect))
     &lt;&lt;cond_tree&gt;&gt;))
 </pre>
@@ -1244,13 +1271,13 @@ collect
 Но для удобной работы этого недостаточно, поэтому напишем компилер шаблона в
 соответствующий ему <code>predict</code>. Этот компилер будет принимать в качестве параметра форму,
 которая будет связываться с элементами шаблона с помощью <code>destructuring-bind</code>. Попытка
-связывания будет проводиться для каждого элемента дерева, ошибки, которые возникают в
+связывания будет проводиться для каждого элемента дерева. Ошибки, которые возникают в
 случае невозможности связывания, игнорируются.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="with-predict">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="with_predict">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">with-predict</span> (pattern <span style="color: #228b22;">&amp;body</span> body)
   (<span style="color: #a020f0;">let</span> ((lambda-param (gensym)))
@@ -1317,7 +1344,7 @@ collect
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="with-predict-if">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="with_predict_if">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">with-predict-if</span> (pattern <span style="color: #228b22;">&amp;body</span> condition)
   `(<span style="color: #a020f0;">with-predict</span> ,pattern
@@ -1357,7 +1384,7 @@ collect
 </p>
 
 <p>
-Теперь мы можем вызывать <code>compile-pattern</code> так:
+Теперь мы можем использовать <code>tree-match</code> так:
 </p>
 
 <div class="org-src-container">
@@ -1395,7 +1422,7 @@ collect
 </div>
 
 <div id="outline-container-sec-2-11" class="outline-3">
-<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Разбор вакансий</h3>
+<h3 id="sec-2-11"><span class="section-number-3">2.11</span> <span class="todo WAIT">WAIT</span> Разбор вакансий</h3>
 <div class="outline-text-3" id="text-2-11">
 <p>
 Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
@@ -1404,7 +1431,7 @@ collect
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="transform-description">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="transform_description">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">transform-description</span> (tree-descr)
   (<span style="color: #a020f0;">let</span> ((result)
@@ -1450,9 +1477,9 @@ collect
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="hh_parse_vacancy_teasers">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="hh_parse_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-&lt;&lt;transform-description&gt;&gt;
+&lt;&lt;transform_description&gt;&gt;
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy</span> (html)
   <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080; &#1080;&#1079; html"</span>
@@ -1499,7 +1526,7 @@ collect
 </div>
 
 <div id="outline-container-sec-2-11-1" class="outline-4">
-<h4 id="sec-2-11-1"><span class="section-number-4">2.11.1</span> Сопоставление и преобразование узлов</h4>
+<h4 id="sec-2-11-1"><span class="section-number-4">2.11.1</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
 <div class="outline-text-4" id="text-2-11-1">
 <p>
 Разбирая вакансию мы должны извлечь несколько блоков:
@@ -3635,21 +3662,13 @@ TODO: Конечный автомат тут сложен и будет еще �
 
 <pre class="src src-lisp" id="hh_fn">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-&lt;&lt;factory&gt;&gt;
-
-&lt;&lt;define_rule&gt;&gt;
-
-&lt;&lt;process&gt;&gt;
-
-&lt;&lt;process_teaser_around&gt;&gt;
-
 &lt;&lt;run&gt;&gt;
 
-&lt;&lt;hh_fn_contents&gt;&gt;
+&lt;&lt;_hh_fn_contents&gt;&gt;
 
-&lt;&lt;hh_parse&gt;&gt;
+&lt;&lt;_hh_parse&gt;&gt;
 
-&lt;&lt;hh_test&gt;&gt;
+&lt;&lt;_hh_test&gt;&gt;
 </pre>
 </div>
 </div>
@@ -4394,7 +4413,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-17 Сб. 05:58</p>
+<p class="date">Created: 2015-01-17 Сб. 13:10</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

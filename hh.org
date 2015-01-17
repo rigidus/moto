@@ -325,6 +325,14 @@
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
+    <<define_rule>>
+
+    <<process>>
+
+    <<process_teaser_around>>
+
+    <<factory>>
+
     (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
                         "Программирование, Разработка")))
       (loop :for i :from 1 :to 100 :do
@@ -438,7 +446,7 @@
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
-    <<make-specialization-hh-url-string>>
+    <<make_specialization_hh_url_string>>
 
     (defun make-hh-url (city prof-area &optional specs)
       (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
@@ -462,7 +470,7 @@
     По этой причине мы должны иметь дерево специализаций и транслятор названий специализаций
     в их номера.
 
-    #+NAME: make-specialization-hh-url-string
+    #+NAME: make_specialization_hh_url_string
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
@@ -600,8 +608,6 @@
 
 ** Разбор тизеров вакансий
 
-   *TODO: Необходимо разработать более удобное сопоставление с образцом*
-
    Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
    который переведет полученный html в более удобное лисп-дерево. Используя сопоставление с
    образцом мы раз за разом преобразуем его до тех пор, пока там не остануться только
@@ -624,108 +630,121 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     <<tree-match>>
-
-     <<with-predict>>
-
-     <<with-predict-if>>
+     <<maptree_transform>>
 
      (defun hh-parse-vacancy-teasers (html)
        "Получение списка вакансий из html"
-       (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-              (searchblock (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
-                                              (string= c "search-result")))))
-         (with-predict-maptree (a ((b class) (c d)) &rest z)
-           (and (equal class "search-result"))
-           #'(lambda (x) (values **z** #'mapcar))
-           (with-predict-maptree
-               (a ((b c) (d class)) &rest z)
-             (and (or (equal class "search-result-item search-result-item_standard ")
-                      (equal class "search-result-item search-result-item_standard_plus ")
-                      (equal class "search-result-item search-result-item_premium search-result-item_premium")
-                      (equal class "search-result-item search-result-item_premium  search-result-item_premium")))
-             #'(lambda (x) (values
-                            (let ((in (remove-if #'(lambda (x) (or (equal x nil) (equal x "noindex") (equal x "/noindex"))) **z**))
-                                  (rs))
-                              (if (not (equal 1 (length in)))
-                                  (err "parsing failed, data NOT printed") ;; (print in)
-                                  (mapcar #'(lambda (item)
-                                              (when (and (consp item)
-                                                         (not (null item))
-                                                         (keywordp (car item)))
-                                                (setf rs (append rs item))))
-                                          (car in)))
-                              rs)
-                            #'mapcar))
-             (with-predict-maptree (a (b c (d e) (f g)) h)
-               (and (equal e "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
-                    (equal g "vacancy-serp__vacancy_responded")
-                    (equal h "Вы откликнулись"))
-               #'(lambda (x) (values nil #'mapcar))
-               (with-predict-maptree  (a ((b  c ) (d  e) (f  g) (h i) (j k)) l)
-                 (and (equal c "Премия HRBrand"))
-                 #'(lambda (x) (values nil #'mapcar))
-                 (with-predict-maptree (a ((b class)) logo)
-                   (and (equal class "search-result-item__image"))
-                   #'(lambda (x) (values nil #'mapcar))
-                   (with-predict-maptree (a ((b class) (c d)))
-                     (and (equal class "HH/VacancyResponseTrigger"))
-                     #'(lambda (x) (values nil #'mapcar))
-                     (with-predict-maptree (a ((b class) (c d)) z)
-                       (and (equal class "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"))
-                       #'(lambda (x) (values nil #'mapcar))
-                       (with-predict-maptree (a ((b class)))
-                         (and (equal class "search-result-item__star"))
-                         #'(lambda (x) (values nil #'mapcar))
-                         (with-predict-maptree (a ((b class)) c d e &optional f)
-                           (and (equal class "search-result-item__description"))
-                           #'(lambda (x) (values (remove-if #'null (list **c** **d** **e** **f**)) #'mapcar))
-                           (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i) (j k)) z))
-                             (and (equal class "search-result-item__head")
-                                  (or  (equal e "search-result-item__name search-result-item__name_standard")
-                                       (equal e "search-result-item__name search-result-item__name_standard_plus")
-                                       (equal e "search-result-item__name search-result-item__name_premium")))
-                             #'(lambda (x) (values (list :id **i** :name **z**) #'mapcar))
-                             (with-predict-maptree (a ((b class) (c d)) (e ((f g) (h i))) (j ((k l) (m n))) z)
-                               (and (equal class "b-vacancy-list-salary"))
-                               #'(lambda (x) (values (list :currency **i** :salary **n** :salary-text **z**) #'mapcar))
-                               (with-predict-maptree (a ((b class)) (c ((d e) (f g) (h i)) z))
-                                 (and (equal class "search-result-item__company"))
-                                 #'(lambda (x) (values (list :emp-id **e** :emp-name **z**) #'mapcar))
-                                 (with-predict-maptree (a ((b class)) &rest rest)
-                                   (and (equal class "search-result-item__info"))
-                                   #'(lambda (x) (values (let ((rs))
-                                                           (loop :for item :in **rest** :do
-                                                              (when (and (consp item) (keywordp (car item)))
-                                                                (setf rs (append rs item))))
-                                                           rs)
-                                                         #'mapcar))
-                                   (with-predict-maptree (c ((d sr-addr) (qa serp-addr)) city &rest rest)
-                                     (and (equal sr-addr "searchresult__address")
-                                          (equal serp-addr "vacancy-serp__vacancy-address"))
-                                     #'(lambda (x) (values (let ((metro (loop :for item in **rest** :do
-                                                                           (when (and (consp item) (equal :metro (car item)))
-                                                                             (return (cadr item))))))
-                                                             (list :city **city** :metro metro))
-                                                           #'mapcar))
-                                     (with-predict-maptree (a ((b class)) (c ((d metro-point) (i j))) metro)
-                                       (and (equal class "metro-station")
-                                            (equal metro-point "metro-point"))
-                                       #'(lambda (x) (values (list :metro **metro**) #'mapcar))
-                                       (with-predict-maptree (a ((b class) (c d)) date)
-                                         (and (equal class "b-vacancy-list-date"))
-                                         #'(lambda (x) (values (list :date **date**) #'mapcar))
-                                         searchblock))))))))))))))))))
+       (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) (mapcar #'car rest))
+            (mtm (`("div" (("data-qa" ,_) ("class" ,(or "search-result-item search-result-item_premium  search-result-item_premium"
+                                                        "search-result-item search-result-item_standard "
+                                                        "search-result-item search-result-item_standard_plus "))) ,@rest)
+                   (let ((in (remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
+                     (if (not (equal 1 (length in)))
+                         (progn (print in)
+                                (err "parsing failed, data NOT printed")) ;; (print in)
+                         in)))
+                 (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
+                              ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
+                      (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
+                                   ("class" ,_)
+                                   ("data-qa" ,_)) " ") 'Z)
+                           (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
+                                (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
+                                     (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
+                                                  ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
+                                          (mtm (`("div" (("class" "search-result-item__star"))) 'Z)
+                                               (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
+                                                      (loop :for item :in rest :when (consp item) :append item))
+                                                    (mtm (`("div" (("class" "search-result-item__head"))
+                                                                  ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
+                                                                                      "search-result-item__name search-result-item__name_standard_plus"
+                                                                                      "search-result-item__name search-result-item__name_premium"))
+                                                                        ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
+                                                           (list :id id :name name))
+                                                         (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
+                                                                       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                                       ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
+                                                                (list :currency currency :salary salary :salary-text salary-text))
 
-     ;; test
+                                                              (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
+                                                                     (list :emp-name emp-name))
+                                                                   (mtm (`("div" (("class" "search-result-item__company"))
+                                                                                 ("a" (("href" ,emp-id)
+                                                                                       ("class" "search-result-item__company-link")
+                                                                                       ("data-qa" "vacancy-serp__vacancy-employer"))
+                                                                                      ,emp-name))
+                                                                          (list :emp-id emp-id :emp-name emp-name))
+                                                                        (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
+                                                                               (loop :for item :in rest :when (consp item) :append item))
+                                                                             (mtm (`("span" (("class" "searchresult__address")
+                                                                                             ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
+                                                                                    (let ((metro (loop :for item in rest :do
+                                                                                                    (when (and (consp item) (equal :metro (car item)))
+                                                                                                      (return (cadr item))))))
+                                                                                      (list :city city :metro metro)))
+                                                                                  (mtm (`("span" (("class" "metro-station"))
+                                                                                                 ("span" (("class" "metro-point") ("style" ,_))) ,metro)
+                                                                                         (list :metro metro))
+                                                                                       (mtm (`("span" (("class" "b-vacancy-list-date")
+                                                                                                       ("data-qa" "vacancy-serp__vacancy-date")) ,date)
+                                                                                              (list :date date))
+                                                                                            (mtm (`("span"
+                                                                                                    (("class" "vacancy-list-platform")
+                                                                                                     ("data-qa" "vacancy-serp__vacancy_career"))
+                                                                                                    "  •  " ("span" (("class" "vacancy-list-platform__name"))
+                                                                                                                    "CAREER.RU"))
+                                                                                                   (list :platform 'career.ru))
+                                                                                                 (print
+                                                                                                  (tree-match (html5-parser:node-to-xmls
+                                                                                                               (html5-parser:parse-html5-fragment html))
+                                                                                                              #'(lambda (in)
+                                                                                                                  (match in (`("div"
+                                                                                                                               (("class" "search-result")
+                                                                                                                                ("data-qa" "vacancy-serp__results"))
+                                                                                                                               ,@rest)
+                                                                                                                              rest))))))))))))))))))))))))
 
      ;; (print
-     ;;  (car
+     ;;  ;; (car
      ;;   (hh-parse-vacancy-teasers
-     ;;    (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=0"))))
-    #+END_SRC
+     ;;    (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
+   #+END_SRC
 
-*** Обход дерева и извлечение узлов
+*** Трансформация дерева
+
+   #+NAME: maptree_transform
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; Включаем специальный синтаксис для шаблонов
+     (ql:quickload '("fare-quasiquote-optima" "fare-quasiquote-readtable"))
+     (named-readtables:in-readtable :fare-quasiquote)
+
+     ;; Это аналог maptree-if, но здесь одна функция и ищет и трансформирует узел дерева
+     (defun maptree (predicate-transformer tree)
+       (multiple-value-bind (t-tree control)
+           (aif (funcall predicate-transformer tree)
+                it
+                (values tree #'mapcar))
+         (if (and (consp t-tree)
+                  control)
+             (funcall control
+                      #'(lambda (x)
+                          (maptree predicate-transformer x))
+                      t-tree)
+             t-tree)))
+
+     ;; maptree-transformer - синтаксический сахар для maptree
+     (defmacro mtm (transformer tree)
+       (let ((lambda-param (gensym)))
+         `(maptree #'(lambda (,lambda-param)
+                       (values (and ;;(consp ,lambda-param)
+                                (match ,lambda-param ,transformer))
+                               #'mapcar))
+                   ,tree)))
+  #+END_SRC
+
+*** WAIT Обход дерева и извлечение узлов
 
     Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
     разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -739,7 +758,8 @@
     Определим параметры этой функции:
     - =tree= - под-дерево, которое мы рекурсивно обходим
     - =predict= - функция-предикат, которая может совпасть с обходимым поддеревом
-    - =if-match= - параметр чтобы иметь возможность передавать стратегию
+    - =if-match= - параметр чтобы иметь возможность передавать =стратегию=. Про стратегии
+      поговорим чуть позже.
 
     #+NAME: cond_tree
     #+BEGIN_SRC lisp
@@ -770,9 +790,11 @@
        (funcall #'match-tree (cdr tree) f-predict if-match))
     #+END_SRC
 
+    *Теперь о стратегиях*
+
     В случае, когда узел совпал с =predict= мы можем реализовать следующие стратегии:
     - Немедленно вернуть совпавший узел и более не обрабатывать никакие узлы.
-    - Прекратить обработку всех подузлов сопавшего узла, запомнить его и перейти к обработке
+    - Прекратить обработку всех подузлов совпавшего узла, запомнить его и перейти к обработке
       следующего за ним.
     - Запомнить совпавший узел и продолжить обработку вглубь совпавшего узла, а затем и всех
       остальных узлов.
@@ -790,11 +812,11 @@
     #+NAME: match_ok
     #+BEGIN_SRC lisp
       (cond ((equal if-match :return-first-match)
-             <<return-first-match>>)
+             <<return_first_match>>)
             ((equal if-match :return-first-level-match)
-             <<return-first-level-match>>)
+             <<return_first_level_match>>)
             ((equal if-match :return-all-match)
-             <<return-all-match>>)
+             <<return_all_match>>)
             ((equal 'function (type-of if-match))
              (funcall if-match tree))
             (t (error 'strategy-not-implemented)))
@@ -805,18 +827,18 @@
     возвращаться из нее, а не из текущего рекурсивного вызова =match-tree=. Мы сделаем это
     несколько позже, а пока заполним плейсхолдер =return-first-match=:
 
-    #+NAME: return-first-match
+    #+NAME: return_first_match
     #+BEGIN_SRC lisp
       (return-from tree-match tree)
     #+END_SRC
 
     Теперь переходим ко второй стратегии - прекратить обработку всех подузлов сопавшего
-    узла, запомнить его и перейти к обработке следующего за ним. Нам понадобиться переменная
+    узла, запомнить его и перейти к обработке следующего за ним. Нам понадобится переменная
     =collect= чтобы хранить значения, запомним это и реализуем добавление узла в нее. После
     того, как узел сохранен, мы не проводим обработку его под-деревьев, а переходим в
     следующему узлу этого уровня.
 
-    #+NAME: return-first-level-match
+    #+NAME: return_first_level_match
     #+BEGIN_SRC lisp
       (setf collect
             (append collect (list tree)))
@@ -825,10 +847,10 @@
     И наконец, реализуем последнюю оставшуюся стратегию, которая представляет из себя
     расширение предыдущей, но с обработкой вложенных узлов. Так и запишем:
 
-    #+NAME: return-all-match
+    #+NAME: return_all_match
     #+BEGIN_SRC lisp
-      (progn
-        <<return-first-level-match>>
+    (progn
+        <<return_first_level_match>>
         <<sub_trees>>)
     #+END_SRC
 
@@ -846,7 +868,7 @@
 
     Осталось обернуть это все во внешнюю функцию, с аккумулятором:
 
-    #+NAME: tree-match
+    #+NAME: tree_match
     #+BEGIN_SRC lisp
       (defun tree-match (tree predict &optional (if-match :return-first-match))
         (let ((collect))
@@ -856,10 +878,10 @@
     Но для удобной работы этого недостаточно, поэтому напишем компилер шаблона в
     соответствующий ему =predict=. Этот компилер будет принимать в качестве параметра форму,
     которая будет связываться с элементами шаблона с помощью =destructuring-bind=. Попытка
-    связывания будет проводиться для каждого элемента дерева, ошибки, которые возникают в
+    связывания будет проводиться для каждого элемента дерева. Ошибки, которые возникают в
     случае невозможности связывания, игнорируются.
 
-    #+NAME: with-predict
+    #+NAME: with_predict
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
@@ -919,7 +941,7 @@
     Для еще большей лаконичности мы можем определить оборачивающий макрос, который позволит
     нам не писать ничего, кроме условия в =aif=:
 
-    #+NAME: with-predict-if
+    #+NAME: with_predict_if
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
@@ -957,7 +979,7 @@
     Таким образом мы инжектируем переменные шаблона в глобальную область видимости, если они
     не определены в более высокоуровневом =let=.
 
-    Теперь мы можем вызывать =compile-pattern= так:
+    Теперь мы можем использовать =tree-match= так:
 
     #+BEGIN_SRC lisp
       (in-package #:moto)
@@ -988,12 +1010,12 @@
       ;; => "l-cell"
     #+END_SRC
 
-** Разбор вакансий
+** WAIT Разбор вакансий
 
     Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
     лишнего:
 
-    #+NAME: transform-description
+    #+NAME: transform_description
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
@@ -1036,11 +1058,11 @@
 
     И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
 
-    #+NAME: hh_parse_vacancy_teasers
+    #+NAME: hh_parse_vacancy
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      <<transform-description>>
+      <<transform_description>>
 
       (defun hh-parse-vacancy (html)
         "Получение вакансии из html"
@@ -1084,7 +1106,7 @@
       ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
     #+END_SRC
 
-*** Сопоставление и преобразование узлов
+*** WAIT Сопоставление и преобразование узлов
 
     Разбирая вакансию мы должны извлечь несколько блоков:
     - блок заголовка
@@ -2392,21 +2414,13 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle
     (in-package #:moto)
 
-    <<factory>>
-
-    <<define_rule>>
-
-    <<process>>
-
-    <<process_teaser_around>>
-
     <<run>>
 
-    <<hh_fn_contents>>
+    <<_hh_fn_contents>>
 
-    <<hh_parse>>
+    <<_hh_parse>>
 
-    <<hh_test>>
+    <<_hh_test>>
   #+END_SRC
 
 * Сборка
