@@ -1,5 +1,7 @@
 (in-package #:moto)
 
+(named-readtables:in-readtable :fare-quasiquote)
+
 (in-package #:moto)
 
 (in-package #:moto)
@@ -263,10 +265,6 @@
 
 (in-package #:moto)
 
-;; Включаем специальный синтаксис для шаблонов
-(ql:quickload '("fare-quasiquote-optima" "fare-quasiquote-readtable"))
-(named-readtables:in-readtable :fare-quasiquote)
-
 ;; Это аналог maptree-if, но здесь одна функция и ищет и трансформирует узел дерева
 (defun maptree (predicate-transformer tree)
   (multiple-value-bind (t-tree control)
@@ -368,96 +366,6 @@
 
 (in-package #:moto)
 
-(in-package #:moto)
-
-(defmacro with-predict (pattern &body body)
-  (let ((lambda-param (gensym)))
-    `#'(lambda (,lambda-param)
-         (handler-case
-             (destructuring-bind ,pattern
-                 ,lambda-param
-               ,@body)
-           (sb-kernel::arg-count-error nil)
-           (sb-kernel::defmacro-bogus-sublist-error nil)))))
-
-;; (macroexpand-1 '
-;;  (with-predict (a ((b c)) d &rest e)
-;;    (aif (and (string= a "div")
-;;              (string= c "title b-vacancy-title"))
-;;         (prog1 it
-;;           (setf **a** a)
-;;           (setf **b** b)))))
-
-;; => #'(LAMBDA (LAMBDA-PARAM)
-;;        (HANDLER-CASE
-;;            (DESTRUCTURING-BIND
-;;                  (A ((B C)) D &REST E)
-;;                LAMBDA-PARAM
-;;              (AIF (AND (STRING= A "div") (STRING= C "title b-vacancy-title"))
-;;                   (PROG1 IT (SETF **A** A) (SETF **B** B))))
-;;          (SB-KERNEL::ARG-COUNT-ERROR NIL)
-;;          (SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T
-
-(defmacro with-predict-if (pattern &body condition)
-  `(with-predict ,pattern
-     (aif ,@condition
-          (prog1 it
-            ,@(mapcar #'(lambda (x)
-                          `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
-                      (remove-if #'(lambda (x)
-                                     (or (equal x '&rest)
-                                         (equal x '&optional)
-                                         (equal x '&body)
-                                         (equal x '&key)
-                                         (equal x '&allow-other-keys)
-                                         (equal x '&environment)
-                                         (equal x '&aux)
-                                         (equal x '&whole)
-                                         (equal x '&allow-other-keys)))
-                                 (alexandria:flatten pattern)))))))
-
-;; (macroexpand-1 '
-;;  (with-predict-if (a b &rest c)
-;;    (and (stringp a)
-;;         (string= a "class"))))
-
-;; => (WITH-PREDICT (A B &REST C)
-;;      (AIF (AND (STRINGP A) (STRING= A "class"))
-;;           (PROG1 IT
-;;             (SETF **A** A)
-;;             (SETF **B** B)
-;;             (SETF **C** C))))
-
-(defun tree-match (tree predict &optional (if-match :return-first-match))
-  (let ((collect))
-    (labels ((match-tree (tree f-predict &optional (if-match :return-first-match))
-             (cond ((null tree) nil)
-                   ((atom tree) nil)
-                   (t
-                    (if (funcall f-predict tree)
-                        (cond ((equal if-match :return-first-match)
-                               (return-from tree-match tree))
-                              ((equal if-match :return-first-level-match)
-                               (setf collect
-                                     (append collect (list tree))))
-                              ((equal if-match :return-all-match)
-                               (progn
-                                   (setf collect
-                                         (append collect (list tree)))
-                                   (cons
-                                    (funcall #'match-tree (car tree) f-predict if-match)
-                                    (funcall #'match-tree (cdr tree) f-predict if-match))))
-                              ((equal 'function (type-of if-match))
-                               (funcall if-match tree))
-                              (t (error 'strategy-not-implemented)))
-                        (cons
-                         (funcall #'match-tree (car tree) f-predict if-match)
-                         (funcall #'match-tree (cdr tree) f-predict if-match)))))))
-      (match-tree tree predict if-match)
-      collect)))
-
-(in-package #:moto)
-
 (defun transform-description (tree-descr)
   (let ((result)
         (header))
@@ -470,115 +378,59 @@
                            (setf result (append result (list (list header item))))
                            (setf header nil)))
                         (t (setf result (append result (list item)))))))
-            (cddr
-             (with-predict-maptree (ul nil-1 &rest tail)
-                    (and (or (equal ul "ul")
-                             (equal ul "p"))
-                         (equal nil-1 'nil))
-                    #'(lambda (x)
-                        (values (remove-if #'(lambda (y)
-                                               (and (not (consp y)) (equal y " ")))
-                                           **tail**)
-                                #'mapcar))
-                    (with-predict-maptree (tag nil-1 point)
-                      (and (or (equal tag "li")
-                               (equal tag "em"))
-                           (equal nil-1 'nil))
-                      #'(lambda (x)
-                          (values **point** #'mapcar))
-                      (with-predict-maptree (tag nil-1 point)
-                        (and (equal tag "strong")
-                             (equal nil-1 'nil))
-                        #'(lambda (x)
-                            (values **point** #'mapcar))
-                        tree-descr)))))
-    result))
+            (mtm (`" " 'Z)
+                 (mtm (`("br" NIL) 'Z)
+                      (mtm (`(,(or "ul" "p") NIL ,@rest)
+                             (remove-if #'(lambda (x) (and (not (consp x)) (equal x " "))) rest))
+                           (mtm (`(,(or "li" "em") NIL ,in) in)
+                                (mtm (`("strong" NIL ,in) in) *tree-descr*))))))
+    (labels ((tmp (tree)
+               (cond  ((consp tree) (remove-if #'(lambda (x) (equal x 'z))
+                                               (cons (tmp (car tree))
+                                                     (tmp (cdr tree)))))
+                      (t tree))))
+      (tmp result))))
 
-;; (defun hh-parse-vacancy (html)
-;;   "Получение вакансии из html"
-;;   (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-;;          (header (block header-extract
-;;                    (mtm (`("div" (("class" "b-vacancy-custom g-round"))
-;;                                  ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
-;;                                  ("h1" (("class" "title b-vacancy-title")) ,name ,@archive)
-;;                                  ,@rest
-;;                                  ;; ("table" (("class" "l"))
-;;                                  ;;          ("tbody" NIL
-;;                                  ;;                   ("tr" NIL
-;;                                  ;;                         ("td" (("colspan" "2") ("class" "l-cell"))
-;;                                  ;;                               ("div" (("class" "employer-marks g-clearfix"))
-;;                                  ;;                                      ("div" (("class" "companyname"))
-;;                                  ;;                                             ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk))
-;;                                  ;;                                                  ,emp-name))))
-;;                                  ;;                         ("td" (("class" "l-cell"))))))
-;;                                  )
-;;                           (return-from header-extract ;; (list :name name :archive archive :emp-lnk emp-lnk :emp-name emp-name)
-;;                             (list :name name :archive archive :rest rest)
-;;                             ))
-;;                         tree)))
-;;            ;; (tree-match tree (with-predict-if (a ((b c)) &rest d)
-;;            ;;                          (string= c "b-vacancy-custom g-round")))
-;;            )
-;;          ;; (summary (tree-match tree (with-predict-if (a ((b c)) &rest d)
-;;          ;;                             (string= c "b-important b-vacancy-info"))))
-;;          ;; (infoblock (tree-match tree (with-predict-if (a ((b c)) &rest d)
-;;          ;;                               (string= c "l-content-2colums b-vacancy-container"))))
-;;          ;; (h1 (tree-match header (with-predict-if (a ((b c)) name &rest archive-block)
-;;          ;;                          (string= c "title b-vacancy-title"))))
-;;          ;; (employerblock (tree-match header (with-predict-if (a ((b c) (d emp-lnk)) emp-name)
-;;          ;;                                     (string= c "hiringOrganization"))))
-;;          ;; (salaryblock (tree-match summary (with-predict-if (a ((b c))
-;;          ;;                                                      (d ((e f) (g currency)))
-;;          ;;                                                      (h ((i j) (k base-salary)))
-;;          ;;                                                      salary-text)
-;;          ;;                                    (string= f "salaryCurrency"))))
-;;          ;; (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
-;;          ;;                                  (string= c "l-content-colum-2 b-v-info-content"))))
-;;          ;; (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
-;;          ;;                                 (string= e "experienceRequirements"))))
-;;     header))
-
-
-(defun hh-parse-vacancy (html)
-  "Получение вакансии из html"
-  (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-         (header (tree-match tree (with-predict-if (a ((b c)) &rest d)
-                                    (string= c "b-vacancy-custom g-round"))))
-         (summary (tree-match tree (with-predict-if (a ((b c)) &rest d)
-                                     (string= c "b-important b-vacancy-info"))))
-         (infoblock (tree-match tree (with-predict-if (a ((b c)) &rest d)
-                                       (string= c "l-content-2colums b-vacancy-container"))))
-         (h1 (tree-match header (with-predict-if (a ((b c)) name &rest archive-block)
-                                  (string= c "title b-vacancy-title"))))
-         (employerblock (tree-match header (with-predict-if (a ((b c) (d emp-lnk)) emp-name)
-                                             (string= c "hiringOrganization"))))
-         (salaryblock (tree-match summary (with-predict-if (a ((b c))
-                                                              (d ((e f) (g currency)))
-                                                              (h ((i j) (k base-salary)))
-                                                              salary-text)
-                                            (string= f "salaryCurrency"))))
-         (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
-                                          (string= c "l-content-colum-2 b-v-info-content"))))
-         (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
-                                         (string= e "experienceRequirements")))))
-    (list :name **name**
-          :archive (if (car (last (car **archive-block**))) t nil)
-          :emp-name **emp-name**
-          :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))) :junk-allowed t)
-          :currency (if (null salaryblock) nil **currency**)
-          :base-salary (if (null salaryblock) nil **base-salary**)
-          :salary-text (if (null salaryblock) nil **salary-text**)
-          :city **city**
-          :exp **exp**
-          :description (transform-description
-                        (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
-                                           (string= c "b-vacancy-desc-wrapper")))))))
+(defun hh-parse-vacancy (html &optional intree)
+  (let* ((tree (aif intree
+                    it
+                    (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
+    (append (block header-extract
+              (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
+                            ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
+                     (return-from header-extract
+                       (append (list :name name :archive (if archive t nil))
+                               (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
+                                                       (return-from emp-block
+                                                         (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
+                                                               :emp-name emp-name))) rest)))))
+                   tree))
+            (let ((salary-result (block salary-extract
+                                   (mtm (`("div" (("class" "l-paddings"))
+                                                 ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                 ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
+                                                 ,salary-text)
+                                          (return-from salary-extract (list :currency currency :base-salary base-salary :salary-text salary-text)))
+                                        tree))))
+              (if (equal 6 (length salary-result))
+                  salary-result
+                  (list :currency nil :base-salary nil :salary-text nil)))
+            (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
+                                                          (return-from city-extract (list :city city))) tree))))
+              (if (equal 2 (length city-result)) city-result (list :city nil)))
+            (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
+                                                              ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
+                                                        (return-from exp-extract (list :exp exp))) tree))))
+              (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
+            (block descr-extract
+              (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
+                     (return-from descr-extract (list :descr #|(transform-description|# descr #|)|#))) tree)))))
 
 ;; (print
-;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))
+;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
 
-;; (print
-;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))
+(print
+ (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
 
 (defmethod process-teaser (current-teaser)
   (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-17 Сб. 13:10 -->
+<!-- 2015-01-18 Вс. 01:01 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -171,7 +171,7 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-10-2">2.10.2. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-11">2.11. <span class="todo nilWAIT">WAIT</span> Разбор вакансий</a>
+<li><a href="#sec-2-11">2.11. Разбор вакансий</a>
 <ul>
 <li><a href="#sec-2-11-1">2.11.1. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
 </ul>
@@ -973,15 +973,15 @@ for the JavaScript code in this tag.
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy-teasers</span> (html)
   <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1080;&#1079; html"</span>
-  (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>)) ,@rest) (mapcar #'car rest))
+  (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>)) ,@rest) rest)
        (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"data-qa"</span> ,_) (<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item search-result-item_premium  search-result-item_premium"</span>
                                                    <span style="color: #8b2252;">"search-result-item search-result-item_standard "</span>
                                                    <span style="color: #8b2252;">"search-result-item search-result-item_standard_plus "</span>))) ,@rest)
               (<span style="color: #a020f0;">let</span> ((in (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (or (equal x 'z) (equal x <span style="color: #8b2252;">"noindex"</span>) (equal x <span style="color: #8b2252;">"/noindex"</span>))) rest)))
                 (<span style="color: #a020f0;">if</span> (not (equal 1 (length in)))
                     (<span style="color: #a020f0;">progn</span> (print in)
-                           (err <span style="color: #8b2252;">"parsing failed, data NOT printed"</span>)) <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print in)</span>
-                    in)))
+                           (err <span style="color: #8b2252;">"parsing failed, data printed"</span>))
+                    (car in))))
             (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"</span>)
                          (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
                  (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"title"</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1077;&#1084;&#1080;&#1103; HRBrand"</span>) (<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"rel"</span> <span style="color: #8b2252;">"nofollow"</span>)
@@ -1004,7 +1004,6 @@ for the JavaScript code in this tag.
                                                                   (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
                                                                   (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,salary))) ,salary-text)
                                                            (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:salary</span> salary <span style="color: #483d8b;">:salary-text</span> salary-text))
-
                                                          (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>)) ,emp-name)
                                                                 (list <span style="color: #483d8b;">:emp-name</span> emp-name))
                                                               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>))
@@ -1033,20 +1032,19 @@ for the JavaScript code in this tag.
                                                                                                <span style="color: #8b2252;">"&#160;&#160;&#8226;&#160;&#160;"</span> (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform__name"</span>))
                                                                                                                <span style="color: #8b2252;">"CAREER.RU"</span>))
                                                                                               (list <span style="color: #483d8b;">:platform</span> 'career.ru))
-                                                                                            (print
-                                                                                             (tree-match (html5-parser:node-to-xmls
-                                                                                                          (html5-parser:parse-html5-fragment html))
-                                                                                                         #'(<span style="color: #a020f0;">lambda</span> (in)
-                                                                                                             (match in (`(<span style="color: #8b2252;">"div"</span>
-                                                                                                                          ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>)
-                                                                                                                           (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>))
-                                                                                                                          ,@rest)
-                                                                                                                         rest))))))))))))))))))))))))
+                                                                                            (<span style="color: #a020f0;">block</span> subtree-extract
+                                                                                              (mtm (`(<span style="color: #8b2252;">"div"</span>
+                                                                                                      ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>)
+                                                                                                       (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>))
+                                                                                                      ,@rest)
+                                                                                                     (<span style="color: #a020f0;">return-from</span> subtree-extract rest))
+                                                                                                   (html5-parser:node-to-xmls
+                                                                                                    (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
-<span style="color: #b22222;">;;  </span><span style="color: #b22222;">;; (car</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(hh-parse-vacancy-teasers</span>
-<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=12")))</span>
+(print
+ <span style="color: #b22222;">;; </span><span style="color: #b22222;">(car</span>
+  (hh-parse-vacancy-teasers
+   (hh-get-page <span style="color: #8b2252;">"http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=12"</span>)))
 </pre>
 </div>
 </div>
@@ -1057,10 +1055,6 @@ for the JavaScript code in this tag.
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="maptree_transform">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1042;&#1082;&#1083;&#1102;&#1095;&#1072;&#1077;&#1084; &#1089;&#1087;&#1077;&#1094;&#1080;&#1072;&#1083;&#1100;&#1085;&#1099;&#1081; &#1089;&#1080;&#1085;&#1090;&#1072;&#1082;&#1089;&#1080;&#1089; &#1076;&#1083;&#1103; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;&#1086;&#1074;</span>
-(ql:quickload '(<span style="color: #8b2252;">"fare-quasiquote-optima"</span> <span style="color: #8b2252;">"fare-quasiquote-readtable"</span>))
-(named-readtables:in-readtable <span style="color: #483d8b;">:fare-quasiquote</span>)
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1069;&#1090;&#1086; &#1072;&#1085;&#1072;&#1083;&#1086;&#1075; maptree-if, &#1085;&#1086; &#1079;&#1076;&#1077;&#1089;&#1100; &#1086;&#1076;&#1085;&#1072; &#1092;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1080; &#1080;&#1097;&#1077;&#1090; &#1080; &#1090;&#1088;&#1072;&#1085;&#1089;&#1092;&#1086;&#1088;&#1084;&#1080;&#1088;&#1091;&#1077;&#1090; &#1091;&#1079;&#1077;&#1083; &#1076;&#1077;&#1088;&#1077;&#1074;&#1072;</span>
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">maptree</span> (predicate-transformer tree)
@@ -1080,8 +1074,7 @@ for the JavaScript code in this tag.
 (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">mtm</span> (transformer tree)
   (<span style="color: #a020f0;">let</span> ((lambda-param (gensym)))
     `(maptree #'(<span style="color: #a020f0;">lambda</span> (,lambda-param)
-                  (values (and <span style="color: #b22222;">;;</span><span style="color: #b22222;">(consp ,lambda-param)</span>
-                           (match ,lambda-param ,transformer))
+                  (values (match ,lambda-param ,transformer)
                           #'mapcar))
               ,tree)))
 </pre>
@@ -1346,6 +1339,8 @@ collect
 
 <pre class="src src-lisp" id="with_predict_if">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
+&lt;&lt;with_predict&gt;&gt;
+
 (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">with-predict-if</span> (pattern <span style="color: #228b22;">&amp;body</span> condition)
   `(<span style="color: #a020f0;">with-predict</span> ,pattern
      (aif ,@condition
@@ -1422,7 +1417,7 @@ collect
 </div>
 
 <div id="outline-container-sec-2-11" class="outline-3">
-<h3 id="sec-2-11"><span class="section-number-3">2.11</span> <span class="todo WAIT">WAIT</span> Разбор вакансий</h3>
+<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Разбор вакансий</h3>
 <div class="outline-text-3" id="text-2-11">
 <p>
 Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
@@ -1445,29 +1440,18 @@ collect
                            (setf result (append result (list (list header item))))
                            (setf header nil)))
                         (t (setf result (append result (list item)))))))
-            (cddr
-             (<span style="color: #a020f0;">with-predict-maptree</span> (ul nil-1 <span style="color: #228b22;">&amp;rest</span> tail)
-                    (and (or (equal ul <span style="color: #8b2252;">"ul"</span>)
-                             (equal ul <span style="color: #8b2252;">"p"</span>))
-                         (equal nil-1 'nil))
-                    #'(<span style="color: #a020f0;">lambda</span> (x)
-                        (values (remove-if #'(<span style="color: #a020f0;">lambda</span> (y)
-                                               (and (not (consp y)) (equal y <span style="color: #8b2252;">" "</span>)))
-                                           **tail**)
-                                #'mapcar))
-                    (<span style="color: #a020f0;">with-predict-maptree</span> (tag nil-1 point)
-                      (and (or (equal tag <span style="color: #8b2252;">"li"</span>)
-                               (equal tag <span style="color: #8b2252;">"em"</span>))
-                           (equal nil-1 'nil))
-                      #'(<span style="color: #a020f0;">lambda</span> (x)
-                          (values **point** #'mapcar))
-                      (<span style="color: #a020f0;">with-predict-maptree</span> (tag nil-1 point)
-                        (and (equal tag <span style="color: #8b2252;">"strong"</span>)
-                             (equal nil-1 'nil))
-                        #'(<span style="color: #a020f0;">lambda</span> (x)
-                            (values **point** #'mapcar))
-                        tree-descr)))))
-    result))
+            (mtm (`<span style="color: #8b2252;">" "</span> 'Z)
+                 (mtm (`(<span style="color: #8b2252;">"br"</span> NIL) 'Z)
+                      (mtm (`(,(or <span style="color: #8b2252;">"ul"</span> <span style="color: #8b2252;">"p"</span>) NIL ,@rest)
+                             (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (and (not (consp x)) (equal x <span style="color: #8b2252;">" "</span>))) rest))
+                           (mtm (`(,(or <span style="color: #8b2252;">"li"</span> <span style="color: #8b2252;">"em"</span>) NIL ,in) in)
+                                (mtm (`(<span style="color: #8b2252;">"strong"</span> NIL ,in) in) *tree-descr*))))))
+    (<span style="color: #a020f0;">labels</span> ((tmp (tree)
+               (<span style="color: #a020f0;">cond</span>  ((consp tree) (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (equal x 'z))
+                                               (cons (tmp (car tree))
+                                                     (tmp (cdr tree)))))
+                      (t tree))))
+      (tmp result))))
 </pre>
 </div>
 
@@ -1481,46 +1465,46 @@ collect
 
 &lt;&lt;transform_description&gt;&gt;
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy</span> (html)
-  <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080; &#1080;&#1079; html"</span>
-  (<span style="color: #a020f0;">let*</span> ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-         (header (tree-match tree (<span style="color: #a020f0;">with-predict-if</span> (a ((b c)) <span style="color: #228b22;">&amp;rest</span> d)
-                                    (string= c <span style="color: #8b2252;">"b-vacancy-custom g-round"</span>))))
-         (summary (tree-match tree (<span style="color: #a020f0;">with-predict-if</span> (a ((b c)) <span style="color: #228b22;">&amp;rest</span> d)
-                                     (string= c <span style="color: #8b2252;">"b-important b-vacancy-info"</span>))))
-         (infoblock (tree-match tree (<span style="color: #a020f0;">with-predict-if</span> (a ((b c)) <span style="color: #228b22;">&amp;rest</span> d)
-                                       (string= c <span style="color: #8b2252;">"l-content-2colums b-vacancy-container"</span>))))
-         (h1 (tree-match header (<span style="color: #a020f0;">with-predict-if</span> (a ((b c)) name <span style="color: #228b22;">&amp;rest</span> archive-block)
-                                  (string= c <span style="color: #8b2252;">"title b-vacancy-title"</span>))))
-         (employerblock (tree-match header (<span style="color: #a020f0;">with-predict-if</span> (a ((b c) (d emp-lnk)) emp-name)
-                                             (string= c <span style="color: #8b2252;">"hiringOrganization"</span>))))
-         (salaryblock (tree-match summary (<span style="color: #a020f0;">with-predict-if</span> (a ((b c))
-                                                              (d ((e f) (g currency)))
-                                                              (h ((i j) (k base-salary)))
-                                                              salary-text)
-                                            (string= f <span style="color: #8b2252;">"salaryCurrency"</span>))))
-         (cityblock (tree-match summary (<span style="color: #a020f0;">with-predict-if</span> (a ((b c)) (d ((e f)) city))
-                                          (string= c <span style="color: #8b2252;">"l-content-colum-2 b-v-info-content"</span>))))
-         (expblock (tree-match summary (<span style="color: #a020f0;">with-predict-if</span> (a ((b c) (d e)) exp)
-                                         (string= e <span style="color: #8b2252;">"experienceRequirements"</span>)))))
-    (list <span style="color: #483d8b;">:name</span> **name**
-          <span style="color: #483d8b;">:archive</span> (<span style="color: #a020f0;">if</span> (car (last (car **archive-block**))) t nil)
-          <span style="color: #483d8b;">:emp-name</span> **emp-name**
-          <span style="color: #483d8b;">:emp-id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))) <span style="color: #483d8b;">:junk-allowed</span> t)
-          <span style="color: #483d8b;">:currency</span> (<span style="color: #a020f0;">if</span> (null salaryblock) nil **currency**)
-          <span style="color: #483d8b;">:base-salary</span> (<span style="color: #a020f0;">if</span> (null salaryblock) nil **base-salary**)
-          <span style="color: #483d8b;">:salary-text</span> (<span style="color: #a020f0;">if</span> (null salaryblock) nil **salary-text**)
-          <span style="color: #483d8b;">:city</span> **city**
-          <span style="color: #483d8b;">:exp</span> **exp**
-          <span style="color: #483d8b;">:description</span> (transform-description
-                        (tree-match tree (<span style="color: #a020f0;">with-predict-if</span> (a ((b c) (d e)) <span style="color: #228b22;">&amp;rest</span> f)
-                                           (string= c <span style="color: #8b2252;">"b-vacancy-desc-wrapper"</span>)))))))
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy</span> (html <span style="color: #228b22;">&amp;optional</span> intree)
+  (<span style="color: #a020f0;">let*</span> ((tree (aif intree
+                    it
+                    (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
+    (append (<span style="color: #a020f0;">block</span> header-extract
+              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-custom g-round"</span>)) (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"title"</span>) (<span style="color: #8b2252;">"content"</span> ,_)))
+                            (<span style="color: #8b2252;">"h1"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"title b-vacancy-title"</span>)) ,name ,@archive) ,@rest)
+                     (<span style="color: #a020f0;">return-from</span> header-extract
+                       (append (list <span style="color: #483d8b;">:name</span> name <span style="color: #483d8b;">:archive</span> (<span style="color: #a020f0;">if</span> archive t nil))
+                               (<span style="color: #a020f0;">block</span> emp-block (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"companyname"</span>)) (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"hiringOrganization"</span>) (<span style="color: #8b2252;">"href"</span> ,emp-lnk)) ,emp-name))
+                                                       (<span style="color: #a020f0;">return-from</span> emp-block
+                                                         (list <span style="color: #483d8b;">:emp-id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) <span style="color: #483d8b;">:junk-allowed</span> t)
+                                                               <span style="color: #483d8b;">:emp-name</span> emp-name))) rest)))))
+                   tree))
+            (<span style="color: #a020f0;">let</span> ((salary-result (<span style="color: #a020f0;">block</span> salary-extract
+                                   (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>))
+                                                 (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
+                                                 (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,base-salary)))
+                                                 ,salary-text)
+                                          (<span style="color: #a020f0;">return-from</span> salary-extract (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:base-salary</span> base-salary <span style="color: #483d8b;">:salary-text</span> salary-text)))
+                                        tree))))
+              (<span style="color: #a020f0;">if</span> (equal 6 (length salary-result))
+                  salary-result
+                  (list <span style="color: #483d8b;">:currency</span> nil <span style="color: #483d8b;">:base-salary</span> nil <span style="color: #483d8b;">:salary-text</span> nil)))
+            (<span style="color: #a020f0;">let</span> ((city-result (<span style="color: #a020f0;">block</span> city-extract (mtm (`(<span style="color: #8b2252;">"td"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-content-colum-2 b-v-info-content"</span>)) (<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>)) ,city))
+                                                          (<span style="color: #a020f0;">return-from</span> city-extract (list <span style="color: #483d8b;">:city</span> city))) tree))))
+              (<span style="color: #a020f0;">if</span> (equal 2 (length city-result)) city-result (list <span style="color: #483d8b;">:city</span> nil)))
+            (<span style="color: #a020f0;">let</span> ((exp-result (<span style="color: #a020f0;">block</span> exp-extract (mtm (`(<span style="color: #8b2252;">"td"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-content-colum-3 b-v-info-content"</span>))
+                                                              (<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>) (<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"experienceRequirements"</span>)) ,exp))
+                                                        (<span style="color: #a020f0;">return-from</span> exp-extract (list <span style="color: #483d8b;">:exp</span> exp))) tree))))
+              (<span style="color: #a020f0;">if</span> (equal 2 (length exp-result)) exp-result (list <span style="color: #483d8b;">:exp</span> nil)))
+            (<span style="color: #a020f0;">block</span> descr-extract
+              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-desc-wrapper"</span>) (<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"description"</span>)) ,@descr)
+                     (<span style="color: #a020f0;">return-from</span> descr-extract (list <span style="color: #483d8b;">:descr</span> <span style="color: #b22222;">#|(transform-description|#</span> descr <span style="color: #b22222;">#|)|#</span>))) tree)))))
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
-<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12325429")))</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))</span>
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
-<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12321429")))</span>
+(print
+ (hh-parse-vacancy (hh-get-page <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/12581768"</span>)))
 </pre>
 </div>
 </div>
@@ -3646,6 +3630,10 @@ TODO: Конечный автомат тут сложен и будет еще �
 
 <pre class="src src-lisp" id="hh_prepare">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">special syntax for pattern-matching</span>
+(ql:quickload '(<span style="color: #8b2252;">"fare-quasiquote-optima"</span> <span style="color: #8b2252;">"fare-quasiquote-readtable"</span>))
+(named-readtables:in-readtable <span style="color: #483d8b;">:fare-quasiquote</span>)
+
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
 (closure-template:compile-template
  <span style="color: #483d8b;">:common-lisp-backend</span>
@@ -4413,7 +4401,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-17 Сб. 13:10</p>
+<p class="date">Created: 2015-01-18 Вс. 01:01</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

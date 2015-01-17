@@ -714,10 +714,6 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     ;; Включаем специальный синтаксис для шаблонов
-     (ql:quickload '("fare-quasiquote-optima" "fare-quasiquote-readtable"))
-     (named-readtables:in-readtable :fare-quasiquote)
-
      ;; Это аналог maptree-if, но здесь одна функция и ищет и трансформирует узел дерева
      (defun maptree (predicate-transformer tree)
        (multiple-value-bind (t-tree control)
@@ -1009,7 +1005,7 @@
       ;; => "l-cell"
     #+END_SRC
 
-** WAIT Разбор вакансий
+** Разбор вакансий
 
     Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
     лишнего:
@@ -1030,29 +1026,18 @@
                                  (setf result (append result (list (list header item))))
                                  (setf header nil)))
                               (t (setf result (append result (list item)))))))
-                  (cddr
-                   (with-predict-maptree (ul nil-1 &rest tail)
-                          (and (or (equal ul "ul")
-                                   (equal ul "p"))
-                               (equal nil-1 'nil))
-                          #'(lambda (x)
-                              (values (remove-if #'(lambda (y)
-                                                     (and (not (consp y)) (equal y " ")))
-                                                 ,**tail**)
-                                      #'mapcar))
-                          (with-predict-maptree (tag nil-1 point)
-                            (and (or (equal tag "li")
-                                     (equal tag "em"))
-                                 (equal nil-1 'nil))
-                            #'(lambda (x)
-                                (values **point** #'mapcar))
-                            (with-predict-maptree (tag nil-1 point)
-                              (and (equal tag "strong")
-                                   (equal nil-1 'nil))
-                              #'(lambda (x)
-                                  (values **point** #'mapcar))
-                              tree-descr)))))
-          result))
+                  (mtm (`" " 'Z)
+                       (mtm (`("br" NIL) 'Z)
+                            (mtm (`(,(or "ul" "p") NIL ,@rest)
+                                   (remove-if #'(lambda (x) (and (not (consp x)) (equal x " "))) rest))
+                                 (mtm (`(,(or "li" "em") NIL ,in) in)
+                                      (mtm (`("strong" NIL ,in) in) *tree-descr*))))))
+          (labels ((tmp (tree)
+                     (cond  ((consp tree) (remove-if #'(lambda (x) (equal x 'z))
+                                                     (cons (tmp (car tree))
+                                                           (tmp (cdr tree)))))
+                            (t tree))))
+            (tmp result))))
     #+END_SRC
 
     И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
@@ -1061,46 +1046,7 @@
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      <<with_predict_if>>
-
-      <<tree_match>>
-
       <<transform_description>>
-
-      (defun hh-parse-vacancy (html)
-        "Получение вакансии из html"
-        (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-               (header (tree-match tree (with-predict-if (a ((b c)) &rest d)
-                                          (string= c "b-vacancy-custom g-round"))))
-               (summary (tree-match tree (with-predict-if (a ((b c)) &rest d)
-                                           (string= c "b-important b-vacancy-info"))))
-               (infoblock (tree-match tree (with-predict-if (a ((b c)) &rest d)
-                                             (string= c "l-content-2colums b-vacancy-container"))))
-               (h1 (tree-match header (with-predict-if (a ((b c)) name &rest archive-block)
-                                        (string= c "title b-vacancy-title"))))
-               (employerblock (tree-match header (with-predict-if (a ((b c) (d emp-lnk)) emp-name)
-                                                   (string= c "hiringOrganization"))))
-               (salaryblock (tree-match summary (with-predict-if (a ((b c))
-                                                                    (d ((e f) (g currency)))
-                                                                    (h ((i j) (k base-salary)))
-                                                                    salary-text)
-                                                  (string= f "salaryCurrency"))))
-               (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
-                                                (string= c "l-content-colum-2 b-v-info-content"))))
-               (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
-                                               (string= e "experienceRequirements")))))
-          (list :name **name**
-                :archive (if (car (last (car **archive-block**))) t nil)
-                :emp-name **emp-name**
-                :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ **emp-lnk**))) :junk-allowed t)
-                :currency (if (null salaryblock) nil **currency**)
-                :base-salary (if (null salaryblock) nil **base-salary**)
-                :salary-text (if (null salaryblock) nil **salary-text**)
-                :city **city**
-                :exp **exp**
-                :description (transform-description
-                              (tree-match tree (with-predict-if (a ((b c) (d e)) &rest f)
-                                                 (string= c "b-vacancy-desc-wrapper")))))))
 
       (defun hh-parse-vacancy (html &optional intree)
         (let* ((tree (aif intree
@@ -1126,10 +1072,19 @@
                     (if (equal 6 (length salary-result))
                         salary-result
                         (list :currency nil :base-salary nil :salary-text nil)))
-                  )))
+                  (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
+                                                                (return-from city-extract (list :city city))) tree))))
+                    (if (equal 2 (length city-result)) city-result (list :city nil)))
+                  (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
+                                                                    ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
+                                                              (return-from exp-extract (list :exp exp))) tree))))
+                    (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
+                  (block descr-extract
+                    (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
+                           (return-from descr-extract (list :descr #|(transform-description|# descr #|)|#))) tree)))))
 
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
+      ;; (print
+      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
 
       (print
        (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
@@ -2443,6 +2398,8 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle
     (in-package #:moto)
 
+    (named-readtables:in-readtable :fare-quasiquote)
+
     <<run>>
 
     <<_hh_fn_contents>>
@@ -2970,40 +2927,39 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 
      ;; #` syntax
 
-     (eval-always
-       (defun |#`-reader| (stream char arg)
-         "Literal syntax for zero/one/two argument lambdas.
-     Use @ as the function's argument, % as the second.
-     Examples:
-     CL-USER> #`(+ 2 @)
-     \(lambda (&optional x y)
-        (+ 2 x))
-     CL-USER>  #`((1+ @) (print @))
-     \(lambda (&optional x y)
-        (1+ x)
-        (print x))
-     CL-USER> #`(+ 1 2)
-     \(lambda (&optional x y)
-        (+ 1 2))
-     CL-USER>  #`(+ @ %)
-     \(lambda (&optional x y)
-        (+ x y))
-     "
-         (declare (ignore char arg))
-         (let ((sexp (read stream t nil t))
-               (x (gensym "X"))
-               (y (gensym "Y")))
-           `(lambda (&optional ,x ,y)
-              (declare (ignorable ,x)
-                       (ignorable ,y))
-              ,@(subst y '%
-                       (subst x '@
-                              (if (listp (car sexp))
-                                  sexp
-                                  (list sexp)))))))
-       ;; set #`
-       (set-dispatch-macro-character #\# #\` #'|#`-reader|))
-
+     ;; (eval-always
+     ;;   (defun |#`-reader| (stream char arg)
+     ;;     "Literal syntax for zero/one/two argument lambdas.
+     ;; Use @ as the function's argument, % as the second.
+     ;; Examples:
+     ;; CL-USER> #`(+ 2 @)
+     ;; \(lambda (&optional x y)
+     ;;    (+ 2 x))
+     ;; CL-USER>  #`((1+ @) (print @))
+     ;; \(lambda (&optional x y)
+     ;;    (1+ x)
+     ;;    (print x))
+     ;; CL-USER> #`(+ 1 2)
+     ;; \(lambda (&optional x y)
+     ;;    (+ 1 2))
+     ;; CL-USER>  #`(+ @ %)
+     ;; \(lambda (&optional x y)
+     ;;    (+ x y))
+     ;; "
+     ;;     (declare (ignore char arg))
+     ;;     (let ((sexp (read stream t nil t))
+     ;;           (x (gensym "X"))
+     ;;           (y (gensym "Y")))
+     ;;       `(lambda (&optional ,x ,y)
+     ;;          (declare (ignorable ,x)
+     ;;                   (ignorable ,y))
+     ;;          ,@(subst y '%
+     ;;                   (subst x '@
+     ;;                          (if (listp (car sexp))
+     ;;                              sexp
+     ;;                              (list sexp)))))))
+     ;;   ;; set #`
+     ;;   (set-dispatch-macro-character #\# #\` #'|#`-reader|))
 
      ;; anaphoric
 
@@ -3034,16 +2990,16 @@ http://romka.eu/blog/jquery-table-drag-and-drop
              ((not it))
            ,@body)))
 
-     (eval-always
-      (defmacro cond-it (&body body)
-        "Like COND. IT is bound to the passed COND test."
-        `(let (it)
-           (cond
-             ,@(mapcar #``((setf it ,(car @)) ,(cadr @))
-                       ;; uses the fact, that SETF returns the value set
-                       body)))))
-     ;; maybe
+     ;; (eval-always
+     ;;  (defmacro cond-it (&body body)
+     ;;    "Like COND. IT is bound to the passed COND test."
+     ;;    `(let (it)
+     ;;       (cond
+     ;;         ,@(mapcar #``((setf it ,(car @)) ,(cadr @))
+     ;;                   ;; uses the fact, that SETF returns the value set
+     ;;                   body)))))
 
+     ;; maybe
 
      (defmacro maybecall (val &rest funs)
        `(and-it ,val

@@ -21,7 +21,9 @@
                #:cl-who
                #:parenscript
                #:cl-fad
-               #:optima)
+               #:optima
+               #:fare-quasiquote-extras
+               )
   :description "site for bikers"
   :author "rigidus"
   :version "0.0.3"

@@ -68,40 +68,39 @@ E.g.:
 
 ;; #` syntax
 
-(eval-always
-  (defun |#`-reader| (stream char arg)
-    "Literal syntax for zero/one/two argument lambdas.
-Use @ as the function's argument, % as the second.
-Examples:
-CL-USER> #`(+ 2 @)
-\(lambda (&optional x y)
-   (+ 2 x))
-CL-USER>  #`((1+ @) (print @))
-\(lambda (&optional x y)
-   (1+ x)
-   (print x))
-CL-USER> #`(+ 1 2)
-\(lambda (&optional x y)
-   (+ 1 2))
-CL-USER>  #`(+ @ %)
-\(lambda (&optional x y)
-   (+ x y))
-"
-    (declare (ignore char arg))
-    (let ((sexp (read stream t nil t))
-          (x (gensym "X"))
-          (y (gensym "Y")))
-      `(lambda (&optional ,x ,y)
-         (declare (ignorable ,x)
-                  (ignorable ,y))
-         ,@(subst y '%
-                  (subst x '@
-                         (if (listp (car sexp))
-                             sexp
-                             (list sexp)))))))
-  ;; set #`
-  (set-dispatch-macro-character #\# #\` #'|#`-reader|))
-
+;; (eval-always
+;;   (defun |#`-reader| (stream char arg)
+;;     "Literal syntax for zero/one/two argument lambdas.
+;; Use @ as the function's argument, % as the second.
+;; Examples:
+;; CL-USER> #`(+ 2 @)
+;; \(lambda (&optional x y)
+;;    (+ 2 x))
+;; CL-USER>  #`((1+ @) (print @))
+;; \(lambda (&optional x y)
+;;    (1+ x)
+;;    (print x))
+;; CL-USER> #`(+ 1 2)
+;; \(lambda (&optional x y)
+;;    (+ 1 2))
+;; CL-USER>  #`(+ @ %)
+;; \(lambda (&optional x y)
+;;    (+ x y))
+;; "
+;;     (declare (ignore char arg))
+;;     (let ((sexp (read stream t nil t))
+;;           (x (gensym "X"))
+;;           (y (gensym "Y")))
+;;       `(lambda (&optional ,x ,y)
+;;          (declare (ignorable ,x)
+;;                   (ignorable ,y))
+;;          ,@(subst y '%
+;;                   (subst x '@
+;;                          (if (listp (car sexp))
+;;                              sexp
+;;                              (list sexp)))))))
+;;   ;; set #`
+;;   (set-dispatch-macro-character #\# #\` #'|#`-reader|))
 
 ;; anaphoric
 
@@ -132,16 +131,16 @@ CL-USER>  #`(+ @ %)
         ((not it))
       ,@body)))
 
-(eval-always
- (defmacro cond-it (&body body)
-   "Like COND. IT is bound to the passed COND test."
-   `(let (it)
-      (cond
-        ,@(mapcar #``((setf it ,(car @)) ,(cadr @))
-                  ;; uses the fact, that SETF returns the value set
-                  body)))))
-;; maybe
+;; (eval-always
+;;  (defmacro cond-it (&body body)
+;;    "Like COND. IT is bound to the passed COND test."
+;;    `(let (it)
+;;       (cond
+;;         ,@(mapcar #``((setf it ,(car @)) ,(cadr @))
+;;                   ;; uses the fact, that SETF returns the value set
+;;                   body)))))
 
+;; maybe
 
 (defmacro maybecall (val &rest funs)
   `(and-it ,val
