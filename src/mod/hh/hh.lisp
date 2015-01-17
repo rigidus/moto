@@ -285,22 +285,21 @@
 (defmacro mtm (transformer tree)
   (let ((lambda-param (gensym)))
     `(maptree #'(lambda (,lambda-param)
-                  (values (and ;;(consp ,lambda-param)
-                           (match ,lambda-param ,transformer))
+                  (values (match ,lambda-param ,transformer)
                           #'mapcar))
               ,tree)))
 
 (defun hh-parse-vacancy-teasers (html)
   "Получение списка вакансий из html"
-  (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) (mapcar #'car rest))
+  (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) rest)
        (mtm (`("div" (("data-qa" ,_) ("class" ,(or "search-result-item search-result-item_premium  search-result-item_premium"
                                                    "search-result-item search-result-item_standard "
                                                    "search-result-item search-result-item_standard_plus "))) ,@rest)
               (let ((in (remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
                 (if (not (equal 1 (length in)))
                     (progn (print in)
-                           (err "parsing failed, data NOT printed")) ;; (print in)
-                    in)))
+                           (err "parsing failed, data printed"))
+                    (car in))))
             (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
                          ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
                  (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
@@ -323,7 +322,6 @@
                                                                   ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
                                                                   ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
                                                            (list :currency currency :salary salary :salary-text salary-text))
-
                                                          (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
                                                                 (list :emp-name emp-name))
                                                               (mtm (`("div" (("class" "search-result-item__company"))
@@ -352,22 +350,111 @@
                                                                                                "  •  " ("span" (("class" "vacancy-list-platform__name"))
                                                                                                                "CAREER.RU"))
                                                                                               (list :platform 'career.ru))
-                                                                                            (print
-                                                                                             (tree-match (html5-parser:node-to-xmls
-                                                                                                          (html5-parser:parse-html5-fragment html))
-                                                                                                         #'(lambda (in)
-                                                                                                             (match in (`("div"
-                                                                                                                          (("class" "search-result")
-                                                                                                                           ("data-qa" "vacancy-serp__results"))
-                                                                                                                          ,@rest)
-                                                                                                                         rest))))))))))))))))))))))))
+                                                                                            (block subtree-extract
+                                                                                              (mtm (`("div"
+                                                                                                      (("class" "search-result")
+                                                                                                       ("data-qa" "vacancy-serp__results"))
+                                                                                                      ,@rest)
+                                                                                                     (return-from subtree-extract rest))
+                                                                                                   (html5-parser:node-to-xmls
+                                                                                                    (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
 
-;; (print
-;;  ;; (car
-;;   (hh-parse-vacancy-teasers
-;;    (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
+(print
+ ;; (car
+  (hh-parse-vacancy-teasers
+   (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
 
 (in-package #:moto)
+
+(in-package #:moto)
+
+(in-package #:moto)
+
+(defmacro with-predict (pattern &body body)
+  (let ((lambda-param (gensym)))
+    `#'(lambda (,lambda-param)
+         (handler-case
+             (destructuring-bind ,pattern
+                 ,lambda-param
+               ,@body)
+           (sb-kernel::arg-count-error nil)
+           (sb-kernel::defmacro-bogus-sublist-error nil)))))
+
+;; (macroexpand-1 '
+;;  (with-predict (a ((b c)) d &rest e)
+;;    (aif (and (string= a "div")
+;;              (string= c "title b-vacancy-title"))
+;;         (prog1 it
+;;           (setf **a** a)
+;;           (setf **b** b)))))
+
+;; => #'(LAMBDA (LAMBDA-PARAM)
+;;        (HANDLER-CASE
+;;            (DESTRUCTURING-BIND
+;;                  (A ((B C)) D &REST E)
+;;                LAMBDA-PARAM
+;;              (AIF (AND (STRING= A "div") (STRING= C "title b-vacancy-title"))
+;;                   (PROG1 IT (SETF **A** A) (SETF **B** B))))
+;;          (SB-KERNEL::ARG-COUNT-ERROR NIL)
+;;          (SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T
+
+(defmacro with-predict-if (pattern &body condition)
+  `(with-predict ,pattern
+     (aif ,@condition
+          (prog1 it
+            ,@(mapcar #'(lambda (x)
+                          `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
+                      (remove-if #'(lambda (x)
+                                     (or (equal x '&rest)
+                                         (equal x '&optional)
+                                         (equal x '&body)
+                                         (equal x '&key)
+                                         (equal x '&allow-other-keys)
+                                         (equal x '&environment)
+                                         (equal x '&aux)
+                                         (equal x '&whole)
+                                         (equal x '&allow-other-keys)))
+                                 (alexandria:flatten pattern)))))))
+
+;; (macroexpand-1 '
+;;  (with-predict-if (a b &rest c)
+;;    (and (stringp a)
+;;         (string= a "class"))))
+
+;; => (WITH-PREDICT (A B &REST C)
+;;      (AIF (AND (STRINGP A) (STRING= A "class"))
+;;           (PROG1 IT
+;;             (SETF **A** A)
+;;             (SETF **B** B)
+;;             (SETF **C** C))))
+
+(defun tree-match (tree predict &optional (if-match :return-first-match))
+  (let ((collect))
+    (labels ((match-tree (tree f-predict &optional (if-match :return-first-match))
+             (cond ((null tree) nil)
+                   ((atom tree) nil)
+                   (t
+                    (if (funcall f-predict tree)
+                        (cond ((equal if-match :return-first-match)
+                               (return-from tree-match tree))
+                              ((equal if-match :return-first-level-match)
+                               (setf collect
+                                     (append collect (list tree))))
+                              ((equal if-match :return-all-match)
+                               (progn
+                                   (setf collect
+                                         (append collect (list tree)))
+                                   (cons
+                                    (funcall #'match-tree (car tree) f-predict if-match)
+                                    (funcall #'match-tree (cdr tree) f-predict if-match))))
+                              ((equal 'function (type-of if-match))
+                               (funcall if-match tree))
+                              (t (error 'strategy-not-implemented)))
+                        (cons
+                         (funcall #'match-tree (car tree) f-predict if-match)
+                         (funcall #'match-tree (cdr tree) f-predict if-match)))))))
+      (match-tree tree predict if-match)
+      collect)))
 
 (in-package #:moto)
 
@@ -406,6 +493,51 @@
                             (values **point** #'mapcar))
                         tree-descr)))))
     result))
+
+;; (defun hh-parse-vacancy (html)
+;;   "Получение вакансии из html"
+;;   (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+;;          (header (block header-extract
+;;                    (mtm (`("div" (("class" "b-vacancy-custom g-round"))
+;;                                  ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
+;;                                  ("h1" (("class" "title b-vacancy-title")) ,name ,@archive)
+;;                                  ,@rest
+;;                                  ;; ("table" (("class" "l"))
+;;                                  ;;          ("tbody" NIL
+;;                                  ;;                   ("tr" NIL
+;;                                  ;;                         ("td" (("colspan" "2") ("class" "l-cell"))
+;;                                  ;;                               ("div" (("class" "employer-marks g-clearfix"))
+;;                                  ;;                                      ("div" (("class" "companyname"))
+;;                                  ;;                                             ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk))
+;;                                  ;;                                                  ,emp-name))))
+;;                                  ;;                         ("td" (("class" "l-cell"))))))
+;;                                  )
+;;                           (return-from header-extract ;; (list :name name :archive archive :emp-lnk emp-lnk :emp-name emp-name)
+;;                             (list :name name :archive archive :rest rest)
+;;                             ))
+;;                         tree)))
+;;            ;; (tree-match tree (with-predict-if (a ((b c)) &rest d)
+;;            ;;                          (string= c "b-vacancy-custom g-round")))
+;;            )
+;;          ;; (summary (tree-match tree (with-predict-if (a ((b c)) &rest d)
+;;          ;;                             (string= c "b-important b-vacancy-info"))))
+;;          ;; (infoblock (tree-match tree (with-predict-if (a ((b c)) &rest d)
+;;          ;;                               (string= c "l-content-2colums b-vacancy-container"))))
+;;          ;; (h1 (tree-match header (with-predict-if (a ((b c)) name &rest archive-block)
+;;          ;;                          (string= c "title b-vacancy-title"))))
+;;          ;; (employerblock (tree-match header (with-predict-if (a ((b c) (d emp-lnk)) emp-name)
+;;          ;;                                     (string= c "hiringOrganization"))))
+;;          ;; (salaryblock (tree-match summary (with-predict-if (a ((b c))
+;;          ;;                                                      (d ((e f) (g currency)))
+;;          ;;                                                      (h ((i j) (k base-salary)))
+;;          ;;                                                      salary-text)
+;;          ;;                                    (string= f "salaryCurrency"))))
+;;          ;; (cityblock (tree-match summary (with-predict-if (a ((b c)) (d ((e f)) city))
+;;          ;;                                  (string= c "l-content-colum-2 b-v-info-content"))))
+;;          ;; (expblock (tree-match summary (with-predict-if (a ((b c) (d e)) exp)
+;;          ;;                                 (string= e "experienceRequirements"))))
+;;     header))
+
 
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
