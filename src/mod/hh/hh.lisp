@@ -1,5 +1,6 @@
 (in-package #:moto)
 
+;; special syntax for pattern-matching
 (named-readtables:in-readtable :fare-quasiquote)
 
 (in-package #:moto)

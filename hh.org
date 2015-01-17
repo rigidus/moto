@@ -737,6 +737,247 @@
                    ,tree)))
   #+END_SRC
 
+** Разбор вакансий
+
+    Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
+    лишнего:
+
+    #+NAME: transform_description
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defun transform-description (tree-descr)
+        (let ((result)
+              (header))
+          (mapcar #'(lambda (item)
+                      (unless (equal " " item)
+                        (cond ((and (null header) (consp item) (equal 1 (length item)))
+                               (setf header (car item)))
+                              ((and (not (null header)) (consp item) (not (equal 1 (length item))))
+                               (progn
+                                 (setf result (append result (list (list header item))))
+                                 (setf header nil)))
+                              (t (setf result (append result (list item)))))))
+                  (mtm (`" " 'Z)
+                       (mtm (`("br" NIL) 'Z)
+                            (mtm (`(,(or "ul" "p") NIL ,@rest)
+                                   (remove-if #'(lambda (x) (and (not (consp x)) (equal x " "))) rest))
+                                 (mtm (`(,(or "li" "em") NIL ,in) in)
+                                      (mtm (`("strong" NIL ,in) in) *tree-descr*))))))
+          (labels ((tmp (tree)
+                     (cond  ((consp tree) (remove-if #'(lambda (x) (equal x 'z))
+                                                     (cons (tmp (car tree))
+                                                           (tmp (cdr tree)))))
+                            (t tree))))
+            (tmp result))))
+    #+END_SRC
+
+    И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
+
+    #+NAME: hh_parse_vacancy
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      <<transform_description>>
+
+      (defun hh-parse-vacancy (html &optional intree)
+        (let* ((tree (aif intree
+                          it
+                          (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
+          (append (block header-extract
+                    (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
+                                  ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
+                           (return-from header-extract
+                             (append (list :name name :archive (if archive t nil))
+                                     (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
+                                                             (return-from emp-block
+                                                               (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
+                                                                     :emp-name emp-name))) rest)))))
+                         tree))
+                  (let ((salary-result (block salary-extract
+                                         (mtm (`("div" (("class" "l-paddings"))
+                                                       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                       ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
+                                                       ,salary-text)
+                                                (return-from salary-extract (list :currency currency :base-salary base-salary :salary-text salary-text)))
+                                              tree))))
+                    (if (equal 6 (length salary-result))
+                        salary-result
+                        (list :currency nil :base-salary nil :salary-text nil)))
+                  (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
+                                                                (return-from city-extract (list :city city))) tree))))
+                    (if (equal 2 (length city-result)) city-result (list :city nil)))
+                  (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
+                                                                    ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
+                                                              (return-from exp-extract (list :exp exp))) tree))))
+                    (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
+                  (block descr-extract
+                    (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
+                           (return-from descr-extract (list :descr #|(transform-description|# descr #|)|#))) tree)))))
+
+      ;; (print
+      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
+
+      (print
+       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
+    #+END_SRC
+
+** TODO Незавершенное
+
+   Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
+   открыть файл, например, в емаксте, т.к. в гитхабе про отображении файла не видно имен
+   блоков кода.
+
+*** Сохранение данных
+
+    Как только у нас это есть - код становится простым
+
+    #+NAME: hh_parse
+    #+BEGIN_SRC lisp
+      ;; (in-package #:moto)
+
+      ;; (defparameter *programmin-and-development-profile*
+      ;;   (make-profile :name "Программирование и разработка"
+      ;;                 :user-id 1
+      ;;                 :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
+      ;;                 :ts-create (get-universal-time)
+      ;;                 :ts-last (get-universal-time)))
+
+      ;; (defun run-collect (profile)
+      ;;   (let* ((search-str   (search-query profile))
+      ;;          (all-teasers  nil))
+      ;;     (block get-all-hh-teasers
+      ;;       (loop :for num :from 0 :to 100 :do
+      ;;          (print num)
+      ;;          (let* ((url (format nil search-str num))
+      ;;                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
+      ;;            (if (equal 0 (length teasers))
+      ;;                (return-from get-all-hh-teasers)
+      ;;                (setf all-teasers (append all-teasers teasers)))))
+      ;;       (print "over-100"))
+      ;;     all-teasers))
+
+      ;; ;; (print
+      ;; ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
+
+      ;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
+
+      ;; ;; (length *teasers*)
+
+      ;; (defun save-collect (all-teasers)
+      ;;   (loop :for tea :in all-teasers :do
+      ;;      (print tea)
+      ;;      (make-vacancy :profile-id (id *programmin-and-development-profile*)
+      ;;                    :name (getf tea :vac-name)
+      ;;                    :rem-id (parse-integer
+      ;;                             (car (last (split-sequence:split-sequence
+      ;;                                         #\/ (getf tea :vac-id)))))
+      ;;                    :rem-date (getf tea :vacancy-date)
+      ;;                    :rem-employer-name (getf tea :employer-name)
+      ;;                    :rem-employer-id (aif (getf tea :employer-id)
+      ;;                                          (parse-integer
+      ;;                                           (car (last (split-sequence:split-sequence
+      ;;                                                       #\/ it))))
+      ;;                                          0)
+      ;;                    :currency (getf tea :currency)
+      ;;                    :salary (aif (getf tea :salary)
+      ;;                                 it
+      ;;                                 0)
+      ;;                    :salary-text (getf tea :salary-text)
+      ;;                    :state ":TEASER"
+      ;;                    )))
+
+      ;; (save-collect *teasers*)
+
+      ;; ;; (length (all-vacancy))
+
+      ;; ;; (print
+      ;; ;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
+
+      ;; ;; (car *teasers*)
+    #+END_SRC
+
+    Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
+    интересуют больше чем остальные их можно будет получить по статусу:
+
+    #+NAME: hh_parse_deep
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      ;; (find-vacancy :profile-id 1)
+
+      ;; (all-vacancy)
+    #+END_SRC
+
+*** Состояния вакансии
+*** Еще кое-что
+
+    После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
+    интерфейсная часть.
+
+    В этот момент я хочу [найти вакансию], глянуть ее и в зависимости от того до чего мы
+    договорились с работодателем выставить ей некоторое состояние.
+
+    Я также хочу чтобы система проходила по вакансиям и в зависимости от сочетания условий
+    выполняла какие-то действия
+
+    - напоминание мне о собеседованиях, звонках (календарь)
+    - автоматическое ранжирование вакансий (по перспективам найма, зарплате и.т.п)
+
+    Система анализирует компании с т.з. выставляемых вакансий и формирует профиль
+    компании. По выставляемым вакансиям можно сделать интересные выводы - например когда у
+    компании внезапно появляются вакансии на одного сеньера и нескольких линейных
+    разработчиков - это напоминает открытие нового отдела/проекта.
+
+    Система классифицирует сохраненные вакансии по формальным признакам, таким как:
+    - новые вакансии
+    - измененные
+    - закрытые (о закрытости вакансии можно судить по ряду критериев)
+    - особенно интересные
+    - необычные
+
+    В случае изменений или появления новых интересующих пользователя вакансий пользователю отправляется
+    уведомление (через систему очередей сообщений и по email).
+
+    Исходя из анализа DESCRIPTION можно определить требуемую технологию и требуемую степень
+    владения ею.
+
+    Предоставление рекомендаций и отбор вакансий на основе модифицируемых правил и фактах
+    предметной области, таких как "работодатель - компания по разработке ПО" или "ИТ-поддержка
+    не является приоритетом компании"
+
+    Предсказание поведения (путей достижения целей) компании (в процессе найма и вне его) на
+    основе моделей и целей.
+
+    Выбор вариантов поведения в ответ на предьявляемые требования (цикл распознавание-действие
+    в продукционной системе)
+
+    Построение концептуальных моделей и преобразования в них - выбор стратегии действий и
+    постановка целей
+
+    Выбор способа представления знаний (правила, фреймы, концептуальные графы)
+
+    Выбор стратегии поиска
+
+    Включение терма из набора технологий в заголовке вакансии - присвоение классификатора
+    (тега)
+
+    Правила вывода - сопоставление с профилем
+
+    Вычисление различий (дифф) требований и профильных навыков
+
+    Интерактивное построение профиля (ответы на вопросы). Необходим видимый прогресс и
+    предварительная классификация предложений
+
+    Построение новых правил на основе известных
+
+*** Для красоты
+    Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
+    красивую подсветку. Также нужны имена кусков.
+** Неактуальное
+
+   Эти два раздела заменены на более функциональные
+
 *** WAIT Обход дерева и извлечение узлов
 
     Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
@@ -1005,91 +1246,6 @@
       ;; => "l-cell"
     #+END_SRC
 
-** Разбор вакансий
-
-    Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
-    лишнего:
-
-    #+NAME: transform_description
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (defun transform-description (tree-descr)
-        (let ((result)
-              (header))
-          (mapcar #'(lambda (item)
-                      (unless (equal " " item)
-                        (cond ((and (null header) (consp item) (equal 1 (length item)))
-                               (setf header (car item)))
-                              ((and (not (null header)) (consp item) (not (equal 1 (length item))))
-                               (progn
-                                 (setf result (append result (list (list header item))))
-                                 (setf header nil)))
-                              (t (setf result (append result (list item)))))))
-                  (mtm (`" " 'Z)
-                       (mtm (`("br" NIL) 'Z)
-                            (mtm (`(,(or "ul" "p") NIL ,@rest)
-                                   (remove-if #'(lambda (x) (and (not (consp x)) (equal x " "))) rest))
-                                 (mtm (`(,(or "li" "em") NIL ,in) in)
-                                      (mtm (`("strong" NIL ,in) in) *tree-descr*))))))
-          (labels ((tmp (tree)
-                     (cond  ((consp tree) (remove-if #'(lambda (x) (equal x 'z))
-                                                     (cons (tmp (car tree))
-                                                           (tmp (cdr tree)))))
-                            (t tree))))
-            (tmp result))))
-    #+END_SRC
-
-    И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
-
-    #+NAME: hh_parse_vacancy
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      <<transform_description>>
-
-      (defun hh-parse-vacancy (html &optional intree)
-        (let* ((tree (aif intree
-                          it
-                          (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
-          (append (block header-extract
-                    (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
-                                  ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
-                           (return-from header-extract
-                             (append (list :name name :archive (if archive t nil))
-                                     (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
-                                                             (return-from emp-block
-                                                               (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
-                                                                     :emp-name emp-name))) rest)))))
-                         tree))
-                  (let ((salary-result (block salary-extract
-                                         (mtm (`("div" (("class" "l-paddings"))
-                                                       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                                                       ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
-                                                       ,salary-text)
-                                                (return-from salary-extract (list :currency currency :base-salary base-salary :salary-text salary-text)))
-                                              tree))))
-                    (if (equal 6 (length salary-result))
-                        salary-result
-                        (list :currency nil :base-salary nil :salary-text nil)))
-                  (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
-                                                                (return-from city-extract (list :city city))) tree))))
-                    (if (equal 2 (length city-result)) city-result (list :city nil)))
-                  (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
-                                                                    ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
-                                                              (return-from exp-extract (list :exp exp))) tree))))
-                    (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
-                  (block descr-extract
-                    (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
-                           (return-from descr-extract (list :descr #|(transform-description|# descr #|)|#))) tree)))))
-
-      ;; (print
-      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
-
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
-    #+END_SRC
-
 *** WAIT Сопоставление и преобразование узлов
 
     Разбирая вакансию мы должны извлечь несколько блоков:
@@ -1207,158 +1363,6 @@
       ;;   '(progn (ping (ping ping (ping 1))) ping))
     #+END_SRC
 
-** TODO Незавершенное
-
-   Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
-   открыть файл, например, в емаксте, т.к. в гитхабе про отображении файла не видно имен
-   блоков кода.
-
-*** Сохранение данных
-
-    Как только у нас это есть - код становится простым
-
-    #+NAME: hh_parse
-    #+BEGIN_SRC lisp
-      ;; (in-package #:moto)
-
-      ;; (defparameter *programmin-and-development-profile*
-      ;;   (make-profile :name "Программирование и разработка"
-      ;;                 :user-id 1
-      ;;                 :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
-      ;;                 :ts-create (get-universal-time)
-      ;;                 :ts-last (get-universal-time)))
-
-      ;; (defun run-collect (profile)
-      ;;   (let* ((search-str   (search-query profile))
-      ;;          (all-teasers  nil))
-      ;;     (block get-all-hh-teasers
-      ;;       (loop :for num :from 0 :to 100 :do
-      ;;          (print num)
-      ;;          (let* ((url (format nil search-str num))
-      ;;                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-      ;;            (if (equal 0 (length teasers))
-      ;;                (return-from get-all-hh-teasers)
-      ;;                (setf all-teasers (append all-teasers teasers)))))
-      ;;       (print "over-100"))
-      ;;     all-teasers))
-
-      ;; ;; (print
-      ;; ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
-
-      ;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
-
-      ;; ;; (length *teasers*)
-
-      ;; (defun save-collect (all-teasers)
-      ;;   (loop :for tea :in all-teasers :do
-      ;;      (print tea)
-      ;;      (make-vacancy :profile-id (id *programmin-and-development-profile*)
-      ;;                    :name (getf tea :vac-name)
-      ;;                    :rem-id (parse-integer
-      ;;                             (car (last (split-sequence:split-sequence
-      ;;                                         #\/ (getf tea :vac-id)))))
-      ;;                    :rem-date (getf tea :vacancy-date)
-      ;;                    :rem-employer-name (getf tea :employer-name)
-      ;;                    :rem-employer-id (aif (getf tea :employer-id)
-      ;;                                          (parse-integer
-      ;;                                           (car (last (split-sequence:split-sequence
-      ;;                                                       #\/ it))))
-      ;;                                          0)
-      ;;                    :currency (getf tea :currency)
-      ;;                    :salary (aif (getf tea :salary)
-      ;;                                 it
-      ;;                                 0)
-      ;;                    :salary-text (getf tea :salary-text)
-      ;;                    :state ":TEASER"
-      ;;                    )))
-
-      ;; (save-collect *teasers*)
-
-      ;; ;; (length (all-vacancy))
-
-      ;; ;; (print
-      ;; ;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
-
-      ;; ;; (car *teasers*)
-    #+END_SRC
-
-    Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
-    интересуют больше чем остальные их можно будет получить по статусу:
-
-    #+NAME: hh_parse_deep
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      ;; (find-vacancy :profile-id 1)
-
-      ;; (all-vacancy)
-    #+END_SRC
-
-*** Состояния вакансии
-*** Еще кое-что
-
-    После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
-    интерфейсная часть.
-
-    В этот момент я хочу [найти вакансию], глянуть ее и в зависимости от того до чего мы
-    договорились с работодателем выставить ей некоторое состояние.
-
-    Я также хочу чтобы система проходила по вакансиям и в зависимости от сочетания условий
-    выполняла какие-то действия
-
-    - напоминание мне о собеседованиях, звонках (календарь)
-    - автоматическое ранжирование вакансий (по перспективам найма, зарплате и.т.п)
-
-    Система анализирует компании с т.з. выставляемых вакансий и формирует профиль
-    компании. По выставляемым вакансиям можно сделать интересные выводы - например когда у
-    компании внезапно появляются вакансии на одного сеньера и нескольких линейных
-    разработчиков - это напоминает открытие нового отдела/проекта.
-
-    Система классифицирует сохраненные вакансии по формальным признакам, таким как:
-    - новые вакансии
-    - измененные
-    - закрытые (о закрытости вакансии можно судить по ряду критериев)
-    - особенно интересные
-    - необычные
-
-    В случае изменений или появления новых интересующих пользователя вакансий пользователю отправляется
-    уведомление (через систему очередей сообщений и по email).
-
-    Исходя из анализа DESCRIPTION можно определить требуемую технологию и требуемую степень
-    владения ею.
-
-    Предоставление рекомендаций и отбор вакансий на основе модифицируемых правил и фактах
-    предметной области, таких как "работодатель - компания по разработке ПО" или "ИТ-поддержка
-    не является приоритетом компании"
-
-    Предсказание поведения (путей достижения целей) компании (в процессе найма и вне его) на
-    основе моделей и целей.
-
-    Выбор вариантов поведения в ответ на предьявляемые требования (цикл распознавание-действие
-    в продукционной системе)
-
-    Построение концептуальных моделей и преобразования в них - выбор стратегии действий и
-    постановка целей
-
-    Выбор способа представления знаний (правила, фреймы, концептуальные графы)
-
-    Выбор стратегии поиска
-
-    Включение терма из набора технологий в заголовке вакансии - присвоение классификатора
-    (тега)
-
-    Правила вывода - сопоставление с профилем
-
-    Вычисление различий (дифф) требований и профильных навыков
-
-    Интерактивное построение профиля (ответы на вопросы). Необходим видимый прогресс и
-    предварительная классификация предложений
-
-    Построение новых правил на основе известных
-
-*** Для красоты
-    Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
-    красивую подсветку. Также нужны имена кусков.
 * Хотелки
 
   Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
@@ -2398,6 +2402,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
   #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle
     (in-package #:moto)
 
+    ;; special syntax for pattern-matching
     (named-readtables:in-readtable :fare-quasiquote)
 
     <<run>>

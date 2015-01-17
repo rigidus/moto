@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-18 Вс. 01:01 -->
+<!-- 2015-01-18 Вс. 01:37 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -168,20 +168,21 @@ for the JavaScript code in this tag.
 <li><a href="#sec-2-10">2.10. Разбор тизеров вакансий</a>
 <ul>
 <li><a href="#sec-2-10-1">2.10.1. Трансформация дерева</a></li>
-<li><a href="#sec-2-10-2">2.10.2. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-11">2.11. Разбор вакансий</a>
-<ul>
-<li><a href="#sec-2-11-1">2.11.1. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
-</ul>
-</li>
+<li><a href="#sec-2-11">2.11. Разбор вакансий</a></li>
 <li><a href="#sec-2-12">2.12. <span class="todo nilTODO">TODO</span> Незавершенное</a>
 <ul>
 <li><a href="#sec-2-12-1">2.12.1. Сохранение данных</a></li>
 <li><a href="#sec-2-12-2">2.12.2. Состояния вакансии</a></li>
 <li><a href="#sec-2-12-3">2.12.3. Еще кое-что</a></li>
 <li><a href="#sec-2-12-4">2.12.4. Для красоты</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-13">2.13. Неактуальное</a>
+<ul>
+<li><a href="#sec-2-13-1">2.13.1. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
+<li><a href="#sec-2-13-2">2.13.2. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
 </ul>
 </li>
 </ul>
@@ -1081,10 +1082,337 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
+</div>
 
-<div id="outline-container-sec-2-10-2" class="outline-4">
-<h4 id="sec-2-10-2"><span class="section-number-4">2.10.2</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
-<div class="outline-text-4" id="text-2-10-2">
+<div id="outline-container-sec-2-11" class="outline-3">
+<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Разбор вакансий</h3>
+<div class="outline-text-3" id="text-2-11">
+<p>
+Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
+лишнего:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="transform_description">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">transform-description</span> (tree-descr)
+  (<span style="color: #a020f0;">let</span> ((result)
+        (header))
+    (mapcar #'(<span style="color: #a020f0;">lambda</span> (item)
+                (<span style="color: #a020f0;">unless</span> (equal <span style="color: #8b2252;">" "</span> item)
+                  (<span style="color: #a020f0;">cond</span> ((and (null header) (consp item) (equal 1 (length item)))
+                         (setf header (car item)))
+                        ((and (not (null header)) (consp item) (not (equal 1 (length item))))
+                         (<span style="color: #a020f0;">progn</span>
+                           (setf result (append result (list (list header item))))
+                           (setf header nil)))
+                        (t (setf result (append result (list item)))))))
+            (mtm (`<span style="color: #8b2252;">" "</span> 'Z)
+                 (mtm (`(<span style="color: #8b2252;">"br"</span> NIL) 'Z)
+                      (mtm (`(,(or <span style="color: #8b2252;">"ul"</span> <span style="color: #8b2252;">"p"</span>) NIL ,@rest)
+                             (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (and (not (consp x)) (equal x <span style="color: #8b2252;">" "</span>))) rest))
+                           (mtm (`(,(or <span style="color: #8b2252;">"li"</span> <span style="color: #8b2252;">"em"</span>) NIL ,in) in)
+                                (mtm (`(<span style="color: #8b2252;">"strong"</span> NIL ,in) in) *tree-descr*))))))
+    (<span style="color: #a020f0;">labels</span> ((tmp (tree)
+               (<span style="color: #a020f0;">cond</span>  ((consp tree) (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (equal x 'z))
+                                               (cons (tmp (car tree))
+                                                     (tmp (cdr tree)))))
+                      (t tree))))
+      (tmp result))))
+</pre>
+</div>
+
+<p>
+И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_parse_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+&lt;&lt;transform_description&gt;&gt;
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy</span> (html <span style="color: #228b22;">&amp;optional</span> intree)
+  (<span style="color: #a020f0;">let*</span> ((tree (aif intree
+                    it
+                    (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
+    (append (<span style="color: #a020f0;">block</span> header-extract
+              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-custom g-round"</span>)) (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"title"</span>) (<span style="color: #8b2252;">"content"</span> ,_)))
+                            (<span style="color: #8b2252;">"h1"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"title b-vacancy-title"</span>)) ,name ,@archive) ,@rest)
+                     (<span style="color: #a020f0;">return-from</span> header-extract
+                       (append (list <span style="color: #483d8b;">:name</span> name <span style="color: #483d8b;">:archive</span> (<span style="color: #a020f0;">if</span> archive t nil))
+                               (<span style="color: #a020f0;">block</span> emp-block (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"companyname"</span>)) (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"hiringOrganization"</span>) (<span style="color: #8b2252;">"href"</span> ,emp-lnk)) ,emp-name))
+                                                       (<span style="color: #a020f0;">return-from</span> emp-block
+                                                         (list <span style="color: #483d8b;">:emp-id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) <span style="color: #483d8b;">:junk-allowed</span> t)
+                                                               <span style="color: #483d8b;">:emp-name</span> emp-name))) rest)))))
+                   tree))
+            (<span style="color: #a020f0;">let</span> ((salary-result (<span style="color: #a020f0;">block</span> salary-extract
+                                   (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>))
+                                                 (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
+                                                 (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,base-salary)))
+                                                 ,salary-text)
+                                          (<span style="color: #a020f0;">return-from</span> salary-extract (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:base-salary</span> base-salary <span style="color: #483d8b;">:salary-text</span> salary-text)))
+                                        tree))))
+              (<span style="color: #a020f0;">if</span> (equal 6 (length salary-result))
+                  salary-result
+                  (list <span style="color: #483d8b;">:currency</span> nil <span style="color: #483d8b;">:base-salary</span> nil <span style="color: #483d8b;">:salary-text</span> nil)))
+            (<span style="color: #a020f0;">let</span> ((city-result (<span style="color: #a020f0;">block</span> city-extract (mtm (`(<span style="color: #8b2252;">"td"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-content-colum-2 b-v-info-content"</span>)) (<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>)) ,city))
+                                                          (<span style="color: #a020f0;">return-from</span> city-extract (list <span style="color: #483d8b;">:city</span> city))) tree))))
+              (<span style="color: #a020f0;">if</span> (equal 2 (length city-result)) city-result (list <span style="color: #483d8b;">:city</span> nil)))
+            (<span style="color: #a020f0;">let</span> ((exp-result (<span style="color: #a020f0;">block</span> exp-extract (mtm (`(<span style="color: #8b2252;">"td"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-content-colum-3 b-v-info-content"</span>))
+                                                              (<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>) (<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"experienceRequirements"</span>)) ,exp))
+                                                        (<span style="color: #a020f0;">return-from</span> exp-extract (list <span style="color: #483d8b;">:exp</span> exp))) tree))))
+              (<span style="color: #a020f0;">if</span> (equal 2 (length exp-result)) exp-result (list <span style="color: #483d8b;">:exp</span> nil)))
+            (<span style="color: #a020f0;">block</span> descr-extract
+              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-desc-wrapper"</span>) (<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"description"</span>)) ,@descr)
+                     (<span style="color: #a020f0;">return-from</span> descr-extract (list <span style="color: #483d8b;">:descr</span> <span style="color: #b22222;">#|(transform-description|#</span> descr <span style="color: #b22222;">#|)|#</span>))) tree)))))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))</span>
+
+(print
+ (hh-parse-vacancy (hh-get-page <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/12581768"</span>)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-12" class="outline-3">
+<h3 id="sec-2-12"><span class="section-number-3">2.12</span> <span class="todo TODO">TODO</span> Незавершенное</h3>
+<div class="outline-text-3" id="text-2-12">
+<p>
+Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
+открыть файл, например, в емаксте, т.к. в гитхабе про отображении файла не видно имен
+блоков кода.
+</p>
+</div>
+
+<div id="outline-container-sec-2-12-1" class="outline-4">
+<h4 id="sec-2-12-1"><span class="section-number-4">2.12.1</span> Сохранение данных</h4>
+<div class="outline-text-4" id="text-2-12-1">
+<p>
+Как только у нас это есть - код становится простым
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_parse"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(in-package #:moto)</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defparameter *programmin-and-development-profile*</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(make-profile :name "&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077; &#1080; &#1088;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:user-id 1</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:search-query "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=~A"</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:ts-create (get-universal-time)</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:ts-last (get-universal-time)))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defun run-collect (profile)</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(let* ((search-str   (search-query profile))</span>
+<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(all-teasers  nil))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(block get-all-hh-teasers</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(loop :for num :from 0 :to 100 :do</span>
+<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(print num)</span>
+<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(let* ((url (format nil search-str num))</span>
+<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">(teasers (hh-parse-vacancy-teasers (hh-get-page url))))</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">(if (equal 0 (length teasers))</span>
+<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(return-from get-all-hh-teasers)</span>
+<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(setf all-teasers (append all-teasers teasers)))))</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(print "over-100"))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">all-teasers))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (print</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=28")))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defparameter *teasers* (run-collect *programmin-and-development-profile*))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (length *teasers*)</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defun save-collect (all-teasers)</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(loop :for tea :in all-teasers :do</span>
+<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(print tea)</span>
+<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(make-vacancy :profile-id (id *programmin-and-development-profile*)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:name (getf tea :vac-name)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-id (parse-integer</span>
+<span style="color: #b22222;">;;                             </span><span style="color: #b22222;">(car (last (split-sequence:split-sequence</span>
+<span style="color: #b22222;">;;                                         </span><span style="color: #b22222;">#\/ (getf tea :vac-id)))))</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-date (getf tea :vacancy-date)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-employer-name (getf tea :employer-name)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-employer-id (aif (getf tea :employer-id)</span>
+<span style="color: #b22222;">;;                                          </span><span style="color: #b22222;">(parse-integer</span>
+<span style="color: #b22222;">;;                                           </span><span style="color: #b22222;">(car (last (split-sequence:split-sequence</span>
+<span style="color: #b22222;">;;                                                       </span><span style="color: #b22222;">#\/ it))))</span>
+<span style="color: #b22222;">;;                                          </span><span style="color: #b22222;">0)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:currency (getf tea :currency)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:salary (aif (getf tea :salary)</span>
+<span style="color: #b22222;">;;                                 </span><span style="color: #b22222;">it</span>
+<span style="color: #b22222;">;;                                 </span><span style="color: #b22222;">0)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:salary-text (getf tea :salary-text)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:state ":TEASER"</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">)))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(save-collect *teasers*)</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (length (all-vacancy))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (print</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (car *teasers*)</span>
+</pre>
+</div>
+
+<p>
+Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
+интересуют больше чем остальные их можно будет получить по статусу:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_parse_deep">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(find-vacancy :profile-id 1)</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(all-vacancy)</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-12-2" class="outline-4">
+<h4 id="sec-2-12-2"><span class="section-number-4">2.12.2</span> Состояния вакансии</h4>
+</div>
+<div id="outline-container-sec-2-12-3" class="outline-4">
+<h4 id="sec-2-12-3"><span class="section-number-4">2.12.3</span> Еще кое-что</h4>
+<div class="outline-text-4" id="text-2-12-3">
+<p>
+После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
+интерфейсная часть.
+</p>
+
+<p>
+В этот момент я хочу [найти вакансию], глянуть ее и в зависимости от того до чего мы
+договорились с работодателем выставить ей некоторое состояние.
+</p>
+
+<p>
+Я также хочу чтобы система проходила по вакансиям и в зависимости от сочетания условий
+выполняла какие-то действия
+</p>
+
+<ul class="org-ul">
+<li>напоминание мне о собеседованиях, звонках (календарь)
+</li>
+<li>автоматическое ранжирование вакансий (по перспективам найма, зарплате и.т.п)
+</li>
+</ul>
+
+<p>
+Система анализирует компании с т.з. выставляемых вакансий и формирует профиль
+компании. По выставляемым вакансиям можно сделать интересные выводы - например когда у
+компании внезапно появляются вакансии на одного сеньера и нескольких линейных
+разработчиков - это напоминает открытие нового отдела/проекта.
+</p>
+
+<p>
+Система классифицирует сохраненные вакансии по формальным признакам, таким как:
+</p>
+<ul class="org-ul">
+<li>новые вакансии
+</li>
+<li>измененные
+</li>
+<li>закрытые (о закрытости вакансии можно судить по ряду критериев)
+</li>
+<li>особенно интересные
+</li>
+<li>необычные
+</li>
+</ul>
+
+<p>
+В случае изменений или появления новых интересующих пользователя вакансий пользователю отправляется
+уведомление (через систему очередей сообщений и по email).
+</p>
+
+<p>
+Исходя из анализа DESCRIPTION можно определить требуемую технологию и требуемую степень
+владения ею.
+</p>
+
+<p>
+Предоставление рекомендаций и отбор вакансий на основе модифицируемых правил и фактах
+предметной области, таких как "работодатель - компания по разработке ПО" или "ИТ-поддержка
+не является приоритетом компании"
+</p>
+
+<p>
+Предсказание поведения (путей достижения целей) компании (в процессе найма и вне его) на
+основе моделей и целей.
+</p>
+
+<p>
+Выбор вариантов поведения в ответ на предьявляемые требования (цикл распознавание-действие
+в продукционной системе)
+</p>
+
+<p>
+Построение концептуальных моделей и преобразования в них - выбор стратегии действий и
+постановка целей
+</p>
+
+<p>
+Выбор способа представления знаний (правила, фреймы, концептуальные графы)
+</p>
+
+<p>
+Выбор стратегии поиска
+</p>
+
+<p>
+Включение терма из набора технологий в заголовке вакансии - присвоение классификатора
+(тега)
+</p>
+
+<p>
+Правила вывода - сопоставление с профилем
+</p>
+
+<p>
+Вычисление различий (дифф) требований и профильных навыков
+</p>
+
+<p>
+Интерактивное построение профиля (ответы на вопросы). Необходим видимый прогресс и
+предварительная классификация предложений
+</p>
+
+<p>
+Построение новых правил на основе известных
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-12-4" class="outline-4">
+<h4 id="sec-2-12-4"><span class="section-number-4">2.12.4</span> Для красоты</h4>
+<div class="outline-text-4" id="text-2-12-4">
+<p>
+Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
+красивую подсветку. Также нужны имена кусков.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2-13" class="outline-3">
+<h3 id="sec-2-13"><span class="section-number-3">2.13</span> Неактуальное</h3>
+<div class="outline-text-3" id="text-2-13">
+<p>
+Эти два раздела заменены на более функциональные
+</p>
+</div>
+
+<div id="outline-container-sec-2-13-1" class="outline-4">
+<h4 id="sec-2-13-1"><span class="section-number-4">2.13.1</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
+<div class="outline-text-4" id="text-2-13-1">
 <p>
 Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
 разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -1414,104 +1742,10 @@ collect
 </div>
 </div>
 </div>
-</div>
 
-<div id="outline-container-sec-2-11" class="outline-3">
-<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Разбор вакансий</h3>
-<div class="outline-text-3" id="text-2-11">
-<p>
-Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
-лишнего:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="transform_description">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">transform-description</span> (tree-descr)
-  (<span style="color: #a020f0;">let</span> ((result)
-        (header))
-    (mapcar #'(<span style="color: #a020f0;">lambda</span> (item)
-                (<span style="color: #a020f0;">unless</span> (equal <span style="color: #8b2252;">" "</span> item)
-                  (<span style="color: #a020f0;">cond</span> ((and (null header) (consp item) (equal 1 (length item)))
-                         (setf header (car item)))
-                        ((and (not (null header)) (consp item) (not (equal 1 (length item))))
-                         (<span style="color: #a020f0;">progn</span>
-                           (setf result (append result (list (list header item))))
-                           (setf header nil)))
-                        (t (setf result (append result (list item)))))))
-            (mtm (`<span style="color: #8b2252;">" "</span> 'Z)
-                 (mtm (`(<span style="color: #8b2252;">"br"</span> NIL) 'Z)
-                      (mtm (`(,(or <span style="color: #8b2252;">"ul"</span> <span style="color: #8b2252;">"p"</span>) NIL ,@rest)
-                             (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (and (not (consp x)) (equal x <span style="color: #8b2252;">" "</span>))) rest))
-                           (mtm (`(,(or <span style="color: #8b2252;">"li"</span> <span style="color: #8b2252;">"em"</span>) NIL ,in) in)
-                                (mtm (`(<span style="color: #8b2252;">"strong"</span> NIL ,in) in) *tree-descr*))))))
-    (<span style="color: #a020f0;">labels</span> ((tmp (tree)
-               (<span style="color: #a020f0;">cond</span>  ((consp tree) (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (equal x 'z))
-                                               (cons (tmp (car tree))
-                                                     (tmp (cdr tree)))))
-                      (t tree))))
-      (tmp result))))
-</pre>
-</div>
-
-<p>
-И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="hh_parse_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-&lt;&lt;transform_description&gt;&gt;
-
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy</span> (html <span style="color: #228b22;">&amp;optional</span> intree)
-  (<span style="color: #a020f0;">let*</span> ((tree (aif intree
-                    it
-                    (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
-    (append (<span style="color: #a020f0;">block</span> header-extract
-              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-custom g-round"</span>)) (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"title"</span>) (<span style="color: #8b2252;">"content"</span> ,_)))
-                            (<span style="color: #8b2252;">"h1"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"title b-vacancy-title"</span>)) ,name ,@archive) ,@rest)
-                     (<span style="color: #a020f0;">return-from</span> header-extract
-                       (append (list <span style="color: #483d8b;">:name</span> name <span style="color: #483d8b;">:archive</span> (<span style="color: #a020f0;">if</span> archive t nil))
-                               (<span style="color: #a020f0;">block</span> emp-block (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"companyname"</span>)) (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"hiringOrganization"</span>) (<span style="color: #8b2252;">"href"</span> ,emp-lnk)) ,emp-name))
-                                                       (<span style="color: #a020f0;">return-from</span> emp-block
-                                                         (list <span style="color: #483d8b;">:emp-id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) <span style="color: #483d8b;">:junk-allowed</span> t)
-                                                               <span style="color: #483d8b;">:emp-name</span> emp-name))) rest)))))
-                   tree))
-            (<span style="color: #a020f0;">let</span> ((salary-result (<span style="color: #a020f0;">block</span> salary-extract
-                                   (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>))
-                                                 (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
-                                                 (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,base-salary)))
-                                                 ,salary-text)
-                                          (<span style="color: #a020f0;">return-from</span> salary-extract (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:base-salary</span> base-salary <span style="color: #483d8b;">:salary-text</span> salary-text)))
-                                        tree))))
-              (<span style="color: #a020f0;">if</span> (equal 6 (length salary-result))
-                  salary-result
-                  (list <span style="color: #483d8b;">:currency</span> nil <span style="color: #483d8b;">:base-salary</span> nil <span style="color: #483d8b;">:salary-text</span> nil)))
-            (<span style="color: #a020f0;">let</span> ((city-result (<span style="color: #a020f0;">block</span> city-extract (mtm (`(<span style="color: #8b2252;">"td"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-content-colum-2 b-v-info-content"</span>)) (<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>)) ,city))
-                                                          (<span style="color: #a020f0;">return-from</span> city-extract (list <span style="color: #483d8b;">:city</span> city))) tree))))
-              (<span style="color: #a020f0;">if</span> (equal 2 (length city-result)) city-result (list <span style="color: #483d8b;">:city</span> nil)))
-            (<span style="color: #a020f0;">let</span> ((exp-result (<span style="color: #a020f0;">block</span> exp-extract (mtm (`(<span style="color: #8b2252;">"td"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-content-colum-3 b-v-info-content"</span>))
-                                                              (<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"l-paddings"</span>) (<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"experienceRequirements"</span>)) ,exp))
-                                                        (<span style="color: #a020f0;">return-from</span> exp-extract (list <span style="color: #483d8b;">:exp</span> exp))) tree))))
-              (<span style="color: #a020f0;">if</span> (equal 2 (length exp-result)) exp-result (list <span style="color: #483d8b;">:exp</span> nil)))
-            (<span style="color: #a020f0;">block</span> descr-extract
-              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-desc-wrapper"</span>) (<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"description"</span>)) ,@descr)
-                     (<span style="color: #a020f0;">return-from</span> descr-extract (list <span style="color: #483d8b;">:descr</span> <span style="color: #b22222;">#|(transform-description|#</span> descr <span style="color: #b22222;">#|)|#</span>))) tree)))))
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
-<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))</span>
-
-(print
- (hh-parse-vacancy (hh-get-page <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/12581768"</span>)))
-</pre>
-</div>
-</div>
-
-<div id="outline-container-sec-2-11-1" class="outline-4">
-<h4 id="sec-2-11-1"><span class="section-number-4">2.11.1</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
-<div class="outline-text-4" id="text-2-11-1">
+<div id="outline-container-sec-2-13-2" class="outline-4">
+<h4 id="sec-2-13-2"><span class="section-number-4">2.13.2</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
+<div class="outline-text-4" id="text-2-13-2">
 <p>
 Разбирая вакансию мы должны извлечь несколько блоков:
 </p>
@@ -1658,232 +1892,8 @@ collect
 </div>
 </div>
 </div>
-
-<div id="outline-container-sec-2-12" class="outline-3">
-<h3 id="sec-2-12"><span class="section-number-3">2.12</span> <span class="todo TODO">TODO</span> Незавершенное</h3>
-<div class="outline-text-3" id="text-2-12">
-<p>
-Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
-открыть файл, например, в емаксте, т.к. в гитхабе про отображении файла не видно имен
-блоков кода.
-</p>
 </div>
 
-<div id="outline-container-sec-2-12-1" class="outline-4">
-<h4 id="sec-2-12-1"><span class="section-number-4">2.12.1</span> Сохранение данных</h4>
-<div class="outline-text-4" id="text-2-12-1">
-<p>
-Как только у нас это есть - код становится простым
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="hh_parse"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(in-package #:moto)</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defparameter *programmin-and-development-profile*</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(make-profile :name "&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077; &#1080; &#1088;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:user-id 1</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:search-query "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=~A"</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:ts-create (get-universal-time)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:ts-last (get-universal-time)))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defun run-collect (profile)</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(let* ((search-str   (search-query profile))</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(all-teasers  nil))</span>
-<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(block get-all-hh-teasers</span>
-<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(loop :for num :from 0 :to 100 :do</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(print num)</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(let* ((url (format nil search-str num))</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">(teasers (hh-parse-vacancy-teasers (hh-get-page url))))</span>
-<span style="color: #b22222;">;;            </span><span style="color: #b22222;">(if (equal 0 (length teasers))</span>
-<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(return-from get-all-hh-teasers)</span>
-<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(setf all-teasers (append all-teasers teasers)))))</span>
-<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(print "over-100"))</span>
-<span style="color: #b22222;">;;     </span><span style="color: #b22222;">all-teasers))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (print</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=28")))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defparameter *teasers* (run-collect *programmin-and-development-profile*))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (length *teasers*)</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defun save-collect (all-teasers)</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(loop :for tea :in all-teasers :do</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(print tea)</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(make-vacancy :profile-id (id *programmin-and-development-profile*)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:name (getf tea :vac-name)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-id (parse-integer</span>
-<span style="color: #b22222;">;;                             </span><span style="color: #b22222;">(car (last (split-sequence:split-sequence</span>
-<span style="color: #b22222;">;;                                         </span><span style="color: #b22222;">#\/ (getf tea :vac-id)))))</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-date (getf tea :vacancy-date)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-employer-name (getf tea :employer-name)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-employer-id (aif (getf tea :employer-id)</span>
-<span style="color: #b22222;">;;                                          </span><span style="color: #b22222;">(parse-integer</span>
-<span style="color: #b22222;">;;                                           </span><span style="color: #b22222;">(car (last (split-sequence:split-sequence</span>
-<span style="color: #b22222;">;;                                                       </span><span style="color: #b22222;">#\/ it))))</span>
-<span style="color: #b22222;">;;                                          </span><span style="color: #b22222;">0)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:currency (getf tea :currency)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:salary (aif (getf tea :salary)</span>
-<span style="color: #b22222;">;;                                 </span><span style="color: #b22222;">it</span>
-<span style="color: #b22222;">;;                                 </span><span style="color: #b22222;">0)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:salary-text (getf tea :salary-text)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:state ":TEASER"</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">)))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(save-collect *teasers*)</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (length (all-vacancy))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (print</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (car *teasers*)</span>
-</pre>
-</div>
-
-<p>
-Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
-интересуют больше чем остальные их можно будет получить по статусу:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="hh_parse_deep">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(find-vacancy :profile-id 1)</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(all-vacancy)</span>
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-2-12-2" class="outline-4">
-<h4 id="sec-2-12-2"><span class="section-number-4">2.12.2</span> Состояния вакансии</h4>
-</div>
-<div id="outline-container-sec-2-12-3" class="outline-4">
-<h4 id="sec-2-12-3"><span class="section-number-4">2.12.3</span> Еще кое-что</h4>
-<div class="outline-text-4" id="text-2-12-3">
-<p>
-После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
-интерфейсная часть.
-</p>
-
-<p>
-В этот момент я хочу [найти вакансию], глянуть ее и в зависимости от того до чего мы
-договорились с работодателем выставить ей некоторое состояние.
-</p>
-
-<p>
-Я также хочу чтобы система проходила по вакансиям и в зависимости от сочетания условий
-выполняла какие-то действия
-</p>
-
-<ul class="org-ul">
-<li>напоминание мне о собеседованиях, звонках (календарь)
-</li>
-<li>автоматическое ранжирование вакансий (по перспективам найма, зарплате и.т.п)
-</li>
-</ul>
-
-<p>
-Система анализирует компании с т.з. выставляемых вакансий и формирует профиль
-компании. По выставляемым вакансиям можно сделать интересные выводы - например когда у
-компании внезапно появляются вакансии на одного сеньера и нескольких линейных
-разработчиков - это напоминает открытие нового отдела/проекта.
-</p>
-
-<p>
-Система классифицирует сохраненные вакансии по формальным признакам, таким как:
-</p>
-<ul class="org-ul">
-<li>новые вакансии
-</li>
-<li>измененные
-</li>
-<li>закрытые (о закрытости вакансии можно судить по ряду критериев)
-</li>
-<li>особенно интересные
-</li>
-<li>необычные
-</li>
-</ul>
-
-<p>
-В случае изменений или появления новых интересующих пользователя вакансий пользователю отправляется
-уведомление (через систему очередей сообщений и по email).
-</p>
-
-<p>
-Исходя из анализа DESCRIPTION можно определить требуемую технологию и требуемую степень
-владения ею.
-</p>
-
-<p>
-Предоставление рекомендаций и отбор вакансий на основе модифицируемых правил и фактах
-предметной области, таких как "работодатель - компания по разработке ПО" или "ИТ-поддержка
-не является приоритетом компании"
-</p>
-
-<p>
-Предсказание поведения (путей достижения целей) компании (в процессе найма и вне его) на
-основе моделей и целей.
-</p>
-
-<p>
-Выбор вариантов поведения в ответ на предьявляемые требования (цикл распознавание-действие
-в продукционной системе)
-</p>
-
-<p>
-Построение концептуальных моделей и преобразования в них - выбор стратегии действий и
-постановка целей
-</p>
-
-<p>
-Выбор способа представления знаний (правила, фреймы, концептуальные графы)
-</p>
-
-<p>
-Выбор стратегии поиска
-</p>
-
-<p>
-Включение терма из набора технологий в заголовке вакансии - присвоение классификатора
-(тега)
-</p>
-
-<p>
-Правила вывода - сопоставление с профилем
-</p>
-
-<p>
-Вычисление различий (дифф) требований и профильных навыков
-</p>
-
-<p>
-Интерактивное построение профиля (ответы на вопросы). Необходим видимый прогресс и
-предварительная классификация предложений
-</p>
-
-<p>
-Построение новых правил на основе известных
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-2-12-4" class="outline-4">
-<h4 id="sec-2-12-4"><span class="section-number-4">2.12.4</span> Для красоты</h4>
-<div class="outline-text-4" id="text-2-12-4">
-<p>
-Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
-красивую подсветку. Также нужны имена кусков.
-</p>
-</div>
-</div>
-</div>
-</div>
 <div id="outline-container-sec-3" class="outline-2">
 <h2 id="sec-3"><span class="section-number-2">3</span> Хотелки</h2>
 <div class="outline-text-2" id="text-3">
@@ -3630,10 +3640,6 @@ TODO: Конечный автомат тут сложен и будет еще �
 
 <pre class="src src-lisp" id="hh_prepare">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">special syntax for pattern-matching</span>
-(ql:quickload '(<span style="color: #8b2252;">"fare-quasiquote-optima"</span> <span style="color: #8b2252;">"fare-quasiquote-readtable"</span>))
-(named-readtables:in-readtable <span style="color: #483d8b;">:fare-quasiquote</span>)
-
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
 (closure-template:compile-template
  <span style="color: #483d8b;">:common-lisp-backend</span>
@@ -3649,6 +3655,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="hh_fn">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">special syntax for pattern-matching</span>
+(named-readtables:in-readtable <span style="color: #483d8b;">:fare-quasiquote</span>)
 
 &lt;&lt;run&gt;&gt;
 
@@ -4249,40 +4258,39 @@ TODO: Конечный автомат тут сложен и будет еще �
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">#` syntax</span>
 
-(eval-always
-  (<span style="color: #a020f0;">defun</span> |#`-reader| (stream char arg)
-    <span style="color: #8b2252;">"Literal syntax for zero/one/two argument lambdas.</span>
-<span style="color: #8b2252;">Use @ as the function's argument, % as the second.</span>
-<span style="color: #8b2252;">Examples:</span>
-<span style="color: #8b2252;">CL-USER&gt; #`(+ 2 @)</span>
-<span style="color: #8b2252;">\(lambda (&amp;optional x y)</span>
-<span style="color: #8b2252;">   (+ 2 x))</span>
-<span style="color: #8b2252;">CL-USER&gt;  #`((1+ @) (print @))</span>
-<span style="color: #8b2252;">\(lambda (&amp;optional x y)</span>
-<span style="color: #8b2252;">   (1+ x)</span>
-<span style="color: #8b2252;">   (print x))</span>
-<span style="color: #8b2252;">CL-USER&gt; #`(+ 1 2)</span>
-<span style="color: #8b2252;">\(lambda (&amp;optional x y)</span>
-<span style="color: #8b2252;">   (+ 1 2))</span>
-<span style="color: #8b2252;">CL-USER&gt;  #`(+ @ %)</span>
-<span style="color: #8b2252;">\(lambda (&amp;optional x y)</span>
-<span style="color: #8b2252;">   (+ x y))</span>
-<span style="color: #8b2252;">"</span>
-    (<span style="color: #a020f0;">declare</span> (ignore char arg))
-    (<span style="color: #a020f0;">let</span> ((sexp (read stream t nil t))
-          (x (gensym <span style="color: #8b2252;">"X"</span>))
-          (y (gensym <span style="color: #8b2252;">"Y"</span>)))
-      `(<span style="color: #a020f0;">lambda</span> (<span style="color: #228b22;">&amp;optional</span> ,x ,y)
-         (<span style="color: #a020f0;">declare</span> (ignorable ,x)
-                  (ignorable ,y))
-         ,@(subst y '%
-                  (subst x '@
-                         (<span style="color: #a020f0;">if</span> (listp (car sexp))
-                             sexp
-                             (list sexp)))))))
-  <span style="color: #b22222;">;; </span><span style="color: #b22222;">set #`</span>
-  (set-dispatch-macro-character #\# #\` #'|#`-reader|))
-
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(eval-always</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(defun |#`-reader| (stream char arg)</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">"Literal syntax for zero/one/two argument lambdas.</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">Use @ as the function's argument, % as the second.</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">Examples:</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">CL-USER&gt; #`(+ 2 @)</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">\(lambda (&amp;optional x y)</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(+ 2 x))</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">CL-USER&gt;  #`((1+ @) (print @))</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">\(lambda (&amp;optional x y)</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(1+ x)</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(print x))</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">CL-USER&gt; #`(+ 1 2)</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">\(lambda (&amp;optional x y)</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(+ 1 2))</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">CL-USER&gt;  #`(+ @ %)</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">\(lambda (&amp;optional x y)</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(+ x y))</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">"</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(declare (ignore char arg))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(let ((sexp (read stream t nil t))</span>
+<span style="color: #b22222;">;;           </span><span style="color: #b22222;">(x (gensym "X"))</span>
+<span style="color: #b22222;">;;           </span><span style="color: #b22222;">(y (gensym "Y")))</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">`(lambda (&amp;optional ,x ,y)</span>
+<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(declare (ignorable ,x)</span>
+<span style="color: #b22222;">;;                   </span><span style="color: #b22222;">(ignorable ,y))</span>
+<span style="color: #b22222;">;;          </span><span style="color: #b22222;">,@(subst y '%</span>
+<span style="color: #b22222;">;;                   </span><span style="color: #b22222;">(subst x '@</span>
+<span style="color: #b22222;">;;                          </span><span style="color: #b22222;">(if (listp (car sexp))</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">sexp</span>
+<span style="color: #b22222;">;;                              </span><span style="color: #b22222;">(list sexp)))))))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">;; set #`</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(set-dispatch-macro-character #\# #\` #'|#`-reader|))</span>
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">anaphoric</span>
 
@@ -4313,16 +4321,16 @@ TODO: Конечный автомат тут сложен и будет еще �
         ((not it))
       ,@body)))
 
-(eval-always
- (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">cond-it</span> (<span style="color: #228b22;">&amp;body</span> body)
-   <span style="color: #8b2252;">"Like COND. IT is bound to the passed COND test."</span>
-   `(<span style="color: #a020f0;">let</span> (it)
-      (<span style="color: #a020f0;">cond</span>
-        ,@(mapcar #``((setf it ,(car @)) ,(cadr @))
-                  <span style="color: #b22222;">;; </span><span style="color: #b22222;">uses the fact, that SETF returns the value set</span>
-                  body)))))
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">maybe</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(eval-always</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(defmacro cond-it (&amp;body body)</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">"Like COND. IT is bound to the passed COND test."</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">`(let (it)</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(cond</span>
+<span style="color: #b22222;">;;         </span><span style="color: #b22222;">,@(mapcar #``((setf it ,(car @)) ,(cadr @))</span>
+<span style="color: #b22222;">;;                   </span><span style="color: #b22222;">;; uses the fact, that SETF returns the value set</span>
+<span style="color: #b22222;">;;                   </span><span style="color: #b22222;">body)))))</span>
 
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">maybe</span>
 
 (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">maybecall</span> (val <span style="color: #228b22;">&amp;rest</span> funs)
   `(and-it ,val
@@ -4401,7 +4409,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-18 Вс. 01:01</p>
+<p class="date">Created: 2015-01-18 Вс. 01:37</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
