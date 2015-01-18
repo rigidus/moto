@@ -104,11 +104,75 @@
 
 (defparameter *rules-for-vacancy*
   (list
-   ;; (define-rule nil
-   ;;   (dbg "empty")
-   ;;   ;; (setf vacancy nil)
-   ;;   :stop)
+   (define-rule (contains (getf vacancy :emp-name) "JetBrains")
+     (dbg "drop-vac: Неподходящая компания")
+     (setf vacancy nil)
+     :stop)
+   (define-rule (not (null (find-vacancy :src-id (getf vacancy :id))))
+     (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+       (dbg "drop-vac: Уже есть в БД: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists)))
+     (setf vacancy nil)
+     :stop)
+   (define-rule t
+     (setf (getf vacancy :rank) (getf vacancy :salary)))
+   (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp")
+     (dbg "drop-vac: Неподходящая компания")
+     (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
+   (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang")
+     (dbg "drop-vac: Неподходящая компания")
+     (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
+   (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell")
+     (dbg "drop-vac: Неподходящая компания")
+     (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+   (define-rule t
+     (save-vacancy vacancy))
+   (define-rule t
+     (dbg "~A" (bprint vacancy))
+     :stop)
    ))
+
+;; (contains (format nil "~A" (bprint (getf *tmp* :descr))) "JVM2")
+
+;; (defparameter *tmp*
+;;   '(:NAME "Senior Software Developer (PyCharm)" :ARCHIVE NIL
+;;     :EMP-ID 9281 :EMP-NAME " JetBrains" :CURRENCY "RUR"
+;;     :BASE-SALARY "130000" :SALARY-TEXT "от 130 000 руб." :CITY
+;;     "Санкт-Петербург" :EXP "3–6 лет" :DESCR
+;;     (("Founded in 2000, JetBrains s.r.o. is a world-leading vendor of professional software development tools. At JetBrains, we have a passion for making people more productive through smart software solutions that help them focus more on what they really want to accomplish, and less on mundane, repetitive “computer-busy work.”We are looking for passionate, creative and open-minded people to join our development team."
+;;       ("As part of our team, you will provide developers all over the world the best programming environment for Python ecosystem - "
+;;        "PyCharm IDE" "."))
+;;      ("Responsibilities:"
+;;       ("Conceive and implement new features"
+;;        "Redesign and optimize existing features"
+;;        "Enhance performance of IDE subsystems"
+;;        "Interact with users in public issue tracker"))
+;;      ("Requirements:"
+;;       ("4 years(or more) experience with Java"
+;;        "Knowledge of essential algorithms and data structures"
+;;        "Experience with multithreaded code"
+;;        "Responsibility, discipline, self-motivation"
+;;        "Ability to implement ideas into high-quality product features"
+;;        "Good teamwork skills"))
+;;      ("As a plus would be " "(but not required):")
+;;      ("Python knowledge"
+;;       "Experience with other JVM based languages"
+;;       "Participation in open-source projects")
+;;      ("We offer:"
+;;       ("Fascinating work in a friendly, young team"
+;;        "Developing products for software developers much like ourselves"
+;;        "Employment package (compulsory health insurance, 5 weeks paid vacation)"
+;;        "High salary: determined individually, but definitely above industry average"
+;;        "Full salary during sick leave"
+;;        "Voluntary health insurance including dental insurance and voluntary health insurance for your children"
+;;        "Bonuses tied to product releases"
+;;        "Flexible working schedule"
+;;        "Spacious, comfortable office (open 24/7) with hot shower and other amenities"
+;;        "Hot meals, coffee, tea, sandwiches, juices and soft drinks free of charge"
+;;        "Office library with specialized work-related books and magazines"
+;;        "Comfortable, ergonomic workplaces"
+;;        "Training including on-the-job English language courses"
+;;        "Opportunity to travel to professional conferences in Europe and the US"
+;;        "Help in relocating from another region.")))))
 
 (in-package #:moto)
 
@@ -119,7 +183,7 @@
       (dbg "drop: Нет зарплаты")
       (setf vacancy nil)
       :stop)
-    (define-rule (< (parse-integer (getf vacancy :salary)) 90000)
+    (define-rule (< (getf vacancy :salary) 80000)
       (dbg "drop: Маленькая зарплата")
       (setf vacancy nil)
       :stop))
@@ -316,11 +380,11 @@
                                                                                  "search-result-item__name search-result-item__name_standard_plus"
                                                                                  "search-result-item__name search-result-item__name_premium"))
                                                                    ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
-                                                      (list :id id :name name))
+                                                      (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
                                                     (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
                                                                   ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
                                                                   ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
-                                                           (list :currency currency :salary salary :salary-text salary-text))
+                                                           (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
                                                          (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
                                                                 (list :emp-name emp-name))
                                                               (mtm (`("div" (("class" "search-result-item__company"))
@@ -328,7 +392,8 @@
                                                                                   ("class" "search-result-item__company-link")
                                                                                   ("data-qa" "vacancy-serp__vacancy-employer"))
                                                                                  ,emp-name))
-                                                                     (list :emp-id emp-id :emp-name emp-name))
+                                                                     (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
+                                                                           :emp-name emp-name))
                                                                    (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
                                                                           (loop :for item :in rest :when (consp item) :append item))
                                                                         (mtm (`("span" (("class" "searchresult__address")
@@ -358,10 +423,10 @@
                                                                                                    (html5-parser:node-to-xmls
                                                                                                     (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
 
-(print
- ;; (car
-  (hh-parse-vacancy-teasers
-   (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
+;; (print
+;;  ;; (car
+;;   (hh-parse-vacancy-teasers
+;;    (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
 
 (in-package #:moto)
 
@@ -384,7 +449,7 @@
                       (mtm (`(,(or "ul" "p") NIL ,@rest)
                              (remove-if #'(lambda (x) (and (not (consp x)) (equal x " "))) rest))
                            (mtm (`(,(or "li" "em") NIL ,in) in)
-                                (mtm (`("strong" NIL ,in) in) *tree-descr*))))))
+                                (mtm (`("strong" NIL ,in) in) tree-descr))))))
     (labels ((tmp (tree)
                (cond  ((consp tree) (remove-if #'(lambda (x) (equal x 'z))
                                                (cons (tmp (car tree))
@@ -411,7 +476,7 @@
                                                  ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
                                                  ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
                                                  ,salary-text)
-                                          (return-from salary-extract (list :currency currency :base-salary base-salary :salary-text salary-text)))
+                                          (return-from salary-extract (list :currency currency :base-salary (parse-integer base-salary) :salary-text salary-text)))
                                         tree))))
               (if (equal 6 (length salary-result))
                   salary-result
@@ -425,16 +490,18 @@
               (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
             (block descr-extract
               (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
-                     (return-from descr-extract (list :descr #|(transform-description|# descr #|)|#))) tree)))))
+                     (return-from descr-extract (list :descr (transform-description descr)))) tree)))))
 
 ;; (print
 ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
 
-(print
- (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
+;; (print
+;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
 
 (defmethod process-teaser (current-teaser)
-  (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
+  (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
+       (merge-plists current-teaser it)
+       nil))
 
 (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
   (let ((url     (make-hh-url city prof-area spec))
@@ -459,7 +526,27 @@
              (let ((current-vacancy (process-teaser current-teaser)))
                (if (null current-vacancy)
                    (go get-new-teaser)
-                   (return-from get-vacancy (merge-plists current-teaser current-vacancy))))))))))
+                   (return-from get-vacancy current-vacancy)))))))))
+
+(in-package #:moto)
+
+(defmethod save-vacancy (vacancy)
+  (make-vacancy
+   :src-id (getf vacancy :id)
+   :name (getf vacancy :name)
+   :currency (getf vacancy :currency)
+   :salary (aif (getf vacancy :salary) it 0)
+   :base-salary (aif (getf vacancy :base-salary) it 0)
+   :salary-text (getf vacancy :salary-text)
+   :emp-id (getf vacancy :emp-id)
+   :emp-name (getf vacancy :emp-name)
+   :city (getf vacancy :city)
+   :metro (getf vacancy :metro)
+   :experience (getf vacancy :exp)
+   :archive (getf vacancy :archive)
+   :date (getf vacancy :date)
+   :descr (bprint (getf vacancy :descr)))
+  )
 
 (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
                     "Программирование, Разработка")))
@@ -467,5 +554,4 @@
      (dbg "~A" i)
      (let ((vacancy (funcall gen)))
        (when (null vacancy)
-         (return))
-       (dbg "~A" (bprint vacancy)))))
+         (return)))))

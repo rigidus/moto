@@ -14,103 +14,111 @@
   значительное время, т.к. мы выполняем множество рутинных действий, которых могли бы
   избежать. Попробуем автоматизировать этот процесс.
 
+* Что это такое?
+
+  Это средство автоматизации процесса поиска работы, выполненное в форме экспертной
+  системы. Оно умеет обучаться по ходу взаимодействия со своим пользователем. Обучение
+  производится с помощью внесения пользователем правил обработки входящего потока вакансий.
+
 * Как это работает?
 ** Источник вакансий
 
-  Пусть у нас есть источник вакансий, например, hh.ru. На нем можно сформулировать запрос и
-  получить выборку в виде списка тизеров вакансий, каждый из которых ведет на полное
-  описание вакансии.
+   Пусть у нас есть источник вакансий, например, hh.ru. На нем можно сформулировать запрос и
+   получить выборку в виде списка тизеров вакансий, каждый из которых ведет на полное
+   описание вакансии.
 
-  #+CAPTION: Это источник вакансий
-  #+NAME: fig:vacancy_source
-  [[./img/warehouse.jpg]]
+   #+CAPTION: Это источник вакансий
+   #+NAME: fig:vacancy_source
+   [[./img/warehouse.jpg]]
 
 ** Фабрика генераторов вакансий
 
-  Пусть у нас есть фабрика =генераторов функций= назовем его =factory=, которая принимает
-  =источник вакансий= и параметры запроса (например: =профессиональную область=, =специализацию=,
-  =город=) и возвращает =функцию-генератор в замыкании=.
+   Пусть у нас есть фабрика =генераторов функций= назовем его =factory=, которая принимает
+   =источник вакансий= и параметры запроса (например: =профессиональную область=, =специализацию=,
+   =город=) и возвращает =функцию-генератор в замыкании=.
 
-  #+CAPTION: Фабрика генераторов вакансий
-  #+NAME: fig:factory
-  [[./img/factory.jpg]]
+   #+CAPTION: Фабрика генераторов вакансий
+   #+NAME: fig:factory
+   [[./img/factory.jpg]]
 
-  Эта функция-генератор при каждом своем вызове вернет одну вакансию или =ложь= если все
-  вакансии кончились.
+   Эта функция-генератор при каждом своем вызове вернет одну вакансию или =ложь= если все
+   вакансии кончились.
 
-  #+CAPTION: Функция-генератор, произведенная фабрикой
-  #+NAME: fig:generator
-  [[./img/generator.jpg]]
+   #+CAPTION: Функция-генератор, произведенная фабрикой
+   #+NAME: fig:generator
+   [[./img/generator.jpg]]
 
-  Внутри себя эта функция по мере необходимости загружает и разбирает сначала тизеры
-  вакансий, а потом и сами вакансии, при этом процесс превращения тизера в вакансию
-  (=process-teaser=) вынесен из замыкания, т.к. не зависит от замкнутых переменных.
+   Внутри себя эта функция по мере необходимости загружает и разбирает сначала тизеры
+   вакансий, а потом и сами вакансии, при этом процесс превращения тизера в вакансию
+   (=process-teaser=) вынесен из замыкания, т.к. не зависит от замкнутых переменных.
 
-  #+NAME: factory
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
+   #+NAME: factory
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-    <<make_hh_url>>
+     <<make_hh_url>>
 
-    <<hh_get_page>>
+     <<hh_get_page>>
 
-    <<hh_parse_vacancy_teasers>>
+     <<hh_parse_vacancy_teasers>>
 
-    <<hh_parse_vacancy>>
+     <<hh_parse_vacancy>>
 
-    (defmethod process-teaser (current-teaser)
-      (hh-parse-vacancy (hh-get-page (getf current-teaser :id))))
+     (defmethod process-teaser (current-teaser)
+       (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
+            (merge-plists current-teaser it)
+            nil))
 
-    (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
-      (let ((url     (make-hh-url city prof-area spec))
-            (page    0)
-            (teasers nil))
-        (alexandria:named-lambda get-vacancy ()
-          (labels ((load-next-teasers-page ()
-                     (dbg "~~ LOAD (page=~A)" page)
-                     (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
-                     (incf page)
-                     (when (equal 0 (length teasers))
-                       (dbg "~~ FIN")
-                       (return-from get-vacancy 'nil)))
-                   (get-teaser ()
-                     (when (equal 0 (length teasers))
-                       (load-next-teasers-page))
-                     (let ((current-teaser (car teasers)))
-                       (setf teasers (cdr teasers))
-                       current-teaser)))
-            (tagbody get-new-teaser
-               (let ((current-teaser (get-teaser)))
-                 (let ((current-vacancy (process-teaser current-teaser)))
-                   (if (null current-vacancy)
-                       (go get-new-teaser)
-                       (return-from get-vacancy (merge-plists current-teaser current-vacancy))))))))))
-  #+END_SRC
+     (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
+       (let ((url     (make-hh-url city prof-area spec))
+             (page    0)
+             (teasers nil))
+         (alexandria:named-lambda get-vacancy ()
+           (labels ((load-next-teasers-page ()
+                      (dbg "~~ LOAD (page=~A)" page)
+                      (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
+                      (incf page)
+                      (when (equal 0 (length teasers))
+                        (dbg "~~ FIN")
+                        (return-from get-vacancy 'nil)))
+                    (get-teaser ()
+                      (when (equal 0 (length teasers))
+                        (load-next-teasers-page))
+                      (let ((current-teaser (car teasers)))
+                        (setf teasers (cdr teasers))
+                        current-teaser)))
+             (tagbody get-new-teaser
+                (let ((current-teaser (get-teaser)))
+                  (let ((current-vacancy (process-teaser current-teaser)))
+                    (if (null current-vacancy)
+                        (go get-new-teaser)
+                        (return-from get-vacancy current-vacancy)))))))))
+   #+END_SRC
 
-  Для работы этому генератору нужно уметь:
-  - Собирать URL страницы, где лежат тизеры (краткие описания) вакансий из параметов запроса
-    (=make-hh-url=)
-  - Скачивать HTML-страницы (=hh-get-page=)
-  - Разбирать тизеры из html-кода (=hh-parse-vacancy-teasers=)
-  - Обрабатывать разобранные тизеры (=hh-parse-vacancy=), чтобы получить по ним вакансии.
-  Но я не буду сейчас на этом останавливаться и опишу потом, в соответствующих разделах.
+   Для работы этому генератору нужно уметь:
+   - Собирать URL страницы, где лежат тизеры (краткие описания) вакансий из параметов запроса
+     (=make-hh-url=)
+   - Скачивать HTML-страницы (=hh-get-page=)
+   - Разбирать тизеры из html-кода (=hh-parse-vacancy-teasers=)
+   - Обрабатывать разобранные тизеры (=hh-parse-vacancy=), чтобы получить по ним вакансии.
+   Но я не буду сейчас на этом останавливаться и опишу потом, в соответствующих разделах.
 
 ** Определение правила обработки
 
-  Пусть у нас есть возможность создавать именованные =правила=, которые получают на вход
-  список, представляющий собой тизер или вакансию, анализируют его, и выполняют какие-то
-  действия. В качестве примера, мы могли бы создать правило, которое добавляет к вакансии
-  поле =interested= если зарплата и язык разработки нас устраивает.
+   Пусть у нас есть возможность создавать именованные =правила=, которые получают на вход
+   список, представляющий собой тизер или вакансию, анализируют его, и выполняют какие-то
+   действия. В качестве примера, мы могли бы создать правило, которое добавляет к вакансии
+   поле =interested= если зарплата и язык разработки нас устраивает.
 
-  Правило принимает на вход условие срабатывания и код, который будет выполнен, в случае
-  если условие выполняется на обрабатываемой вакансии.
+   Правило принимает на вход условие срабатывания и код, который будет выполнен, в случае
+   если условие выполняется на обрабатываемой вакансии.
 
-  Примем соглашение, что правило возвращает два значения:
-  - первое - вакансию (возможно измененную)
-  - второе - указание процессору правил (например, прекратить обработку)
+   Примем соглашение, что правило возвращает два значения:
+   - первое - вакансию (возможно измененную)
+   - второе - указание процессору правил (например, прекратить обработку)
 
-  #+NAME: define_rule
-  #+BEGIN_SRC lisp
+   #+NAME: define_rule
+   #+BEGIN_SRC lisp
     (in-package #:moto)
 
     (defmacro define-rule (antecedent &body consequent)
@@ -146,27 +154,27 @@
 
     ;; ->  vacancy: (:INTERESTED T :NAME "Python" :SALARY 80000)
     ;; ->  rule-result: :STOP
-  #+END_SRC
+   #+END_SRC
 
 ** Процессор правил
 
-  Теперь мы можем создать процессор правил =process=, который применяет к вакансии правила
-  поочередно. По сути, это =машина Э.Поста=, а все вместе представляет собой =продукционную
-  систему= с прямой цепочкой вывода. Подробнее про продукционные системы [[http://www.ngpedia.ru/id429603p1.html][тут]] и [[http://www.myshared.ru/slide/445840/][тут]].
+   Теперь мы можем создать процессор правил =process=, который применяет к вакансии правила
+   поочередно. По сути, это =машина Э.Поста=, а все вместе представляет собой =продукционную
+   систему= с прямой цепочкой вывода. Подробнее про продукционные системы [[http://www.ngpedia.ru/id429603p1.html][тут]] и [[http://www.myshared.ru/slide/445840/][тут]].
 
-  #+CAPTION: Продукционная система
-  #+NAME: fig:production_system
-  [[./img/production_system.gif]]
+   #+CAPTION: Продукционная система
+   #+NAME: fig:production_system
+   [[./img/production_system.gif]]
 
-  Процессор правил обрабатывает следущие особые случаи:
-  - Если какое-то из правил возвращает во втором параметре =:stop= - обработка прекращается
-    и возвращается текущий обработанный результат
-  - Если какое-то из правил возвращает во втором параметре =:renew= - то обработка текущего
-    входного результата начинается с самого первого правила.
-  По окончании обработки возвращается результирующая вакансия, которая может быть
-  модифицирована правилами
+   Процессор правил обрабатывает следущие особые случаи:
+   - Если какое-то из правил возвращает во втором параметре =:stop= - обработка прекращается
+     и возвращается текущий обработанный результат
+   - Если какое-то из правил возвращает во втором параметре =:renew= - то обработка текущего
+     входного результата начинается с самого первого правила.
+   По окончании обработки возвращается результирующая вакансия, которая может быть
+   модифицирована правилами
 
-  #+BEGIN_SRC ditaa :file ./img/process.png
+   #+BEGIN_SRC ditaa :file ./img/process.png
         +------------------------------------------------------------+
         |     +----------------------------------------+             |
         |     |                                        |             |
@@ -198,12 +206,12 @@
         +------------------------+
         |
         V
-  #+END_SRC
+   #+END_SRC
 
-  #+results:
-  [[file:./img/process.png]]
-  #+NAME: process
-  #+BEGIN_SRC lisp
+   #+results:
+   [[file:./img/process.png]]
+   #+NAME: process
+   #+BEGIN_SRC lisp
     (in-package #:moto)
 
     (defun process (vacancy rules)
@@ -232,22 +240,22 @@
     ;;               (print (incf tmp))
     ;;               :renew)
     ;;             )))
-  #+END_SRC
+   #+END_SRC
 
 ** Декоратор для =process-teaser=
 
-  Поскольку и вакансии и их тизеры представлены у нас одинаково, мы можем применять правила
-  и к тем и к другим. Это позволит отфильтровать некоторые вакансии только анализируя их
-  тизеры и не загружать лишнего.
+   Поскольку и вакансии и их тизеры представлены у нас одинаково, мы можем применять правила
+   и к тем и к другим. Это позволит отфильтровать некоторые вакансии только анализируя их
+   тизеры и не загружать лишнего.
 
-  Для того, чтобы сделать это удобным образом, обернем (:around method) =process-teaser=
-  так, чтобы исключить из дальнейшей обрабоки те тизеры, которые нам не нравятся. Например
-  те, у которых нет указания зарплаты или она слишком низка. После того, как тизер
-  превратиться в вакансию мы применим к ней другой список правил, которые реализуют все
-  остальную логику.
+   Для того, чтобы сделать это удобным образом, обернем (:around method) =process-teaser=
+   так, чтобы исключить из дальнейшей обрабоки те тизеры, которые нам не нравятся. Например
+   те, у которых нет указания зарплаты или она слишком низка. После того, как тизер
+   превратиться в вакансию мы применим к ней другой список правил, которые реализуют все
+   остальную логику.
 
 
-  #+BEGIN_SRC ditaa :file ./img/around.png
+   #+BEGIN_SRC ditaa :file ./img/around.png
              +----------------+
              | current_teaser |
              +---+------------+
@@ -297,14 +305,14 @@
                           +---------+
 
 
-  #+END_SRC
+   #+END_SRC
 
-  #+results:
-  [[file:./img/around.png]]
+   #+results:
+   [[file:./img/around.png]]
 
 
-  #+NAME: process_teaser_around
-  #+BEGIN_SRC lisp
+   #+NAME: process_teaser_around
+   #+BEGIN_SRC lisp
     (in-package #:moto)
 
     <<rules>>
@@ -313,35 +321,36 @@
       (aif (process current-teaser *rules-for-teaser*)
            (process (call-next-method it) *rules-for-vacancy*)
            nil))
-  #+END_SRC
+   #+END_SRC
 
 ** Получение и обработка вакансий правилами
 
-  Теперь мы можем получить генератор, и, вызывая его, забирать вакансии, пока они не
-  закончатся. Все вакансии будут корректно обработаны правилами - сначала на этапе получения
-  тизеров, а потом на этапе получения вакансий.
+   Теперь мы можем получить генератор, и, вызывая его, забирать вакансии, пока они не
+   закончатся. Все вакансии будут корректно обработаны правилами - сначала на этапе получения
+   тизеров, а потом на этапе получения вакансий.
 
-  #+NAME: run
-  #+BEGIN_SRC lisp
-    (in-package #:moto)
+   #+NAME: run
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-    <<define_rule>>
+     <<define_rule>>
 
-    <<process>>
+     <<process>>
 
-    <<process_teaser_around>>
+     <<process_teaser_around>>
 
-    <<factory>>
+     <<factory>>
 
-    (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
-                        "Программирование, Разработка")))
-      (loop :for i :from 1 :to 100 :do
-         (dbg "~A" i)
-         (let ((vacancy (funcall gen)))
-           (when (null vacancy)
-             (return))
-           (dbg "~A" (bprint vacancy)))))
-  #+END_SRC
+     <<save_vacancy>>
+
+     (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
+                         "Программирование, Разработка")))
+       (loop :for i :from 1 :to 100 :do
+          (dbg "~A" i)
+          (let ((vacancy (funcall gen)))
+            (when (null vacancy)
+              (return)))))
+   #+END_SRC
 
 ** Составление правил
 
@@ -400,7 +409,7 @@
             (dbg "drop: Нет зарплаты")
             (setf vacancy nil)
             :stop)
-          (define-rule (< (parse-integer (getf vacancy :salary)) 90000)
+          (define-rule (< (getf vacancy :salary) 80000)
             (dbg "drop: Маленькая зарплата")
             (setf vacancy nil)
             :stop))
@@ -408,16 +417,18 @@
          ))
     #+END_SRC
 
-*** TODO Правила анализа вакансий
+*** Правила анализа вакансий
 
+    - Я не хочу смотреть на вакансии, в компаниях где я уже работал.
     - Если это уже существующая в базе вакансия и ничего не изменилось - игнорируем и
       останавливаем ее обработку
-    - Заносим вакансию в базу.
-    - Я не хочу смотреть на вакансии, в компаниях где я уже работал.
     - Я хочу присвоить вакансии определенный ранг, в зависимости от з\п
     - Я хочу увеличивать этот ранг за упоминание в тексте описания вакансии моих любимых
-      слов: Lisp, Erlang, Prolog, Haskell
-    - Я хочу особо отметить вакансии, у которых ранг выше [порогового ранга], чтобы [отправить отклик]
+      слов: Lisp, Erlang, Closure, Prolog, Haskell, Smalltalk
+    - Я хочу особо отметить вакансии, у которых ранг выше [порогового ранга], чтобы
+      [отправить отклик]
+    - Я хочу занести вакансию в базу.
+    - Я хочу вывести вакансию в консоль.
 
     #+NAME: rules_for_vacancy
     #+BEGIN_SRC lisp
@@ -425,11 +436,75 @@
 
       (defparameter *rules-for-vacancy*
         (list
-         ;; (define-rule nil
-         ;;   (dbg "empty")
-         ;;   ;; (setf vacancy nil)
-         ;;   :stop)
+         (define-rule (contains (getf vacancy :emp-name) "JetBrains")
+           (dbg "drop-vac: Неподходящая компания")
+           (setf vacancy nil)
+           :stop)
+         (define-rule (not (null (find-vacancy :src-id (getf vacancy :id))))
+           (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+             (dbg "drop-vac: Уже есть в БД: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists)))
+           (setf vacancy nil)
+           :stop)
+         (define-rule t
+           (setf (getf vacancy :rank) (getf vacancy :salary)))
+         (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp")
+           (dbg "drop-vac: Неподходящая компания")
+           (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
+         (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang")
+           (dbg "drop-vac: Неподходящая компания")
+           (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
+         (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell")
+           (dbg "drop-vac: Неподходящая компания")
+           (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+         (define-rule t
+           (save-vacancy vacancy))
+         (define-rule t
+           (dbg "~A" (bprint vacancy))
+           :stop)
          ))
+
+      ;; (contains (format nil "~A" (bprint (getf *tmp* :descr))) "JVM2")
+
+      ;; (defparameter *tmp*
+      ;;   '(:NAME "Senior Software Developer (PyCharm)" :ARCHIVE NIL
+      ;;     :EMP-ID 9281 :EMP-NAME " JetBrains" :CURRENCY "RUR"
+      ;;     :BASE-SALARY "130000" :SALARY-TEXT "от 130 000 руб." :CITY
+      ;;     "Санкт-Петербург" :EXP "3–6 лет" :DESCR
+      ;;     (("Founded in 2000, JetBrains s.r.o. is a world-leading vendor of professional software development tools. At JetBrains, we have a passion for making people more productive through smart software solutions that help them focus more on what they really want to accomplish, and less on mundane, repetitive “computer-busy work.”We are looking for passionate, creative and open-minded people to join our development team."
+      ;;       ("As part of our team, you will provide developers all over the world the best programming environment for Python ecosystem - "
+      ;;        "PyCharm IDE" "."))
+      ;;      ("Responsibilities:"
+      ;;       ("Conceive and implement new features"
+      ;;        "Redesign and optimize existing features"
+      ;;        "Enhance performance of IDE subsystems"
+      ;;        "Interact with users in public issue tracker"))
+      ;;      ("Requirements:"
+      ;;       ("4 years(or more) experience with Java"
+      ;;        "Knowledge of essential algorithms and data structures"
+      ;;        "Experience with multithreaded code"
+      ;;        "Responsibility, discipline, self-motivation"
+      ;;        "Ability to implement ideas into high-quality product features"
+      ;;        "Good teamwork skills"))
+      ;;      ("As a plus would be " "(but not required):")
+      ;;      ("Python knowledge"
+      ;;       "Experience with other JVM based languages"
+      ;;       "Participation in open-source projects")
+      ;;      ("We offer:"
+      ;;       ("Fascinating work in a friendly, young team"
+      ;;        "Developing products for software developers much like ourselves"
+      ;;        "Employment package (compulsory health insurance, 5 weeks paid vacation)"
+      ;;        "High salary: determined individually, but definitely above industry average"
+      ;;        "Full salary during sick leave"
+      ;;        "Voluntary health insurance including dental insurance and voluntary health insurance for your children"
+      ;;        "Bonuses tied to product releases"
+      ;;        "Flexible working schedule"
+      ;;        "Spacious, comfortable office (open 24/7) with hot shower and other amenities"
+      ;;        "Hot meals, coffee, tea, sandwiches, juices and soft drinks free of charge"
+      ;;        "Office library with specialized work-related books and magazines"
+      ;;        "Comfortable, ergonomic workplaces"
+      ;;        "Training including on-the-job English language courses"
+      ;;        "Opportunity to travel to professional conferences in Europe and the US"
+      ;;        "Help in relocating from another region.")))))
     #+END_SRC
 
 ** Построение URL-ов, для скачивания тизеров
@@ -442,8 +517,8 @@
    и =area= не меняются. Поэтому, единственная сложность построения URL - это правильно
    сформировать =специализации=.
 
-  #+NAME: make_hh_url
-  #+BEGIN_SRC lisp
+   #+NAME: make_hh_url
+   #+BEGIN_SRC lisp
     (in-package #:moto)
 
     <<make_specialization_hh_url_string>>
@@ -457,7 +532,7 @@
     ;; test
 
     (make-hh-url "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
-  #+END_SRC
+   #+END_SRC
 
 *** Построение специализаций
 
@@ -660,11 +735,11 @@
                                                                                       "search-result-item__name search-result-item__name_standard_plus"
                                                                                       "search-result-item__name search-result-item__name_premium"))
                                                                         ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
-                                                           (list :id id :name name))
+                                                           (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
                                                          (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
                                                                        ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
                                                                        ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
-                                                                (list :currency currency :salary salary :salary-text salary-text))
+                                                                (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
                                                               (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
                                                                      (list :emp-name emp-name))
                                                                    (mtm (`("div" (("class" "search-result-item__company"))
@@ -672,7 +747,8 @@
                                                                                        ("class" "search-result-item__company-link")
                                                                                        ("data-qa" "vacancy-serp__vacancy-employer"))
                                                                                       ,emp-name))
-                                                                          (list :emp-id emp-id :emp-name emp-name))
+                                                                          (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
+                                                                                :emp-name emp-name))
                                                                         (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
                                                                                (loop :for item :in rest :when (consp item) :append item))
                                                                              (mtm (`("span" (("class" "searchresult__address")
@@ -702,16 +778,16 @@
                                                                                                         (html5-parser:node-to-xmls
                                                                                                          (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
 
-     (print
-      ;; (car
-       (hh-parse-vacancy-teasers
-        (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
+     ;; (print
+     ;;  ;; (car
+     ;;   (hh-parse-vacancy-teasers
+     ;;    (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
    #+END_SRC
 
 *** Трансформация дерева
 
-   #+NAME: maptree_transform
-   #+BEGIN_SRC lisp
+    #+NAME: maptree_transform
+    #+BEGIN_SRC lisp
      (in-package #:moto)
 
      ;; Это аналог maptree-if, но здесь одна функция и ищет и трансформирует узел дерева
@@ -735,15 +811,15 @@
                        (values (match ,lambda-param ,transformer)
                                #'mapcar))
                    ,tree)))
-  #+END_SRC
+    #+END_SRC
 
 ** Разбор вакансий
 
-    Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
-    лишнего:
+   Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
+   лишнего:
 
-    #+NAME: transform_description
-    #+BEGIN_SRC lisp
+   #+NAME: transform_description
+   #+BEGIN_SRC lisp
       (in-package #:moto)
 
       (defun transform-description (tree-descr)
@@ -763,72 +839,121 @@
                             (mtm (`(,(or "ul" "p") NIL ,@rest)
                                    (remove-if #'(lambda (x) (and (not (consp x)) (equal x " "))) rest))
                                  (mtm (`(,(or "li" "em") NIL ,in) in)
-                                      (mtm (`("strong" NIL ,in) in) *tree-descr*))))))
+                                      (mtm (`("strong" NIL ,in) in) tree-descr))))))
           (labels ((tmp (tree)
                      (cond  ((consp tree) (remove-if #'(lambda (x) (equal x 'z))
                                                      (cons (tmp (car tree))
                                                            (tmp (cdr tree)))))
                             (t tree))))
             (tmp result))))
-    #+END_SRC
+   #+END_SRC
 
-    И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
+   И, наконец, применим все что мы подготовили, чтобы разобрать вакансию:
 
-    #+NAME: hh_parse_vacancy
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
+   #+NAME: hh_parse_vacancy
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-      <<transform_description>>
+     <<transform_description>>
 
-      (defun hh-parse-vacancy (html &optional intree)
-        (let* ((tree (aif intree
-                          it
-                          (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
-          (append (block header-extract
-                    (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
-                                  ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
-                           (return-from header-extract
-                             (append (list :name name :archive (if archive t nil))
-                                     (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
-                                                             (return-from emp-block
-                                                               (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
-                                                                     :emp-name emp-name))) rest)))))
-                         tree))
-                  (let ((salary-result (block salary-extract
-                                         (mtm (`("div" (("class" "l-paddings"))
-                                                       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                                                       ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
-                                                       ,salary-text)
-                                                (return-from salary-extract (list :currency currency :base-salary base-salary :salary-text salary-text)))
-                                              tree))))
-                    (if (equal 6 (length salary-result))
-                        salary-result
-                        (list :currency nil :base-salary nil :salary-text nil)))
-                  (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
-                                                                (return-from city-extract (list :city city))) tree))))
-                    (if (equal 2 (length city-result)) city-result (list :city nil)))
-                  (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
-                                                                    ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
-                                                              (return-from exp-extract (list :exp exp))) tree))))
-                    (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
-                  (block descr-extract
-                    (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
-                           (return-from descr-extract (list :descr #|(transform-description|# descr #|)|#))) tree)))))
+     (defun hh-parse-vacancy (html &optional intree)
+       (let* ((tree (aif intree
+                         it
+                         (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
+         (append (block header-extract
+                   (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
+                                 ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
+                          (return-from header-extract
+                            (append (list :name name :archive (if archive t nil))
+                                    (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
+                                                            (return-from emp-block
+                                                              (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
+                                                                    :emp-name emp-name))) rest)))))
+                        tree))
+                 (let ((salary-result (block salary-extract
+                                        (mtm (`("div" (("class" "l-paddings"))
+                                                      ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                      ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
+                                                      ,salary-text)
+                                               (return-from salary-extract (list :currency currency :base-salary (parse-integer base-salary) :salary-text salary-text)))
+                                             tree))))
+                   (if (equal 6 (length salary-result))
+                       salary-result
+                       (list :currency nil :base-salary nil :salary-text nil)))
+                 (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
+                                                               (return-from city-extract (list :city city))) tree))))
+                   (if (equal 2 (length city-result)) city-result (list :city nil)))
+                 (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
+                                                                   ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
+                                                             (return-from exp-extract (list :exp exp))) tree))))
+                   (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
+                 (block descr-extract
+                   (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
+                          (return-from descr-extract (list :descr (transform-description descr)))) tree)))))
 
-      ;; (print
-      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
+     ;; (print
+     ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
 
-      (print
-       (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
-    #+END_SRC
+     ;; (print
+     ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
+   #+END_SRC
+
+** Сохранение данных
+
+   Опишем структуру данных вакансии:
+
+   #+CAPTION: Данные вакансии
+   #+NAME: vacancy_flds
+   | field name  | field type           | note                                            |
+   |-------------+----------------------+-------------------------------------------------|
+   | id          | serial               | идентификатор                                   |
+   | src-id      | integer              | идентификатор вакансии в источнике              |
+   | archive     | boolean              | призак, что вакансия в архиве                   |
+   | name        | varchar              | название вакансии                               |
+   | currency    | (or db-null varchar) | валюта зарплаты                                 |
+   | base-salary | (or db-null integer) | размер компенсации в тизере                     |
+   | salary      | (or db-null integer) | размер компенсации                              |
+   | salary-text | (or db-null varchar) | размер компенсации                              |
+   | emp-id      | (or db-null integer) | идентификатор работодателя на удаленном ресурсе |
+   | emp-name    | varchar              | имя работодателя на удаленном ресурсе           |
+   | city        | varchar              | город                                           |
+   | metro       | varchar              | метро                                           |
+   | experience  | varchar              | требуемый опыт работы                           |
+   | date        | varchar              | дата опубликования в источнике                  |
+   | descr       | varchar              | описание вакансии                               |
+
+   Напишем процедуру сохранения вакансии в базу данных
+
+   #+NAME: save_vacancy
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmethod save-vacancy (vacancy)
+       (make-vacancy
+        :src-id (getf vacancy :id)
+        :name (getf vacancy :name)
+        :currency (getf vacancy :currency)
+        :salary (aif (getf vacancy :salary) it 0)
+        :base-salary (aif (getf vacancy :base-salary) it 0)
+        :salary-text (getf vacancy :salary-text)
+        :emp-id (getf vacancy :emp-id)
+        :emp-name (getf vacancy :emp-name)
+        :city (getf vacancy :city)
+        :metro (getf vacancy :metro)
+        :experience (getf vacancy :exp)
+        :archive (getf vacancy :archive)
+        :date (getf vacancy :date)
+        :descr (bprint (getf vacancy :descr)))
+       )
+   #+END_SRC
 
 ** TODO Незавершенное
 
    Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
-   открыть файл, например, в емаксте, т.к. в гитхабе про отображении файла не видно имен
+   открыть файл, например, в емаксе, т.к. в гитхабе про отображении файла не видно имен
    блоков кода.
 
-*** Сохранение данных
+*** TODO Сохранение данных
 
     Как только у нас это есть - код становится простым
 
@@ -1363,6 +1488,7 @@
       ;;   '(progn (ping (ping ping (ping 1))) ping))
     #+END_SRC
 
+
 * Хотелки
 
   Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
@@ -1563,38 +1689,38 @@
 
    #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
-     | action                                 | from                 | to                   |
-     |----------------------------------------+----------------------+----------------------|
-     | view                                   | new                  | unsorted             |
-     | refuse-new                             | new                  | not-interested       |
-     | set-interested                         | new                  | interested           |
-     | refuse-interested                      | interested           | hidden               |
-     | respond                                | interested           | responded            |
-     | favor                                  | interested           | favorited            |
-     | send-respond-from-favorited            | favorited            | responded            |
-     | unfavor                                | favorited            | interested           |
-     | hide-after-favor                       | favorited            | hidden               |
-     | call                                   | responded            | called               |
-     | invite-interview                       | called               | wait_interview       |
-     | invite-skype-interview                 | called               | wait_skype_interview |
-     | invite-test                            | called               | wait_test            |
-     | interview                              | wait_interview       | interview            |
-     | skype-interview                        | wait_skype_interview | skype_interview      |
-     | call-after-skype-interview             | skype_interview      | called               |
-     | execute-test                           | wait_test            | run_test             |
-     | send-test                              | run_test             | send_test            |
-     | called-after-test                      | send_test            | called               |
-     | refuse-employer-after-interview        | interview            | refuse_employer      |
-     | refuse-applicant-after-interview       | interview            | refuse_applicant     |
-     | wait-result-after-interview            | interview            | wait_result          |
-     | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
-     | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
-     | wait-result-after-skype-interview      | skype_interview      | wait_result          |
-     | invite-next-interview                  | wait_result          | interview            |
-     | invite-interview-after-skype           | skype_interview      | interview            |
-     | invite-offer                           | wait_result          | offer                |
-     | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
-     | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
+   | action                                 | from                 | to                   |
+   |----------------------------------------+----------------------+----------------------|
+   | view                                   | new                  | unsorted             |
+   | refuse-new                             | new                  | not-interested       |
+   | set-interested                         | new                  | interested           |
+   | refuse-interested                      | interested           | hidden               |
+   | respond                                | interested           | responded            |
+   | favor                                  | interested           | favorited            |
+   | send-respond-from-favorited            | favorited            | responded            |
+   | unfavor                                | favorited            | interested           |
+   | hide-after-favor                       | favorited            | hidden               |
+   | call                                   | responded            | called               |
+   | invite-interview                       | called               | wait_interview       |
+   | invite-skype-interview                 | called               | wait_skype_interview |
+   | invite-test                            | called               | wait_test            |
+   | interview                              | wait_interview       | interview            |
+   | skype-interview                        | wait_skype_interview | skype_interview      |
+   | call-after-skype-interview             | skype_interview      | called               |
+   | execute-test                           | wait_test            | run_test             |
+   | send-test                              | run_test             | send_test            |
+   | called-after-test                      | send_test            | called               |
+   | refuse-employer-after-interview        | interview            | refuse_employer      |
+   | refuse-applicant-after-interview       | interview            | refuse_applicant     |
+   | wait-result-after-interview            | interview            | wait_result          |
+   | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
+   | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
+   | wait-result-after-skype-interview      | skype_interview      | wait_result          |
+   | invite-next-interview                  | wait_result          | interview            |
+   | invite-interview-after-skype           | skype_interview      | interview            |
+   | invite-offer                           | wait_result          | offer                |
+   | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
+   | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
 
    Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 
@@ -1663,35 +1789,35 @@
 
 
 
-  Основные этапы:
-  - Регистрация/логин (цель - войти на сайт)
-  - Заполнение профиля (цель - определить поисковые запросы)
-  - Написание резюме (несколько резюме, возможно под каждую особо-интересную вакансию)
-  - Написание сопроводительных писем (тоже несколько, под вакансии)
-  - Сбор тизеров по поисковому запросу
-  - Ранжирование тизеров (положительный/отрицательный отсев)
-  - Таггирование тизеров
-  - Написание автоматических скриптов ранжирования по тегам (для продвинутых)
-  - Сбор заинтересовавших вакансий (выше чем определенный ранг)
-  - Ранжирование вакансий (положительный/отрицательный отсев)
-  - Связывание с резюме и сопроводительными письмами
-  - Отправка отзывов
-  - Внесение заметок
-  - Остальные переводы статуса и действия
+    Основные этапы:
+    - Регистрация/логин (цель - войти на сайт)
+    - Заполнение профиля (цель - определить поисковые запросы)
+    - Написание резюме (несколько резюме, возможно под каждую особо-интересную вакансию)
+    - Написание сопроводительных писем (тоже несколько, под вакансии)
+    - Сбор тизеров по поисковому запросу
+    - Ранжирование тизеров (положительный/отрицательный отсев)
+    - Таггирование тизеров
+    - Написание автоматических скриптов ранжирования по тегам (для продвинутых)
+    - Сбор заинтересовавших вакансий (выше чем определенный ранг)
+    - Ранжирование вакансий (положительный/отрицательный отсев)
+    - Связывание с резюме и сопроводительными письмами
+    - Отправка отзывов
+    - Внесение заметок
+    - Остальные переводы статуса и действия
 
-  Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
-  запрос и (в будущем) источники данных. Поля профиля описаны в секции [[Поисковые профили]].
+    Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
+    запрос и (в будущем) источники данных. Поля профиля описаны в секции [[Поисковые профили]].
 
-  Потом он запрашивает сбор данных по этому поисковому профилю. Собираются тизеры
-  вакансий. Если появились новые вакансии они добавляются в набор. Изменившиеся вакансии
-  обновляются и помечаются как обновившиеся, не изменившиеся - не попадают в набор.
+    Потом он запрашивает сбор данных по этому поисковому профилю. Собираются тизеры
+    вакансий. Если появились новые вакансии они добавляются в набор. Изменившиеся вакансии
+    обновляются и помечаются как обновившиеся, не изменившиеся - не попадают в набор.
 
-  После сбора данных пользователь просматривает набор и фильтрует его, отсеивая неинтересные
-  вакансии, (которые скрываются) и помечая особенно понравившиеся (звездочкой).
+    После сбора данных пользователь просматривает набор и фильтрует его, отсеивая неинтересные
+    вакансии, (которые скрываются) и помечая особенно понравившиеся (звездочкой).
 
-  После фильтрации у отобранных вакансий скачиваются описания
+    После фильтрации у отобранных вакансий скачиваются описания
 
-  Выбрав вакансию, пользователь может оставить к ней заметки и начинает движение по графу состояний.
+    Выбрав вакансию, пользователь может оставить к ней заметки и начинает движение по графу состояний.
 
 ** Поисковые профили
 
@@ -1953,61 +2079,24 @@
 
    #+CAPTION: Данные поискового профиля
    #+NAME: profile_flds
-     | field name   | field type | note                                      |
-     |--------------+------------+-------------------------------------------|
-     | id           | serial     | идентификатор                             |
-     | user-id      | integer    | владелец и создатель                      |
-     | name         | varchar    | название профиля                          |
-     | search-query | varchar    | поисковый запрос                          |
-     | ts-create    | bigint     | время создания                            |
-     | ts-last      | bigint     | время когда был использован последний раз |
+   | field name   | field type | note                                      |
+   |--------------+------------+-------------------------------------------|
+   | id           | serial     | идентификатор                             |
+   | user-id      | integer    | владелец и создатель                      |
+   | name         | varchar    | название профиля                          |
+   | search-query | varchar    | поисковый запрос                          |
+   | ts-create    | bigint     | время создания                            |
+   | ts-last      | bigint     | время когда был использован последний раз |
 
 ** Вакансии
-
-   #+CAPTION: Данные вакансии
-   #+NAME: vacancy_flds
-     | field name        | field type           | note                                                        |
-     |-------------------+----------------------+-------------------------------------------------------------|
-     | id                | serial               | идентификатор                                               |
-     | profile-id        | integer              | идентификатор поискового профиля                            |
-     | name              | varchar              | название вакансии                                           |
-     | rem-id            | integer              | идентификатор вакансии на удаленном ресурсе                 |
-     | rem-date          | varchar              | дата создания вакансии на удаленном ресурсе                 |
-     | rem-employer-name | varchar              | имя работодателя на удаленном ресурсе                       |
-     | rem-employer-id   | (or db-null integer) | идентификатор работодателя на удаленном ресурсе             |
-     | currency          | (or db-null varchar) | валюта зарплаты                                             |
-     | salary            | (or db-null integer) | размер компенсации                                          |
-     | salary-text       | (or db-null varchar) | размер компенсации                                          |
-     | contact           | (or db-null varchar) | телефон контактного лица                                    |
-     | text              | (or db-null varchar) | описание вакансии                                           |
-     | history           | (or db-null varchar) | список изменения статусов со временем каждого изменения     |
-     | reason            | (or db-null varchar) | добавляем причину действия (позже ссылка на другую таблицу) |
-     | ts-created        | (or db-null bigint)  | время создания вакансии                                     |
-     | ts-viewed         | (or db-null bigint)  | время когда вакансия была просмотрена                       |
-
-
-   Вакансии могут появляться у нас следующими путями:
-   - Работодатель может создать вакансию
-   - Мы можем получить вакансию анализируя другой сайт
-
-   В случае, если мы получаем вакансию анализируя другой сайт, мы получаем ее в 2 этапа. На
-   первом этапе мы разобрали т.н. "тизер вакансии" и занесли ее в базу данных в состоянии
-   =teaser=, чтобы потом получить все остальные данные. На втором этапе мы получаем данные
-   со страницы вакансии и устанавливаем состояние =new=.
-
-   Если пользователю не нравится тизер и он решает скрыть вакансию - она сразу из состояния
-   =teaser= попадает в состояние =not_interested=.
-
-   Если же пользователю наоборот, нравится вакансия, она из состояния =teaser= попадает в
-   состояние =interested=.
 
    Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
    реагировать, устанавливая статус =archive=
 
    TODO: Конечный автомат тут сложен и будет еще уточняться... Пока состояния такие:
-    =просмотрено= (с датой), =отобрано=, =не-берут-трубку=, =не-актуально=,
-    =приглашен-на-интервью=, =тестовое-задание=, =получен-оффер=, =отказано-работодателем=,
-    =отказ-соискателя=, =вакансия-снята= итп.
+   =просмотрено= (с датой), =отобрано=, =не-берут-трубку=, =не-актуально=,
+   =приглашен-на-интервью=, =тестовое-задание=, =получен-оффер=, =отказано-работодателем=,
+   =отказ-соискателя=, =вакансия-снята= итп.
 
    Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
    состояние на этих сайтах. Мы узнаем о вакансии, ко
@@ -2351,8 +2440,8 @@
                                     (err "null vacancy"))))))
    #+END_SRC
 
-http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
-http://romka.eu/blog/jquery-table-drag-and-drop
+   http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
+   http://romka.eu/blog/jquery-table-drag-and-drop
 
 ** Дашборд
 * Тесты
@@ -2504,7 +2593,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 *** Flip, карринг, композиции:
 
     далее f, g, ... обозначают функции,
-          a, b, ... - их аргументы.
+    a, b, ... - их аргументы.
 
     #+NAME: f_util_contents
     #+BEGIN_SRC lisp
@@ -2613,7 +2702,7 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 
         (define (my-assoc object alist &key (test 'equal))
             (fold (helper (curry test object) 'car) nil alist)))
-   #+END_SRC
+    #+END_SRC
 
 *** Свёртки для деревьев:
 
@@ -3047,14 +3136,14 @@ http://romka.eu/blog/jquery-table-drag-and-drop
 
 ** Поисковые профили
 
-    #+NAME: asm_profile
-    #+BEGIN_SRC emacs-lisp :var flds=profile_flds
+   #+NAME: asm_profile
+   #+BEGIN_SRC emacs-lisp :var flds=profile_flds
       (gen-entity "profile" "поисковые профили" flds)
-    #+END_SRC
+   #+END_SRC
 
 ** Вакансии
 
-    #+NAME: asm_vacancy
-    #+BEGIN_SRC emacs-lisp :var flds=vacancy_flds states=vacancy_state
+   #+NAME: asm_vacancy
+   #+BEGIN_SRC emacs-lisp :var flds=vacancy_flds states=vacancy_state
       (gen-automat "vacancy" "вакансии" flds states)
-    #+END_SRC
+   #+END_SRC
