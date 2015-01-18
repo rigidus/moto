@@ -462,49 +462,6 @@
            (dbg "~A" (bprint vacancy))
            :stop)
          ))
-
-      ;; (contains (format nil "~A" (bprint (getf *tmp* :descr))) "JVM2")
-
-      ;; (defparameter *tmp*
-      ;;   '(:NAME "Senior Software Developer (PyCharm)" :ARCHIVE NIL
-      ;;     :EMP-ID 9281 :EMP-NAME " JetBrains" :CURRENCY "RUR"
-      ;;     :BASE-SALARY "130000" :SALARY-TEXT "от 130 000 руб." :CITY
-      ;;     "Санкт-Петербург" :EXP "3–6 лет" :DESCR
-      ;;     (("Founded in 2000, JetBrains s.r.o. is a world-leading vendor of professional software development tools. At JetBrains, we have a passion for making people more productive through smart software solutions that help them focus more on what they really want to accomplish, and less on mundane, repetitive “computer-busy work.”We are looking for passionate, creative and open-minded people to join our development team."
-      ;;       ("As part of our team, you will provide developers all over the world the best programming environment for Python ecosystem - "
-      ;;        "PyCharm IDE" "."))
-      ;;      ("Responsibilities:"
-      ;;       ("Conceive and implement new features"
-      ;;        "Redesign and optimize existing features"
-      ;;        "Enhance performance of IDE subsystems"
-      ;;        "Interact with users in public issue tracker"))
-      ;;      ("Requirements:"
-      ;;       ("4 years(or more) experience with Java"
-      ;;        "Knowledge of essential algorithms and data structures"
-      ;;        "Experience with multithreaded code"
-      ;;        "Responsibility, discipline, self-motivation"
-      ;;        "Ability to implement ideas into high-quality product features"
-      ;;        "Good teamwork skills"))
-      ;;      ("As a plus would be " "(but not required):")
-      ;;      ("Python knowledge"
-      ;;       "Experience with other JVM based languages"
-      ;;       "Participation in open-source projects")
-      ;;      ("We offer:"
-      ;;       ("Fascinating work in a friendly, young team"
-      ;;        "Developing products for software developers much like ourselves"
-      ;;        "Employment package (compulsory health insurance, 5 weeks paid vacation)"
-      ;;        "High salary: determined individually, but definitely above industry average"
-      ;;        "Full salary during sick leave"
-      ;;        "Voluntary health insurance including dental insurance and voluntary health insurance for your children"
-      ;;        "Bonuses tied to product releases"
-      ;;        "Flexible working schedule"
-      ;;        "Spacious, comfortable office (open 24/7) with hot shower and other amenities"
-      ;;        "Hot meals, coffee, tea, sandwiches, juices and soft drinks free of charge"
-      ;;        "Office library with specialized work-related books and magazines"
-      ;;        "Comfortable, ergonomic workplaces"
-      ;;        "Training including on-the-job English language courses"
-      ;;        "Opportunity to travel to professional conferences in Europe and the US"
-      ;;        "Help in relocating from another region.")))))
     #+END_SRC
 
 ** Построение URL-ов, для скачивания тизеров
@@ -898,7 +855,7 @@
      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
    #+END_SRC
 
-** Сохранение данных
+** Сохранение вакансии и ее структура данных
 
    Опишем структуру данных вакансии:
 
@@ -947,95 +904,7 @@
        )
    #+END_SRC
 
-** TODO Незавершенное
-
-   Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
-   открыть файл, например, в емаксе, т.к. в гитхабе про отображении файла не видно имен
-   блоков кода.
-
-*** TODO Сохранение данных
-
-    Как только у нас это есть - код становится простым
-
-    #+NAME: hh_parse
-    #+BEGIN_SRC lisp
-      ;; (in-package #:moto)
-
-      ;; (defparameter *programmin-and-development-profile*
-      ;;   (make-profile :name "Программирование и разработка"
-      ;;                 :user-id 1
-      ;;                 :search-query "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=~A"
-      ;;                 :ts-create (get-universal-time)
-      ;;                 :ts-last (get-universal-time)))
-
-      ;; (defun run-collect (profile)
-      ;;   (let* ((search-str   (search-query profile))
-      ;;          (all-teasers  nil))
-      ;;     (block get-all-hh-teasers
-      ;;       (loop :for num :from 0 :to 100 :do
-      ;;          (print num)
-      ;;          (let* ((url (format nil search-str num))
-      ;;                 (teasers (hh-parse-vacancy-teasers (hh-get-page url))))
-      ;;            (if (equal 0 (length teasers))
-      ;;                (return-from get-all-hh-teasers)
-      ;;                (setf all-teasers (append all-teasers teasers)))))
-      ;;       (print "over-100"))
-      ;;     all-teasers))
-
-      ;; ;; (print
-      ;; ;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=28")))
-
-      ;; (defparameter *teasers* (run-collect *programmin-and-development-profile*))
-
-      ;; ;; (length *teasers*)
-
-      ;; (defun save-collect (all-teasers)
-      ;;   (loop :for tea :in all-teasers :do
-      ;;      (print tea)
-      ;;      (make-vacancy :profile-id (id *programmin-and-development-profile*)
-      ;;                    :name (getf tea :vac-name)
-      ;;                    :rem-id (parse-integer
-      ;;                             (car (last (split-sequence:split-sequence
-      ;;                                         #\/ (getf tea :vac-id)))))
-      ;;                    :rem-date (getf tea :vacancy-date)
-      ;;                    :rem-employer-name (getf tea :employer-name)
-      ;;                    :rem-employer-id (aif (getf tea :employer-id)
-      ;;                                          (parse-integer
-      ;;                                           (car (last (split-sequence:split-sequence
-      ;;                                                       #\/ it))))
-      ;;                                          0)
-      ;;                    :currency (getf tea :currency)
-      ;;                    :salary (aif (getf tea :salary)
-      ;;                                 it
-      ;;                                 0)
-      ;;                    :salary-text (getf tea :salary-text)
-      ;;                    :state ":TEASER"
-      ;;                    )))
-
-      ;; (save-collect *teasers*)
-
-      ;; ;; (length (all-vacancy))
-
-      ;; ;; (print
-      ;; ;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))
-
-      ;; ;; (car *teasers*)
-    #+END_SRC
-
-    Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
-    интересуют больше чем остальные их можно будет получить по статусу:
-
-    #+NAME: hh_parse_deep
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      ;; (find-vacancy :profile-id 1)
-
-      ;; (all-vacancy)
-    #+END_SRC
-
-*** Состояния вакансии
-*** Еще кое-что
+** TODO СТОП!!!
 
     После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
     интерфейсная часть.
@@ -1487,7 +1356,6 @@
       ;;       (values `(,**a** pong ,@(cddr x)) #'mapcar))
       ;;   '(progn (ping (ping ping (ping 1))) ping))
     #+END_SRC
-
 
 * Хотелки
 
