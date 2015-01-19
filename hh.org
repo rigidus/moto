@@ -53,7 +53,7 @@
    (=process-teaser=) вынесен из замыкания, т.к. не зависит от замкнутых переменных.
 
    #+NAME: factory
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :exports code :padline no :comments link
      (in-package #:moto)
 
      <<make_hh_url>>
@@ -118,42 +118,38 @@
    - второе - указание процессору правил (например, прекратить обработку)
 
    #+NAME: define_rule
-   #+BEGIN_SRC lisp
-    (in-package #:moto)
+   #+BEGIN_SRC lisp :exports code :padline no :comments link
+     (in-package #:moto)
 
-    (defmacro define-rule (antecedent &body consequent)
-      `(alexandria:named-lambda ,(gensym "RULE-") (vacancy)
-         (if ,antecedent
-             (let ((result (progn ,@consequent)))
-               (values vacancy result))
-             vacancy)))
+     (defmacro define-rule ((name antecedent) &body consequent)
+       `(list
+          (defun ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
+            ,antecedent)
+          (defun ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
+            (let ((result (progn ,@consequent)))
+              (values vacancy result)))))
 
-    ;; expand
-    ;; (macroexpand-1 '(define-rule (and (> (getf vacancy :salary) 70000)
-    ;;                                   (not (contains "Java" (getf vacancy :name))))
-    ;;                  (setf (getf vacancy :interested) t)
-    ;;                  :stop))
+     ;; expand
 
-    ;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA #:RULE-3676 (VACANCY)
-    ;;      (IF (AND (> (GETF VACANCY :SALARY) 70000)
-    ;;               (NOT (CONTAINS "Java" (GETF VACANCY :NAME))))
-    ;;          (LET ((RESULT (PROGN (SETF (GETF VACANCY :INTERESTED) T) :STOP)))
-    ;;            (VALUES VACANCY RESULT))
-    ;;          VACANCY)), T
+     ;; (macroexpand-1 '(define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+     ;;                                               (not (contains "Java" (getf vacancy :name)))))
+     ;;                  (setf (getf vacancy :interested) t)
+     ;;                  :stop))
 
-    ;; test
+     ;; test
 
-    ;; (multiple-value-bind (vacancy rule-result)
-    ;;     (funcall
-    ;;      (define-rule (and (> (getf vacancy :salary) 70000)
-    ;;                        (not (contains "Java" (getf vacancy :name))))
-    ;;        (setf (getf vacancy :interested) t)
-    ;;        :stop)
-    ;;      '(:name "Python" :salary 80000))
-    ;;   (dbg "vacancy: ~A ~% rule-result: ~A" (bprint vacancy) (bprint rule-result)))
+     ;; (define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+     ;;                                   (not (contains "Java" (getf vacancy :name)))))
+     ;;   (setf (getf vacancy :interested) t)
+     ;;   :stop)
 
-    ;; ->  vacancy: (:INTERESTED T :NAME "Python" :SALARY 80000)
-    ;; ->  rule-result: :STOP
+     ;; (let ((vacancy '(:name "Python" :salary 80000)))
+     ;;   (multiple-value-bind (vacancy-result rule-result)
+     ;;       (if (hi-salary-java-antecedent vacancy)
+     ;;           (hi-salary-java-consequent vacancy))
+     ;;     (print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))
+
+     ;; ->"vacancy: (:INTERESTED T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
    #+END_SRC
 
 ** Процессор правил
@@ -210,39 +206,30 @@
 
    #+results:
    [[file:./img/process.png]]
+
    #+NAME: process
-   #+BEGIN_SRC lisp
-    (in-package #:moto)
+   #+BEGIN_SRC lisp :exports code :padline no :comments link
+     (in-package #:moto)
 
-    (defun process (vacancy rules)
-      (tagbody
-       renew
-         (loop :for rule :in rules :do
-            (multiple-value-bind (vacancy-result rule-result)
-                (funcall rule vacancy)
-              (setf vacancy vacancy-result)
-              (when (equal rule-result :stop)
-                (return-from process vacancy))
-              (when (equal rule-result :renew)
-                (go renew)))))
-      vacancy)
-
-    ;; test
-
-    ;; (let ((tmp 0))
-    ;;   (process '(:name "Python" :salary 80000)
-    ;;            (list
-    ;;             (define-rule (equal 12 tmp)
-    ;;               (setf (getf vacancy :tmp) tmp)
-    ;;               :stop)
-    ;;             (define-rule (and (> (getf vacancy :salary) 70000)
-    ;;                               (not (contains "Java" (getf vacancy :name))))
-    ;;               (print (incf tmp))
-    ;;               :renew)
-    ;;             )))
+     (defun process (vacancy rules)
+       (let ((vacancy vacancy))
+         (tagbody
+          renew
+            (loop :for rule :in rules :do
+               (let ((antecedent (concatenate 'string (symbol-name rule) "-ANTECEDENT"))
+                     (consequent (concatenate 'string (symbol-name rule) "-CONSEQUENT")))
+                 (if (funcall (intern antecedent) vacancy)
+                     (multiple-value-bind (vacancy-result rule-result)
+                         (funcall (intern consequent) vacancy)
+                       (setf vacancy vacancy-result)
+                       (when (equal rule-result :stop)
+                         (return-from process vacancy))
+                       (when (equal rule-result :renew)
+                         (go renew)))))))
+         vacancy))
    #+END_SRC
 
-** Декоратор для =process-teaser=
+** Декоратор для process-teaser
 
    Поскольку и вакансии и их тизеры представлены у нас одинаково, мы можем применять правила
    и к тем и к другим. Это позволит отфильтровать некоторые вакансии только анализируя их
@@ -310,17 +297,16 @@
    #+results:
    [[file:./img/around.png]]
 
-
    #+NAME: process_teaser_around
-   #+BEGIN_SRC lisp
-    (in-package #:moto)
+   #+BEGIN_SRC lisp :exports code :padline no :comments link
+     (in-package #:moto)
 
-    <<rules>>
+     <<rules>>
 
-    (defmethod process-teaser :around (current-teaser)
-      (aif (process current-teaser *rules-for-teaser*)
-           (process (call-next-method it) *rules-for-vacancy*)
-           nil))
+     (defmethod process-teaser :around (current-teaser)
+       (aif (process current-teaser (rules-for-teaser))
+            (process (call-next-method it) (rules-for-vacancy))
+            nil))
    #+END_SRC
 
 ** Получение и обработка вакансий правилами
@@ -330,7 +316,7 @@
    тизеров, а потом на этапе получения вакансий.
 
    #+NAME: run
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :exports code :padline no :comments link
      (in-package #:moto)
 
      <<define_rule>>
@@ -343,52 +329,66 @@
 
      <<save_vacancy>>
 
-     (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
-                         "Программирование, Разработка")))
-       (loop :for i :from 1 :to 100 :do
-          (dbg "~A" i)
-          (let ((vacancy (funcall gen)))
-            (when (null vacancy)
-              (return)))))
+     (defun run ()
+       (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
+                           "Программирование, Разработка")))
+         (loop :for i :from 1 :to 100 :do
+            (dbg "~A" i)
+            (let ((vacancy (funcall gen)))
+              (when (null vacancy)
+                (return))))))
+
+     (run)
    #+END_SRC
 
-** Составление правил
+** Составление правил и работа с ними
 
-   Чтобы записать правила их более компактно, подсластим синтаксис, используя макросы
+   Теперь можно удобным и компактным способом добавить все необходимые правила и обеспечить
+   методы их обработки
 
    #+NAME: rules
-   #+BEGIN_SRC lisp
+   #+BEGIN_SRC lisp :exports code :padline no :comments link
      (in-package #:moto)
-
-      (defmacro drop-by-name (text)
-        `(define-rule (contains (getf vacancy :name) ,text)
-           (dbg "drop: name contains ~A" ,text)
-           (setf vacancy nil)
-           :stop))
-
-      ;; expand
-
-      ;; (macroexpand-1 '(drop-by-name "IOS"))
-
-      ;; => (DEFINE-RULE (CONTAINS (GETF VACANCY :NAME) "IOS")
-      ;;      (DBG "drop: name contains ~A" "IOS")
-      ;;      (SETF VACANCY NIL)
-      ;;      :STOP), T
-
-      (defmacro drop-names (&rest names)
-        `(list ,@(loop :for name :in names :collect
-                    `(drop-by-name ,name))))
-
-      ;; expand
-
-      (macroexpand-1 '(drop-names "IOS" "1С" "C++"))
-
-      ;; => (LIST (DROP-BY-NAME "IOS") (DROP-BY-NAME "1С") (DROP-BY-NAME "C++")), T
-
 
      <<rules_for_vacancy>>
 
      <<rules_for_teasers>>
+
+     (defun get-all-rules ()
+       (let ((result (make-hash-table :test #'equal)))
+         (loop :for var :being :the present-symbols :in (find-package "MOTO")
+            :when (or
+                   (and (search "CONSEQUENT" (symbol-name var))
+                        (fboundp var))
+                   (and (search "ANTECEDENT" (symbol-name var))
+                        (fboundp var)))
+            :collect (let ((key (ppcre:regex-replace "-ANTECEDENT" (symbol-name var) "")))
+                       (setf key (ppcre:regex-replace "-CONSEQUENT" key ""))
+                       (setf (gethash key result) "")))
+         (mapcar #'intern
+                 (sort
+                  (alexandria:hash-table-keys result)
+                  #'(lambda (a b)
+                      (string< a b))))))
+
+     (defun clear-all-rules ()
+       (loop :for var :being :the present-symbols :in (find-package "MOTO")
+          :when (or
+                 (and (search "CONSEQUENT" (symbol-name var))
+                      (fboundp var))
+                 (and (search "ANTECEDENT" (symbol-name var))
+                      (fboundp var)))
+          :collect (fmakunbound var)))
+
+     (defun rules-for-teaser ()
+       (remove-if-not #'(lambda (x)
+                          (search "DROP-TEASER-IF" (symbol-name x)))
+                      (get-all-rules)))
+
+     (defun rules-for-vacancy ()
+       (remove-if #'(lambda (x)
+                      (search "DROP-TEASER-IF" (symbol-name x)))
+                  (get-all-rules)))
    #+END_SRC
 
 *** Правила отсева тизеров
@@ -402,20 +402,116 @@
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      (defparameter *rules-for-teaser*
-        (append
-         (list
-          (define-rule (null (getf vacancy :salary))
-            (dbg "drop: Нет зарплаты")
-            (setf vacancy nil)
-            :stop)
-          (define-rule (< (getf vacancy :salary) 80000)
-            (dbg "drop: Маленькая зарплата")
+      <<sugar_for_teaser_rules>>
+
+      (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
+        (dbg "  - no salary"))
+
+      (define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 60000))
+        (dbg "  - low salary"))
+
+      (define-drop-all-teaser-when-name-contains-rule
+          "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Qa" "C#" ".NET"
+          "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go")
+    #+END_SRC
+
+**** Макросы для определения правил отсева тизеров
+
+     Для начала определим макрос, который создает правила отсева тизеров - эти правила
+     отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
+
+     #+NAME: sugar_for_teaser_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
+         `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
+            (dbg "drop teaser:")
+            ,@consequent
             (setf vacancy nil)
             :stop))
-         (drop-names "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Go" "Qa" "C#" ".NET" "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Front End" "Go")
-         ))
-    #+END_SRC
+
+       ;; expand
+
+       ;; (print
+       ;;  (macroexpand-1
+       ;;   '(define-drop-teaser-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+       ;;                                              (not (contains "Java" (getf vacancy :name)))))
+       ;;     (print (getf vacancy :name))
+       ;;     (print (getf vacancy :salary)))))
+
+       ;; (DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA
+       ;;               (AND (> (GETF VACANCY :SALARY) 70000)
+       ;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
+       ;;   (PRINT (GETF VACANCY :NAME))
+       ;;   (PRINT (GETF VACANCY :SALARY))
+       ;;   (SETF VACANCY NIL)
+       ;;   :STOP)
+     #+END_SRC
+
+     Теперь определим расширение предыдущего макроса, которое создает правило, отсеивающее
+     тизер, в случае, если в поле =:name= есть вхождение переданной строки
+
+     #+NAME: sugar_for_teaser_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-teaser-by-name-rule (str &body consequent)
+         `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
+                                     (contains (getf vacancy :name) ,str))
+            (dbg "  - :name contains ~A" ,str)
+            ,@consequent))
+
+       ;; expand
+
+       ;; (print
+       ;;  (macroexpand-1
+       ;;   '(define-drop-teaser-by-name-rule "Android")))
+
+       ;; (DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID
+       ;;                           (CONTAINS (GETF VACANCY :NAME) "Android"))
+       ;;   (DBG "drop:")
+       ;;   (DBG "  name contains ~A" "Android"))
+
+       ;; test
+
+       ;; (define-drop-teaser-by-name-rule "Android")
+
+       ;; ==> (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT
+       ;;      DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)
+
+     #+END_SRC
+
+     Теперь в соответствии с принципом DRY определем макрос, который создаст список правил,
+     отсеивающих тизеры по вхождению первой строки в поле =:name=
+
+     #+NAME: sugar_for_teaser_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-all-teaser-when-name-contains-rule (&rest names)
+         `(list ,@(loop :for name :in names :collect
+                     `(define-drop-teaser-by-name-rule ,name))))
+
+       ;; expand
+       ;; (macroexpand-1 '(define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
+
+       ;; (LIST (DEFINE-DROP-TEASER-BY-NAME-RULE "IOS")
+       ;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "1С")
+       ;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "C++"))
+
+       ;; test
+
+       ;; (define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
+
+       ;; =>
+       ;; ((DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-ANTECEDENT
+       ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-CONSEQUENT)
+       ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-1С-ANTECEDENT
+       ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-1С-CONSEQUENT)
+       ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT
+       ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
+     #+END_SRC
 
 *** Правила анализа вакансий
 
@@ -434,34 +530,69 @@
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      (defparameter *rules-for-vacancy*
-        (list
-         (define-rule (contains (getf vacancy :emp-name) "JetBrains")
-           (dbg "drop-vac: Неподходящая компания")
-           (setf vacancy nil)
-           :stop)
-         (define-rule (not (null (find-vacancy :src-id (getf vacancy :id))))
-           (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
-             (dbg "drop-vac: Уже есть в БД: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists)))
-           (setf vacancy nil)
-           :stop)
-         (define-rule t
-           (setf (getf vacancy :rank) (getf vacancy :salary)))
-         (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp")
-           (dbg "drop-vac: Неподходящая компания")
-           (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
-         (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang")
-           (dbg "drop-vac: Неподходящая компания")
-           (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
-         (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell")
-           (dbg "drop-vac: Неподходящая компания")
-           (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
-         (define-rule t
-           (save-vacancy vacancy))
-         (define-rule t
+      <<sugar_for_vacancy_rules>>
+
+      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "JetBrains"))
+        (dbg "already worked: ~A" (getf vacancy :emp-name)))
+
+      (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
+        (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists)))
+
+      (define-rule (set-rank t)
+        (setf (getf vacancy :rank) (getf vacancy :salary)))
+
+      (define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
+        (dbg "up rank by Lisp")
+        (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
+
+      (define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
+        (dbg "up rank by Erlang")
+        (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
+
+      (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
+        (dbg "up rank by Haskell")
+        (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+
+      (define-rule (z-save t)
+        (save-vacancy vacancy))
+
+      (define-rule (z-print t)
            (dbg "~A" (bprint vacancy))
            :stop)
-         ))
+    #+END_SRC
+
+**** Макросы для определения правил анализа вакансий
+
+     Для начала определим макрос, который создает правила отсева вакансий - эти правила
+     отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
+
+     #+NAME: sugar_for_vacancy_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-vacancy-rule ((name antecedent) &body consequent)
+         `(define-rule (,(intern (concatenate 'string "DROP-VACANCY-IF-"(symbol-name name))) ,antecedent)
+            (dbg "drop vacancy:")
+            ,@consequent
+            (setf vacancy nil)
+            :stop))
+
+       ;; expand
+
+       ;; (print
+       ;;  (macroexpand-1
+       ;;   '(define-drop-vacancy-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+       ;;                                              (not (contains "Java" (getf vacancy :name)))))
+       ;;     (print (getf vacancy :name))
+       ;;     (print (getf vacancy :salary)))))
+
+       ;; (DEFINE-RULE (DROP-VACANCY-IF-HI-SALARY-JAVA
+       ;;               (AND (> (GETF VACANCY :SALARY) 70000)
+       ;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
+       ;;   (PRINT (GETF VACANCY :NAME))
+       ;;   (PRINT (GETF VACANCY :SALARY))
+       ;;   (SETF VACANCY NIL)
+       ;;   :STOP)
     #+END_SRC
 
 ** Построение URL-ов, для скачивания тизеров
@@ -675,65 +806,63 @@
                          (progn (print in)
                                 (err "parsing failed, data printed"))
                          (car in))))
-                 (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
-                              ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
-                      (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
-                                   ("class" ,_)
-                                   ("data-qa" ,_)) " ") 'Z)
-                           (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
-                                (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
-                                     (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
-                                                  ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
-                                          (mtm (`("div" (("class" "search-result-item__star"))) 'Z)
-                                               (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
-                                                      (loop :for item :in rest :when (consp item) :append item))
-                                                    (mtm (`("div" (("class" "search-result-item__head"))
-                                                                  ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
-                                                                                      "search-result-item__name search-result-item__name_standard_plus"
-                                                                                      "search-result-item__name search-result-item__name_premium"))
-                                                                        ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
-                                                           (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
-                                                         (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
-                                                                       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                                                                       ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
-                                                                (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
-                                                              (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
-                                                                     (list :emp-name emp-name))
-                                                                   (mtm (`("div" (("class" "search-result-item__company"))
-                                                                                 ("a" (("href" ,emp-id)
-                                                                                       ("class" "search-result-item__company-link")
-                                                                                       ("data-qa" "vacancy-serp__vacancy-employer"))
-                                                                                      ,emp-name))
-                                                                          (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
-                                                                                :emp-name emp-name))
-                                                                        (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
-                                                                               (loop :for item :in rest :when (consp item) :append item))
-                                                                             (mtm (`("span" (("class" "searchresult__address")
-                                                                                             ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
-                                                                                    (let ((metro (loop :for item in rest :do
-                                                                                                    (when (and (consp item) (equal :metro (car item)))
-                                                                                                      (return (cadr item))))))
-                                                                                      (list :city city :metro metro)))
-                                                                                  (mtm (`("span" (("class" "metro-station"))
-                                                                                                 ("span" (("class" "metro-point") ("style" ,_))) ,metro)
-                                                                                         (list :metro metro))
-                                                                                       (mtm (`("span" (("class" "b-vacancy-list-date")
-                                                                                                       ("data-qa" "vacancy-serp__vacancy-date")) ,date)
-                                                                                              (list :date date))
-                                                                                            (mtm (`("span"
-                                                                                                    (("class" "vacancy-list-platform")
-                                                                                                     ("data-qa" "vacancy-serp__vacancy_career"))
-                                                                                                    "  •  " ("span" (("class" "vacancy-list-platform__name"))
-                                                                                                                    "CAREER.RU"))
-                                                                                                   (list :platform 'career.ru))
-                                                                                                 (block subtree-extract
-                                                                                                   (mtm (`("div"
-                                                                                                           (("class" "search-result")
-                                                                                                            ("data-qa" "vacancy-serp__results"))
-                                                                                                           ,@rest)
-                                                                                                          (return-from subtree-extract rest))
-                                                                                                        (html5-parser:node-to-xmls
-                                                                                                         (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
+                 (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
+                              ("class" ,_)
+                              ("data-qa" ,_)) " ") 'Z)
+                      (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
+                           (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
+                                (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
+                                             ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
+                                     (mtm (`("div" (("class" "search-result-item__star")) ,@_) 'Z)
+                                          (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
+                                                 (loop :for item :in rest :when (consp item) :append item))
+                                               (mtm (`("div" (("class" "search-result-item__head"))
+                                                             ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
+                                                                                 "search-result-item__name search-result-item__name_standard_plus"
+                                                                                 "search-result-item__name search-result-item__name_premium"))
+                                                                   ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
+                                                      (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
+                                                    (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
+                                                                  ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                                  ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
+                                                           (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
+                                                         (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
+                                                                (list :emp-name emp-name))
+                                                              (mtm (`("div" (("class" "search-result-item__company"))
+                                                                            ("a" (("href" ,emp-id)
+                                                                                  ("class" "search-result-item__company-link")
+                                                                                  ("data-qa" "vacancy-serp__vacancy-employer"))
+                                                                                 ,emp-name))
+                                                                     (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
+                                                                           :emp-name emp-name))
+                                                                   (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
+                                                                          (loop :for item :in rest :when (consp item) :append item))
+                                                                        (mtm (`("span" (("class" "searchresult__address")
+                                                                                        ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
+                                                                               (let ((metro (loop :for item in rest :do
+                                                                                               (when (and (consp item) (equal :metro (car item)))
+                                                                                                 (return (cadr item))))))
+                                                                                 (list :city city :metro metro)))
+                                                                             (mtm (`("span" (("class" "metro-station"))
+                                                                                            ("span" (("class" "metro-point") ("style" ,_))) ,metro)
+                                                                                    (list :metro metro))
+                                                                                  (mtm (`("span" (("class" "b-vacancy-list-date")
+                                                                                                  ("data-qa" "vacancy-serp__vacancy-date")) ,date)
+                                                                                         (list :date date))
+                                                                                       (mtm (`("span"
+                                                                                               (("class" "vacancy-list-platform")
+                                                                                                ("data-qa" "vacancy-serp__vacancy_career"))
+                                                                                               "  •  " ("span" (("class" "vacancy-list-platform__name"))
+                                                                                                               "CAREER.RU"))
+                                                                                              (list :platform 'career.ru))
+                                                                                            (block subtree-extract
+                                                                                              (mtm (`("div"
+                                                                                                      (("class" "search-result")
+                                                                                                       ("data-qa" "vacancy-serp__results"))
+                                                                                                      ,@rest)
+                                                                                                     (return-from subtree-extract rest))
+                                                                                                   (html5-parser:node-to-xmls
+                                                                                                    (html5-parser:parse-html5-fragment html))))))))))))))))))))))
 
      ;; (print
      ;;  ;; (car
@@ -1654,8 +1783,6 @@
 *** Отправка отзывов
 
     Пользователь отправляет отзыв на вакансию.
-
-
 
     Основные этапы:
     - Регистрация/логин (цель - войти на сайт)

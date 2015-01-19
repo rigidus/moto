@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-18 Вс. 01:37 -->
+<!-- 2015-01-19 Пн. 21:48 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -145,128 +145,127 @@ for the JavaScript code in this tag.
 <div id="text-table-of-contents">
 <ul>
 <li><a href="#sec-1">1. Цель</a></li>
-<li><a href="#sec-2">2. Как это работает?</a>
+<li><a href="#sec-2">2. Что это такое?</a></li>
+<li><a href="#sec-3">3. Как это работает?</a>
 <ul>
-<li><a href="#sec-2-1">2.1. Источник вакансий</a></li>
-<li><a href="#sec-2-2">2.2. Фабрика генераторов вакансий</a></li>
-<li><a href="#sec-2-3">2.3. Определение правила обработки</a></li>
-<li><a href="#sec-2-4">2.4. Процессор правил</a></li>
-<li><a href="#sec-2-5">2.5. Декоратор для <code>process-teaser</code></a></li>
-<li><a href="#sec-2-6">2.6. Получение и обработка вакансий правилами</a></li>
-<li><a href="#sec-2-7">2.7. Составление правил</a>
+<li><a href="#sec-3-1">3.1. Источник вакансий</a></li>
+<li><a href="#sec-3-2">3.2. Фабрика генераторов вакансий</a></li>
+<li><a href="#sec-3-3">3.3. Определение правила обработки</a></li>
+<li><a href="#sec-3-4">3.4. Процессор правил</a></li>
+<li><a href="#sec-3-5">3.5. Декоратор для process-teaser</a></li>
+<li><a href="#sec-3-6">3.6. Получение и обработка вакансий правилами</a></li>
+<li><a href="#sec-3-7">3.7. Составление правил и работа с ними</a>
 <ul>
-<li><a href="#sec-2-7-1">2.7.1. Правила отсева тизеров</a></li>
-<li><a href="#sec-2-7-2">2.7.2. <span class="todo nilTODO">TODO</span> Правила анализа вакансий</a></li>
+<li><a href="#sec-3-7-1">3.7.1. Правила отсева тизеров</a></li>
+<li><a href="#sec-3-7-2">3.7.2. Правила анализа вакансий</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-8">2.8. Построение URL-ов, для скачивания тизеров</a>
+<li><a href="#sec-3-8">3.8. Построение URL-ов, для скачивания тизеров</a>
 <ul>
-<li><a href="#sec-2-8-1">2.8.1. Построение специализаций</a></li>
+<li><a href="#sec-3-8-1">3.8.1. Построение специализаций</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-9">2.9. Получение страниц</a></li>
-<li><a href="#sec-2-10">2.10. Разбор тизеров вакансий</a>
+<li><a href="#sec-3-9">3.9. Получение страниц</a></li>
+<li><a href="#sec-3-10">3.10. Разбор тизеров вакансий</a>
 <ul>
-<li><a href="#sec-2-10-1">2.10.1. Трансформация дерева</a></li>
+<li><a href="#sec-3-10-1">3.10.1. Трансформация дерева</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-11">2.11. Разбор вакансий</a></li>
-<li><a href="#sec-2-12">2.12. <span class="todo nilTODO">TODO</span> Незавершенное</a>
+<li><a href="#sec-3-11">3.11. Разбор вакансий</a></li>
+<li><a href="#sec-3-12">3.12. Сохранение вакансии и ее структура данных</a></li>
+<li><a href="#sec-3-13">3.13. <span class="todo nilTODO">TODO</span> СТОП!!!</a>
 <ul>
-<li><a href="#sec-2-12-1">2.12.1. Сохранение данных</a></li>
-<li><a href="#sec-2-12-2">2.12.2. Состояния вакансии</a></li>
-<li><a href="#sec-2-12-3">2.12.3. Еще кое-что</a></li>
-<li><a href="#sec-2-12-4">2.12.4. Для красоты</a></li>
+<li><a href="#sec-3-13-1">3.13.1. Для красоты</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-13">2.13. Неактуальное</a>
+<li><a href="#sec-3-14">3.14. Неактуальное</a>
 <ul>
-<li><a href="#sec-2-13-1">2.13.1. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
-<li><a href="#sec-2-13-2">2.13.2. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
+<li><a href="#sec-3-14-1">3.14.1. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
+<li><a href="#sec-3-14-2">3.14.2. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#sec-3">3. Хотелки</a>
+<li><a href="#sec-4">4. Хотелки</a>
 <ul>
-<li><a href="#sec-3-1">3.1. Процесс найма с т.з. соискателя</a></li>
-<li><a href="#sec-3-2">3.2. Процесс найма с т.з. HR-а</a></li>
-<li><a href="#sec-3-3">3.3. Состояния вакансий</a></li>
+<li><a href="#sec-4-1">4.1. Процесс найма с т.з. соискателя</a></li>
+<li><a href="#sec-4-2">4.2. Процесс найма с т.з. HR-а</a></li>
+<li><a href="#sec-4-3">4.3. Состояния вакансий</a></li>
 </ul>
 </li>
-<li><a href="#sec-4">4. Сценарии использования</a>
+<li><a href="#sec-5">5. Сценарии использования</a>
 <ul>
-<li><a href="#sec-4-1">4.1. Пользовательские</a>
+<li><a href="#sec-5-1">5.1. Пользовательские</a>
 <ul>
-<li><a href="#sec-4-1-1">4.1.1. Авторизация/регистрация</a></li>
-<li><a href="#sec-4-1-2">4.1.2. Формализация предпочтений</a></li>
-<li><a href="#sec-4-1-3">4.1.3. Отбор и сортировка вакансий</a></li>
-<li><a href="#sec-4-1-4">4.1.4. Внесение заметок к вакансиям</a></li>
-<li><a href="#sec-4-1-5">4.1.5. Заполнение резюме</a></li>
-<li><a href="#sec-4-1-6">4.1.6. Написание сопроводительных писем</a></li>
-<li><a href="#sec-4-1-7">4.1.7. Отправка отзывов</a></li>
+<li><a href="#sec-5-1-1">5.1.1. Авторизация/регистрация</a></li>
+<li><a href="#sec-5-1-2">5.1.2. Формализация предпочтений</a></li>
+<li><a href="#sec-5-1-3">5.1.3. Отбор и сортировка вакансий</a></li>
+<li><a href="#sec-5-1-4">5.1.4. Внесение заметок к вакансиям</a></li>
+<li><a href="#sec-5-1-5">5.1.5. Заполнение резюме</a></li>
+<li><a href="#sec-5-1-6">5.1.6. Написание сопроводительных писем</a></li>
+<li><a href="#sec-5-1-7">5.1.7. Отправка отзывов</a></li>
 </ul>
 </li>
-<li><a href="#sec-4-2">4.2. Поисковые профили</a>
+<li><a href="#sec-5-2">5.2. Поисковые профили</a>
 <ul>
-<li><a href="#sec-4-2-1">4.2.1. Список поисковых профилей</a></li>
-<li><a href="#sec-4-2-2">4.2.2. Страничка поискового профиля</a></li>
+<li><a href="#sec-5-2-1">5.2.1. Список поисковых профилей</a></li>
+<li><a href="#sec-5-2-2">5.2.2. Страничка поискового профиля</a></li>
 </ul>
 </li>
-<li><a href="#sec-4-3">4.3. Поиск вакансий</a></li>
-<li><a href="#sec-4-4">4.4. Ручной отбор вакансий</a></li>
-<li><a href="#sec-4-5">4.5. Автоматический отбор вакансий</a></li>
-<li><a href="#sec-4-6">4.6. Внесение заметок по вакансии</a></li>
-<li><a href="#sec-4-7">4.7. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
-<li><a href="#sec-4-8">4.8. Дашборд</a></li>
-<li><a href="#sec-4-9">4.9. Отзывы соискателей о компаниях и вакансиях</a></li>
-<li><a href="#sec-4-10">4.10. Размещение резюме</a></li>
-<li><a href="#sec-4-11">4.11. Маршрут</a></li>
-<li><a href="#sec-4-12">4.12. Создание вакансии работодателем</a></li>
-<li><a href="#sec-4-13">4.13. Вакансия становится неактуальной</a></li>
+<li><a href="#sec-5-3">5.3. Поиск вакансий</a></li>
+<li><a href="#sec-5-4">5.4. Ручной отбор вакансий</a></li>
+<li><a href="#sec-5-5">5.5. Автоматический отбор вакансий</a></li>
+<li><a href="#sec-5-6">5.6. Внесение заметок по вакансии</a></li>
+<li><a href="#sec-5-7">5.7. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
+<li><a href="#sec-5-8">5.8. Дашборд</a></li>
+<li><a href="#sec-5-9">5.9. Отзывы соискателей о компаниях и вакансиях</a></li>
+<li><a href="#sec-5-10">5.10. Размещение резюме</a></li>
+<li><a href="#sec-5-11">5.11. Маршрут</a></li>
+<li><a href="#sec-5-12">5.12. Создание вакансии работодателем</a></li>
+<li><a href="#sec-5-13">5.13. Вакансия становится неактуальной</a></li>
 </ul>
 </li>
-<li><a href="#sec-5">5. Сущности</a>
+<li><a href="#sec-6">6. Сущности</a>
 <ul>
-<li><a href="#sec-5-1">5.1. Поисковые профили</a></li>
-<li><a href="#sec-5-2">5.2. Вакансии</a></li>
-<li><a href="#sec-5-3">5.3. Перекрестные связи с другими вакансиями</a></li>
-<li><a href="#sec-5-4">5.4. Компании</a></li>
-<li><a href="#sec-5-5">5.5. Действия по вакансии: звонки, скайп-интервью, собеседования</a></li>
-<li><a href="#sec-5-6">5.6. Теги вакансий</a></li>
+<li><a href="#sec-6-1">6.1. Поисковые профили</a></li>
+<li><a href="#sec-6-2">6.2. Вакансии</a></li>
+<li><a href="#sec-6-3">6.3. Перекрестные связи с другими вакансиями</a></li>
+<li><a href="#sec-6-4">6.4. Компании</a></li>
+<li><a href="#sec-6-5">6.5. Действия по вакансии: звонки, скайп-интервью, собеседования</a></li>
+<li><a href="#sec-6-6">6.6. Теги вакансий</a></li>
 </ul>
 </li>
-<li><a href="#sec-6">6. Interface</a>
+<li><a href="#sec-7">7. Interface</a>
 <ul>
-<li><a href="#sec-6-1">6.1. Главная страница модуля</a></li>
-<li><a href="#sec-6-2">6.2. Галлерея (parenscript)</a></li>
-<li><a href="#sec-6-3">6.3. Список вакансий</a></li>
-<li><a href="#sec-6-4">6.4. Дашборд</a></li>
+<li><a href="#sec-7-1">7.1. Главная страница модуля</a></li>
+<li><a href="#sec-7-2">7.2. Галлерея (parenscript)</a></li>
+<li><a href="#sec-7-3">7.3. Список вакансий</a></li>
+<li><a href="#sec-7-4">7.4. Дашборд</a></li>
 </ul>
 </li>
-<li><a href="#sec-7">7. Тесты</a></li>
-<li><a href="#sec-8">8. Точки входа</a></li>
-<li><a href="#sec-9">9. Сборка</a>
+<li><a href="#sec-8">8. Тесты</a></li>
+<li><a href="#sec-9">9. Точки входа</a></li>
+<li><a href="#sec-10">10. Сборка</a>
 <ul>
-<li><a href="#sec-9-1">9.1. Фунциональные утилиты</a>
+<li><a href="#sec-10-1">10.1. Фунциональные утилиты</a>
 <ul>
-<li><a href="#sec-9-1-1">9.1.1. Point-free определения:</a></li>
-<li><a href="#sec-9-1-2">9.1.2. Flip, карринг, композиции:</a></li>
-<li><a href="#sec-9-1-3">9.1.3. Свёртки и "развёртки":</a></li>
-<li><a href="#sec-9-1-4">9.1.4. Отображения и фильтрации:</a></li>
-<li><a href="#sec-9-1-5">9.1.5. Функции для списков на основе карринга и свёрток:</a></li>
-<li><a href="#sec-9-1-6">9.1.6. Функции для чисел:</a></li>
-<li><a href="#sec-9-1-7">9.1.7. И для булевых чисел:</a></li>
-<li><a href="#sec-9-1-8">9.1.8. Многие другие функции представляются свёртками, например:</a></li>
-<li><a href="#sec-9-1-9">9.1.9. Свёртки для деревьев:</a></li>
+<li><a href="#sec-10-1-1">10.1.1. Point-free определения:</a></li>
+<li><a href="#sec-10-1-2">10.1.2. Flip, карринг, композиции:</a></li>
+<li><a href="#sec-10-1-3">10.1.3. Свёртки и "развёртки":</a></li>
+<li><a href="#sec-10-1-4">10.1.4. Отображения и фильтрации:</a></li>
+<li><a href="#sec-10-1-5">10.1.5. Функции для списков на основе карринга и свёрток:</a></li>
+<li><a href="#sec-10-1-6">10.1.6. Функции для чисел:</a></li>
+<li><a href="#sec-10-1-7">10.1.7. И для булевых чисел:</a></li>
+<li><a href="#sec-10-1-8">10.1.8. Многие другие функции представляются свёртками, например:</a></li>
+<li><a href="#sec-10-1-9">10.1.9. Свёртки для деревьев:</a></li>
 </ul>
 </li>
-<li><a href="#sec-9-2">9.2. Другие утилиты</a></li>
-<li><a href="#sec-9-3">9.3. Утилиты</a></li>
-<li><a href="#sec-9-4">9.4. Глобальные определения</a></li>
-<li><a href="#sec-9-5">9.5. Сущности и автоматы</a></li>
-<li><a href="#sec-9-6">9.6. Поисковые профили</a></li>
-<li><a href="#sec-9-7">9.7. Вакансии</a></li>
+<li><a href="#sec-10-2">10.2. Другие утилиты</a></li>
+<li><a href="#sec-10-3">10.3. Утилиты</a></li>
+<li><a href="#sec-10-4">10.4. Глобальные определения</a></li>
+<li><a href="#sec-10-5">10.5. Сущности и автоматы</a></li>
+<li><a href="#sec-10-6">10.6. Поисковые профили</a></li>
+<li><a href="#sec-10-7">10.7. Вакансии</a></li>
 </ul>
 </li>
 </ul>
@@ -286,11 +285,22 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-2" class="outline-2">
-<h2 id="sec-2"><span class="section-number-2">2</span> Как это работает?</h2>
+<h2 id="sec-2"><span class="section-number-2">2</span> Что это такое?</h2>
 <div class="outline-text-2" id="text-2">
-</div><div id="outline-container-sec-2-1" class="outline-3">
-<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Источник вакансий</h3>
-<div class="outline-text-3" id="text-2-1">
+<p>
+Это средство автоматизации процесса поиска работы, выполненное в форме экспертной
+системы. Оно умеет обучаться по ходу взаимодействия со своим пользователем. Обучение
+производится с помощью внесения пользователем правил обработки входящего потока вакансий.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Как это работает?</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Источник вакансий</h3>
+<div class="outline-text-3" id="text-3-1">
 <p>
 Пусть у нас есть источник вакансий, например, hh.ru. На нем можно сформулировать запрос и
 получить выборку в виде списка тизеров вакансий, каждый из которых ведет на полное
@@ -306,9 +316,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-2" class="outline-3">
-<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Фабрика генераторов вакансий</h3>
-<div class="outline-text-3" id="text-2-2">
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Фабрика генераторов вакансий</h3>
+<div class="outline-text-3" id="text-3-2">
 <p>
 Пусть у нас есть фабрика <code>генераторов функций</code> назовем его <code>factory</code>, которая принимает
 <code>источник вакансий</code> и параметры запроса (например: <code>профессиональную область</code>, <code>специализацию</code>,
@@ -353,7 +363,9 @@ for the JavaScript code in this tag.
 &lt;&lt;hh_parse_vacancy&gt;&gt;
 
 (<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">process-teaser</span> (current-teaser)
-  (hh-parse-vacancy (hh-get-page (getf current-teaser <span style="color: #483d8b;">:id</span>))))
+  (aif (hh-parse-vacancy (hh-get-page (format nil <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/~A"</span> (getf current-teaser <span style="color: #483d8b;">:id</span>))))
+       (merge-plists current-teaser it)
+       nil))
 
 (<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">factory</span> ((vac-src (eql 'hh)) city prof-area <span style="color: #228b22;">&amp;optional</span> spec)
   (<span style="color: #a020f0;">let</span> ((url     (make-hh-url city prof-area spec))
@@ -378,7 +390,7 @@ for the JavaScript code in this tag.
              (<span style="color: #a020f0;">let</span> ((current-vacancy (process-teaser current-teaser)))
                (<span style="color: #a020f0;">if</span> (null current-vacancy)
                    (<span style="color: #a020f0;">go</span> get-new-teaser)
-                   (<span style="color: #a020f0;">return-from</span> get-vacancy (merge-plists current-teaser current-vacancy))))))))))
+                   (<span style="color: #a020f0;">return-from</span> get-vacancy current-vacancy)))))))))
 </pre>
 </div>
 
@@ -402,9 +414,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-3" class="outline-3">
-<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Определение правила обработки</h3>
-<div class="outline-text-3" id="text-2-3">
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Определение правила обработки</h3>
+<div class="outline-text-3" id="text-3-3">
 <p>
 Пусть у нас есть возможность создавать именованные <code>правила</code>, которые получают на вход
 список, представляющий собой тизер или вакансию, анализируют его, и выполняют какие-то
@@ -431,51 +443,47 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="define_rule">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-rule</span> (antecedent <span style="color: #228b22;">&amp;body</span> consequent)
-  `(alexandria:named-lambda ,(gensym <span style="color: #8b2252;">"RULE-"</span>) (vacancy)
-     (<span style="color: #a020f0;">if</span> ,antecedent
-         (<span style="color: #a020f0;">let</span> ((result (<span style="color: #a020f0;">progn</span> ,@consequent)))
-           (values vacancy result))
-         vacancy)))
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-rule</span> ((name antecedent) <span style="color: #228b22;">&amp;body</span> consequent)
+  `(list
+     (<span style="color: #a020f0;">defun</span> ,(intern (concatenate 'string (symbol-name name) <span style="color: #8b2252;">"-ANTECEDENT"</span>)) (vacancy)
+       ,antecedent)
+     (<span style="color: #a020f0;">defun</span> ,(intern (concatenate 'string (symbol-name name) <span style="color: #8b2252;">"-CONSEQUENT"</span>)) (vacancy)
+       (<span style="color: #a020f0;">let</span> ((result (<span style="color: #a020f0;">progn</span> ,@consequent)))
+         (values vacancy result)))))
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(macroexpand-1 '(define-rule (and (&gt; (getf vacancy :salary) 70000)</span>
-<span style="color: #b22222;">;;                                   </span><span style="color: #b22222;">(not (contains "Java" (getf vacancy :name))))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(macroexpand-1 '(define-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #b22222;">;;                                               </span><span style="color: #b22222;">(not (contains "Java" (getf vacancy :name)))))</span>
 <span style="color: #b22222;">;;                  </span><span style="color: #b22222;">(setf (getf vacancy :interested) t)</span>
 <span style="color: #b22222;">;;                  </span><span style="color: #b22222;">:stop))</span>
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">=&gt; (ALEXANDRIA.0.DEV:NAMED-LAMBDA #:RULE-3676 (VACANCY)</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(IF (AND (&gt; (GETF VACANCY :SALARY) 70000)</span>
-<span style="color: #b22222;">;;               </span><span style="color: #b22222;">(NOT (CONTAINS "Java" (GETF VACANCY :NAME))))</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(LET ((RESULT (PROGN (SETF (GETF VACANCY :INTERESTED) T) :STOP)))</span>
-<span style="color: #b22222;">;;            </span><span style="color: #b22222;">(VALUES VACANCY RESULT))</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">VACANCY)), T</span>
-
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">test</span>
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(multiple-value-bind (vacancy rule-result)</span>
-<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(funcall</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(define-rule (and (&gt; (getf vacancy :salary) 70000)</span>
-<span style="color: #b22222;">;;                        </span><span style="color: #b22222;">(not (contains "Java" (getf vacancy :name))))</span>
-<span style="color: #b22222;">;;        </span><span style="color: #b22222;">(setf (getf vacancy :interested) t)</span>
-<span style="color: #b22222;">;;        </span><span style="color: #b22222;">:stop)</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">'(:name "Python" :salary 80000))</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(dbg "vacancy: ~A ~% rule-result: ~A" (bprint vacancy) (bprint rule-result)))</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(define-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #b22222;">;;                                   </span><span style="color: #b22222;">(not (contains "Java" (getf vacancy :name)))))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(setf (getf vacancy :interested) t)</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">:stop)</span>
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">-&gt;  vacancy: (:INTERESTED T :NAME "Python" :SALARY 80000)</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">-&gt;  rule-result: :STOP</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(let ((vacancy '(:name "Python" :salary 80000)))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(multiple-value-bind (vacancy-result rule-result)</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(if (hi-salary-java-antecedent vacancy)</span>
+<span style="color: #b22222;">;;           </span><span style="color: #b22222;">(hi-salary-java-consequent vacancy))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">-&gt;"vacancy: (:INTERESTED T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-4" class="outline-3">
-<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Процессор правил</h3>
-<div class="outline-text-3" id="text-2-4">
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Процессор правил</h3>
+<div class="outline-text-3" id="text-3-4">
 <p>
 Теперь мы можем создать процессор правил <code>process</code>, который применяет к вакансии правила
 поочередно. По сути, это <code>машина Э.Поста</code>, а все вместе представляет собой <code>продукционную
-  систему</code> с прямой цепочкой вывода. Подробнее про продукционные системы <a href="http://www.ngpedia.ru/id429603p1.html">тут</a> и <a href="http://www.myshared.ru/slide/445840/">тут</a>.
+   систему</code> с прямой цепочкой вывода. Подробнее про продукционные системы <a href="http://www.ngpedia.ru/id429603p1.html">тут</a> и <a href="http://www.myshared.ru/slide/445840/">тут</a>.
 </p>
 
 
@@ -506,44 +514,35 @@ for the JavaScript code in this tag.
 <p><img src="./img/process.png" alt="process.png" />
 </p>
 </div>
+
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="process">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">process</span> (vacancy rules)
-  (<span style="color: #a020f0;">tagbody</span>
-   renew
-     (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> rule <span style="color: #483d8b;">:in</span> rules <span style="color: #483d8b;">:do</span>
-        (<span style="color: #a020f0;">multiple-value-bind</span> (vacancy-result rule-result)
-            (funcall rule vacancy)
-          (setf vacancy vacancy-result)
-          (<span style="color: #a020f0;">when</span> (equal rule-result <span style="color: #483d8b;">:stop</span>)
-            (<span style="color: #a020f0;">return-from</span> process vacancy))
-          (<span style="color: #a020f0;">when</span> (equal rule-result <span style="color: #483d8b;">:renew</span>)
-            (<span style="color: #a020f0;">go</span> renew)))))
-  vacancy)
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">test</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(let ((tmp 0))</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(process '(:name "Python" :salary 80000)</span>
-<span style="color: #b22222;">;;            </span><span style="color: #b22222;">(list</span>
-<span style="color: #b22222;">;;             </span><span style="color: #b22222;">(define-rule (equal 12 tmp)</span>
-<span style="color: #b22222;">;;               </span><span style="color: #b22222;">(setf (getf vacancy :tmp) tmp)</span>
-<span style="color: #b22222;">;;               </span><span style="color: #b22222;">:stop)</span>
-<span style="color: #b22222;">;;             </span><span style="color: #b22222;">(define-rule (and (&gt; (getf vacancy :salary) 70000)</span>
-<span style="color: #b22222;">;;                               </span><span style="color: #b22222;">(not (contains "Java" (getf vacancy :name))))</span>
-<span style="color: #b22222;">;;               </span><span style="color: #b22222;">(print (incf tmp))</span>
-<span style="color: #b22222;">;;               </span><span style="color: #b22222;">:renew)</span>
-<span style="color: #b22222;">;;             </span><span style="color: #b22222;">)))</span>
+  (<span style="color: #a020f0;">let</span> ((vacancy vacancy))
+    (<span style="color: #a020f0;">tagbody</span>
+     renew
+       (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> rule <span style="color: #483d8b;">:in</span> rules <span style="color: #483d8b;">:do</span>
+          (<span style="color: #a020f0;">let</span> ((antecedent (concatenate 'string (symbol-name rule) <span style="color: #8b2252;">"-ANTECEDENT"</span>))
+                (consequent (concatenate 'string (symbol-name rule) <span style="color: #8b2252;">"-CONSEQUENT"</span>)))
+            (<span style="color: #a020f0;">if</span> (funcall (intern antecedent) vacancy)
+                (<span style="color: #a020f0;">multiple-value-bind</span> (vacancy-result rule-result)
+                    (funcall (intern consequent) vacancy)
+                  (setf vacancy vacancy-result)
+                  (<span style="color: #a020f0;">when</span> (equal rule-result <span style="color: #483d8b;">:stop</span>)
+                    (<span style="color: #a020f0;">return-from</span> process vacancy))
+                  (<span style="color: #a020f0;">when</span> (equal rule-result <span style="color: #483d8b;">:renew</span>)
+                    (<span style="color: #a020f0;">go</span> renew)))))))
+    vacancy))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-5" class="outline-3">
-<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Декоратор для <code>process-teaser</code></h3>
-<div class="outline-text-3" id="text-2-5">
+<div id="outline-container-sec-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Декоратор для process-teaser</h3>
+<div class="outline-text-3" id="text-3-5">
 <p>
 Поскольку и вакансии и их тизеры представлены у нас одинаково, мы можем применять правила
 и к тем и к другим. Это позволит отфильтровать некоторые вакансии только анализируя их
@@ -565,7 +564,6 @@ for the JavaScript code in this tag.
 </p>
 </div>
 
-
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="process_teaser_around">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -573,17 +571,17 @@ for the JavaScript code in this tag.
 &lt;&lt;rules&gt;&gt;
 
 (<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">process-teaser</span> <span style="color: #483d8b;">:around</span> (current-teaser)
-  (aif (process current-teaser *rules-for-teaser*)
-       (process (call-next-method it) *rules-for-vacancy*)
+  (aif (process current-teaser (rules-for-teaser))
+       (process (call-next-method it) (rules-for-vacancy))
        nil))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-6" class="outline-3">
-<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Получение и обработка вакансий правилами</h3>
-<div class="outline-text-3" id="text-2-6">
+<div id="outline-container-sec-3-6" class="outline-3">
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Получение и обработка вакансий правилами</h3>
+<div class="outline-text-3" id="text-3-6">
 <p>
 Теперь мы можем получить генератор, и, вызывая его, забирать вакансии, пока они не
 закончатся. Все вакансии будут корректно обработаны правилами - сначала на этапе получения
@@ -602,66 +600,81 @@ for the JavaScript code in this tag.
 
 &lt;&lt;factory&gt;&gt;
 
-(<span style="color: #a020f0;">let</span> ((gen (factory 'hh <span style="color: #8b2252;">"spb"</span> <span style="color: #8b2252;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
-                    <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>)))
-  (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> i <span style="color: #483d8b;">:from</span> 1 <span style="color: #483d8b;">:to</span> 100 <span style="color: #483d8b;">:do</span>
-     (dbg <span style="color: #8b2252;">"~A"</span> i)
-     (<span style="color: #a020f0;">let</span> ((vacancy (funcall gen)))
-       (<span style="color: #a020f0;">when</span> (null vacancy)
-         (<span style="color: #a020f0;">return</span>))
-       (dbg <span style="color: #8b2252;">"~A"</span> (bprint vacancy)))))
+&lt;&lt;save_vacancy&gt;&gt;
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">run</span> ()
+  (<span style="color: #a020f0;">let</span> ((gen (factory 'hh <span style="color: #8b2252;">"spb"</span> <span style="color: #8b2252;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
+                      <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>)))
+    (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> i <span style="color: #483d8b;">:from</span> 1 <span style="color: #483d8b;">:to</span> 100 <span style="color: #483d8b;">:do</span>
+       (dbg <span style="color: #8b2252;">"~A"</span> i)
+       (<span style="color: #a020f0;">let</span> ((vacancy (funcall gen)))
+         (<span style="color: #a020f0;">when</span> (null vacancy)
+           (<span style="color: #a020f0;">return</span>))))))
+
+(run)
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-7" class="outline-3">
-<h3 id="sec-2-7"><span class="section-number-3">2.7</span> Составление правил</h3>
-<div class="outline-text-3" id="text-2-7">
+<div id="outline-container-sec-3-7" class="outline-3">
+<h3 id="sec-3-7"><span class="section-number-3">3.7</span> Составление правил и работа с ними</h3>
+<div class="outline-text-3" id="text-3-7">
 <p>
-Чтобы записать правила их более компактно, подсластим синтаксис, используя макросы
+Теперь можно удобным и компактным способом добавить все необходимые правила и обеспечить
+методы их обработки
 </p>
 
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="rules">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
- (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">drop-by-name</span> (text)
-   `(<span style="color: #a020f0;">define-rule</span> (contains (getf vacancy <span style="color: #483d8b;">:name</span>) ,text)
-      (dbg <span style="color: #8b2252;">"drop: name contains ~A"</span> ,text)
-      (setf vacancy nil)
-      <span style="color: #483d8b;">:stop</span>))
-
- <span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
-
- <span style="color: #b22222;">;; </span><span style="color: #b22222;">(macroexpand-1 '(drop-by-name "IOS"))</span>
-
- <span style="color: #b22222;">;; </span><span style="color: #b22222;">=&gt; (DEFINE-RULE (CONTAINS (GETF VACANCY :NAME) "IOS")</span>
- <span style="color: #b22222;">;;      </span><span style="color: #b22222;">(DBG "drop: name contains ~A" "IOS")</span>
- <span style="color: #b22222;">;;      </span><span style="color: #b22222;">(SETF VACANCY NIL)</span>
- <span style="color: #b22222;">;;      </span><span style="color: #b22222;">:STOP), T</span>
-
- (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">drop-names</span> (<span style="color: #228b22;">&amp;rest</span> names)
-   `(list ,@(<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> name <span style="color: #483d8b;">:in</span> names <span style="color: #483d8b;">:collect</span>
-               `(drop-by-name ,name))))
-
- <span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
-
- (macroexpand-1 '(drop-names <span style="color: #8b2252;">"IOS"</span> <span style="color: #8b2252;">"1&#1057;"</span> <span style="color: #8b2252;">"C++"</span>))
-
- <span style="color: #b22222;">;; </span><span style="color: #b22222;">=&gt; (LIST (DROP-BY-NAME "IOS") (DROP-BY-NAME "1&#1057;") (DROP-BY-NAME "C++")), T</span>
-
-
 &lt;&lt;rules_for_vacancy&gt;&gt;
 
 &lt;&lt;rules_for_teasers&gt;&gt;
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">get-all-rules</span> ()
+  (<span style="color: #a020f0;">let</span> ((result (make-hash-table <span style="color: #483d8b;">:test</span> #'equal)))
+    (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> var <span style="color: #483d8b;">:being</span> <span style="color: #483d8b;">:the</span> present-symbols <span style="color: #483d8b;">:in</span> (find-package <span style="color: #8b2252;">"MOTO"</span>)
+       <span style="color: #483d8b;">:when</span> (or
+              (and (search <span style="color: #8b2252;">"CONSEQUENT"</span> (symbol-name var))
+                   (fboundp var))
+              (and (search <span style="color: #8b2252;">"ANTECEDENT"</span> (symbol-name var))
+                   (fboundp var)))
+       <span style="color: #483d8b;">:collect</span> (<span style="color: #a020f0;">let</span> ((key (ppcre:regex-replace <span style="color: #8b2252;">"-ANTECEDENT"</span> (symbol-name var) <span style="color: #8b2252;">""</span>)))
+                  (setf key (ppcre:regex-replace <span style="color: #8b2252;">"-CONSEQUENT"</span> key <span style="color: #8b2252;">""</span>))
+                  (setf (gethash key result) <span style="color: #8b2252;">""</span>)))
+    (mapcar #'intern
+            (sort
+             (alexandria:hash-table-keys result)
+             #'(<span style="color: #a020f0;">lambda</span> (a b)
+                 (string&lt; a b))))))
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">clear-all-rules</span> ()
+  (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> var <span style="color: #483d8b;">:being</span> <span style="color: #483d8b;">:the</span> present-symbols <span style="color: #483d8b;">:in</span> (find-package <span style="color: #8b2252;">"MOTO"</span>)
+     <span style="color: #483d8b;">:when</span> (or
+            (and (search <span style="color: #8b2252;">"CONSEQUENT"</span> (symbol-name var))
+                 (fboundp var))
+            (and (search <span style="color: #8b2252;">"ANTECEDENT"</span> (symbol-name var))
+                 (fboundp var)))
+     <span style="color: #483d8b;">:collect</span> (fmakunbound var)))
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">rules-for-teaser</span> ()
+  (remove-if-not #'(<span style="color: #a020f0;">lambda</span> (x)
+                     (search <span style="color: #8b2252;">"DROP-TEASER-IF"</span> (symbol-name x)))
+                 (get-all-rules)))
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">rules-for-vacancy</span> ()
+  (remove-if #'(<span style="color: #a020f0;">lambda</span> (x)
+                 (search <span style="color: #8b2252;">"DROP-TEASER-IF"</span> (symbol-name x)))
+             (get-all-rules)))
 </pre>
 </div>
 </div>
 
-<div id="outline-container-sec-2-7-1" class="outline-4">
-<h4 id="sec-2-7-1"><span class="section-number-4">2.7.1</span> Правила отсева тизеров</h4>
-<div class="outline-text-4" id="text-2-7-1">
+<div id="outline-container-sec-3-7-1" class="outline-4">
+<h4 id="sec-3-7-1"><span class="section-number-4">3.7.1</span> Правила отсева тизеров</h4>
+<div class="outline-text-4" id="text-3-7-1">
 <p>
 Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
 вакансий? В основном те, которые не устраивают по зарплате и те, у которых в названиях
@@ -673,41 +686,149 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="rules_for_teasers">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*rules-for-teaser*</span>
-  (append
-   (list
-    (<span style="color: #a020f0;">define-rule</span> (null (getf vacancy <span style="color: #483d8b;">:salary</span>))
-      (dbg <span style="color: #8b2252;">"drop: &#1053;&#1077;&#1090; &#1079;&#1072;&#1088;&#1087;&#1083;&#1072;&#1090;&#1099;"</span>)
-      (setf vacancy nil)
-      <span style="color: #483d8b;">:stop</span>)
-    (<span style="color: #a020f0;">define-rule</span> (&lt; (parse-integer (getf vacancy <span style="color: #483d8b;">:salary</span>)) 90000)
-      (dbg <span style="color: #8b2252;">"drop: &#1052;&#1072;&#1083;&#1077;&#1085;&#1100;&#1082;&#1072;&#1103; &#1079;&#1072;&#1088;&#1087;&#1083;&#1072;&#1090;&#1072;"</span>)
-      (setf vacancy nil)
-      <span style="color: #483d8b;">:stop</span>))
-   (drop-names <span style="color: #8b2252;">"IOS"</span> <span style="color: #8b2252;">"1&#1057;"</span> <span style="color: #8b2252;">"C++"</span> <span style="color: #8b2252;">"Ruby on Rails"</span> <span style="color: #8b2252;">"Frontend"</span> <span style="color: #8b2252;">"Go"</span> <span style="color: #8b2252;">"Qa"</span> <span style="color: #8b2252;">"C#"</span> <span style="color: #8b2252;">".NET"</span> <span style="color: #8b2252;">"Unity3D"</span> <span style="color: #8b2252;">"Flash"</span> <span style="color: #8b2252;">"Java"</span> <span style="color: #8b2252;">"Android"</span> <span style="color: #8b2252;">"ASP"</span> <span style="color: #8b2252;">"Objective-C"</span> <span style="color: #8b2252;">"Front End"</span> <span style="color: #8b2252;">"Go"</span>)
-   ))
+&lt;&lt;sugar_for_teaser_rules&gt;&gt;
+
+(<span style="color: #a020f0;">define-drop-teaser-rule</span> (salary-1-no (null (getf vacancy <span style="color: #483d8b;">:salary</span>)))
+  (dbg <span style="color: #8b2252;">"  - no salary"</span>))
+
+(<span style="color: #a020f0;">define-drop-teaser-rule</span> (salary-2-low (&lt; (getf vacancy <span style="color: #483d8b;">:salary</span>) 60000))
+  (dbg <span style="color: #8b2252;">"  - low salary"</span>))
+
+(<span style="color: #a020f0;">define-drop-all-teaser-when-name-contains-rule</span>
+    <span style="color: #8b2252;">"IOS"</span> <span style="color: #8b2252;">"1&#1057;"</span> <span style="color: #8b2252;">"C++"</span> <span style="color: #8b2252;">"Ruby on Rails"</span> <span style="color: #8b2252;">"Frontend"</span> <span style="color: #8b2252;">"Front End"</span> <span style="color: #8b2252;">"Go"</span> <span style="color: #8b2252;">"Qa"</span> <span style="color: #8b2252;">"C#"</span> <span style="color: #8b2252;">".NET"</span>
+    <span style="color: #8b2252;">"Unity3D"</span> <span style="color: #8b2252;">"Flash"</span> <span style="color: #8b2252;">"Java"</span> <span style="color: #8b2252;">"Android"</span> <span style="color: #8b2252;">"ASP"</span> <span style="color: #8b2252;">"Objective-C"</span> <span style="color: #8b2252;">"Go"</span>)
 </pre>
 </div>
 </div>
+
+<ol class="org-ol"><li><a id="sec-3-7-1-1"></a>Макросы для определения правил отсева тизеров<br  /><div class="outline-text-5" id="text-3-7-1-1">
+<p>
+Для начала определим макрос, который создает правила отсева тизеров - эти правила
+отличаются тем, что всегда в первом параметре возвращают nil, а во втором - <code>:stop</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="sugar_for_teaser_rules">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-drop-teaser-rule</span> ((name antecedent) <span style="color: #228b22;">&amp;body</span> consequent)
+  `(<span style="color: #a020f0;">define-rule</span> (,(intern (concatenate 'string <span style="color: #8b2252;">"DROP-TEASER-IF-"</span>(symbol-name name))) ,antecedent)
+     (dbg <span style="color: #8b2252;">"drop teaser:"</span>)
+     ,@consequent
+     (setf vacancy nil)
+     <span style="color: #483d8b;">:stop</span>))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(macroexpand-1</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">'(define-drop-teaser-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #b22222;">;;                                              </span><span style="color: #b22222;">(not (contains "Java" (getf vacancy :name)))))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(print (getf vacancy :name))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(print (getf vacancy :salary)))))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA</span>
+<span style="color: #b22222;">;;               </span><span style="color: #b22222;">(AND (&gt; (GETF VACANCY :SALARY) 70000)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">(NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(PRINT (GETF VACANCY :NAME))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(PRINT (GETF VACANCY :SALARY))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(SETF VACANCY NIL)</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">:STOP)</span>
+</pre>
 </div>
 
-<div id="outline-container-sec-2-7-2" class="outline-4">
-<h4 id="sec-2-7-2"><span class="section-number-4">2.7.2</span> <span class="todo TODO">TODO</span> Правила анализа вакансий</h4>
-<div class="outline-text-4" id="text-2-7-2">
+<p>
+Теперь определим расширение предыдущего макроса, которое создает правило, отсеивающее
+тизер, в случае, если в поле <code>:name</code> есть вхождение переданной строки
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="sugar_for_teaser_rules">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-drop-teaser-by-name-rule</span> (str <span style="color: #228b22;">&amp;body</span> consequent)
+  `(<span style="color: #a020f0;">define-drop-teaser-rule</span> (,(intern (concatenate 'string <span style="color: #8b2252;">"NAME-CONTAINS-"</span> (string-upcase (ppcre:regex-replace-all <span style="color: #8b2252;">"\\s+"</span> str <span style="color: #8b2252;">"-"</span>))))
+                              (contains (getf vacancy <span style="color: #483d8b;">:name</span>) ,str))
+     (dbg <span style="color: #8b2252;">"  - :name contains ~A"</span> ,str)
+     ,@consequent))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(macroexpand-1</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">'(define-drop-teaser-by-name-rule "Android")))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID</span>
+<span style="color: #b22222;">;;                           </span><span style="color: #b22222;">(CONTAINS (GETF VACANCY :NAME) "Android"))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(DBG "drop:")</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(DBG "  name contains ~A" "Android"))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">test</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(define-drop-teaser-by-name-rule "Android")</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">==&gt; (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT</span>
+<span style="color: #b22222;">;;      </span><span style="color: #b22222;">DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)</span>
+</pre>
+</div>
+
+<p>
+Теперь в соответствии с принципом DRY определем макрос, который создаст список правил,
+отсеивающих тизеры по вхождению первой строки в поле <code>:name</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="sugar_for_teaser_rules">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-drop-all-teaser-when-name-contains-rule</span> (<span style="color: #228b22;">&amp;rest</span> names)
+  `(list ,@(<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> name <span style="color: #483d8b;">:in</span> names <span style="color: #483d8b;">:collect</span>
+              `(<span style="color: #a020f0;">define-drop-teaser-by-name-rule</span> ,name))))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(macroexpand-1 '(define-drop-all-teaser-when-name-contains-rule "IOS" "1&#1057;" "C++"))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(LIST (DEFINE-DROP-TEASER-BY-NAME-RULE "IOS")</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(DEFINE-DROP-TEASER-BY-NAME-RULE "1&#1057;")</span>
+<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(DEFINE-DROP-TEASER-BY-NAME-RULE "C++"))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">test</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(define-drop-all-teaser-when-name-contains-rule "IOS" "1&#1057;" "C++"))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">=&gt;</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">((DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-ANTECEDENT</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-CONSEQUENT)</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(DROP-TEASER-IF-IF-NAME-CONTAINS-1&#1057;-ANTECEDENT</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">DROP-TEASER-IF-IF-NAME-CONTAINS-1&#1057;-CONSEQUENT)</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))</span>
+</pre>
+</div>
+</div>
+</li></ol>
+</div>
+
+<div id="outline-container-sec-3-7-2" class="outline-4">
+<h4 id="sec-3-7-2"><span class="section-number-4">3.7.2</span> Правила анализа вакансий</h4>
+<div class="outline-text-4" id="text-3-7-2">
 <ul class="org-ul">
+<li>Я не хочу смотреть на вакансии, в компаниях где я уже работал.
+</li>
 <li>Если это уже существующая в базе вакансия и ничего не изменилось - игнорируем и
 останавливаем ее обработку
-</li>
-<li>Заносим вакансию в базу.
-</li>
-<li>Я не хочу смотреть на вакансии, в компаниях где я уже работал.
 </li>
 <li>Я хочу присвоить вакансии определенный ранг, в зависимости от з\п
 </li>
 <li>Я хочу увеличивать этот ранг за упоминание в тексте описания вакансии моих любимых
-слов: Lisp, Erlang, Prolog, Haskell
+слов: Lisp, Erlang, Closure, Prolog, Haskell, Smalltalk
 </li>
-<li>Я хочу особо отметить вакансии, у которых ранг выше [порогового ранга], чтобы [отправить отклик]
+<li>Я хочу особо отметить вакансии, у которых ранг выше [порогового ранга], чтобы
+[отправить отклик]
+</li>
+<li>Я хочу занести вакансию в базу.
+</li>
+<li>Я хочу вывести вакансию в консоль.
 </li>
 </ul>
 
@@ -715,22 +836,82 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="rules_for_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*rules-for-vacancy*</span>
-  (list
-   <span style="color: #b22222;">;; </span><span style="color: #b22222;">(define-rule nil</span>
-   <span style="color: #b22222;">;;   </span><span style="color: #b22222;">(dbg "empty")</span>
-   <span style="color: #b22222;">;;   </span><span style="color: #b22222;">;; (setf vacancy nil)</span>
-   <span style="color: #b22222;">;;   </span><span style="color: #b22222;">:stop)</span>
-   ))
+&lt;&lt;sugar_for_vacancy_rules&gt;&gt;
+
+(<span style="color: #a020f0;">define-drop-vacancy-rule</span> (already-worked (contains (getf vacancy <span style="color: #483d8b;">:emp-name</span>) <span style="color: #8b2252;">"JetBrains"</span>))
+  (dbg <span style="color: #8b2252;">"already worked: ~A"</span> (getf vacancy <span style="color: #483d8b;">:emp-name</span>)))
+
+(<span style="color: #a020f0;">define-drop-vacancy-rule</span> (already-exists-in-db (not (null (find-vacancy <span style="color: #483d8b;">:src-id</span> (getf vacancy <span style="color: #483d8b;">:id</span>)))))
+  (dbg <span style="color: #8b2252;">"already exists: ~A : ~A : ~A"</span> (id exists) (name exists) (emp-name exists)))
+
+(<span style="color: #a020f0;">define-rule</span> (set-rank t)
+  (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (getf vacancy <span style="color: #483d8b;">:salary</span>)))
+
+(<span style="color: #a020f0;">define-rule</span> (set-rank-up-by-lisp (contains (format nil <span style="color: #8b2252;">"~A"</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>))) <span style="color: #8b2252;">"Lisp"</span>))
+  (dbg <span style="color: #8b2252;">"up rank by Lisp"</span>)
+  (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (+ (getf vacancy <span style="color: #483d8b;">:rank</span>) 30000)))
+
+(<span style="color: #a020f0;">define-rule</span> (set-rank-up-by-erlang (contains (format nil <span style="color: #8b2252;">"~A"</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>))) <span style="color: #8b2252;">"Erlang"</span>))
+  (dbg <span style="color: #8b2252;">"up rank by Erlang"</span>)
+  (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (+ (getf vacancy <span style="color: #483d8b;">:rank</span>) 15000)))
+
+(<span style="color: #a020f0;">define-rule</span> (set-rank-up-by-haskell (contains (format nil <span style="color: #8b2252;">"~A"</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>))) <span style="color: #8b2252;">"Haskell"</span>))
+  (dbg <span style="color: #8b2252;">"up rank by Haskell"</span>)
+  (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (+ (getf vacancy <span style="color: #483d8b;">:rank</span>) 10000)))
+
+(<span style="color: #a020f0;">define-rule</span> (z-save t)
+  (save-vacancy vacancy))
+
+(<span style="color: #a020f0;">define-rule</span> (z-print t)
+     (dbg <span style="color: #8b2252;">"~A"</span> (bprint vacancy))
+     <span style="color: #483d8b;">:stop</span>)
 </pre>
 </div>
 </div>
+
+<ol class="org-ol"><li><a id="sec-3-7-2-1"></a>Макросы для определения правил анализа вакансий<br  /><div class="outline-text-5" id="text-3-7-2-1">
+<p>
+Для начала определим макрос, который создает правила отсева вакансий - эти правила
+отличаются тем, что всегда в первом параметре возвращают nil, а во втором - <code>:stop</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="sugar_for_vacancy_rules">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-drop-vacancy-rule</span> ((name antecedent) <span style="color: #228b22;">&amp;body</span> consequent)
+  `(<span style="color: #a020f0;">define-rule</span> (,(intern (concatenate 'string <span style="color: #8b2252;">"DROP-VACANCY-IF-"</span>(symbol-name name))) ,antecedent)
+     (dbg <span style="color: #8b2252;">"drop vacancy:"</span>)
+     ,@consequent
+     (setf vacancy nil)
+     <span style="color: #483d8b;">:stop</span>))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(macroexpand-1</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">'(define-drop-vacancy-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #b22222;">;;                                              </span><span style="color: #b22222;">(not (contains "Java" (getf vacancy :name)))))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(print (getf vacancy :name))</span>
+<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(print (getf vacancy :salary)))))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(DEFINE-RULE (DROP-VACANCY-IF-HI-SALARY-JAVA</span>
+<span style="color: #b22222;">;;               </span><span style="color: #b22222;">(AND (&gt; (GETF VACANCY :SALARY) 70000)</span>
+<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">(NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(PRINT (GETF VACANCY :NAME))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(PRINT (GETF VACANCY :SALARY))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(SETF VACANCY NIL)</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">:STOP)</span>
+</pre>
+</div>
+</div>
+</li></ol>
 </div>
 </div>
 
-<div id="outline-container-sec-2-8" class="outline-3">
-<h3 id="sec-2-8"><span class="section-number-3">2.8</span> Построение URL-ов, для скачивания тизеров</h3>
-<div class="outline-text-3" id="text-2-8">
+<div id="outline-container-sec-3-8" class="outline-3">
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Построение URL-ов, для скачивания тизеров</h3>
+<div class="outline-text-3" id="text-3-8">
 <p>
 Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
 страницы, если будем получать страницу за страницей, пока не получим страницу, на которой
@@ -762,9 +943,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-8-1" class="outline-4">
-<h4 id="sec-2-8-1"><span class="section-number-4">2.8.1</span> Построение специализаций</h4>
-<div class="outline-text-4" id="text-2-8-1">
+<div id="outline-container-sec-3-8-1" class="outline-4">
+<h4 id="sec-3-8-1"><span class="section-number-4">3.8.1</span> Построение специализаций</h4>
+<div class="outline-text-4" id="text-3-8-1">
 <p>
 Специализации задаются в формате "1.221", где цифра слева от точки представляет
 профессиональное направление, а справа - собственно специализацию. В интерфейсе
@@ -898,9 +1079,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-9" class="outline-3">
-<h3 id="sec-2-9"><span class="section-number-3">2.9</span> Получение страниц</h3>
-<div class="outline-text-3" id="text-2-9">
+<div id="outline-container-sec-3-9" class="outline-3">
+<h3 id="sec-3-9"><span class="section-number-3">3.9</span> Получение страниц</h3>
+<div class="outline-text-3" id="text-3-9">
 <p>
 Вот так мы можем получать страницы, к примеру те, на который находятся тизеры:
 </p>
@@ -927,9 +1108,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-10" class="outline-3">
-<h3 id="sec-2-10"><span class="section-number-3">2.10</span> Разбор тизеров вакансий</h3>
-<div class="outline-text-3" id="text-2-10">
+<div id="outline-container-sec-3-10" class="outline-3">
+<h3 id="sec-3-10"><span class="section-number-3">3.10</span> Разбор тизеров вакансий</h3>
+<div class="outline-text-3" id="text-3-10">
 <p>
 Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
 который переведет полученный html в более удобное лисп-дерево. Используя сопоставление с
@@ -983,76 +1164,75 @@ for the JavaScript code in this tag.
                     (<span style="color: #a020f0;">progn</span> (print in)
                            (err <span style="color: #8b2252;">"parsing failed, data printed"</span>))
                     (car in))))
-            (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"</span>)
-                         (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
-                 (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"title"</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1077;&#1084;&#1080;&#1103; HRBrand"</span>) (<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"rel"</span> <span style="color: #8b2252;">"nofollow"</span>)
-                              (<span style="color: #8b2252;">"class"</span> ,_)
-                              (<span style="color: #8b2252;">"data-qa"</span> ,_)) <span style="color: #8b2252;">"&#160;"</span>) 'Z)
-                      (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__image"</span>)) ,_) 'Z)
-                           (mtm (`(<span style="color: #8b2252;">"script"</span> ((<span style="color: #8b2252;">"data-name"</span> <span style="color: #8b2252;">"HH/VacancyResponseTrigger"</span>) (<span style="color: #8b2252;">"data-params"</span> <span style="color: #8b2252;">""</span>))) 'Z)
-                                (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__label HH-VacancyResponseTrigger-Text g-hidden"</span>)
-                                             (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
-                                     (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__star"</span>))) 'Z)
-                                          (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__description"</span>)) ,@rest)
-                                                 (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
-                                               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__head"</span>))
-                                                             (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard"</span>
-                                                                                 <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard_plus"</span>
-                                                                                 <span style="color: #8b2252;">"search-result-item__name search-result-item__name_premium"</span>))
-                                                                   (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-title"</span>) (<span style="color: #8b2252;">"href"</span> ,id) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>)) ,name))
-                                                      (list <span style="color: #483d8b;">:id</span> id <span style="color: #483d8b;">:name</span> name))
-                                                    (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-salary"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-compensation"</span>))
-                                                                  (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
-                                                                  (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,salary))) ,salary-text)
-                                                           (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:salary</span> salary <span style="color: #483d8b;">:salary-text</span> salary-text))
-                                                         (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>)) ,emp-name)
-                                                                (list <span style="color: #483d8b;">:emp-name</span> emp-name))
-                                                              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>))
-                                                                            (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,emp-id)
-                                                                                  (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company-link"</span>)
-                                                                                  (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-employer"</span>))
-                                                                                 ,emp-name))
-                                                                     (list <span style="color: #483d8b;">:emp-id</span> emp-id <span style="color: #483d8b;">:emp-name</span> emp-name))
-                                                                   (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__info"</span>)) ,@rest)
-                                                                          (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
-                                                                        (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"searchresult__address"</span>)
-                                                                                        (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-address"</span>)) ,city ,@rest)
-                                                                               (<span style="color: #a020f0;">let</span> ((metro (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item in rest <span style="color: #483d8b;">:do</span>
-                                                                                               (<span style="color: #a020f0;">when</span> (and (consp item) (equal <span style="color: #483d8b;">:metro</span> (car item)))
-                                                                                                 (<span style="color: #a020f0;">return</span> (cadr item))))))
-                                                                                 (list <span style="color: #483d8b;">:city</span> city <span style="color: #483d8b;">:metro</span> metro)))
-                                                                             (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-station"</span>))
-                                                                                            (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-point"</span>) (<span style="color: #8b2252;">"style"</span> ,_))) ,metro)
-                                                                                    (list <span style="color: #483d8b;">:metro</span> metro))
-                                                                                  (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-date"</span>)
-                                                                                                  (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-date"</span>)) ,date)
-                                                                                         (list <span style="color: #483d8b;">:date</span> date))
-                                                                                       (mtm (`(<span style="color: #8b2252;">"span"</span>
-                                                                                               ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform"</span>)
-                                                                                                (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_career"</span>))
-                                                                                               <span style="color: #8b2252;">"&#160;&#160;&#8226;&#160;&#160;"</span> (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform__name"</span>))
-                                                                                                               <span style="color: #8b2252;">"CAREER.RU"</span>))
-                                                                                              (list <span style="color: #483d8b;">:platform</span> 'career.ru))
-                                                                                            (<span style="color: #a020f0;">block</span> subtree-extract
-                                                                                              (mtm (`(<span style="color: #8b2252;">"div"</span>
-                                                                                                      ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>)
-                                                                                                       (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>))
-                                                                                                      ,@rest)
-                                                                                                     (<span style="color: #a020f0;">return-from</span> subtree-extract rest))
-                                                                                                   (html5-parser:node-to-xmls
-                                                                                                    (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
+            (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"title"</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1077;&#1084;&#1080;&#1103; HRBrand"</span>) (<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"rel"</span> <span style="color: #8b2252;">"nofollow"</span>)
+                         (<span style="color: #8b2252;">"class"</span> ,_)
+                         (<span style="color: #8b2252;">"data-qa"</span> ,_)) <span style="color: #8b2252;">"&#160;"</span>) 'Z)
+                 (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__image"</span>)) ,_) 'Z)
+                      (mtm (`(<span style="color: #8b2252;">"script"</span> ((<span style="color: #8b2252;">"data-name"</span> <span style="color: #8b2252;">"HH/VacancyResponseTrigger"</span>) (<span style="color: #8b2252;">"data-params"</span> <span style="color: #8b2252;">""</span>))) 'Z)
+                           (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> ,_)
+                                        (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
+                                (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__star"</span>)) ,@_) 'Z)
+                                     (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__description"</span>)) ,@rest)
+                                            (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
+                                          (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__head"</span>))
+                                                        (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard"</span>
+                                                                            <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard_plus"</span>
+                                                                            <span style="color: #8b2252;">"search-result-item__name search-result-item__name_premium"</span>))
+                                                              (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-title"</span>) (<span style="color: #8b2252;">"href"</span> ,id) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>)) ,name))
+                                                 (list <span style="color: #483d8b;">:id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) <span style="color: #483d8b;">:name</span> name))
+                                               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-salary"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-compensation"</span>))
+                                                             (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
+                                                             (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,salary))) ,salary-text)
+                                                      (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:salary</span> (parse-integer salary) <span style="color: #483d8b;">:salary-text</span> salary-text))
+                                                    (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>)) ,emp-name)
+                                                           (list <span style="color: #483d8b;">:emp-name</span> emp-name))
+                                                         (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>))
+                                                                       (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,emp-id)
+                                                                             (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company-link"</span>)
+                                                                             (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-employer"</span>))
+                                                                            ,emp-name))
+                                                                (list <span style="color: #483d8b;">:emp-id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) <span style="color: #483d8b;">:junk-allowed</span> t)
+                                                                      <span style="color: #483d8b;">:emp-name</span> emp-name))
+                                                              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__info"</span>)) ,@rest)
+                                                                     (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
+                                                                   (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"searchresult__address"</span>)
+                                                                                   (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-address"</span>)) ,city ,@rest)
+                                                                          (<span style="color: #a020f0;">let</span> ((metro (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item in rest <span style="color: #483d8b;">:do</span>
+                                                                                          (<span style="color: #a020f0;">when</span> (and (consp item) (equal <span style="color: #483d8b;">:metro</span> (car item)))
+                                                                                            (<span style="color: #a020f0;">return</span> (cadr item))))))
+                                                                            (list <span style="color: #483d8b;">:city</span> city <span style="color: #483d8b;">:metro</span> metro)))
+                                                                        (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-station"</span>))
+                                                                                       (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-point"</span>) (<span style="color: #8b2252;">"style"</span> ,_))) ,metro)
+                                                                               (list <span style="color: #483d8b;">:metro</span> metro))
+                                                                             (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-date"</span>)
+                                                                                             (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-date"</span>)) ,date)
+                                                                                    (list <span style="color: #483d8b;">:date</span> date))
+                                                                                  (mtm (`(<span style="color: #8b2252;">"span"</span>
+                                                                                          ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform"</span>)
+                                                                                           (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_career"</span>))
+                                                                                          <span style="color: #8b2252;">"&#160;&#160;&#8226;&#160;&#160;"</span> (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform__name"</span>))
+                                                                                                          <span style="color: #8b2252;">"CAREER.RU"</span>))
+                                                                                         (list <span style="color: #483d8b;">:platform</span> 'career.ru))
+                                                                                       (<span style="color: #a020f0;">block</span> subtree-extract
+                                                                                         (mtm (`(<span style="color: #8b2252;">"div"</span>
+                                                                                                 ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>)
+                                                                                                  (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>))
+                                                                                                 ,@rest)
+                                                                                                (<span style="color: #a020f0;">return-from</span> subtree-extract rest))
+                                                                                              (html5-parser:node-to-xmls
+                                                                                               (html5-parser:parse-html5-fragment html))))))))))))))))))))))
 
-(print
- <span style="color: #b22222;">;; </span><span style="color: #b22222;">(car</span>
-  (hh-parse-vacancy-teasers
-   (hh-get-page <span style="color: #8b2252;">"http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=12"</span>)))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">;; (car</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(hh-parse-vacancy-teasers</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=12")))</span>
 </pre>
 </div>
 </div>
 
-<div id="outline-container-sec-2-10-1" class="outline-4">
-<h4 id="sec-2-10-1"><span class="section-number-4">2.10.1</span> Трансформация дерева</h4>
-<div class="outline-text-4" id="text-2-10-1">
+<div id="outline-container-sec-3-10-1" class="outline-4">
+<h4 id="sec-3-10-1"><span class="section-number-4">3.10.1</span> Трансформация дерева</h4>
+<div class="outline-text-4" id="text-3-10-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="maptree_transform">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -1084,9 +1264,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2-11" class="outline-3">
-<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Разбор вакансий</h3>
-<div class="outline-text-3" id="text-2-11">
+<div id="outline-container-sec-3-11" class="outline-3">
+<h3 id="sec-3-11"><span class="section-number-3">3.11</span> Разбор вакансий</h3>
+<div class="outline-text-3" id="text-3-11">
 <p>
 Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
 лишнего:
@@ -1113,7 +1293,7 @@ for the JavaScript code in this tag.
                       (mtm (`(,(or <span style="color: #8b2252;">"ul"</span> <span style="color: #8b2252;">"p"</span>) NIL ,@rest)
                              (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (and (not (consp x)) (equal x <span style="color: #8b2252;">" "</span>))) rest))
                            (mtm (`(,(or <span style="color: #8b2252;">"li"</span> <span style="color: #8b2252;">"em"</span>) NIL ,in) in)
-                                (mtm (`(<span style="color: #8b2252;">"strong"</span> NIL ,in) in) *tree-descr*))))))
+                                (mtm (`(<span style="color: #8b2252;">"strong"</span> NIL ,in) in) tree-descr))))))
     (<span style="color: #a020f0;">labels</span> ((tmp (tree)
                (<span style="color: #a020f0;">cond</span>  ((consp tree) (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (equal x 'z))
                                                (cons (tmp (car tree))
@@ -1152,7 +1332,7 @@ for the JavaScript code in this tag.
                                                  (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
                                                  (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,base-salary)))
                                                  ,salary-text)
-                                          (<span style="color: #a020f0;">return-from</span> salary-extract (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:base-salary</span> base-salary <span style="color: #483d8b;">:salary-text</span> salary-text)))
+                                          (<span style="color: #a020f0;">return-from</span> salary-extract (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:base-salary</span> (parse-integer base-salary) <span style="color: #483d8b;">:salary-text</span> salary-text)))
                                         tree))))
               (<span style="color: #a020f0;">if</span> (equal 6 (length salary-result))
                   salary-result
@@ -1166,124 +1346,168 @@ for the JavaScript code in this tag.
               (<span style="color: #a020f0;">if</span> (equal 2 (length exp-result)) exp-result (list <span style="color: #483d8b;">:exp</span> nil)))
             (<span style="color: #a020f0;">block</span> descr-extract
               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-desc-wrapper"</span>) (<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"description"</span>)) ,@descr)
-                     (<span style="color: #a020f0;">return-from</span> descr-extract (list <span style="color: #483d8b;">:descr</span> <span style="color: #b22222;">#|(transform-description|#</span> descr <span style="color: #b22222;">#|)|#</span>))) tree)))))
+                     (<span style="color: #a020f0;">return-from</span> descr-extract (list <span style="color: #483d8b;">:descr</span> (transform-description descr)))) tree)))))
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
 <span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))</span>
 
-(print
- (hh-parse-vacancy (hh-get-page <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/12581768"</span>)))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-12" class="outline-3">
-<h3 id="sec-2-12"><span class="section-number-3">2.12</span> <span class="todo TODO">TODO</span> Незавершенное</h3>
-<div class="outline-text-3" id="text-2-12">
+<div id="outline-container-sec-3-12" class="outline-3">
+<h3 id="sec-3-12"><span class="section-number-3">3.12</span> Сохранение вакансии и ее структура данных</h3>
+<div class="outline-text-3" id="text-3-12">
 <p>
-Здесь стоит остановиться и спросить себя - все ли понятно. Если что-то непонятно, следует
-открыть файл, например, в емаксте, т.к. в гитхабе про отображении файла не видно имен
-блоков кода.
+Опишем структуру данных вакансии:
 </p>
-</div>
 
-<div id="outline-container-sec-2-12-1" class="outline-4">
-<h4 id="sec-2-12-1"><span class="section-number-4">2.12.1</span> Сохранение данных</h4>
-<div class="outline-text-4" id="text-2-12-1">
+<table id="vacancy_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 1:</span> Данные вакансии</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">src-id</td>
+<td class="left">integer</td>
+<td class="left">идентификатор вакансии в источнике</td>
+</tr>
+
+<tr>
+<td class="left">archive</td>
+<td class="left">boolean</td>
+<td class="left">призак, что вакансия в архиве</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">название вакансии</td>
+</tr>
+
+<tr>
+<td class="left">currency</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">валюта зарплаты</td>
+</tr>
+
+<tr>
+<td class="left">base-salary</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">размер компенсации в тизере</td>
+</tr>
+
+<tr>
+<td class="left">salary</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">размер компенсации</td>
+</tr>
+
+<tr>
+<td class="left">salary-text</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">размер компенсации</td>
+</tr>
+
+<tr>
+<td class="left">emp-id</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">идентификатор работодателя на удаленном ресурсе</td>
+</tr>
+
+<tr>
+<td class="left">emp-name</td>
+<td class="left">varchar</td>
+<td class="left">имя работодателя на удаленном ресурсе</td>
+</tr>
+
+<tr>
+<td class="left">city</td>
+<td class="left">varchar</td>
+<td class="left">город</td>
+</tr>
+
+<tr>
+<td class="left">metro</td>
+<td class="left">varchar</td>
+<td class="left">метро</td>
+</tr>
+
+<tr>
+<td class="left">experience</td>
+<td class="left">varchar</td>
+<td class="left">требуемый опыт работы</td>
+</tr>
+
+<tr>
+<td class="left">date</td>
+<td class="left">varchar</td>
+<td class="left">дата опубликования в источнике</td>
+</tr>
+
+<tr>
+<td class="left">descr</td>
+<td class="left">varchar</td>
+<td class="left">описание вакансии</td>
+</tr>
+</tbody>
+</table>
+
 <p>
-Как только у нас это есть - код становится простым
+Напишем процедуру сохранения вакансии в базу данных
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="hh_parse"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(in-package #:moto)</span>
+<pre class="src src-lisp" id="save_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defparameter *programmin-and-development-profile*</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(make-profile :name "&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077; &#1080; &#1088;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:user-id 1</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:search-query "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=~A"</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:ts-create (get-universal-time)</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">:ts-last (get-universal-time)))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defun run-collect (profile)</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(let* ((search-str   (search-query profile))</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(all-teasers  nil))</span>
-<span style="color: #b22222;">;;     </span><span style="color: #b22222;">(block get-all-hh-teasers</span>
-<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(loop :for num :from 0 :to 100 :do</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(print num)</span>
-<span style="color: #b22222;">;;          </span><span style="color: #b22222;">(let* ((url (format nil search-str num))</span>
-<span style="color: #b22222;">;;                 </span><span style="color: #b22222;">(teasers (hh-parse-vacancy-teasers (hh-get-page url))))</span>
-<span style="color: #b22222;">;;            </span><span style="color: #b22222;">(if (equal 0 (length teasers))</span>
-<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(return-from get-all-hh-teasers)</span>
-<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(setf all-teasers (append all-teasers teasers)))))</span>
-<span style="color: #b22222;">;;       </span><span style="color: #b22222;">(print "over-100"))</span>
-<span style="color: #b22222;">;;     </span><span style="color: #b22222;">all-teasers))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (print</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;;  (hh-parse-vacancy-teasers (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=28")))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defparameter *teasers* (run-collect *programmin-and-development-profile*))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (length *teasers*)</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(defun save-collect (all-teasers)</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(loop :for tea :in all-teasers :do</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(print tea)</span>
-<span style="color: #b22222;">;;      </span><span style="color: #b22222;">(make-vacancy :profile-id (id *programmin-and-development-profile*)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:name (getf tea :vac-name)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-id (parse-integer</span>
-<span style="color: #b22222;">;;                             </span><span style="color: #b22222;">(car (last (split-sequence:split-sequence</span>
-<span style="color: #b22222;">;;                                         </span><span style="color: #b22222;">#\/ (getf tea :vac-id)))))</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-date (getf tea :vacancy-date)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-employer-name (getf tea :employer-name)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:rem-employer-id (aif (getf tea :employer-id)</span>
-<span style="color: #b22222;">;;                                          </span><span style="color: #b22222;">(parse-integer</span>
-<span style="color: #b22222;">;;                                           </span><span style="color: #b22222;">(car (last (split-sequence:split-sequence</span>
-<span style="color: #b22222;">;;                                                       </span><span style="color: #b22222;">#\/ it))))</span>
-<span style="color: #b22222;">;;                                          </span><span style="color: #b22222;">0)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:currency (getf tea :currency)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:salary (aif (getf tea :salary)</span>
-<span style="color: #b22222;">;;                                 </span><span style="color: #b22222;">it</span>
-<span style="color: #b22222;">;;                                 </span><span style="color: #b22222;">0)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:salary-text (getf tea :salary-text)</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">:state ":TEASER"</span>
-<span style="color: #b22222;">;;                    </span><span style="color: #b22222;">)))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(save-collect *teasers*)</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (length (all-vacancy))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (print</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;;  (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (rem-id (get-vacancy 1))))))</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">;; (car *teasers*)</span>
-</pre>
-</div>
-
-<p>
-Теперь мы сохранили тизеры. Когда в интерфейсе мы определим, какие вакансии нас
-интересуют больше чем остальные их можно будет получить по статусу:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="hh_parse_deep">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(find-vacancy :profile-id 1)</span>
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(all-vacancy)</span>
+(<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">save-vacancy</span> (vacancy)
+  (make-vacancy
+   <span style="color: #483d8b;">:src-id</span> (getf vacancy <span style="color: #483d8b;">:id</span>)
+   <span style="color: #483d8b;">:name</span> (getf vacancy <span style="color: #483d8b;">:name</span>)
+   <span style="color: #483d8b;">:currency</span> (getf vacancy <span style="color: #483d8b;">:currency</span>)
+   <span style="color: #483d8b;">:salary</span> (aif (getf vacancy <span style="color: #483d8b;">:salary</span>) it 0)
+   <span style="color: #483d8b;">:base-salary</span> (aif (getf vacancy <span style="color: #483d8b;">:base-salary</span>) it 0)
+   <span style="color: #483d8b;">:salary-text</span> (getf vacancy <span style="color: #483d8b;">:salary-text</span>)
+   <span style="color: #483d8b;">:emp-id</span> (getf vacancy <span style="color: #483d8b;">:emp-id</span>)
+   <span style="color: #483d8b;">:emp-name</span> (getf vacancy <span style="color: #483d8b;">:emp-name</span>)
+   <span style="color: #483d8b;">:city</span> (getf vacancy <span style="color: #483d8b;">:city</span>)
+   <span style="color: #483d8b;">:metro</span> (getf vacancy <span style="color: #483d8b;">:metro</span>)
+   <span style="color: #483d8b;">:experience</span> (getf vacancy <span style="color: #483d8b;">:exp</span>)
+   <span style="color: #483d8b;">:archive</span> (getf vacancy <span style="color: #483d8b;">:archive</span>)
+   <span style="color: #483d8b;">:date</span> (getf vacancy <span style="color: #483d8b;">:date</span>)
+   <span style="color: #483d8b;">:descr</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>)))
+  )
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-2-12-2" class="outline-4">
-<h4 id="sec-2-12-2"><span class="section-number-4">2.12.2</span> Состояния вакансии</h4>
-</div>
-<div id="outline-container-sec-2-12-3" class="outline-4">
-<h4 id="sec-2-12-3"><span class="section-number-4">2.12.3</span> Еще кое-что</h4>
-<div class="outline-text-4" id="text-2-12-3">
+<div id="outline-container-sec-3-13" class="outline-3">
+<h3 id="sec-3-13"><span class="section-number-3">3.13</span> <span class="todo TODO">TODO</span> СТОП!!!</h3>
+<div class="outline-text-3" id="text-3-13">
 <p>
 После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
 интерфейсная часть.
@@ -1390,11 +1614,10 @@ for the JavaScript code in this tag.
 Построение новых правил на основе известных
 </p>
 </div>
-</div>
 
-<div id="outline-container-sec-2-12-4" class="outline-4">
-<h4 id="sec-2-12-4"><span class="section-number-4">2.12.4</span> Для красоты</h4>
-<div class="outline-text-4" id="text-2-12-4">
+<div id="outline-container-sec-3-13-1" class="outline-4">
+<h4 id="sec-3-13-1"><span class="section-number-4">3.13.1</span> Для красоты</h4>
+<div class="outline-text-4" id="text-3-13-1">
 <p>
 Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
 красивую подсветку. Также нужны имена кусков.
@@ -1402,17 +1625,17 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
-<div id="outline-container-sec-2-13" class="outline-3">
-<h3 id="sec-2-13"><span class="section-number-3">2.13</span> Неактуальное</h3>
-<div class="outline-text-3" id="text-2-13">
+<div id="outline-container-sec-3-14" class="outline-3">
+<h3 id="sec-3-14"><span class="section-number-3">3.14</span> Неактуальное</h3>
+<div class="outline-text-3" id="text-3-14">
 <p>
 Эти два раздела заменены на более функциональные
 </p>
 </div>
 
-<div id="outline-container-sec-2-13-1" class="outline-4">
-<h4 id="sec-2-13-1"><span class="section-number-4">2.13.1</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
-<div class="outline-text-4" id="text-2-13-1">
+<div id="outline-container-sec-3-14-1" class="outline-4">
+<h4 id="sec-3-14-1"><span class="section-number-4">3.14.1</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
+<div class="outline-text-4" id="text-3-14-1">
 <p>
 Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
 разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -1743,9 +1966,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-2-13-2" class="outline-4">
-<h4 id="sec-2-13-2"><span class="section-number-4">2.13.2</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
-<div class="outline-text-4" id="text-2-13-2">
+<div id="outline-container-sec-3-14-2" class="outline-4">
+<h4 id="sec-3-14-2"><span class="section-number-4">3.14.2</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
+<div class="outline-text-4" id="text-3-14-2">
 <p>
 Разбирая вакансию мы должны извлечь несколько блоков:
 </p>
@@ -1894,9 +2117,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-3" class="outline-2">
-<h2 id="sec-3"><span class="section-number-2">3</span> Хотелки</h2>
-<div class="outline-text-2" id="text-3">
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Хотелки</h2>
+<div class="outline-text-2" id="text-4">
 <p>
 Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
 функционала, особенно нестандартного. Работая с сайтом в автоматическом режиме мы можем
@@ -1975,9 +2198,9 @@ collect
 </p>
 </div>
 
-<div id="outline-container-sec-3-1" class="outline-3">
-<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Процесс найма с т.з. соискателя</h3>
-<div class="outline-text-3" id="text-3-1">
+<div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Процесс найма с т.з. соискателя</h3>
+<div class="outline-text-3" id="text-4-1">
 <p>
 С точки зрения соискателя процесс найма выглядит так:
 </p>
@@ -2037,9 +2260,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-3-2" class="outline-3">
-<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Процесс найма с т.з. HR-а</h3>
-<div class="outline-text-3" id="text-3-2">
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Процесс найма с т.з. HR-а</h3>
+<div class="outline-text-3" id="text-4-2">
 <p>
 Когда HR-специалист ищет вакансии, он пользуется несколькими путями:
 </p>
@@ -2166,9 +2389,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-3-3" class="outline-3">
-<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Состояния вакансий</h3>
-<div class="outline-text-3" id="text-3-3">
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Состояния вакансий</h3>
+<div class="outline-text-3" id="text-4-3">
 <p>
 После того, как тизер вакансии будет загружен системой, вакансия получает статус <code>new</code> и
 помечается в интерфейсе специальным значком, чтобы обратить на себя внимание
@@ -2264,7 +2487,7 @@ HR-специалист заинтересован в том, чтобы име�
 </p>
 
 <table id="vacancy_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 1:</span> Состояния конечного автомата вакансии</caption>
+<caption class="t-above"><span class="table-number">Table 2:</span> Состояния конечного автомата вакансии</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2499,15 +2722,15 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4" class="outline-2">
-<h2 id="sec-4"><span class="section-number-2">4</span> Сценарии использования</h2>
-<div class="outline-text-2" id="text-4">
-</div><div id="outline-container-sec-4-1" class="outline-3">
-<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Пользовательские</h3>
-<div class="outline-text-3" id="text-4-1">
-</div><div id="outline-container-sec-4-1-1" class="outline-4">
-<h4 id="sec-4-1-1"><span class="section-number-4">4.1.1</span> Авторизация/регистрация</h4>
-<div class="outline-text-4" id="text-4-1-1">
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Сценарии использования</h2>
+<div class="outline-text-2" id="text-5">
+</div><div id="outline-container-sec-5-1" class="outline-3">
+<h3 id="sec-5-1"><span class="section-number-3">5.1</span> Пользовательские</h3>
+<div class="outline-text-3" id="text-5-1">
+</div><div id="outline-container-sec-5-1-1" class="outline-4">
+<h4 id="sec-5-1-1"><span class="section-number-4">5.1.1</span> Авторизация/регистрация</h4>
+<div class="outline-text-4" id="text-5-1-1">
 <p>
 Пользователь регистрируется и авторизуется для получения доступа к своем аккаунту. За
 это отвечает модуль auth.
@@ -2515,9 +2738,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-2" class="outline-4">
-<h4 id="sec-4-1-2"><span class="section-number-4">4.1.2</span> Формализация предпочтений</h4>
-<div class="outline-text-4" id="text-4-1-2">
+<div id="outline-container-sec-5-1-2" class="outline-4">
+<h4 id="sec-5-1-2"><span class="section-number-4">5.1.2</span> Формализация предпочтений</h4>
+<div class="outline-text-4" id="text-5-1-2">
 <p>
 Пользователь формулирует свои предпочтения относительно вакансий (и фирм их размещающих)
 в виде некоторых формализованных утверждений.
@@ -2525,9 +2748,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-3" class="outline-4">
-<h4 id="sec-4-1-3"><span class="section-number-4">4.1.3</span> Отбор и сортировка вакансий</h4>
-<div class="outline-text-4" id="text-4-1-3">
+<div id="outline-container-sec-5-1-3" class="outline-4">
+<h4 id="sec-5-1-3"><span class="section-number-4">5.1.3</span> Отбор и сортировка вакансий</h4>
+<div class="outline-text-4" id="text-5-1-3">
 <p>
 Пользователь отбирает интересные и неинтересные ему вакансии вручную и автоматически -
 путем применения к ним скриптов
@@ -2535,9 +2758,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-4" class="outline-4">
-<h4 id="sec-4-1-4"><span class="section-number-4">4.1.4</span> Внесение заметок к вакансиям</h4>
-<div class="outline-text-4" id="text-4-1-4">
+<div id="outline-container-sec-5-1-4" class="outline-4">
+<h4 id="sec-5-1-4"><span class="section-number-4">5.1.4</span> Внесение заметок к вакансиям</h4>
+<div class="outline-text-4" id="text-5-1-4">
 <p>
 Пользователь вносит свои соображения и заметки связанные с вакансией, или
 фирмой-работодателем
@@ -2545,18 +2768,18 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-5" class="outline-4">
-<h4 id="sec-4-1-5"><span class="section-number-4">4.1.5</span> Заполнение резюме</h4>
-<div class="outline-text-4" id="text-4-1-5">
+<div id="outline-container-sec-5-1-5" class="outline-4">
+<h4 id="sec-5-1-5"><span class="section-number-4">5.1.5</span> Заполнение резюме</h4>
+<div class="outline-text-4" id="text-5-1-5">
 <p>
 Пользователь заполняет резюме
 </p>
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-6" class="outline-4">
-<h4 id="sec-4-1-6"><span class="section-number-4">4.1.6</span> Написание сопроводительных писем</h4>
-<div class="outline-text-4" id="text-4-1-6">
+<div id="outline-container-sec-5-1-6" class="outline-4">
+<h4 id="sec-5-1-6"><span class="section-number-4">5.1.6</span> Написание сопроводительных писем</h4>
+<div class="outline-text-4" id="text-5-1-6">
 <p>
 Пользователь пишет шаблоны сопроводительных писем, которые будут отправлены вместе с
 отзывом на вакансию
@@ -2564,14 +2787,12 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-7" class="outline-4">
-<h4 id="sec-4-1-7"><span class="section-number-4">4.1.7</span> Отправка отзывов</h4>
-<div class="outline-text-4" id="text-4-1-7">
+<div id="outline-container-sec-5-1-7" class="outline-4">
+<h4 id="sec-5-1-7"><span class="section-number-4">5.1.7</span> Отправка отзывов</h4>
+<div class="outline-text-4" id="text-5-1-7">
 <p>
 Пользователь отправляет отзыв на вакансию.
 </p>
-
-
 
 <p>
 Основные этапы:
@@ -2609,7 +2830,7 @@ HR-специалист заинтересован в том, чтобы име�
 
 <p>
 Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
-запрос и (в будущем) источники данных. Поля профиля описаны в секции <a href="#sec-4-2">4.2</a>.
+запрос и (в будущем) источники данных. Поля профиля описаны в секции <a href="#sec-5-2">5.2</a>.
 </p>
 
 <p>
@@ -2634,9 +2855,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-2" class="outline-3">
-<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Поисковые профили</h3>
-<div class="outline-text-3" id="text-4-2">
+<div id="outline-container-sec-5-2" class="outline-3">
+<h3 id="sec-5-2"><span class="section-number-3">5.2</span> Поисковые профили</h3>
+<div class="outline-text-3" id="text-5-2">
 <p>
 Разумеется, лучше собирать не все подряд, а только то что необходимо соискателю. Когда
 соискатель пользуется профильным сайтом он использует поисковые запросы, на основании
@@ -2665,9 +2886,9 @@ HR-специалист заинтересован в том, чтобы име�
 </p>
 </div>
 
-<div id="outline-container-sec-4-2-1" class="outline-4">
-<h4 id="sec-4-2-1"><span class="section-number-4">4.2.1</span> Список поисковых профилей</h4>
-<div class="outline-text-4" id="text-4-2-1">
+<div id="outline-container-sec-5-2-1" class="outline-4">
+<h4 id="sec-5-2-1"><span class="section-number-4">5.2.1</span> Список поисковых профилей</h4>
+<div class="outline-text-4" id="text-5-2-1">
 <p>
 Чтобы управлять поисковыми профилями нам понадобится страничка на которой их можно
 создать, удалить и просмотреть.
@@ -2708,9 +2929,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-2-2" class="outline-4">
-<h4 id="sec-4-2-2"><span class="section-number-4">4.2.2</span> Страничка поискового профиля</h4>
-<div class="outline-text-4" id="text-4-2-2">
+<div id="outline-container-sec-5-2-2" class="outline-4">
+<h4 id="sec-5-2-2"><span class="section-number-4">5.2.2</span> Страничка поискового профиля</h4>
+<div class="outline-text-4" id="text-5-2-2">
 <p>
 На страничке поискового профиля мы выводим все собранные по этому поисковому профилю
 вакансии. Будем считать что нас не особо интересуют вакансии без указания зарплаты,
@@ -2844,9 +3065,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-3" class="outline-3">
-<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Поиск вакансий</h3>
-<div class="outline-text-3" id="text-4-3">
+<div id="outline-container-sec-5-3" class="outline-3">
+<h3 id="sec-5-3"><span class="section-number-3">5.3</span> Поиск вакансий</h3>
+<div class="outline-text-3" id="text-5-3">
 <p>
 Внутри вакансий необходимо искать по критериям, которые я уточню позже
 </p>
@@ -2873,18 +3094,18 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-4" class="outline-3">
-<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Ручной отбор вакансий</h3>
+<div id="outline-container-sec-5-4" class="outline-3">
+<h3 id="sec-5-4"><span class="section-number-3">5.4</span> Ручной отбор вакансий</h3>
 </div>
-<div id="outline-container-sec-4-5" class="outline-3">
-<h3 id="sec-4-5"><span class="section-number-3">4.5</span> Автоматический отбор вакансий</h3>
+<div id="outline-container-sec-5-5" class="outline-3">
+<h3 id="sec-5-5"><span class="section-number-3">5.5</span> Автоматический отбор вакансий</h3>
 </div>
-<div id="outline-container-sec-4-6" class="outline-3">
-<h3 id="sec-4-6"><span class="section-number-3">4.6</span> Внесение заметок по вакансии</h3>
+<div id="outline-container-sec-5-6" class="outline-3">
+<h3 id="sec-5-6"><span class="section-number-3">5.6</span> Внесение заметок по вакансии</h3>
 </div>
-<div id="outline-container-sec-4-7" class="outline-3">
-<h3 id="sec-4-7"><span class="section-number-3">4.7</span> Просмотр и отбор вакансий, заметки и выставление статусов</h3>
-<div class="outline-text-3" id="text-4-7">
+<div id="outline-container-sec-5-7" class="outline-3">
+<h3 id="sec-5-7"><span class="section-number-3">5.7</span> Просмотр и отбор вакансий, заметки и выставление статусов</h3>
+<div class="outline-text-3" id="text-5-7">
 <p>
 Когда я читаю вакансию, я бы хотел, чтобы она переходила в статус "просмотрено" (и к ней
 добавлялась дата просмотра)
@@ -2909,9 +3130,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-8" class="outline-3">
-<h3 id="sec-4-8"><span class="section-number-3">4.8</span> Дашборд</h3>
-<div class="outline-text-3" id="text-4-8">
+<div id="outline-container-sec-5-8" class="outline-3">
+<h3 id="sec-5-8"><span class="section-number-3">5.8</span> Дашборд</h3>
+<div class="outline-text-3" id="text-5-8">
 <p>
 Если у нас есть формализованный алгоритм (а он есть, так как найм - это линейный
 процесс), то я хочу получать напоминания о моем следующем шаге в отношении тех вакансий,
@@ -2924,9 +3145,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-9" class="outline-3">
-<h3 id="sec-4-9"><span class="section-number-3">4.9</span> Отзывы соискателей о компаниях и вакансиях</h3>
-<div class="outline-text-3" id="text-4-9">
+<div id="outline-container-sec-5-9" class="outline-3">
+<h3 id="sec-5-9"><span class="section-number-3">5.9</span> Отзывы соискателей о компаниях и вакансиях</h3>
+<div class="outline-text-3" id="text-5-9">
 <p>
 Можно сэкономить кучу времени и денег просто не нанимаясь в те компании, в которых "все
 плохо". В этом плане соискатели могут помоч друг другу. Возможно и компании тоже будут
@@ -2935,9 +3156,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-10" class="outline-3">
-<h3 id="sec-4-10"><span class="section-number-3">4.10</span> Размещение резюме</h3>
-<div class="outline-text-3" id="text-4-10">
+<div id="outline-container-sec-5-10" class="outline-3">
+<h3 id="sec-5-10"><span class="section-number-3">5.10</span> Размещение резюме</h3>
+<div class="outline-text-3" id="text-5-10">
 <p>
 Пользователь просто размещает свое резюме. На самом деле - несколько резюме, так как
 наиболее продвинутые пользователи пишут резюме под вакансию, а не рассылают одно и то же
@@ -2946,9 +3167,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-11" class="outline-3">
-<h3 id="sec-4-11"><span class="section-number-3">4.11</span> Маршрут</h3>
-<div class="outline-text-3" id="text-4-11">
+<div id="outline-container-sec-5-11" class="outline-3">
+<h3 id="sec-5-11"><span class="section-number-3">5.11</span> Маршрут</h3>
+<div class="outline-text-3" id="text-5-11">
 <p>
 Иногда я хочу спланировать маршрут поездки по собеседованиям. Это сервис с картами,
 которые можно сделать позже.
@@ -2956,12 +3177,12 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-4-12" class="outline-3">
-<h3 id="sec-4-12"><span class="section-number-3">4.12</span> Создание вакансии работодателем</h3>
+<div id="outline-container-sec-5-12" class="outline-3">
+<h3 id="sec-5-12"><span class="section-number-3">5.12</span> Создание вакансии работодателем</h3>
 </div>
-<div id="outline-container-sec-4-13" class="outline-3">
-<h3 id="sec-4-13"><span class="section-number-3">4.13</span> Вакансия становится неактуальной</h3>
-<div class="outline-text-3" id="text-4-13">
+<div id="outline-container-sec-5-13" class="outline-3">
+<h3 id="sec-5-13"><span class="section-number-3">5.13</span> Вакансия становится неактуальной</h3>
+<div class="outline-text-3" id="text-5-13">
 <p>
 Вакансия может стать неактуальной если работодатель снимет ее, но работодатели могут
 забывать это сделать, поэтому можно предусмотреть тайм-аут или даже некоторое кол-во
@@ -2971,14 +3192,14 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5" class="outline-2">
-<h2 id="sec-5"><span class="section-number-2">5</span> Сущности</h2>
-<div class="outline-text-2" id="text-5">
-</div><div id="outline-container-sec-5-1" class="outline-3">
-<h3 id="sec-5-1"><span class="section-number-3">5.1</span> Поисковые профили</h3>
-<div class="outline-text-3" id="text-5-1">
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Сущности</h2>
+<div class="outline-text-2" id="text-6">
+</div><div id="outline-container-sec-6-1" class="outline-3">
+<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Поисковые профили</h3>
+<div class="outline-text-3" id="text-6-1">
 <table id="profile_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 2:</span> Данные поискового профиля</caption>
+<caption class="t-above"><span class="table-number">Table 3:</span> Данные поискового профиля</caption>
 
 <colgroup>
 <col  class="left" />
@@ -3035,153 +3256,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-2" class="outline-3">
-<h3 id="sec-5-2"><span class="section-number-3">5.2</span> Вакансии</h3>
-<div class="outline-text-3" id="text-5-2">
-<table id="vacancy_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 3:</span> Данные вакансии</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">field name</th>
-<th scope="col" class="left">field type</th>
-<th scope="col" class="left">note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">id</td>
-<td class="left">serial</td>
-<td class="left">идентификатор</td>
-</tr>
-
-<tr>
-<td class="left">profile-id</td>
-<td class="left">integer</td>
-<td class="left">идентификатор поискового профиля</td>
-</tr>
-
-<tr>
-<td class="left">name</td>
-<td class="left">varchar</td>
-<td class="left">название вакансии</td>
-</tr>
-
-<tr>
-<td class="left">rem-id</td>
-<td class="left">integer</td>
-<td class="left">идентификатор вакансии на удаленном ресурсе</td>
-</tr>
-
-<tr>
-<td class="left">rem-date</td>
-<td class="left">varchar</td>
-<td class="left">дата создания вакансии на удаленном ресурсе</td>
-</tr>
-
-<tr>
-<td class="left">rem-employer-name</td>
-<td class="left">varchar</td>
-<td class="left">имя работодателя на удаленном ресурсе</td>
-</tr>
-
-<tr>
-<td class="left">rem-employer-id</td>
-<td class="left">(or db-null integer)</td>
-<td class="left">идентификатор работодателя на удаленном ресурсе</td>
-</tr>
-
-<tr>
-<td class="left">currency</td>
-<td class="left">(or db-null varchar)</td>
-<td class="left">валюта зарплаты</td>
-</tr>
-
-<tr>
-<td class="left">salary</td>
-<td class="left">(or db-null integer)</td>
-<td class="left">размер компенсации</td>
-</tr>
-
-<tr>
-<td class="left">salary-text</td>
-<td class="left">(or db-null varchar)</td>
-<td class="left">размер компенсации</td>
-</tr>
-
-<tr>
-<td class="left">contact</td>
-<td class="left">(or db-null varchar)</td>
-<td class="left">телефон контактного лица</td>
-</tr>
-
-<tr>
-<td class="left">text</td>
-<td class="left">(or db-null varchar)</td>
-<td class="left">описание вакансии</td>
-</tr>
-
-<tr>
-<td class="left">history</td>
-<td class="left">(or db-null varchar)</td>
-<td class="left">список изменения статусов со временем каждого изменения</td>
-</tr>
-
-<tr>
-<td class="left">reason</td>
-<td class="left">(or db-null varchar)</td>
-<td class="left">добавляем причину действия (позже ссылка на другую таблицу)</td>
-</tr>
-
-<tr>
-<td class="left">ts-created</td>
-<td class="left">(or db-null bigint)</td>
-<td class="left">время создания вакансии</td>
-</tr>
-
-<tr>
-<td class="left">ts-viewed</td>
-<td class="left">(or db-null bigint)</td>
-<td class="left">время когда вакансия была просмотрена</td>
-</tr>
-</tbody>
-</table>
-
-
-<p>
-Вакансии могут появляться у нас следующими путями:
-</p>
-<ul class="org-ul">
-<li>Работодатель может создать вакансию
-</li>
-<li>Мы можем получить вакансию анализируя другой сайт
-</li>
-</ul>
-
-<p>
-В случае, если мы получаем вакансию анализируя другой сайт, мы получаем ее в 2 этапа. На
-первом этапе мы разобрали т.н. "тизер вакансии" и занесли ее в базу данных в состоянии
-<code>teaser</code>, чтобы потом получить все остальные данные. На втором этапе мы получаем данные
-со страницы вакансии и устанавливаем состояние <code>new</code>.
-</p>
-
-<p>
-Если пользователю не нравится тизер и он решает скрыть вакансию - она сразу из состояния
-<code>teaser</code> попадает в состояние <code>not_interested</code>.
-</p>
-
-<p>
-Если же пользователю наоборот, нравится вакансия, она из состояния <code>teaser</code> попадает в
-состояние <code>interested</code>.
-</p>
-
+<div id="outline-container-sec-6-2" class="outline-3">
+<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Вакансии</h3>
+<div class="outline-text-3" id="text-6-2">
 <p>
 Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
 реагировать, устанавливая статус <code>archive</code>
@@ -3189,9 +3266,9 @@ HR-специалист заинтересован в том, чтобы име�
 
 <p>
 TODO: Конечный автомат тут сложен и будет еще уточняться&#x2026; Пока состояния такие:
- <code>просмотрено</code> (с датой), <code>отобрано</code>, <code>не-берут-трубку</code>, <code>не-актуально</code>,
- <code>приглашен-на-интервью</code>, <code>тестовое-задание</code>, <code>получен-оффер</code>, <code>отказано-работодателем</code>,
- <code>отказ-соискателя</code>, <code>вакансия-снята</code> итп.
+<code>просмотрено</code> (с датой), <code>отобрано</code>, <code>не-берут-трубку</code>, <code>не-актуально</code>,
+<code>приглашен-на-интервью</code>, <code>тестовое-задание</code>, <code>получен-оффер</code>, <code>отказано-работодателем</code>,
+<code>отказ-соискателя</code>, <code>вакансия-снята</code> итп.
 </p>
 
 <p>
@@ -3201,9 +3278,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-5-3" class="outline-3">
-<h3 id="sec-5-3"><span class="section-number-3">5.3</span> Перекрестные связи с другими вакансиями</h3>
-<div class="outline-text-3" id="text-5-3">
+<div id="outline-container-sec-6-3" class="outline-3">
+<h3 id="sec-6-3"><span class="section-number-3">6.3</span> Перекрестные связи с другими вакансиями</h3>
+<div class="outline-text-3" id="text-6-3">
 <p>
 В ряде случаев компании меняют свои вакансии, некоторые делают это методом удаления
 предыдущей и создания новой. Мне как соискателю хотелось бы не обнаруживать уже
@@ -3224,9 +3301,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-5-4" class="outline-3">
-<h3 id="sec-5-4"><span class="section-number-3">5.4</span> Компании</h3>
-<div class="outline-text-3" id="text-5-4">
+<div id="outline-container-sec-6-4" class="outline-3">
+<h3 id="sec-6-4"><span class="section-number-3">6.4</span> Компании</h3>
+<div class="outline-text-3" id="text-6-4">
 <p>
 Несколько вакансий могут быть от одной компании. В этом случае мне бы хотелось
 отслеживать это в профиле компании, кроме того интересна аналитика по этой компании за
@@ -3240,18 +3317,18 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-5-5" class="outline-3">
-<h3 id="sec-5-5"><span class="section-number-3">5.5</span> Действия по вакансии: звонки, скайп-интервью, собеседования</h3>
-<div class="outline-text-3" id="text-5-5">
+<div id="outline-container-sec-6-5" class="outline-3">
+<h3 id="sec-6-5"><span class="section-number-3">6.5</span> Действия по вакансии: звонки, скайп-интервью, собеседования</h3>
+<div class="outline-text-3" id="text-6-5">
 <p>
 В эту таблицу заносим что сделано по каждой вакансии, которая находится в разработке
 </p>
 </div>
 </div>
 
-<div id="outline-container-sec-5-6" class="outline-3">
-<h3 id="sec-5-6"><span class="section-number-3">5.6</span> Теги вакансий</h3>
-<div class="outline-text-3" id="text-5-6">
+<div id="outline-container-sec-6-6" class="outline-3">
+<h3 id="sec-6-6"><span class="section-number-3">6.6</span> Теги вакансий</h3>
+<div class="outline-text-3" id="text-6-6">
 <p>
 Помогают ориентироваться, когда вакансий много.
 </p>
@@ -3259,9 +3336,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-6" class="outline-2">
-<h2 id="sec-6"><span class="section-number-2">6</span> Interface</h2>
-<div class="outline-text-2" id="text-6">
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Interface</h2>
+<div class="outline-text-2" id="text-7">
 <p>
 Соберем веб-интерфейс:
 </p>
@@ -3278,9 +3355,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-6-1" class="outline-3">
-<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Главная страница модуля</h3>
-<div class="outline-text-3" id="text-6-1">
+<div id="outline-container-sec-7-1" class="outline-3">
+<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Главная страница модуля</h3>
+<div class="outline-text-3" id="text-7-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3294,9 +3371,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-6-2" class="outline-3">
-<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Галлерея (parenscript)</h3>
-<div class="outline-text-3" id="text-6-2">
+<div id="outline-container-sec-7-2" class="outline-3">
+<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Галлерея (parenscript)</h3>
+<div class="outline-text-3" id="text-7-2">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*slideshows*</span> (make-hash-table <span style="color: #483d8b;">:test</span> 'equalp))
@@ -3384,9 +3461,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-6-3" class="outline-3">
-<h3 id="sec-6-3"><span class="section-number-3">6.3</span> Список вакансий</h3>
-<div class="outline-text-3" id="text-6-3">
+<div id="outline-container-sec-7-3" class="outline-3">
+<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Список вакансий</h3>
+<div class="outline-text-3" id="text-7-3">
 <p>
 Мне бы хотелось иметь интерфейс для того чтобы управлять собранными элементами - в первую
 очередь ранжировать их по интересности. Для этого, мне нужно уметь перемещать эти
@@ -3593,13 +3670,13 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-6-4" class="outline-3">
-<h3 id="sec-6-4"><span class="section-number-3">6.4</span> Дашборд</h3>
+<div id="outline-container-sec-7-4" class="outline-3">
+<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Дашборд</h3>
 </div>
 </div>
-<div id="outline-container-sec-7" class="outline-2">
-<h2 id="sec-7"><span class="section-number-2">7</span> Тесты</h2>
-<div class="outline-text-2" id="text-7">
+<div id="outline-container-sec-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Тесты</h2>
+<div class="outline-text-2" id="text-8">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="hh_test"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; hh</span>
@@ -3616,9 +3693,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 </div>
-<div id="outline-container-sec-8" class="outline-2">
-<h2 id="sec-8"><span class="section-number-2">8</span> Точки входа</h2>
-<div class="outline-text-2" id="text-8">
+<div id="outline-container-sec-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> Точки входа</h2>
+<div class="outline-text-2" id="text-9">
 <p>
 Соберем шаблоны:
 </p>
@@ -3671,12 +3748,12 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9" class="outline-2">
-<h2 id="sec-9"><span class="section-number-2">9</span> Сборка</h2>
-<div class="outline-text-2" id="text-9">
-</div><div id="outline-container-sec-9-1" class="outline-3">
-<h3 id="sec-9-1"><span class="section-number-3">9.1</span> Фунциональные утилиты</h3>
-<div class="outline-text-3" id="text-9-1">
+<div id="outline-container-sec-10" class="outline-2">
+<h2 id="sec-10"><span class="section-number-2">10</span> Сборка</h2>
+<div class="outline-text-2" id="text-10">
+</div><div id="outline-container-sec-10-1" class="outline-3">
+<h3 id="sec-10-1"><span class="section-number-3">10.1</span> Фунциональные утилиты</h3>
+<div class="outline-text-3" id="text-10-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3686,9 +3763,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-1" class="outline-4">
-<h4 id="sec-9-1-1"><span class="section-number-4">9.1.1</span> Point-free определения:</h4>
-<div class="outline-text-4" id="text-9-1-1">
+<div id="outline-container-sec-10-1-1" class="outline-4">
+<h4 id="sec-10-1-1"><span class="section-number-4">10.1.1</span> Point-free определения:</h4>
+<div class="outline-text-4" id="text-10-1-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3787,12 +3864,12 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-2" class="outline-4">
-<h4 id="sec-9-1-2"><span class="section-number-4">9.1.2</span> Flip, карринг, композиции:</h4>
-<div class="outline-text-4" id="text-9-1-2">
+<div id="outline-container-sec-10-1-2" class="outline-4">
+<h4 id="sec-10-1-2"><span class="section-number-4">10.1.2</span> Flip, карринг, композиции:</h4>
+<div class="outline-text-4" id="text-10-1-2">
 <p>
 далее f, g, &#x2026; обозначают функции,
-      a, b, &#x2026; - их аргументы.
+a, b, &#x2026; - их аргументы.
 </p>
 
 <div class="org-src-container">
@@ -3809,9 +3886,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-3" class="outline-4">
-<h4 id="sec-9-1-3"><span class="section-number-4">9.1.3</span> Свёртки и "развёртки":</h4>
-<div class="outline-text-4" id="text-9-1-3">
+<div id="outline-container-sec-10-1-3" class="outline-4">
+<h4 id="sec-10-1-3"><span class="section-number-4">10.1.3</span> Свёртки и "развёртки":</h4>
+<div class="outline-text-4" id="text-10-1-3">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3838,9 +3915,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-4" class="outline-4">
-<h4 id="sec-9-1-4"><span class="section-number-4">9.1.4</span> Отображения и фильтрации:</h4>
-<div class="outline-text-4" id="text-9-1-4">
+<div id="outline-container-sec-10-1-4" class="outline-4">
+<h4 id="sec-10-1-4"><span class="section-number-4">10.1.4</span> Отображения и фильтрации:</h4>
+<div class="outline-text-4" id="text-10-1-4">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3853,9 +3930,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-5" class="outline-4">
-<h4 id="sec-9-1-5"><span class="section-number-4">9.1.5</span> Функции для списков на основе карринга и свёрток:</h4>
-<div class="outline-text-4" id="text-9-1-5">
+<div id="outline-container-sec-10-1-5" class="outline-4">
+<h4 id="sec-10-1-5"><span class="section-number-4">10.1.5</span> Функции для списков на основе карринга и свёрток:</h4>
+<div class="outline-text-4" id="text-10-1-5">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3870,9 +3947,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-6" class="outline-4">
-<h4 id="sec-9-1-6"><span class="section-number-4">9.1.6</span> Функции для чисел:</h4>
-<div class="outline-text-4" id="text-9-1-6">
+<div id="outline-container-sec-10-1-6" class="outline-4">
+<h4 id="sec-10-1-6"><span class="section-number-4">10.1.6</span> Функции для чисел:</h4>
+<div class="outline-text-4" id="text-10-1-6">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3892,9 +3969,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-7" class="outline-4">
-<h4 id="sec-9-1-7"><span class="section-number-4">9.1.7</span> И для булевых чисел:</h4>
-<div class="outline-text-4" id="text-9-1-7">
+<div id="outline-container-sec-10-1-7" class="outline-4">
+<h4 id="sec-10-1-7"><span class="section-number-4">10.1.7</span> И для булевых чисел:</h4>
+<div class="outline-text-4" id="text-10-1-7">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3909,9 +3986,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-8" class="outline-4">
-<h4 id="sec-9-1-8"><span class="section-number-4">9.1.8</span> Многие другие функции представляются свёртками, например:</h4>
-<div class="outline-text-4" id="text-9-1-8">
+<div id="outline-container-sec-10-1-8" class="outline-4">
+<h4 id="sec-10-1-8"><span class="section-number-4">10.1.8</span> Многие другие функции представляются свёртками, например:</h4>
+<div class="outline-text-4" id="text-10-1-8">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -3930,9 +4007,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-1-9" class="outline-4">
-<h4 id="sec-9-1-9"><span class="section-number-4">9.1.9</span> Свёртки для деревьев:</h4>
-<div class="outline-text-4" id="text-9-1-9">
+<div id="outline-container-sec-10-1-9" class="outline-4">
+<h4 id="sec-10-1-9"><span class="section-number-4">10.1.9</span> Свёртки для деревьев:</h4>
+<div class="outline-text-4" id="text-10-1-9">
 <p>
 Теперь, собственно, код для деревьев. Нужно заметить, что учитывая весь код для
 "абстракций", получается существенно меньше, чем при реализации "в лоб" (как у Грэхама,
@@ -3964,9 +4041,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-2" class="outline-3">
-<h3 id="sec-9-2"><span class="section-number-3">9.2</span> Другие утилиты</h3>
-<div class="outline-text-3" id="text-9-2">
+<div id="outline-container-sec-10-2" class="outline-3">
+<h3 id="sec-10-2"><span class="section-number-3">10.2</span> Другие утилиты</h3>
+<div class="outline-text-3" id="text-10-2">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -4184,9 +4261,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-3" class="outline-3">
-<h3 id="sec-9-3"><span class="section-number-3">9.3</span> Утилиты</h3>
-<div class="outline-text-3" id="text-9-3">
+<div id="outline-container-sec-10-3" class="outline-3">
+<h3 id="sec-10-3"><span class="section-number-3">10.3</span> Утилиты</h3>
+<div class="outline-text-3" id="text-10-3">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="utility_file">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -4351,9 +4428,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-4" class="outline-3">
-<h3 id="sec-9-4"><span class="section-number-3">9.4</span> Глобальные определения</h3>
-<div class="outline-text-3" id="text-9-4">
+<div id="outline-container-sec-10-4" class="outline-3">
+<h3 id="sec-10-4"><span class="section-number-3">10.4</span> Глобальные определения</h3>
+<div class="outline-text-3" id="text-10-4">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="globals">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -4365,9 +4442,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-5" class="outline-3">
-<h3 id="sec-9-5"><span class="section-number-3">9.5</span> Сущности и автоматы</h3>
-<div class="outline-text-3" id="text-9-5">
+<div id="outline-container-sec-10-5" class="outline-3">
+<h3 id="sec-10-5"><span class="section-number-3">10.5</span> Сущности и автоматы</h3>
+<div class="outline-text-3" id="text-10-5">
 <p>
 Соберем все сущности и автоматы
 </p>
@@ -4384,9 +4461,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-6" class="outline-3">
-<h3 id="sec-9-6"><span class="section-number-3">9.6</span> Поисковые профили</h3>
-<div class="outline-text-3" id="text-9-6">
+<div id="outline-container-sec-10-6" class="outline-3">
+<h3 id="sec-10-6"><span class="section-number-3">10.6</span> Поисковые профили</h3>
+<div class="outline-text-3" id="text-10-6">
 <div class="org-src-container">
 
 <pre class="src src-emacs-lisp" id="asm_profile">(gen-entity <span style="color: #8b2252;">"profile"</span> <span style="color: #8b2252;">"&#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1077; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1080;"</span> flds)
@@ -4395,9 +4472,9 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 </div>
 
-<div id="outline-container-sec-9-7" class="outline-3">
-<h3 id="sec-9-7"><span class="section-number-3">9.7</span> Вакансии</h3>
-<div class="outline-text-3" id="text-9-7">
+<div id="outline-container-sec-10-7" class="outline-3">
+<h3 id="sec-10-7"><span class="section-number-3">10.7</span> Вакансии</h3>
+<div class="outline-text-3" id="text-10-7">
 <div class="org-src-container">
 
 <pre class="src src-emacs-lisp" id="asm_vacancy">(gen-automat <span style="color: #8b2252;">"vacancy"</span> <span style="color: #8b2252;">"&#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;"</span> flds states)
@@ -4409,7 +4486,7 @@ TODO: Конечный автомат тут сложен и будет еще �
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-18 Вс. 01:37</p>
+<p class="date">Created: 2015-01-19 Пн. 21:48</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

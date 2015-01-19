@@ -7,192 +7,242 @@
 
 (in-package #:moto)
 
-(defmacro define-rule (antecedent &body consequent)
-  `(alexandria:named-lambda ,(gensym "RULE-") (vacancy)
-     (if ,antecedent
-         (let ((result (progn ,@consequent)))
-           (values vacancy result))
-         vacancy)))
+(defmacro define-rule ((name antecedent) &body consequent)
+  `(list
+     (defun ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
+       ,antecedent)
+     (defun ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
+       (let ((result (progn ,@consequent)))
+         (values vacancy result)))))
 
 ;; expand
-;; (macroexpand-1 '(define-rule (and (> (getf vacancy :salary) 70000)
-;;                                   (not (contains "Java" (getf vacancy :name))))
+
+;; (macroexpand-1 '(define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+;;                                               (not (contains "Java" (getf vacancy :name)))))
 ;;                  (setf (getf vacancy :interested) t)
 ;;                  :stop))
 
-;; => (ALEXANDRIA.0.DEV:NAMED-LAMBDA #:RULE-3676 (VACANCY)
-;;      (IF (AND (> (GETF VACANCY :SALARY) 70000)
-;;               (NOT (CONTAINS "Java" (GETF VACANCY :NAME))))
-;;          (LET ((RESULT (PROGN (SETF (GETF VACANCY :INTERESTED) T) :STOP)))
-;;            (VALUES VACANCY RESULT))
-;;          VACANCY)), T
-
 ;; test
 
-;; (multiple-value-bind (vacancy rule-result)
-;;     (funcall
-;;      (define-rule (and (> (getf vacancy :salary) 70000)
-;;                        (not (contains "Java" (getf vacancy :name))))
-;;        (setf (getf vacancy :interested) t)
-;;        :stop)
-;;      '(:name "Python" :salary 80000))
-;;   (dbg "vacancy: ~A ~% rule-result: ~A" (bprint vacancy) (bprint rule-result)))
+;; (define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+;;                                   (not (contains "Java" (getf vacancy :name)))))
+;;   (setf (getf vacancy :interested) t)
+;;   :stop)
 
-;; ->  vacancy: (:INTERESTED T :NAME "Python" :SALARY 80000)
-;; ->  rule-result: :STOP
+;; (let ((vacancy '(:name "Python" :salary 80000)))
+;;   (multiple-value-bind (vacancy-result rule-result)
+;;       (if (hi-salary-java-antecedent vacancy)
+;;           (hi-salary-java-consequent vacancy))
+;;     (print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))
+
+;; ->"vacancy: (:INTERESTED T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
 
 (in-package #:moto)
 
 (defun process (vacancy rules)
-  (tagbody
-   renew
-     (loop :for rule :in rules :do
-        (multiple-value-bind (vacancy-result rule-result)
-            (funcall rule vacancy)
-          (setf vacancy vacancy-result)
-          (when (equal rule-result :stop)
-            (return-from process vacancy))
-          (when (equal rule-result :renew)
-            (go renew)))))
-  vacancy)
+  (let ((vacancy vacancy))
+    (tagbody
+     renew
+       (loop :for rule :in rules :do
+          (let ((antecedent (concatenate 'string (symbol-name rule) "-ANTECEDENT"))
+                (consequent (concatenate 'string (symbol-name rule) "-CONSEQUENT")))
+            (if (funcall (intern antecedent) vacancy)
+                (multiple-value-bind (vacancy-result rule-result)
+                    (funcall (intern consequent) vacancy)
+                  (setf vacancy vacancy-result)
+                  (when (equal rule-result :stop)
+                    (return-from process vacancy))
+                  (when (equal rule-result :renew)
+                    (go renew)))))))
+    vacancy))
+
+(in-package #:moto)
+
+(in-package #:moto)
+
+(in-package #:moto)
+
+(in-package #:moto)
+
+(defmacro define-drop-vacancy-rule ((name antecedent) &body consequent)
+  `(define-rule (,(intern (concatenate 'string "DROP-VACANCY-IF-"(symbol-name name))) ,antecedent)
+     (dbg "drop vacancy:")
+     ,@consequent
+     (setf vacancy nil)
+     :stop))
+
+;; expand
+
+;; (print
+;;  (macroexpand-1
+;;   '(define-drop-vacancy-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+;;                                              (not (contains "Java" (getf vacancy :name)))))
+;;     (print (getf vacancy :name))
+;;     (print (getf vacancy :salary)))))
+
+;; (DEFINE-RULE (DROP-VACANCY-IF-HI-SALARY-JAVA
+;;               (AND (> (GETF VACANCY :SALARY) 70000)
+;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
+;;   (PRINT (GETF VACANCY :NAME))
+;;   (PRINT (GETF VACANCY :SALARY))
+;;   (SETF VACANCY NIL)
+;;   :STOP)
+
+(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "JetBrains"))
+  (dbg "already worked: ~A" (getf vacancy :emp-name)))
+
+(define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
+  (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists)))
+
+(define-rule (set-rank t)
+  (setf (getf vacancy :rank) (getf vacancy :salary)))
+
+(define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
+  (dbg "up rank by Lisp")
+  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
+
+(define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
+  (dbg "up rank by Erlang")
+  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
+
+(define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
+  (dbg "up rank by Haskell")
+  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+
+(define-rule (z-save t)
+  (save-vacancy vacancy))
+
+(define-rule (z-print t)
+     (dbg "~A" (bprint vacancy))
+     :stop)
+
+(in-package #:moto)
+
+(in-package #:moto)
+
+(defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
+  `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
+     (dbg "drop teaser:")
+     ,@consequent
+     (setf vacancy nil)
+     :stop))
+
+;; expand
+
+;; (print
+;;  (macroexpand-1
+;;   '(define-drop-teaser-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+;;                                              (not (contains "Java" (getf vacancy :name)))))
+;;     (print (getf vacancy :name))
+;;     (print (getf vacancy :salary)))))
+
+;; (DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA
+;;               (AND (> (GETF VACANCY :SALARY) 70000)
+;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
+;;   (PRINT (GETF VACANCY :NAME))
+;;   (PRINT (GETF VACANCY :SALARY))
+;;   (SETF VACANCY NIL)
+;;   :STOP)
+(in-package #:moto)
+
+(defmacro define-drop-teaser-by-name-rule (str &body consequent)
+  `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
+                              (contains (getf vacancy :name) ,str))
+     (dbg "  - :name contains ~A" ,str)
+     ,@consequent))
+
+;; expand
+
+;; (print
+;;  (macroexpand-1
+;;   '(define-drop-teaser-by-name-rule "Android")))
+
+;; (DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID
+;;                           (CONTAINS (GETF VACANCY :NAME) "Android"))
+;;   (DBG "drop:")
+;;   (DBG "  name contains ~A" "Android"))
 
 ;; test
 
-;; (let ((tmp 0))
-;;   (process '(:name "Python" :salary 80000)
-;;            (list
-;;             (define-rule (equal 12 tmp)
-;;               (setf (getf vacancy :tmp) tmp)
-;;               :stop)
-;;             (define-rule (and (> (getf vacancy :salary) 70000)
-;;                               (not (contains "Java" (getf vacancy :name))))
-;;               (print (incf tmp))
-;;               :renew)
-;;             )))
+;; (define-drop-teaser-by-name-rule "Android")
+
+;; ==> (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT
+;;      DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)
 
 (in-package #:moto)
 
-(in-package #:moto)
+(defmacro define-drop-all-teaser-when-name-contains-rule (&rest names)
+  `(list ,@(loop :for name :in names :collect
+              `(define-drop-teaser-by-name-rule ,name))))
 
- (defmacro drop-by-name (text)
-   `(define-rule (contains (getf vacancy :name) ,text)
-      (dbg "drop: name contains ~A" ,text)
-      (setf vacancy nil)
-      :stop))
+;; expand
+;; (macroexpand-1 '(define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
 
- ;; expand
+;; (LIST (DEFINE-DROP-TEASER-BY-NAME-RULE "IOS")
+;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "1С")
+;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "C++"))
 
- ;; (macroexpand-1 '(drop-by-name "IOS"))
+;; test
 
- ;; => (DEFINE-RULE (CONTAINS (GETF VACANCY :NAME) "IOS")
- ;;      (DBG "drop: name contains ~A" "IOS")
- ;;      (SETF VACANCY NIL)
- ;;      :STOP), T
+;; (define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
 
- (defmacro drop-names (&rest names)
-   `(list ,@(loop :for name :in names :collect
-               `(drop-by-name ,name))))
+;; =>
+;; ((DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-ANTECEDENT
+;;   DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-CONSEQUENT)
+;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-1С-ANTECEDENT
+;;   DROP-TEASER-IF-IF-NAME-CONTAINS-1С-CONSEQUENT)
+;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT
+;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
 
- ;; expand
+(define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
+  (dbg "  - no salary"))
 
- (macroexpand-1 '(drop-names "IOS" "1С" "C++"))
+(define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 60000))
+  (dbg "  - low salary"))
 
- ;; => (LIST (DROP-BY-NAME "IOS") (DROP-BY-NAME "1С") (DROP-BY-NAME "C++")), T
+(define-drop-all-teaser-when-name-contains-rule
+    "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Qa" "C#" ".NET"
+    "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go")
 
+(defun get-all-rules ()
+  (let ((result (make-hash-table :test #'equal)))
+    (loop :for var :being :the present-symbols :in (find-package "MOTO")
+       :when (or
+              (and (search "CONSEQUENT" (symbol-name var))
+                   (fboundp var))
+              (and (search "ANTECEDENT" (symbol-name var))
+                   (fboundp var)))
+       :collect (let ((key (ppcre:regex-replace "-ANTECEDENT" (symbol-name var) "")))
+                  (setf key (ppcre:regex-replace "-CONSEQUENT" key ""))
+                  (setf (gethash key result) "")))
+    (mapcar #'intern
+            (sort
+             (alexandria:hash-table-keys result)
+             #'(lambda (a b)
+                 (string< a b))))))
 
-(in-package #:moto)
+(defun clear-all-rules ()
+  (loop :for var :being :the present-symbols :in (find-package "MOTO")
+     :when (or
+            (and (search "CONSEQUENT" (symbol-name var))
+                 (fboundp var))
+            (and (search "ANTECEDENT" (symbol-name var))
+                 (fboundp var)))
+     :collect (fmakunbound var)))
 
-(defparameter *rules-for-vacancy*
-  (list
-   (define-rule (contains (getf vacancy :emp-name) "JetBrains")
-     (dbg "drop-vac: Неподходящая компания")
-     (setf vacancy nil)
-     :stop)
-   (define-rule (not (null (find-vacancy :src-id (getf vacancy :id))))
-     (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
-       (dbg "drop-vac: Уже есть в БД: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists)))
-     (setf vacancy nil)
-     :stop)
-   (define-rule t
-     (setf (getf vacancy :rank) (getf vacancy :salary)))
-   (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp")
-     (dbg "drop-vac: Неподходящая компания")
-     (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
-   (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang")
-     (dbg "drop-vac: Неподходящая компания")
-     (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
-   (define-rule (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell")
-     (dbg "drop-vac: Неподходящая компания")
-     (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
-   (define-rule t
-     (save-vacancy vacancy))
-   (define-rule t
-     (dbg "~A" (bprint vacancy))
-     :stop)
-   ))
+(defun rules-for-teaser ()
+  (remove-if-not #'(lambda (x)
+                     (search "DROP-TEASER-IF" (symbol-name x)))
+                 (get-all-rules)))
 
-;; (contains (format nil "~A" (bprint (getf *tmp* :descr))) "JVM2")
-
-;; (defparameter *tmp*
-;;   '(:NAME "Senior Software Developer (PyCharm)" :ARCHIVE NIL
-;;     :EMP-ID 9281 :EMP-NAME " JetBrains" :CURRENCY "RUR"
-;;     :BASE-SALARY "130000" :SALARY-TEXT "от 130 000 руб." :CITY
-;;     "Санкт-Петербург" :EXP "3–6 лет" :DESCR
-;;     (("Founded in 2000, JetBrains s.r.o. is a world-leading vendor of professional software development tools. At JetBrains, we have a passion for making people more productive through smart software solutions that help them focus more on what they really want to accomplish, and less on mundane, repetitive “computer-busy work.”We are looking for passionate, creative and open-minded people to join our development team."
-;;       ("As part of our team, you will provide developers all over the world the best programming environment for Python ecosystem - "
-;;        "PyCharm IDE" "."))
-;;      ("Responsibilities:"
-;;       ("Conceive and implement new features"
-;;        "Redesign and optimize existing features"
-;;        "Enhance performance of IDE subsystems"
-;;        "Interact with users in public issue tracker"))
-;;      ("Requirements:"
-;;       ("4 years(or more) experience with Java"
-;;        "Knowledge of essential algorithms and data structures"
-;;        "Experience with multithreaded code"
-;;        "Responsibility, discipline, self-motivation"
-;;        "Ability to implement ideas into high-quality product features"
-;;        "Good teamwork skills"))
-;;      ("As a plus would be " "(but not required):")
-;;      ("Python knowledge"
-;;       "Experience with other JVM based languages"
-;;       "Participation in open-source projects")
-;;      ("We offer:"
-;;       ("Fascinating work in a friendly, young team"
-;;        "Developing products for software developers much like ourselves"
-;;        "Employment package (compulsory health insurance, 5 weeks paid vacation)"
-;;        "High salary: determined individually, but definitely above industry average"
-;;        "Full salary during sick leave"
-;;        "Voluntary health insurance including dental insurance and voluntary health insurance for your children"
-;;        "Bonuses tied to product releases"
-;;        "Flexible working schedule"
-;;        "Spacious, comfortable office (open 24/7) with hot shower and other amenities"
-;;        "Hot meals, coffee, tea, sandwiches, juices and soft drinks free of charge"
-;;        "Office library with specialized work-related books and magazines"
-;;        "Comfortable, ergonomic workplaces"
-;;        "Training including on-the-job English language courses"
-;;        "Opportunity to travel to professional conferences in Europe and the US"
-;;        "Help in relocating from another region.")))))
-
-(in-package #:moto)
-
-(defparameter *rules-for-teaser*
-  (append
-   (list
-    (define-rule (null (getf vacancy :salary))
-      (dbg "drop: Нет зарплаты")
-      (setf vacancy nil)
-      :stop)
-    (define-rule (< (getf vacancy :salary) 80000)
-      (dbg "drop: Маленькая зарплата")
-      (setf vacancy nil)
-      :stop))
-   (drop-names "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Go" "Qa" "C#" ".NET" "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Front End" "Go")
-   ))
+(defun rules-for-vacancy ()
+  (remove-if #'(lambda (x)
+                 (search "DROP-TEASER-IF" (symbol-name x)))
+             (get-all-rules)))
 
 (defmethod process-teaser :around (current-teaser)
-  (aif (process current-teaser *rules-for-teaser*)
-       (process (call-next-method it) *rules-for-vacancy*)
+  (aif (process current-teaser (rules-for-teaser))
+       (process (call-next-method it) (rules-for-vacancy))
        nil))
 
 (in-package #:moto)
@@ -363,65 +413,63 @@
                     (progn (print in)
                            (err "parsing failed, data printed"))
                     (car in))))
-            (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
-                         ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
-                 (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
-                              ("class" ,_)
-                              ("data-qa" ,_)) " ") 'Z)
-                      (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
-                           (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
-                                (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label HH-VacancyResponseTrigger-Text g-hidden")
-                                             ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
-                                     (mtm (`("div" (("class" "search-result-item__star"))) 'Z)
-                                          (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
-                                                 (loop :for item :in rest :when (consp item) :append item))
-                                               (mtm (`("div" (("class" "search-result-item__head"))
-                                                             ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
-                                                                                 "search-result-item__name search-result-item__name_standard_plus"
-                                                                                 "search-result-item__name search-result-item__name_premium"))
-                                                                   ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
-                                                      (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
-                                                    (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
-                                                                  ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                                                                  ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
-                                                           (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
-                                                         (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
-                                                                (list :emp-name emp-name))
-                                                              (mtm (`("div" (("class" "search-result-item__company"))
-                                                                            ("a" (("href" ,emp-id)
-                                                                                  ("class" "search-result-item__company-link")
-                                                                                  ("data-qa" "vacancy-serp__vacancy-employer"))
-                                                                                 ,emp-name))
-                                                                     (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
-                                                                           :emp-name emp-name))
-                                                                   (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
-                                                                          (loop :for item :in rest :when (consp item) :append item))
-                                                                        (mtm (`("span" (("class" "searchresult__address")
-                                                                                        ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
-                                                                               (let ((metro (loop :for item in rest :do
-                                                                                               (when (and (consp item) (equal :metro (car item)))
-                                                                                                 (return (cadr item))))))
-                                                                                 (list :city city :metro metro)))
-                                                                             (mtm (`("span" (("class" "metro-station"))
-                                                                                            ("span" (("class" "metro-point") ("style" ,_))) ,metro)
-                                                                                    (list :metro metro))
-                                                                                  (mtm (`("span" (("class" "b-vacancy-list-date")
-                                                                                                  ("data-qa" "vacancy-serp__vacancy-date")) ,date)
-                                                                                         (list :date date))
-                                                                                       (mtm (`("span"
-                                                                                               (("class" "vacancy-list-platform")
-                                                                                                ("data-qa" "vacancy-serp__vacancy_career"))
-                                                                                               "  •  " ("span" (("class" "vacancy-list-platform__name"))
-                                                                                                               "CAREER.RU"))
-                                                                                              (list :platform 'career.ru))
-                                                                                            (block subtree-extract
-                                                                                              (mtm (`("div"
-                                                                                                      (("class" "search-result")
-                                                                                                       ("data-qa" "vacancy-serp__results"))
-                                                                                                      ,@rest)
-                                                                                                     (return-from subtree-extract rest))
-                                                                                                   (html5-parser:node-to-xmls
-                                                                                                    (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
+            (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
+                         ("class" ,_)
+                         ("data-qa" ,_)) " ") 'Z)
+                 (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
+                      (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
+                           (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
+                                        ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
+                                (mtm (`("div" (("class" "search-result-item__star")) ,@_) 'Z)
+                                     (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
+                                            (loop :for item :in rest :when (consp item) :append item))
+                                          (mtm (`("div" (("class" "search-result-item__head"))
+                                                        ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
+                                                                            "search-result-item__name search-result-item__name_standard_plus"
+                                                                            "search-result-item__name search-result-item__name_premium"))
+                                                              ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
+                                                 (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
+                                               (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
+                                                             ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                             ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
+                                                      (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
+                                                    (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
+                                                           (list :emp-name emp-name))
+                                                         (mtm (`("div" (("class" "search-result-item__company"))
+                                                                       ("a" (("href" ,emp-id)
+                                                                             ("class" "search-result-item__company-link")
+                                                                             ("data-qa" "vacancy-serp__vacancy-employer"))
+                                                                            ,emp-name))
+                                                                (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
+                                                                      :emp-name emp-name))
+                                                              (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
+                                                                     (loop :for item :in rest :when (consp item) :append item))
+                                                                   (mtm (`("span" (("class" "searchresult__address")
+                                                                                   ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
+                                                                          (let ((metro (loop :for item in rest :do
+                                                                                          (when (and (consp item) (equal :metro (car item)))
+                                                                                            (return (cadr item))))))
+                                                                            (list :city city :metro metro)))
+                                                                        (mtm (`("span" (("class" "metro-station"))
+                                                                                       ("span" (("class" "metro-point") ("style" ,_))) ,metro)
+                                                                               (list :metro metro))
+                                                                             (mtm (`("span" (("class" "b-vacancy-list-date")
+                                                                                             ("data-qa" "vacancy-serp__vacancy-date")) ,date)
+                                                                                    (list :date date))
+                                                                                  (mtm (`("span"
+                                                                                          (("class" "vacancy-list-platform")
+                                                                                           ("data-qa" "vacancy-serp__vacancy_career"))
+                                                                                          "  •  " ("span" (("class" "vacancy-list-platform__name"))
+                                                                                                          "CAREER.RU"))
+                                                                                         (list :platform 'career.ru))
+                                                                                       (block subtree-extract
+                                                                                         (mtm (`("div"
+                                                                                                 (("class" "search-result")
+                                                                                                  ("data-qa" "vacancy-serp__results"))
+                                                                                                 ,@rest)
+                                                                                                (return-from subtree-extract rest))
+                                                                                              (html5-parser:node-to-xmls
+                                                                                               (html5-parser:parse-html5-fragment html))))))))))))))))))))))
 
 ;; (print
 ;;  ;; (car
@@ -548,10 +596,13 @@
    :descr (bprint (getf vacancy :descr)))
   )
 
-(let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
-                    "Программирование, Разработка")))
-  (loop :for i :from 1 :to 100 :do
-     (dbg "~A" i)
-     (let ((vacancy (funcall gen)))
-       (when (null vacancy)
-         (return)))))
+(defun run ()
+  (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
+                      "Программирование, Разработка")))
+    (loop :for i :from 1 :to 100 :do
+       (dbg "~A" i)
+       (let ((vacancy (funcall gen)))
+         (when (null vacancy)
+           (return))))))
+
+(run)
