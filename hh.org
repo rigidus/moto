@@ -408,12 +408,12 @@
        ;; (dbg "  - no salary")
        )
 
-     (define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 60000))
+     (define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 90000))
        ;; (dbg "  - low salary")
        )
 
      (define-drop-all-teaser-when-name-contains-rule
-         "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Qa" "C#" ".NET"
+         "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Q/A" "C#" ".NET"
          "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go")
    #+END_SRC
 
@@ -559,11 +559,11 @@
        ;; (dbg "up rank by Haskell")
        (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
 
-     (define-rule (z-save t)
-       (save-vacancy vacancy))
-
      (define-rule (z-print t)
-       (show vacancy)
+       (show-vacancy vacancy))
+
+     (define-rule (z-save t)
+       (save-vacancy vacancy)
        :stop)
    #+END_SRC
 
@@ -1037,8 +1037,7 @@
         :experience (getf vacancy :exp)
         :archive (getf vacancy :archive)
         :date (getf vacancy :date)
-        :descr (bprint (getf vacancy :descr)))
-       )
+        :descr (bprint (show-descr (getf vacancy :descr)))))
    #+END_SRC
 
 ** Печать вакансий
@@ -1049,7 +1048,7 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defmethod show (vacancy)
+     (defmethod show-vacancy (vacancy)
        (format t "~%")
        (format t "~%~A :~A: ~A [~A]"
             (getf vacancy :salary-text)
@@ -1057,34 +1056,142 @@
             (getf vacancy :name)
             (getf vacancy :id))
        (format t "~%~A" (getf vacancy :emp-name))
-       (show-descr (getf vacancy :descr)))
+       (format t "~A" (show-descr (getf vacancy :descr))))
 
      (defun show-descr (tree)
-       (let ((indent 2)
+       (let ((output (make-string-output-stream))
+             (indent 2)
              (prefix ""))
          (labels ((out (format tree)
-                    (format t "~A~A" (make-string indent :initial-element #\Space)
+                    (format output "~A~A" (make-string indent :initial-element #\Space)
                             (format nil format tree)))
                   (rec (tree)
                     (cond ((consp tree) (cond ((and (equal 2 (length tree))
                                                     (equal :L (car tree))
                                                     (stringp (cadr tree))) (prog1 nil
-                                                                             (format t "~A-> ~A~%" prefix (cadr tree))))
+                                                                             (format output "~A-> ~A~%" prefix (cadr tree))))
                                               ((equal :U (car tree)) (prog1 nil
                                                                        (setf prefix (concatenate 'string (make-string indent :initial-element #\Space) prefix))
                                                                        (rec (cdr tree))
                                                                        (setf prefix (subseq prefix indent))))
                                               ((and (equal 2 (length tree))
                                                     (equal :B (car tree))
-                                                    (stringp (cadr tree))) (format t "~A[~A]~%" prefix (cadr tree)))
+                                                    (stringp (cadr tree))) (format output "~A[~A]~%" prefix (cadr tree)))
                                               (t (cons (rec (car tree))
                                                        (rec (cdr tree))))))
-                          (t (cond ((stringp tree) (format t "~A~A~%" prefix tree))
-                                   ;; ((null tree) (format t "~%"))
-                                   )))))
+                          (t (cond ((stringp tree) (format output "~A~A~%" prefix tree)))))))
            (rec tree))
-         nil))
+         (get-output-stream-string output)))
    #+END_SRC
+
+** Отправка отклика
+
+   #+NAME: respond
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun respond (vacancy-id resume-id letter)
+       (let* ((cookie-jar (make-instance 'drakma:cookie-jar))
+              (start-cookie (format nil "~{~{~A=~A~}~^; ~}"
+                                    `(("redirect_host" "spb.hh.ru")
+                                      ("regions" "2")
+                                      ("__utma" "192485224.1206865564.1390484616.1410378170.1417257232.29")
+                                      ("__utmz" "192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)")
+                                      ("_xsrf" "85014f262b894a1e9fc57b4b838e48e8")
+                                      ("hhtoken" "ES030IVQP52ULPbRqN9DQOcMIR!T")
+                                      ("hhuid" "x_FxSYWUbySJe1LhHIQxDA--")
+                                      ("hhrole" "anonymous")
+                                      ("GMT" "3")
+                                      ("display" "desktop")
+                                      ("unique_banner_user" "1418008672.846376826735616"))))
+              (html (flexi-streams:octets-to-string
+                     (drakma:http-request
+                      (format nil "http://spb.hh.ru/vacancy/~A" vacancy-id)
+                      :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+                      :additional-headers `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                            ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                            ("Accept-Charset" . "utf-8")
+                                            ("Referer" . "http://spb.hh.ru/")
+                                            ("Cookie" . "redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=85014f262b894a1e9fc57b4b838e48e8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616")
+                                            ;; ("Cookie" . start-cookie)
+                                            ("Cache-Control" . "max-age=0"))
+                      :cookie-jar cookie-jar
+                      :force-binary t)
+                     :external-format :utf-8))
+              (cookie-data (mapcar #'(lambda (x) (list (intern (string-upcase (drakma:cookie-name x)) :keyword) (drakma:cookie-value x))) (drakma:cookie-jar-cookies cookie-jar)))
+              )
+         cookie-data))
+
+     (respond 7288183 7628222 "wer")
+
+     (equal "redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=85014f262b894a1e9fc57b4b838e48e8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616"
+            (format nil "~{~{~A=~A~}~^; ~}"
+                         `(("redirect_host" "spb.hh.ru")
+                           ("regions" "2")
+                           ("__utma" "192485224.1206865564.1390484616.1410378170.1417257232.29")
+                           ("__utmz" "192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)")
+                           ("_xsrf" "85014f262b894a1e9fc57b4b838e48e8")
+                           ("hhtoken" "ES030IVQP52ULPbRqN9DQOcMIR!T")
+                           ("hhuid" "x_FxSYWUbySJe1LhHIQxDA--")
+                           ("hhrole" "anonymous")
+                           ("GMT" "3")
+                           ("display" "desktop")
+                           ("unique_banner_user" "1418008672.846376826735616"))))
+
+
+
+         ;;      (tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+         ;;      (xsrf (block xsrf
+         ;;              (mtm (`("input" (("type" "hidden") ("name" "_xsrf") ("value" ,xsrf)))
+         ;;                     (return-from xsrf xsrf))
+         ;;                   tree)))
+         ;;      (response (flexi-streams:octets-to-string
+         ;;                 (drakma:http-request "http://spb.hh.ru/applicant/vacancy_response/popup"
+         ;;                                      :method :post
+         ;;                                      :parameters `(("vacancy_id" . ,(format nil "~A" vacancy-id))
+         ;;                                                    ("resume_id" . ,(format nil "~A" resume-id))
+         ;;                                                    ("letter" . ,letter)
+         ;;                                                    ("xsrf" . ,xsrf)
+         ;;                                                    ("ignore_postponed" . "true"))
+         ;;                                      :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+         ;;                                      :cookie-jar cookie-jar
+         ;;                                      :additional-headers `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+         ;;                                                            ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+         ;;                                                            ("Accept-Charset" . "utf-8")
+         ;;                                                            ("X-Xsrftoken" . ,xsrf)
+         ;;                                                            ("X-Requested-With" . "XMLHttpRequest")
+         ;;                                                            ("Referer" . ,(format nil "http://spb.hh.ru/vacancy/~A" vacancy-id))
+         ;;                                                            ("Cookie" . ,(format nil "redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=~A; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616" xsrf))
+         ;;                                                            ("Cache-Control" . "no=cache"))
+         ;;                                      :force-binary t)
+         ;;                 :external-format :utf-8)))
+         ;; (aif (match (json:decode-json-from-string response)
+         ;;        ((list (cons :success "true") (cons :topic--id topic)) topic))
+         ;;      it
+         ;;      response)))
+
+     ;; (drakma:cookie-jar-cookies
+
+     (respond 7288183 7628222 "wer")
+
+
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+                              Accept: */*
+                              Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+                              Accept-Encoding: gzip, deflate
+                              Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+                              X-Xsrftoken: ed689ea1ff02a3074c848b69225e3c78
+                              X-Requested-With: XMLHttpRequest
+                              Referer: http://spb.hh.ru/vacancy/12595105
+                              Content-Length: 106
+                              Cookie: redirect_host=vladivostok.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1421733890.1421738381.46; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); hipsterShown=true; hhref=; vishnu1.userid=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; lt-vc=8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=applicant; GMT=3; display=desktop; _xsrf=ed689ea1ff02a3074c848b69225e3c78; JSESSIONID=1i5cpqbtgjgh7ztfwncgixv8c; lrp="http://spb.hh.ru/"; lrr=true; crypted_id=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; lt-tl=5bsw,sz9z,jon8; lt-on-site-time=1421733889; __utmc=192485224; _xsrf=ed689ea1ff02a3074c848b69225e3c78; crypted_id=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; unique_banner_user=1421735133.081520541570375; __utmb=192485224.22.10.1421738381; __utmt_vishnu1=1; lt-5bsw=45880207; lt-sz9z=45880207; lt-jon8=45880207
+                              Connection: keep-alive
+                              Pragma: no-cache
+                              Cache-Control: no-cache
+
+   #+END_SRC
+
 
 ** TODO СТОП!!!
 

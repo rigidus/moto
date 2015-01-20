@@ -90,7 +90,7 @@
 
 (in-package #:moto)
 
-(defmethod show (vacancy)
+(defmethod show-vacancy (vacancy)
   (format t "~%")
   (format t "~%~A :~A: ~A [~A]"
        (getf vacancy :salary-text)
@@ -98,33 +98,32 @@
        (getf vacancy :name)
        (getf vacancy :id))
   (format t "~%~A" (getf vacancy :emp-name))
-  (show-descr (getf vacancy :descr)))
+  (format t "~A" (show-descr (getf vacancy :descr))))
 
 (defun show-descr (tree)
-  (let ((indent 2)
+  (let ((output (make-string-output-stream))
+        (indent 2)
         (prefix ""))
     (labels ((out (format tree)
-               (format t "~A~A" (make-string indent :initial-element #\Space)
+               (format output "~A~A" (make-string indent :initial-element #\Space)
                        (format nil format tree)))
              (rec (tree)
                (cond ((consp tree) (cond ((and (equal 2 (length tree))
                                                (equal :L (car tree))
                                                (stringp (cadr tree))) (prog1 nil
-                                                                        (format t "~A-> ~A~%" prefix (cadr tree))))
+                                                                        (format output "~A-> ~A~%" prefix (cadr tree))))
                                          ((equal :U (car tree)) (prog1 nil
                                                                   (setf prefix (concatenate 'string (make-string indent :initial-element #\Space) prefix))
                                                                   (rec (cdr tree))
                                                                   (setf prefix (subseq prefix indent))))
                                          ((and (equal 2 (length tree))
                                                (equal :B (car tree))
-                                               (stringp (cadr tree))) (format t "~A[~A]~%" prefix (cadr tree)))
+                                               (stringp (cadr tree))) (format output "~A[~A]~%" prefix (cadr tree)))
                                          (t (cons (rec (car tree))
                                                   (rec (cdr tree))))))
-                     (t (cond ((stringp tree) (format t "~A~A~%" prefix tree))
-                              ;; ((null tree) (format t "~%"))
-                              )))))
+                     (t (cond ((stringp tree) (format output "~A~A~%" prefix tree)))))))
       (rec tree))
-    nil))
+    (get-output-stream-string output)))
 
 (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
   ;; (dbg "already worked: ~A" (getf vacancy :emp-name))
@@ -149,11 +148,11 @@
   ;; (dbg "up rank by Haskell")
   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
 
-(define-rule (z-save t)
-  (save-vacancy vacancy))
-
 (define-rule (z-print t)
-  (show vacancy)
+  (show-vacancy vacancy))
+
+(define-rule (z-save t)
+  (save-vacancy vacancy)
   :stop)
 
 (in-package #:moto)
@@ -238,12 +237,12 @@
   ;; (dbg "  - no salary")
   )
 
-(define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 60000))
+(define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 90000))
   ;; (dbg "  - low salary")
   )
 
 (define-drop-all-teaser-when-name-contains-rule
-    "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Qa" "C#" ".NET"
+    "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Q/A" "C#" ".NET"
     "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go")
 
 (defun get-all-rules ()
@@ -637,8 +636,7 @@
    :experience (getf vacancy :exp)
    :archive (getf vacancy :archive)
    :date (getf vacancy :date)
-   :descr (bprint (getf vacancy :descr)))
-  )
+   :descr (bprint (show-descr (getf vacancy :descr)))))
 
 (defun run ()
   (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
