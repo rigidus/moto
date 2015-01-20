@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-19 Пн. 21:48 -->
+<!-- 2015-01-20 Вт. 06:13 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -154,34 +154,34 @@ for the JavaScript code in this tag.
 <li><a href="#sec-3-4">3.4. Процессор правил</a></li>
 <li><a href="#sec-3-5">3.5. Декоратор для process-teaser</a></li>
 <li><a href="#sec-3-6">3.6. Получение и обработка вакансий правилами</a></li>
-<li><a href="#sec-3-7">3.7. Составление правил и работа с ними</a>
+<li><a href="#sec-3-7">3.7. Составление правил и работа с ними</a></li>
+<li><a href="#sec-3-8">3.8. Правила отсева тизеров</a></li>
+<li><a href="#sec-3-9">3.9. Макросы для определения правил отсева тизеров</a></li>
+<li><a href="#sec-3-10">3.10. Правила анализа вакансий</a></li>
+<li><a href="#sec-3-11">3.11. Макросы для определения правил анализа вакансий</a></li>
+<li><a href="#sec-3-12">3.12. Построение URL-ов, для скачивания тизеров</a>
 <ul>
-<li><a href="#sec-3-7-1">3.7.1. Правила отсева тизеров</a></li>
-<li><a href="#sec-3-7-2">3.7.2. Правила анализа вакансий</a></li>
+<li><a href="#sec-3-12-1">3.12.1. Построение специализаций</a></li>
 </ul>
 </li>
-<li><a href="#sec-3-8">3.8. Построение URL-ов, для скачивания тизеров</a>
+<li><a href="#sec-3-13">3.13. Получение страниц</a></li>
+<li><a href="#sec-3-14">3.14. Разбор тизеров вакансий</a>
 <ul>
-<li><a href="#sec-3-8-1">3.8.1. Построение специализаций</a></li>
+<li><a href="#sec-3-14-1">3.14.1. Трансформация дерева</a></li>
 </ul>
 </li>
-<li><a href="#sec-3-9">3.9. Получение страниц</a></li>
-<li><a href="#sec-3-10">3.10. Разбор тизеров вакансий</a>
+<li><a href="#sec-3-15">3.15. Разбор вакансий</a></li>
+<li><a href="#sec-3-16">3.16. Сохранение вакансии и ее структура данных</a></li>
+<li><a href="#sec-3-17">3.17. Печать вакансий</a></li>
+<li><a href="#sec-3-18">3.18. <span class="todo nilTODO">TODO</span> СТОП!!!</a>
 <ul>
-<li><a href="#sec-3-10-1">3.10.1. Трансформация дерева</a></li>
+<li><a href="#sec-3-18-1">3.18.1. Для красоты</a></li>
 </ul>
 </li>
-<li><a href="#sec-3-11">3.11. Разбор вакансий</a></li>
-<li><a href="#sec-3-12">3.12. Сохранение вакансии и ее структура данных</a></li>
-<li><a href="#sec-3-13">3.13. <span class="todo nilTODO">TODO</span> СТОП!!!</a>
+<li><a href="#sec-3-19">3.19. Неактуальное</a>
 <ul>
-<li><a href="#sec-3-13-1">3.13.1. Для красоты</a></li>
-</ul>
-</li>
-<li><a href="#sec-3-14">3.14. Неактуальное</a>
-<ul>
-<li><a href="#sec-3-14-1">3.14.1. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
-<li><a href="#sec-3-14-2">3.14.2. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
+<li><a href="#sec-3-19-1">3.19.1. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
+<li><a href="#sec-3-19-2">3.19.2. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
 </ul>
 </li>
 </ul>
@@ -373,7 +373,7 @@ for the JavaScript code in this tag.
         (teasers nil))
     (alexandria:named-lambda get-vacancy ()
       (<span style="color: #a020f0;">labels</span> ((load-next-teasers-page ()
-                 (dbg <span style="color: #8b2252;">"~~ LOAD (page=~A)"</span> page)
+                 <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "~~ LOAD (page=~A)" page)</span>
                  (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
                  (incf page)
                  (<span style="color: #a020f0;">when</span> (equal 0 (length teasers))
@@ -606,7 +606,7 @@ for the JavaScript code in this tag.
   (<span style="color: #a020f0;">let</span> ((gen (factory 'hh <span style="color: #8b2252;">"spb"</span> <span style="color: #8b2252;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
                       <span style="color: #8b2252;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>)))
     (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> i <span style="color: #483d8b;">:from</span> 1 <span style="color: #483d8b;">:to</span> 100 <span style="color: #483d8b;">:do</span>
-       (dbg <span style="color: #8b2252;">"~A"</span> i)
+       <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "~A" i)</span>
        (<span style="color: #a020f0;">let</span> ((vacancy (funcall gen)))
          (<span style="color: #a020f0;">when</span> (null vacancy)
            (<span style="color: #a020f0;">return</span>))))))
@@ -671,10 +671,11 @@ for the JavaScript code in this tag.
 </pre>
 </div>
 </div>
+</div>
 
-<div id="outline-container-sec-3-7-1" class="outline-4">
-<h4 id="sec-3-7-1"><span class="section-number-4">3.7.1</span> Правила отсева тизеров</h4>
-<div class="outline-text-4" id="text-3-7-1">
+<div id="outline-container-sec-3-8" class="outline-3">
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Правила отсева тизеров</h3>
+<div class="outline-text-3" id="text-3-8">
 <p>
 Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
 вакансий? В основном те, которые не устраивают по зарплате и те, у которых в названиях
@@ -689,10 +690,12 @@ for the JavaScript code in this tag.
 &lt;&lt;sugar_for_teaser_rules&gt;&gt;
 
 (<span style="color: #a020f0;">define-drop-teaser-rule</span> (salary-1-no (null (getf vacancy <span style="color: #483d8b;">:salary</span>)))
-  (dbg <span style="color: #8b2252;">"  - no salary"</span>))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "  - no salary")</span>
+  )
 
 (<span style="color: #a020f0;">define-drop-teaser-rule</span> (salary-2-low (&lt; (getf vacancy <span style="color: #483d8b;">:salary</span>) 60000))
-  (dbg <span style="color: #8b2252;">"  - low salary"</span>))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "  - low salary")</span>
+  )
 
 (<span style="color: #a020f0;">define-drop-all-teaser-when-name-contains-rule</span>
     <span style="color: #8b2252;">"IOS"</span> <span style="color: #8b2252;">"1&#1057;"</span> <span style="color: #8b2252;">"C++"</span> <span style="color: #8b2252;">"Ruby on Rails"</span> <span style="color: #8b2252;">"Frontend"</span> <span style="color: #8b2252;">"Front End"</span> <span style="color: #8b2252;">"Go"</span> <span style="color: #8b2252;">"Qa"</span> <span style="color: #8b2252;">"C#"</span> <span style="color: #8b2252;">".NET"</span>
@@ -700,8 +703,11 @@ for the JavaScript code in this tag.
 </pre>
 </div>
 </div>
+</div>
 
-<ol class="org-ol"><li><a id="sec-3-7-1-1"></a>Макросы для определения правил отсева тизеров<br  /><div class="outline-text-5" id="text-3-7-1-1">
+<div id="outline-container-sec-3-9" class="outline-3">
+<h3 id="sec-3-9"><span class="section-number-3">3.9</span> Макросы для определения правил отсева тизеров</h3>
+<div class="outline-text-3" id="text-3-9">
 <p>
 Для начала определим макрос, который создает правила отсева тизеров - эти правила
 отличаются тем, что всегда в первом параметре возвращают nil, а во втором - <code>:stop</code>
@@ -713,7 +719,7 @@ for the JavaScript code in this tag.
 
 (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-drop-teaser-rule</span> ((name antecedent) <span style="color: #228b22;">&amp;body</span> consequent)
   `(<span style="color: #a020f0;">define-rule</span> (,(intern (concatenate 'string <span style="color: #8b2252;">"DROP-TEASER-IF-"</span>(symbol-name name))) ,antecedent)
-     (dbg <span style="color: #8b2252;">"drop teaser:"</span>)
+     <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "drop teaser:")</span>
      ,@consequent
      (setf vacancy nil)
      <span style="color: #483d8b;">:stop</span>))
@@ -749,7 +755,7 @@ for the JavaScript code in this tag.
 (<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-drop-teaser-by-name-rule</span> (str <span style="color: #228b22;">&amp;body</span> consequent)
   `(<span style="color: #a020f0;">define-drop-teaser-rule</span> (,(intern (concatenate 'string <span style="color: #8b2252;">"NAME-CONTAINS-"</span> (string-upcase (ppcre:regex-replace-all <span style="color: #8b2252;">"\\s+"</span> str <span style="color: #8b2252;">"-"</span>))))
                               (contains (getf vacancy <span style="color: #483d8b;">:name</span>) ,str))
-     (dbg <span style="color: #8b2252;">"  - :name contains ~A"</span> ,str)
+     <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "  - :name contains ~A" ,str)</span>
      ,@consequent))
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">expand</span>
@@ -806,12 +812,11 @@ for the JavaScript code in this tag.
 </pre>
 </div>
 </div>
-</li></ol>
 </div>
 
-<div id="outline-container-sec-3-7-2" class="outline-4">
-<h4 id="sec-3-7-2"><span class="section-number-4">3.7.2</span> Правила анализа вакансий</h4>
-<div class="outline-text-4" id="text-3-7-2">
+<div id="outline-container-sec-3-10" class="outline-3">
+<h3 id="sec-3-10"><span class="section-number-3">3.10</span> Правила анализа вакансий</h3>
+<div class="outline-text-3" id="text-3-10">
 <ul class="org-ul">
 <li>Я не хочу смотреть на вакансии, в компаниях где я уже работал.
 </li>
@@ -838,38 +843,45 @@ for the JavaScript code in this tag.
 
 &lt;&lt;sugar_for_vacancy_rules&gt;&gt;
 
-(<span style="color: #a020f0;">define-drop-vacancy-rule</span> (already-worked (contains (getf vacancy <span style="color: #483d8b;">:emp-name</span>) <span style="color: #8b2252;">"JetBrains"</span>))
-  (dbg <span style="color: #8b2252;">"already worked: ~A"</span> (getf vacancy <span style="color: #483d8b;">:emp-name</span>)))
+&lt;&lt;show_vacancy&gt;&gt;
+
+(<span style="color: #a020f0;">define-drop-vacancy-rule</span> (already-worked (contains (getf vacancy <span style="color: #483d8b;">:emp-name</span>) <span style="color: #8b2252;">"Webdom"</span>))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "already worked: ~A" (getf vacancy :emp-name))</span>
+  )
 
 (<span style="color: #a020f0;">define-drop-vacancy-rule</span> (already-exists-in-db (not (null (find-vacancy <span style="color: #483d8b;">:src-id</span> (getf vacancy <span style="color: #483d8b;">:id</span>)))))
-  (dbg <span style="color: #8b2252;">"already exists: ~A : ~A : ~A"</span> (id exists) (name exists) (emp-name exists)))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists))</span>
+  )
 
 (<span style="color: #a020f0;">define-rule</span> (set-rank t)
   (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (getf vacancy <span style="color: #483d8b;">:salary</span>)))
 
 (<span style="color: #a020f0;">define-rule</span> (set-rank-up-by-lisp (contains (format nil <span style="color: #8b2252;">"~A"</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>))) <span style="color: #8b2252;">"Lisp"</span>))
-  (dbg <span style="color: #8b2252;">"up rank by Lisp"</span>)
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "up rank by Lisp")</span>
   (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (+ (getf vacancy <span style="color: #483d8b;">:rank</span>) 30000)))
 
 (<span style="color: #a020f0;">define-rule</span> (set-rank-up-by-erlang (contains (format nil <span style="color: #8b2252;">"~A"</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>))) <span style="color: #8b2252;">"Erlang"</span>))
-  (dbg <span style="color: #8b2252;">"up rank by Erlang"</span>)
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "up rank by Erlang")</span>
   (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (+ (getf vacancy <span style="color: #483d8b;">:rank</span>) 15000)))
 
 (<span style="color: #a020f0;">define-rule</span> (set-rank-up-by-haskell (contains (format nil <span style="color: #8b2252;">"~A"</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>))) <span style="color: #8b2252;">"Haskell"</span>))
-  (dbg <span style="color: #8b2252;">"up rank by Haskell"</span>)
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "up rank by Haskell")</span>
   (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (+ (getf vacancy <span style="color: #483d8b;">:rank</span>) 10000)))
 
 (<span style="color: #a020f0;">define-rule</span> (z-save t)
   (save-vacancy vacancy))
 
 (<span style="color: #a020f0;">define-rule</span> (z-print t)
-     (dbg <span style="color: #8b2252;">"~A"</span> (bprint vacancy))
-     <span style="color: #483d8b;">:stop</span>)
+  (show vacancy)
+  <span style="color: #483d8b;">:stop</span>)
 </pre>
 </div>
 </div>
+</div>
 
-<ol class="org-ol"><li><a id="sec-3-7-2-1"></a>Макросы для определения правил анализа вакансий<br  /><div class="outline-text-5" id="text-3-7-2-1">
+<div id="outline-container-sec-3-11" class="outline-3">
+<h3 id="sec-3-11"><span class="section-number-3">3.11</span> Макросы для определения правил анализа вакансий</h3>
+<div class="outline-text-3" id="text-3-11">
 <p>
 Для начала определим макрос, который создает правила отсева вакансий - эти правила
 отличаются тем, что всегда в первом параметре возвращают nil, а во втором - <code>:stop</code>
@@ -905,13 +917,11 @@ for the JavaScript code in this tag.
 </pre>
 </div>
 </div>
-</li></ol>
-</div>
 </div>
 
-<div id="outline-container-sec-3-8" class="outline-3">
-<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Построение URL-ов, для скачивания тизеров</h3>
-<div class="outline-text-3" id="text-3-8">
+<div id="outline-container-sec-3-12" class="outline-3">
+<h3 id="sec-3-12"><span class="section-number-3">3.12</span> Построение URL-ов, для скачивания тизеров</h3>
+<div class="outline-text-3" id="text-3-12">
 <p>
 Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
 страницы, если будем получать страницу за страницей, пока не получим страницу, на которой
@@ -943,9 +953,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-8-1" class="outline-4">
-<h4 id="sec-3-8-1"><span class="section-number-4">3.8.1</span> Построение специализаций</h4>
-<div class="outline-text-4" id="text-3-8-1">
+<div id="outline-container-sec-3-12-1" class="outline-4">
+<h4 id="sec-3-12-1"><span class="section-number-4">3.12.1</span> Построение специализаций</h4>
+<div class="outline-text-4" id="text-3-12-1">
 <p>
 Специализации задаются в формате "1.221", где цифра слева от точки представляет
 профессиональное направление, а справа - собственно специализацию. В интерфейсе
@@ -1079,9 +1089,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-9" class="outline-3">
-<h3 id="sec-3-9"><span class="section-number-3">3.9</span> Получение страниц</h3>
-<div class="outline-text-3" id="text-3-9">
+<div id="outline-container-sec-3-13" class="outline-3">
+<h3 id="sec-3-13"><span class="section-number-3">3.13</span> Получение страниц</h3>
+<div class="outline-text-3" id="text-3-13">
 <p>
 Вот так мы можем получать страницы, к примеру те, на который находятся тизеры:
 </p>
@@ -1108,9 +1118,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-10" class="outline-3">
-<h3 id="sec-3-10"><span class="section-number-3">3.10</span> Разбор тизеров вакансий</h3>
-<div class="outline-text-3" id="text-3-10">
+<div id="outline-container-sec-3-14" class="outline-3">
+<h3 id="sec-3-14"><span class="section-number-3">3.14</span> Разбор тизеров вакансий</h3>
+<div class="outline-text-3" id="text-3-14">
 <p>
 Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
 который переведет полученный html в более удобное лисп-дерево. Используя сопоставление с
@@ -1230,9 +1240,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-10-1" class="outline-4">
-<h4 id="sec-3-10-1"><span class="section-number-4">3.10.1</span> Трансформация дерева</h4>
-<div class="outline-text-4" id="text-3-10-1">
+<div id="outline-container-sec-3-14-1" class="outline-4">
+<h4 id="sec-3-14-1"><span class="section-number-4">3.14.1</span> Трансформация дерева</h4>
+<div class="outline-text-4" id="text-3-14-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="maptree_transform">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -1264,9 +1274,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-11" class="outline-3">
-<h3 id="sec-3-11"><span class="section-number-3">3.11</span> Разбор вакансий</h3>
-<div class="outline-text-3" id="text-3-11">
+<div id="outline-container-sec-3-15" class="outline-3">
+<h3 id="sec-3-15"><span class="section-number-3">3.15</span> Разбор вакансий</h3>
+<div class="outline-text-3" id="text-3-15">
 <p>
 Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
 лишнего:
@@ -1277,29 +1287,33 @@ for the JavaScript code in this tag.
 <pre class="src src-lisp" id="transform_description">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">transform-description</span> (tree-descr)
-  (<span style="color: #a020f0;">let</span> ((result)
-        (header))
-    (mapcar #'(<span style="color: #a020f0;">lambda</span> (item)
-                (<span style="color: #a020f0;">unless</span> (equal <span style="color: #8b2252;">" "</span> item)
-                  (<span style="color: #a020f0;">cond</span> ((and (null header) (consp item) (equal 1 (length item)))
-                         (setf header (car item)))
-                        ((and (not (null header)) (consp item) (not (equal 1 (length item))))
-                         (<span style="color: #a020f0;">progn</span>
-                           (setf result (append result (list (list header item))))
-                           (setf header nil)))
-                        (t (setf result (append result (list item)))))))
-            (mtm (`<span style="color: #8b2252;">" "</span> 'Z)
-                 (mtm (`(<span style="color: #8b2252;">"br"</span> NIL) 'Z)
-                      (mtm (`(,(or <span style="color: #8b2252;">"ul"</span> <span style="color: #8b2252;">"p"</span>) NIL ,@rest)
-                             (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (and (not (consp x)) (equal x <span style="color: #8b2252;">" "</span>))) rest))
-                           (mtm (`(,(or <span style="color: #8b2252;">"li"</span> <span style="color: #8b2252;">"em"</span>) NIL ,in) in)
-                                (mtm (`(<span style="color: #8b2252;">"strong"</span> NIL ,in) in) tree-descr))))))
-    (<span style="color: #a020f0;">labels</span> ((tmp (tree)
-               (<span style="color: #a020f0;">cond</span>  ((consp tree) (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (equal x 'z))
-                                               (cons (tmp (car tree))
-                                                     (tmp (cdr tree)))))
-                      (t tree))))
-      (tmp result))))
+  (<span style="color: #a020f0;">labels</span> ((rem-z (tree)
+             (<span style="color: #a020f0;">cond</span> ((consp tree)
+                    (cons (<span style="color: #a020f0;">if</span> (equal (car tree) 'z)
+                              (rem-z (cdr tree))
+                              (rem-z (car tree)))
+                          (rem-z (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (equal x 'z))
+                                            (cdr tree)))))
+                   (t tree)))
+           (rem-nil (tree)
+             (<span style="color: #a020f0;">cond</span> ((consp tree) (cons (rem-nil (car tree))
+                                       (rem-nil (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (or (equal x <span style="color: #8b2252;">" "</span>)
+                                                                             (equal x NIL)))
+                                                           (cdr tree)))))
+                   (t tree))))
+    (rem-z
+     (mtm (`(<span style="color: #8b2252;">"p"</span> ,@in) in)
+          (mtm (`(<span style="color: #8b2252;">"li"</span> ,@in) `(<span style="color: #483d8b;">:l</span> ,in))
+               (mtm (`(<span style="color: #8b2252;">"ul"</span> ,@in) `(<span style="color: #483d8b;">:u</span> ,in))
+                    (mtm (`(<span style="color: #8b2252;">"li"</span> ,in) `(<span style="color: #483d8b;">:l</span> ,in))
+                         (mtm (`(<span style="color: #8b2252;">"p"</span> ,in) in)
+                              (mtm (`(<span style="color: #8b2252;">"strong"</span> ,in) `(<span style="color: #483d8b;">:b</span> ,in))
+                                   (mtm (`(<span style="color: #8b2252;">"em"</span> ,in) `(<span style="color: #483d8b;">:b</span> ,in))
+                                        (mtm (`(<span style="color: #8b2252;">"br"</span>) 'Z)
+                                             (rem-nil tree-descr))))))))))))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12586420")))</span>
 </pre>
 </div>
 
@@ -1313,10 +1327,8 @@ for the JavaScript code in this tag.
 
 &lt;&lt;transform_description&gt;&gt;
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy</span> (html <span style="color: #228b22;">&amp;optional</span> intree)
-  (<span style="color: #a020f0;">let*</span> ((tree (aif intree
-                    it
-                    (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy</span> (html)
+  (<span style="color: #a020f0;">let*</span> ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
     (append (<span style="color: #a020f0;">block</span> header-extract
               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-custom g-round"</span>)) (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"title"</span>) (<span style="color: #8b2252;">"content"</span> ,_)))
                             (<span style="color: #8b2252;">"h1"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"title b-vacancy-title"</span>)) ,name ,@archive) ,@rest)
@@ -1358,9 +1370,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-12" class="outline-3">
-<h3 id="sec-3-12"><span class="section-number-3">3.12</span> Сохранение вакансии и ее структура данных</h3>
-<div class="outline-text-3" id="text-3-12">
+<div id="outline-container-sec-3-16" class="outline-3">
+<h3 id="sec-3-16"><span class="section-number-3">3.16</span> Сохранение вакансии и ее структура данных</h3>
+<div class="outline-text-3" id="text-3-16">
 <p>
 Опишем структуру данных вакансии:
 </p>
@@ -1505,9 +1517,60 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-13" class="outline-3">
-<h3 id="sec-3-13"><span class="section-number-3">3.13</span> <span class="todo TODO">TODO</span> СТОП!!!</h3>
-<div class="outline-text-3" id="text-3-13">
+<div id="outline-container-sec-3-17" class="outline-3">
+<h3 id="sec-3-17"><span class="section-number-3">3.17</span> Печать вакансий</h3>
+<div class="outline-text-3" id="text-3-17">
+<p>
+Пока у нас нет веб-интерфейса мы будем выводить вакансии в консоль
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="show_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">show</span> (vacancy)
+  (format t <span style="color: #8b2252;">"~%"</span>)
+  (format t <span style="color: #8b2252;">"~%~A :~A: ~A [~A]"</span>
+       (getf vacancy <span style="color: #483d8b;">:salary-text</span>)
+       (getf vacancy <span style="color: #483d8b;">:currency</span>)
+       (getf vacancy <span style="color: #483d8b;">:name</span>)
+       (getf vacancy <span style="color: #483d8b;">:id</span>))
+  (format t <span style="color: #8b2252;">"~%~A"</span> (getf vacancy <span style="color: #483d8b;">:emp-name</span>))
+  (show-descr (getf vacancy <span style="color: #483d8b;">:descr</span>)))
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">show-descr</span> (tree)
+  (<span style="color: #a020f0;">let</span> ((indent 2)
+        (prefix <span style="color: #8b2252;">""</span>))
+    (<span style="color: #a020f0;">labels</span> ((out (format tree)
+               (format t <span style="color: #8b2252;">"~A~A"</span> (make-string indent <span style="color: #483d8b;">:initial-element</span> #\Space)
+                       (format nil format tree)))
+             (rec (tree)
+               (<span style="color: #a020f0;">cond</span> ((consp tree) (<span style="color: #a020f0;">cond</span> ((and (equal 2 (length tree))
+                                               (equal <span style="color: #483d8b;">:L</span> (car tree))
+                                               (stringp (cadr tree))) (<span style="color: #a020f0;">prog1</span> nil
+                                                                        (format t <span style="color: #8b2252;">"~A-&gt; ~A~%"</span> prefix (cadr tree))))
+                                         ((equal <span style="color: #483d8b;">:U</span> (car tree)) (<span style="color: #a020f0;">prog1</span> nil
+                                                                  (setf prefix (concatenate 'string (make-string indent <span style="color: #483d8b;">:initial-element</span> #\Space) prefix))
+                                                                  (rec (cdr tree))
+                                                                  (setf prefix (subseq prefix indent))))
+                                         ((and (equal 2 (length tree))
+                                               (equal <span style="color: #483d8b;">:B</span> (car tree))
+                                               (stringp (cadr tree))) (format t <span style="color: #8b2252;">"~A[~A]~%"</span> prefix (cadr tree)))
+                                         (t (cons (rec (car tree))
+                                                  (rec (cdr tree))))))
+                     (t (<span style="color: #a020f0;">cond</span> ((stringp tree) (format t <span style="color: #8b2252;">"~A~A~%"</span> prefix tree))
+                              <span style="color: #b22222;">;; </span><span style="color: #b22222;">((null tree) (format t "~%"))</span>
+                              )))))
+      (rec tree))
+    nil))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3-18" class="outline-3">
+<h3 id="sec-3-18"><span class="section-number-3">3.18</span> <span class="todo TODO">TODO</span> СТОП!!!</h3>
+<div class="outline-text-3" id="text-3-18">
 <p>
 После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
 интерфейсная часть.
@@ -1615,9 +1678,9 @@ for the JavaScript code in this tag.
 </p>
 </div>
 
-<div id="outline-container-sec-3-13-1" class="outline-4">
-<h4 id="sec-3-13-1"><span class="section-number-4">3.13.1</span> Для красоты</h4>
-<div class="outline-text-4" id="text-3-13-1">
+<div id="outline-container-sec-3-18-1" class="outline-4">
+<h4 id="sec-3-18-1"><span class="section-number-4">3.18.1</span> Для красоты</h4>
+<div class="outline-text-4" id="text-3-18-1">
 <p>
 Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
 красивую подсветку. Также нужны имена кусков.
@@ -1625,17 +1688,17 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
-<div id="outline-container-sec-3-14" class="outline-3">
-<h3 id="sec-3-14"><span class="section-number-3">3.14</span> Неактуальное</h3>
-<div class="outline-text-3" id="text-3-14">
+<div id="outline-container-sec-3-19" class="outline-3">
+<h3 id="sec-3-19"><span class="section-number-3">3.19</span> Неактуальное</h3>
+<div class="outline-text-3" id="text-3-19">
 <p>
 Эти два раздела заменены на более функциональные
 </p>
 </div>
 
-<div id="outline-container-sec-3-14-1" class="outline-4">
-<h4 id="sec-3-14-1"><span class="section-number-4">3.14.1</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
-<div class="outline-text-4" id="text-3-14-1">
+<div id="outline-container-sec-3-19-1" class="outline-4">
+<h4 id="sec-3-19-1"><span class="section-number-4">3.19.1</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
+<div class="outline-text-4" id="text-3-19-1">
 <p>
 Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
 разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -1966,9 +2029,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-3-14-2" class="outline-4">
-<h4 id="sec-3-14-2"><span class="section-number-4">3.14.2</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
-<div class="outline-text-4" id="text-3-14-2">
+<div id="outline-container-sec-3-19-2" class="outline-4">
+<h4 id="sec-3-19-2"><span class="section-number-4">3.19.2</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
+<div class="outline-text-4" id="text-3-19-2">
 <p>
 Разбирая вакансию мы должны извлечь несколько блоков:
 </p>
@@ -4486,7 +4549,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-19 Пн. 21:48</p>
+<p class="date">Created: 2015-01-20 Вт. 06:13</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

@@ -88,33 +88,73 @@
 ;;   (SETF VACANCY NIL)
 ;;   :STOP)
 
-(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "JetBrains"))
-  (dbg "already worked: ~A" (getf vacancy :emp-name)))
+(in-package #:moto)
+
+(defmethod show (vacancy)
+  (format t "~%")
+  (format t "~%~A :~A: ~A [~A]"
+       (getf vacancy :salary-text)
+       (getf vacancy :currency)
+       (getf vacancy :name)
+       (getf vacancy :id))
+  (format t "~%~A" (getf vacancy :emp-name))
+  (show-descr (getf vacancy :descr)))
+
+(defun show-descr (tree)
+  (let ((indent 2)
+        (prefix ""))
+    (labels ((out (format tree)
+               (format t "~A~A" (make-string indent :initial-element #\Space)
+                       (format nil format tree)))
+             (rec (tree)
+               (cond ((consp tree) (cond ((and (equal 2 (length tree))
+                                               (equal :L (car tree))
+                                               (stringp (cadr tree))) (prog1 nil
+                                                                        (format t "~A-> ~A~%" prefix (cadr tree))))
+                                         ((equal :U (car tree)) (prog1 nil
+                                                                  (setf prefix (concatenate 'string (make-string indent :initial-element #\Space) prefix))
+                                                                  (rec (cdr tree))
+                                                                  (setf prefix (subseq prefix indent))))
+                                         ((and (equal 2 (length tree))
+                                               (equal :B (car tree))
+                                               (stringp (cadr tree))) (format t "~A[~A]~%" prefix (cadr tree)))
+                                         (t (cons (rec (car tree))
+                                                  (rec (cdr tree))))))
+                     (t (cond ((stringp tree) (format t "~A~A~%" prefix tree))
+                              ;; ((null tree) (format t "~%"))
+                              )))))
+      (rec tree))
+    nil))
+
+(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
+  ;; (dbg "already worked: ~A" (getf vacancy :emp-name))
+  )
 
 (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
-  (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists)))
+  ;; (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists))
+  )
 
 (define-rule (set-rank t)
   (setf (getf vacancy :rank) (getf vacancy :salary)))
 
 (define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
-  (dbg "up rank by Lisp")
+  ;; (dbg "up rank by Lisp")
   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
 
 (define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
-  (dbg "up rank by Erlang")
+  ;; (dbg "up rank by Erlang")
   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
 
 (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
-  (dbg "up rank by Haskell")
+  ;; (dbg "up rank by Haskell")
   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
 
 (define-rule (z-save t)
   (save-vacancy vacancy))
 
 (define-rule (z-print t)
-     (dbg "~A" (bprint vacancy))
-     :stop)
+  (show vacancy)
+  :stop)
 
 (in-package #:moto)
 
@@ -122,7 +162,7 @@
 
 (defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
   `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
-     (dbg "drop teaser:")
+     ;; (dbg "drop teaser:")
      ,@consequent
      (setf vacancy nil)
      :stop))
@@ -148,7 +188,7 @@
 (defmacro define-drop-teaser-by-name-rule (str &body consequent)
   `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
                               (contains (getf vacancy :name) ,str))
-     (dbg "  - :name contains ~A" ,str)
+     ;; (dbg "  - :name contains ~A" ,str)
      ,@consequent))
 
 ;; expand
@@ -195,10 +235,12 @@
 ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
 
 (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
-  (dbg "  - no salary"))
+  ;; (dbg "  - no salary")
+  )
 
 (define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 60000))
-  (dbg "  - low salary"))
+  ;; (dbg "  - low salary")
+  )
 
 (define-drop-all-teaser-when-name-contains-rule
     "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Qa" "C#" ".NET"
@@ -481,34 +523,36 @@
 (in-package #:moto)
 
 (defun transform-description (tree-descr)
-  (let ((result)
-        (header))
-    (mapcar #'(lambda (item)
-                (unless (equal " " item)
-                  (cond ((and (null header) (consp item) (equal 1 (length item)))
-                         (setf header (car item)))
-                        ((and (not (null header)) (consp item) (not (equal 1 (length item))))
-                         (progn
-                           (setf result (append result (list (list header item))))
-                           (setf header nil)))
-                        (t (setf result (append result (list item)))))))
-            (mtm (`" " 'Z)
-                 (mtm (`("br" NIL) 'Z)
-                      (mtm (`(,(or "ul" "p") NIL ,@rest)
-                             (remove-if #'(lambda (x) (and (not (consp x)) (equal x " "))) rest))
-                           (mtm (`(,(or "li" "em") NIL ,in) in)
-                                (mtm (`("strong" NIL ,in) in) tree-descr))))))
-    (labels ((tmp (tree)
-               (cond  ((consp tree) (remove-if #'(lambda (x) (equal x 'z))
-                                               (cons (tmp (car tree))
-                                                     (tmp (cdr tree)))))
-                      (t tree))))
-      (tmp result))))
+  (labels ((rem-z (tree)
+             (cond ((consp tree)
+                    (cons (if (equal (car tree) 'z)
+                              (rem-z (cdr tree))
+                              (rem-z (car tree)))
+                          (rem-z (remove-if #'(lambda (x) (equal x 'z))
+                                            (cdr tree)))))
+                   (t tree)))
+           (rem-nil (tree)
+             (cond ((consp tree) (cons (rem-nil (car tree))
+                                       (rem-nil (remove-if #'(lambda (x) (or (equal x " ")
+                                                                             (equal x NIL)))
+                                                           (cdr tree)))))
+                   (t tree))))
+    (rem-z
+     (mtm (`("p" ,@in) in)
+          (mtm (`("li" ,@in) `(:l ,in))
+               (mtm (`("ul" ,@in) `(:u ,in))
+                    (mtm (`("li" ,in) `(:l ,in))
+                         (mtm (`("p" ,in) in)
+                              (mtm (`("strong" ,in) `(:b ,in))
+                                   (mtm (`("em" ,in) `(:b ,in))
+                                        (mtm (`("br") 'Z)
+                                             (rem-nil tree-descr))))))))))))
 
-(defun hh-parse-vacancy (html &optional intree)
-  (let* ((tree (aif intree
-                    it
-                    (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))))
+;; (print
+;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12586420")))
+
+(defun hh-parse-vacancy (html)
+  (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
     (append (block header-extract
               (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
                             ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
@@ -557,7 +601,7 @@
         (teasers nil))
     (alexandria:named-lambda get-vacancy ()
       (labels ((load-next-teasers-page ()
-                 (dbg "~~ LOAD (page=~A)" page)
+                 ;; (dbg "~~ LOAD (page=~A)" page)
                  (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
                  (incf page)
                  (when (equal 0 (length teasers))
@@ -600,7 +644,7 @@
   (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
                       "Программирование, Разработка")))
     (loop :for i :from 1 :to 100 :do
-       (dbg "~A" i)
+       ;; (dbg "~A" i)
        (let ((vacancy (funcall gen)))
          (when (null vacancy)
            (return))))))
