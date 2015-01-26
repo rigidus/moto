@@ -87,8 +87,18 @@
 
 function getChildIds (selector) {
   return $(selector).children().map(function (i, elt) {
-    return $(elt).attr("id");
+    return [$(elt).attr("id")];
   }).get();
+}
+
+function save_state () {
+  $.post("/hh", { "act" : "save",
+                  "unsort" : getChildIds('#unsort-container').join(),
+                  "interested" : getChildIds('#interested').join(),
+                  "not_interested" : getChildIds('#not_interested').join()
+                }, function (data) {},
+         "json");
+  return false;
 }
 
 $(function() {

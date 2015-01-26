@@ -8,6 +8,9 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
+Корректно обсчитывать вилку з\п в правилах (в т.ч. долларовых)
+Перенос вакансий для автоматической отправки отзывов
+
 * Цель
 
   Мы все ищем работу на профильных сайтах время от времени. Иногда на это уходит
@@ -408,14 +411,16 @@
        ;; (dbg "  - no salary")
        )
 
+     ;; Надо считать вилку!
      (define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 90000))
        ;; (dbg "  - low salary")
        )
 
      (define-drop-all-teaser-when-name-contains-rule
-         "iOS" "Python" "Django" "IOS" "1C" "С++" "Ruby" "Ruby on Rails"
+         "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
          "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
-         "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi" "Sharepoint" "Flash" "PL/SQL")
+         "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
+         "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
    #+END_SRC
 
 ** Макросы для определения правил отсева тизеров
@@ -1195,6 +1200,18 @@
             "' onclick='" ,onclick
             ";return false;' />"))
 
+     (print (macroexpand-1 '(btn+ "zzz" "zzz" "alert(1);")))
+
+     (print
+     (S+
+       "<input type='button' name='"
+       "zzz"
+       "' value='"
+       "zzz"
+       "' onclick='"
+       "alert(1);"
+       ";return false;' />"))
+
      (defmacro/ps asm+ (id name salary-text)
        `(s+ "<li id=\"" ,id "\">"
             "<span class=\"handle\">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;"
@@ -1228,7 +1245,7 @@
              (ps-html
               ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
               ((:script :src "/js/jquery.sortable.js"))
-              ((:a :href "#" :onclick "ShowHide('rules')") "show-rules")
+              ((:input :type "button" :name "toggle_rules" :value "toggle_rules" :onclick "ShowHide('rules');return false;"))
               ((:table :border 1 :id "rules" :style "font-size: small; display: none")
                ((:th) "Правила отсева тизеров")
                ((:th) "Правила анализа вакансий")
@@ -1237,10 +1254,15 @@
                  (format nil "~{~A </br>~}" (rules-for-teaser)))
                 ((:td :width 500 :valign "top")
                  (format nil "~{~A </br>~}" (rules-for-vacancy)))))
+              ((:input :type "button" :name "save_state" :value "save_state" :onclick "save_state();return false;"))
               ((:table :border 1 :style "font-size: small;")
-               ((:th) "Отобранные вакансии")
+               ((:th) "Неинтересные вакансии")
+               ((:th) "Неотсортированные вакансии")
                ((:th) "Интересные вакансии")
                ((:tr)
+                ((:td :width 500 :valign "top")
+                 ((:ul :class "connected" :id "not-interesting-container")
+                  (mrg nil)))
                 ((:td :width 500 :valign "top")
                  ((:ul :class "connected" :id "unsort-container")
                   (mrg sorted-vacs)))
@@ -2477,7 +2499,6 @@
    Вакансия может стать неактуальной если работодатель снимет ее, но работодатели могут
    забывать это сделать, поэтому можно предусмотреть тайм-аут или даже некоторое кол-во
    голосов соискателей, которые дозвонились но им сказали, что вакансия уже неактуальна.
-
 
 
 * Тесты

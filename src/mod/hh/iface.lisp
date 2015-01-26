@@ -6,6 +6,214 @@
 ;; Страницы
 (in-package #:moto)
 
+(defmacro/ps s+ (&body body)
+  `(concatenate 'string ,@body))
+
+(defmacro/ps btn+ (name value onclick)
+  `(s+ "<input type='button' name='" ,name
+       "' value='" ,value
+       "' onclick='" ,onclick
+       ";return false;' />"))
+
+(defmacro/ps asm+ (id name salary-text)
+  `(s+ "<li id=\"" ,id "\">"
+       "<span class=\"handle\">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;"
+       "<a href=\"/vacancy/"
+       ,id
+       "\">"
+       ,name
+       "</a>"
+       "&nbsp;"
+       "<span style='color: red'>" ,salary-text "</span>"
+       "</li>"))
+
+(restas:define-route hh-main ("/hh")
+  (labels ((asm-node (x)
+             (asm+ (format nil "~A" (src-id x))
+                   (name x)
+                   (let ((it (salary-text x)))
+                     (if (equal it "false") "" it))))
+           (mrg (param)
+             (if (null param)
+                 (ps-html ((:li :id 0)
+                           "Нет вакансий"))
+                 (reduce #'(lambda (x y)
+                             (concatenate 'string x (string #\NewLine) y))
+                         (mapcar #'(lambda (x)
+                                     (asm-node x))
+                                 param)))))
+    (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+           (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b))))))
+      (with-wrapper
+        (ps-html
+         ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
+         ((:script :src "/js/jquery.sortable.js"))
+         ((:a :href "#" :onclick "ShowHide('rules')") "show-rules")
+         ((:table :border 1 :id "rules" :style "font-size: small; display: none")
+          ((:th) "Правила отсева тизеров")
+          ((:th) "Правила анализа вакансий")
+          ((:tr)
+           ((:td :width 500 :valign "top")
+            (format nil "~{~A </br>~}" (rules-for-teaser)))
+           ((:td :width 500 :valign "top")
+            (format nil "~{~A </br>~}" (rules-for-vacancy)))))
+         ((:table :border 1 :style "font-size: small;")
+          ((:th) "Отобранные вакансии")
+          ((:th) "Интересные вакансии")
+          ((:tr)
+           ((:td :width 500 :valign "top")
+            ((:ul :class "connected" :id "unsort-container")
+             (mrg sorted-vacs)))
+           ((:td :width 500 :valign "top")
+            ((:ul :class "connected" :id "interesting-container")
+             (mrg nil)))))
+         )))))
+
+(restas:define-route hh-main-post ("/collection" :method :post)
+  ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
+  (with-wrapper
+    (error 'ajax :output (cl-json:encode-json-to-string
+                          (aif (find-vacancy :profile-id 1)
+                               it
+                               (err "null vacancy"))))))
+
+(in-package #:moto)
+
+(defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
+  (ps-html
+   ((:table :border 0)
+    ((:tr)
+     ((:td) "id:")
+     ((:td) (id vac)))
+    ((:tr)
+     ((:td) "src-id:")
+     ((:td) (src-id vac)))
+    ((:tr)
+     ((:td) "archive:")
+     ((:td) (archive vac)))
+    ((:tr)
+     ((:td) "name:")
+     ((:td) (name vac)))
+    ((:tr)
+     ((:td) "currency:")
+     ((:td) (currency vac)))
+    ((:tr)
+     ((:td) "base-salary:")
+     ((:td) (base-salary vac)))
+    ((:tr)
+     ((:td) "salary:")
+     ((:td) (salary vac)))
+    ((:tr)
+     ((:td) "salary-text:")
+     ((:td) (salary-text vac)))
+    ((:tr)
+     ((:td) "emp-id:")
+     ((:td) (emp-id vac)))
+    ((:tr)
+     ((:td) "emp-name:")
+     ((:td) (emp-name vac)))
+    ((:tr)
+     ((:td) "city:")
+     ((:td) (city vac)))
+    ((:tr)
+     ((:td) "metro:")
+     ((:td) (metro vac)))
+    ((:tr)
+     ((:td) "experience:")
+     ((:td) (experience vac)))
+    ((:tr)
+     ((:td) "date:")
+     ((:td) (date vac)))
+    ((:tr)
+     ((:td) "descr:")
+     ((:td) ((:pre) (descr vac))))
+    )))
+
+(restas:define-route vacancy ("/vacancy/:id")
+  (to-html (car (find-vacancy :src-id id))))
+
+(defparameter *slideshows* (make-hash-table :test 'equalp))
+
+(defun add-slideshow (slideshow-name image-folder)
+  (setf (gethash slideshow-name *slideshows*)
+        (mapcar (lambda (pathname)
+                  (url-encode (format nil "~a.~a"
+                                      (pathname-name pathname)
+                                      (pathname-type pathname))))
+                (list-directory image-folder))))
+
+(add-slideshow "img" "/home/rigidus/repo/moto/img/")
+(add-slideshow "pic" "/home/rigidus/repo/moto/pic/")
+
+(alexandria:hash-table-plist *slideshows*)
+
+(defmacro/ps slideshow-image-uri (slideshow-name image-file)
+  `(concatenate 'string ,slideshow-name "/" ,image-file))
+
+(restas:define-route y ("y")
+  (ps
+    (define-symbol-macro fragment-identifier (@ window location hash))
+    (defun show-image-number (image-index)
+      (let ((image-name (aref *images* (setf *current-image-index* image-index))))
+        (setf (chain document (get-element-by-id "slideshow-img-object") src)
+              (slideshow-image-uri *slideshow-name* image-name)
+              fragment-identifier
+              image-name)))
+    (defun previous-image ()
+      (when (> *current-image-index* 0)
+        (show-image-number (1- *current-image-index*))))
+    (defun next-image ()
+      (when (< *current-image-index* (1- (getprop *images* 'length)))
+        (show-image-number (1+ *current-image-index*))))
+    ;; this gives bookmarkability using fragment identifiers
+    (setf (getprop window 'onload)
+          (lambda ()
+            (when fragment-identifier
+              (let ((image-name (chain fragment-identifier (slice 1))))
+                (dotimes (i (length *images*))
+                  (when (string= image-name (aref *images* i))
+                    (show-image-number i)))))))))
+
+(defun slideshow-handler (slideshow-name)
+  (let* ((images (gethash slideshow-name *slideshows*))
+         (current-image-index (or (position (get-parameter "image") images :test #'equalp)
+                                  0))
+         (previous-image-index (max 0 (1- current-image-index)))
+         (next-image-index (min (1- (length images)) (1+ current-image-index))))
+    (with-html-output-to-string (s)
+      (:html
+       (:head
+        (:title "Parenscript slideshow")
+        (:script :type "text/javascript"
+                 (str (ps* `(progn
+                              (var *slideshow-name* ,slideshow-name)
+                              (var *images* (array ,@images))
+                              (var *current-image-index* ,current-image-index)))))
+        (:script :type "text/javascript" :src "/y")
+        )
+       (:body
+        (:div :id "slideshow-container"
+              :style "width:100%;text-align:center"
+              (:img :id "slideshow-img-object"
+                    :src (slideshow-image-uri slideshow-name
+                                              (elt images current-image-index)))
+              :br
+              (:a :href (format nil "?image=~a" (elt images previous-image-index))
+                  :onclick (ps (previous-image) (return false))
+                  "Previous")
+              " "
+              (:a :href (format nil "?image=~a" (elt images next-image-index))
+                  :onclick (ps (next-image) (return false))
+                  "Next")
+              ))))))
+
+(restas:define-route x ("/x")
+  (slideshow-handler "pic"))
+
+(restas:define-route z ("/z")
+  (slideshow-handler "img"))
+(in-package #:moto)
+
 (define-iface-add-del-entity all-profiles "/profiles"
   "Поисковые профили"
   "Новый профиль"
@@ -151,215 +359,4 @@
 ;;   (remove-if #'(lambda (x)
 ;;                  (equal (salary x) 0))
 ;;              (all-vacancy))))
-(in-package #:moto)
-
-(defmacro/ps s+ (&body body)
-  `(concatenate 'string ,@body))
-
-(defmacro/ps btn+ (name value onclick)
-  `(s+ "<input type='button' name='" ,name
-       "' value='" ,value
-       "' onclick='" ,onclick
-       ";return false;' />"))
-
-(defmacro/ps asm+ (id name salary-text)
-  `(s+ "<li id=\"" ,id "\">"
-       "<span class=\"handle\">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;"
-       "<a href=\"/vacancy/"
-       ,id
-       "\">"
-       ,name
-       "</a>"
-       "&nbsp;"
-       "<span style='color: red'>" ,salary-text "</span>"
-       "</li>"))
-
-(restas:define-route collection ("/collection")
-  (labels ((asm-node (x)
-             (asm+ (format nil "~A" (src-id x))
-                   (name x)
-                   (let ((it (salary-text x)))
-                     (if (equal it "false") "" it))))
-           (mrg (param)
-             (if (null param)
-                 (ps-html ((:li :id 0)
-                           "Нет вакансий"))
-                 (reduce #'(lambda (x y)
-                             (concatenate 'string x (string #\NewLine) y))
-                         (mapcar #'(lambda (x)
-                                     (asm-node x))
-                                 param)))))
-    (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-           (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
-           (not-interesting)
-           (interesting)
-           (unsort))
-      (with-wrapper
-        (ps-html
-         ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
-         ((:script :src "/js/jquery.sortable.js"))
-         ((:table :border 0 :style "font-size: small;")
-          ((:th) "Интересные")
-          ((:th) "Неразобранные")
-          ((:th) "Неинтересные")
-          ((:tr)
-           ((:td :width 500 :valign "top")
-            ((:ul :class "connected" :id "interesting-container")
-             (mrg nil)))
-           ((:td :width 500 :valign "top")
-            ((:ul :class "connected" :id "unsort-container")
-             (mrg sorted-vacs)))
-           ((:td :width 500 :valign "top")
-            ((:ul :class "connected" :id "not-interesting-container")
-             (mrg not-interesting))))))))))
-
-(restas:define-route collection-post ("/collection" :method :post)
-  ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
-  (with-wrapper
-    (error 'ajax :output (cl-json:encode-json-to-string
-                          (aif (find-vacancy :profile-id 1)
-                               it
-                               (err "null vacancy"))))))
-(in-package #:moto)
-
-(defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
-  (ps-html
-   ((:table :border 0)
-    ((:tr)
-     ((:td) "id:")
-     ((:td) (id vac)))
-    ((:tr)
-     ((:td) "src-id:")
-     ((:td) (src-id vac)))
-    ((:tr)
-     ((:td) "archive:")
-     ((:td) (archive vac)))
-    ((:tr)
-     ((:td) "name:")
-     ((:td) (name vac)))
-    ((:tr)
-     ((:td) "currency:")
-     ((:td) (currency vac)))
-    ((:tr)
-     ((:td) "base-salary:")
-     ((:td) (base-salary vac)))
-    ((:tr)
-     ((:td) "salary:")
-     ((:td) (salary vac)))
-    ((:tr)
-     ((:td) "salary-text:")
-     ((:td) (salary-text vac)))
-    ((:tr)
-     ((:td) "emp-id:")
-     ((:td) (emp-id vac)))
-    ((:tr)
-     ((:td) "emp-name:")
-     ((:td) (emp-name vac)))
-    ((:tr)
-     ((:td) "city:")
-     ((:td) (city vac)))
-    ((:tr)
-     ((:td) "metro:")
-     ((:td) (metro vac)))
-    ((:tr)
-     ((:td) "experience:")
-     ((:td) (experience vac)))
-    ((:tr)
-     ((:td) "date:")
-     ((:td) (date vac)))
-    ((:tr)
-     ((:td) "descr:")
-     ((:td) ((:pre) (descr vac))))
-    )))
-
-(restas:define-route collection ("/vacancy/:id")
-  (to-html (car (find-vacancy :src-id id))))
-
-
-(in-package #:moto)
-
-(restas:define-route hh-main ("/hh")
-  (with-wrapper
-      "<h1>Главная страница HH zzzz</h1>"
-    ))
-(defparameter *slideshows* (make-hash-table :test 'equalp))
-
-(defun add-slideshow (slideshow-name image-folder)
-  (setf (gethash slideshow-name *slideshows*)
-        (mapcar (lambda (pathname)
-                  (url-encode (format nil "~a.~a"
-                                      (pathname-name pathname)
-                                      (pathname-type pathname))))
-                (list-directory image-folder))))
-
-(add-slideshow "img" "/home/rigidus/repo/moto/img/")
-(add-slideshow "pic" "/home/rigidus/repo/moto/pic/")
-
-(alexandria:hash-table-plist *slideshows*)
-
-(defmacro/ps slideshow-image-uri (slideshow-name image-file)
-  `(concatenate 'string ,slideshow-name "/" ,image-file))
-
-(restas:define-route y ("y")
-  (ps
-    (define-symbol-macro fragment-identifier (@ window location hash))
-    (defun show-image-number (image-index)
-      (let ((image-name (aref *images* (setf *current-image-index* image-index))))
-        (setf (chain document (get-element-by-id "slideshow-img-object") src)
-              (slideshow-image-uri *slideshow-name* image-name)
-              fragment-identifier
-              image-name)))
-    (defun previous-image ()
-      (when (> *current-image-index* 0)
-        (show-image-number (1- *current-image-index*))))
-    (defun next-image ()
-      (when (< *current-image-index* (1- (getprop *images* 'length)))
-        (show-image-number (1+ *current-image-index*))))
-    ;; this gives bookmarkability using fragment identifiers
-    (setf (getprop window 'onload)
-          (lambda ()
-            (when fragment-identifier
-              (let ((image-name (chain fragment-identifier (slice 1))))
-                (dotimes (i (length *images*))
-                  (when (string= image-name (aref *images* i))
-                    (show-image-number i)))))))))
-
-(defun slideshow-handler (slideshow-name)
-  (let* ((images (gethash slideshow-name *slideshows*))
-         (current-image-index (or (position (get-parameter "image") images :test #'equalp)
-                                  0))
-         (previous-image-index (max 0 (1- current-image-index)))
-         (next-image-index (min (1- (length images)) (1+ current-image-index))))
-    (with-html-output-to-string (s)
-      (:html
-       (:head
-        (:title "Parenscript slideshow")
-        (:script :type "text/javascript"
-                 (str (ps* `(progn
-                              (var *slideshow-name* ,slideshow-name)
-                              (var *images* (array ,@images))
-                              (var *current-image-index* ,current-image-index)))))
-        (:script :type "text/javascript" :src "/y")
-        )
-       (:body
-        (:div :id "slideshow-container"
-              :style "width:100%;text-align:center"
-              (:img :id "slideshow-img-object"
-                    :src (slideshow-image-uri slideshow-name
-                                              (elt images current-image-index)))
-              :br
-              (:a :href (format nil "?image=~a" (elt images previous-image-index))
-                  :onclick (ps (previous-image) (return false))
-                  "Previous")
-              " "
-              (:a :href (format nil "?image=~a" (elt images next-image-index))
-                  :onclick (ps (next-image) (return false))
-                  "Next")
-              ))))))
-
-(restas:define-route x ("/x")
-  (slideshow-handler "pic"))
-
-(restas:define-route z ("/z")
-  (slideshow-handler "img"))
 ;; iface ends here

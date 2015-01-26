@@ -270,9 +270,10 @@
   )
 
 (define-drop-all-teaser-when-name-contains-rule
-    "iOS" "Python" "Django" "IOS" "1C" "С++" "Ruby" "Ruby on Rails"
+    "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
     "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
-    "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi" "Sharepoint" "Flash" "PL/SQL")
+    "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
+    "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
 
 (defun get-all-rules ()
   (let ((result (make-hash-table :test #'equal)))
