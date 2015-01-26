@@ -94,8 +94,8 @@ function getChildIds (selector) {
 function save_state () {
   $.post("/hh", { "act" : "save",
                   "unsort" : getChildIds('#unsort-container').join(),
-                  "interested" : getChildIds('#interested').join(),
-                  "not_interested" : getChildIds('#not_interested').join()
+                  "interesting" : getChildIds('#interesting-container').join(),
+                  "not-interesting" : getChildIds('#not-interesting-container').join()
                 }, function (data) {},
          "json");
   return false;
