@@ -624,12 +624,14 @@
      <<make_specialization_hh_url_string>>
 
      (defun make-hh-url (city prof-area &optional specs)
-       "http://spb.hh.ru/search/vacancy?items_on_page=100&order_by=salary_desc&specialization=1&only_with_salary=true&area=2&clusters=true&no_magic=true&search_period=30&page=~~A"a
+       "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&experience=doesNotMatter&order_by=relevance&search_period=30&items_on_page=20&no_magic=true&page=~A"
+       "http://spb.hh.ru/search/vacancy?text=&specialization=1.221&area=2&items_on_page=100&no_magic=true&page=~A"
        ;; (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
        ;; city
        ;; (make-specialization-hh-url-string prof-area specs)
        ;; 2)
        )
+
 
      ;; test
 
