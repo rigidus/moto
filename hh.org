@@ -1269,7 +1269,7 @@
 
      (defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
        (ps-html
-        ((:table :border 0 :style "font-size: small;")
+        ((:table :border 0)
          ((:tr)
           ((:td) "id:")
           ((:td) (id vac)))
@@ -1314,10 +1314,13 @@
           ((:td) (date vac)))
          ((:tr)
           ((:td) "descr:")
-          ((:td) (descr vac)))
+          ((:td) ((:pre) (descr vac))))
          )))
-   #+END_SRC
 
+     (restas:define-route collection ("/vacancy/:id")
+       (to-html (car (find-vacancy :src-id id))))
+
+   #+END_SRC
 
 * TODO СТОП!!!
 

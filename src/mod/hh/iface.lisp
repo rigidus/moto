@@ -18,7 +18,9 @@
 (defmacro/ps asm+ (id name salary-text)
   `(s+ "<li id=\"" ,id "\">"
        "<span class=\"handle\">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;"
-       "<a href=\"#\">"
+       "<a href=\"/vacancy/"
+       ,id
+       "\">"
        ,name
        "</a>"
        "&nbsp;"
@@ -27,7 +29,7 @@
 
 (restas:define-route collection ("/collection")
   (labels ((asm-node (x)
-             (asm+ (format nil "~A" (id x))
+             (asm+ (format nil "~A" (src-id x))
                    (name x)
                    (let ((it (salary-text x)))
                      (if (equal it "false") "" it))))
@@ -40,7 +42,6 @@
                          (mapcar #'(lambda (x)
                                      (asm-node x))
                                  param)))))
-
     (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
            (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
            (not-interesting)
@@ -65,8 +66,6 @@
             ((:ul :class "connected" :id "not-interesting-container")
              (mrg not-interesting))))))))))
 
-
-
 (restas:define-route collection-post ("/collection" :method :post)
   ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
   (with-wrapper
@@ -74,6 +73,57 @@
                           (aif (find-vacancy :profile-id 1)
                                it
                                (err "null vacancy"))))))
+(in-package #:moto)
+
+(defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
+  (ps-html
+   ((:table :border 0)
+    ((:tr)
+     ((:td) "id:")
+     ((:td) (id vac)))
+    ((:tr)
+     ((:td) "src-id:")
+     ((:td) (src-id vac)))
+    ((:tr)
+     ((:td) "archive:")
+     ((:td) (archive vac)))
+    ((:tr)
+     ((:td) "name:")
+     ((:td) (name vac)))
+    ((:tr)
+     ((:td) "currency:")
+     ((:td) (currency vac)))
+    ((:tr)
+     ((:td) "base-salary:")
+     ((:td) (base-salary vac)))
+    ((:tr)
+     ((:td) "salary:")
+     ((:td) (salary vac)))
+    ((:tr)
+     ((:td) "salary-text:")
+     ((:td) (salary-text vac)))
+    ((:tr)
+     ((:td) "emp-id:")
+     ((:td) (emp-id vac)))
+    ((:tr)
+     ((:td) "emp-name:")
+     ((:td) (emp-name vac)))
+    ((:tr)
+     ((:td) "city:")
+     ((:td) (city vac)))
+    ((:tr)
+     ((:td) "metro:")
+     ((:td) (metro vac)))
+    ((:tr)
+     ((:td) "experience:")
+     ((:td) (experience vac)))
+    ((:tr)
+     ((:td) "date:")
+     ((:td) (date vac)))
+    ((:tr)
+     ((:td) "descr:")
+     ((:td) ((:pre) (descr vac))))
+    )))
 (in-package #:moto)
 
 (define-iface-add-del-entity all-profiles "/profiles"
