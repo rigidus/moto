@@ -48,7 +48,7 @@
         (ps-html
          ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
          ((:script :src "/js/jquery.sortable.js"))
-         ((:a :href "#" :onclick "ShowHide('rules')") "show-rules")
+         ((:input :type "button" :name "toggle_rules" :value "toggle_rules" :onclick "ShowHide('rules');return false;"))
          ((:table :border 1 :id "rules" :style "font-size: small; display: none")
           ((:th) "Правила отсева тизеров")
           ((:th) "Правила анализа вакансий")
@@ -57,25 +57,47 @@
             (format nil "~{~A </br>~}" (rules-for-teaser)))
            ((:td :width 500 :valign "top")
             (format nil "~{~A </br>~}" (rules-for-vacancy)))))
+         ((:input :type "button" :name "save_state" :value "save_state" :onclick "save_state();return false;"))
          ((:table :border 1 :style "font-size: small;")
-          ((:th) "Отобранные вакансии")
+          ((:th) "Неинтересные вакансии")
+          ((:th) "Неотсортированные вакансии")
           ((:th) "Интересные вакансии")
           ((:tr)
            ((:td :width 500 :valign "top")
+            ((:ul :class "connected" :id "not-interesting-container")
+             (mrg (remove-if-not #'(lambda (x)
+                                     (equal ":NOT-INTERESTING" (state x)))
+                                 sorted-vacs))))
+           ((:td :width 500 :valign "top")
             ((:ul :class "connected" :id "unsort-container")
-             (mrg sorted-vacs)))
+             (mrg (remove-if-not #'(lambda (x)
+                                     (equal ":UNSORT" (state x)))
+                                 sorted-vacs))))
            ((:td :width 500 :valign "top")
             ((:ul :class "connected" :id "interesting-container")
-             (mrg nil)))))
-         )))))
+             (mrg (remove-if-not #'(lambda (x)
+                                     (equal ":INTERESTING" (state x)))
+                                 sorted-vacs))))
+           )))))))
 
-(restas:define-route hh-main-post ("/collection" :method :post)
-  ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
-  (with-wrapper
-    (error 'ajax :output (cl-json:encode-json-to-string
-                          (aif (find-vacancy :profile-id 1)
-                               it
-                               (err "null vacancy"))))))
+
+(restas:define-route hh-main-post ("/hh" :method :post)
+  (let ((act (cdr (assoc "act" (hunchentoot:post-parameters*) :test #'equal))))
+    (cond ((equal "save" act)
+           (labels ((get-post-array (name)
+                      (remove-if #'(lambda (x)
+                                     (or
+                                      (equal x "")
+                                      (equal x "0")))
+                                 (split-sequence:split-sequence #\, (cdr (assoc name (hunchentoot:post-parameters*) :test #'equal))))))
+             (loop :for item :in (get-post-array "unsort")  :do
+                (upd-vacancy (car (find-vacancy :src-id item)) (list :state ":UNSORT")))
+             (loop :for item :in (get-post-array "interesting")  :do
+                (upd-vacancy (car (find-vacancy :src-id item)) (list :state ":INTERESTING")))
+             (loop :for item :in (get-post-array "not-interesting") :do
+                (upd-vacancy (car (find-vacancy :src-id item)) (list :state ":NOT-INTERESTING")))
+             (with-wrapper
+               (error 'ajax :output (cl-json:encode-json-to-string (list :data "ok")))))))))
 
 (in-package #:moto)
 

@@ -265,9 +265,10 @@
   ;; (dbg "  - no salary")
   )
 
-(define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary) 90000))
-  ;; (dbg "  - low salary")
+(define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary-max) 90000))
+  ;; (dbg "  - no salary")
   )
+
 
 (define-drop-all-teaser-when-name-contains-rule
     "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
@@ -422,10 +423,12 @@
 ;;                                      "Электронная коммерция"))
 
 (defun make-hh-url (city prof-area &optional specs)
-  (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
-          city
-          (make-specialization-hh-url-string prof-area specs)
-          2))
+  (format nil "http://spb.hh.ru/search/vacancy?items_on_page=100&order_by=salary_desc&specialization=1&only_with_salary=true&area=2&clusters=true&no_magic=true&search_period=30&page=~~A")
+  ;; (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
+  ;; city
+  ;; (make-specialization-hh-url-string prof-area specs)
+  ;; 2)
+  )
 
 ;; test
 
@@ -473,79 +476,115 @@
                           #'mapcar))
               ,tree)))
 
+(in-package #:moto)
+
+(defun parse-salary (vacancy)
+  (let ((currency (getf vacancy :CURRENCY))
+        (salary-text (ppcre:regex-replace-all " " (getf vacancy :salary-text) ""))
+        (salary-min nil)
+        (salary-max nil))
+    (cond ((equal currency "RUR")
+           (setf salary-text (ppcre:regex-replace-all " руб." salary-text "")))
+          ((equal currency "USD")
+           (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
+          ((equal currency "EUR")
+           (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
+          ((equal currency nil)
+           'nil)
+          (t (progn
+               (print (getf vacancy :currency))
+               (err 'unk-currency))))
+    (cond ((search "от " salary-text)
+           (setf salary-min (parse-integer (ppcre:regex-replace-all "от " salary-text ""))))
+          ((search "до " salary-text)
+           (setf salary-max (parse-integer (ppcre:regex-replace-all "до " salary-text ""))))
+          ((search "–" salary-text)
+           (let ((splt (ppcre:split "–" salary-text)))
+             (setf salary-min (parse-integer (car splt)))
+             (setf salary-max (parse-integer (cadr splt))))))
+    (when (null salary-min)
+      (setf salary-min salary-max))
+    (when (null salary-max)
+      (setf salary-max salary-min))
+    (setf (getf vacancy :salary-min) salary-min)
+    (setf (getf vacancy :salary-max) salary-max)
+    vacancy))
+
+;; (hh-parse-vacancy-teasers
+;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
+
 (defun hh-parse-vacancy-teasers (html)
   "Получение списка вакансий из html"
-  (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) rest)
-       (mtm (`("div" (("data-qa" ,_) ("class" ,(or "search-result-item search-result-item_premium  search-result-item_premium"
-                                                   "search-result-item search-result-item_standard "
-                                                   "search-result-item search-result-item_standard_plus "))) ,@rest)
-              (let ((in (remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
-                (if (not (equal 1 (length in)))
-                    (progn (print in)
-                           (err "parsing failed, data printed"))
-                    (car in))))
-            (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
-                         ("class" ,_)
-                         ("data-qa" ,_)) " ") 'Z)
-                 (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
-                      (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
-                           (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
-                                        ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
-                                (mtm (`("div" (("class" "search-result-item__star")) ,@_) 'Z)
-                                     (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
-                                            (loop :for item :in rest :when (consp item) :append item))
-                                          (mtm (`("div" (("class" "search-result-item__head"))
-                                                        ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
-                                                                            "search-result-item__name search-result-item__name_standard_plus"
-                                                                            "search-result-item__name search-result-item__name_premium"))
-                                                              ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
-                                                 (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
-                                               (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
-                                                             ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                                                             ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
-                                                      (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
-                                                    (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
-                                                           (list :emp-name emp-name))
-                                                         (mtm (`("div" (("class" "search-result-item__company"))
-                                                                       ("a" (("href" ,emp-id)
-                                                                             ("class" "search-result-item__company-link")
-                                                                             ("data-qa" "vacancy-serp__vacancy-employer"))
-                                                                            ,emp-name))
-                                                                (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
-                                                                      :emp-name emp-name))
-                                                              (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
-                                                                     (loop :for item :in rest :when (consp item) :append item))
-                                                                   (mtm (`("span" (("class" "searchresult__address")
-                                                                                   ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
-                                                                          (let ((metro (loop :for item in rest :do
-                                                                                          (when (and (consp item) (equal :metro (car item)))
-                                                                                            (return (cadr item))))))
-                                                                            (list :city city :metro metro)))
-                                                                        (mtm (`("span" (("class" "metro-station"))
-                                                                                       ("span" (("class" "metro-point") ("style" ,_))) ,metro)
-                                                                               (list :metro metro))
-                                                                             (mtm (`("span" (("class" "b-vacancy-list-date")
-                                                                                             ("data-qa" "vacancy-serp__vacancy-date")) ,date)
-                                                                                    (list :date date))
-                                                                                  (mtm (`("span"
-                                                                                          (("class" "vacancy-list-platform")
-                                                                                           ("data-qa" "vacancy-serp__vacancy_career"))
-                                                                                          "  •  " ("span" (("class" "vacancy-list-platform__name"))
-                                                                                                          "CAREER.RU"))
-                                                                                         (list :platform 'career.ru))
-                                                                                       (block subtree-extract
-                                                                                         (mtm (`("div"
-                                                                                                 (("class" "search-result")
-                                                                                                  ("data-qa" "vacancy-serp__results"))
-                                                                                                 ,@rest)
-                                                                                                (return-from subtree-extract rest))
-                                                                                              (html5-parser:node-to-xmls
-                                                                                               (html5-parser:parse-html5-fragment html))))))))))))))))))))))
+  (mapcar #'parse-salary
+          (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) rest)
+               (mtm (`("div" (("data-qa" ,_) ("class" ,(or "search-result-item search-result-item_premium  search-result-item_premium"
+                                                           "search-result-item search-result-item_standard "
+                                                           "search-result-item search-result-item_standard_plus "))) ,@rest)
+                      (let ((in (remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
+                        (if (not (equal 1 (length in)))
+                            (progn (print in)
+                                   (err "parsing failed, data printed"))
+                            (car in))))
+                    (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
+                                 ("class" ,_)
+                                 ("data-qa" ,_)) " ") 'Z)
+                         (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
+                              (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
+                                   (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
+                                                ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
+                                        (mtm (`("div" (("class" "search-result-item__star")) ,@_) 'Z)
+                                             (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
+                                                    (loop :for item :in rest :when (consp item) :append item))
+                                                  (mtm (`("div" (("class" "search-result-item__head"))
+                                                                ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
+                                                                                    "search-result-item__name search-result-item__name_standard_plus"
+                                                                                    "search-result-item__name search-result-item__name_premium"))
+                                                                      ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
+                                                         (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
+                                                       (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
+                                                                     ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                                     ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
+                                                              (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
+                                                            (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
+                                                                   (list :emp-name emp-name))
+                                                                 (mtm (`("div" (("class" "search-result-item__company"))
+                                                                               ("a" (("href" ,emp-id)
+                                                                                     ("class" "search-result-item__company-link")
+                                                                                     ("data-qa" "vacancy-serp__vacancy-employer"))
+                                                                                    ,emp-name))
+                                                                        (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) :junk-allowed t)
+                                                                              :emp-name emp-name))
+                                                                      (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
+                                                                             (loop :for item :in rest :when (consp item) :append item))
+                                                                           (mtm (`("span" (("class" "searchresult__address")
+                                                                                           ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
+                                                                                  (let ((metro (loop :for item in rest :do
+                                                                                                  (when (and (consp item) (equal :metro (car item)))
+                                                                                                    (return (cadr item))))))
+                                                                                    (list :city city :metro metro)))
+                                                                                (mtm (`("span" (("class" "metro-station"))
+                                                                                               ("span" (("class" "metro-point") ("style" ,_))) ,metro)
+                                                                                       (list :metro metro))
+                                                                                     (mtm (`("span" (("class" "b-vacancy-list-date")
+                                                                                                     ("data-qa" "vacancy-serp__vacancy-date")) ,date)
+                                                                                            (list :date date))
+                                                                                          (mtm (`("span"
+                                                                                                  (("class" "vacancy-list-platform")
+                                                                                                   ("data-qa" "vacancy-serp__vacancy_career"))
+                                                                                                  "  •  " ("span" (("class" "vacancy-list-platform__name"))
+                                                                                                                  "CAREER.RU"))
+                                                                                                 (list :platform 'career.ru))
+                                                                                               (block subtree-extract
+                                                                                                 (mtm (`("div"
+                                                                                                         (("class" "search-result")
+                                                                                                          ("data-qa" "vacancy-serp__results"))
+                                                                                                         ,@rest)
+                                                                                                        (return-from subtree-extract rest))
+                                                                                                      (html5-parser:node-to-xmls
+                                                                                                       (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
 
-;; (print
-;;  ;; (car
-;;   (hh-parse-vacancy-teasers
-;;    (hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&specialization=1.221&area=2&page=12")))
+;; (hh-parse-vacancy-teasers
+;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
 
 (in-package #:moto)
 
@@ -663,6 +702,8 @@
                        :salary (aif (getf vacancy :salary) it 0)
                        :base-salary (aif (getf vacancy :base-salary) it 0)
                        :salary-text (getf vacancy :salary-text)
+                       :salary-max (getf vacancy :salary-max)
+                       :salary-min (getf vacancy :salary-min)
                        :emp-id (getf vacancy :emp-id)
                        :emp-name (getf vacancy :emp-name)
                        :city (getf vacancy :city)
@@ -670,6 +711,7 @@
                        :experience (getf vacancy :exp)
                        :archive (getf vacancy :archive)
                        :date (getf vacancy :date)
+                       :state ":UNSORT"
                        :descr (bprint (show-descr (getf vacancy :descr))))))))
 
 (defun run ()

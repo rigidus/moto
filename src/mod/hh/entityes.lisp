@@ -10,6 +10,8 @@
    (base-salary (or db-null integer))
    (salary (or db-null integer))
    (salary-text (or db-null varchar))
+   (salary-max (or db-null integer))
+   (salary-min (or db-null integer))
    (emp-id (or db-null integer))
    (emp-name varchar)
    (city varchar)
