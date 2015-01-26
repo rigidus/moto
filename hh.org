@@ -391,7 +391,7 @@
                   (get-all-rules)))
    #+END_SRC
 
-** Правила отсева тизеров
+** DONE Правила отсева тизеров
 
    Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
    вакансий? В основном те, которые не устраивают по зарплате и те, у которых в названиях
@@ -413,8 +413,9 @@
        )
 
      (define-drop-all-teaser-when-name-contains-rule
-         "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Q/A" "C#" ".NET"
-         "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go")
+         "iOS" "Python" "Django" "IOS" "1C" "С++" "Ruby" "Ruby on Rails"
+         "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
+         "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi" "Sharepoint" "Flash" "PL/SQL")
    #+END_SRC
 
 ** Макросы для определения правил отсева тизеров
@@ -515,7 +516,7 @@
      ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
    #+END_SRC
 
-** Правила анализа вакансий
+** DONE Правила анализа вакансий
 
    - Я не хочу смотреть на вакансии, в компаниях где я уже работал.
    - Если это уже существующая в базе вакансия и ничего не изменилось - игнорируем и
@@ -1022,22 +1023,26 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+     (defparameter *saved-vacancy* nil)
+
      (defmethod save-vacancy (vacancy)
-       (make-vacancy
-        :src-id (getf vacancy :id)
-        :name (getf vacancy :name)
-        :currency (getf vacancy :currency)
-        :salary (aif (getf vacancy :salary) it 0)
-        :base-salary (aif (getf vacancy :base-salary) it 0)
-        :salary-text (getf vacancy :salary-text)
-        :emp-id (getf vacancy :emp-id)
-        :emp-name (getf vacancy :emp-name)
-        :city (getf vacancy :city)
-        :metro (getf vacancy :metro)
-        :experience (getf vacancy :exp)
-        :archive (getf vacancy :archive)
-        :date (getf vacancy :date)
-        :descr (bprint (show-descr (getf vacancy :descr)))))
+       (setf *saved-vacancy*
+             (append *saved-vacancy*
+                     (list (make-vacancy
+                            :src-id (getf vacancy :id)
+                            :name (getf vacancy :name)
+                            :currency (getf vacancy :currency)
+                            :salary (aif (getf vacancy :salary) it 0)
+                            :base-salary (aif (getf vacancy :base-salary) it 0)
+                            :salary-text (getf vacancy :salary-text)
+                            :emp-id (getf vacancy :emp-id)
+                            :emp-name (getf vacancy :emp-name)
+                            :city (getf vacancy :city)
+                            :metro (getf vacancy :metro)
+                            :experience (getf vacancy :exp)
+                            :archive (getf vacancy :archive)
+                            :date (getf vacancy :date)
+                            :descr (bprint (show-descr (getf vacancy :descr))))))))
    #+END_SRC
 
 ** Печать вакансий
@@ -1158,7 +1163,163 @@
        (print respond))
    #+END_SRC
 
-** TODO СТОП!!!
+* Interface
+
+  Соберем веб-интерфейс:
+
+  #+NAME: iface
+  #+BEGIN_SRC lisp :tangle src/mod/hh/iface.lisp :noweb tangle :padline no :comments link
+    ;;;; iface.lisp
+
+    (in-package #:moto)
+
+    ;; Страницы
+    <<iface_contents>>
+  #+END_SRC
+
+** Список вакансий
+
+   Мне бы хотелось иметь интерфейс для того чтобы управлять собранными элементами - в первую
+   очередь ранжировать их по интересности. Для этого, мне нужно уметь перемещать эти
+   элементы в коллекции.
+
+   Но перед этим мне нужно сделать отображение этих элементов через ajax
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro/ps s+ (&body body)
+       `(concatenate 'string ,@body))
+
+     (defmacro/ps btn+ (name value onclick)
+       `(s+ "<input type='button' name='" ,name
+            "' value='" ,value
+            "' onclick='" ,onclick
+            ";return false;' />"))
+
+     (defmacro/ps asm+ (id name salary-text)
+       `(s+ "<li id=\"" ,id "\">"
+            "<span class=\"handle\">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;"
+            "<a href=\"/vacancy/"
+            ,id
+            "\">"
+            ,name
+            "</a>"
+            "&nbsp;"
+            "<span style='color: red'>" ,salary-text "</span>"
+            "</li>"))
+
+     (restas:define-route collection ("/collection")
+       (labels ((asm-node (x)
+                  (asm+ (format nil "~A" (src-id x))
+                        (name x)
+                        (let ((it (salary-text x)))
+                          (if (equal it "false") "" it))))
+                (mrg (param)
+                  (if (null param)
+                      (ps-html ((:li :id 0)
+                                "Нет вакансий"))
+                      (reduce #'(lambda (x y)
+                                  (concatenate 'string x (string #\NewLine) y))
+                              (mapcar #'(lambda (x)
+                                          (asm-node x))
+                                      param)))))
+         (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
+                (not-interesting)
+                (interesting)
+                (unsort))
+           (with-wrapper
+             (ps-html
+              ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
+              ((:script :src "/js/jquery.sortable.js"))
+              ((:table :border 0 :style "font-size: small;")
+               ((:th) "Интересные")
+               ((:th) "Неразобранные")
+               ((:th) "Неинтересные")
+               ((:tr)
+                ((:td :width 500 :valign "top")
+                 ((:ul :class "connected" :id "interesting-container")
+                  (mrg nil)))
+                ((:td :width 500 :valign "top")
+                 ((:ul :class "connected" :id "unsort-container")
+                  (mrg sorted-vacs)))
+                ((:td :width 500 :valign "top")
+                 ((:ul :class "connected" :id "not-interesting-container")
+                  (mrg not-interesting))))))))))
+
+     (restas:define-route collection-post ("/collection" :method :post)
+       ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
+       (with-wrapper
+         (error 'ajax :output (cl-json:encode-json-to-string
+                               (aif (find-vacancy :profile-id 1)
+                                    it
+                                    (err "null vacancy"))))))
+   #+END_SRC
+
+   http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
+   http://romka.eu/blog/jquery-table-drag-and-drop
+
+** Страница вакансии
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
+       (ps-html
+        ((:table :border 0 :style "font-size: small;")
+         ((:tr)
+          ((:td) "id:")
+          ((:td) (id vac)))
+         ((:tr)
+          ((:td) "src-id:")
+          ((:td) (src-id vac)))
+         ((:tr)
+          ((:td) "archive:")
+          ((:td) (archive vac)))
+         ((:tr)
+          ((:td) "name:")
+          ((:td) (name vac)))
+         ((:tr)
+          ((:td) "currency:")
+          ((:td) (currency vac)))
+         ((:tr)
+          ((:td) "base-salary:")
+          ((:td) (base-salary vac)))
+         ((:tr)
+          ((:td) "salary:")
+          ((:td) (salary vac)))
+         ((:tr)
+          ((:td) "salary-text:")
+          ((:td) (salary-text vac)))
+         ((:tr)
+          ((:td) "emp-id:")
+          ((:td) (emp-id vac)))
+         ((:tr)
+          ((:td) "emp-name:")
+          ((:td) (emp-name vac)))
+         ((:tr)
+          ((:td) "city:")
+          ((:td) (city vac)))
+         ((:tr)
+          ((:td) "metro:")
+          ((:td) (metro vac)))
+         ((:tr)
+          ((:td) "experience:")
+          ((:td) (experience vac)))
+         ((:tr)
+          ((:td) "date:")
+          ((:td) (date vac)))
+         ((:tr)
+          ((:td) "descr:")
+          ((:td) (descr vac)))
+         )))
+   #+END_SRC
+
+
+* TODO СТОП!!!
 
     После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
     интерфейсная часть.
@@ -1218,6 +1379,8 @@
     предварительная классификация предложений
 
     Построение новых правил на основе известных
+
+
 
 *** Для красоты
     Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
@@ -2253,19 +2416,6 @@
    Помогают ориентироваться, когда вакансий много.
 
 * Interface
-
-  Соберем веб-интерфейс:
-
-  #+NAME: iface
-  #+BEGIN_SRC lisp :tangle src/mod/hh/iface.lisp :noweb tangle :padline no :comments link
-    ;;;; iface.lisp
-
-    (in-package #:moto)
-
-    ;; Страницы
-    <<iface_contents>>
-  #+END_SRC
-
 ** Главная страница модуля
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
@@ -2364,205 +2514,6 @@
        (slideshow-handler "img"))
    #+END_SRC
 
-** Список вакансий
-
-   Мне бы хотелось иметь интерфейс для того чтобы управлять собранными элементами - в первую
-   очередь ранжировать их по интересности. Для этого, мне нужно уметь перемещать эти
-   элементы в коллекции.
-
-   Но перед этим мне нужно сделать отображение этих элементов через ajax
-
-   #+NAME: iface_contents
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defmacro/ps s+ (&body body)
-       `(concatenate 'string ,@body))
-
-     (defmacro/ps btn+ (name value onclick)
-       `(s+ "<input type='button' name='" ,name
-            "' value='" ,value
-            "' onclick='" ,onclick
-            ";return false;' />"))
-
-     (defmacro/ps asm+ (id name salary-text)
-       `(s+ "<li id=\"" ,id "\">"
-            "<span class=\"handle\">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;"
-            ,name
-            "&nbsp;"
-            "<span style='color: red'>" ,salary-text "</span>"
-            "</li>"))
-
-     (restas:define-route collection ("/collection")
-       (labels ((asm-node (x)
-                  (asm+ (format nil "~A" (id x))
-                        (name x)
-                        (let ((it (salary-text x)))
-                          (if (equal it "false") "" it))))
-                (mrg (param)
-                  (if (null param)
-                      (ps-html ((:li :id 0)
-                                "Нет вакансий"))
-                      (reduce #'(lambda (x y)
-                                  (concatenate 'string x (string #\NewLine) y))
-                              (mapcar #'(lambda (x)
-                                          (asm-node x))
-                                      param)))))
-         (let* ((vacs (aif (find-vacancy :profile-id 1) it (err "null vacancy")))
-                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
-                (not-interesting)
-                (interesting)
-                (unsort))
-           (loop :for vac :in sorted-vacs :do
-              (if (equal 0 (salary vac))
-                  (setf not-interesting (append not-interesting (list vac)))
-                  (if (or (search "android" (string-downcase (name vac)))
-                          (search ".net" (string-downcase (name vac)))
-                          (search "python" (string-downcase (name vac)))
-                          (search "javascript" (string-downcase (name vac)))
-                          (search "с#" (string-downcase (name vac)))
-                          (search "с++" (string-downcase (name vac)))
-                          (search "ruby" (string-downcase (name vac)))
-                          (search "SAP" (name vac))
-                          (search "1С" (name vac))
-                          (search "QA" (name vac))
-                          (search "objective-c" (string-downcase (name vac)))
-                          (search "ios" (string-downcase (name vac)))
-                          (search "delphi" (string-downcase (name vac)))
-                          (search "sharepoint" (string-downcase (name vac)))
-                          (search "flash" (string-downcase (name vac)))
-                          (search "windows" (string-downcase (name vac)))
-                          (search "pl/sql" (string-downcase (name vac)))
-                          (search "front-end" (string-downcase (name vac)))
-                          (and (equal "RUR" (currency vac))
-                               (> 50000 (salary vac)))
-                          )
-                      (setf not-interesting (append not-interesting (list vac)))
-                      (if (or (search "php" (string-downcase (name vac)))
-                              (search "java" (string-downcase (name vac)))
-                              (search "web" (string-downcase (name vac)))
-                              (search "backend" (string-downcase (name vac)))
-                              (search "back-end" (string-downcase (name vac)))
-                              )
-                          (setf interesting (append interesting (list vac)))
-                          ;; (setf unsort (append unsort (list vac)))
-                          ))))
-           (with-wrapper
-             (ps-html
-              ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
-              ((:script :src "/js/jquery.sortable.js"))
-              ;; (:script (ps
-              ;;            (defun up (id)
-              ;;              (let* ((obj ((@ $) (+ "#tr" id))))
-              ;;                ((@ obj after) ((@ obj prev)))))
-              ;;            (defun down (id)
-              ;;              (let* ((obj ((@ $) (+ "#tr" id))))
-              ;;                ((@ obj before) ((@ obj next)))))
-              ;;            (defun asm-teaser (i id name state salary salary-text currency)
-              ;;              (s+ "<li id='tr" id "'>"
-              ;;                  (s+ "<li>" name "</td>")
-              ;;                  "</li>"))
-              ;;            (defun load-elts (param)
-              ;;              ((@ $ post) "/collection" (create :act param)
-              ;;               (lambda (data)
-              ;;                 ((@ ((@ $) "#vacancy-container")  html) "")
-              ;;                 ((@ $ each) data
-              ;;                  (lambda (i data)
-              ;;                    ((@ ((@ $) "#vacancy-container")  append)
-              ;;                     (asm-teaser i (@ data id) (@ data name) (@ data state)
-              ;;                                 (@ data salary) (@ data salary-text) (@ data currency))))))
-              ;;               :json))))
-              ((:table :border 0)
-               ((:tr)
-                ((:td)
-                 ((:textarea :name "code" :id "code" :rows 20 :cols 160)
-                  (ps
-                    (defun load-elts (param)
-                      ((@ $ post) "/collection" (create :act param)
-                       (lambda (data)
-                         ((@ ((@ $) "#vacancy-container")  html) "")
-                         ((@ $ each) data
-                          (lambda (i data)
-                            ((@ ((@ $) "#vacancy-container")  append)
-                             (s+ "<li id='" (@ data id) "'>" (@ data name) "</li>")))))
-                       :json))
-                    (defun vac-hook (vac)
-                      ;; (if (equal 0 (salary vac))
-                      ;;     (setf not-interesting (append not-interesting (list vac)))
-                      ;;     (if (or (search "android" (string-downcase (name vac)))
-                      ;;             (search ".net" (string-downcase (name vac)))
-                      ;;             (search "python" (string-downcase (name vac)))
-                      ;;             (search "javascript" (string-downcase (name vac)))
-                      ;;             (search "с#" (string-downcase (name vac)))
-                      ;;             (search "с++" (string-downcase (name vac)))
-                      ;;             (search "ruby" (string-downcase (name vac)))
-                      ;;             (search "SAP" (name vac))
-                      ;;             (search "1С" (name vac))
-                      ;;             (search "QA" (name vac))
-                      ;;             (search "objective-c" (string-downcase (name vac)))
-                      ;;             (search "ios" (string-downcase (name vac)))
-                      ;;             (search "delphi" (string-downcase (name vac)))
-                      ;;             (search "sharepoint" (string-downcase (name vac)))
-                      ;;             (search "flash" (string-downcase (name vac)))
-                      ;;             (search "windows" (string-downcase (name vac)))
-                      ;;             (search "pl/sql" (string-downcase (name vac)))
-                      ;;             (search "front-end" (string-downcase (name vac)))
-                      ;;             (and (equal "RUR" (currency vac))
-                      ;;                  (> 50000 (salary vac)))
-                      ;;             )
-                      ;;         (setf not-interesting (append not-interesting (list vac)))
-                      ;;         (if (or (search "php" (string-downcase (name vac)))
-                      ;;                 (search "java" (string-downcase (name vac)))
-                      ;;                 (search "web" (string-downcase (name vac)))
-                      ;;                 (search "backend" (string-downcase (name vac)))
-                      ;;                 (search "back-end" (string-downcase (name vac)))
-                      ;;                 )
-                      ;;             (setf interesting (append interesting (list vac)))
-                      ;;             (setf unsort (append unsort (list vac)))
-                      ;;             )))
-                      )
-                    (load-elts "stub")
-                    )))
-                ((:td)
-                 ((:a :onclick "loadElts(1); return false") "loadElts(1);")
-                 (:br)
-                 ((:a :onclick "eval($('#code').val()); return false;") "eval #code")
-                 (:br)
-                 ((:a :onclick "alert(getChildIds('#interesting-container')); return false;") "childs")
-                 (:br)
-                 ((:a :onclick "$('.connected').sortable('destroy'); return false;") "destroy")
-                 (:br)
-                 ((:a :onclick "$('.connected').sortable({ connectWith: '.connected', handle: '.handle'}); return false;") "make")
-                 (:br))))
-              ((:table :border 0 :style "font-size: small;")
-               ((:th) "Интересные")
-               ((:th) "Неразобранные")
-               ((:th) "Неинтересные")
-               ((:tr)
-                ((:td :width 500 :valign "top")
-                 ((:ul :class "connected" :id "interesting-container")
-                  (mrg interesting)))
-                ((:td :width 500 :valign "top")
-                 ((:ul :class "connected" :id "unsort-container")
-                  (mrg unsort)))
-                ((:td :width 500 :valign "top")
-                 ((:ul :class "connected" :id "not-interesting-container")
-                  (mrg not-interesting))))))))))
-
-
-
-     (restas:define-route collection-post ("/collection" :method :post)
-       ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
-       (with-wrapper
-         (error 'ajax :output (cl-json:encode-json-to-string
-                               (aif (find-vacancy :profile-id 1)
-                                    it
-                                    (err "null vacancy"))))))
-   #+END_SRC
-
-   http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
-   http://romka.eu/blog/jquery-table-drag-and-drop
-
 ** Дашборд
 * Тесты
 
@@ -2610,6 +2561,8 @@
   #+NAME: hh_fn
   #+BEGIN_SRC lisp :tangle src/mod/hh/hh.lisp :noweb tangle
     (in-package #:moto)
+
+    <<tree_match>>
 
     ;; special syntax for pattern-matching
     (named-readtables:in-readtable :fare-quasiquote)

@@ -1,5 +1,33 @@
 (in-package #:moto)
 
+(defun tree-match (tree predict &optional (if-match :return-first-match))
+  (let ((collect))
+    (labels ((match-tree (tree f-predict &optional (if-match :return-first-match))
+             (cond ((null tree) nil)
+                   ((atom tree) nil)
+                   (t
+                    (if (funcall f-predict tree)
+                        (cond ((equal if-match :return-first-match)
+                               (return-from tree-match tree))
+                              ((equal if-match :return-first-level-match)
+                               (setf collect
+                                     (append collect (list tree))))
+                              ((equal if-match :return-all-match)
+                               (progn
+                                   (setf collect
+                                         (append collect (list tree)))
+                                   (cons
+                                    (funcall #'match-tree (car tree) f-predict if-match)
+                                    (funcall #'match-tree (cdr tree) f-predict if-match))))
+                              ((equal 'function (type-of if-match))
+                               (funcall if-match tree))
+                              (t (error 'strategy-not-implemented)))
+                        (cons
+                         (funcall #'match-tree (car tree) f-predict if-match)
+                         (funcall #'match-tree (cdr tree) f-predict if-match)))))))
+      (match-tree tree predict if-match)
+      collect)))
+
 ;; special syntax for pattern-matching
 (named-readtables:in-readtable :fare-quasiquote)
 
@@ -242,8 +270,9 @@
   )
 
 (define-drop-all-teaser-when-name-contains-rule
-    "IOS" "1С" "C++" "Ruby on Rails" "Frontend" "Front End" "Go" "Q/A" "C#" ".NET"
-    "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go")
+    "iOS" "Python" "Django" "IOS" "1C" "С++" "Ruby" "Ruby on Rails"
+    "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
+    "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi" "Sharepoint" "Flash" "PL/SQL")
 
 (defun get-all-rules ()
   (let ((result (make-hash-table :test #'equal)))
@@ -621,22 +650,26 @@
 
 (in-package #:moto)
 
+(defparameter *saved-vacancy* nil)
+
 (defmethod save-vacancy (vacancy)
-  (make-vacancy
-   :src-id (getf vacancy :id)
-   :name (getf vacancy :name)
-   :currency (getf vacancy :currency)
-   :salary (aif (getf vacancy :salary) it 0)
-   :base-salary (aif (getf vacancy :base-salary) it 0)
-   :salary-text (getf vacancy :salary-text)
-   :emp-id (getf vacancy :emp-id)
-   :emp-name (getf vacancy :emp-name)
-   :city (getf vacancy :city)
-   :metro (getf vacancy :metro)
-   :experience (getf vacancy :exp)
-   :archive (getf vacancy :archive)
-   :date (getf vacancy :date)
-   :descr (bprint (show-descr (getf vacancy :descr)))))
+  (setf *saved-vacancy*
+        (append *saved-vacancy*
+                (list (make-vacancy
+                       :src-id (getf vacancy :id)
+                       :name (getf vacancy :name)
+                       :currency (getf vacancy :currency)
+                       :salary (aif (getf vacancy :salary) it 0)
+                       :base-salary (aif (getf vacancy :base-salary) it 0)
+                       :salary-text (getf vacancy :salary-text)
+                       :emp-id (getf vacancy :emp-id)
+                       :emp-name (getf vacancy :emp-name)
+                       :city (getf vacancy :city)
+                       :metro (getf vacancy :metro)
+                       :experience (getf vacancy :exp)
+                       :archive (getf vacancy :archive)
+                       :date (getf vacancy :date)
+                       :descr (bprint (show-descr (getf vacancy :descr))))))))
 
 (defun run ()
   (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
