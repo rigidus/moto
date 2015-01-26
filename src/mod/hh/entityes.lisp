@@ -1,17 +1,6 @@
 ;; [[file:hh.org::*Сущности и автоматы][entity_and_automates]]
 (in-package #:moto)
 
-(define-entity profile "Сущность поисковые профили"
-  ((id serial)
-   (user-id integer)
-   (name varchar)
-   (search-query varchar)
-   (ts-create bigint)
-   (ts-last bigint)))
-
-(make-profile-table)
-
-
 (define-automat vacancy "Автомат вакансии"
   ((id serial)
    (src-id integer)

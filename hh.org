@@ -1177,13 +1177,10 @@
     <<iface_contents>>
   #+END_SRC
 
-** Список вакансий
+** Главная страница модуля
 
-   Мне бы хотелось иметь интерфейс для того чтобы управлять собранными элементами - в первую
-   очередь ранжировать их по интересности. Для этого, мне нужно уметь перемещать эти
-   элементы в коллекции.
-
-   Но перед этим мне нужно сделать отображение этих элементов через ajax
+   http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
+   http://romka.eu/blog/jquery-table-drag-and-drop
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
@@ -1210,7 +1207,7 @@
             "<span style='color: red'>" ,salary-text "</span>"
             "</li>"))
 
-     (restas:define-route collection ("/collection")
+     (restas:define-route hh-main ("/hh")
        (labels ((asm-node (x)
                   (asm+ (format nil "~A" (src-id x))
                         (name x)
@@ -1226,40 +1223,41 @@
                                           (asm-node x))
                                       param)))))
          (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
-                (not-interesting)
-                (interesting)
-                (unsort))
+                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b))))))
            (with-wrapper
              (ps-html
               ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
               ((:script :src "/js/jquery.sortable.js"))
-              ((:table :border 0 :style "font-size: small;")
-               ((:th) "Интересные")
-               ((:th) "Неразобранные")
-               ((:th) "Неинтересные")
+              ((:a :href "#" :onclick "ShowHide('rules')") "show-rules")
+              ((:table :border 1 :id "rules" :style "font-size: small; display: none")
+               ((:th) "Правила отсева тизеров")
+               ((:th) "Правила анализа вакансий")
                ((:tr)
                 ((:td :width 500 :valign "top")
-                 ((:ul :class "connected" :id "interesting-container")
-                  (mrg nil)))
+                 (format nil "~{~A </br>~}" (rules-for-teaser)))
+                ((:td :width 500 :valign "top")
+                 (format nil "~{~A </br>~}" (rules-for-vacancy)))))
+              ((:table :border 1 :style "font-size: small;")
+               ((:th) "Отобранные вакансии")
+               ((:th) "Интересные вакансии")
+               ((:tr)
                 ((:td :width 500 :valign "top")
                  ((:ul :class "connected" :id "unsort-container")
                   (mrg sorted-vacs)))
                 ((:td :width 500 :valign "top")
-                 ((:ul :class "connected" :id "not-interesting-container")
-                  (mrg not-interesting))))))))))
+                 ((:ul :class "connected" :id "interesting-container")
+                  (mrg nil)))))
+              )))))
 
-     (restas:define-route collection-post ("/collection" :method :post)
+     (restas:define-route hh-main-post ("/collection" :method :post)
        ;; TODO: Тут перед кодированием можно убирать из пересылаемых данных лишние поля, чтобы не слать их по сети
        (with-wrapper
          (error 'ajax :output (cl-json:encode-json-to-string
                                (aif (find-vacancy :profile-id 1)
                                     it
                                     (err "null vacancy"))))))
-   #+END_SRC
 
-   http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
-   http://romka.eu/blog/jquery-table-drag-and-drop
+   #+END_SRC
 
 ** Страница вакансии
 
@@ -1317,9 +1315,95 @@
           ((:td) ((:pre) (descr vac))))
          )))
 
-     (restas:define-route collection ("/vacancy/:id")
+     (restas:define-route vacancy ("/vacancy/:id")
        (to-html (car (find-vacancy :src-id id))))
 
+   #+END_SRC
+
+** Галлерея (parenscript)
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (defparameter *slideshows* (make-hash-table :test 'equalp))
+
+     (defun add-slideshow (slideshow-name image-folder)
+       (setf (gethash slideshow-name *slideshows*)
+             (mapcar (lambda (pathname)
+                       (url-encode (format nil "~a.~a"
+                                           (pathname-name pathname)
+                                           (pathname-type pathname))))
+                     (list-directory image-folder))))
+
+     (add-slideshow "img" "/home/rigidus/repo/moto/img/")
+     (add-slideshow "pic" "/home/rigidus/repo/moto/pic/")
+
+     (alexandria:hash-table-plist *slideshows*)
+
+     (defmacro/ps slideshow-image-uri (slideshow-name image-file)
+       `(concatenate 'string ,slideshow-name "/" ,image-file))
+
+     (restas:define-route y ("y")
+       (ps
+         (define-symbol-macro fragment-identifier (@ window location hash))
+         (defun show-image-number (image-index)
+           (let ((image-name (aref *images* (setf *current-image-index* image-index))))
+             (setf (chain document (get-element-by-id "slideshow-img-object") src)
+                   (slideshow-image-uri *slideshow-name* image-name)
+                   fragment-identifier
+                   image-name)))
+         (defun previous-image ()
+           (when (> *current-image-index* 0)
+             (show-image-number (1- *current-image-index*))))
+         (defun next-image ()
+           (when (< *current-image-index* (1- (getprop *images* 'length)))
+             (show-image-number (1+ *current-image-index*))))
+         ;; this gives bookmarkability using fragment identifiers
+         (setf (getprop window 'onload)
+               (lambda ()
+                 (when fragment-identifier
+                   (let ((image-name (chain fragment-identifier (slice 1))))
+                     (dotimes (i (length *images*))
+                       (when (string= image-name (aref *images* i))
+                         (show-image-number i)))))))))
+
+     (defun slideshow-handler (slideshow-name)
+       (let* ((images (gethash slideshow-name *slideshows*))
+              (current-image-index (or (position (get-parameter "image") images :test #'equalp)
+                                       0))
+              (previous-image-index (max 0 (1- current-image-index)))
+              (next-image-index (min (1- (length images)) (1+ current-image-index))))
+         (with-html-output-to-string (s)
+           (:html
+            (:head
+             (:title "Parenscript slideshow")
+             (:script :type "text/javascript"
+                      (str (ps* `(progn
+                                   (var *slideshow-name* ,slideshow-name)
+                                   (var *images* (array ,@images))
+                                   (var *current-image-index* ,current-image-index)))))
+             (:script :type "text/javascript" :src "/y")
+             )
+            (:body
+             (:div :id "slideshow-container"
+                   :style "width:100%;text-align:center"
+                   (:img :id "slideshow-img-object"
+                         :src (slideshow-image-uri slideshow-name
+                                                   (elt images current-image-index)))
+                   :br
+                   (:a :href (format nil "?image=~a" (elt images previous-image-index))
+                       :onclick (ps (previous-image) (return false))
+                       "Previous")
+                   " "
+                   (:a :href (format nil "?image=~a" (elt images next-image-index))
+                       :onclick (ps (next-image) (return false))
+                       "Next")
+                   ))))))
+
+     (restas:define-route x ("/x")
+       (slideshow-handler "pic"))
+
+     (restas:define-route z ("/z")
+       (slideshow-handler "img"))
    #+END_SRC
 
 * TODO СТОП!!!
@@ -1383,14 +1467,23 @@
 
     Построение новых правил на основе известных
 
+   Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
+   реагировать, устанавливая статус =archive=
+
+   TODO: Конечный автомат тут сложен и будет еще уточняться... Пока состояния такие:
+   =просмотрено= (с датой), =отобрано=, =не-берут-трубку=, =не-актуально=,
+   =приглашен-на-интервью=, =тестовое-задание=, =получен-оффер=, =отказано-работодателем=,
+   =отказ-соискателя=, =вакансия-снята= итп.
+
+   Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
+   состояние на этих сайтах. Мы узнаем о вакансии, ко
+
+
 
 
 *** Для красоты
     Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
     красивую подсветку. Также нужны имена кусков.
-** Неактуальное
-
-   Эти два раздела заменены на более функциональные
 
 *** WAIT Обход дерева и извлечение узлов
 
@@ -1822,6 +1915,31 @@
   Иногда мне приятно работать с уже знакомыми людьми, так что в целом я бы не отказался
   создавать на таком сайте что-то типа т.н. =рабочих коллективов=, чтобы наниматься сразу
   командой. Возможно работодателям такой вариант найма тоже будет интересен.
+
+   В ряде случаев компании меняют свои вакансии, некоторые делают это методом удаления
+   предыдущей и создания новой. Мне как соискателю хотелось бы не обнаруживать уже
+   просмотренную и возможно собеседованную вакансию в новых. Поэтому хотелось бы
+   предусмотреть механизм, который связывает очень похожие вакансии друг с другом.
+
+   Иногда вакансии меняются, или в них меняются существенные условия. Например, две недели
+   назад, когда я смотрел вакансию из предыдущей сборки меня не устроила зарпалата, а
+   сегодня вакансия стала интереснее. Я хочу отслеживать что вакансия поменялась.
+
+   Таким образом при создании вакансии мы должны проверять, может она уже есть в базе и
+   тогда указывать, что эта вакансия включена в несколько сборок (требует таблицы связи)
+
+   Несколько вакансий могут быть от одной компании. В этом случае мне бы хотелось
+   отслеживать это в профиле компании, кроме того интересна аналитика по этой компании за
+   определенный период времени.
+
+   С социальной точки зрения интересно получать отзывы о компании от ее работников, в том
+   числе и уволенных.
+
+   Действия по вакансии: звонки, скайп-интервью, собеседования
+
+   В эту таблицу заносим что сделано по каждой вакансии, которая находится в разработке
+
+   Теги вакансий Помогают ориентироваться, когда вакансий много.
 
 ** Процесс найма с т.з. соискателя
 
@@ -2360,164 +2478,8 @@
    забывать это сделать, поэтому можно предусмотреть тайм-аут или даже некоторое кол-во
    голосов соискателей, которые дозвонились но им сказали, что вакансия уже неактуальна.
 
-* Сущности
-** Поисковые профили
 
-   #+CAPTION: Данные поискового профиля
-   #+NAME: profile_flds
-   | field name   | field type | note                                      |
-   |--------------+------------+-------------------------------------------|
-   | id           | serial     | идентификатор                             |
-   | user-id      | integer    | владелец и создатель                      |
-   | name         | varchar    | название профиля                          |
-   | search-query | varchar    | поисковый запрос                          |
-   | ts-create    | bigint     | время создания                            |
-   | ts-last      | bigint     | время когда был использован последний раз |
 
-** Вакансии
-
-   Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
-   реагировать, устанавливая статус =archive=
-
-   TODO: Конечный автомат тут сложен и будет еще уточняться... Пока состояния такие:
-   =просмотрено= (с датой), =отобрано=, =не-берут-трубку=, =не-актуально=,
-   =приглашен-на-интервью=, =тестовое-задание=, =получен-оффер=, =отказано-работодателем=,
-   =отказ-соискателя=, =вакансия-снята= итп.
-
-   Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
-   состояние на этих сайтах. Мы узнаем о вакансии, ко
-
-** Перекрестные связи с другими вакансиями
-
-   В ряде случаев компании меняют свои вакансии, некоторые делают это методом удаления
-   предыдущей и создания новой. Мне как соискателю хотелось бы не обнаруживать уже
-   просмотренную и возможно собеседованную вакансию в новых. Поэтому хотелось бы
-   предусмотреть механизм, который связывает очень похожие вакансии друг с другом.
-
-   Иногда вакансии меняются, или в них меняются существенные условия. Например, две недели
-   назад, когда я смотрел вакансию из предыдущей сборки меня не устроила зарпалата, а
-   сегодня вакансия стала интереснее. Я хочу отслеживать что вакансия поменялась.
-
-   Таким образом при создании вакансии мы должны проверять, может она уже есть в базе и
-   тогда указывать, что эта вакансия включена в несколько сборок (требует таблицы связи)
-
-** Компании
-
-   Несколько вакансий могут быть от одной компании. В этом случае мне бы хотелось
-   отслеживать это в профиле компании, кроме того интересна аналитика по этой компании за
-   определенный период времени.
-
-   С социальной точки зрения интересно получать отзывы о компании от ее работников, в том
-   числе и уволенных.
-
-** Действия по вакансии: звонки, скайп-интервью, собеседования
-
-   В эту таблицу заносим что сделано по каждой вакансии, которая находится в разработке
-
-** Теги вакансий
-
-   Помогают ориентироваться, когда вакансий много.
-
-* Interface
-** Главная страница модуля
-   #+NAME: iface_contents
-   #+BEGIN_SRC lisp
-
-     (in-package #:moto)
-
-     (restas:define-route hh-main ("/hh")
-       (with-wrapper
-           "<h1>Главная страница HH</h1>"
-         ))
-   #+END_SRC
-
-** Галлерея (parenscript)
-
-   #+NAME: iface_contents
-   #+BEGIN_SRC lisp
-     (defparameter *slideshows* (make-hash-table :test 'equalp))
-
-     (defun add-slideshow (slideshow-name image-folder)
-       (setf (gethash slideshow-name *slideshows*)
-             (mapcar (lambda (pathname)
-                       (url-encode (format nil "~a.~a"
-                                           (pathname-name pathname)
-                                           (pathname-type pathname))))
-                     (list-directory image-folder))))
-
-     (add-slideshow "img" "/home/rigidus/repo/moto/img/")
-     (add-slideshow "pic" "/home/rigidus/repo/moto/pic/")
-
-     (alexandria:hash-table-plist *slideshows*)
-
-     (defmacro/ps slideshow-image-uri (slideshow-name image-file)
-       `(concatenate 'string ,slideshow-name "/" ,image-file))
-
-     (restas:define-route y ("y")
-       (ps
-         (define-symbol-macro fragment-identifier (@ window location hash))
-         (defun show-image-number (image-index)
-           (let ((image-name (aref *images* (setf *current-image-index* image-index))))
-             (setf (chain document (get-element-by-id "slideshow-img-object") src)
-                   (slideshow-image-uri *slideshow-name* image-name)
-                   fragment-identifier
-                   image-name)))
-         (defun previous-image ()
-           (when (> *current-image-index* 0)
-             (show-image-number (1- *current-image-index*))))
-         (defun next-image ()
-           (when (< *current-image-index* (1- (getprop *images* 'length)))
-             (show-image-number (1+ *current-image-index*))))
-         ;; this gives bookmarkability using fragment identifiers
-         (setf (getprop window 'onload)
-               (lambda ()
-                 (when fragment-identifier
-                   (let ((image-name (chain fragment-identifier (slice 1))))
-                     (dotimes (i (length *images*))
-                       (when (string= image-name (aref *images* i))
-                         (show-image-number i)))))))))
-
-     (defun slideshow-handler (slideshow-name)
-       (let* ((images (gethash slideshow-name *slideshows*))
-              (current-image-index (or (position (get-parameter "image") images :test #'equalp)
-                                       0))
-              (previous-image-index (max 0 (1- current-image-index)))
-              (next-image-index (min (1- (length images)) (1+ current-image-index))))
-         (with-html-output-to-string (s)
-           (:html
-            (:head
-             (:title "Parenscript slideshow")
-             (:script :type "text/javascript"
-                      (str (ps* `(progn
-                                   (var *slideshow-name* ,slideshow-name)
-                                   (var *images* (array ,@images))
-                                   (var *current-image-index* ,current-image-index)))))
-             (:script :type "text/javascript" :src "/y")
-             )
-            (:body
-             (:div :id "slideshow-container"
-                   :style "width:100%;text-align:center"
-                   (:img :id "slideshow-img-object"
-                         :src (slideshow-image-uri slideshow-name
-                                                   (elt images current-image-index)))
-                   :br
-                   (:a :href (format nil "?image=~a" (elt images previous-image-index))
-                       :onclick (ps (previous-image) (return false))
-                       "Previous")
-                   " "
-                   (:a :href (format nil "?image=~a" (elt images next-image-index))
-                       :onclick (ps (next-image) (return false))
-                       "Next")
-                   ))))))
-
-     (restas:define-route x ("/x")
-       (slideshow-handler "pic"))
-
-     (restas:define-route z ("/z")
-       (slideshow-handler "img"))
-   #+END_SRC
-
-** Дашборд
 * Тесты
 
   #+NAME: hh_test
@@ -3205,16 +3167,7 @@
    #+BEGIN_SRC lisp :tangle src/mod/hh/entityes.lisp :noweb tangle :padline no :comments link
      (in-package #:moto)
 
-     <<asm_profile()>>
-
      <<asm_vacancy()>>
-   #+END_SRC
-
-** Поисковые профили
-
-   #+NAME: asm_profile
-   #+BEGIN_SRC emacs-lisp :var flds=profile_flds
-      (gen-entity "profile" "поисковые профили" flds)
    #+END_SRC
 
 ** Вакансии
