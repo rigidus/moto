@@ -21,8 +21,8 @@
    (descr varchar)
    (notes (or db-null varchar))
    (response (or db-null varchar)))
-  (:responded :interested :not-interested :unsort)
-  ((:unsort :not-interested :set-not-interested)
+  (:responded :interested :not_interested :unsort)
+  ((:unsort :not_interested :set-not-interested)
    (:unsort :interested :set-interested)
    (:interested :responded :respond)))
 ;; entity_and_automates ends here

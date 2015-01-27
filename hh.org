@@ -1098,101 +1098,22 @@
 
 ** Состояния вакансий
 
-   После того, как тизер вакансии будет загружен системой, вакансия получает статус =unsort=
+   После загрузки, вакансия получает статус =unsort=
 
-   После сортировки пользователем ваканисия может принять один из статусов: =unsorted=,
-   =interested= или =not-interested=
+   После сортировки пользователем ваканисия может принять один из статусов: =unsort=,
+   =interested= или =not_interested=
 
    Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
    действия, переводящие вакансию из одного состояния в другое: когда пользователь
-   отправляет отзыв  вакансия становится =responded=. Если пользователь, просмотрев
-   вакансию, принял решение отзыв не отправлять, он может сделать вакансию =hidden=.
-
-   Важно: Для обеспечения социальных взаимодействий нужно предусмотреть, чтобы вакансию
-   можно было "передать", т.е. у нее минимум должен быть URI.
-
-   Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
-   добавить вакансию в закладки - в этом случае ее статус меняется на =favorited=
-
-   Из =favorited= мы снова можем отправить отзыв.
-
-   Из =favorited= пользователь может вернуть вакансию обратно в =interested= или =hidden=.
-
-   Из =hidden= пользователь может вернуть вакансию в =interested=.
-
-   Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
-   по вакансиям в статусе =responded= - пользователь ищет обычно по названию фирмы.
-
-   После звонка вакансия может быть выкинута или переведена из =responded= в статус "был
-   телефонный звонок" - =called=. Выкидывая вакансию пользователь может выбрать reason - для
-   них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
-   вакансии. Если в результате телефонного звонка была достигнута договоренность о
-   собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
-   =wait-interview= и заносит в вакансию данные о том, куда и во сколько ехать. Если по
-   телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
-   =wait-test=. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
-   =wait-skype-interview=.
-
-   Получив тестовое задание пользователь переводит вакансию из статуса =wait-test= в
-   "выполнение тестового задания" =run-test=, а оттуда либо в =test-cancel= либо в
-   =test-sended=. Либо выкидывает.
-
-   Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
-   часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
-   его, наверно пусть можно будет просто изменить данные о времени интервью.
-
-   После интервью или скайп-интервью от вакансии можно либо отказаться (=refuse-employer=,
-   =refuse-applicant=) либо перевести в статус "ожидание результата" - =wait-result=. Нужно
-   включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
-   узнать, как дела.
-
-   Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
-   предлагают оффер - =offer= и соискатель берет время на подумать.
-
-   Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
-   =refuse-employer= или "отказ соискателя" - =refuse-аpplicant=.
-
-   История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
-   примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
-   статусов и текущее положение вакансии в нем.
+   отправляет отзыв  вакансия становится =responded=.
 
    #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
-   | action                                 | from                 | to                   |
-   |----------------------------------------+----------------------+----------------------|
-   | set-not-interested                     | unsort               | not-interested       |
-   | set-interested                         | unsort               | interested           |
-   | respond                                | interested           | responded            |
-
-   | refuse-new                             | new                  | not-interested       |
-   | set-interested                         | new                  | interested           |
-   | refuse-interested                      | interested           | hidden               |
-   | respond                                | interested           | responded            |
-   | favor                                  | interested           | favorited            |
-   | send-respond-from-favorited            | favorited            | responded            |
-   | unfavor                                | favorited            | interested           |
-   | hide-after-favor                       | favorited            | hidden               |
-   | call                                   | responded            | called               |
-   | invite-interview                       | called               | wait_interview       |
-   | invite-skype-interview                 | called               | wait_skype_interview |
-   | invite-test                            | called               | wait_test            |
-   | interview                              | wait_interview       | interview            |
-   | skype-interview                        | wait_skype_interview | skype_interview      |
-   | call-after-skype-interview             | skype_interview      | called               |
-   | execute-test                           | wait_test            | run_test             |
-   | send-test                              | run_test             | send_test            |
-   | called-after-test                      | send_test            | called               |
-   | refuse-employer-after-interview        | interview            | refuse_employer      |
-   | refuse-applicant-after-interview       | interview            | refuse_applicant     |
-   | wait-result-after-interview            | interview            | wait_result          |
-   | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
-   | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
-   | wait-result-after-skype-interview      | skype_interview      | wait_result          |
-   | invite-next-interview                  | wait_result          | interview            |
-   | invite-interview-after-skype           | skype_interview      | interview            |
-   | invite-offer                           | wait_result          | offer                |
-   | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
-   | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
+   | action             | from       | to             |
+   |--------------------+------------+----------------|
+   | set-not-interested | unsort     | not_interested |
+   | set-interested     | unsort     | interested     |
+   | respond            | interested | responded      |
 
    Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 
@@ -1204,6 +1125,10 @@
              table)
    #+END_SRC
 
+   #+results: vacancy_state_graph
+   : unsort -> not-interested [label ="set-not-interested"];
+   : unsort -> interested [label ="set-interested"];
+   : interested -> responded [label ="respond"];
 
    #+BEGIN_SRC dot :file img/vacancy-state.png :var input=vacancy_state_graph :exports results
      digraph G {
@@ -1211,6 +1136,9 @@
        $input
      }
    #+END_SRC
+
+   #+results:
+   [[file:img/vacancy-state.png]]
 
 
    #+NAME: hh_fn_contents
@@ -1495,7 +1423,6 @@
                 "<input type=\"button\" value=\"save\" />"
                 "&nbsp;"
                 "<input type=\"button\" value=\"send_response\" />")))
-
    #+END_SRC
 
 ** Галлерея (parenscript)
@@ -2118,6 +2045,85 @@
    В эту таблицу заносим что сделано по каждой вакансии, которая находится в разработке
 
    Теги вакансий Помогают ориентироваться, когда вакансий много.
+
+   Важно: Для обеспечения социальных взаимодействий нужно предусмотреть, чтобы вакансию
+   можно было "передать", т.е. у нее минимум должен быть URI.
+
+   Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
+   добавить вакансию в закладки - в этом случае ее статус меняется на =favorited=
+
+   Из =favorited= мы снова можем отправить отзыв.
+
+   Из =favorited= пользователь может вернуть вакансию обратно в =interested= или =hidden=.
+
+   Из =hidden= пользователь может вернуть вакансию в =interested=.
+
+   Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
+   по вакансиям в статусе =responded= - пользователь ищет обычно по названию фирмы.
+
+   После звонка вакансия может быть выкинута или переведена из =responded= в статус "был
+   телефонный звонок" - =called=. Выкидывая вакансию пользователь может выбрать reason - для
+   них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
+   вакансии. Если в результате телефонного звонка была достигнута договоренность о
+   собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
+   =wait-interview= и заносит в вакансию данные о том, куда и во сколько ехать. Если по
+   телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
+   =wait-test=. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
+   =wait-skype-interview=.
+
+   Получив тестовое задание пользователь переводит вакансию из статуса =wait-test= в
+   "выполнение тестового задания" =run-test=, а оттуда либо в =test-cancel= либо в
+   =test-sended=. Либо выкидывает.
+
+   Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
+   часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
+   его, наверно пусть можно будет просто изменить данные о времени интервью.
+
+   После интервью или скайп-интервью от вакансии можно либо отказаться (=refuse-employer=,
+   =refuse-applicant=) либо перевести в статус "ожидание результата" - =wait-result=. Нужно
+   включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
+   узнать, как дела.
+
+   Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
+   предлагают оффер - =offer= и соискатель берет время на подумать.
+
+   Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
+   =refuse-employer= или "отказ соискателя" - =refuse-аpplicant=.
+
+   История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
+   примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
+   статусов и текущее положение вакансии в нем.
+
+   | refuse-new                             | new                  | not-interested       |
+   | set-interested                         | new                  | interested           |
+   | refuse-interested                      | interested           | hidden               |
+   | respond                                | interested           | responded            |
+   | favor                                  | interested           | favorited            |
+   | send-respond-from-favorited            | favorited            | responded            |
+   | unfavor                                | favorited            | interested           |
+   | hide-after-favor                       | favorited            | hidden               |
+   | call                                   | responded            | called               |
+   | invite-interview                       | called               | wait_interview       |
+   | invite-skype-interview                 | called               | wait_skype_interview |
+   | invite-test                            | called               | wait_test            |
+   | interview                              | wait_interview       | interview            |
+   | skype-interview                        | wait_skype_interview | skype_interview      |
+   | call-after-skype-interview             | skype_interview      | called               |
+   | execute-test                           | wait_test            | run_test             |
+   | send-test                              | run_test             | send_test            |
+   | called-after-test                      | send_test            | called               |
+   | refuse-employer-after-interview        | interview            | refuse_employer      |
+   | refuse-applicant-after-interview       | interview            | refuse_applicant     |
+   | wait-result-after-interview            | interview            | wait_result          |
+   | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
+   | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
+   | wait-result-after-skype-interview      | skype_interview      | wait_result          |
+   | invite-next-interview                  | wait_result          | interview            |
+   | invite-interview-after-skype           | skype_interview      | interview            |
+   | invite-offer                           | wait_result          | offer                |
+   | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
+   | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
+
 
 ** Процесс найма с т.з. соискателя
 

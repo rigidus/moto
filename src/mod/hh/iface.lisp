@@ -130,7 +130,6 @@
            "<input type=\"button\" value=\"save\" />"
            "&nbsp;"
            "<input type=\"button\" value=\"send_response\" />")))
-
 (defparameter *slideshows* (make-hash-table :test 'equalp))
 
 (defun add-slideshow (slideshow-name image-folder)
