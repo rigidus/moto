@@ -1111,7 +1111,6 @@
                                 ((:tr)
                                  ((:td) "role-id")
                                  ((:td) (role-id u))))
-                               ((:h2) "Роль пользователя")
                                ((:form :method "POST")
                                 ((:table :border 0)
                                  ((:tr)
@@ -1125,7 +1124,7 @@
                                                          ((:option :value (id i) :selected "selected") (name i)))
                                                         (ps-html
                                                          ((:option :value (id i)) (name i))))))))
-                                  ((:td)  %change-role%))))
+                                  ((:td) %change-role%))))
                                ((:form :method "POST")
                                 ((:table :border 0)
                                  ((:tr)
@@ -1138,34 +1137,41 @@
                                                          ((:option :value (id i) :selected "selected") (name i)))
                                                         (ps-html
                                                          ((:option :value (id i)) (name i))))))))
-                                  ((:td :valign "top")  %change-group%))))
-                               )))))))
-     (:change-role (ps-html
-                    ((:input :type "hidden" :name "act" :value "CHANGE-ROLE"))
-                    ((:input :type "submit" :value "Изменить")))
-                   (let* ((i (parse-integer userid))
-                          (u (get-user i)))
-                     (aif (getf p :role)
-                     (role-id (upd-user u (list :role-id (parse-integer it))))
-                     "role changed")))
-     (:change-group (ps-html
-                     ((:input :type "hidden" :name "act" :value "CHANGE-GROUP"))
-                     ((:input :type "submit" :value "Изменить")))
-                    (let* ((i (parse-integer userid))
-                           (u (get-user i)))
-                      (if (null (getf p :groups))
-                          "-not change-"
-                          (loop
-                             :initially (mapcar #'(lambda (x)
-                                                    (del-user2group (id x)))
-                                                (find-user2group :user-id (parse-integer userid)))
-                             :for lnk
-                             :in (loop
-                                    :for key  :in p    :by #'cddr
-                                    :for n    :from 1  :to 10 :by (+ 2)
-                                    :when    (equal key :groups)
-                                    :collect (parse-integer (nth n p)))
-                             :collect (id (make-user2group :user-id i :group-id lnk)))))))
+                                  ((:td :valign "top") %change-group%)))))))))))
+     (:change-role (if (equal 1 *current-user*)
+                       (ps-html
+                        ((:input :type "hidden" :name "act" :value "CHANGE-ROLE"))
+                        ((:input :type "submit" :value "Изменить")))
+                       "")
+                   (if (equal 1 *current-user*)
+                       (let* ((i (parse-integer userid))
+                              (u (get-user i)))
+                         (aif (getf p :role)
+                              (role-id (upd-user u (list :role-id (parse-integer it))))
+                              "role changed"))
+                       "access-denied"))
+     (:change-group (if (equal 1 *current-user*)
+                        (ps-html
+                         ((:input :type "hidden" :name "act" :value "CHANGE-GROUP"))
+                         ((:input :type "submit" :value "Изменить")))
+                        "")
+                    (if (equal 1 *current-user*)
+                        (let* ((i (parse-integer userid))
+                               (u (get-user i)))
+                          (if (null (getf p :groups))
+                              "-not change-"
+                              (loop
+                                 :initially (mapcar #'(lambda (x)
+                                                        (del-user2group (id x)))
+                                                    (find-user2group :user-id (parse-integer userid)))
+                                 :for lnk
+                                 :in (loop
+                                        :for key  :in p    :by #'cddr
+                                        :for n    :from 1  :to 10 :by (+ 2)
+                                        :when    (equal key :groups)
+                                        :collect (parse-integer (nth n p)))
+                                 :collect (id (make-user2group :user-id i :group-id lnk)))))
+                        "access-denied")))
  #+END_SRC
 
 * Модули

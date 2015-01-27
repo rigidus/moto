@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>moto</title>
-<!-- 2015-01-27 Вт. 16:02 -->
+<!-- 2015-01-27 Вт. 16:52 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -2114,7 +2114,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
                  (<span style="color: #a020f0;">with-collection</span> (i (sort (all-user) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
                    (ps-html
                     ((<span style="color: #483d8b;">:tr</span>)
-                     ((<span style="color: #483d8b;">:td</span>) (id i))
+                     ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:href</span> (format nil <span style="color: #8b2252;">"/user/~A"</span> (id i))) (id i)))
                      ((<span style="color: #483d8b;">:td</span>) (name i))
                      ((<span style="color: #483d8b;">:td</span>) (<span style="color: #a020f0;">if</span> (equal 1 *current-user*) (password i) <span style="color: #8b2252;">""</span>))
                      ((<span style="color: #483d8b;">:td</span>) (email i))
@@ -2307,67 +2307,93 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
         <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1075;&#1086; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
         (format nil <span style="color: #8b2252;">"~{~A~}"</span>
                 (list
-                 (format nil <span style="color: #8b2252;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; ~A&lt;/h1&gt;"</span> (id u))
-                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1044;&#1072;&#1085;&#1085;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; ~A&lt;/h2&gt;"</span> (name u))
-                 (tbl
-                  (<span style="color: #a020f0;">with-element</span> (u u)
-                    (row <span style="color: #8b2252;">"&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span> (name u))
-                    (row <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (password u))
-                    (row <span style="color: #8b2252;">"Email"</span> (email u)))
-                  <span style="color: #483d8b;">:border</span> 1)
-                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1056;&#1086;&#1083;&#1100; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; ~A&lt;/h2&gt;"</span> (name u))
-                 (frm
-                  (tbl
-                   (list
-                    (row <span style="color: #8b2252;">"&#1058;&#1077;&#1082;&#1091;&#1097;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;"</span>
-                      (select (<span style="color: #8b2252;">"role"</span>)
-                        (list* (list <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1088;&#1086;&#1083;&#1100;"</span> <span style="color: #8b2252;">"0"</span>
-                                     (format nil <span style="color: #8b2252;">"disabled~A"</span>
-                                             (<span style="color: #a020f0;">if</span> (equal <span style="color: #483d8b;">:null</span> (role-id u))
-                                                 <span style="color: #8b2252;">"selected"</span>
-                                                 <span style="color: #8b2252;">""</span>)))
-                               (<span style="color: #a020f0;">with-collection</span> (i (all-role))
-                                 (list (name i)
-                                       (id i)
-                                       (<span style="color: #a020f0;">if</span> (equal (id i) (role-id u))
-                                           <span style="color: #8b2252;">"selected"</span>))))))
-                    (row <span style="color: #8b2252;">""</span> %change-role%))))
-                 (format nil <span style="color: #8b2252;">"&lt;h2&gt;&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; ~A&lt;/h2&gt;"</span> (name u))
-                 (frm
-                  (tbl
-                   (list
-                    (row <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1074; &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1074;&#1093;&#1086;&#1076;&#1080;&#1090; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;"</span>
-                      (select (<span style="color: #8b2252;">"groups"</span> <span style="color: #8b2252;">"multiple size=\"5\""</span>)
-                        (<span style="color: #a020f0;">with-collection</span> (i (all-group))
-                          (list (name i)
-                                (id i)
-                                (<span style="color: #a020f0;">if</span> (find (id i)
-                                          (mapcar #'group-id
-                                                  (find-user2group <span style="color: #483d8b;">:user-id</span> (parse-integer userid))))
-                                    <span style="color: #8b2252;">"selected"</span>)))))
-                    (row <span style="color: #8b2252;">""</span> %change-group%))))))))
-  (<span style="color: #483d8b;">:change-role</span> (act-btn <span style="color: #8b2252;">"CHANGE-ROLE"</span> <span style="color: #8b2252;">""</span> <span style="color: #8b2252;">"&#1048;&#1079;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100;"</span>)
-           (<span style="color: #a020f0;">let*</span> ((i (parse-integer userid))
-                  (u (get-user i)))
-             (aif (getf p <span style="color: #483d8b;">:role</span>)
-                  (role-id (upd-user u (list <span style="color: #483d8b;">:role-id</span> (parse-integer it))))
-                  <span style="color: #8b2252;">":null"</span>)))
-  (<span style="color: #483d8b;">:change-group</span> (act-btn <span style="color: #8b2252;">"CHANGE-GROUP"</span> <span style="color: #8b2252;">""</span> <span style="color: #8b2252;">"&#1048;&#1079;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100;"</span>)
-                 (<span style="color: #a020f0;">let*</span> ((i (parse-integer userid))
-                        (u (get-user i)))
-                   (<span style="color: #a020f0;">if</span> (null (getf p <span style="color: #483d8b;">:groups</span>))
-                       <span style="color: #8b2252;">"-not change-"</span>
-                       (<span style="color: #a020f0;">loop</span>
-                          <span style="color: #483d8b;">:initially</span> (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
-                                                 (del-user2group (id x)))
-                                             (find-user2group <span style="color: #483d8b;">:user-id</span> (parse-integer userid)))
-                          <span style="color: #483d8b;">:for</span> lnk
-                          <span style="color: #483d8b;">:in</span> (<span style="color: #a020f0;">loop</span>
-                                 <span style="color: #483d8b;">:for</span> key  <span style="color: #483d8b;">:in</span> p    <span style="color: #483d8b;">:by</span> #'cddr
-                                 <span style="color: #483d8b;">:for</span> n    <span style="color: #483d8b;">:from</span> 1  <span style="color: #483d8b;">:to</span> 10 <span style="color: #483d8b;">:by</span> (+ 2)
-                                 <span style="color: #483d8b;">:when</span>    (equal key <span style="color: #483d8b;">:groups</span>)
-                                 <span style="color: #483d8b;">:collect</span> (parse-integer (nth n p)))
-                          <span style="color: #483d8b;">:collect</span> (id (make-user2group <span style="color: #483d8b;">:user-id</span> i <span style="color: #483d8b;">:group-id</span> lnk)))))))
+                 (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                         (<span style="color: #a020f0;">with-element</span> (u u)
+                           (ps-html
+                            ((<span style="color: #483d8b;">:h1</span>) (format nil <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; #~A - ~A"</span> (id u) (name u)))
+                            ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+                             ((<span style="color: #483d8b;">:tr</span>)
+                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"id"</span>)
+                              ((<span style="color: #483d8b;">:td</span>) (id u)))
+                             ((<span style="color: #483d8b;">:tr</span>)
+                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"name"</span>)
+                              ((<span style="color: #483d8b;">:td</span>) (name u)))
+                             ((<span style="color: #483d8b;">:tr</span>)
+                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"password"</span>)
+                              ((<span style="color: #483d8b;">:td</span>) (password u)))
+                             ((<span style="color: #483d8b;">:tr</span>)
+                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"email"</span>)
+                              ((<span style="color: #483d8b;">:td</span>) (email u)))
+                             ((<span style="color: #483d8b;">:tr</span>)
+                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"ts-create"</span>)
+                              ((<span style="color: #483d8b;">:td</span>) (ts-create u)))
+                             ((<span style="color: #483d8b;">:tr</span>)
+                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"ts-last"</span>)
+                              ((<span style="color: #483d8b;">:td</span>) (ts-last u)))
+                             ((<span style="color: #483d8b;">:tr</span>)
+                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"role-id"</span>)
+                              ((<span style="color: #483d8b;">:td</span>) (role-id u))))
+                            ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+                             ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+                              ((<span style="color: #483d8b;">:tr</span>)
+                               ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1058;&#1077;&#1082;&#1091;&#1097;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;:"</span>)
+                               ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:select</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"role"</span>)
+                                       ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"0"</span>) <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1088;&#1086;&#1083;&#1100;"</span>)
+                                       (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                                               (<span style="color: #a020f0;">with-collection</span> (i (sort (all-role) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
+                                                 (<span style="color: #a020f0;">if</span> (equal (id i) (role-id u))
+                                                     (ps-html
+                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i) <span style="color: #483d8b;">:selected</span> <span style="color: #8b2252;">"selected"</span>) (name i)))
+                                                     (ps-html
+                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i)) (name i))))))))
+                               ((<span style="color: #483d8b;">:td</span>) %change-role%))))
+                            ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+                             ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+                              ((<span style="color: #483d8b;">:tr</span>)
+                               ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;:"</span>)
+                               ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) ((<span style="color: #483d8b;">:select</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"groups"</span> <span style="color: #483d8b;">:multiple</span> <span style="color: #8b2252;">"multiple"</span> <span style="color: #483d8b;">:size</span> <span style="color: #8b2252;">"7"</span>)
+                                       (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                                               (<span style="color: #a020f0;">with-collection</span> (i (sort (all-group) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
+                                                 (<span style="color: #a020f0;">if</span> (find (id i) (mapcar #'group-id (find-user2group <span style="color: #483d8b;">:user-id</span> (parse-integer userid))))
+                                                     (ps-html
+                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i) <span style="color: #483d8b;">:selected</span> <span style="color: #8b2252;">"selected"</span>) (name i)))
+                                                     (ps-html
+                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i)) (name i))))))))
+                               ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) %change-group%)))))))))))
+  (<span style="color: #483d8b;">:change-role</span> (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+                    (ps-html
+                     ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"CHANGE-ROLE"</span>))
+                     ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1048;&#1079;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100;"</span>)))
+                    <span style="color: #8b2252;">""</span>)
+                (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+                    (<span style="color: #a020f0;">let*</span> ((i (parse-integer userid))
+                           (u (get-user i)))
+                      (aif (getf p <span style="color: #483d8b;">:role</span>)
+                           (role-id (upd-user u (list <span style="color: #483d8b;">:role-id</span> (parse-integer it))))
+                           <span style="color: #8b2252;">"role changed"</span>))
+                    <span style="color: #8b2252;">"access-denied"</span>))
+  (<span style="color: #483d8b;">:change-group</span> (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+                     (ps-html
+                      ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"CHANGE-GROUP"</span>))
+                      ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1048;&#1079;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100;"</span>)))
+                     <span style="color: #8b2252;">""</span>)
+                 (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+                     (<span style="color: #a020f0;">let*</span> ((i (parse-integer userid))
+                            (u (get-user i)))
+                       (<span style="color: #a020f0;">if</span> (null (getf p <span style="color: #483d8b;">:groups</span>))
+                           <span style="color: #8b2252;">"-not change-"</span>
+                           (<span style="color: #a020f0;">loop</span>
+                              <span style="color: #483d8b;">:initially</span> (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
+                                                     (del-user2group (id x)))
+                                                 (find-user2group <span style="color: #483d8b;">:user-id</span> (parse-integer userid)))
+                              <span style="color: #483d8b;">:for</span> lnk
+                              <span style="color: #483d8b;">:in</span> (<span style="color: #a020f0;">loop</span>
+                                     <span style="color: #483d8b;">:for</span> key  <span style="color: #483d8b;">:in</span> p    <span style="color: #483d8b;">:by</span> #'cddr
+                                     <span style="color: #483d8b;">:for</span> n    <span style="color: #483d8b;">:from</span> 1  <span style="color: #483d8b;">:to</span> 10 <span style="color: #483d8b;">:by</span> (+ 2)
+                                     <span style="color: #483d8b;">:when</span>    (equal key <span style="color: #483d8b;">:groups</span>)
+                                     <span style="color: #483d8b;">:collect</span> (parse-integer (nth n p)))
+                              <span style="color: #483d8b;">:collect</span> (id (make-user2group <span style="color: #483d8b;">:user-id</span> i <span style="color: #483d8b;">:group-id</span> lnk)))))
+                     <span style="color: #8b2252;">"access-denied"</span>)))
 </pre>
 </div>
 </div>
@@ -4142,7 +4168,7 @@ neato -Tpng -otester.png -n test.dot
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-27 Вт. 16:02</p>
+<p class="date">Created: 2015-01-27 Вт. 16:52</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
