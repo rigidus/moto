@@ -1,4 +1,3 @@
-
 (in-package #:moto)
 
 ;; Скомпилируем шаблон
@@ -7,30 +6,36 @@
  (pathname
   (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
 
+(in-package #:moto)
 
-;; Страница регистрации
-(restas:define-route reg ("/reg")
-  (with-wrapper
-    (concatenate
-     'string
-     "<h1>Страница регистрации</h1>"
-     (if *current-user*
-         "Регистрация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
-         (frm (tbl
-               (list
-                (row "Имя пользователя" (fld "name"))
-                (row "Пароль" (fld "password"))
-                (row "Email" (fld "email"))
-                (row "" (submit "Зарегистрироваться")))))))))
-
-;; Контроллер страницы регистрации
-(restas:define-route reg-ctrl ("/reg" :method :post)
-  (with-wrapper
-    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (setf (hunchentoot:session-value 'current-user)
-            (create-user (getf p :name)
-                         (getf p :password)
-                         (getf p :email))))))
+(define-page reg "/reg"
+  (ps-html
+   ((:h1) "Страница регистрации")
+   (if *current-user*
+       "Регистрация невозможна - пользователь залогинен"
+       (ps-html
+        ((:form :method "POST")
+         ((:table :border 0)
+          ((:tr)
+           ((:td) "Имя пользователя: ")
+           ((:td) ((:input :type "text" :name "name" :value ""))))
+          ((:tr)
+           ((:td) "Пароль: ")
+           ((:td) ((:input :type "password" :name "password" :value ""))))
+          ((:tr)
+           ((:td) "Email: ")
+           ((:td) ((:input :type "email" :name "email" :value ""))))
+          ((:tr)
+           ((:td) "")
+           ((:td) %register%)))))))
+  (:register (ps-html
+              ((:input :type "hidden" :name "act" :value "REGISTER"))
+              ((:input :type "submit" :value "Зарегистрироваться")))
+             (setf (hunchentoot:session-value 'current-user)
+                   (create-user (getf p :name)
+                                (getf p :password)
+                                (getf p :email)))))
+(in-package #:moto)
 
 ;; Событие создания пользователя
 (defun create-user (name password email)
@@ -41,53 +46,53 @@
     (upd-user (get-user user-id) (list :state ":LOGGED"))
     ;; Возвращаем user-id
     user-id))
+(in-package #:moto)
 
-;; Страница выхода из системы
-(restas:define-route logout ("/logout")
-  (with-wrapper
-    (concatenate
-     'string
-     "<h1>Страница выхода из системы</h1>"
-     (if *current-user*
-         (frm (tbl
-               (list
-                (row "" (submit "Выйти")))))
-         "Выход невозможен - никто не залогинен"
-         ))))
-
-;; Контроллер страницы выхода из системы
-(restas:define-route logout-ctrl ("/logout" :method :post)
-  (with-wrapper
-    (prog1
-        (format nil "~A" (logout-user *current-user*))
-      (setf (hunchentoot:session-value 'current-user) nil))))
+(define-page logout "/logout"
+  (ps-html
+   ((:h1) "Страница выхода из системы")
+   (if *current-user*
+       (ps-html
+        ((:form :method "POST")
+         %logout%))
+       "Выход невозможен - никто не залогинен"))
+  (:logout (ps-html
+              ((:input :type "hidden" :name "act" :value "LOGOUT"))
+              ((:input :type "submit" :value "Выйти")))
+           (prog1
+               (format nil "~A" (logout-user *current-user*))
+             (setf (hunchentoot:session-value 'current-user) nil))))
 
 ;; Событие выхода
 (defun logout-user (current-user)
   (takt (get-user current-user) :unlogged))
+(in-package #:moto)
 
-;; Страница логина
-(restas:define-route login ("/login")
-  (with-wrapper
-    (concatenate
-     'string
-     "<h1>Страница авторизации</h1>"
-     (if *current-user*
-         "Авторизация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
-         (frm (tbl
-               (list
-                (row "Email" (fld "email"))
-                (row "Пароль" (fld "password"))
-                (row "" (submit "Войти")))))))))
-
-;; Контроллер страницы логина
-(restas:define-route login-ctrl ("/login" :method :post)
-  (with-wrapper
-    (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
-         (progn
-           (setf (hunchentoot:session-value 'current-user) it)
-           (login-user-success it))
-         (login-user-fail))))
+(define-page login "/login"
+  (ps-html
+   ((:h1) "Страница авторизации")
+   (if *current-user*
+       "Авторизация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
+       (ps-html
+        ((:form :method "POST")
+         ((:table :border 0)
+          ((:tr)
+           ((:td) "Email: ")
+           ((:td) ((:input :type "email" :name "email" :value ""))))
+          ((:tr)
+           ((:td) "Пароль: ")
+           ((:td) ((:input :type "password" :name "password" :value ""))))
+          ((:tr)
+           ((:td) "")
+           ((:td) %login%)))))))
+  (:login (ps-html
+              ((:input :type "hidden" :name "act" :value "LOGIN"))
+              ((:input :type "submit" :value "Войти")))
+          (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
+               (progn
+                 (setf (hunchentoot:session-value 'current-user) it)
+                 (login-user-success it))
+               (login-user-fail))))
 
 ;; Извлечение авторизационных данных
 (defmethod get-auth-data ((request list))
@@ -113,9 +118,9 @@
 ;; Тестируем авторизацию
 (defun auth-test ()
   ;; Зарегистрируем пользователя
-  (let* ((name "test-name")
-         (password "test-password")
-         (email "test-email")
+  (let* ((name "admin")
+         (password "tCDm4nFskcBqR7AN")
+         (email "nomail@mail.ru")
          (new-user-id (create-user name password email)))
     ;; Проверим что он существует
     (assert (get-user new-user-id))

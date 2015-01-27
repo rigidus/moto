@@ -98,7 +98,6 @@
                 (upd-vacancy (car (find-vacancy :src-id item)) (list :state ":NOT-INTERESTING")))
              (with-wrapper
                (error 'ajax :output (cl-json:encode-json-to-string (list :data "ok")))))))))
-
 (in-package #:moto)
 
 (defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
@@ -136,7 +135,7 @@
   (:respond "<input type=\"submit\" name=\"act\" value=\"RESPOND\" />"
             (progn
               (id (upd-vacancy (car (find-vacancy :src-id id))
-                               (list :respond (getf p :response))))
+                               (list :response (getf p :response))))
               (respond id 7628220 (getf p :response)))))
 (defparameter *slideshows* (make-hash-table :test 'equalp))
 

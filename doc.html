@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>moto</title>
-<!-- 2015-01-18 Вс. 01:03 -->
+<!-- 2015-01-27 Вт. 16:02 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -2043,17 +2043,20 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
   (remove-if
    #'null
    (list
-    <span style="color: #8b2252;">"&lt;a href=\"/users\"&gt;&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;&lt;/a&gt;"</span>
-    <span style="color: #8b2252;">"&lt;a href=\"/roles\"&gt;&#1056;&#1086;&#1083;&#1080;&lt;/a&gt;"</span>
-    <span style="color: #8b2252;">"&lt;a href=\"/groups\"&gt;&#1043;&#1088;&#1091;&#1087;&#1087;&#1099;&lt;/a&gt;"</span>
-    <span style="color: #8b2252;">"&lt;a href=\"/cmpxs\"&gt;&#1046;&#1080;&#1083;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1099;&lt;/a&gt;"</span>
-    <span style="color: #8b2252;">"&lt;a href=\"/find\"&gt;&#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082;&lt;/a&gt;"</span>
+    (<span style="color: #a020f0;">when</span> *current-user*
+      <span style="color: #8b2252;">"&lt;a href=\"/users\"&gt;&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;&lt;/a&gt;"</span>)
+    (<span style="color: #a020f0;">when</span> *current-user*
+      <span style="color: #8b2252;">"&lt;a href=\"/roles\"&gt;&#1056;&#1086;&#1083;&#1080;&lt;/a&gt;"</span>)
+    (<span style="color: #a020f0;">when</span> *current-user*
+      <span style="color: #8b2252;">"&lt;a href=\"/groups\"&gt;&#1043;&#1088;&#1091;&#1087;&#1087;&#1099;&lt;/a&gt;"</span>)
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/cmpxs\"&gt;&#1046;&#1080;&#1083;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1099;&lt;/a&gt;"</span>
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/find\"&gt;&#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082;&lt;/a&gt;"</span>
     (<span style="color: #a020f0;">when</span> (null *current-user*)
       <span style="color: #8b2252;">"&lt;a href=\"/reg\"&gt;&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103;&lt;/a&gt;"</span>)
     (<span style="color: #a020f0;">when</span> (null *current-user*)
       <span style="color: #8b2252;">"&lt;a href=\"/login\"&gt;&#1051;&#1086;&#1075;&#1080;&#1085;&lt;/a&gt;"</span>)
     (<span style="color: #a020f0;">when</span> (null *current-user*)
-      <span style="color: #8b2252;">"&#1041;&#1086;&#1083;&#1100;&#1096;&#1077; &#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1103;&#1084;"</span>)
+      <span style="color: #8b2252;">"&#1041;&#1086;&#1083;&#1100;&#1096;&#1077; &#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;&#1084;"</span>)
     (<span style="color: #a020f0;">when</span> *current-user*
       (format nil <span style="color: #8b2252;">"&lt;a href=\"/user/~A\"&gt;&#1052;&#1086;&#1081; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100;&lt;/a&gt;"</span> *current-user*))
     (<span style="color: #a020f0;">when</span> *current-user*
@@ -2062,7 +2065,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
       <span style="color: #8b2252;">"&lt;a href=\"/im\"&gt;&#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;&lt;/a&gt;"</span>)
     (<span style="color: #a020f0;">when</span> *current-user*
       <span style="color: #8b2252;">"&lt;a href=\"/load\"&gt;&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;&lt;/a&gt;"</span>)
-    <span style="color: #8b2252;">"&lt;a href=\"/\"&gt;TODO: &#1056;&#1072;&#1089;&#1096;&#1080;&#1088;&#1077;&#1085;&#1085;&#1099;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082; &#1087;&#1086; &#1046;&#1050;&lt;/a&gt;"</span>
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/\"&gt;TODO: &#1056;&#1072;&#1089;&#1096;&#1080;&#1088;&#1077;&#1085;&#1085;&#1099;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082; &#1087;&#1086; &#1046;&#1050;&lt;/a&gt;"</span>
     )))
 </pre>
 </div>
@@ -2092,30 +2095,70 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #a020f0;">define-iface-add-del-entity</span> all-users <span style="color: #8b2252;">"/users"</span>
-  <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;"</span>
-  <span style="color: #8b2252;">"&#1053;&#1086;&#1074;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;"</span>
-  <span style="color: #8b2252;">""</span>
-  #'all-user <span style="color: #8b2252;">"user"</span>
-  (name password email state role-id)
-  (frm
-   (tbl
-    (list
-     (row <span style="color: #8b2252;">"&#1048;&#1084;&#1103;"</span> (fld <span style="color: #8b2252;">"name"</span>))
-     (row <span style="color: #8b2252;">"Email"</span> (fld <span style="color: #8b2252;">"email"</span>))
-     (row <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (fld <span style="color: #8b2252;">"password"</span>))
-     (row <span style="color: #8b2252;">""</span> %new%))))
-  (<span style="color: #483d8b;">:new</span> (act-btn <span style="color: #8b2252;">"NEW"</span> <span style="color: #8b2252;">""</span> <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)
+(<span style="color: #a020f0;">define-page</span> all-users <span style="color: #8b2252;">"/users"</span>
+  (ps-html
+   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080;"</span>)
+   (<span style="color: #a020f0;">if</span> (null *current-user*)
+       <span style="color: #8b2252;">"&#1058;&#1086;&#1083;&#1100;&#1082;&#1086; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080; &#1084;&#1086;&#1075;&#1091;&#1090; &#1087;&#1088;&#1086;&#1089;&#1084;&#1072;&#1090;&#1088;&#1080;&#1074;&#1072;&#1090;&#1100; &#1089;&#1087;&#1080;&#1089;&#1086;&#1082; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;"</span>
+       (ps-html
+        ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"id"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"name"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"password"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"email"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"ts-create"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"ts-last"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"role-id"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">""</span>)
+         (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                 (<span style="color: #a020f0;">with-collection</span> (i (sort (all-user) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
+                   (ps-html
+                    ((<span style="color: #483d8b;">:tr</span>)
+                     ((<span style="color: #483d8b;">:td</span>) (id i))
+                     ((<span style="color: #483d8b;">:td</span>) (name i))
+                     ((<span style="color: #483d8b;">:td</span>) (<span style="color: #a020f0;">if</span> (equal 1 *current-user*) (password i) <span style="color: #8b2252;">""</span>))
+                     ((<span style="color: #483d8b;">:td</span>) (email i))
+                     ((<span style="color: #483d8b;">:td</span>) (ts-create i))
+                     ((<span style="color: #483d8b;">:td</span>) (ts-last i))
+                     ((<span style="color: #483d8b;">:td</span>) (role-id i))
+                     ((<span style="color: #483d8b;">:td</span>) %del%))))))
+        (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (ps-html
+             ((<span style="color: #483d8b;">:h2</span>) <span style="color: #8b2252;">"&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100; &#1085;&#1086;&#1074;&#1086;&#1075;&#1086; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>)
+             ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+              ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;: "</span>)
+                ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"name"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;: "</span>)
+                ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"Email: "</span>)
+                ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">""</span>)
+                ((<span style="color: #483d8b;">:td</span>) %new%)))))
+            <span style="color: #8b2252;">""</span>))))
+  (<span style="color: #483d8b;">:del</span> (<span style="color: #a020f0;">if</span> (and (equal 1 *current-user*)
+                 (not (equal 1 (id i))))
+              (ps-html
+               ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+                ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"DEL"</span>))
+                ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"data"</span> <span style="color: #483d8b;">:value</span> (id i)))
+                ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>))))
+              <span style="color: #8b2252;">""</span>)
+        (del-user (getf p <span style="color: #483d8b;">:data</span>)))
+  (<span style="color: #483d8b;">:new</span> (ps-html
+         ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"NEW"</span>))
+         ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)))
         (<span style="color: #a020f0;">progn</span>
           (make-user <span style="color: #483d8b;">:name</span> (getf p <span style="color: #483d8b;">:name</span>)
                      <span style="color: #483d8b;">:email</span> (getf p <span style="color: #483d8b;">:email</span>)
                      <span style="color: #483d8b;">:password</span> (getf p <span style="color: #483d8b;">:password</span>)
                      <span style="color: #483d8b;">:ts-create</span> (get-universal-time)
                      <span style="color: #483d8b;">:ts-last</span> (get-universal-time))
-          <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;"</span>))
-  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
-        (<span style="color: #a020f0;">progn</span>
-          (del-user (getf p <span style="color: #483d8b;">:data</span>)))))
+          <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;"</span>)))
 </pre>
 </div>
 </div>
@@ -2128,28 +2171,59 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #a020f0;">define-iface-add-del-entity</span> all-roles <span style="color: #8b2252;">"/roles"</span>
-  <span style="color: #8b2252;">"&#1056;&#1086;&#1083;&#1080; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;"</span>
-  <span style="color: #8b2252;">"&#1053;&#1086;&#1074;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;"</span>
-  <span style="color: #8b2252;">"&#1056;&#1086;&#1083;&#1080; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1077;&#1074;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1090; &#1085;&#1072;</span>
+(<span style="color: #a020f0;">define-page</span> all-roles <span style="color: #8b2252;">"/roles"</span>
+  (ps-html
+   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1056;&#1086;&#1083;&#1080;"</span>)
+   <span style="color: #8b2252;">"&#1056;&#1086;&#1083;&#1080; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1077;&#1074;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1090; &#1085;&#1072;</span>
 <span style="color: #8b2252;">&#1089;&#1072;&#1081;&#1090;&#1077;. &#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1086;&#1085;&#1072;&#1083;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1081; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1102;&#1090; &#1089;&#1094;&#1077;&#1085;&#1072;&#1088;&#1080;&#1080; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1090;</span>
 <span style="color: #8b2252;">&#1088;&#1072;&#1079;&#1088;&#1077;&#1096;&#1077;&#1085;&#1080;&#1077; &#1085;&#1072; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1077;&#1085;&#1080;&#1077; &#1076;&#1077;&#1081;&#1089;&#1090;&#1074;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1086;&#1077; &#1086;&#1087;&#1080;&#1088;&#1072;&#1077;&#1090;&#1089;&#1103; &#1085;&#1072; &#1088;&#1086;&#1083;&#1100;,</span>
 <span style="color: #8b2252;">&#1087;&#1088;&#1080;&#1089;&#1074;&#1086;&#1077;&#1085;&#1085;&#1091;&#1102; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1102;. &#1055;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1080;&#1084;&#1077;&#1090;&#1100; &#1090;&#1086;&#1083;&#1100;&#1082;&#1086; &#1086;&#1076;&#1085;&#1091; &#1088;&#1086;&#1083;&#1100;</span>
 <span style="color: #8b2252;">&#1080;&#1083;&#1080; &#1085;&#1077; &#1080;&#1084;&#1077;&#1090;&#1100; &#1077;&#1077; &#1074;&#1086;&#1074;&#1089;&#1077;."</span>
-  #'all-role <span style="color: #8b2252;">"role"</span>
-  (name)
-  (frm
-   (tbl
-    (list
-     (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #8b2252;">"name"</span>))
-     (row <span style="color: #8b2252;">""</span> %new%))))
-  (<span style="color: #483d8b;">:new</span> (act-btn <span style="color: #8b2252;">"NEW"</span> <span style="color: #8b2252;">""</span> <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)
-        (<span style="color: #a020f0;">progn</span>
-          (make-role <span style="color: #483d8b;">:name</span> (getf p <span style="color: #483d8b;">:name</span>))
-          <span style="color: #8b2252;">"&#1056;&#1086;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>))
-  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
-        (<span style="color: #a020f0;">progn</span>
-          (del-role (getf p <span style="color: #483d8b;">:data</span>)))))
+   (<span style="color: #a020f0;">if</span> (null *current-user*)
+       <span style="color: #8b2252;">"&#1058;&#1086;&#1083;&#1100;&#1082;&#1086; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080; &#1084;&#1086;&#1075;&#1091;&#1090; &#1087;&#1088;&#1086;&#1089;&#1084;&#1072;&#1090;&#1088;&#1080;&#1074;&#1072;&#1090;&#1100; &#1089;&#1087;&#1080;&#1089;&#1086;&#1082; &#1088;&#1086;&#1083;&#1077;&#1081;"</span>
+       (ps-html
+        ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"id"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"name"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">""</span>)
+         (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                 (<span style="color: #a020f0;">with-collection</span> (i (sort (all-role) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
+                   (ps-html
+                    ((<span style="color: #483d8b;">:tr</span>)
+                     ((<span style="color: #483d8b;">:td</span>) (id i))
+                     ((<span style="color: #483d8b;">:td</span>) (name i))
+                     ((<span style="color: #483d8b;">:td</span>) %del%))))))
+        (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (ps-html
+             ((<span style="color: #483d8b;">:h2</span>) <span style="color: #8b2252;">"&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100; &#1085;&#1086;&#1074;&#1091;&#1102; &#1088;&#1086;&#1083;&#1100;"</span>)
+             ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+              ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1048;&#1084;&#1103; &#1088;&#1086;&#1083;&#1080;: "</span>)
+                ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"name"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">""</span>)
+                ((<span style="color: #483d8b;">:td</span>) %new%)))))
+            <span style="color: #8b2252;">""</span>))))
+  (<span style="color: #483d8b;">:del</span> (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (ps-html
+             ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"DEL"</span>))
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"data"</span> <span style="color: #483d8b;">:value</span> (id i)))
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>))))
+            <span style="color: #8b2252;">""</span>)
+        (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (del-role (getf p <span style="color: #483d8b;">:data</span>))))
+  (<span style="color: #483d8b;">:new</span> (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (ps-html
+             ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"NEW"</span>))
+             ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)))
+            <span style="color: #8b2252;">""</span>)
+        (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (<span style="color: #a020f0;">progn</span>
+              (make-role <span style="color: #483d8b;">:name</span> (getf p <span style="color: #483d8b;">:name</span>))
+              <span style="color: #8b2252;">"&#1056;&#1086;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>)
+            <span style="color: #8b2252;">""</span>)))
 </pre>
 </div>
 </div>
@@ -2162,27 +2236,58 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #a020f0;">define-iface-add-del-entity</span> all-groups <span style="color: #8b2252;">"/groups"</span>
-  <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081;"</span>
-  <span style="color: #8b2252;">"&#1053;&#1086;&#1074;&#1072;&#1103; &#1075;&#1088;&#1091;&#1087;&#1087;&#1072;"</span>
-  <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1086;&#1087;&#1077;&#1088;&#1072;&#1094;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077;</span>
+(<span style="color: #a020f0;">define-page</span> all-groups <span style="color: #8b2252;">"/groups"</span>
+  (ps-html
+   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099;"</span>)
+   <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1081; &#1086;&#1087;&#1088;&#1077;&#1076;&#1077;&#1083;&#1103;&#1102;&#1090; &#1085;&#1072;&#1073;&#1086;&#1088; &#1086;&#1087;&#1077;&#1088;&#1072;&#1094;&#1080;&#1081;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1077;</span>
 <span style="color: #8b2252;">&#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1074;&#1099;&#1087;&#1086;&#1083;&#1085;&#1103;&#1090;&#1100; &#1085;&#1072;&#1076; &#1086;&#1073;&#1098;&#1077;&#1082;&#1090;&#1072;&#1084;&#1080; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;. &#1042; &#1086;&#1090;&#1083;&#1080;&#1095;&#1080;&#1077; &#1086;&#1090;</span>
 <span style="color: #8b2252;">&#1088;&#1086;&#1083;&#1077;&#1081;, &#1086;&#1076;&#1080;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1084;&#1086;&#1078;&#1077;&#1090; &#1074;&#1093;&#1086;&#1076;&#1080;&#1090;&#1100; &#1074; &#1085;&#1077;&#1089;&#1082;&#1086;&#1083;&#1100;&#1082;&#1086; &#1075;&#1088;&#1091;&#1087;&#1087; &#1080;&#1083;&#1080; &#1085;&#1077;</span>
 <span style="color: #8b2252;">&#1074;&#1093;&#1086;&#1076;&#1080;&#1090;&#1100; &#1085;&#1080; &#1074; &#1086;&#1076;&#1085;&#1091; &#1080;&#1079; &#1085;&#1080;&#1093;."</span>
-  #'all-group <span style="color: #8b2252;">"group"</span>
-  (name)
-  (frm
-   (tbl
-    (list
-     (row <span style="color: #8b2252;">"&#1053;&#1072;&#1079;&#1074;&#1072;&#1085;&#1080;&#1077;"</span> (fld <span style="color: #8b2252;">"name"</span>))
-     (row <span style="color: #8b2252;">""</span> %new%))))
-  (<span style="color: #483d8b;">:new</span> (act-btn <span style="color: #8b2252;">"NEW"</span> <span style="color: #8b2252;">""</span> <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)
-        (<span style="color: #a020f0;">progn</span>
-          (make-group <span style="color: #483d8b;">:name</span> (getf p <span style="color: #483d8b;">:name</span>))
-          <span style="color: #8b2252;">"&#1056;&#1086;&#1083;&#1100; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>))
-  (<span style="color: #483d8b;">:del</span> (act-btn <span style="color: #8b2252;">"DEL"</span> (id i) <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>)
-        (<span style="color: #a020f0;">progn</span>
-          (del-group (getf p <span style="color: #483d8b;">:data</span>)))))
+   (<span style="color: #a020f0;">if</span> (null *current-user*)
+       <span style="color: #8b2252;">"&#1058;&#1086;&#1083;&#1100;&#1082;&#1086; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1080; &#1084;&#1086;&#1075;&#1091;&#1090; &#1087;&#1088;&#1086;&#1089;&#1084;&#1072;&#1090;&#1088;&#1080;&#1074;&#1072;&#1090;&#1100; &#1089;&#1087;&#1080;&#1089;&#1086;&#1082; &#1075;&#1088;&#1091;&#1087;&#1087;"</span>
+       (ps-html
+        ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"id"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">"name"</span>)
+         (<span style="color: #483d8b;">:th</span> <span style="color: #8b2252;">""</span>)
+         (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                 (<span style="color: #a020f0;">with-collection</span> (i (sort (all-group) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
+                   (ps-html
+                    ((<span style="color: #483d8b;">:tr</span>)
+                     ((<span style="color: #483d8b;">:td</span>) (id i))
+                     ((<span style="color: #483d8b;">:td</span>) (name i))
+                     ((<span style="color: #483d8b;">:td</span>) %del%))))))
+        (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (ps-html
+             ((<span style="color: #483d8b;">:h2</span>) <span style="color: #8b2252;">"&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100; &#1085;&#1086;&#1074;&#1091;&#1102; &#1075;&#1088;&#1091;&#1087;&#1087;&#1091;"</span>)
+             ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+              ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1048;&#1084;&#1103; &#1096;&#1088;&#1091;&#1087;&#1087;&#1099;: "</span>)
+                ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"name"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+               ((<span style="color: #483d8b;">:tr</span>)
+                ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">""</span>)
+                ((<span style="color: #483d8b;">:td</span>) %new%)))))
+            <span style="color: #8b2252;">""</span>))))
+  (<span style="color: #483d8b;">:del</span> (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (ps-html
+             ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"DEL"</span>))
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"data"</span> <span style="color: #483d8b;">:value</span> (id i)))
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1059;&#1076;&#1072;&#1083;&#1080;&#1090;&#1100;"</span>))))
+            <span style="color: #8b2252;">""</span>)
+        (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (del-group (getf p <span style="color: #483d8b;">:data</span>))))
+  (<span style="color: #483d8b;">:new</span> (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (ps-html
+             ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"NEW"</span>))
+             ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1090;&#1100;"</span>)))
+            <span style="color: #8b2252;">""</span>)
+        (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
+            (<span style="color: #a020f0;">progn</span>
+              (make-group <span style="color: #483d8b;">:name</span> (getf p <span style="color: #483d8b;">:name</span>))
+              <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1072; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1072;"</span>)
+            <span style="color: #8b2252;">""</span>)))
 </pre>
 </div>
 </div>
@@ -2889,7 +2994,9 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
                #<span style="color: #483d8b;">:cl-who</span>
                #<span style="color: #483d8b;">:parenscript</span>
                #<span style="color: #483d8b;">:cl-fad</span>
-               #<span style="color: #483d8b;">:optima</span>)
+               #<span style="color: #483d8b;">:optima</span>
+               #<span style="color: #483d8b;">:fare-quasiquote-extras</span>
+               )
   <span style="color: #483d8b;">:description</span> <span style="color: #8b2252;">"site for bikers"</span>
   <span style="color: #483d8b;">:author</span> <span style="color: #8b2252;">"rigidus"</span>
   <span style="color: #483d8b;">:version</span> <span style="color: #8b2252;">"0.0.3"</span>
@@ -4035,7 +4142,7 @@ neato -Tpng -otester.png -n test.dot
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-18 Вс. 01:03</p>
+<p class="date">Created: 2015-01-27 Вт. 16:02</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

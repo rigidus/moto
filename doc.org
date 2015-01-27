@@ -839,17 +839,20 @@
        (remove-if
         #'null
         (list
-         "<a href=\"/users\">Пользователи</a>"
-         "<a href=\"/roles\">Роли</a>"
-         "<a href=\"/groups\">Группы</a>"
-         "<a href=\"/cmpxs\">Жилые комплексы</a>"
-         "<a href=\"/find\">Простой поиск</a>"
+         (when *current-user*
+           "<a href=\"/users\">Пользователи</a>")
+         (when *current-user*
+           "<a href=\"/roles\">Роли</a>")
+         (when *current-user*
+           "<a href=\"/groups\">Группы</a>")
+         ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
+         ;; "<a href=\"/find\">Простой поиск</a>"
          (when (null *current-user*)
            "<a href=\"/reg\">Регистрация</a>")
          (when (null *current-user*)
            "<a href=\"/login\">Логин</a>")
          (when (null *current-user*)
-           "Больше возможностей доступно залогиненным пользоватям")
+           "Больше возможностей доступно залогиненным пользователям")
          (when *current-user*
            (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
          (when *current-user*
@@ -858,7 +861,7 @@
            "<a href=\"/im\">Сообщения</a>")
          (when *current-user*
            "<a href=\"/load\">Загрузка данных</a>")
-         "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
+         ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
          )))
    #+END_SRC
 
@@ -879,94 +882,193 @@
 
  #+NAME: iface_contents
  #+BEGIN_SRC lisp
-
    (in-package #:moto)
 
-   (define-iface-add-del-entity all-users "/users"
-     "Пользователи"
-     "Новый пользователь"
-     ""
-     #'all-user "user"
-     (name password email state role-id)
-     (frm
-      (tbl
-       (list
-        (row "Имя" (fld "name"))
-        (row "Email" (fld "email"))
-        (row "Пароль" (fld "password"))
-        (row "" %new%))))
-     (:new (act-btn "NEW" "" "Создать")
+   (define-page all-users "/users"
+     (ps-html
+      ((:h1) "Пользователи")
+      (if (null *current-user*)
+          "Только авторизованный пользователи могут просматривать список пользователей"
+          (ps-html
+           ((:table :border 0)
+            (:th "id")
+            (:th "name")
+            (:th "password")
+            (:th "email")
+            (:th "ts-create")
+            (:th "ts-last")
+            (:th "role-id")
+            (:th "")
+            (format nil "~{~A~}"
+                    (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
+                      (ps-html
+                       ((:tr)
+                        ((:td) (id i))
+                        ((:td) (name i))
+                        ((:td) (if (equal 1 *current-user*) (password i) ""))
+                        ((:td) (email i))
+                        ((:td) (ts-create i))
+                        ((:td) (ts-last i))
+                        ((:td) (role-id i))
+                        ((:td) %del%))))))
+           (if (equal 1 *current-user*)
+               (ps-html
+                ((:h2) "Зарегистрировать нового пользователя")
+                ((:form :method "POST")
+                 ((:table :border 0)
+                  ((:tr)
+                   ((:td) "Имя пользователя: ")
+                   ((:td) ((:input :type "text" :name "name" :value ""))))
+                  ((:tr)
+                   ((:td) "Пароль: ")
+                   ((:td) ((:input :type "password" :name "password" :value ""))))
+                  ((:tr)
+                   ((:td) "Email: ")
+                   ((:td) ((:input :type "email" :name "email" :value ""))))
+                  ((:tr)
+                   ((:td) "")
+                   ((:td) %new%)))))
+               ""))))
+     (:del (if (and (equal 1 *current-user*)
+                    (not (equal 1 (id i))))
+                 (ps-html
+                  ((:form :method "POST")
+                   ((:input :type "hidden" :name "act" :value "DEL"))
+                   ((:input :type "hidden" :name "data" :value (id i)))
+                   ((:input :type "submit" :value "Удалить"))))
+                 "")
+           (del-user (getf p :data)))
+     (:new (ps-html
+            ((:input :type "hidden" :name "act" :value "NEW"))
+            ((:input :type "submit" :value "Создать")))
            (progn
              (make-user :name (getf p :name)
                         :email (getf p :email)
                         :password (getf p :password)
                         :ts-create (get-universal-time)
                         :ts-last (get-universal-time))
-             "Пользователь создан"))
-     (:del (act-btn "DEL" (id i) "Удалить")
-           (progn
-             (del-user (getf p :data)))))
+             "Пользователь создан")))
  #+END_SRC
 
 ** Список ролей
 
  #+NAME: iface_contents
  #+BEGIN_SRC lisp
-
    (in-package #:moto)
 
-   (define-iface-add-del-entity all-roles "/roles"
-     "Роли пользователей"
-     "Новая роль"
-     "Роли определяют набор сценариев, которые пользователь выполняет на
+   (define-page all-roles "/roles"
+     (ps-html
+      ((:h1) "Роли")
+      "Роли определяют набор сценариев, которые пользователь выполняет на
    сайте. Функционал, который выполняют сценарии запрашивает
    разрешение на выполнение действий, которое опирается на роль,
    присвоенную пользователю. Пользователь может иметь только одну роль
    или не иметь ее вовсе."
-     #'all-role "role"
-     (name)
-     (frm
-      (tbl
-       (list
-        (row "Название" (fld "name"))
-        (row "" %new%))))
-     (:new (act-btn "NEW" "" "Создать")
-           (progn
-             (make-role :name (getf p :name))
-             "Роль создана"))
-     (:del (act-btn "DEL" (id i) "Удалить")
-           (progn
-             (del-role (getf p :data)))))
+      (if (null *current-user*)
+          "Только авторизованный пользователи могут просматривать список ролей"
+          (ps-html
+           ((:table :border 0)
+            (:th "id")
+            (:th "name")
+            (:th "")
+            (format nil "~{~A~}"
+                    (with-collection (i (sort (all-role) #'(lambda (a b) (< (id a) (id b)))))
+                      (ps-html
+                       ((:tr)
+                        ((:td) (id i))
+                        ((:td) (name i))
+                        ((:td) %del%))))))
+           (if (equal 1 *current-user*)
+               (ps-html
+                ((:h2) "Зарегистрировать новую роль")
+                ((:form :method "POST")
+                 ((:table :border 0)
+                  ((:tr)
+                   ((:td) "Имя роли: ")
+                   ((:td) ((:input :type "text" :name "name" :value ""))))
+                  ((:tr)
+                   ((:td) "")
+                   ((:td) %new%)))))
+               ""))))
+     (:del (if (equal 1 *current-user*)
+               (ps-html
+                ((:form :method "POST")
+                 ((:input :type "hidden" :name "act" :value "DEL"))
+                 ((:input :type "hidden" :name "data" :value (id i)))
+                 ((:input :type "submit" :value "Удалить"))))
+               "")
+           (if (equal 1 *current-user*)
+               (del-role (getf p :data))))
+     (:new (if (equal 1 *current-user*)
+               (ps-html
+                ((:input :type "hidden" :name "act" :value "NEW"))
+                ((:input :type "submit" :value "Создать")))
+               "")
+           (if (equal 1 *current-user*)
+               (progn
+                 (make-role :name (getf p :name))
+                 "Роль создана")
+               "")))
  #+END_SRC
 
 ** Список групп
 
  #+NAME: iface_contents
  #+BEGIN_SRC lisp
-
    (in-package #:moto)
 
-   (define-iface-add-del-entity all-groups "/groups"
-     "Группы пользователей"
-     "Новая группа"
-     "Группы пользователей определяют набор операций, которые
+   (define-page all-groups "/groups"
+     (ps-html
+      ((:h1) "Группы")
+      "Группы пользователей определяют набор операций, которые
    пользователь может выполнять над объектами системы. В отличие от
    ролей, один пользователь может входить в несколько групп или не
    входить ни в одну из них."
-     #'all-group "group"
-     (name)
-     (frm
-      (tbl
-       (list
-        (row "Название" (fld "name"))
-        (row "" %new%))))
-     (:new (act-btn "NEW" "" "Создать")
-           (progn
-             (make-group :name (getf p :name))
-             "Роль создана"))
-     (:del (act-btn "DEL" (id i) "Удалить")
-           (progn
-             (del-group (getf p :data)))))
+      (if (null *current-user*)
+          "Только авторизованный пользователи могут просматривать список групп"
+          (ps-html
+           ((:table :border 0)
+            (:th "id")
+            (:th "name")
+            (:th "")
+            (format nil "~{~A~}"
+                    (with-collection (i (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))
+                      (ps-html
+                       ((:tr)
+                        ((:td) (id i))
+                        ((:td) (name i))
+                        ((:td) %del%))))))
+           (if (equal 1 *current-user*)
+               (ps-html
+                ((:h2) "Зарегистрировать новую группу")
+                ((:form :method "POST")
+                 ((:table :border 0)
+                  ((:tr)
+                   ((:td) "Имя шруппы: ")
+                   ((:td) ((:input :type "text" :name "name" :value ""))))
+                  ((:tr)
+                   ((:td) "")
+                   ((:td) %new%)))))
+               ""))))
+     (:del (if (equal 1 *current-user*)
+               (ps-html
+                ((:form :method "POST")
+                 ((:input :type "hidden" :name "act" :value "DEL"))
+                 ((:input :type "hidden" :name "data" :value (id i)))
+                 ((:input :type "submit" :value "Удалить"))))
+               "")
+           (if (equal 1 *current-user*)
+               (del-group (getf p :data))))
+     (:new (if (equal 1 *current-user*)
+               (ps-html
+                ((:input :type "hidden" :name "act" :value "NEW"))
+                ((:input :type "submit" :value "Создать")))
+               "")
+           (if (equal 1 *current-user*)
+               (progn
+                 (make-group :name (getf p :name))
+                 "Группа создана")
+               "")))
  #+END_SRC
 
 ** Страничка пользователя
