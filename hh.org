@@ -8,9 +8,6 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
-Корректно обсчитывать вилку з\п в правилах (в т.ч. долларовых)
-Кнопка отправки отзыва
-
 * Цель
 
   Мы все ищем работу на профильных сайтах время от времени. Иногда на это уходит
@@ -624,14 +621,7 @@
      <<make_specialization_hh_url_string>>
 
      (defun make-hh-url (city prof-area &optional specs)
-       "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&experience=doesNotMatter&order_by=relevance&search_period=30&items_on_page=20&no_magic=true&page=~A"
-       "http://spb.hh.ru/search/vacancy?text=&specialization=1.221&area=2&items_on_page=100&no_magic=true&page=~A"
-       ;; (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
-       ;; city
-       ;; (make-specialization-hh-url-string prof-area specs)
-       ;; 2)
-       )
-
+       "http://spb.hh.ru/search/vacancy?text=&specialization=1.221&area=2&items_on_page=100&no_magic=true&page=~A")
 
      ;; test
 
@@ -1070,6 +1060,8 @@
    | experience  | varchar              | требуемый опыт работы                           |
    | date        | varchar              | дата опубликования в источнике                  |
    | descr       | varchar              | описание вакансии                               |
+   | notes       | (or db-null varchar) | заметки по вакансии                             |
+   | response    | (or db-null varchar) | текст отклика на вакансию                       |
 
    Напишем процедуру сохранения вакансии в базу данных
 
@@ -1099,7 +1091,137 @@
                             :archive (getf vacancy :archive)
                             :date (getf vacancy :date)
                             :state ":UNSORT"
-                            :descr (bprint (show-descr (getf vacancy :descr))))))))
+                            :descr (bprint (show-descr (getf vacancy :descr)))
+                            :notes ""
+                            :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
+   #+END_SRC
+
+** Состояния вакансий
+
+   После того, как тизер вакансии будет загружен системой, вакансия получает статус =unsort=
+
+   После сортировки пользователем ваканисия может принять один из статусов: =unsorted=,
+   =interested= или =not-interested=
+
+   Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
+   действия, переводящие вакансию из одного состояния в другое: когда пользователь
+   отправляет отзыв  вакансия становится =responded=. Если пользователь, просмотрев
+   вакансию, принял решение отзыв не отправлять, он может сделать вакансию =hidden=.
+
+   Важно: Для обеспечения социальных взаимодействий нужно предусмотреть, чтобы вакансию
+   можно было "передать", т.е. у нее минимум должен быть URI.
+
+   Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
+   добавить вакансию в закладки - в этом случае ее статус меняется на =favorited=
+
+   Из =favorited= мы снова можем отправить отзыв.
+
+   Из =favorited= пользователь может вернуть вакансию обратно в =interested= или =hidden=.
+
+   Из =hidden= пользователь может вернуть вакансию в =interested=.
+
+   Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
+   по вакансиям в статусе =responded= - пользователь ищет обычно по названию фирмы.
+
+   После звонка вакансия может быть выкинута или переведена из =responded= в статус "был
+   телефонный звонок" - =called=. Выкидывая вакансию пользователь может выбрать reason - для
+   них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
+   вакансии. Если в результате телефонного звонка была достигнута договоренность о
+   собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
+   =wait-interview= и заносит в вакансию данные о том, куда и во сколько ехать. Если по
+   телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
+   =wait-test=. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
+   =wait-skype-interview=.
+
+   Получив тестовое задание пользователь переводит вакансию из статуса =wait-test= в
+   "выполнение тестового задания" =run-test=, а оттуда либо в =test-cancel= либо в
+   =test-sended=. Либо выкидывает.
+
+   Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
+   часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
+   его, наверно пусть можно будет просто изменить данные о времени интервью.
+
+   После интервью или скайп-интервью от вакансии можно либо отказаться (=refuse-employer=,
+   =refuse-applicant=) либо перевести в статус "ожидание результата" - =wait-result=. Нужно
+   включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
+   узнать, как дела.
+
+   Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
+   предлагают оффер - =offer= и соискатель берет время на подумать.
+
+   Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
+   =refuse-employer= или "отказ соискателя" - =refuse-аpplicant=.
+
+   История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
+   примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
+   статусов и текущее положение вакансии в нем.
+
+   #+CAPTION: Состояния конечного автомата вакансии
+   #+NAME: vacancy_state
+   | action                                 | from                 | to                   |
+   |----------------------------------------+----------------------+----------------------|
+   | set-not-interested                     | unsort               | not-interested       |
+   | set-interested                         | unsort               | interested           |
+   | respond                                | interested           | responded            |
+
+   | refuse-new                             | new                  | not-interested       |
+   | set-interested                         | new                  | interested           |
+   | refuse-interested                      | interested           | hidden               |
+   | respond                                | interested           | responded            |
+   | favor                                  | interested           | favorited            |
+   | send-respond-from-favorited            | favorited            | responded            |
+   | unfavor                                | favorited            | interested           |
+   | hide-after-favor                       | favorited            | hidden               |
+   | call                                   | responded            | called               |
+   | invite-interview                       | called               | wait_interview       |
+   | invite-skype-interview                 | called               | wait_skype_interview |
+   | invite-test                            | called               | wait_test            |
+   | interview                              | wait_interview       | interview            |
+   | skype-interview                        | wait_skype_interview | skype_interview      |
+   | call-after-skype-interview             | skype_interview      | called               |
+   | execute-test                           | wait_test            | run_test             |
+   | send-test                              | run_test             | send_test            |
+   | called-after-test                      | send_test            | called               |
+   | refuse-employer-after-interview        | interview            | refuse_employer      |
+   | refuse-applicant-after-interview       | interview            | refuse_applicant     |
+   | wait-result-after-interview            | interview            | wait_result          |
+   | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
+   | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
+   | wait-result-after-skype-interview      | skype_interview      | wait_result          |
+   | invite-next-interview                  | wait_result          | interview            |
+   | invite-interview-after-skype           | skype_interview      | interview            |
+   | invite-offer                           | wait_result          | offer                |
+   | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
+   | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
+
+   Теперь мы можем полностью описать поведение вакансии как конечный автомат:
+
+   #+NAME: vacancy_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=vacancy_state :results output
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+
+   #+BEGIN_SRC dot :file img/vacancy-state.png :var input=vacancy_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+
+   #+NAME: hh_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun teaser-rejection ()
+       "teaser-rejection")
+
+     (defun rejection-favorite ()
+       "rejection-favorite")
    #+END_SRC
 
 ** Печать вакансий
@@ -1346,56 +1468,33 @@
 
      (defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
        (ps-html
+        ((:table :border 0 :style "font-size: small;")
+         ((:tr)
+          ((:td) "id:")         ((:td) (id vac))         ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "src-id:")     ((:td) (src-id vac))     ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "archive:")    ((:td) (archive vac))    ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "emp-id:")     ((:td) (emp-id vac))     ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "emp-name:")   ((:td) (emp-name vac))   ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "city:")       ((:td) (city vac))       ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "metro:")      ((:td) (metro vac))      ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "experience:") ((:td) (experience vac)) ((:td) "&nbsp;&nbsp;&nbsp;")
+          ((:td) "date:")       ((:td) (date vac))       ((:td) "&nbsp;&nbsp;&nbsp;")))
+        ((:h3) (name vac) "&nbsp;&nbsp;&nbsp;" ((:span :style "color:red") (salary-text vac)))
+        ((:pre) (descr vac))
         ((:table :border 0)
+         ((:th) "notes")
+         ((:th) "response")
          ((:tr)
-          ((:td) "id:")
-          ((:td) (id vac)))
-         ((:tr)
-          ((:td) "src-id:")
-          ((:td) (src-id vac)))
-         ((:tr)
-          ((:td) "archive:")
-          ((:td) (archive vac)))
-         ((:tr)
-          ((:td) "name:")
-          ((:td) (name vac)))
-         ((:tr)
-          ((:td) "currency:")
-          ((:td) (currency vac)))
-         ((:tr)
-          ((:td) "base-salary:")
-          ((:td) (base-salary vac)))
-         ((:tr)
-          ((:td) "salary:")
-          ((:td) (salary vac)))
-         ((:tr)
-          ((:td) "salary-text:")
-          ((:td) (salary-text vac)))
-         ((:tr)
-          ((:td) "emp-id:")
-          ((:td) (emp-id vac)))
-         ((:tr)
-          ((:td) "emp-name:")
-          ((:td) (emp-name vac)))
-         ((:tr)
-          ((:td) "city:")
-          ((:td) (city vac)))
-         ((:tr)
-          ((:td) "metro:")
-          ((:td) (metro vac)))
-         ((:tr)
-          ((:td) "experience:")
-          ((:td) (experience vac)))
-         ((:tr)
-          ((:td) "date:")
-          ((:td) (date vac)))
-         ((:tr)
-          ((:td) "descr:")
-          ((:td) ((:pre) (descr vac))))
-         )))
+          ((:td :width 500 :valign "top") ((:textarea :name "notes" :cols 60 :rows 6) (notes vac)))
+          ((:td :width 500 :valign "top") ((:textarea :name "response" :cols 60 :rows 6) (response vac)))))))
 
      (restas:define-route vacancy ("/vacancy/:id")
-       (to-html (car (find-vacancy :src-id id))))
+       (format nil "~{~A~}"
+               (list
+                (to-html (car (find-vacancy :src-id id)))
+                "<input type=\"button\" value=\"save\" />"
+                "&nbsp;"
+                "<input type=\"button\" value=\"send_response\" />")))
 
    #+END_SRC
 
@@ -2107,135 +2206,6 @@
 
    HR-специалист заинтересован в том, чтобы иметь возможность построить процесс найма под
    себя.
-
-** Состояния вакансий
-
-   После того, как тизер вакансии будет загружен системой, вакансия получает статус =new= и
-   помечается в интерфейсе специальным значком, чтобы обратить на себя внимание
-   пользователя. В дальнейшем эти тизеры попадают на автоматическую и ручную сортировку и
-   могут принять один из статусов: =unsorted=, =interested= или =not-interested=
-
-   После того, как пользователь определился с интересными ему тизерами, он иницирует
-   загрузку полной информции о вакансиях и они становятся доступны для просмотра и внесения
-   заметок.
-
-   Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
-   действия, переводящие вакансию из одного состояния в другое: когда пользователь
-   отправляет отзыв  вакансия становится =responded=. Если пользователь, просмотрев
-   вакансию, принял решение отзыв не отправлять, он может сделать вакансию =hidden=.
-
-   Важно: Для обеспечения социальных взаимодействий нужно предусмотреть, чтобы вакансию
-   можно было "передать", т.е. у нее минимум должен быть URI.
-
-   Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
-   добавить вакансию в закладки - в этом случае ее статус меняется на =favorited=
-
-   Из =favorited= мы снова можем отправить отзыв.
-
-   Из =favorited= пользователь может вернуть вакансию обратно в =interested= или =hidden=.
-
-   Из =hidden= пользователь может вернуть вакансию в =interested=.
-
-   Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
-   по вакансиям в статусе =responded= - пользователь ищет обычно по названию фирмы.
-
-   После звонка вакансия может быть выкинута или переведена из =responded= в статус "был
-   телефонный звонок" - =called=. Выкидывая вакансию пользователь может выбрать reason - для
-   них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
-   вакансии. Если в результате телефонного звонка была достигнута договоренность о
-   собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
-   =wait-interview= и заносит в вакансию данные о том, куда и во сколько ехать. Если по
-   телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
-   =wait-test=. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
-   =wait-skype-interview=.
-
-   Получив тестовое задание пользователь переводит вакансию из статуса =wait-test= в
-   "выполнение тестового задания" =run-test=, а оттуда либо в =test-cancel= либо в
-   =test-sended=. Либо выкидывает.
-
-   Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
-   часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
-   его, наверно пусть можно будет просто изменить данные о времени интервью.
-
-   После интервью или скайп-интервью от вакансии можно либо отказаться (=refuse-employer=,
-   =refuse-applicant=) либо перевести в статус "ожидание результата" - =wait-result=. Нужно
-   включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
-   узнать, как дела.
-
-   Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
-   предлагают оффер - =offer= и соискатель берет время на подумать.
-
-   Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
-   =refuse-employer= или "отказ соискателя" - =refuse-аpplicant=.
-
-   История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
-   примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
-   статусов и текущее положение вакансии в нем.
-
-   #+CAPTION: Состояния конечного автомата вакансии
-   #+NAME: vacancy_state
-   | action                                 | from                 | to                   |
-   |----------------------------------------+----------------------+----------------------|
-   | view                                   | new                  | unsorted             |
-   | refuse-new                             | new                  | not-interested       |
-   | set-interested                         | new                  | interested           |
-   | refuse-interested                      | interested           | hidden               |
-   | respond                                | interested           | responded            |
-   | favor                                  | interested           | favorited            |
-   | send-respond-from-favorited            | favorited            | responded            |
-   | unfavor                                | favorited            | interested           |
-   | hide-after-favor                       | favorited            | hidden               |
-   | call                                   | responded            | called               |
-   | invite-interview                       | called               | wait_interview       |
-   | invite-skype-interview                 | called               | wait_skype_interview |
-   | invite-test                            | called               | wait_test            |
-   | interview                              | wait_interview       | interview            |
-   | skype-interview                        | wait_skype_interview | skype_interview      |
-   | call-after-skype-interview             | skype_interview      | called               |
-   | execute-test                           | wait_test            | run_test             |
-   | send-test                              | run_test             | send_test            |
-   | called-after-test                      | send_test            | called               |
-   | refuse-employer-after-interview        | interview            | refuse_employer      |
-   | refuse-applicant-after-interview       | interview            | refuse_applicant     |
-   | wait-result-after-interview            | interview            | wait_result          |
-   | refuse-employer-after-skype-interview  | skype_interview      | refuse_employer      |
-   | refuse-applicant-after-skype-interview | skype_interview      | refuse_applicant     |
-   | wait-result-after-skype-interview      | skype_interview      | wait_result          |
-   | invite-next-interview                  | wait_result          | interview            |
-   | invite-interview-after-skype           | skype_interview      | interview            |
-   | invite-offer                           | wait_result          | offer                |
-   | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
-   | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
-
-   Теперь мы можем полностью описать поведение вакансии как конечный автомат:
-
-   #+NAME: vacancy_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=vacancy_state :results output
-     (mapcar #'(lambda (x)
-                 (princ (format "%s -> %s [label =\"%s\"];\n"
-                                (second x) (third x) (first x))))
-             table)
-   #+END_SRC
-
-
-   #+BEGIN_SRC dot :file img/vacancy-state.png :var input=vacancy_state_graph :exports results
-     digraph G {
-       rankdir = LR;
-       $input
-     }
-   #+END_SRC
-
-
-   #+NAME: hh_fn_contents
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defun teaser-rejection ()
-       "teaser-rejection")
-
-     (defun rejection-favorite ()
-       "rejection-favorite")
-   #+END_SRC
 
 * Сценарии использования
 ** Пользовательские

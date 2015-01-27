@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-20 Вт. 06:13 -->
+<!-- 2015-01-27 Вт. 07:49 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -155,9 +155,9 @@ for the JavaScript code in this tag.
 <li><a href="#sec-3-5">3.5. Декоратор для process-teaser</a></li>
 <li><a href="#sec-3-6">3.6. Получение и обработка вакансий правилами</a></li>
 <li><a href="#sec-3-7">3.7. Составление правил и работа с ними</a></li>
-<li><a href="#sec-3-8">3.8. Правила отсева тизеров</a></li>
+<li><a href="#sec-3-8">3.8. <span class="done nilDONE">DONE</span> Правила отсева тизеров</a></li>
 <li><a href="#sec-3-9">3.9. Макросы для определения правил отсева тизеров</a></li>
-<li><a href="#sec-3-10">3.10. Правила анализа вакансий</a></li>
+<li><a href="#sec-3-10">3.10. <span class="done nilDONE">DONE</span> Правила анализа вакансий</a></li>
 <li><a href="#sec-3-11">3.11. Макросы для определения правил анализа вакансий</a></li>
 <li><a href="#sec-3-12">3.12. Построение URL-ов, для скачивания тизеров</a>
 <ul>
@@ -168,79 +168,70 @@ for the JavaScript code in this tag.
 <li><a href="#sec-3-14">3.14. Разбор тизеров вакансий</a>
 <ul>
 <li><a href="#sec-3-14-1">3.14.1. Трансформация дерева</a></li>
+<li><a href="#sec-3-14-2">3.14.2. Определение минимальной и максимальной зарплаты</a></li>
 </ul>
 </li>
 <li><a href="#sec-3-15">3.15. Разбор вакансий</a></li>
 <li><a href="#sec-3-16">3.16. Сохранение вакансии и ее структура данных</a></li>
-<li><a href="#sec-3-17">3.17. Печать вакансий</a></li>
-<li><a href="#sec-3-18">3.18. <span class="todo nilTODO">TODO</span> СТОП!!!</a>
-<ul>
-<li><a href="#sec-3-18-1">3.18.1. Для красоты</a></li>
+<li><a href="#sec-3-17">3.17. Состояния вакансий</a></li>
+<li><a href="#sec-3-18">3.18. Печать вакансий</a></li>
+<li><a href="#sec-3-19">3.19. Отправка отклика</a></li>
 </ul>
 </li>
-<li><a href="#sec-3-19">3.19. Неактуальное</a>
+<li><a href="#sec-4">4. Interface</a>
 <ul>
-<li><a href="#sec-3-19-1">3.19.1. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
-<li><a href="#sec-3-19-2">3.19.2. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
+<li><a href="#sec-4-1">4.1. Главная страница модуля</a></li>
+<li><a href="#sec-4-2">4.2. Страница вакансии</a></li>
+<li><a href="#sec-4-3">4.3. Галлерея (parenscript)</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5. <span class="todo nilTODO">TODO</span> СТОП!!!</a>
+<ul>
+<li>
+<ul>
+<li><a href="#sec-5-0-1">5.0.1. Для красоты</a></li>
+<li><a href="#sec-5-0-2">5.0.2. <span class="todo nilWAIT">WAIT</span> Обход дерева и извлечение узлов</a></li>
+<li><a href="#sec-5-0-3">5.0.3. <span class="todo nilWAIT">WAIT</span> Сопоставление и преобразование узлов</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#sec-4">4. Хотелки</a>
+<li><a href="#sec-6">6. Хотелки</a>
 <ul>
-<li><a href="#sec-4-1">4.1. Процесс найма с т.з. соискателя</a></li>
-<li><a href="#sec-4-2">4.2. Процесс найма с т.з. HR-а</a></li>
-<li><a href="#sec-4-3">4.3. Состояния вакансий</a></li>
+<li><a href="#sec-6-1">6.1. Процесс найма с т.з. соискателя</a></li>
+<li><a href="#sec-6-2">6.2. Процесс найма с т.з. HR-а</a></li>
 </ul>
 </li>
-<li><a href="#sec-5">5. Сценарии использования</a>
+<li><a href="#sec-7">7. Сценарии использования</a>
 <ul>
-<li><a href="#sec-5-1">5.1. Пользовательские</a>
+<li><a href="#sec-7-1">7.1. Пользовательские</a>
 <ul>
-<li><a href="#sec-5-1-1">5.1.1. Авторизация/регистрация</a></li>
-<li><a href="#sec-5-1-2">5.1.2. Формализация предпочтений</a></li>
-<li><a href="#sec-5-1-3">5.1.3. Отбор и сортировка вакансий</a></li>
-<li><a href="#sec-5-1-4">5.1.4. Внесение заметок к вакансиям</a></li>
-<li><a href="#sec-5-1-5">5.1.5. Заполнение резюме</a></li>
-<li><a href="#sec-5-1-6">5.1.6. Написание сопроводительных писем</a></li>
-<li><a href="#sec-5-1-7">5.1.7. Отправка отзывов</a></li>
+<li><a href="#sec-7-1-1">7.1.1. Авторизация/регистрация</a></li>
+<li><a href="#sec-7-1-2">7.1.2. Формализация предпочтений</a></li>
+<li><a href="#sec-7-1-3">7.1.3. Отбор и сортировка вакансий</a></li>
+<li><a href="#sec-7-1-4">7.1.4. Внесение заметок к вакансиям</a></li>
+<li><a href="#sec-7-1-5">7.1.5. Заполнение резюме</a></li>
+<li><a href="#sec-7-1-6">7.1.6. Написание сопроводительных писем</a></li>
+<li><a href="#sec-7-1-7">7.1.7. Отправка отзывов</a></li>
 </ul>
 </li>
-<li><a href="#sec-5-2">5.2. Поисковые профили</a>
+<li><a href="#sec-7-2">7.2. Поисковые профили</a>
 <ul>
-<li><a href="#sec-5-2-1">5.2.1. Список поисковых профилей</a></li>
-<li><a href="#sec-5-2-2">5.2.2. Страничка поискового профиля</a></li>
+<li><a href="#sec-7-2-1">7.2.1. Список поисковых профилей</a></li>
+<li><a href="#sec-7-2-2">7.2.2. Страничка поискового профиля</a></li>
 </ul>
 </li>
-<li><a href="#sec-5-3">5.3. Поиск вакансий</a></li>
-<li><a href="#sec-5-4">5.4. Ручной отбор вакансий</a></li>
-<li><a href="#sec-5-5">5.5. Автоматический отбор вакансий</a></li>
-<li><a href="#sec-5-6">5.6. Внесение заметок по вакансии</a></li>
-<li><a href="#sec-5-7">5.7. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
-<li><a href="#sec-5-8">5.8. Дашборд</a></li>
-<li><a href="#sec-5-9">5.9. Отзывы соискателей о компаниях и вакансиях</a></li>
-<li><a href="#sec-5-10">5.10. Размещение резюме</a></li>
-<li><a href="#sec-5-11">5.11. Маршрут</a></li>
-<li><a href="#sec-5-12">5.12. Создание вакансии работодателем</a></li>
-<li><a href="#sec-5-13">5.13. Вакансия становится неактуальной</a></li>
-</ul>
-</li>
-<li><a href="#sec-6">6. Сущности</a>
-<ul>
-<li><a href="#sec-6-1">6.1. Поисковые профили</a></li>
-<li><a href="#sec-6-2">6.2. Вакансии</a></li>
-<li><a href="#sec-6-3">6.3. Перекрестные связи с другими вакансиями</a></li>
-<li><a href="#sec-6-4">6.4. Компании</a></li>
-<li><a href="#sec-6-5">6.5. Действия по вакансии: звонки, скайп-интервью, собеседования</a></li>
-<li><a href="#sec-6-6">6.6. Теги вакансий</a></li>
-</ul>
-</li>
-<li><a href="#sec-7">7. Interface</a>
-<ul>
-<li><a href="#sec-7-1">7.1. Главная страница модуля</a></li>
-<li><a href="#sec-7-2">7.2. Галлерея (parenscript)</a></li>
-<li><a href="#sec-7-3">7.3. Список вакансий</a></li>
-<li><a href="#sec-7-4">7.4. Дашборд</a></li>
+<li><a href="#sec-7-3">7.3. Поиск вакансий</a></li>
+<li><a href="#sec-7-4">7.4. Ручной отбор вакансий</a></li>
+<li><a href="#sec-7-5">7.5. Автоматический отбор вакансий</a></li>
+<li><a href="#sec-7-6">7.6. Внесение заметок по вакансии</a></li>
+<li><a href="#sec-7-7">7.7. Просмотр и отбор вакансий, заметки и выставление статусов</a></li>
+<li><a href="#sec-7-8">7.8. Дашборд</a></li>
+<li><a href="#sec-7-9">7.9. Отзывы соискателей о компаниях и вакансиях</a></li>
+<li><a href="#sec-7-10">7.10. Размещение резюме</a></li>
+<li><a href="#sec-7-11">7.11. Маршрут</a></li>
+<li><a href="#sec-7-12">7.12. Создание вакансии работодателем</a></li>
+<li><a href="#sec-7-13">7.13. Вакансия становится неактуальной</a></li>
 </ul>
 </li>
 <li><a href="#sec-8">8. Тесты</a></li>
@@ -264,8 +255,7 @@ for the JavaScript code in this tag.
 <li><a href="#sec-10-3">10.3. Утилиты</a></li>
 <li><a href="#sec-10-4">10.4. Глобальные определения</a></li>
 <li><a href="#sec-10-5">10.5. Сущности и автоматы</a></li>
-<li><a href="#sec-10-6">10.6. Поисковые профили</a></li>
-<li><a href="#sec-10-7">10.7. Вакансии</a></li>
+<li><a href="#sec-10-6">10.6. Вакансии</a></li>
 </ul>
 </li>
 </ul>
@@ -674,7 +664,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-8" class="outline-3">
-<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Правила отсева тизеров</h3>
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> <span class="done DONE">DONE</span> Правила отсева тизеров</h3>
 <div class="outline-text-3" id="text-3-8">
 <p>
 Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
@@ -693,13 +683,16 @@ for the JavaScript code in this tag.
   <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "  - no salary")</span>
   )
 
-(<span style="color: #a020f0;">define-drop-teaser-rule</span> (salary-2-low (&lt; (getf vacancy <span style="color: #483d8b;">:salary</span>) 60000))
-  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "  - low salary")</span>
+(<span style="color: #a020f0;">define-drop-teaser-rule</span> (salary-2-low (&lt; (getf vacancy <span style="color: #483d8b;">:salary-max</span>) 90000))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "  - no salary")</span>
   )
 
+
 (<span style="color: #a020f0;">define-drop-all-teaser-when-name-contains-rule</span>
-    <span style="color: #8b2252;">"IOS"</span> <span style="color: #8b2252;">"1&#1057;"</span> <span style="color: #8b2252;">"C++"</span> <span style="color: #8b2252;">"Ruby on Rails"</span> <span style="color: #8b2252;">"Frontend"</span> <span style="color: #8b2252;">"Front End"</span> <span style="color: #8b2252;">"Go"</span> <span style="color: #8b2252;">"Qa"</span> <span style="color: #8b2252;">"C#"</span> <span style="color: #8b2252;">".NET"</span>
-    <span style="color: #8b2252;">"Unity3D"</span> <span style="color: #8b2252;">"Flash"</span> <span style="color: #8b2252;">"Java"</span> <span style="color: #8b2252;">"Android"</span> <span style="color: #8b2252;">"ASP"</span> <span style="color: #8b2252;">"Objective-C"</span> <span style="color: #8b2252;">"Go"</span>)
+    <span style="color: #8b2252;">"iOS"</span> <span style="color: #8b2252;">"Python"</span> <span style="color: #8b2252;">"Django"</span> <span style="color: #8b2252;">"IOS"</span> <span style="color: #8b2252;">"1C"</span> <span style="color: #8b2252;">"1&#1057;"</span> <span style="color: #8b2252;">"C++"</span> <span style="color: #8b2252;">"&#1057;++"</span> <span style="color: #8b2252;">"Ruby"</span> <span style="color: #8b2252;">"Ruby on Rails"</span>
+    <span style="color: #8b2252;">"Frontend"</span> <span style="color: #8b2252;">"Front End"</span> <span style="color: #8b2252;">"Front-end"</span> <span style="color: #8b2252;">"Go"</span> <span style="color: #8b2252;">"Q/A"</span> <span style="color: #8b2252;">"QA"</span> <span style="color: #8b2252;">"C#"</span> <span style="color: #8b2252;">".NET"</span> <span style="color: #8b2252;">".Net"</span>
+    <span style="color: #8b2252;">"Unity3D"</span> <span style="color: #8b2252;">"Flash"</span> <span style="color: #8b2252;">"Java"</span> <span style="color: #8b2252;">"Android"</span> <span style="color: #8b2252;">"ASP"</span> <span style="color: #8b2252;">"Objective-C"</span> <span style="color: #8b2252;">"Go"</span> <span style="color: #8b2252;">"Delphi"</span>
+    <span style="color: #8b2252;">"Sharepoint"</span> <span style="color: #8b2252;">"Flash"</span> <span style="color: #8b2252;">"PL/SQL"</span> <span style="color: #8b2252;">"Oracle"</span> <span style="color: #8b2252;">"designer"</span>)
 </pre>
 </div>
 </div>
@@ -815,7 +808,7 @@ for the JavaScript code in this tag.
 </div>
 
 <div id="outline-container-sec-3-10" class="outline-3">
-<h3 id="sec-3-10"><span class="section-number-3">3.10</span> Правила анализа вакансий</h3>
+<h3 id="sec-3-10"><span class="section-number-3">3.10</span> <span class="done DONE">DONE</span> Правила анализа вакансий</h3>
 <div class="outline-text-3" id="text-3-10">
 <ul class="org-ul">
 <li>Я не хочу смотреть на вакансии, в компаниях где я уже работал.
@@ -868,11 +861,11 @@ for the JavaScript code in this tag.
   <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "up rank by Haskell")</span>
   (setf (getf vacancy <span style="color: #483d8b;">:rank</span>) (+ (getf vacancy <span style="color: #483d8b;">:rank</span>) 10000)))
 
-(<span style="color: #a020f0;">define-rule</span> (z-save t)
-  (save-vacancy vacancy))
-
 (<span style="color: #a020f0;">define-rule</span> (z-print t)
-  (show vacancy)
+  (show-vacancy vacancy))
+
+(<span style="color: #a020f0;">define-rule</span> (z-save t)
+  (save-vacancy vacancy)
   <span style="color: #483d8b;">:stop</span>)
 </pre>
 </div>
@@ -941,10 +934,7 @@ for the JavaScript code in this tag.
 &lt;&lt;make_specialization_hh_url_string&gt;&gt;
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">make-hh-url</span> (city prof-area <span style="color: #228b22;">&amp;optional</span> specs)
-  (format nil <span style="color: #8b2252;">"http://~A.hh.ru/search/vacancy?clusters=true&amp;specialization=~A&amp;area=~A&amp;page=~~A"</span>
-          city
-          (make-specialization-hh-url-string prof-area specs)
-          2))
+  <span style="color: #8b2252;">"http://spb.hh.ru/search/vacancy?text=&amp;specialization=1.221&amp;area=2&amp;items_on_page=100&amp;no_magic=true&amp;page=~A"</span>)
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">test</span>
 
@@ -1163,79 +1153,80 @@ for the JavaScript code in this tag.
 
 &lt;&lt;maptree_transform&gt;&gt;
 
+&lt;&lt;parse_salary&gt;&gt;
+
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">hh-parse-vacancy-teasers</span> (html)
   <span style="color: #8b2252;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1080;&#1079; html"</span>
-  (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>)) ,@rest) rest)
-       (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"data-qa"</span> ,_) (<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item search-result-item_premium  search-result-item_premium"</span>
-                                                   <span style="color: #8b2252;">"search-result-item search-result-item_standard "</span>
-                                                   <span style="color: #8b2252;">"search-result-item search-result-item_standard_plus "</span>))) ,@rest)
-              (<span style="color: #a020f0;">let</span> ((in (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (or (equal x 'z) (equal x <span style="color: #8b2252;">"noindex"</span>) (equal x <span style="color: #8b2252;">"/noindex"</span>))) rest)))
-                (<span style="color: #a020f0;">if</span> (not (equal 1 (length in)))
-                    (<span style="color: #a020f0;">progn</span> (print in)
-                           (err <span style="color: #8b2252;">"parsing failed, data printed"</span>))
-                    (car in))))
-            (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"title"</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1077;&#1084;&#1080;&#1103; HRBrand"</span>) (<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"rel"</span> <span style="color: #8b2252;">"nofollow"</span>)
-                         (<span style="color: #8b2252;">"class"</span> ,_)
-                         (<span style="color: #8b2252;">"data-qa"</span> ,_)) <span style="color: #8b2252;">"&#160;"</span>) 'Z)
-                 (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__image"</span>)) ,_) 'Z)
-                      (mtm (`(<span style="color: #8b2252;">"script"</span> ((<span style="color: #8b2252;">"data-name"</span> <span style="color: #8b2252;">"HH/VacancyResponseTrigger"</span>) (<span style="color: #8b2252;">"data-params"</span> <span style="color: #8b2252;">""</span>))) 'Z)
-                           (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> ,_)
-                                        (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
-                                (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__star"</span>)) ,@_) 'Z)
-                                     (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__description"</span>)) ,@rest)
-                                            (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
-                                          (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__head"</span>))
-                                                        (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard"</span>
-                                                                            <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard_plus"</span>
-                                                                            <span style="color: #8b2252;">"search-result-item__name search-result-item__name_premium"</span>))
-                                                              (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-title"</span>) (<span style="color: #8b2252;">"href"</span> ,id) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>)) ,name))
-                                                 (list <span style="color: #483d8b;">:id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) <span style="color: #483d8b;">:name</span> name))
-                                               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-salary"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-compensation"</span>))
-                                                             (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
-                                                             (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,salary))) ,salary-text)
-                                                      (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:salary</span> (parse-integer salary) <span style="color: #483d8b;">:salary-text</span> salary-text))
-                                                    (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>)) ,emp-name)
-                                                           (list <span style="color: #483d8b;">:emp-name</span> emp-name))
-                                                         (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>))
-                                                                       (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,emp-id)
-                                                                             (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company-link"</span>)
-                                                                             (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-employer"</span>))
-                                                                            ,emp-name))
-                                                                (list <span style="color: #483d8b;">:emp-id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) <span style="color: #483d8b;">:junk-allowed</span> t)
-                                                                      <span style="color: #483d8b;">:emp-name</span> emp-name))
-                                                              (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__info"</span>)) ,@rest)
-                                                                     (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
-                                                                   (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"searchresult__address"</span>)
-                                                                                   (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-address"</span>)) ,city ,@rest)
-                                                                          (<span style="color: #a020f0;">let</span> ((metro (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item in rest <span style="color: #483d8b;">:do</span>
-                                                                                          (<span style="color: #a020f0;">when</span> (and (consp item) (equal <span style="color: #483d8b;">:metro</span> (car item)))
-                                                                                            (<span style="color: #a020f0;">return</span> (cadr item))))))
-                                                                            (list <span style="color: #483d8b;">:city</span> city <span style="color: #483d8b;">:metro</span> metro)))
-                                                                        (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-station"</span>))
-                                                                                       (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-point"</span>) (<span style="color: #8b2252;">"style"</span> ,_))) ,metro)
-                                                                               (list <span style="color: #483d8b;">:metro</span> metro))
-                                                                             (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-date"</span>)
-                                                                                             (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-date"</span>)) ,date)
-                                                                                    (list <span style="color: #483d8b;">:date</span> date))
-                                                                                  (mtm (`(<span style="color: #8b2252;">"span"</span>
-                                                                                          ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform"</span>)
-                                                                                           (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_career"</span>))
-                                                                                          <span style="color: #8b2252;">"&#160;&#160;&#8226;&#160;&#160;"</span> (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform__name"</span>))
-                                                                                                          <span style="color: #8b2252;">"CAREER.RU"</span>))
-                                                                                         (list <span style="color: #483d8b;">:platform</span> 'career.ru))
-                                                                                       (<span style="color: #a020f0;">block</span> subtree-extract
-                                                                                         (mtm (`(<span style="color: #8b2252;">"div"</span>
-                                                                                                 ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>)
-                                                                                                  (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>))
-                                                                                                 ,@rest)
-                                                                                                (<span style="color: #a020f0;">return-from</span> subtree-extract rest))
-                                                                                              (html5-parser:node-to-xmls
-                                                                                               (html5-parser:parse-html5-fragment html))))))))))))))))))))))
+  (mapcar #'parse-salary
+          (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>)) ,@rest) rest)
+               (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"data-qa"</span> ,_) (<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item search-result-item_premium  search-result-item_premium"</span>
+                                                           <span style="color: #8b2252;">"search-result-item search-result-item_standard "</span>
+                                                           <span style="color: #8b2252;">"search-result-item search-result-item_standard_plus "</span>))) ,@rest)
+                      (<span style="color: #a020f0;">let</span> ((in (remove-if #'(<span style="color: #a020f0;">lambda</span> (x) (or (equal x 'z) (equal x <span style="color: #8b2252;">"noindex"</span>) (equal x <span style="color: #8b2252;">"/noindex"</span>))) rest)))
+                        (<span style="color: #a020f0;">if</span> (not (equal 1 (length in)))
+                            (<span style="color: #a020f0;">progn</span> (print in)
+                                   (err <span style="color: #8b2252;">"parsing failed, data printed"</span>))
+                            (car in))))
+                    (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"title"</span> <span style="color: #8b2252;">"&#1055;&#1088;&#1077;&#1084;&#1080;&#1103; HRBrand"</span>) (<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"rel"</span> <span style="color: #8b2252;">"nofollow"</span>)
+                                 (<span style="color: #8b2252;">"class"</span> ,_)
+                                 (<span style="color: #8b2252;">"data-qa"</span> ,_)) <span style="color: #8b2252;">"&#160;"</span>) 'Z)
+                         (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__image"</span>)) ,_) 'Z)
+                              (mtm (`(<span style="color: #8b2252;">"script"</span> ((<span style="color: #8b2252;">"data-name"</span> <span style="color: #8b2252;">"HH/VacancyResponseTrigger"</span>) (<span style="color: #8b2252;">"data-params"</span> <span style="color: #8b2252;">""</span>))) 'Z)
+                                   (mtm (`(<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,_) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>) (<span style="color: #8b2252;">"class"</span> ,_)
+                                                (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_responded"</span>)) <span style="color: #8b2252;">"&#1042;&#1099; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1085;&#1091;&#1083;&#1080;&#1089;&#1100;"</span>) 'Z)
+                                        (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__star"</span>)) ,@_) 'Z)
+                                             (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__description"</span>)) ,@rest)
+                                                    (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
+                                                  (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__head"</span>))
+                                                                (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"class"</span> ,(or <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard"</span>
+                                                                                    <span style="color: #8b2252;">"search-result-item__name search-result-item__name_standard_plus"</span>
+                                                                                    <span style="color: #8b2252;">"search-result-item__name search-result-item__name_premium"</span>))
+                                                                      (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-title"</span>) (<span style="color: #8b2252;">"href"</span> ,id) (<span style="color: #8b2252;">"target"</span> <span style="color: #8b2252;">"_blank"</span>)) ,name))
+                                                         (list <span style="color: #483d8b;">:id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) <span style="color: #483d8b;">:name</span> name))
+                                                       (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-salary"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-compensation"</span>))
+                                                                     (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"salaryCurrency"</span>) (<span style="color: #8b2252;">"content"</span> ,currency)))
+                                                                     (<span style="color: #8b2252;">"meta"</span> ((<span style="color: #8b2252;">"itemprop"</span> <span style="color: #8b2252;">"baseSalary"</span>) (<span style="color: #8b2252;">"content"</span> ,salary))) ,salary-text)
+                                                              (list <span style="color: #483d8b;">:currency</span> currency <span style="color: #483d8b;">:salary</span> (parse-integer salary) <span style="color: #483d8b;">:salary-text</span> salary-text))
+                                                            (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>)) ,emp-name)
+                                                                   (list <span style="color: #483d8b;">:emp-name</span> emp-name))
+                                                                 (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company"</span>))
+                                                                               (<span style="color: #8b2252;">"a"</span> ((<span style="color: #8b2252;">"href"</span> ,emp-id)
+                                                                                     (<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__company-link"</span>)
+                                                                                     (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-employer"</span>))
+                                                                                    ,emp-name))
+                                                                        (list <span style="color: #483d8b;">:emp-id</span> (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id))) <span style="color: #483d8b;">:junk-allowed</span> t)
+                                                                              <span style="color: #483d8b;">:emp-name</span> emp-name))
+                                                                      (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result-item__info"</span>)) ,@rest)
+                                                                             (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> rest <span style="color: #483d8b;">:when</span> (consp item) <span style="color: #483d8b;">:append</span> item))
+                                                                           (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"searchresult__address"</span>)
+                                                                                           (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-address"</span>)) ,city ,@rest)
+                                                                                  (<span style="color: #a020f0;">let</span> ((metro (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item in rest <span style="color: #483d8b;">:do</span>
+                                                                                                  (<span style="color: #a020f0;">when</span> (and (consp item) (equal <span style="color: #483d8b;">:metro</span> (car item)))
+                                                                                                    (<span style="color: #a020f0;">return</span> (cadr item))))))
+                                                                                    (list <span style="color: #483d8b;">:city</span> city <span style="color: #483d8b;">:metro</span> metro)))
+                                                                                (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-station"</span>))
+                                                                                               (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"metro-point"</span>) (<span style="color: #8b2252;">"style"</span> ,_))) ,metro)
+                                                                                       (list <span style="color: #483d8b;">:metro</span> metro))
+                                                                                     (mtm (`(<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"b-vacancy-list-date"</span>)
+                                                                                                     (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy-date"</span>)) ,date)
+                                                                                            (list <span style="color: #483d8b;">:date</span> date))
+                                                                                          (mtm (`(<span style="color: #8b2252;">"span"</span>
+                                                                                                  ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform"</span>)
+                                                                                                   (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__vacancy_career"</span>))
+                                                                                                  <span style="color: #8b2252;">"&#160;&#160;&#8226;&#160;&#160;"</span> (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"vacancy-list-platform__name"</span>))
+                                                                                                                  <span style="color: #8b2252;">"CAREER.RU"</span>))
+                                                                                                 (list <span style="color: #483d8b;">:platform</span> 'career.ru))
+                                                                                               (<span style="color: #a020f0;">block</span> subtree-extract
+                                                                                                 (mtm (`(<span style="color: #8b2252;">"div"</span>
+                                                                                                         ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"search-result"</span>)
+                                                                                                          (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"vacancy-serp__results"</span>))
+                                                                                                         ,@rest)
+                                                                                                        (<span style="color: #a020f0;">return-from</span> subtree-extract rest))
+                                                                                                      (html5-parser:node-to-xmls
+                                                                                                       (html5-parser:parse-html5-fragment html)))))))))))))))))))))))
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(print</span>
-<span style="color: #b22222;">;;  </span><span style="color: #b22222;">;; (car</span>
-<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(hh-parse-vacancy-teasers</span>
-<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(hh-get-page "http://spb.hh.ru/search/vacancy?clusters=true&amp;specialization=1.221&amp;area=2&amp;page=12")))</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(hh-parse-vacancy-teasers</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-get-page "http://spb.hh.ru/search/vacancy?text=&amp;specialization=1&amp;area=2&amp;salary=&amp;currency_code=RUR&amp;only_with_salary=true&amp;experience=doesNotMatter&amp;order_by=salary_desc&amp;search_period=30&amp;items_on_page=100&amp;no_magic=true"))</span>
 </pre>
 </div>
 </div>
@@ -1268,6 +1259,52 @@ for the JavaScript code in this tag.
                   (values (match ,lambda-param ,transformer)
                           #'mapcar))
               ,tree)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3-14-2" class="outline-4">
+<h4 id="sec-3-14-2"><span class="section-number-4">3.14.2</span> Определение минимальной и максимальной зарплаты</h4>
+<div class="outline-text-4" id="text-3-14-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="parse_salary">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">parse-salary</span> (vacancy)
+  (<span style="color: #a020f0;">let</span> ((currency (getf vacancy <span style="color: #483d8b;">:CURRENCY</span>))
+        (salary-text (ppcre:regex-replace-all <span style="color: #8b2252;">"&#160;"</span> (getf vacancy <span style="color: #483d8b;">:salary-text</span>) <span style="color: #8b2252;">""</span>))
+        (salary-min nil)
+        (salary-max nil))
+    (<span style="color: #a020f0;">cond</span> ((equal currency <span style="color: #8b2252;">"RUR"</span>)
+           (setf salary-text (ppcre:regex-replace-all <span style="color: #8b2252;">" &#1088;&#1091;&#1073;."</span> salary-text <span style="color: #8b2252;">""</span>)))
+          ((equal currency <span style="color: #8b2252;">"USD"</span>)
+           (setf salary-text (ppcre:regex-replace-all <span style="color: #8b2252;">" USD"</span> salary-text <span style="color: #8b2252;">""</span>)))
+          ((equal currency <span style="color: #8b2252;">"EUR"</span>)
+           (setf salary-text (ppcre:regex-replace-all <span style="color: #8b2252;">" EUR"</span> salary-text <span style="color: #8b2252;">""</span>)))
+          ((equal currency nil)
+           'nil)
+          (t (<span style="color: #a020f0;">progn</span>
+               (print (getf vacancy <span style="color: #483d8b;">:currency</span>))
+               (err 'unk-currency))))
+    (<span style="color: #a020f0;">cond</span> ((search <span style="color: #8b2252;">"&#1086;&#1090; "</span> salary-text)
+           (setf salary-min (parse-integer (ppcre:regex-replace-all <span style="color: #8b2252;">"&#1086;&#1090; "</span> salary-text <span style="color: #8b2252;">""</span>))))
+          ((search <span style="color: #8b2252;">"&#1076;&#1086; "</span> salary-text)
+           (setf salary-max (parse-integer (ppcre:regex-replace-all <span style="color: #8b2252;">"&#1076;&#1086; "</span> salary-text <span style="color: #8b2252;">""</span>))))
+          ((search <span style="color: #8b2252;">"&#8211;"</span> salary-text)
+           (<span style="color: #a020f0;">let</span> ((splt (ppcre:split <span style="color: #8b2252;">"&#8211;"</span> salary-text)))
+             (setf salary-min (parse-integer (car splt)))
+             (setf salary-max (parse-integer (cadr splt))))))
+    (<span style="color: #a020f0;">when</span> (null salary-min)
+      (setf salary-min salary-max))
+    (<span style="color: #a020f0;">when</span> (null salary-max)
+      (setf salary-max salary-min))
+    (setf (getf vacancy <span style="color: #483d8b;">:salary-min</span>) salary-min)
+    (setf (getf vacancy <span style="color: #483d8b;">:salary-max</span>) salary-max)
+    vacancy))
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(hh-parse-vacancy-teasers</span>
+<span style="color: #b22222;">;;  </span><span style="color: #b22222;">(hh-get-page "http://spb.hh.ru/search/vacancy?text=&amp;specialization=1&amp;area=2&amp;salary=&amp;currency_code=RUR&amp;only_with_salary=true&amp;experience=doesNotMatter&amp;order_by=salary_desc&amp;search_period=30&amp;items_on_page=100&amp;no_magic=true"))</span>
 </pre>
 </div>
 </div>
@@ -1444,6 +1481,18 @@ for the JavaScript code in this tag.
 </tr>
 
 <tr>
+<td class="left">salary-max</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">максимальный уровень зарплаты</td>
+</tr>
+
+<tr>
+<td class="left">salary-min</td>
+<td class="left">(or db-null integer)</td>
+<td class="left">минимальный уровень зарплаты</td>
+</tr>
+
+<tr>
 <td class="left">emp-id</td>
 <td class="left">(or db-null integer)</td>
 <td class="left">идентификатор работодателя на удаленном ресурсе</td>
@@ -1484,6 +1533,18 @@ for the JavaScript code in this tag.
 <td class="left">varchar</td>
 <td class="left">описание вакансии</td>
 </tr>
+
+<tr>
+<td class="left">notes</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">заметки по вакансии</td>
+</tr>
+
+<tr>
+<td class="left">response</td>
+<td class="left">(or db-null varchar)</td>
+<td class="left">текст отклика на вакансию</td>
+</tr>
 </tbody>
 </table>
 
@@ -1495,31 +1556,392 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="save_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
+(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*saved-vacancy*</span> nil)
+
 (<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">save-vacancy</span> (vacancy)
-  (make-vacancy
-   <span style="color: #483d8b;">:src-id</span> (getf vacancy <span style="color: #483d8b;">:id</span>)
-   <span style="color: #483d8b;">:name</span> (getf vacancy <span style="color: #483d8b;">:name</span>)
-   <span style="color: #483d8b;">:currency</span> (getf vacancy <span style="color: #483d8b;">:currency</span>)
-   <span style="color: #483d8b;">:salary</span> (aif (getf vacancy <span style="color: #483d8b;">:salary</span>) it 0)
-   <span style="color: #483d8b;">:base-salary</span> (aif (getf vacancy <span style="color: #483d8b;">:base-salary</span>) it 0)
-   <span style="color: #483d8b;">:salary-text</span> (getf vacancy <span style="color: #483d8b;">:salary-text</span>)
-   <span style="color: #483d8b;">:emp-id</span> (getf vacancy <span style="color: #483d8b;">:emp-id</span>)
-   <span style="color: #483d8b;">:emp-name</span> (getf vacancy <span style="color: #483d8b;">:emp-name</span>)
-   <span style="color: #483d8b;">:city</span> (getf vacancy <span style="color: #483d8b;">:city</span>)
-   <span style="color: #483d8b;">:metro</span> (getf vacancy <span style="color: #483d8b;">:metro</span>)
-   <span style="color: #483d8b;">:experience</span> (getf vacancy <span style="color: #483d8b;">:exp</span>)
-   <span style="color: #483d8b;">:archive</span> (getf vacancy <span style="color: #483d8b;">:archive</span>)
-   <span style="color: #483d8b;">:date</span> (getf vacancy <span style="color: #483d8b;">:date</span>)
-   <span style="color: #483d8b;">:descr</span> (bprint (getf vacancy <span style="color: #483d8b;">:descr</span>)))
-  )
+  (setf *saved-vacancy*
+        (append *saved-vacancy*
+                (list (make-vacancy
+                       <span style="color: #483d8b;">:src-id</span> (getf vacancy <span style="color: #483d8b;">:id</span>)
+                       <span style="color: #483d8b;">:name</span> (getf vacancy <span style="color: #483d8b;">:name</span>)
+                       <span style="color: #483d8b;">:currency</span> (getf vacancy <span style="color: #483d8b;">:currency</span>)
+                       <span style="color: #483d8b;">:salary</span> (aif (getf vacancy <span style="color: #483d8b;">:salary</span>) it 0)
+                       <span style="color: #483d8b;">:base-salary</span> (aif (getf vacancy <span style="color: #483d8b;">:base-salary</span>) it 0)
+                       <span style="color: #483d8b;">:salary-text</span> (getf vacancy <span style="color: #483d8b;">:salary-text</span>)
+                       <span style="color: #483d8b;">:salary-max</span> (getf vacancy <span style="color: #483d8b;">:salary-max</span>)
+                       <span style="color: #483d8b;">:salary-min</span> (getf vacancy <span style="color: #483d8b;">:salary-min</span>)
+                       <span style="color: #483d8b;">:emp-id</span> (getf vacancy <span style="color: #483d8b;">:emp-id</span>)
+                       <span style="color: #483d8b;">:emp-name</span> (getf vacancy <span style="color: #483d8b;">:emp-name</span>)
+                       <span style="color: #483d8b;">:city</span> (getf vacancy <span style="color: #483d8b;">:city</span>)
+                       <span style="color: #483d8b;">:metro</span> (getf vacancy <span style="color: #483d8b;">:metro</span>)
+                       <span style="color: #483d8b;">:experience</span> (getf vacancy <span style="color: #483d8b;">:exp</span>)
+                       <span style="color: #483d8b;">:archive</span> (getf vacancy <span style="color: #483d8b;">:archive</span>)
+                       <span style="color: #483d8b;">:date</span> (getf vacancy <span style="color: #483d8b;">:date</span>)
+                       <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":UNSORT"</span>
+                       <span style="color: #483d8b;">:descr</span> (bprint (show-descr (getf vacancy <span style="color: #483d8b;">:descr</span>)))
+                       <span style="color: #483d8b;">:notes</span> <span style="color: #8b2252;">""</span>
+                       <span style="color: #483d8b;">:response</span> <span style="color: #8b2252;">"&#1047;&#1076;&#1088;&#1072;&#1074;&#1089;&#1090;&#1074;&#1091;&#1081;&#1090;&#1077;, &#1103; &#1087;&#1086;&#1076;&#1093;&#1086;&#1078;&#1091; &#1087;&#1086;&#1076; &#1074;&#1072;&#1096;&#1080; &#1090;&#1088;&#1077;&#1073;&#1086;&#1074;&#1072;&#1085;&#1080;&#1103;. &#1050;&#1086;&#1075;&#1076;&#1072; &#1084;&#1086;&#1078;&#1085;&#1086; &#1076;&#1086;&#1075;&#1086;&#1074;&#1086;&#1088;&#1080;&#1090;&#1100;&#1089;&#1103; &#1086; &#1089;&#1086;&#1073;&#1077;&#1089;&#1077;&#1076;&#1086;&#1074;&#1072;&#1085;&#1080;&#1080;? &#1052;&#1080;&#1093;&#1072;&#1080;&#1083; 8(911)286-92-90"</span>)))))
 </pre>
 </div>
 </div>
 </div>
 
 <div id="outline-container-sec-3-17" class="outline-3">
-<h3 id="sec-3-17"><span class="section-number-3">3.17</span> Печать вакансий</h3>
+<h3 id="sec-3-17"><span class="section-number-3">3.17</span> Состояния вакансий</h3>
 <div class="outline-text-3" id="text-3-17">
+<p>
+После того, как тизер вакансии будет загружен системой, вакансия получает статус <code>unsort</code>
+</p>
+
+<p>
+После сортировки пользователем ваканисия может принять один из статусов: <code>unsorted</code>,
+<code>interested</code> или <code>not-interested</code>
+</p>
+
+<p>
+Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
+действия, переводящие вакансию из одного состояния в другое: когда пользователь
+отправляет отзыв  вакансия становится <code>responded</code>. Если пользователь, просмотрев
+вакансию, принял решение отзыв не отправлять, он может сделать вакансию <code>hidden</code>.
+</p>
+
+<p>
+Важно: Для обеспечения социальных взаимодействий нужно предусмотреть, чтобы вакансию
+можно было "передать", т.е. у нее минимум должен быть URI.
+</p>
+
+<p>
+Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
+добавить вакансию в закладки - в этом случае ее статус меняется на <code>favorited</code>
+</p>
+
+<p>
+Из <code>favorited</code> мы снова можем отправить отзыв.
+</p>
+
+<p>
+Из <code>favorited</code> пользователь может вернуть вакансию обратно в <code>interested</code> или <code>hidden</code>.
+</p>
+
+<p>
+Из <code>hidden</code> пользователь может вернуть вакансию в <code>interested</code>.
+</p>
+
+<p>
+Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
+по вакансиям в статусе <code>responded</code> - пользователь ищет обычно по названию фирмы.
+</p>
+
+<p>
+После звонка вакансия может быть выкинута или переведена из <code>responded</code> в статус "был
+телефонный звонок" - <code>called</code>. Выкидывая вакансию пользователь может выбрать reason - для
+них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
+вакансии. Если в результате телефонного звонка была достигнута договоренность о
+собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
+<code>wait-interview</code> и заносит в вакансию данные о том, куда и во сколько ехать. Если по
+телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
+<code>wait-test</code>. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
+<code>wait-skype-interview</code>.
+</p>
+
+<p>
+Получив тестовое задание пользователь переводит вакансию из статуса <code>wait-test</code> в
+"выполнение тестового задания" <code>run-test</code>, а оттуда либо в <code>test-cancel</code> либо в
+<code>test-sended</code>. Либо выкидывает.
+</p>
+
+<p>
+Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
+часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
+его, наверно пусть можно будет просто изменить данные о времени интервью.
+</p>
+
+<p>
+После интервью или скайп-интервью от вакансии можно либо отказаться (<code>refuse-employer</code>,
+<code>refuse-applicant</code>) либо перевести в статус "ожидание результата" - <code>wait-result</code>. Нужно
+включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
+узнать, как дела.
+</p>
+
+<p>
+Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
+предлагают оффер - <code>offer</code> и соискатель берет время на подумать.
+</p>
+
+<p>
+Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
+<code>refuse-employer</code> или "отказ соискателя" - <code>refuse-аpplicant</code>.
+</p>
+
+<p>
+История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
+примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
+статусов и текущее положение вакансии в нем.
+</p>
+
+<table id="vacancy_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 2:</span> Состояния конечного автомата вакансии</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">action</th>
+<th scope="col" class="left">from</th>
+<th scope="col" class="left">to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">set-not-interested</td>
+<td class="left">unsort</td>
+<td class="left">not-interested</td>
+</tr>
+
+<tr>
+<td class="left">set-interested</td>
+<td class="left">unsort</td>
+<td class="left">interested</td>
+</tr>
+
+<tr>
+<td class="left">respond</td>
+<td class="left">interested</td>
+<td class="left">responded</td>
+</tr>
+</tbody>
+</table>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="left">refuse-new</td>
+<td class="left">new</td>
+<td class="left">not-interested</td>
+</tr>
+
+<tr>
+<td class="left">set-interested</td>
+<td class="left">new</td>
+<td class="left">interested</td>
+</tr>
+
+<tr>
+<td class="left">refuse-interested</td>
+<td class="left">interested</td>
+<td class="left">hidden</td>
+</tr>
+
+<tr>
+<td class="left">respond</td>
+<td class="left">interested</td>
+<td class="left">responded</td>
+</tr>
+
+<tr>
+<td class="left">favor</td>
+<td class="left">interested</td>
+<td class="left">favorited</td>
+</tr>
+
+<tr>
+<td class="left">send-respond-from-favorited</td>
+<td class="left">favorited</td>
+<td class="left">responded</td>
+</tr>
+
+<tr>
+<td class="left">unfavor</td>
+<td class="left">favorited</td>
+<td class="left">interested</td>
+</tr>
+
+<tr>
+<td class="left">hide-after-favor</td>
+<td class="left">favorited</td>
+<td class="left">hidden</td>
+</tr>
+
+<tr>
+<td class="left">call</td>
+<td class="left">responded</td>
+<td class="left">called</td>
+</tr>
+
+<tr>
+<td class="left">invite-interview</td>
+<td class="left">called</td>
+<td class="left">wait<sub>interview</sub></td>
+</tr>
+
+<tr>
+<td class="left">invite-skype-interview</td>
+<td class="left">called</td>
+<td class="left">wait<sub>skype</sub><sub>interview</sub></td>
+</tr>
+
+<tr>
+<td class="left">invite-test</td>
+<td class="left">called</td>
+<td class="left">wait<sub>test</sub></td>
+</tr>
+
+<tr>
+<td class="left">interview</td>
+<td class="left">wait<sub>interview</sub></td>
+<td class="left">interview</td>
+</tr>
+
+<tr>
+<td class="left">skype-interview</td>
+<td class="left">wait<sub>skype</sub><sub>interview</sub></td>
+<td class="left">skype<sub>interview</sub></td>
+</tr>
+
+<tr>
+<td class="left">call-after-skype-interview</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">called</td>
+</tr>
+
+<tr>
+<td class="left">execute-test</td>
+<td class="left">wait<sub>test</sub></td>
+<td class="left">run<sub>test</sub></td>
+</tr>
+
+<tr>
+<td class="left">send-test</td>
+<td class="left">run<sub>test</sub></td>
+<td class="left">send<sub>test</sub></td>
+</tr>
+
+<tr>
+<td class="left">called-after-test</td>
+<td class="left">send<sub>test</sub></td>
+<td class="left">called</td>
+</tr>
+
+<tr>
+<td class="left">refuse-employer-after-interview</td>
+<td class="left">interview</td>
+<td class="left">refuse<sub>employer</sub></td>
+</tr>
+
+<tr>
+<td class="left">refuse-applicant-after-interview</td>
+<td class="left">interview</td>
+<td class="left">refuse<sub>applicant</sub></td>
+</tr>
+
+<tr>
+<td class="left">wait-result-after-interview</td>
+<td class="left">interview</td>
+<td class="left">wait<sub>result</sub></td>
+</tr>
+
+<tr>
+<td class="left">refuse-employer-after-skype-interview</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">refuse<sub>employer</sub></td>
+</tr>
+
+<tr>
+<td class="left">refuse-applicant-after-skype-interview</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">refuse<sub>applicant</sub></td>
+</tr>
+
+<tr>
+<td class="left">wait-result-after-skype-interview</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">wait<sub>result</sub></td>
+</tr>
+
+<tr>
+<td class="left">invite-next-interview</td>
+<td class="left">wait<sub>result</sub></td>
+<td class="left">interview</td>
+</tr>
+
+<tr>
+<td class="left">invite-interview-after-skype</td>
+<td class="left">skype<sub>interview</sub></td>
+<td class="left">interview</td>
+</tr>
+
+<tr>
+<td class="left">invite-offer</td>
+<td class="left">wait<sub>result</sub></td>
+<td class="left">offer</td>
+</tr>
+
+<tr>
+<td class="left">employer-refuse-after-wait-result</td>
+<td class="left">wait<sub>result</sub></td>
+<td class="left">refuse<sub>employer</sub></td>
+</tr>
+
+<tr>
+<td class="left">applicant-refuse-after-wait-result</td>
+<td class="left">wait<sub>result</sub></td>
+<td class="left">refuse<sub>applicant</sub></td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Теперь мы можем полностью описать поведение вакансии как конечный автомат:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp" id="vacancy_state_graph">(mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
+            (princ (format <span style="color: #8b2252;">"%s -&gt; %s [label =\"%s\"];\n"</span>
+                           (second x) (third x) (first x))))
+        table)
+</pre>
+</div>
+
+
+
+<div class="figure">
+<p><img src="img/vacancy-state.png" alt="vacancy-state.png" />
+</p>
+</div>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">teaser-rejection</span> ()
+  <span style="color: #8b2252;">"teaser-rejection"</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">rejection-favorite</span> ()
+  <span style="color: #8b2252;">"rejection-favorite"</span>)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3-18" class="outline-3">
+<h3 id="sec-3-18"><span class="section-number-3">3.18</span> Печать вакансий</h3>
+<div class="outline-text-3" id="text-3-18">
 <p>
 Пока у нас нет веб-интерфейса мы будем выводить вакансии в консоль
 </p>
@@ -1528,7 +1950,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="show_vacancy">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-(<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">show</span> (vacancy)
+(<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">show-vacancy</span> (vacancy)
   (format t <span style="color: #8b2252;">"~%"</span>)
   (format t <span style="color: #8b2252;">"~%~A :~A: ~A [~A]"</span>
        (getf vacancy <span style="color: #483d8b;">:salary-text</span>)
@@ -1536,41 +1958,379 @@ for the JavaScript code in this tag.
        (getf vacancy <span style="color: #483d8b;">:name</span>)
        (getf vacancy <span style="color: #483d8b;">:id</span>))
   (format t <span style="color: #8b2252;">"~%~A"</span> (getf vacancy <span style="color: #483d8b;">:emp-name</span>))
-  (show-descr (getf vacancy <span style="color: #483d8b;">:descr</span>)))
+  (format t <span style="color: #8b2252;">"~A"</span> (show-descr (getf vacancy <span style="color: #483d8b;">:descr</span>))))
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">show-descr</span> (tree)
-  (<span style="color: #a020f0;">let</span> ((indent 2)
+  (<span style="color: #a020f0;">let</span> ((output (make-string-output-stream))
+        (indent 2)
         (prefix <span style="color: #8b2252;">""</span>))
     (<span style="color: #a020f0;">labels</span> ((out (format tree)
-               (format t <span style="color: #8b2252;">"~A~A"</span> (make-string indent <span style="color: #483d8b;">:initial-element</span> #\Space)
+               (format output <span style="color: #8b2252;">"~A~A"</span> (make-string indent <span style="color: #483d8b;">:initial-element</span> #\Space)
                        (format nil format tree)))
              (rec (tree)
                (<span style="color: #a020f0;">cond</span> ((consp tree) (<span style="color: #a020f0;">cond</span> ((and (equal 2 (length tree))
                                                (equal <span style="color: #483d8b;">:L</span> (car tree))
                                                (stringp (cadr tree))) (<span style="color: #a020f0;">prog1</span> nil
-                                                                        (format t <span style="color: #8b2252;">"~A-&gt; ~A~%"</span> prefix (cadr tree))))
+                                                                        (format output <span style="color: #8b2252;">"~A-&gt; ~A~%"</span> prefix (cadr tree))))
                                          ((equal <span style="color: #483d8b;">:U</span> (car tree)) (<span style="color: #a020f0;">prog1</span> nil
                                                                   (setf prefix (concatenate 'string (make-string indent <span style="color: #483d8b;">:initial-element</span> #\Space) prefix))
                                                                   (rec (cdr tree))
                                                                   (setf prefix (subseq prefix indent))))
                                          ((and (equal 2 (length tree))
                                                (equal <span style="color: #483d8b;">:B</span> (car tree))
-                                               (stringp (cadr tree))) (format t <span style="color: #8b2252;">"~A[~A]~%"</span> prefix (cadr tree)))
+                                               (stringp (cadr tree))) (format output <span style="color: #8b2252;">"~A[~A]~%"</span> prefix (cadr tree)))
                                          (t (cons (rec (car tree))
                                                   (rec (cdr tree))))))
-                     (t (<span style="color: #a020f0;">cond</span> ((stringp tree) (format t <span style="color: #8b2252;">"~A~A~%"</span> prefix tree))
-                              <span style="color: #b22222;">;; </span><span style="color: #b22222;">((null tree) (format t "~%"))</span>
-                              )))))
+                     (t (<span style="color: #a020f0;">cond</span> ((stringp tree) (format output <span style="color: #8b2252;">"~A~A~%"</span> prefix tree)))))))
       (rec tree))
-    nil))
+    (get-output-stream-string output)))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-3-18" class="outline-3">
-<h3 id="sec-3-18"><span class="section-number-3">3.18</span> <span class="todo TODO">TODO</span> СТОП!!!</h3>
-<div class="outline-text-3" id="text-3-18">
+<div id="outline-container-sec-3-19" class="outline-3">
+<h3 id="sec-3-19"><span class="section-number-3">3.19</span> Отправка отклика</h3>
+<div class="outline-text-3" id="text-3-19">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="respond">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">make-additional-headers</span> (referer cookies)
+    `((<span style="color: #8b2252;">"Accept"</span>           . <span style="color: #8b2252;">"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"</span>)
+      (<span style="color: #8b2252;">"Accept-Language"</span>  . <span style="color: #8b2252;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
+      (<span style="color: #8b2252;">"Accept-Charset"</span>   . <span style="color: #8b2252;">"utf-8"</span>)
+      (<span style="color: #8b2252;">"Referer"</span>          . ,referer)
+      (<span style="color: #8b2252;">"Cache-Control"</span>    . <span style="color: #8b2252;">"no-cache"</span>)
+      (<span style="color: #8b2252;">"Cookie"</span>           . ,(format nil <span style="color: #8b2252;">"~{~{~A=~A~}~^; ~}"</span> cookies))))
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">respond</span> (vacancy-id resume-id letter)
+  (<span style="color: #a020f0;">let*</span> ((hhtoken     <span style="color: #8b2252;">"ES030IVQP52ULPbRqN9DQOcMIR!T"</span>)
+         (hhuid       <span style="color: #8b2252;">"x_FxSYWUbySJe1LhHIQxDA--"</span>)
+         (xsrf        <span style="color: #8b2252;">"ed689ea1ff02a3074c848b69225e3c78"</span>)
+         (hhrole      <span style="color: #8b2252;">"applicant"</span>)
+         (crypted-id  <span style="color: #8b2252;">"2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8"</span>)
+         (cookie-jar (make-instance 'drakma:cookie-jar))
+         (html (flexi-streams:octets-to-string
+                (drakma:http-request
+                 (format nil <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id)
+                 <span style="color: #483d8b;">:user-agent</span> <span style="color: #8b2252;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"</span>
+                 <span style="color: #483d8b;">:additional-headers</span> (make-additional-headers <span style="color: #8b2252;">"http://spb.hh.ru/"</span>
+                                                              `((<span style="color: #8b2252;">"redirect_host"</span>       <span style="color: #8b2252;">"spb.hh.ru"</span>)  (<span style="color: #8b2252;">"regions"</span>             <span style="color: #8b2252;">"2"</span>)        (<span style="color: #8b2252;">"_xsrf"</span>               ,xsrf)
+                                                                (<span style="color: #8b2252;">"hhtoken"</span>             ,hhtoken)     (<span style="color: #8b2252;">"hhuid"</span>               ,hhuid)     (<span style="color: #8b2252;">"hhrole"</span>              ,hhrole)
+                                                                (<span style="color: #8b2252;">"GMT"</span>                 <span style="color: #8b2252;">"3"</span>)          (<span style="color: #8b2252;">"display"</span>             <span style="color: #8b2252;">"desktop"</span>)))
+                 <span style="color: #483d8b;">:cookie-jar</span> cookie-jar <span style="color: #483d8b;">:force-binary</span> t)
+                <span style="color: #483d8b;">:external-format</span> <span style="color: #483d8b;">:utf-8</span>))
+         (cookie-data (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> cookie <span style="color: #483d8b;">:in</span> (drakma:cookie-jar-cookies cookie-jar) <span style="color: #483d8b;">:append</span>
+                         (list (intern (string-upcase (drakma:cookie-name cookie)) <span style="color: #483d8b;">:keyword</span>) (drakma:cookie-value cookie))))
+         (unique-banner-user (getf cookie-data <span style="color: #483d8b;">:unique_banner_user</span>)))
+    (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal crypted-id (getf cookie-data <span style="color: #483d8b;">:crypted_id</span>)))
+    (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">"applicant"</span> (getf cookie-data <span style="color: #483d8b;">:hhrole</span>)))
+    (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal xsrf (getf cookie-data <span style="color: #483d8b;">:_xsrf</span>)))
+    (<span style="color: #a020f0;">let*</span> ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+           (name (<span style="color: #a020f0;">block</span> namer
+                   (mtm (`(<span style="color: #8b2252;">"div"</span>
+                           ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"navi-item__switcher HH-Navi-MenuItems-Switcher"</span>)
+                            (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"mainmenu_normalUserName"</span>))
+                           ,name (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"navi-item__post"</span>))))
+                          (<span style="color: #a020f0;">return-from</span> namer name))
+                        tree))))
+      (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">"&#1052;&#1080;&#1093;&#1072;&#1080;&#1083; &#1052;&#1080;&#1093;&#1072;&#1081;&#1083;&#1086;&#1074;&#1080;&#1095; &#1043;&#1083;&#1091;&#1093;&#1086;&#1074;"</span> name))
+      (sleep 1)
+      (<span style="color: #a020f0;">let</span> ((cookie-jar (make-instance 'drakma:cookie-jar)))
+        (flexi-streams:octets-to-string
+         (drakma:http-request <span style="color: #8b2252;">"http://spb.hh.ru/applicant/vacancy_response/popup"</span>
+                              <span style="color: #483d8b;">:user-agent</span> <span style="color: #8b2252;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"</span>
+                              <span style="color: #483d8b;">:method</span> <span style="color: #483d8b;">:post</span>
+                              <span style="color: #483d8b;">:parameters</span> `((<span style="color: #8b2252;">"vacancy_id"</span> . ,(format nil <span style="color: #8b2252;">"~A"</span> vacancy-id))
+                                            (<span style="color: #8b2252;">"resume_id"</span> . <span style="color: #8b2252;">"7628220"</span>)
+                                            (<span style="color: #8b2252;">"letter"</span> . <span style="color: #8b2252;">"dwe"</span>)
+                                            (<span style="color: #8b2252;">"_xsrf"</span> . <span style="color: #8b2252;">"ed689ea1ff02a3074c848b69225e3c78"</span>)
+                                            (<span style="color: #8b2252;">"ignore_postponed"</span> . <span style="color: #8b2252;">"true"</span>))
+                              <span style="color: #483d8b;">:additional-headers</span> `((<span style="color: #8b2252;">"Accept"</span>           . <span style="color: #8b2252;">"*/*"</span>)
+                                                    (<span style="color: #8b2252;">"Accept-Language"</span>  . <span style="color: #8b2252;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
+                                                    (<span style="color: #8b2252;">"Accept-Encoding"</span>  . <span style="color: #8b2252;">"gzip, deflate"</span>)
+                                                    (<span style="color: #8b2252;">"Content-Type"</span>     . <span style="color: #8b2252;">"application/x-www-form-urlencoded; charset=UTF-8"</span>)
+                                                    (<span style="color: #8b2252;">"X-Xsrftoken"</span>      . <span style="color: #8b2252;">"ed689ea1ff02a3074c848b69225e3c78"</span>)
+                                                    (<span style="color: #8b2252;">"X-Requested-With"</span> . <span style="color: #8b2252;">"XMLHttpRequest"</span>)
+                                                    (<span style="color: #8b2252;">"Referer"</span>          . ,(format nil <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id))
+                                                    (<span style="color: #8b2252;">"Cookie"</span>           . <span style="color: #8b2252;">"redirect_host=vladivostok.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1421799450.1421859024.49; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); hipsterShown=true; hhref=; vishnu1.userid=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; lt-vc=11; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=applicant; GMT=3; display=desktop; _xsrf=ed689ea1ff02a3074c848b69225e3c78; JSESSIONID=1i5cpqbtgjgh7ztfwncgixv8c; lrp=\"http://spb.hh.ru/\"; lrr=true; crypted_id=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; lt-tl=8xmy,rn2r,21i1,6gix; lt-on-site-time=1421859023; _xsrf=ed689ea1ff02a3074c848b69225e3c78; crypted_id=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; unique_banner_user=1421859019.49253036888777; __utmb=192485224.39.10.1421859024; __utmc=192485224; lt-8xmy=46005334; lt-rn2r=46005334; lt-21i1=46005334; __utmt_vishnu1=1; lt-6gix=46005334"</span>)
+                                                    (<span style="color: #8b2252;">"Cache-Control"</span> . <span style="color: #8b2252;">"no-cache"</span>))
+                              <span style="color: #483d8b;">:cookie-jar</span> cookie-jar
+                              <span style="color: #483d8b;">:force-binary</span> t)
+         <span style="color: #483d8b;">:external-format</span> <span style="color: #483d8b;">:utf-8</span>)))))
+
+(<span style="color: #a020f0;">let</span> ((respond (respond 12528177 7628222 <span style="color: #8b2252;">"wer"</span>)))
+  (print respond))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Interface</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Соберем веб-интерфейс:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface"><span style="color: #b22222;">;;;; </span><span style="color: #b22222;">iface.lisp</span>
+
+(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;</span>
+&lt;&lt;iface_contents&gt;&gt;
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Главная страница модуля</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+<a href="http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/">http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/</a>
+<a href="http://romka.eu/blog/jquery-table-drag-and-drop">http://romka.eu/blog/jquery-table-drag-and-drop</a>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(defmacro/ps s+ (<span style="color: #228b22;">&amp;body</span> body)
+  `(concatenate 'string ,@body))
+
+(defmacro/ps btn+ (name value onclick)
+  `(s+ <span style="color: #8b2252;">"&lt;input type='button' name='"</span> ,name
+       <span style="color: #8b2252;">"' value='"</span> ,value
+       <span style="color: #8b2252;">"' onclick='"</span> ,onclick
+       <span style="color: #8b2252;">";return false;' /&gt;"</span>))
+
+(defmacro/ps asm+ (id name salary-text)
+  `(s+ <span style="color: #8b2252;">"&lt;li id=\""</span> ,id <span style="color: #8b2252;">"\"&gt;"</span>
+       <span style="color: #8b2252;">"&lt;span class=\"handle\"&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&amp;nbsp;&amp;nbsp;"</span>
+       <span style="color: #8b2252;">"&lt;a href=\"/vacancy/"</span>
+       ,id
+       <span style="color: #8b2252;">"\"&gt;"</span>
+       ,name
+       <span style="color: #8b2252;">"&lt;/a&gt;"</span>
+       <span style="color: #8b2252;">"&amp;nbsp;"</span>
+       <span style="color: #8b2252;">"&lt;span style='color: red'&gt;"</span> ,salary-text <span style="color: #8b2252;">"&lt;/span&gt;"</span>
+       <span style="color: #8b2252;">"&lt;/li&gt;"</span>))
+
+(restas:define-route hh-main (<span style="color: #8b2252;">"/hh"</span>)
+  (<span style="color: #a020f0;">labels</span> ((asm-node (x)
+             (asm+ (format nil <span style="color: #8b2252;">"~A"</span> (src-id x))
+                   (name x)
+                   (<span style="color: #a020f0;">let</span> ((it (salary-text x)))
+                     (<span style="color: #a020f0;">if</span> (equal it <span style="color: #8b2252;">"false"</span>) <span style="color: #8b2252;">""</span> it))))
+           (mrg (param)
+             (<span style="color: #a020f0;">if</span> (null param)
+                 (ps-html ((<span style="color: #483d8b;">:li</span> <span style="color: #483d8b;">:id</span> 0)
+                           <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081;"</span>))
+                 (reduce #'(<span style="color: #a020f0;">lambda</span> (x y)
+                             (concatenate 'string x (string #\NewLine) y))
+                         (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
+                                     (asm-node x))
+                                 param)))))
+    (<span style="color: #a020f0;">let*</span> ((vacs (aif (all-vacancy) it (err <span style="color: #8b2252;">"null vacancy"</span>)))
+           (sorted-vacs (sort vacs #'(<span style="color: #a020f0;">lambda</span> (a b) (&gt; (salary a) (salary b))))))
+      (<span style="color: #a020f0;">with-wrapper</span>
+        (ps-html
+         ((<span style="color: #483d8b;">:link</span> <span style="color: #483d8b;">:href</span> <span style="color: #8b2252;">"/css/dnd.css"</span> <span style="color: #483d8b;">:rel</span> <span style="color: #8b2252;">"stylesheet"</span> <span style="color: #483d8b;">:media</span> <span style="color: #8b2252;">"all"</span>))
+         ((<span style="color: #483d8b;">:script</span> <span style="color: #483d8b;">:src</span> <span style="color: #8b2252;">"/js/jquery.sortable.js"</span>))
+         ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"button"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"toggle_rules"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"toggle_rules"</span> <span style="color: #483d8b;">:onclick</span> <span style="color: #8b2252;">"ShowHide('rules');return false;"</span>))
+         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 1 <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"rules"</span> <span style="color: #483d8b;">:style</span> <span style="color: #8b2252;">"font-size: small; display: none"</span>)
+          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1055;&#1088;&#1072;&#1074;&#1080;&#1083;&#1072; &#1086;&#1090;&#1089;&#1077;&#1074;&#1072; &#1090;&#1080;&#1079;&#1077;&#1088;&#1086;&#1074;"</span>)
+          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1055;&#1088;&#1072;&#1074;&#1080;&#1083;&#1072; &#1072;&#1085;&#1072;&#1083;&#1080;&#1079;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081;"</span>)
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
+            (format nil <span style="color: #8b2252;">"~{~A &lt;/br&gt;~}"</span> (rules-for-teaser)))
+           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
+            (format nil <span style="color: #8b2252;">"~{~A &lt;/br&gt;~}"</span> (rules-for-vacancy)))))
+         ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"button"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"save_state"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"save_state"</span> <span style="color: #483d8b;">:onclick</span> <span style="color: #8b2252;">"save_state();return false;"</span>))
+         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 1 <span style="color: #483d8b;">:style</span> <span style="color: #8b2252;">"font-size: small;"</span>)
+          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1053;&#1077;&#1080;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;"</span>)
+          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1053;&#1077;&#1086;&#1090;&#1089;&#1086;&#1088;&#1090;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1099;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;"</span>)
+          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1048;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;"</span>)
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
+            ((<span style="color: #483d8b;">:ul</span> <span style="color: #483d8b;">:class</span> <span style="color: #8b2252;">"connected"</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"not-interesting-container"</span>)
+             (mrg (remove-if-not #'(<span style="color: #a020f0;">lambda</span> (x)
+                                     (equal <span style="color: #8b2252;">":NOT-INTERESTING"</span> (state x)))
+                                 sorted-vacs))))
+           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
+            ((<span style="color: #483d8b;">:ul</span> <span style="color: #483d8b;">:class</span> <span style="color: #8b2252;">"connected"</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"unsort-container"</span>)
+             (mrg (remove-if-not #'(<span style="color: #a020f0;">lambda</span> (x)
+                                     (equal <span style="color: #8b2252;">":UNSORT"</span> (state x)))
+                                 sorted-vacs))))
+           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
+            ((<span style="color: #483d8b;">:ul</span> <span style="color: #483d8b;">:class</span> <span style="color: #8b2252;">"connected"</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"interesting-container"</span>)
+             (mrg (remove-if-not #'(<span style="color: #a020f0;">lambda</span> (x)
+                                     (equal <span style="color: #8b2252;">":INTERESTING"</span> (state x)))
+                                 sorted-vacs))))
+           )))))))
+
+
+(restas:define-route hh-main-post (<span style="color: #8b2252;">"/hh"</span> <span style="color: #483d8b;">:method</span> <span style="color: #483d8b;">:post</span>)
+  (<span style="color: #a020f0;">let</span> ((act (cdr (assoc <span style="color: #8b2252;">"act"</span> (hunchentoot:post-parameters*) <span style="color: #483d8b;">:test</span> #'equal))))
+    (<span style="color: #a020f0;">cond</span> ((equal <span style="color: #8b2252;">"save"</span> act)
+           (<span style="color: #a020f0;">labels</span> ((get-post-array (name)
+                      (remove-if #'(<span style="color: #a020f0;">lambda</span> (x)
+                                     (or
+                                      (equal x <span style="color: #8b2252;">""</span>)
+                                      (equal x <span style="color: #8b2252;">"0"</span>)))
+                                 (split-sequence:split-sequence #\, (cdr (assoc name (hunchentoot:post-parameters*) <span style="color: #483d8b;">:test</span> #'equal))))))
+             (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> (get-post-array <span style="color: #8b2252;">"unsort"</span>)  <span style="color: #483d8b;">:do</span>
+                (upd-vacancy (car (find-vacancy <span style="color: #483d8b;">:src-id</span> item)) (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":UNSORT"</span>)))
+             (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> (get-post-array <span style="color: #8b2252;">"interesting"</span>)  <span style="color: #483d8b;">:do</span>
+                (upd-vacancy (car (find-vacancy <span style="color: #483d8b;">:src-id</span> item)) (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":INTERESTING"</span>)))
+             (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> (get-post-array <span style="color: #8b2252;">"not-interesting"</span>) <span style="color: #483d8b;">:do</span>
+                (upd-vacancy (car (find-vacancy <span style="color: #483d8b;">:src-id</span> item)) (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":NOT-INTERESTING"</span>)))
+             (<span style="color: #a020f0;">with-wrapper</span>
+               (<span style="color: #ff0000; font-weight: bold;">error</span> 'ajax <span style="color: #483d8b;">:output</span> (cl-json:encode-json-to-string (list <span style="color: #483d8b;">:data</span> <span style="color: #8b2252;">"ok"</span>)))))))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Страница вакансии</h3>
+<div class="outline-text-3" id="text-4-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">to-html</span> ((vac vacancy) <span style="color: #228b22;">&amp;key</span> filter <span style="color: #228b22;">&amp;allow-other-keys</span>)
+  (ps-html
+   ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0 <span style="color: #483d8b;">:style</span> <span style="color: #8b2252;">"font-size: small;"</span>)
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"id:"</span>)         ((<span style="color: #483d8b;">:td</span>) (id vac))         ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"src-id:"</span>)     ((<span style="color: #483d8b;">:td</span>) (src-id vac))     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"archive:"</span>)    ((<span style="color: #483d8b;">:td</span>) (archive vac))    ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"emp-id:"</span>)     ((<span style="color: #483d8b;">:td</span>) (emp-id vac))     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"emp-name:"</span>)   ((<span style="color: #483d8b;">:td</span>) (emp-name vac))   ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"city:"</span>)       ((<span style="color: #483d8b;">:td</span>) (city vac))       ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"metro:"</span>)      ((<span style="color: #483d8b;">:td</span>) (metro vac))      ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"experience:"</span>) ((<span style="color: #483d8b;">:td</span>) (experience vac)) ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"date:"</span>)       ((<span style="color: #483d8b;">:td</span>) (date vac))       ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>)))
+   ((<span style="color: #483d8b;">:h3</span>) (name vac) <span style="color: #8b2252;">"&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span> ((<span style="color: #483d8b;">:span</span> <span style="color: #483d8b;">:style</span> <span style="color: #8b2252;">"color:red"</span>) (salary-text vac)))
+   ((<span style="color: #483d8b;">:pre</span>) (descr vac))
+   ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+    ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"notes"</span>)
+    ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"response"</span>)
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) ((<span style="color: #483d8b;">:textarea</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"notes"</span> <span style="color: #483d8b;">:cols</span> 60 <span style="color: #483d8b;">:rows</span> 6) (notes vac)))
+     ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) ((<span style="color: #483d8b;">:textarea</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"response"</span> <span style="color: #483d8b;">:cols</span> 60 <span style="color: #483d8b;">:rows</span> 6) (response vac)))))))
+
+(restas:define-route vacancy (<span style="color: #8b2252;">"/vacancy/:id"</span>)
+  (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+          (list
+           (to-html (car (find-vacancy <span style="color: #483d8b;">:src-id</span> id)))
+           <span style="color: #8b2252;">"&lt;input type=\"button\" value=\"save\" /&gt;"</span>
+           <span style="color: #8b2252;">"&amp;nbsp;"</span>
+           <span style="color: #8b2252;">"&lt;input type=\"button\" value=\"send_response\" /&gt;"</span>)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Галлерея (parenscript)</h3>
+<div class="outline-text-3" id="text-4-3">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*slideshows*</span> (make-hash-table <span style="color: #483d8b;">:test</span> 'equalp))
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">add-slideshow</span> (slideshow-name image-folder)
+  (setf (gethash slideshow-name *slideshows*)
+        (mapcar (<span style="color: #a020f0;">lambda</span> (pathname)
+                  (url-encode (format nil <span style="color: #8b2252;">"~a.~a"</span>
+                                      (pathname-name pathname)
+                                      (pathname-type pathname))))
+                (list-directory image-folder))))
+
+(add-slideshow <span style="color: #8b2252;">"img"</span> <span style="color: #8b2252;">"/home/rigidus/repo/moto/img/"</span>)
+(add-slideshow <span style="color: #8b2252;">"pic"</span> <span style="color: #8b2252;">"/home/rigidus/repo/moto/pic/"</span>)
+
+(alexandria:hash-table-plist *slideshows*)
+
+(defmacro/ps slideshow-image-uri (slideshow-name image-file)
+  `(concatenate 'string ,slideshow-name <span style="color: #8b2252;">"/"</span> ,image-file))
+
+(restas:define-route y (<span style="color: #8b2252;">"y"</span>)
+  (ps
+    (<span style="color: #a020f0;">define-symbol-macro</span> <span style="color: #0000ff;">fragment-identifier</span> (@ window location hash))
+    (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">show-image-number</span> (image-index)
+      (<span style="color: #a020f0;">let</span> ((image-name (aref *images* (setf *current-image-index* image-index))))
+        (setf (chain document (get-element-by-id <span style="color: #8b2252;">"slideshow-img-object"</span>) src)
+              (slideshow-image-uri *slideshow-name* image-name)
+              fragment-identifier
+              image-name)))
+    (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">previous-image</span> ()
+      (<span style="color: #a020f0;">when</span> (&gt; *current-image-index* 0)
+        (show-image-number (1- *current-image-index*))))
+    (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">next-image</span> ()
+      (<span style="color: #a020f0;">when</span> (&lt; *current-image-index* (1- (getprop *images* 'length)))
+        (show-image-number (1+ *current-image-index*))))
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">this gives bookmarkability using fragment identifiers</span>
+    (setf (getprop window 'onload)
+          (<span style="color: #a020f0;">lambda</span> ()
+            (<span style="color: #a020f0;">when</span> fragment-identifier
+              (<span style="color: #a020f0;">let</span> ((image-name (chain fragment-identifier (slice 1))))
+                (<span style="color: #a020f0;">dotimes</span> (i (length *images*))
+                  (<span style="color: #a020f0;">when</span> (string= image-name (aref *images* i))
+                    (show-image-number i)))))))))
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">slideshow-handler</span> (slideshow-name)
+  (<span style="color: #a020f0;">let*</span> ((images (gethash slideshow-name *slideshows*))
+         (current-image-index (or (position (get-parameter <span style="color: #8b2252;">"image"</span>) images <span style="color: #483d8b;">:test</span> #'equalp)
+                                  0))
+         (previous-image-index (max 0 (1- current-image-index)))
+         (next-image-index (min (1- (length images)) (1+ current-image-index))))
+    (<span style="color: #a020f0;">with-html-output-to-string</span> (s)
+      (<span style="color: #483d8b;">:html</span>
+       (<span style="color: #483d8b;">:head</span>
+        (<span style="color: #483d8b;">:title</span> <span style="color: #8b2252;">"Parenscript slideshow"</span>)
+        (<span style="color: #483d8b;">:script</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text/javascript"</span>
+                 (str (ps* `(<span style="color: #a020f0;">progn</span>
+                              (var *slideshow-name* ,slideshow-name)
+                              (var *images* (array ,@images))
+                              (var *current-image-index* ,current-image-index)))))
+        (<span style="color: #483d8b;">:script</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text/javascript"</span> <span style="color: #483d8b;">:src</span> <span style="color: #8b2252;">"/y"</span>)
+        )
+       (<span style="color: #483d8b;">:body</span>
+        (<span style="color: #483d8b;">:div</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"slideshow-container"</span>
+              <span style="color: #483d8b;">:style</span> <span style="color: #8b2252;">"width:100%;text-align:center"</span>
+              (<span style="color: #483d8b;">:img</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"slideshow-img-object"</span>
+                    <span style="color: #483d8b;">:src</span> (slideshow-image-uri slideshow-name
+                                              (elt images current-image-index)))
+              <span style="color: #483d8b;">:br</span>
+              (<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:href</span> (format nil <span style="color: #8b2252;">"?image=~a"</span> (elt images previous-image-index))
+                  <span style="color: #483d8b;">:onclick</span> (ps (previous-image) (<span style="color: #a020f0;">return</span> false))
+                  <span style="color: #8b2252;">"Previous"</span>)
+              <span style="color: #8b2252;">" "</span>
+              (<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:href</span> (format nil <span style="color: #8b2252;">"?image=~a"</span> (elt images next-image-index))
+                  <span style="color: #483d8b;">:onclick</span> (ps (next-image) (<span style="color: #a020f0;">return</span> false))
+                  <span style="color: #8b2252;">"Next"</span>)
+              ))))))
+
+(restas:define-route x (<span style="color: #8b2252;">"/x"</span>)
+  (slideshow-handler <span style="color: #8b2252;">"pic"</span>))
+
+(restas:define-route z (<span style="color: #8b2252;">"/z"</span>)
+  (slideshow-handler <span style="color: #8b2252;">"img"</span>))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> <span class="todo TODO">TODO</span> СТОП!!!</h2>
+<div class="outline-text-2" id="text-5">
 <p>
 После отправки отклика звонит работодатель и приглашает на интервью. Но это уже
 интерфейсная часть.
@@ -1676,29 +2436,41 @@ for the JavaScript code in this tag.
 <p>
 Построение новых правил на основе известных
 </p>
+
+<p>
+Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
+реагировать, устанавливая статус <code>archive</code>
+</p>
+
+<p>
+TODO: Конечный автомат тут сложен и будет еще уточняться&#x2026; Пока состояния такие:
+<code>просмотрено</code> (с датой), <code>отобрано</code>, <code>не-берут-трубку</code>, <code>не-актуально</code>,
+<code>приглашен-на-интервью</code>, <code>тестовое-задание</code>, <code>получен-оффер</code>, <code>отказано-работодателем</code>,
+<code>отказ-соискателя</code>, <code>вакансия-снята</code> итп.
+</p>
+
+<p>
+Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
+состояние на этих сайтах. Мы узнаем о вакансии, ко
+</p>
 </div>
 
-<div id="outline-container-sec-3-18-1" class="outline-4">
-<h4 id="sec-3-18-1"><span class="section-number-4">3.18.1</span> Для красоты</h4>
-<div class="outline-text-4" id="text-3-18-1">
+
+
+
+<div id="outline-container-sec-5-0-1" class="outline-4">
+<h4 id="sec-5-0-1"><span class="section-number-4">5.0.1</span> Для красоты</h4>
+<div class="outline-text-4" id="text-5-0-1">
 <p>
 Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
 красивую подсветку. Также нужны имена кусков.
 </p>
 </div>
 </div>
-</div>
-<div id="outline-container-sec-3-19" class="outline-3">
-<h3 id="sec-3-19"><span class="section-number-3">3.19</span> Неактуальное</h3>
-<div class="outline-text-3" id="text-3-19">
-<p>
-Эти два раздела заменены на более функциональные
-</p>
-</div>
 
-<div id="outline-container-sec-3-19-1" class="outline-4">
-<h4 id="sec-3-19-1"><span class="section-number-4">3.19.1</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
-<div class="outline-text-4" id="text-3-19-1">
+<div id="outline-container-sec-5-0-2" class="outline-4">
+<h4 id="sec-5-0-2"><span class="section-number-4">5.0.2</span> <span class="todo WAIT">WAIT</span> Обход дерева и извлечение узлов</h4>
+<div class="outline-text-4" id="text-5-0-2">
 <p>
 Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
 разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
@@ -2029,9 +2801,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-3-19-2" class="outline-4">
-<h4 id="sec-3-19-2"><span class="section-number-4">3.19.2</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
-<div class="outline-text-4" id="text-3-19-2">
+<div id="outline-container-sec-5-0-3" class="outline-4">
+<h4 id="sec-5-0-3"><span class="section-number-4">5.0.3</span> <span class="todo WAIT">WAIT</span> Сопоставление и преобразование узлов</h4>
+<div class="outline-text-4" id="text-5-0-3">
 <p>
 Разбирая вакансию мы должны извлечь несколько блоков:
 </p>
@@ -2178,11 +2950,10 @@ collect
 </div>
 </div>
 </div>
-</div>
 
-<div id="outline-container-sec-4" class="outline-2">
-<h2 id="sec-4"><span class="section-number-2">4</span> Хотелки</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Хотелки</h2>
+<div class="outline-text-2" id="text-6">
 <p>
 Мы все ищем работу на профильных сайтах, но, к сожалению, не всегда на них хватает
 функционала, особенно нестандартного. Работая с сайтом в автоматическом режиме мы можем
@@ -2259,11 +3030,52 @@ collect
 создавать на таком сайте что-то типа т.н. <code>рабочих коллективов</code>, чтобы наниматься сразу
 командой. Возможно работодателям такой вариант найма тоже будет интересен.
 </p>
+
+<p>
+В ряде случаев компании меняют свои вакансии, некоторые делают это методом удаления
+предыдущей и создания новой. Мне как соискателю хотелось бы не обнаруживать уже
+просмотренную и возможно собеседованную вакансию в новых. Поэтому хотелось бы
+предусмотреть механизм, который связывает очень похожие вакансии друг с другом.
+</p>
+
+<p>
+Иногда вакансии меняются, или в них меняются существенные условия. Например, две недели
+назад, когда я смотрел вакансию из предыдущей сборки меня не устроила зарпалата, а
+сегодня вакансия стала интереснее. Я хочу отслеживать что вакансия поменялась.
+</p>
+
+<p>
+Таким образом при создании вакансии мы должны проверять, может она уже есть в базе и
+тогда указывать, что эта вакансия включена в несколько сборок (требует таблицы связи)
+</p>
+
+<p>
+Несколько вакансий могут быть от одной компании. В этом случае мне бы хотелось
+отслеживать это в профиле компании, кроме того интересна аналитика по этой компании за
+определенный период времени.
+</p>
+
+<p>
+С социальной точки зрения интересно получать отзывы о компании от ее работников, в том
+числе и уволенных.
+</p>
+
+<p>
+Действия по вакансии: звонки, скайп-интервью, собеседования
+</p>
+
+<p>
+В эту таблицу заносим что сделано по каждой вакансии, которая находится в разработке
+</p>
+
+<p>
+Теги вакансий Помогают ориентироваться, когда вакансий много.
+</p>
 </div>
 
-<div id="outline-container-sec-4-1" class="outline-3">
-<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Процесс найма с т.з. соискателя</h3>
-<div class="outline-text-3" id="text-4-1">
+<div id="outline-container-sec-6-1" class="outline-3">
+<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Процесс найма с т.з. соискателя</h3>
+<div class="outline-text-3" id="text-6-1">
 <p>
 С точки зрения соискателя процесс найма выглядит так:
 </p>
@@ -2323,9 +3135,9 @@ collect
 </div>
 </div>
 
-<div id="outline-container-sec-4-2" class="outline-3">
-<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Процесс найма с т.з. HR-а</h3>
-<div class="outline-text-3" id="text-4-2">
+<div id="outline-container-sec-6-2" class="outline-3">
+<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Процесс найма с т.з. HR-а</h3>
+<div class="outline-text-3" id="text-6-2">
 <p>
 Когда HR-специалист ищет вакансии, он пользуется несколькими путями:
 </p>
@@ -2451,349 +3263,17 @@ HR-специалист заинтересован в том, чтобы име�
 </p>
 </div>
 </div>
-
-<div id="outline-container-sec-4-3" class="outline-3">
-<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Состояния вакансий</h3>
-<div class="outline-text-3" id="text-4-3">
-<p>
-После того, как тизер вакансии будет загружен системой, вакансия получает статус <code>new</code> и
-помечается в интерфейсе специальным значком, чтобы обратить на себя внимание
-пользователя. В дальнейшем эти тизеры попадают на автоматическую и ручную сортировку и
-могут принять один из статусов: <code>unsorted</code>, <code>interested</code> или <code>not-interested</code>
-</p>
-
-<p>
-После того, как пользователь определился с интересными ему тизерами, он иницирует
-загрузку полной информции о вакансиях и они становятся доступны для просмотра и внесения
-заметок.
-</p>
-
-<p>
-Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
-действия, переводящие вакансию из одного состояния в другое: когда пользователь
-отправляет отзыв  вакансия становится <code>responded</code>. Если пользователь, просмотрев
-вакансию, принял решение отзыв не отправлять, он может сделать вакансию <code>hidden</code>.
-</p>
-
-<p>
-Важно: Для обеспечения социальных взаимодействий нужно предусмотреть, чтобы вакансию
-можно было "передать", т.е. у нее минимум должен быть URI.
-</p>
-
-<p>
-Если пользователь просмотрел вакансию, но пока не хочет отправлять отзыв - он может
-добавить вакансию в закладки - в этом случае ее статус меняется на <code>favorited</code>
-</p>
-
-<p>
-Из <code>favorited</code> мы снова можем отправить отзыв.
-</p>
-
-<p>
-Из <code>favorited</code> пользователь может вернуть вакансию обратно в <code>interested</code> или <code>hidden</code>.
-</p>
-
-<p>
-Из <code>hidden</code> пользователь может вернуть вакансию в <code>interested</code>.
-</p>
-
-<p>
-Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
-по вакансиям в статусе <code>responded</code> - пользователь ищет обычно по названию фирмы.
-</p>
-
-<p>
-После звонка вакансия может быть выкинута или переведена из <code>responded</code> в статус "был
-телефонный звонок" - <code>called</code>. Выкидывая вакансию пользователь может выбрать reason - для
-них можно будет потом сделать отдельную таблицу но пока просто пишем в поле
-вакансии. Если в результате телефонного звонка была достигнута договоренность о
-собеседовании - пользователь переводит вакансию в состояние "пригласили на интервью" -
-<code>wait-interview</code> и заносит в вакансию данные о том, куда и во сколько ехать. Если по
-телефону рекрутер предложил тестовое задание - статус - "ожидание тестового задания" -
-<code>wait-test</code>. Если договорились о интервью по скайпу - "ожидание скайп-интервью" -
-<code>wait-skype-interview</code>.
-</p>
-
-<p>
-Получив тестовое задание пользователь переводит вакансию из статуса <code>wait-test</code> в
-"выполнение тестового задания" <code>run-test</code>, а оттуда либо в <code>test-cancel</code> либо в
-<code>test-sended</code>. Либо выкидывает.
-</p>
-
-<p>
-Пользователи иногда забивают на интервью (случаются накладки) - в этом случае рекрутер
-часто передоговаривается на другое время. Делать петли в графе значит излишне усложнять
-его, наверно пусть можно будет просто изменить данные о времени интервью.
-</p>
-
-<p>
-После интервью или скайп-интервью от вакансии можно либо отказаться (<code>refuse-employer</code>,
-<code>refuse-applicant</code>) либо перевести в статус "ожидание результата" - <code>wait-result</code>. Нужно
-включать таймер, по истечении которого напоминать пользователю позвонить рекрутеру и
-узнать, как дела.
-</p>
-
-<p>
-Иногда после скайп-интервью назначают очное интервью. Также бывает прямо на интервью
-предлагают оффер - <code>offer</code> и соискатель берет время на подумать.
-</p>
-
-<p>
-Из "ожидания результата" можно перескочить в "предложен оффер", "отказ работодателя" -
-<code>refuse-employer</code> или "отказ соискателя" - <code>refuse-аpplicant</code>.
-</p>
-
-<p>
-История статусов нужна, в нее нужно заносить время когда изменяется статус и возможно
-примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
-статусов и текущее положение вакансии в нем.
-</p>
-
-<table id="vacancy_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 2:</span> Состояния конечного автомата вакансии</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">action</th>
-<th scope="col" class="left">from</th>
-<th scope="col" class="left">to</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">view</td>
-<td class="left">new</td>
-<td class="left">unsorted</td>
-</tr>
-
-<tr>
-<td class="left">refuse-new</td>
-<td class="left">new</td>
-<td class="left">not-interested</td>
-</tr>
-
-<tr>
-<td class="left">set-interested</td>
-<td class="left">new</td>
-<td class="left">interested</td>
-</tr>
-
-<tr>
-<td class="left">refuse-interested</td>
-<td class="left">interested</td>
-<td class="left">hidden</td>
-</tr>
-
-<tr>
-<td class="left">respond</td>
-<td class="left">interested</td>
-<td class="left">responded</td>
-</tr>
-
-<tr>
-<td class="left">favor</td>
-<td class="left">interested</td>
-<td class="left">favorited</td>
-</tr>
-
-<tr>
-<td class="left">send-respond-from-favorited</td>
-<td class="left">favorited</td>
-<td class="left">responded</td>
-</tr>
-
-<tr>
-<td class="left">unfavor</td>
-<td class="left">favorited</td>
-<td class="left">interested</td>
-</tr>
-
-<tr>
-<td class="left">hide-after-favor</td>
-<td class="left">favorited</td>
-<td class="left">hidden</td>
-</tr>
-
-<tr>
-<td class="left">call</td>
-<td class="left">responded</td>
-<td class="left">called</td>
-</tr>
-
-<tr>
-<td class="left">invite-interview</td>
-<td class="left">called</td>
-<td class="left">wait<sub>interview</sub></td>
-</tr>
-
-<tr>
-<td class="left">invite-skype-interview</td>
-<td class="left">called</td>
-<td class="left">wait<sub>skype</sub><sub>interview</sub></td>
-</tr>
-
-<tr>
-<td class="left">invite-test</td>
-<td class="left">called</td>
-<td class="left">wait<sub>test</sub></td>
-</tr>
-
-<tr>
-<td class="left">interview</td>
-<td class="left">wait<sub>interview</sub></td>
-<td class="left">interview</td>
-</tr>
-
-<tr>
-<td class="left">skype-interview</td>
-<td class="left">wait<sub>skype</sub><sub>interview</sub></td>
-<td class="left">skype<sub>interview</sub></td>
-</tr>
-
-<tr>
-<td class="left">call-after-skype-interview</td>
-<td class="left">skype<sub>interview</sub></td>
-<td class="left">called</td>
-</tr>
-
-<tr>
-<td class="left">execute-test</td>
-<td class="left">wait<sub>test</sub></td>
-<td class="left">run<sub>test</sub></td>
-</tr>
-
-<tr>
-<td class="left">send-test</td>
-<td class="left">run<sub>test</sub></td>
-<td class="left">send<sub>test</sub></td>
-</tr>
-
-<tr>
-<td class="left">called-after-test</td>
-<td class="left">send<sub>test</sub></td>
-<td class="left">called</td>
-</tr>
-
-<tr>
-<td class="left">refuse-employer-after-interview</td>
-<td class="left">interview</td>
-<td class="left">refuse<sub>employer</sub></td>
-</tr>
-
-<tr>
-<td class="left">refuse-applicant-after-interview</td>
-<td class="left">interview</td>
-<td class="left">refuse<sub>applicant</sub></td>
-</tr>
-
-<tr>
-<td class="left">wait-result-after-interview</td>
-<td class="left">interview</td>
-<td class="left">wait<sub>result</sub></td>
-</tr>
-
-<tr>
-<td class="left">refuse-employer-after-skype-interview</td>
-<td class="left">skype<sub>interview</sub></td>
-<td class="left">refuse<sub>employer</sub></td>
-</tr>
-
-<tr>
-<td class="left">refuse-applicant-after-skype-interview</td>
-<td class="left">skype<sub>interview</sub></td>
-<td class="left">refuse<sub>applicant</sub></td>
-</tr>
-
-<tr>
-<td class="left">wait-result-after-skype-interview</td>
-<td class="left">skype<sub>interview</sub></td>
-<td class="left">wait<sub>result</sub></td>
-</tr>
-
-<tr>
-<td class="left">invite-next-interview</td>
-<td class="left">wait<sub>result</sub></td>
-<td class="left">interview</td>
-</tr>
-
-<tr>
-<td class="left">invite-interview-after-skype</td>
-<td class="left">skype<sub>interview</sub></td>
-<td class="left">interview</td>
-</tr>
-
-<tr>
-<td class="left">invite-offer</td>
-<td class="left">wait<sub>result</sub></td>
-<td class="left">offer</td>
-</tr>
-
-<tr>
-<td class="left">employer-refuse-after-wait-result</td>
-<td class="left">wait<sub>result</sub></td>
-<td class="left">refuse<sub>employer</sub></td>
-</tr>
-
-<tr>
-<td class="left">applicant-refuse-after-wait-result</td>
-<td class="left">wait<sub>result</sub></td>
-<td class="left">refuse<sub>applicant</sub></td>
-</tr>
-</tbody>
-</table>
-
-<p>
-Теперь мы можем полностью описать поведение вакансии как конечный автомат:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-emacs-lisp" id="vacancy_state_graph">(mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
-            (princ (format <span style="color: #8b2252;">"%s -&gt; %s [label =\"%s\"];\n"</span>
-                           (second x) (third x) (first x))))
-        table)
-</pre>
 </div>
 
-
-
-<div class="figure">
-<p><img src="img/vacancy-state.png" alt="vacancy-state.png" />
-</p>
-</div>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">teaser-rejection</span> ()
-  <span style="color: #8b2252;">"teaser-rejection"</span>)
-
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">rejection-favorite</span> ()
-  <span style="color: #8b2252;">"rejection-favorite"</span>)
-</pre>
-</div>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-5" class="outline-2">
-<h2 id="sec-5"><span class="section-number-2">5</span> Сценарии использования</h2>
-<div class="outline-text-2" id="text-5">
-</div><div id="outline-container-sec-5-1" class="outline-3">
-<h3 id="sec-5-1"><span class="section-number-3">5.1</span> Пользовательские</h3>
-<div class="outline-text-3" id="text-5-1">
-</div><div id="outline-container-sec-5-1-1" class="outline-4">
-<h4 id="sec-5-1-1"><span class="section-number-4">5.1.1</span> Авторизация/регистрация</h4>
-<div class="outline-text-4" id="text-5-1-1">
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Сценарии использования</h2>
+<div class="outline-text-2" id="text-7">
+</div><div id="outline-container-sec-7-1" class="outline-3">
+<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Пользовательские</h3>
+<div class="outline-text-3" id="text-7-1">
+</div><div id="outline-container-sec-7-1-1" class="outline-4">
+<h4 id="sec-7-1-1"><span class="section-number-4">7.1.1</span> Авторизация/регистрация</h4>
+<div class="outline-text-4" id="text-7-1-1">
 <p>
 Пользователь регистрируется и авторизуется для получения доступа к своем аккаунту. За
 это отвечает модуль auth.
@@ -2801,9 +3281,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-1-2" class="outline-4">
-<h4 id="sec-5-1-2"><span class="section-number-4">5.1.2</span> Формализация предпочтений</h4>
-<div class="outline-text-4" id="text-5-1-2">
+<div id="outline-container-sec-7-1-2" class="outline-4">
+<h4 id="sec-7-1-2"><span class="section-number-4">7.1.2</span> Формализация предпочтений</h4>
+<div class="outline-text-4" id="text-7-1-2">
 <p>
 Пользователь формулирует свои предпочтения относительно вакансий (и фирм их размещающих)
 в виде некоторых формализованных утверждений.
@@ -2811,9 +3291,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-1-3" class="outline-4">
-<h4 id="sec-5-1-3"><span class="section-number-4">5.1.3</span> Отбор и сортировка вакансий</h4>
-<div class="outline-text-4" id="text-5-1-3">
+<div id="outline-container-sec-7-1-3" class="outline-4">
+<h4 id="sec-7-1-3"><span class="section-number-4">7.1.3</span> Отбор и сортировка вакансий</h4>
+<div class="outline-text-4" id="text-7-1-3">
 <p>
 Пользователь отбирает интересные и неинтересные ему вакансии вручную и автоматически -
 путем применения к ним скриптов
@@ -2821,9 +3301,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-1-4" class="outline-4">
-<h4 id="sec-5-1-4"><span class="section-number-4">5.1.4</span> Внесение заметок к вакансиям</h4>
-<div class="outline-text-4" id="text-5-1-4">
+<div id="outline-container-sec-7-1-4" class="outline-4">
+<h4 id="sec-7-1-4"><span class="section-number-4">7.1.4</span> Внесение заметок к вакансиям</h4>
+<div class="outline-text-4" id="text-7-1-4">
 <p>
 Пользователь вносит свои соображения и заметки связанные с вакансией, или
 фирмой-работодателем
@@ -2831,18 +3311,18 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-1-5" class="outline-4">
-<h4 id="sec-5-1-5"><span class="section-number-4">5.1.5</span> Заполнение резюме</h4>
-<div class="outline-text-4" id="text-5-1-5">
+<div id="outline-container-sec-7-1-5" class="outline-4">
+<h4 id="sec-7-1-5"><span class="section-number-4">7.1.5</span> Заполнение резюме</h4>
+<div class="outline-text-4" id="text-7-1-5">
 <p>
 Пользователь заполняет резюме
 </p>
 </div>
 </div>
 
-<div id="outline-container-sec-5-1-6" class="outline-4">
-<h4 id="sec-5-1-6"><span class="section-number-4">5.1.6</span> Написание сопроводительных писем</h4>
-<div class="outline-text-4" id="text-5-1-6">
+<div id="outline-container-sec-7-1-6" class="outline-4">
+<h4 id="sec-7-1-6"><span class="section-number-4">7.1.6</span> Написание сопроводительных писем</h4>
+<div class="outline-text-4" id="text-7-1-6">
 <p>
 Пользователь пишет шаблоны сопроводительных писем, которые будут отправлены вместе с
 отзывом на вакансию
@@ -2850,9 +3330,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-1-7" class="outline-4">
-<h4 id="sec-5-1-7"><span class="section-number-4">5.1.7</span> Отправка отзывов</h4>
-<div class="outline-text-4" id="text-5-1-7">
+<div id="outline-container-sec-7-1-7" class="outline-4">
+<h4 id="sec-7-1-7"><span class="section-number-4">7.1.7</span> Отправка отзывов</h4>
+<div class="outline-text-4" id="text-7-1-7">
 <p>
 Пользователь отправляет отзыв на вакансию.
 </p>
@@ -2893,7 +3373,7 @@ HR-специалист заинтересован в том, чтобы име�
 
 <p>
 Зарегистрированный пользователь создает "поисковый профиль", в который заносит поисковый
-запрос и (в будущем) источники данных. Поля профиля описаны в секции <a href="#sec-5-2">5.2</a>.
+запрос и (в будущем) источники данных. Поля профиля описаны в секции <a href="#sec-7-2">7.2</a>.
 </p>
 
 <p>
@@ -2918,9 +3398,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-2" class="outline-3">
-<h3 id="sec-5-2"><span class="section-number-3">5.2</span> Поисковые профили</h3>
-<div class="outline-text-3" id="text-5-2">
+<div id="outline-container-sec-7-2" class="outline-3">
+<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Поисковые профили</h3>
+<div class="outline-text-3" id="text-7-2">
 <p>
 Разумеется, лучше собирать не все подряд, а только то что необходимо соискателю. Когда
 соискатель пользуется профильным сайтом он использует поисковые запросы, на основании
@@ -2949,9 +3429,9 @@ HR-специалист заинтересован в том, чтобы име�
 </p>
 </div>
 
-<div id="outline-container-sec-5-2-1" class="outline-4">
-<h4 id="sec-5-2-1"><span class="section-number-4">5.2.1</span> Список поисковых профилей</h4>
-<div class="outline-text-4" id="text-5-2-1">
+<div id="outline-container-sec-7-2-1" class="outline-4">
+<h4 id="sec-7-2-1"><span class="section-number-4">7.2.1</span> Список поисковых профилей</h4>
+<div class="outline-text-4" id="text-7-2-1">
 <p>
 Чтобы управлять поисковыми профилями нам понадобится страничка на которой их можно
 создать, удалить и просмотреть.
@@ -2992,9 +3472,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-2-2" class="outline-4">
-<h4 id="sec-5-2-2"><span class="section-number-4">5.2.2</span> Страничка поискового профиля</h4>
-<div class="outline-text-4" id="text-5-2-2">
+<div id="outline-container-sec-7-2-2" class="outline-4">
+<h4 id="sec-7-2-2"><span class="section-number-4">7.2.2</span> Страничка поискового профиля</h4>
+<div class="outline-text-4" id="text-7-2-2">
 <p>
 На страничке поискового профиля мы выводим все собранные по этому поисковому профилю
 вакансии. Будем считать что нас не особо интересуют вакансии без указания зарплаты,
@@ -3128,9 +3608,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-3" class="outline-3">
-<h3 id="sec-5-3"><span class="section-number-3">5.3</span> Поиск вакансий</h3>
-<div class="outline-text-3" id="text-5-3">
+<div id="outline-container-sec-7-3" class="outline-3">
+<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Поиск вакансий</h3>
+<div class="outline-text-3" id="text-7-3">
 <p>
 Внутри вакансий необходимо искать по критериям, которые я уточню позже
 </p>
@@ -3157,18 +3637,18 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-4" class="outline-3">
-<h3 id="sec-5-4"><span class="section-number-3">5.4</span> Ручной отбор вакансий</h3>
+<div id="outline-container-sec-7-4" class="outline-3">
+<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Ручной отбор вакансий</h3>
 </div>
-<div id="outline-container-sec-5-5" class="outline-3">
-<h3 id="sec-5-5"><span class="section-number-3">5.5</span> Автоматический отбор вакансий</h3>
+<div id="outline-container-sec-7-5" class="outline-3">
+<h3 id="sec-7-5"><span class="section-number-3">7.5</span> Автоматический отбор вакансий</h3>
 </div>
-<div id="outline-container-sec-5-6" class="outline-3">
-<h3 id="sec-5-6"><span class="section-number-3">5.6</span> Внесение заметок по вакансии</h3>
+<div id="outline-container-sec-7-6" class="outline-3">
+<h3 id="sec-7-6"><span class="section-number-3">7.6</span> Внесение заметок по вакансии</h3>
 </div>
-<div id="outline-container-sec-5-7" class="outline-3">
-<h3 id="sec-5-7"><span class="section-number-3">5.7</span> Просмотр и отбор вакансий, заметки и выставление статусов</h3>
-<div class="outline-text-3" id="text-5-7">
+<div id="outline-container-sec-7-7" class="outline-3">
+<h3 id="sec-7-7"><span class="section-number-3">7.7</span> Просмотр и отбор вакансий, заметки и выставление статусов</h3>
+<div class="outline-text-3" id="text-7-7">
 <p>
 Когда я читаю вакансию, я бы хотел, чтобы она переходила в статус "просмотрено" (и к ней
 добавлялась дата просмотра)
@@ -3193,9 +3673,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-8" class="outline-3">
-<h3 id="sec-5-8"><span class="section-number-3">5.8</span> Дашборд</h3>
-<div class="outline-text-3" id="text-5-8">
+<div id="outline-container-sec-7-8" class="outline-3">
+<h3 id="sec-7-8"><span class="section-number-3">7.8</span> Дашборд</h3>
+<div class="outline-text-3" id="text-7-8">
 <p>
 Если у нас есть формализованный алгоритм (а он есть, так как найм - это линейный
 процесс), то я хочу получать напоминания о моем следующем шаге в отношении тех вакансий,
@@ -3208,9 +3688,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-9" class="outline-3">
-<h3 id="sec-5-9"><span class="section-number-3">5.9</span> Отзывы соискателей о компаниях и вакансиях</h3>
-<div class="outline-text-3" id="text-5-9">
+<div id="outline-container-sec-7-9" class="outline-3">
+<h3 id="sec-7-9"><span class="section-number-3">7.9</span> Отзывы соискателей о компаниях и вакансиях</h3>
+<div class="outline-text-3" id="text-7-9">
 <p>
 Можно сэкономить кучу времени и денег просто не нанимаясь в те компании, в которых "все
 плохо". В этом плане соискатели могут помоч друг другу. Возможно и компании тоже будут
@@ -3219,9 +3699,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-10" class="outline-3">
-<h3 id="sec-5-10"><span class="section-number-3">5.10</span> Размещение резюме</h3>
-<div class="outline-text-3" id="text-5-10">
+<div id="outline-container-sec-7-10" class="outline-3">
+<h3 id="sec-7-10"><span class="section-number-3">7.10</span> Размещение резюме</h3>
+<div class="outline-text-3" id="text-7-10">
 <p>
 Пользователь просто размещает свое резюме. На самом деле - несколько резюме, так как
 наиболее продвинутые пользователи пишут резюме под вакансию, а не рассылают одно и то же
@@ -3230,9 +3710,9 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-11" class="outline-3">
-<h3 id="sec-5-11"><span class="section-number-3">5.11</span> Маршрут</h3>
-<div class="outline-text-3" id="text-5-11">
+<div id="outline-container-sec-7-11" class="outline-3">
+<h3 id="sec-7-11"><span class="section-number-3">7.11</span> Маршрут</h3>
+<div class="outline-text-3" id="text-7-11">
 <p>
 Иногда я хочу спланировать маршрут поездки по собеседованиям. Это сервис с картами,
 которые можно сделать позже.
@@ -3240,12 +3720,12 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-5-12" class="outline-3">
-<h3 id="sec-5-12"><span class="section-number-3">5.12</span> Создание вакансии работодателем</h3>
+<div id="outline-container-sec-7-12" class="outline-3">
+<h3 id="sec-7-12"><span class="section-number-3">7.12</span> Создание вакансии работодателем</h3>
 </div>
-<div id="outline-container-sec-5-13" class="outline-3">
-<h3 id="sec-5-13"><span class="section-number-3">5.13</span> Вакансия становится неактуальной</h3>
-<div class="outline-text-3" id="text-5-13">
+<div id="outline-container-sec-7-13" class="outline-3">
+<h3 id="sec-7-13"><span class="section-number-3">7.13</span> Вакансия становится неактуальной</h3>
+<div class="outline-text-3" id="text-7-13">
 <p>
 Вакансия может стать неактуальной если работодатель снимет ее, но работодатели могут
 забывать это сделать, поэтому можно предусмотреть тайм-аут или даже некоторое кол-во
@@ -3255,488 +3735,6 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<div id="outline-container-sec-6" class="outline-2">
-<h2 id="sec-6"><span class="section-number-2">6</span> Сущности</h2>
-<div class="outline-text-2" id="text-6">
-</div><div id="outline-container-sec-6-1" class="outline-3">
-<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Поисковые профили</h3>
-<div class="outline-text-3" id="text-6-1">
-<table id="profile_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 3:</span> Данные поискового профиля</caption>
-
-<colgroup>
-<col  class="left" />
-
-<col  class="left" />
-
-<col  class="left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="left">field name</th>
-<th scope="col" class="left">field type</th>
-<th scope="col" class="left">note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="left">id</td>
-<td class="left">serial</td>
-<td class="left">идентификатор</td>
-</tr>
-
-<tr>
-<td class="left">user-id</td>
-<td class="left">integer</td>
-<td class="left">владелец и создатель</td>
-</tr>
-
-<tr>
-<td class="left">name</td>
-<td class="left">varchar</td>
-<td class="left">название профиля</td>
-</tr>
-
-<tr>
-<td class="left">search-query</td>
-<td class="left">varchar</td>
-<td class="left">поисковый запрос</td>
-</tr>
-
-<tr>
-<td class="left">ts-create</td>
-<td class="left">bigint</td>
-<td class="left">время создания</td>
-</tr>
-
-<tr>
-<td class="left">ts-last</td>
-<td class="left">bigint</td>
-<td class="left">время когда был использован последний раз</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-
-<div id="outline-container-sec-6-2" class="outline-3">
-<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Вакансии</h3>
-<div class="outline-text-3" id="text-6-2">
-<p>
-Когда вакансия переносится в архив - мы должны отслеживать это на стороннем сайте и
-реагировать, устанавливая статус <code>archive</code>
-</p>
-
-<p>
-TODO: Конечный автомат тут сложен и будет еще уточняться&#x2026; Пока состояния такие:
-<code>просмотрено</code> (с датой), <code>отобрано</code>, <code>не-берут-трубку</code>, <code>не-актуально</code>,
-<code>приглашен-на-интервью</code>, <code>тестовое-задание</code>, <code>получен-оффер</code>, <code>отказано-работодателем</code>,
-<code>отказ-соискателя</code>, <code>вакансия-снята</code> итп.
-</p>
-
-<p>
-Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
-состояние на этих сайтах. Мы узнаем о вакансии, ко
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-3" class="outline-3">
-<h3 id="sec-6-3"><span class="section-number-3">6.3</span> Перекрестные связи с другими вакансиями</h3>
-<div class="outline-text-3" id="text-6-3">
-<p>
-В ряде случаев компании меняют свои вакансии, некоторые делают это методом удаления
-предыдущей и создания новой. Мне как соискателю хотелось бы не обнаруживать уже
-просмотренную и возможно собеседованную вакансию в новых. Поэтому хотелось бы
-предусмотреть механизм, который связывает очень похожие вакансии друг с другом.
-</p>
-
-<p>
-Иногда вакансии меняются, или в них меняются существенные условия. Например, две недели
-назад, когда я смотрел вакансию из предыдущей сборки меня не устроила зарпалата, а
-сегодня вакансия стала интереснее. Я хочу отслеживать что вакансия поменялась.
-</p>
-
-<p>
-Таким образом при создании вакансии мы должны проверять, может она уже есть в базе и
-тогда указывать, что эта вакансия включена в несколько сборок (требует таблицы связи)
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-4" class="outline-3">
-<h3 id="sec-6-4"><span class="section-number-3">6.4</span> Компании</h3>
-<div class="outline-text-3" id="text-6-4">
-<p>
-Несколько вакансий могут быть от одной компании. В этом случае мне бы хотелось
-отслеживать это в профиле компании, кроме того интересна аналитика по этой компании за
-определенный период времени.
-</p>
-
-<p>
-С социальной точки зрения интересно получать отзывы о компании от ее работников, в том
-числе и уволенных.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-5" class="outline-3">
-<h3 id="sec-6-5"><span class="section-number-3">6.5</span> Действия по вакансии: звонки, скайп-интервью, собеседования</h3>
-<div class="outline-text-3" id="text-6-5">
-<p>
-В эту таблицу заносим что сделано по каждой вакансии, которая находится в разработке
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-6" class="outline-3">
-<h3 id="sec-6-6"><span class="section-number-3">6.6</span> Теги вакансий</h3>
-<div class="outline-text-3" id="text-6-6">
-<p>
-Помогают ориентироваться, когда вакансий много.
-</p>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-7" class="outline-2">
-<h2 id="sec-7"><span class="section-number-2">7</span> Interface</h2>
-<div class="outline-text-2" id="text-7">
-<p>
-Соберем веб-интерфейс:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="iface"><span style="color: #b22222;">;;;; </span><span style="color: #b22222;">iface.lisp</span>
-
-(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;</span>
-&lt;&lt;iface_contents&gt;&gt;
-</pre>
-</div>
-</div>
-
-<div id="outline-container-sec-7-1" class="outline-3">
-<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Главная страница модуля</h3>
-<div class="outline-text-3" id="text-7-1">
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-(restas:define-route hh-main (<span style="color: #8b2252;">"/hh"</span>)
-  (<span style="color: #a020f0;">with-wrapper</span>
-      <span style="color: #8b2252;">"&lt;h1&gt;&#1043;&#1083;&#1072;&#1074;&#1085;&#1072;&#1103; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; HH&lt;/h1&gt;"</span>
-    ))
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-7-2" class="outline-3">
-<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Галлерея (parenscript)</h3>
-<div class="outline-text-3" id="text-7-2">
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">defparameter</span> <span style="color: #a0522d;">*slideshows*</span> (make-hash-table <span style="color: #483d8b;">:test</span> 'equalp))
-
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">add-slideshow</span> (slideshow-name image-folder)
-  (setf (gethash slideshow-name *slideshows*)
-        (mapcar (<span style="color: #a020f0;">lambda</span> (pathname)
-                  (url-encode (format nil <span style="color: #8b2252;">"~a.~a"</span>
-                                      (pathname-name pathname)
-                                      (pathname-type pathname))))
-                (list-directory image-folder))))
-
-(add-slideshow <span style="color: #8b2252;">"img"</span> <span style="color: #8b2252;">"/home/rigidus/repo/moto/img/"</span>)
-(add-slideshow <span style="color: #8b2252;">"pic"</span> <span style="color: #8b2252;">"/home/rigidus/repo/moto/pic/"</span>)
-
-(alexandria:hash-table-plist *slideshows*)
-
-(defmacro/ps slideshow-image-uri (slideshow-name image-file)
-  `(concatenate 'string ,slideshow-name <span style="color: #8b2252;">"/"</span> ,image-file))
-
-(restas:define-route y (<span style="color: #8b2252;">"y"</span>)
-  (ps
-    (<span style="color: #a020f0;">define-symbol-macro</span> <span style="color: #0000ff;">fragment-identifier</span> (@ window location hash))
-    (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">show-image-number</span> (image-index)
-      (<span style="color: #a020f0;">let</span> ((image-name (aref *images* (setf *current-image-index* image-index))))
-        (setf (chain document (get-element-by-id <span style="color: #8b2252;">"slideshow-img-object"</span>) src)
-              (slideshow-image-uri *slideshow-name* image-name)
-              fragment-identifier
-              image-name)))
-    (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">previous-image</span> ()
-      (<span style="color: #a020f0;">when</span> (&gt; *current-image-index* 0)
-        (show-image-number (1- *current-image-index*))))
-    (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">next-image</span> ()
-      (<span style="color: #a020f0;">when</span> (&lt; *current-image-index* (1- (getprop *images* 'length)))
-        (show-image-number (1+ *current-image-index*))))
-    <span style="color: #b22222;">;; </span><span style="color: #b22222;">this gives bookmarkability using fragment identifiers</span>
-    (setf (getprop window 'onload)
-          (<span style="color: #a020f0;">lambda</span> ()
-            (<span style="color: #a020f0;">when</span> fragment-identifier
-              (<span style="color: #a020f0;">let</span> ((image-name (chain fragment-identifier (slice 1))))
-                (<span style="color: #a020f0;">dotimes</span> (i (length *images*))
-                  (<span style="color: #a020f0;">when</span> (string= image-name (aref *images* i))
-                    (show-image-number i)))))))))
-
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">slideshow-handler</span> (slideshow-name)
-  (<span style="color: #a020f0;">let*</span> ((images (gethash slideshow-name *slideshows*))
-         (current-image-index (or (position (get-parameter <span style="color: #8b2252;">"image"</span>) images <span style="color: #483d8b;">:test</span> #'equalp)
-                                  0))
-         (previous-image-index (max 0 (1- current-image-index)))
-         (next-image-index (min (1- (length images)) (1+ current-image-index))))
-    (<span style="color: #a020f0;">with-html-output-to-string</span> (s)
-      (<span style="color: #483d8b;">:html</span>
-       (<span style="color: #483d8b;">:head</span>
-        (<span style="color: #483d8b;">:title</span> <span style="color: #8b2252;">"Parenscript slideshow"</span>)
-        (<span style="color: #483d8b;">:script</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text/javascript"</span>
-                 (str (ps* `(<span style="color: #a020f0;">progn</span>
-                              (var *slideshow-name* ,slideshow-name)
-                              (var *images* (array ,@images))
-                              (var *current-image-index* ,current-image-index)))))
-        (<span style="color: #483d8b;">:script</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text/javascript"</span> <span style="color: #483d8b;">:src</span> <span style="color: #8b2252;">"/y"</span>)
-        )
-       (<span style="color: #483d8b;">:body</span>
-        (<span style="color: #483d8b;">:div</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"slideshow-container"</span>
-              <span style="color: #483d8b;">:style</span> <span style="color: #8b2252;">"width:100%;text-align:center"</span>
-              (<span style="color: #483d8b;">:img</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"slideshow-img-object"</span>
-                    <span style="color: #483d8b;">:src</span> (slideshow-image-uri slideshow-name
-                                              (elt images current-image-index)))
-              <span style="color: #483d8b;">:br</span>
-              (<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:href</span> (format nil <span style="color: #8b2252;">"?image=~a"</span> (elt images previous-image-index))
-                  <span style="color: #483d8b;">:onclick</span> (ps (previous-image) (<span style="color: #a020f0;">return</span> false))
-                  <span style="color: #8b2252;">"Previous"</span>)
-              <span style="color: #8b2252;">" "</span>
-              (<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:href</span> (format nil <span style="color: #8b2252;">"?image=~a"</span> (elt images next-image-index))
-                  <span style="color: #483d8b;">:onclick</span> (ps (next-image) (<span style="color: #a020f0;">return</span> false))
-                  <span style="color: #8b2252;">"Next"</span>)
-              ))))))
-
-(restas:define-route x (<span style="color: #8b2252;">"/x"</span>)
-  (slideshow-handler <span style="color: #8b2252;">"pic"</span>))
-
-(restas:define-route z (<span style="color: #8b2252;">"/z"</span>)
-  (slideshow-handler <span style="color: #8b2252;">"img"</span>))
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-7-3" class="outline-3">
-<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Список вакансий</h3>
-<div class="outline-text-3" id="text-7-3">
-<p>
-Мне бы хотелось иметь интерфейс для того чтобы управлять собранными элементами - в первую
-очередь ранжировать их по интересности. Для этого, мне нужно уметь перемещать эти
-элементы в коллекции.
-</p>
-
-<p>
-Но перед этим мне нужно сделать отображение этих элементов через ajax
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-(defmacro/ps s+ (<span style="color: #228b22;">&amp;body</span> body)
-  `(concatenate 'string ,@body))
-
-(defmacro/ps btn+ (name value onclick)
-  `(s+ <span style="color: #8b2252;">"&lt;input type='button' name='"</span> ,name
-       <span style="color: #8b2252;">"' value='"</span> ,value
-       <span style="color: #8b2252;">"' onclick='"</span> ,onclick
-       <span style="color: #8b2252;">";return false;' /&gt;"</span>))
-
-(defmacro/ps asm+ (id name salary-text)
-  `(s+ <span style="color: #8b2252;">"&lt;li id=\""</span> ,id <span style="color: #8b2252;">"\"&gt;"</span>
-       <span style="color: #8b2252;">"&lt;span class=\"handle\"&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/span&gt;&amp;nbsp;&amp;nbsp;"</span>
-       ,name
-       <span style="color: #8b2252;">"&amp;nbsp;"</span>
-       <span style="color: #8b2252;">"&lt;span style='color: red'&gt;"</span> ,salary-text <span style="color: #8b2252;">"&lt;/span&gt;"</span>
-       <span style="color: #8b2252;">"&lt;/li&gt;"</span>))
-
-(restas:define-route collection (<span style="color: #8b2252;">"/collection"</span>)
-  (<span style="color: #a020f0;">labels</span> ((asm-node (x)
-             (asm+ (format nil <span style="color: #8b2252;">"~A"</span> (id x))
-                   (name x)
-                   (<span style="color: #a020f0;">let</span> ((it (salary-text x)))
-                     (<span style="color: #a020f0;">if</span> (equal it <span style="color: #8b2252;">"false"</span>) <span style="color: #8b2252;">""</span> it))))
-           (mrg (param)
-             (<span style="color: #a020f0;">if</span> (null param)
-                 (ps-html ((<span style="color: #483d8b;">:li</span> <span style="color: #483d8b;">:id</span> 0)
-                           <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081;"</span>))
-                 (reduce #'(<span style="color: #a020f0;">lambda</span> (x y)
-                             (concatenate 'string x (string #\NewLine) y))
-                         (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
-                                     (asm-node x))
-                                 param)))))
-    (<span style="color: #a020f0;">let*</span> ((vacs (aif (find-vacancy <span style="color: #483d8b;">:profile-id</span> 1) it (err <span style="color: #8b2252;">"null vacancy"</span>)))
-           (sorted-vacs (sort vacs #'(<span style="color: #a020f0;">lambda</span> (a b) (&gt; (salary a) (salary b)))))
-           (not-interesting)
-           (interesting)
-           (unsort))
-      (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> vac <span style="color: #483d8b;">:in</span> sorted-vacs <span style="color: #483d8b;">:do</span>
-         (<span style="color: #a020f0;">if</span> (equal 0 (salary vac))
-             (setf not-interesting (append not-interesting (list vac)))
-             (<span style="color: #a020f0;">if</span> (or (search <span style="color: #8b2252;">"android"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">".net"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"python"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"javascript"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"&#1089;#"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"&#1089;++"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"ruby"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"SAP"</span> (name vac))
-                     (search <span style="color: #8b2252;">"1&#1057;"</span> (name vac))
-                     (search <span style="color: #8b2252;">"QA"</span> (name vac))
-                     (search <span style="color: #8b2252;">"objective-c"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"ios"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"delphi"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"sharepoint"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"flash"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"windows"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"pl/sql"</span> (string-downcase (name vac)))
-                     (search <span style="color: #8b2252;">"front-end"</span> (string-downcase (name vac)))
-                     (and (equal <span style="color: #8b2252;">"RUR"</span> (currency vac))
-                          (&gt; 50000 (salary vac)))
-                     )
-                 (setf not-interesting (append not-interesting (list vac)))
-                 (<span style="color: #a020f0;">if</span> (or (search <span style="color: #8b2252;">"php"</span> (string-downcase (name vac)))
-                         (search <span style="color: #8b2252;">"java"</span> (string-downcase (name vac)))
-                         (search <span style="color: #8b2252;">"web"</span> (string-downcase (name vac)))
-                         (search <span style="color: #8b2252;">"backend"</span> (string-downcase (name vac)))
-                         (search <span style="color: #8b2252;">"back-end"</span> (string-downcase (name vac)))
-                         )
-                     (setf interesting (append interesting (list vac)))
-                     <span style="color: #b22222;">;; </span><span style="color: #b22222;">(setf unsort (append unsort (list vac)))</span>
-                     ))))
-      (<span style="color: #a020f0;">with-wrapper</span>
-        (ps-html
-         ((<span style="color: #483d8b;">:link</span> <span style="color: #483d8b;">:href</span> <span style="color: #8b2252;">"/css/dnd.css"</span> <span style="color: #483d8b;">:rel</span> <span style="color: #8b2252;">"stylesheet"</span> <span style="color: #483d8b;">:media</span> <span style="color: #8b2252;">"all"</span>))
-         ((<span style="color: #483d8b;">:script</span> <span style="color: #483d8b;">:src</span> <span style="color: #8b2252;">"/js/jquery.sortable.js"</span>))
-         <span style="color: #b22222;">;; </span><span style="color: #b22222;">(:script (ps</span>
-         <span style="color: #b22222;">;;            </span><span style="color: #b22222;">(defun up (id)</span>
-         <span style="color: #b22222;">;;              </span><span style="color: #b22222;">(let* ((obj ((@ $) (+ "#tr" id))))</span>
-         <span style="color: #b22222;">;;                </span><span style="color: #b22222;">((@ obj after) ((@ obj prev)))))</span>
-         <span style="color: #b22222;">;;            </span><span style="color: #b22222;">(defun down (id)</span>
-         <span style="color: #b22222;">;;              </span><span style="color: #b22222;">(let* ((obj ((@ $) (+ "#tr" id))))</span>
-         <span style="color: #b22222;">;;                </span><span style="color: #b22222;">((@ obj before) ((@ obj next)))))</span>
-         <span style="color: #b22222;">;;            </span><span style="color: #b22222;">(defun asm-teaser (i id name state salary salary-text currency)</span>
-         <span style="color: #b22222;">;;              </span><span style="color: #b22222;">(s+ "&lt;li id='tr" id "'&gt;"</span>
-         <span style="color: #b22222;">;;                  </span><span style="color: #b22222;">(s+ "&lt;li&gt;" name "&lt;/td&gt;")</span>
-         <span style="color: #b22222;">;;                  </span><span style="color: #b22222;">"&lt;/li&gt;"))</span>
-         <span style="color: #b22222;">;;            </span><span style="color: #b22222;">(defun load-elts (param)</span>
-         <span style="color: #b22222;">;;              </span><span style="color: #b22222;">((@ $ post) "/collection" (create :act param)</span>
-         <span style="color: #b22222;">;;               </span><span style="color: #b22222;">(lambda (data)</span>
-         <span style="color: #b22222;">;;                 </span><span style="color: #b22222;">((@ ((@ $) "#vacancy-container")  html) "")</span>
-         <span style="color: #b22222;">;;                 </span><span style="color: #b22222;">((@ $ each) data</span>
-         <span style="color: #b22222;">;;                  </span><span style="color: #b22222;">(lambda (i data)</span>
-         <span style="color: #b22222;">;;                    </span><span style="color: #b22222;">((@ ((@ $) "#vacancy-container")  append)</span>
-         <span style="color: #b22222;">;;                     </span><span style="color: #b22222;">(asm-teaser i (@ data id) (@ data name) (@ data state)</span>
-         <span style="color: #b22222;">;;                                 </span><span style="color: #b22222;">(@ data salary) (@ data salary-text) (@ data currency))))))</span>
-         <span style="color: #b22222;">;;               </span><span style="color: #b22222;">:json))))</span>
-         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>)
-            ((<span style="color: #483d8b;">:textarea</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"code"</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"code"</span> <span style="color: #483d8b;">:rows</span> 20 <span style="color: #483d8b;">:cols</span> 160)
-             (ps
-               (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">load-elts</span> (param)
-                 ((@ $ post) <span style="color: #8b2252;">"/collection"</span> (create <span style="color: #483d8b;">:act</span> param)
-                  (<span style="color: #a020f0;">lambda</span> (data)
-                    ((@ ((@ $) <span style="color: #8b2252;">"#vacancy-container"</span>)  html) <span style="color: #8b2252;">""</span>)
-                    ((@ $ each) data
-                     (<span style="color: #a020f0;">lambda</span> (i data)
-                       ((@ ((@ $) <span style="color: #8b2252;">"#vacancy-container"</span>)  append)
-                        (s+ <span style="color: #8b2252;">"&lt;li id='"</span> (@ data id) <span style="color: #8b2252;">"'&gt;"</span> (@ data name) <span style="color: #8b2252;">"&lt;/li&gt;"</span>)))))
-                  <span style="color: #483d8b;">:json</span>))
-               (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">vac-hook</span> (vac)
-                 <span style="color: #b22222;">;; </span><span style="color: #b22222;">(if (equal 0 (salary vac))</span>
-                 <span style="color: #b22222;">;;     </span><span style="color: #b22222;">(setf not-interesting (append not-interesting (list vac)))</span>
-                 <span style="color: #b22222;">;;     </span><span style="color: #b22222;">(if (or (search "android" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search ".net" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "python" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "javascript" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "&#1089;#" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "&#1089;++" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "ruby" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "SAP" (name vac))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "1&#1057;" (name vac))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "QA" (name vac))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "objective-c" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "ios" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "delphi" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "sharepoint" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "flash" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "windows" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "pl/sql" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(search "front-end" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(and (equal "RUR" (currency vac))</span>
-                 <span style="color: #b22222;">;;                  </span><span style="color: #b22222;">(&gt; 50000 (salary vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">)</span>
-                 <span style="color: #b22222;">;;         </span><span style="color: #b22222;">(setf not-interesting (append not-interesting (list vac)))</span>
-                 <span style="color: #b22222;">;;         </span><span style="color: #b22222;">(if (or (search "php" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;                 </span><span style="color: #b22222;">(search "java" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;                 </span><span style="color: #b22222;">(search "web" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;                 </span><span style="color: #b22222;">(search "backend" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;                 </span><span style="color: #b22222;">(search "back-end" (string-downcase (name vac)))</span>
-                 <span style="color: #b22222;">;;                 </span><span style="color: #b22222;">)</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(setf interesting (append interesting (list vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">(setf unsort (append unsort (list vac)))</span>
-                 <span style="color: #b22222;">;;             </span><span style="color: #b22222;">)))</span>
-                 )
-               (load-elts <span style="color: #8b2252;">"stub"</span>)
-               )))
-           ((<span style="color: #483d8b;">:td</span>)
-            ((<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:onclick</span> <span style="color: #8b2252;">"loadElts(1); return false"</span>) <span style="color: #8b2252;">"loadElts(1);"</span>)
-            (<span style="color: #483d8b;">:br</span>)
-            ((<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:onclick</span> <span style="color: #8b2252;">"eval($('#code').val()); return false;"</span>) <span style="color: #8b2252;">"eval #code"</span>)
-            (<span style="color: #483d8b;">:br</span>)
-            ((<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:onclick</span> <span style="color: #8b2252;">"alert(getChildIds('#interesting-container')); return false;"</span>) <span style="color: #8b2252;">"childs"</span>)
-            (<span style="color: #483d8b;">:br</span>)
-            ((<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:onclick</span> <span style="color: #8b2252;">"$('.connected').sortable('destroy'); return false;"</span>) <span style="color: #8b2252;">"destroy"</span>)
-            (<span style="color: #483d8b;">:br</span>)
-            ((<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:onclick</span> <span style="color: #8b2252;">"$('.connected').sortable({ connectWith: '.connected', handle: '.handle'}); return false;"</span>) <span style="color: #8b2252;">"make"</span>)
-            (<span style="color: #483d8b;">:br</span>))))
-         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0 <span style="color: #483d8b;">:style</span> <span style="color: #8b2252;">"font-size: small;"</span>)
-          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1048;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077;"</span>)
-          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1053;&#1077;&#1088;&#1072;&#1079;&#1086;&#1073;&#1088;&#1072;&#1085;&#1085;&#1099;&#1077;"</span>)
-          ((<span style="color: #483d8b;">:th</span>) <span style="color: #8b2252;">"&#1053;&#1077;&#1080;&#1085;&#1090;&#1077;&#1088;&#1077;&#1089;&#1085;&#1099;&#1077;"</span>)
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
-            ((<span style="color: #483d8b;">:ul</span> <span style="color: #483d8b;">:class</span> <span style="color: #8b2252;">"connected"</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"interesting-container"</span>)
-             (mrg interesting)))
-           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
-            ((<span style="color: #483d8b;">:ul</span> <span style="color: #483d8b;">:class</span> <span style="color: #8b2252;">"connected"</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"unsort-container"</span>)
-             (mrg unsort)))
-           ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>)
-            ((<span style="color: #483d8b;">:ul</span> <span style="color: #483d8b;">:class</span> <span style="color: #8b2252;">"connected"</span> <span style="color: #483d8b;">:id</span> <span style="color: #8b2252;">"not-interesting-container"</span>)
-             (mrg not-interesting))))))))))
-
-
-
-(restas:define-route collection-post (<span style="color: #8b2252;">"/collection"</span> <span style="color: #483d8b;">:method</span> <span style="color: #483d8b;">:post</span>)
-  <span style="color: #b22222;">;; </span><span style="color: #b22222;">TODO: &#1058;&#1091;&#1090; &#1087;&#1077;&#1088;&#1077;&#1076; &#1082;&#1086;&#1076;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;&#1084; &#1084;&#1086;&#1078;&#1085;&#1086; &#1091;&#1073;&#1080;&#1088;&#1072;&#1090;&#1100; &#1080;&#1079; &#1087;&#1077;&#1088;&#1077;&#1089;&#1099;&#1083;&#1072;&#1077;&#1084;&#1099;&#1093; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093; &#1083;&#1080;&#1096;&#1085;&#1080;&#1077; &#1087;&#1086;&#1083;&#1103;, &#1095;&#1090;&#1086;&#1073;&#1099; &#1085;&#1077; &#1089;&#1083;&#1072;&#1090;&#1100; &#1080;&#1093; &#1087;&#1086; &#1089;&#1077;&#1090;&#1080;</span>
-  (<span style="color: #a020f0;">with-wrapper</span>
-    (<span style="color: #ff0000; font-weight: bold;">error</span> 'ajax <span style="color: #483d8b;">:output</span> (cl-json:encode-json-to-string
-                          (aif (find-vacancy <span style="color: #483d8b;">:profile-id</span> 1)
-                               it
-                               (err <span style="color: #8b2252;">"null vacancy"</span>))))))
-</pre>
-</div>
-
-<p>
-<a href="http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/">http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/</a>
-<a href="http://romka.eu/blog/jquery-table-drag-and-drop">http://romka.eu/blog/jquery-table-drag-and-drop</a>
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-7-4" class="outline-3">
-<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Дашборд</h3>
-</div>
-</div>
 <div id="outline-container-sec-8" class="outline-2">
 <h2 id="sec-8"><span class="section-number-2">8</span> Тесты</h2>
 <div class="outline-text-2" id="text-8">
@@ -3795,6 +3793,8 @@ TODO: Конечный автомат тут сложен и будет еще �
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="hh_fn">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+&lt;&lt;tree_match&gt;&gt;
 
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">special syntax for pattern-matching</span>
 (named-readtables:in-readtable <span style="color: #483d8b;">:fare-quasiquote</span>)
@@ -4516,8 +4516,6 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="entity_and_automates">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-&lt;&lt;asm_profile()&gt;&gt;
-
 &lt;&lt;asm_vacancy()&gt;&gt;
 </pre>
 </div>
@@ -4525,19 +4523,8 @@ a, b, &#x2026; - их аргументы.
 </div>
 
 <div id="outline-container-sec-10-6" class="outline-3">
-<h3 id="sec-10-6"><span class="section-number-3">10.6</span> Поисковые профили</h3>
+<h3 id="sec-10-6"><span class="section-number-3">10.6</span> Вакансии</h3>
 <div class="outline-text-3" id="text-10-6">
-<div class="org-src-container">
-
-<pre class="src src-emacs-lisp" id="asm_profile">(gen-entity <span style="color: #8b2252;">"profile"</span> <span style="color: #8b2252;">"&#1087;&#1086;&#1080;&#1089;&#1082;&#1086;&#1074;&#1099;&#1077; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1080;"</span> flds)
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-10-7" class="outline-3">
-<h3 id="sec-10-7"><span class="section-number-3">10.7</span> Вакансии</h3>
-<div class="outline-text-3" id="text-10-7">
 <div class="org-src-container">
 
 <pre class="src src-emacs-lisp" id="asm_vacancy">(gen-automat <span style="color: #8b2252;">"vacancy"</span> <span style="color: #8b2252;">"&#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;"</span> flds states)
@@ -4549,7 +4536,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-20 Вт. 06:13</p>
+<p class="date">Created: 2015-01-27 Вт. 07:49</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

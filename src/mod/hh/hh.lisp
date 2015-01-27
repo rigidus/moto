@@ -423,14 +423,7 @@
 ;;                                      "Электронная коммерция"))
 
 (defun make-hh-url (city prof-area &optional specs)
-  "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&experience=doesNotMatter&order_by=relevance&search_period=30&items_on_page=20&no_magic=true&page=~A"
-  "http://spb.hh.ru/search/vacancy?text=&specialization=1.221&area=2&items_on_page=100&no_magic=true&page=~A"
-  ;; (format nil "http://~A.hh.ru/search/vacancy?clusters=true&specialization=~A&area=~A&page=~~A"
-  ;; city
-  ;; (make-specialization-hh-url-string prof-area specs)
-  ;; 2)
-  )
-
+  "http://spb.hh.ru/search/vacancy?text=&specialization=1.221&area=2&items_on_page=100&no_magic=true&page=~A")
 
 ;; test
 
@@ -714,7 +707,9 @@
                        :archive (getf vacancy :archive)
                        :date (getf vacancy :date)
                        :state ":UNSORT"
-                       :descr (bprint (show-descr (getf vacancy :descr))))))))
+                       :descr (bprint (show-descr (getf vacancy :descr)))
+                       :notes ""
+                       :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
 
 (defun run ()
   (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
