@@ -329,6 +329,8 @@
 
      <<save_vacancy>>
 
+     <<respond>>
+
      (defun run ()
        (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
                            "Программирование, Разработка")))
@@ -1125,21 +1127,12 @@
              table)
    #+END_SRC
 
-   #+results: vacancy_state_graph
-   : unsort -> not-interested [label ="set-not-interested"];
-   : unsort -> interested [label ="set-interested"];
-   : interested -> responded [label ="respond"];
-
    #+BEGIN_SRC dot :file img/vacancy-state.png :var input=vacancy_state_graph :exports results
      digraph G {
        rankdir = LR;
        $input
      }
    #+END_SRC
-
-   #+results:
-   [[file:img/vacancy-state.png]]
-
 
    #+NAME: hh_fn_contents
    #+BEGIN_SRC lisp
@@ -1451,13 +1444,21 @@
           ((:td :width 500 :valign "top") ((:textarea :name "notes" :cols 60 :rows 6) (notes vac)))
           ((:td :width 500 :valign "top") ((:textarea :name "response" :cols 60 :rows 6) (response vac)))))))
 
-     (restas:define-route vacancy ("/vacancy/:id")
-       (format nil "~{~A~}"
+     (define-page vacancy "/vacancy/:id"
+       (ps-html
+        ((:form :method "POST")
+          (format nil "~{~A~}"
                (list
                 (to-html (car (find-vacancy :src-id id)))
-                "<input type=\"button\" value=\"save\" />"
-                "&nbsp;"
-                "<input type=\"button\" value=\"send_response\" />")))
+                %save% %respond%))))
+       (:save  "<input type=\"submit\" name=\"act\" value=\"SAVE\" />"
+               (id (upd-vacancy (car (find-vacancy :src-id id))
+                                (list :notes (getf p :notes) :response (getf p :response)))))
+       (:respond "<input type=\"submit\" name=\"act\" value=\"RESPOND\" />"
+                 (progn
+                   (id (upd-vacancy (car (find-vacancy :src-id id))
+                                    (list :respond (getf p :response))))
+                   (respond id 7628220 (getf p :response)))))
    #+END_SRC
 
 ** Галлерея (parenscript)
@@ -1617,7 +1618,6 @@
 
    Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
    состояние на этих сайтах. Мы узнаем о вакансии, ко
-
 
 
 
@@ -2158,7 +2158,6 @@
    | invite-offer                           | wait_result          | offer                |
    | employer-refuse-after-wait-result      | wait_result          | refuse_employer      |
    | applicant-refuse-after-wait-result     | wait_result          | refuse_applicant     |
-
 
 ** Процесс найма с т.з. соискателя
 

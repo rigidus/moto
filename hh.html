@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-01-27 Вт. 08:07 -->
+<!-- 2015-01-27 Вт. 10:23 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -591,6 +591,8 @@ for the JavaScript code in this tag.
 &lt;&lt;factory&gt;&gt;
 
 &lt;&lt;save_vacancy&gt;&gt;
+
+&lt;&lt;respond&gt;&gt;
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">run</span> ()
   (<span style="color: #a020f0;">let</span> ((gen (factory 'hh <span style="color: #8b2252;">"spb"</span> <span style="color: #8b2252;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
@@ -1661,7 +1663,6 @@ for the JavaScript code in this tag.
 </p>
 </div>
 
-
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -1765,40 +1766,75 @@ for the JavaScript code in this tag.
     (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">"applicant"</span> (getf cookie-data <span style="color: #483d8b;">:hhrole</span>)))
     (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal xsrf (getf cookie-data <span style="color: #483d8b;">:_xsrf</span>)))
     (<span style="color: #a020f0;">let*</span> ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-           (name (<span style="color: #a020f0;">block</span> namer
-                   (mtm (`(<span style="color: #8b2252;">"div"</span>
-                           ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"navi-item__switcher HH-Navi-MenuItems-Switcher"</span>)
-                            (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"mainmenu_normalUserName"</span>))
-                           ,name (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"navi-item__post"</span>))))
-                          (<span style="color: #a020f0;">return-from</span> namer name))
-                        tree))))
+           (name (<span style="color: #a020f0;">block</span> namer (mtm (`(<span style="color: #8b2252;">"div"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"navi-item__switcher HH-Navi-MenuItems-Switcher"</span>) (<span style="color: #8b2252;">"data-qa"</span> <span style="color: #8b2252;">"mainmenu_normalUserName"</span>))
+                                            ,name (<span style="color: #8b2252;">"span"</span> ((<span style="color: #8b2252;">"class"</span> <span style="color: #8b2252;">"navi-item__post"</span>))))
+                                     (<span style="color: #a020f0;">return-from</span> namer name))
+                                   tree))))
       (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">"&#1052;&#1080;&#1093;&#1072;&#1080;&#1083; &#1052;&#1080;&#1093;&#1072;&#1081;&#1083;&#1086;&#1074;&#1080;&#1095; &#1043;&#1083;&#1091;&#1093;&#1086;&#1074;"</span> name))
       (sleep 1)
       (<span style="color: #a020f0;">let</span> ((cookie-jar (make-instance 'drakma:cookie-jar)))
         (flexi-streams:octets-to-string
-         (drakma:http-request <span style="color: #8b2252;">"http://spb.hh.ru/applicant/vacancy_response/popup"</span>
-                              <span style="color: #483d8b;">:user-agent</span> <span style="color: #8b2252;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"</span>
-                              <span style="color: #483d8b;">:method</span> <span style="color: #483d8b;">:post</span>
-                              <span style="color: #483d8b;">:parameters</span> `((<span style="color: #8b2252;">"vacancy_id"</span> . ,(format nil <span style="color: #8b2252;">"~A"</span> vacancy-id))
-                                            (<span style="color: #8b2252;">"resume_id"</span> . <span style="color: #8b2252;">"7628220"</span>)
-                                            (<span style="color: #8b2252;">"letter"</span> . <span style="color: #8b2252;">"dwe"</span>)
-                                            (<span style="color: #8b2252;">"_xsrf"</span> . <span style="color: #8b2252;">"ed689ea1ff02a3074c848b69225e3c78"</span>)
-                                            (<span style="color: #8b2252;">"ignore_postponed"</span> . <span style="color: #8b2252;">"true"</span>))
-                              <span style="color: #483d8b;">:additional-headers</span> `((<span style="color: #8b2252;">"Accept"</span>           . <span style="color: #8b2252;">"*/*"</span>)
-                                                    (<span style="color: #8b2252;">"Accept-Language"</span>  . <span style="color: #8b2252;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
-                                                    (<span style="color: #8b2252;">"Accept-Encoding"</span>  . <span style="color: #8b2252;">"gzip, deflate"</span>)
-                                                    (<span style="color: #8b2252;">"Content-Type"</span>     . <span style="color: #8b2252;">"application/x-www-form-urlencoded; charset=UTF-8"</span>)
-                                                    (<span style="color: #8b2252;">"X-Xsrftoken"</span>      . <span style="color: #8b2252;">"ed689ea1ff02a3074c848b69225e3c78"</span>)
-                                                    (<span style="color: #8b2252;">"X-Requested-With"</span> . <span style="color: #8b2252;">"XMLHttpRequest"</span>)
-                                                    (<span style="color: #8b2252;">"Referer"</span>          . ,(format nil <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id))
-                                                    (<span style="color: #8b2252;">"Cookie"</span>           . <span style="color: #8b2252;">"redirect_host=vladivostok.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1421799450.1421859024.49; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); hipsterShown=true; hhref=; vishnu1.userid=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; lt-vc=11; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=applicant; GMT=3; display=desktop; _xsrf=ed689ea1ff02a3074c848b69225e3c78; JSESSIONID=1i5cpqbtgjgh7ztfwncgixv8c; lrp=\"http://spb.hh.ru/\"; lrr=true; crypted_id=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; lt-tl=8xmy,rn2r,21i1,6gix; lt-on-site-time=1421859023; _xsrf=ed689ea1ff02a3074c848b69225e3c78; crypted_id=2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8; unique_banner_user=1421859019.49253036888777; __utmb=192485224.39.10.1421859024; __utmc=192485224; lt-8xmy=46005334; lt-rn2r=46005334; lt-21i1=46005334; __utmt_vishnu1=1; lt-6gix=46005334"</span>)
-                                                    (<span style="color: #8b2252;">"Cache-Control"</span> . <span style="color: #8b2252;">"no-cache"</span>))
-                              <span style="color: #483d8b;">:cookie-jar</span> cookie-jar
-                              <span style="color: #483d8b;">:force-binary</span> t)
+         (drakma:http-request
+          <span style="color: #8b2252;">"http://spb.hh.ru/applicant/vacancy_response/popup"</span>
+          <span style="color: #483d8b;">:user-agent</span> <span style="color: #8b2252;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"</span>
+          <span style="color: #483d8b;">:method</span> <span style="color: #483d8b;">:post</span>
+          <span style="color: #483d8b;">:content</span> (format nil <span style="color: #8b2252;">"~{~A~^&amp;~}"</span>
+                           (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
+                                       (format nil <span style="color: #8b2252;">"~A=~A"</span> (car x) (cdr x)))
+                                   `((<span style="color: #8b2252;">"vacancy_id"</span> . ,(format nil <span style="color: #8b2252;">"~A"</span> vacancy-id))
+                                     (<span style="color: #8b2252;">"resume_id"</span> . ,(format nil <span style="color: #8b2252;">"~A"</span> resume-id))
+                                     (<span style="color: #8b2252;">"letter"</span> . ,(drakma:url-encode letter <span style="color: #483d8b;">:utf-8</span>))
+                                     (<span style="color: #8b2252;">"_xsrf"</span> . ,xsrf)
+                                     (<span style="color: #8b2252;">"ignore_postponed"</span> . <span style="color: #8b2252;">"true"</span>))))
+          <span style="color: #483d8b;">:content-type</span> <span style="color: #8b2252;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+          <span style="color: #483d8b;">:additional-headers</span> `((<span style="color: #8b2252;">"Accept"</span>           . <span style="color: #8b2252;">"*/*"</span>)
+                                (<span style="color: #8b2252;">"Accept-Language"</span>  . <span style="color: #8b2252;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
+                                (<span style="color: #8b2252;">"Accept-Encoding"</span>  . <span style="color: #8b2252;">"gzip, deflate"</span>)
+                                (<span style="color: #8b2252;">"X-Xsrftoken"</span>      . ,xsrf)
+                                (<span style="color: #8b2252;">"X-Requested-With"</span> . <span style="color: #8b2252;">"XMLHttpRequest"</span>)
+                                (<span style="color: #8b2252;">"Referer"</span>          . ,(format nil <span style="color: #8b2252;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id))
+                                (<span style="color: #8b2252;">"Cookie"</span>           . ,(format nil <span style="color: #8b2252;">"~{~A~^;~}"</span>
+                                                               (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
+                                                                           (format nil <span style="color: #8b2252;">"~A=~A"</span> (car x) (cdr x)))
+                                                                       `((<span style="color: #8b2252;">"redirect_host"</span> . <span style="color: #8b2252;">"vladivostok.hh.ru"</span>)
+                                                                         (<span style="color: #8b2252;">"regions"</span> . <span style="color: #8b2252;">"2"</span>)
+                                                                         (<span style="color: #8b2252;">"__utma"</span> . <span style="color: #8b2252;">"192485224.1206865564.1390484616.1421799450.1421859024.49"</span>)
+                                                                         (<span style="color: #8b2252;">"__utmz"</span> . <span style="color: #8b2252;">"192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)"</span>)
+                                                                         (<span style="color: #8b2252;">"hipsterShown"</span> . <span style="color: #8b2252;">"true"</span>)
+                                                                         (<span style="color: #8b2252;">"hhref"</span> . <span style="color: #8b2252;">""</span>)
+                                                                         (<span style="color: #8b2252;">"vishnu1.userid"</span> . <span style="color: #8b2252;">"2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8"</span>)
+                                                                         (<span style="color: #8b2252;">"lt-vc"</span> . <span style="color: #8b2252;">"11"</span>)
+                                                                         (<span style="color: #8b2252;">"hhtoken"</span> . ,hhtoken)
+                                                                         (<span style="color: #8b2252;">"hhuid"</span> . ,hhuid)
+                                                                         (<span style="color: #8b2252;">"hhrole"</span> . ,hhrole)
+                                                                         (<span style="color: #8b2252;">"GMT"</span> . <span style="color: #8b2252;">"3"</span>)
+                                                                         (<span style="color: #8b2252;">"display"</span> . <span style="color: #8b2252;">"desktop"</span>)
+                                                                         (<span style="color: #8b2252;">"_xsrf"</span> . ,xsrf)
+                                                                         (<span style="color: #8b2252;">"JSESSIONID"</span> . <span style="color: #8b2252;">"1i5cpqbtgjgh7ztfwncgixv8c"</span>)
+                                                                         (<span style="color: #8b2252;">"lrp"</span> . <span style="color: #8b2252;">"\"http://spb.hh.ru/\""</span>)
+                                                                         (<span style="color: #8b2252;">"lrr"</span> . <span style="color: #8b2252;">"true"</span>)
+                                                                         (<span style="color: #8b2252;">"crypted_id"</span> . ,crypted-id)
+                                                                         (<span style="color: #8b2252;">"lt-tl"</span> . <span style="color: #8b2252;">"8xmy,rn2r,21i1,6gix"</span>)
+                                                                         (<span style="color: #8b2252;">"lt-on-site-time"</span> . <span style="color: #8b2252;">"1421859023"</span>)
+                                                                         (<span style="color: #8b2252;">"_xsrf"</span> . <span style="color: #8b2252;">"ed689ea1ff02a3074c848b69225e3c78"</span>)
+                                                                         (<span style="color: #8b2252;">"crypted_id"</span> . ,crypted-id)
+                                                                         (<span style="color: #8b2252;">"unique_banner_user"</span> . ,unique-banner-user)
+                                                                         (<span style="color: #8b2252;">"__utmb"</span> . <span style="color: #8b2252;">"192485224.39.10.1421859024"</span>)
+                                                                         (<span style="color: #8b2252;">"__utmc"</span> . <span style="color: #8b2252;">"192485224"</span>)
+                                                                         (<span style="color: #8b2252;">"lt-8xmy"</span> . <span style="color: #8b2252;">"46005334"</span>)
+                                                                         (<span style="color: #8b2252;">"lt-rn2r"</span> . <span style="color: #8b2252;">"46005334"</span>)
+                                                                         (<span style="color: #8b2252;">"lt-21i1"</span> . <span style="color: #8b2252;">"46005334"</span>)
+                                                                         (<span style="color: #8b2252;">"__utmt_vishnu1"</span> . <span style="color: #8b2252;">"1"</span>)
+                                                                         (<span style="color: #8b2252;">"lt-6gix"</span> . <span style="color: #8b2252;">"46005334"</span>)))))
+                                (<span style="color: #8b2252;">"Cache-Control"</span> . <span style="color: #8b2252;">"no-cache"</span>))
+          <span style="color: #483d8b;">:cookie-jar</span> cookie-jar
+          <span style="color: #483d8b;">:force-binary</span> t)
          <span style="color: #483d8b;">:external-format</span> <span style="color: #483d8b;">:utf-8</span>)))))
 
-(<span style="color: #a020f0;">let</span> ((respond (respond 12528177 7628222 <span style="color: #8b2252;">"wer"</span>)))
-  (print respond))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(let ((respond (respond 12646549 7628220 "&#1090;&#1077;&#1089;&#1090;")))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(print respond))</span>
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(setf drakma:*header-stream* *standard-output*)</span>
 </pre>
 </div>
 </div>
@@ -1962,13 +1998,21 @@ for the JavaScript code in this tag.
      ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) ((<span style="color: #483d8b;">:textarea</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"notes"</span> <span style="color: #483d8b;">:cols</span> 60 <span style="color: #483d8b;">:rows</span> 6) (notes vac)))
      ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:width</span> 500 <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) ((<span style="color: #483d8b;">:textarea</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"response"</span> <span style="color: #483d8b;">:cols</span> 60 <span style="color: #483d8b;">:rows</span> 6) (response vac)))))))
 
-(restas:define-route vacancy (<span style="color: #8b2252;">"/vacancy/:id"</span>)
-  (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+(<span style="color: #a020f0;">define-page</span> vacancy <span style="color: #8b2252;">"/vacancy/:id"</span>
+  (ps-html
+   ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+     (format nil <span style="color: #8b2252;">"~{~A~}"</span>
           (list
            (to-html (car (find-vacancy <span style="color: #483d8b;">:src-id</span> id)))
-           <span style="color: #8b2252;">"&lt;input type=\"button\" value=\"save\" /&gt;"</span>
-           <span style="color: #8b2252;">"&amp;nbsp;"</span>
-           <span style="color: #8b2252;">"&lt;input type=\"button\" value=\"send_response\" /&gt;"</span>)))
+           %save% %respond%))))
+  (<span style="color: #483d8b;">:save</span>  <span style="color: #8b2252;">"&lt;input type=\"submit\" name=\"act\" value=\"SAVE\" /&gt;"</span>
+          (id (upd-vacancy (car (find-vacancy <span style="color: #483d8b;">:src-id</span> id))
+                           (list <span style="color: #483d8b;">:notes</span> (getf p <span style="color: #483d8b;">:notes</span>) <span style="color: #483d8b;">:response</span> (getf p <span style="color: #483d8b;">:response</span>)))))
+  (<span style="color: #483d8b;">:respond</span> <span style="color: #8b2252;">"&lt;input type=\"submit\" name=\"act\" value=\"RESPOND\" /&gt;"</span>
+            (<span style="color: #a020f0;">progn</span>
+              (id (upd-vacancy (car (find-vacancy <span style="color: #483d8b;">:src-id</span> id))
+                               (list <span style="color: #483d8b;">:respond</span> (getf p <span style="color: #483d8b;">:response</span>))))
+              (respond id 7628220 (getf p <span style="color: #483d8b;">:response</span>)))))
 </pre>
 </div>
 </div>
@@ -2191,7 +2235,6 @@ TODO: Конечный автомат тут сложен и будет еще �
 состояние на этих сайтах. Мы узнаем о вакансии, ко
 </p>
 </div>
-
 
 
 
@@ -3070,7 +3113,6 @@ collect
 </tbody>
 </table>
 </div>
-
 
 <div id="outline-container-sec-6-1" class="outline-3">
 <h3 id="sec-6-1"><span class="section-number-3">6.1</span> Процесс найма с т.з. соискателя</h3>
@@ -4535,7 +4577,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-27 Вт. 08:07</p>
+<p class="date">Created: 2015-01-27 Вт. 10:23</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

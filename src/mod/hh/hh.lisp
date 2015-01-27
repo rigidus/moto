@@ -711,6 +711,110 @@
                        :notes ""
                        :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
 
+(in-package #:moto)
+
+(defun make-additional-headers (referer cookies)
+    `(("Accept"           . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+      ("Accept-Language"  . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+      ("Accept-Charset"   . "utf-8")
+      ("Referer"          . ,referer)
+      ("Cache-Control"    . "no-cache")
+      ("Cookie"           . ,(format nil "~{~{~A=~A~}~^; ~}" cookies))))
+
+(defun respond (vacancy-id resume-id letter)
+  (let* ((hhtoken     "ES030IVQP52ULPbRqN9DQOcMIR!T")
+         (hhuid       "x_FxSYWUbySJe1LhHIQxDA--")
+         (xsrf        "ed689ea1ff02a3074c848b69225e3c78")
+         (hhrole      "applicant")
+         (crypted-id  "2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8")
+         (cookie-jar (make-instance 'drakma:cookie-jar))
+         (html (flexi-streams:octets-to-string
+                (drakma:http-request
+                 (format nil "http://spb.hh.ru/vacancy/~A" vacancy-id)
+                 :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+                 :additional-headers (make-additional-headers "http://spb.hh.ru/"
+                                                              `(("redirect_host"       "spb.hh.ru")  ("regions"             "2")        ("_xsrf"               ,xsrf)
+                                                                ("hhtoken"             ,hhtoken)     ("hhuid"               ,hhuid)     ("hhrole"              ,hhrole)
+                                                                ("GMT"                 "3")          ("display"             "desktop")))
+                 :cookie-jar cookie-jar :force-binary t)
+                :external-format :utf-8))
+         (cookie-data (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
+                         (list (intern (string-upcase (drakma:cookie-name cookie)) :keyword) (drakma:cookie-value cookie))))
+         (unique-banner-user (getf cookie-data :unique_banner_user)))
+    (assert (equal crypted-id (getf cookie-data :crypted_id)))
+    (assert (equal "applicant" (getf cookie-data :hhrole)))
+    (assert (equal xsrf (getf cookie-data :_xsrf)))
+    (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+           (name (block namer (mtm (`("div" (("class" "navi-item__switcher HH-Navi-MenuItems-Switcher") ("data-qa" "mainmenu_normalUserName"))
+                                            ,name ("span" (("class" "navi-item__post"))))
+                                     (return-from namer name))
+                                   tree))))
+      (assert (equal "Михаил Михайлович Глухов" name))
+      (sleep 1)
+      (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+        (flexi-streams:octets-to-string
+         (drakma:http-request
+          "http://spb.hh.ru/applicant/vacancy_response/popup"
+          :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+          :method :post
+          :content (format nil "~{~A~^&~}"
+                           (mapcar #'(lambda (x)
+                                       (format nil "~A=~A" (car x) (cdr x)))
+                                   `(("vacancy_id" . ,(format nil "~A" vacancy-id))
+                                     ("resume_id" . ,(format nil "~A" resume-id))
+                                     ("letter" . ,(drakma:url-encode letter :utf-8))
+                                     ("_xsrf" . ,xsrf)
+                                     ("ignore_postponed" . "true"))))
+          :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+          :additional-headers `(("Accept"           . "*/*")
+                                ("Accept-Language"  . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                ("Accept-Encoding"  . "gzip, deflate")
+                                ("X-Xsrftoken"      . ,xsrf)
+                                ("X-Requested-With" . "XMLHttpRequest")
+                                ("Referer"          . ,(format nil "http://spb.hh.ru/vacancy/~A" vacancy-id))
+                                ("Cookie"           . ,(format nil "~{~A~^;~}"
+                                                               (mapcar #'(lambda (x)
+                                                                           (format nil "~A=~A" (car x) (cdr x)))
+                                                                       `(("redirect_host" . "vladivostok.hh.ru")
+                                                                         ("regions" . "2")
+                                                                         ("__utma" . "192485224.1206865564.1390484616.1421799450.1421859024.49")
+                                                                         ("__utmz" . "192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)")
+                                                                         ("hipsterShown" . "true")
+                                                                         ("hhref" . "")
+                                                                         ("vishnu1.userid" . "2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8")
+                                                                         ("lt-vc" . "11")
+                                                                         ("hhtoken" . ,hhtoken)
+                                                                         ("hhuid" . ,hhuid)
+                                                                         ("hhrole" . ,hhrole)
+                                                                         ("GMT" . "3")
+                                                                         ("display" . "desktop")
+                                                                         ("_xsrf" . ,xsrf)
+                                                                         ("JSESSIONID" . "1i5cpqbtgjgh7ztfwncgixv8c")
+                                                                         ("lrp" . "\"http://spb.hh.ru/\"")
+                                                                         ("lrr" . "true")
+                                                                         ("crypted_id" . ,crypted-id)
+                                                                         ("lt-tl" . "8xmy,rn2r,21i1,6gix")
+                                                                         ("lt-on-site-time" . "1421859023")
+                                                                         ("_xsrf" . "ed689ea1ff02a3074c848b69225e3c78")
+                                                                         ("crypted_id" . ,crypted-id)
+                                                                         ("unique_banner_user" . ,unique-banner-user)
+                                                                         ("__utmb" . "192485224.39.10.1421859024")
+                                                                         ("__utmc" . "192485224")
+                                                                         ("lt-8xmy" . "46005334")
+                                                                         ("lt-rn2r" . "46005334")
+                                                                         ("lt-21i1" . "46005334")
+                                                                         ("__utmt_vishnu1" . "1")
+                                                                         ("lt-6gix" . "46005334")))))
+                                ("Cache-Control" . "no-cache"))
+          :cookie-jar cookie-jar
+          :force-binary t)
+         :external-format :utf-8)))))
+
+;; (let ((respond (respond 12646549 7628220 "тест")))
+;;   (print respond))
+
+;; (setf drakma:*header-stream* *standard-output*)
+
 (defun run ()
   (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
                       "Программирование, Разработка")))
