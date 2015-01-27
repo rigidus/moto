@@ -2,5 +2,5 @@
 (in-package #:moto)
 
 ;; clear db
-(drop '("profile" "vacancy"))
+;; (drop '("profile" "vacancy"))
 ;; globals ends here

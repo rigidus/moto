@@ -158,8 +158,8 @@
   )
 
 (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
-  ;; (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists))
-  )
+  (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+    (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists))))
 
 (define-rule (set-rank t)
   (setf (getf vacancy :rank) (getf vacancy :salary)))

@@ -8,6 +8,8 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
+send_responds for all
+
 * Цель
 
   Мы все ищем работу на профильных сайтах время от времени. Иногда на это уходит
@@ -546,8 +548,8 @@
        )
 
      (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
-       ;; (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists))
-       )
+       (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+         (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists))))
 
      (define-rule (set-rank t)
        (setf (getf vacancy :rank) (getf vacancy :salary)))
@@ -1373,6 +1375,7 @@
                 ((:td :width 500 :valign "top")
                  (format nil "~{~A </br>~}" (rules-for-vacancy)))))
               ((:input :type "button" :name "save_state" :value "save_state" :onclick "save_state();return false;"))
+              ((:input :type "button" :name "send_responds" :value "send_responds" :onclick "alert(11);return false;"))
               ((:table :border 1 :style "font-size: small;")
                ((:th) "Неинтересные вакансии")
                ((:th) "Неотсортированные вакансии")
@@ -1394,7 +1397,6 @@
                                           (equal ":INTERESTING" (state x)))
                                       sorted-vacs))))
                 )))))))
-
 
      (restas:define-route hh-main-post ("/hh" :method :post)
        (let ((act (cdr (assoc "act" (hunchentoot:post-parameters*) :test #'equal))))
@@ -3243,7 +3245,7 @@
      (in-package #:moto)
 
      ;; clear db
-     (drop '("profile" "vacancy"))
+     ;; (drop '("profile" "vacancy"))
    #+END_SRC
 
 ** Сущности и автоматы

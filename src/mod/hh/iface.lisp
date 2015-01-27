@@ -58,6 +58,7 @@
            ((:td :width 500 :valign "top")
             (format nil "~{~A </br>~}" (rules-for-vacancy)))))
          ((:input :type "button" :name "save_state" :value "save_state" :onclick "save_state();return false;"))
+         ((:input :type "button" :name "send_responds" :value "send_responds" :onclick "alert(11);return false;"))
          ((:table :border 1 :style "font-size: small;")
           ((:th) "Неинтересные вакансии")
           ((:th) "Неотсортированные вакансии")
@@ -79,7 +80,6 @@
                                      (equal ":INTERESTING" (state x)))
                                  sorted-vacs))))
            )))))))
-
 
 (restas:define-route hh-main-post ("/hh" :method :post)
   (let ((act (cdr (assoc "act" (hunchentoot:post-parameters*) :test #'equal))))
