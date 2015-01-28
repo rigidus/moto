@@ -296,7 +296,7 @@
 (defun user-msg-html (u)
   (ps-html
    ((:h2) "Сообщения пользователя:")
-   ((:a :href (format nil "user/~A/im/new" (id u))) "Новое сообщение")
+   ((:a :href (format nil "/user/~A/im/new" (id u))) "Новое сообщение")
    ((:br))
    ((:br))
    (let ((msgs (get-last-msg-dialogs-for-user-id (id u))))
@@ -416,4 +416,50 @@
                                           )))
                                   (t (err "err 3536262346")))
                             ))))))))))
+(in-package #:moto)
+
+(define-page imnew "/user/:userid/im/new"
+  (let* ((i (parse-integer userid))
+         (u (get-user i)))
+    (if (null u)
+        "Нет такого пользователя"
+        (format nil "~{~A~}" (with-element (u u)
+                               (ps-html
+                                ((:h1) (format nil "Новое сообщения от пользователя #~A - ~A" (id u) (name u)))
+                                ((:table :border 0 :cellspacing 10 :cellpadding 10)
+                                 ((:tr)
+                                  ((:td :valign "top" :bgcolor "#F8F8F8")
+
+                                   ((:form :method "POST")
+                                    ((:table :border 0)
+                                     ((:tr)
+                                      ((:td) "Кому:")
+                                      ((:td)
+                                       ((:select :name "abonent")
+                                        ((:option :value "0") "Выберите пользователя")
+                                        (format nil "~{~A~}"
+                                                (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
+                                                  (if (equal (id i) (id u))
+                                                      ""
+                                                      (ps-html
+                                                       ((:option :value (id i)) (name i))))))))
+                                      ((:td) %zzz%))
+                                     ((:tr)
+                                      ((:td :colspan "3")
+                                       ((:textarea :name "msg" :cols "90" :rows "7") "")
+                                       ))))))
+
+                                 ((:tr)
+                                  ((:td :valign "top" :bgcolor "#F8F8F8" :colspan 3) (user-msg-html u)))))))))
+  (:zzz (if (or (equal 1 *current-user*)
+                (equal *current-user* (parse-integer userid)))
+            (ps-html
+             ((:input :type "hidden" :name "act" :value "ZZZ"))
+             ((:input :type "submit" :value "Отправить")))
+            " [access-denied for send message]")
+
+        (if (or (equal 1 *current-user*)
+                (equal *current-user* (parse-integer userid)))
+            (create-msg (parse-integer userid) (getf p :abonent) (getf p :msg))
+            "access-denied")))
 ;; iface ends here
