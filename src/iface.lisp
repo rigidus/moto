@@ -37,11 +37,11 @@
     (when *current-user*
       (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
     (when *current-user*
-      "<a href=\"/logout\">Выход</a>")
-    (when *current-user*
       "<a href=\"/im\">Сообщения</a>")
     (when *current-user*
-      "<a href=\"/load\">Загрузка данных</a>")
+      "<a href=\"/logout\">Выход</a>")
+    ;; (when *current-user*
+    ;;   "<a href=\"/load\">Загрузка данных</a>")
     ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
     )))
 
@@ -226,7 +226,6 @@
               (make-group :name (getf p :name))
               "Группа создана")
             "")))
-
 (in-package #:moto)
 
 (define-page user "/user/:userid"
@@ -312,8 +311,7 @@
                        (if (null (getf p :groups))
                            "-not change-"
                            (loop
-                              :initially (mapcar #'(lambda (x)
-                                                     (del-user2group (id x)))
+                              :initially (mapcar #'(lambda (x) (del-user2group (id x)))
                                                  (find-user2group :user-id (parse-integer userid)))
                               :for lnk
                               :in (loop

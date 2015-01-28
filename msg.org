@@ -9,7 +9,7 @@
 
 * Введение
 
-  Как залогиненный пользователь я хочу иметь возможность послать сообщение другому
+  Как залогиненный пользователь я хочу иметь возможность послать сообщение
   зарегистрированному на сайте пользователю.
 
   Как залогиненный пользователь я хочу иметь возможность читать свои отправленные другим
@@ -35,7 +35,7 @@
   - Сущность =Msg=, имеющая поля =snd_id=, =rcv_id=, =msg=
   - Движок создания форм, функции которого определены не здесь
 
-  Как это работает?
+* Как это работает?
 
   =При отправке сообщения= пользователь вводит адресата сообщения и текст сообщения, которые
   передаются контроллеру отправки сообщения. Контроллер отправки извлекает эти данные
@@ -140,46 +140,40 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     ;; Страница сообщений
-     (restas:define-route im ("/im")
-       (with-wrapper
-           (concatenate
-            'string
-            "<h1>Страница сообщений</h1>"
-            (if (not *current-user*)
-                "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
-                (format
-                 nil "~{~A<br/>~}"
-                 (list
-                  (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
-                    (if (equal 0 (length msgs))
-                        "Нет сообщений"
-                        (msgtpl:dialogs
-                         (list
-                          :content
-                          (format nil "~{~A~}"
-                                  (loop :for item :in msgs :collect
-                                     (cond ((equal :rcv (car (last item)))
-                                            (msgtpl:dlgrcv
-                                             (list :id (car item)
-                                                   :from (cadr item)
-                                                   :time (caddr item)
-                                                   :msg (cadddr item)
-                                                   :state (nth 4 item)
-                                                   )))
-                                           ((equal :snd (car (last item)))
-                                            (msgtpl:dlgsnd
-                                             (list :id (car item)
-                                                   :to (cadr item)
-                                                   :time (caddr item)
-                                                   :msg (cadddr item)
-                                                   :state (nth 4 item)
-                                                   )))
-                                           (t (err "unknown dialog type")))
-                                     ))))))
-                  ""
-                  "<a href=\"/im/new\">Новое сообщение<a/>"))))))
-
+     (define-page im "/im"
+       (ps-html
+        ((:h1) "Страница сообщений")
+        (if (null *current-user*)
+            "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+            (ps-html
+             ((:a :href "/im/new") "Новое сообщение")
+             ((:br))
+             ((:br))
+             (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
+               (if (equal 0 (length msgs))
+                   "Нет сообщений"
+                   (msgtpl:dialogs
+                    (list
+                     :content
+                     (format nil "~{~A~}"
+                             (loop :for item :in msgs :collect
+                                (cond ((equal :rcv (car (last item)))
+                                       (msgtpl:dlgrcv
+                                        (list :id (car item)
+                                              :from (cadr item)
+                                              :time (caddr item)
+                                              :msg (cadddr item)
+                                              :state (nth 4 item)
+                                              )))
+                                      ((equal :snd (car (last item)))
+                                       (msgtpl:dlgsnd
+                                        (list :id (car item)
+                                              :to (cadr item)
+                                              :time (caddr item)
+                                              :msg (cadddr item)
+                                              :state (nth 4 item)
+                                              )))
+                                      (t (err "unknown dialog type")))))))))))))
    #+END_SRC
 
 ** Страница отправки сообщения
