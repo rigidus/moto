@@ -59,9 +59,9 @@
   (:logout (ps-html
               ((:input :type "hidden" :name "act" :value "LOGOUT"))
               ((:input :type "submit" :value "Выйти")))
-           (prog1
-               (format nil "~A" (logout-user *current-user*))
+           (prog1 (format nil "~A" (logout-user *current-user*))
              (setf (hunchentoot:session-value 'current-user) nil))))
+(in-package #:moto)
 
 ;; Событие выхода
 (defun logout-user (current-user)

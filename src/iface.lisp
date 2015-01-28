@@ -13,7 +13,6 @@
 ;; Хелпер форм
 
 ;; Страницы
-
 (in-package #:moto)
 
 (defun menu ()
@@ -26,8 +25,6 @@
       "<a href=\"/roles\">Роли</a>")
     (when *current-user*
       "<a href=\"/groups\">Группы</a>")
-    ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
-    ;; "<a href=\"/find\">Простой поиск</a>"
     (when (null *current-user*)
       "<a href=\"/reg\">Регистрация</a>")
     (when (null *current-user*)
@@ -36,13 +33,15 @@
       "Больше возможностей доступно залогиненным пользователям")
     (when *current-user*
       (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
-    (when *current-user*
-      "<a href=\"/im\">Сообщения</a>")
+    ;; (when *current-user*
+    ;;   "<a href=\"/im\">Сообщения</a>")
     (when *current-user*
       "<a href=\"/logout\">Выход</a>")
     ;; (when *current-user*
     ;;   "<a href=\"/load\">Загрузка данных</a>")
     ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
+    ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
+    ;; "<a href=\"/find\">Простой поиск</a>"
     )))
 
 (in-package #:moto)
@@ -228,66 +227,125 @@
             "")))
 (in-package #:moto)
 
+(defun user-data-html (u)
+  (ps-html
+   ((:table :border 0)
+    ((:tr)
+     ((:td) "id")
+     ((:td) (id u)))
+    ((:tr)
+     ((:td) "name")
+     ((:td) (name u)))
+    ((:tr)
+     ((:td) "password")
+     ((:td) (password u)))
+    ((:tr)
+     ((:td) "email")
+     ((:td) (email u)))
+    ((:tr)
+     ((:td) "ts-create")
+     ((:td) (ts-create u)))
+    ((:tr)
+     ((:td) "ts-last")
+     ((:td) (ts-last u)))
+    ((:tr)
+     ((:td) "role-id")
+     ((:td) (role-id u))))))
+
+(defun change-role-html (u change-role-btn)
+  (ps-html
+   ((:form :method "POST")
+    ((:table :border 0)
+     ((:tr)
+      ((:td) "Текущая роль:")
+      ((:td) ((:select :name "role")
+              ((:option :value "0") "Выберите роль")
+              (format nil "~{~A~}"
+                      (with-collection (i (sort (all-role) #'(lambda (a b) (< (id a) (id b)))))
+                        (if (equal (id i) (role-id u))
+                            (ps-html
+                             ((:option :value (id i) :selected "selected") (name i)))
+                            (ps-html
+                             ((:option :value (id i)) (name i))))))))
+      ((:td) change-role-btn))))))
+
+(defun change-group-html (u change-group-btn)
+  (ps-html
+   ((:form :method "POST")
+    ((:table :border 0)
+     ((:tr)
+      ((:td :valign "top") "Группы пользователя:")
+      ((:td :valign "top") ((:select :name "groups" :multiple "multiple" :size "7")
+                            (format nil "~{~A~}"
+                                    (with-collection (i (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))
+                                      (if (find (id i) (mapcar #'group-id (find-user2group :user-id (id u))))
+                                          (ps-html
+                                           ((:option :value (id i) :selected "selected") (name i)))
+                                          (ps-html
+                                           ((:option :value (id i)) (name i))))))))
+      ((:td :valign "top") change-group-btn))))))
+
+(defun user-msg-html (u)
+  (ps-html
+   ((:h2) "Сообщения пользователя:")
+   ((:a :href (format nil "user/~A/im/new" (id u))) "Новое сообщение")
+   ((:br))
+   ((:br))
+   (let ((msgs (get-last-msg-dialog-ids-for-user-id (id u))))
+     (if (equal 0 (length msgs))
+         "Нет сообщений"
+         (msgtpl:dialogs
+          (list
+           :content
+           (format nil "~{~A~}"
+                   (loop :for item :in msgs :collect
+                      (cond ((equal :rcv (car (last item)))
+                             (msgtpl:dlgrcv
+                              (list :id (car item)
+                                    :from (cadr item)
+                                    :time (caddr item)
+                                    :msg (cadddr item)
+                                    :state (nth 4 item)
+                                    :userid (id u)
+                                    )))
+                            ((equal :snd (car (last item)))
+                             (msgtpl:dlgsnd
+                              (list :id (car item)
+                                    :to (cadr item)
+                                    :time (caddr item)
+                                    :msg (cadddr item)
+                                    :state (nth 4 item)
+                                    :userid (id u)
+                                    )))
+                            (t (err "unknown dialog type")))))))))))
+
+(define-page userim "/user/:userid/im/:imid"
+  (progn (format nil "~A | ~A" userid imid))
+  (:zz "zz" nil))
+
 (define-page user "/user/:userid"
   (let* ((i (parse-integer userid))
          (u (get-user i)))
     (if (null u)
         "Нет такого пользователя"
+        ;; ((:table :border 1)
+        ;;  ((:tr)
+        ;;   ((:td)
+        ;;    )
+        ;;    ))
         (format nil "~{~A~}"
                 (list
                  (format nil "~{~A~}"
                          (with-element (u u)
                            (ps-html
                             ((:h1) (format nil "Страница пользователя #~A - ~A" (id u) (name u)))
-                            ((:table :border 0)
+                            ((:table :border 0 :cellspacing 10 :cellpadding 10)
                              ((:tr)
-                              ((:td) "id")
-                              ((:td) (id u)))
+                              ((:td :valign "top" :bgcolor "#F8F8F8") (user-data-html u))
+                              ((:td :valign "top" :bgcolor "#F8F8F8") (change-role-html u %change-role%))
+                              ((:td :valign "top" :bgcolor "#F8F8F8") (change-group-html u %change-group%)))
                              ((:tr)
-                              ((:td) "name")
-                              ((:td) (name u)))
-                             ((:tr)
-                              ((:td) "password")
-                              ((:td) (password u)))
-                             ((:tr)
-                              ((:td) "email")
-                              ((:td) (email u)))
-                             ((:tr)
-                              ((:td) "ts-create")
-                              ((:td) (ts-create u)))
-                             ((:tr)
-                              ((:td) "ts-last")
-                              ((:td) (ts-last u)))
-                             ((:tr)
-                              ((:td) "role-id")
-                              ((:td) (role-id u))))
-                            ((:form :method "POST")
-                             ((:table :border 0)
-                              ((:tr)
-                               ((:td) "Текущая роль:")
-                               ((:td) ((:select :name "role")
-                                       ((:option :value "0") "Выберите роль")
-                                       (format nil "~{~A~}"
-                                               (with-collection (i (sort (all-role) #'(lambda (a b) (< (id a) (id b)))))
-                                                 (if (equal (id i) (role-id u))
-                                                     (ps-html
-                                                      ((:option :value (id i) :selected "selected") (name i)))
-                                                     (ps-html
-                                                      ((:option :value (id i)) (name i))))))))
-                               ((:td) %change-role%))))
-                            ((:form :method "POST")
-                             ((:table :border 0)
-                              ((:tr)
-                               ((:td :valign "top") "Группы пользователя:")
-                               ((:td :valign "top") ((:select :name "groups" :multiple "multiple" :size "7")
-                                       (format nil "~{~A~}"
-                                               (with-collection (i (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))
-                                                 (if (find (id i) (mapcar #'group-id (find-user2group :user-id (parse-integer userid))))
-                                                     (ps-html
-                                                      ((:option :value (id i) :selected "selected") (name i)))
-                                                     (ps-html
-                                                      ((:option :value (id i)) (name i))))))))
-                               ((:td :valign "top") %change-group%)))))))))))
+                              ((:td :valign "top" :bgcolor "#F8F8F8" :colspan 3) (user-msg-html u)))))))))))
   (:change-role (if (equal 1 *current-user*)
                     (ps-html
                      ((:input :type "hidden" :name "act" :value "CHANGE-ROLE"))

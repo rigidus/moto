@@ -1,4 +1,3 @@
-
 // -*- mode: closure-template-html; fill-column: 140 -*-
 {namespace msgtpl}
 
@@ -16,7 +15,7 @@
       <td>{$id | noAutoescape}</td>
       <td>{$time | noAutoescape}</td>
       <td>{$from | noAutoescape}</td>
-      <td>{$msg | noAutoescape}</td>
+      <td><a href="/user/{$userid}/im/{$id}">{$msg | noAutoescape}</a></td>
       <td>{$state | noAutoescape}</td>
   </tr>
 {/template}
@@ -27,7 +26,7 @@
       <td>{$id | noAutoescape}</td>
       <td>{$time | noAutoescape}</td>
       <td>{$to | noAutoescape}</td>
-      <td>{$msg | noAutoescape}</td>
+      <td><a href="/user/{$userid}/im/{$id}">{$msg | noAutoescape}</a></td>
       <td>{$state | noAutoescape}</td>
   </tr>
 {/template}

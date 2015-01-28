@@ -1,42 +1,67 @@
-
 (in-package #:moto)
 
+;; (in-package #:moto)
+
+;; (define-page im "/im"
+;;   (ps-html
+;;    ((:h1) "Страница сообщений")
+;;    (if (null *current-user*)
+;;        "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+;;        (ps-html
+;;         ((:a :href "/im/new") "Новое сообщение")
+;;         ((:br))
+;;         ((:br))
+;;         (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
+;;           (if (equal 0 (length msgs))
+;;               "Нет сообщений"
+;;               (msgtpl:dialogs
+;;                (list
+;;                 :content
+;;                 (format nil "~{~A~}"
+;;                         (loop :for item :in msgs :collect
+;;                            (cond ((equal :rcv (car (last item)))
+;;                                   (msgtpl:dlgrcv
+;;                                    (list
+;;                                    :id (car item)
+;;                                          :from (cadr item)
+;;                                          :time (caddr item)
+;;                                          :msg (cadddr item)
+;;                                          :state (nth 4 item)
+;;                                          )))
+;;                                  ((equal :snd (car (last item)))
+;;                                   (msgtpl:dlgsnd
+;;                                    (list :id (car item)
+;;                                          :to (cadr item)
+;;                                          :time (caddr item)
+;;                                          :msg (cadddr item)
+;;                                          :state (nth 4 item)
+;;                                          )))
+;;                                  (t (err "unknown dialog type")))))))))))))
 (in-package #:moto)
 
 ;; Страница сообщений
-(restas:define-route im ("/im")
+(restas:define-route im-new ("/im/new")
   (with-wrapper
-    (concatenate
-     'string
-     "<h1>Страница сообщений</h1>"
-     (if (not *current-user*)
-         "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
-         (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
-           (if (equal 0 (length msgs))
-               "Нет сообщений"
-               (msgtpl:dialogs
-                (list
-                 :content
-                 (format nil "~{~A~}"
-                         (loop :for item :in msgs :collect
-                            (cond ((equal :rcv (car (last item)))
-                                   (msgtpl:dlgrcv
-                                    (list :id (car item)
-                                          :from (cadr item)
-                                          :time (caddr item)
-                                          :msg (cadddr item)
-                                          :state (nth 4 item)
-                                          )))
-                                  ((equal :snd (car (last item)))
-                                   (msgtpl:dlgsnd
-                                    (list :id (car item)
-                                          :to (cadr item)
-                                          :time (caddr item)
-                                          :msg (cadddr item)
-                                          :state (nth 4 item)
-                                          )))
-                                   (t (err "unknown dialog type")))
-                                   ))))))))))
+      (concatenate
+       'string
+       "<h1>Страница отправки нового сообщения</h1>"
+       (if (not *current-user*)
+           "Невозможно отпраить сообщение - пользователь не залогинен. <a href=\"/login\">Login</a>"
+           (format
+            nil "~{~A<br/>~}"
+            (list
+             (frm (tbl
+                   (list
+                    (row "Идентификатор пользователя" (fld "user_id"))
+                    (row "Сообщение" (fld "msg"))
+                    (row "" (submit "Отправить")))))))))))
+
+(restas:define-route im-new-ctrl ("/im/new" :method :post)
+  (with-wrapper
+    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+      (create-msg *current-user*
+                  (getf p :user_id)
+                  (getf p :msg)))))
 
 
 ;; Событие отправки сообщения
@@ -149,6 +174,7 @@
 
 ;; Тестируем сообщения
 (defun msg-test ()
+  (in-package #:moto)
   
   ;; Зарегистрируем четырех пользователей
   (let ((alice (create-user "alice" "aXJAVtBT" "alice@mail.com"))
@@ -178,26 +204,26 @@
             ;; Проверим, что сообщение теперь доставлено
             (assert (equal ":DELIVERED" (state (get-msg read-msg-id))))))))
     ;; Пусть Боб ответит Алисе и напишет Кэрол
-    ;; (sleep 1)
-    ;; (let* ((reply-bob-to-alice "Здравствуй, Алиса, я получил твое письмо. Я напишу Кэрол что ты нашла меня")
-    ;;        (reply-bob-to-alice-id (create-msg bob alice reply-bob-to-alice)))
-    ;;   (sleep 1)
-    ;;   (let* ((msg-bob-to-carol "Кэрол, передаю привет от Алисы. Боб.")
-    ;;          (msg-bob-to-carol-id (create-msg bob carol msg-bob-to-carol)))
-    ;;     (sleep 1)
-    ;;     ;; Пусть Дэйв напишет Бобу
-    ;;     (let* ((msg-dave-to-bob "Привет, Боб, я хочу добавить тебя в друзья")
-    ;;            (msg-dave-to-bob-id (create-msg dave bob msg-dave-to-bob)))
-    ;;       ;; Получим последние диалоги Боба
-    ;;       (let ((last-dialogs (get-last-msg-dialog-ids-for-user-id bob)))
-    ;;         ;; (dbg "~%~A" (bprint last-dialogs))
-    ;;         ;; Проверим, что в имеем три диалога
-    ;;         (assert (equal 3 (length last-dialogs)))
-    ;;         ;; Проверим, что сообщения правильно упорядочены
-    ;;         (assert (equal (list msg-dave-to-bob-id
-    ;;                              msg-bob-to-carol-id
-    ;;                              reply-bob-to-alice-id)
-    ;;                        (mapcar #'car last-dialogs)))))))
+    (sleep 1)
+    (let* ((reply-bob-to-alice "Здравствуй, Алиса, я получил твое письмо. Я напишу Кэрол что ты нашла меня")
+           (reply-bob-to-alice-id (create-msg bob alice reply-bob-to-alice)))
+      (sleep 1)
+      (let* ((msg-bob-to-carol "Кэрол, передаю привет от Алисы. Боб.")
+             (msg-bob-to-carol-id (create-msg bob carol msg-bob-to-carol)))
+        (sleep 1)
+        ;; Пусть Дэйв напишет Бобу
+        (let* ((msg-dave-to-bob "Привет, Боб, я хочу добавить тебя в друзья")
+               (msg-dave-to-bob-id (create-msg dave bob msg-dave-to-bob)))
+          ;; Получим последние диалоги Боба
+          (let ((last-dialogs (get-last-msg-dialog-ids-for-user-id bob)))
+            ;; (dbg "~%~A" (bprint last-dialogs))
+            ;; Проверим, что в имеем три диалога
+            (assert (equal 3 (length last-dialogs)))
+            ;; Проверим, что сообщения правильно упорядочены
+            (assert (equal (list msg-dave-to-bob-id
+                                 msg-bob-to-carol-id
+                                 reply-bob-to-alice-id)
+                           (mapcar #'car last-dialogs)))))))
     (logout-user dave)
     (logout-user carol)
     (logout-user bob)
