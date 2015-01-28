@@ -227,6 +227,8 @@
             "")))
 (in-package #:moto)
 
+(in-package #:moto)
+
 (defun user-data-html (u)
   (ps-html
    ((:table :border 0)
@@ -252,6 +254,8 @@
      ((:td) "role-id")
      ((:td) (role-id u))))))
 
+(in-package #:moto)
+
 (defun change-role-html (u change-role-btn)
   (ps-html
    ((:form :method "POST")
@@ -269,6 +273,8 @@
                              ((:option :value (id i)) (name i))))))))
       ((:td) change-role-btn))))))
 
+(in-package #:moto)
+
 (defun change-group-html (u change-group-btn)
   (ps-html
    ((:form :method "POST")
@@ -285,13 +291,15 @@
                                            ((:option :value (id i)) (name i))))))))
       ((:td :valign "top") change-group-btn))))))
 
+(in-package #:moto)
+
 (defun user-msg-html (u)
   (ps-html
    ((:h2) "Сообщения пользователя:")
    ((:a :href (format nil "user/~A/im/new" (id u))) "Новое сообщение")
    ((:br))
    ((:br))
-   (let ((msgs (get-last-msg-dialog-ids-for-user-id (id u))))
+   (let ((msgs (get-last-msg-dialogs-for-user-id (id u))))
      (if (equal 0 (length msgs))
          "Нет сообщений"
          (msgtpl:dialogs
@@ -319,33 +327,21 @@
                                     )))
                             (t (err "unknown dialog type")))))))))))
 
-(define-page userim "/user/:userid/im/:imid"
-  (progn (format nil "~A | ~A" userid imid))
-  (:zz "zz" nil))
-
 (define-page user "/user/:userid"
   (let* ((i (parse-integer userid))
          (u (get-user i)))
     (if (null u)
         "Нет такого пользователя"
-        ;; ((:table :border 1)
-        ;;  ((:tr)
-        ;;   ((:td)
-        ;;    )
-        ;;    ))
-        (format nil "~{~A~}"
-                (list
-                 (format nil "~{~A~}"
-                         (with-element (u u)
-                           (ps-html
-                            ((:h1) (format nil "Страница пользователя #~A - ~A" (id u) (name u)))
-                            ((:table :border 0 :cellspacing 10 :cellpadding 10)
-                             ((:tr)
-                              ((:td :valign "top" :bgcolor "#F8F8F8") (user-data-html u))
-                              ((:td :valign "top" :bgcolor "#F8F8F8") (change-role-html u %change-role%))
-                              ((:td :valign "top" :bgcolor "#F8F8F8") (change-group-html u %change-group%)))
-                             ((:tr)
-                              ((:td :valign "top" :bgcolor "#F8F8F8" :colspan 3) (user-msg-html u)))))))))))
+        (format nil "~{~A~}" (with-element (u u)
+                               (ps-html
+                                ((:h1) (format nil "Страница пользователя #~A - ~A" (id u) (name u)))
+                                ((:table :border 0 :cellspacing 10 :cellpadding 10)
+                                 ((:tr)
+                                  ((:td :valign "top" :bgcolor "#F8F8F8") (user-data-html u))
+                                  ((:td :valign "top" :bgcolor "#F8F8F8") (change-role-html u %change-role%))
+                                  ((:td :valign "top" :bgcolor "#F8F8F8") (change-group-html u %change-group%)))
+                                 ((:tr)
+                                  ((:td :valign "top" :bgcolor "#F8F8F8" :colspan 3) (user-msg-html u)))))))))
   (:change-role (if (equal 1 *current-user*)
                     (ps-html
                      ((:input :type "hidden" :name "act" :value "CHANGE-ROLE"))
@@ -379,4 +375,45 @@
                                      :collect (parse-integer (nth n p)))
                               :collect (id (make-user2group :user-id i :group-id lnk)))))
                      "access-denied")))
+(in-package #:moto)
+
+(define-page userim "/user/:userid/im/:imid"
+  (let* ((user-id (parse-integer userid))
+         (im-id (parse-integer imid))
+         (u (get-user user-id))
+         (j (get-user im-id)))
+    (if (or (null u) (null j))
+        "Нет такого пользователя"
+        (let ((msgs (get-msg-dialogs-for-two-user-ids user-id im-id)))
+          (if (equal 0 (length msgs))
+              "Нет сообщений"
+              (ps-html
+               ((:h1) (format nil "Страница диалогов пользователя #~A - ~A с пользователем #~A - ~A"
+                              (id u) (name u)
+                              (id j) (name j)))
+               (msgtpl:dialogs
+                (list
+                 :content
+                 (format nil "~{~A~}"
+                         (loop :for item :in msgs :collect
+                            (cond ((equal user-id (cadr item))
+                                   (msgtpl:dlgrcv
+                                    (list :id (car item)
+                                          :from (cadr item)
+                                          :time (caddr item)
+                                          :msg (cadddr item)
+                                          :state (nth 4 item)
+                                          :userid userid
+                                          )))
+                                  ((equal im-id (cadr item))
+                                   (msgtpl:dlgsnd
+                                    (list :id (car item)
+                                          :to (cadr item)
+                                          :time (caddr item)
+                                          :msg (cadddr item)
+                                          :state (nth 4 item)
+                                          :userid userid
+                                          )))
+                                  (t (err "err 3536262346")))
+                            ))))))))))
 ;; iface ends here

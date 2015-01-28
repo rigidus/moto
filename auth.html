@@ -1,65 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<title>Модуль сущностей, автоматов и их тесты</title>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-<meta name="title" content="Модуль сущностей, автоматов и их тесты"/>
-<meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2014-10-14T21:38+0400"/>
-<meta name="author" content="rigidus"/>
-<meta name="description" content=""/>
-<meta name="keywords" content=""/>
+<title>Модуль авторизации и аккаунтинга</title>
+<!-- 2015-01-28 Ср. 07:01 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="rigidus" />
 <style type="text/css">
  <!--/*--><![CDATA[/*><!--*/
-  html { font-family: Times, serif; font-size: 12pt; }
   .title  { text-align: center; }
-  .todo   { color: red; }
+  .todo   { font-family: monospace; color: red; }
   .done   { color: green; }
-  .tag    { background-color: #add8e6; font-weight:normal }
-  .target { }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
   .timestamp { color: #bebebe; }
   .timestamp-kwd { color: #5f9ea0; }
-  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
-  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
-  .center {margin-left:auto; margin-right:auto; text-align:center;}
-  p.verse { margin-left: 3% }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
   pre {
-	border: 1pt solid #AEBDCC;
-	background-color: #F3F5F7;
-	padding: 5pt;
-	font-family: courier, monospace;
-        font-size: 90%;
-        overflow:auto;
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
   }
-  table { border-collapse: collapse; }
-  td, th { vertical-align: top;  }
-  th.right  { text-align:center;  }
-  th.left   { text-align:center;   }
-  th.center { text-align:center; }
-  td.right  { text-align:right;  }
-  td.left   { text-align:left;   }
-  td.center { text-align:center; }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
   dt { font-weight: bold; }
-  div.figure { padding: 0.5em; }
-  div.figure p { text-align: center; }
-  div.inlinetask {
-    padding:10px;
-    border:2px solid gray;
-    margin:10px;
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
     background: #ffffcc;
   }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
   textarea { overflow-x: auto; }
-  .linenr { font-size:smaller }
-  .code-highlighted {background-color:#ffff00;}
-  .org-info-js_info-navigation { border-style:none; }
-  #org-info-js_console-label { font-size:10px; font-weight:bold;
-                               white-space:nowrap; }
-  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
-                                 font-weight:bold; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
   /*]]>*/-->
 </style>
+-*- fill-column: 92 -*-
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -106,73 +135,63 @@ for the JavaScript code in this tag.
  }
 /*]]>*///-->
 </script>
-
 </head>
 <body>
-
-<div id="preamble">
-
-</div>
-
 <div id="content">
-<h1 class="title">Модуль сущностей, автоматов и их тесты</h1>
-
-
-
-
-<link rel="stylesheet" type="text/css" href="css/css.css" />
-
-
+<h1 class="title">Модуль авторизации и аккаунтинга</h1>
 <div id="table-of-contents">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#sec-1">1 Введение</a></li>
-<li><a href="#sec-2">2 Шаблоны</a></li>
-<li><a href="#sec-3">3 Функционал</a>
+<li><a href="#sec-1">1. Введение</a></li>
+<li><a href="#sec-2">2. Шаблоны</a></li>
+<li><a href="#sec-3">3. Функционал</a>
 <ul>
-<li><a href="#sec-3-1">3.1 Шаблон логина</a></li>
-<li><a href="#sec-3-2">3.2 Шаблон логаута</a></li>
-<li><a href="#sec-3-3">3.3 Страница регистрации и ее контроллер</a></li>
-<li><a href="#sec-3-4">3.4 Событие создания пользователя</a></li>
-<li><a href="#sec-3-5">3.5 Страница выхода из системы и ее контроллер</a></li>
-<li><a href="#sec-3-6">3.6 Событие выхода пользователя из системы</a></li>
-<li><a href="#sec-3-7">3.7 Страница логина и ее контроллер</a></li>
-<li><a href="#sec-3-8">3.8 Обобщенный метод извлечения авторизационных данных</a></li>
-<li><a href="#sec-3-9">3.9 Функция проверки авторизационных данных - в простейшем случае логина и пароля</a></li>
-<li><a href="#sec-3-10">3.10 Событие успешного входа пользователя в систему</a></li>
-<li><a href="#sec-3-11">3.11 Событие неуспешного входа пользователя в систему</a></li>
-<li><a href="#sec-3-12">3.12 Забыл пароль</a></li>
-<li><a href="#sec-3-13">3.13 Javascript для форм, необязательно</a></li>
-<li><a href="#sec-3-14">3.14 Функцию проверки залогинен ли пользователь</a></li>
-<li><a href="#sec-3-15">3.15 Функцию проверки прав пользователя на доступ к какому-то объекту</a></li>
+<li><a href="#sec-3-1">3.1. Шаблон логина</a></li>
+<li><a href="#sec-3-2">3.2. Шаблон логаута</a></li>
+<li><a href="#sec-3-3">3.3. Страница регистрации и ее контроллер</a></li>
+<li><a href="#sec-3-4">3.4. Событие создания пользователя</a></li>
+<li><a href="#sec-3-5">3.5. Страница выхода из системы и ее контроллер</a></li>
+<li><a href="#sec-3-6">3.6. Событие выхода пользователя из системы</a></li>
+<li><a href="#sec-3-7">3.7. Страница логина и ее контроллер</a></li>
+<li><a href="#sec-3-8">3.8. Обобщенный метод извлечения авторизационных данных</a></li>
+<li><a href="#sec-3-9">3.9. Функция проверки авторизационных данных - в простейшем случае логина и пароля</a></li>
+<li><a href="#sec-3-10">3.10. Событие успешного входа пользователя в систему</a></li>
+<li><a href="#sec-3-11">3.11. Событие неуспешного входа пользователя в систему</a></li>
+<li><a href="#sec-3-12">3.12. <span class="todo nilTODO">TODO</span> Забыл пароль</a></li>
+<li><a href="#sec-3-13">3.13. <span class="todo nilTODO">TODO</span> Javascript для форм, необязательно</a></li>
+<li><a href="#sec-3-14">3.14. <span class="todo nilTODO">TODO</span> Функцию проверки залогинен ли пользователь</a></li>
+<li><a href="#sec-3-15">3.15. <span class="todo nilTODO">TODO</span> Функцию проверки прав пользователя на доступ к какому-то объекту</a></li>
 </ul>
 </li>
-<li><a href="#sec-4">4 Тесты</a></li>
+<li><a href="#sec-4">4. Тесты</a></li>
 </ul>
 </div>
 </div>
+<link rel="stylesheet" type="text/css" href="css/css.css" />
 
-<div id="outline-container-1" class="outline-2">
+<div id="outline-container-sec-1" class="outline-2">
 <h2 id="sec-1"><span class="section-number-2">1</span> Введение</h2>
 <div class="outline-text-2" id="text-1">
+<p>
+Как пользователь я хочу иметь возможность зарегистрироваться на сайте. Сразу после
+регистрации я хочу быть залогиненным в авторизованную сессию.
+</p>
 
+<p>
+Как пользователь, я хочу иметь возможность выйти из авторизованной сессии после окончания
+работы.
+</p>
 
 <p>
-  Как пользователь я хочу иметь возможность зарегистрироваться на сайте. Сразу после
-  регистрации я хочу быть залогиненным в авторизованную сессию.
+Как пользователь, я хочу войти в авторизованную сессию по своему емейлу и паролю.
 </p>
+
 <p>
-  Как пользователь, я хочу иметь возможность выйти из авторизованной сессии после окончания
-  работы.
+Как разработчик, я хочу конфигурировать url-ы, на которые попадает пользователь при
+выполнении этого сценария и навешивать свои обработчики на события:
 </p>
-<p>
-  Как пользователь, я хочу войти в авторизованную сессию по своему емейлу и паролю.
-</p>
-<p>
-  Как разработчик, я хочу конфигурировать url-ы, на которые попадает пользователь при
-  выполнении этого сценария и навешивать свои обработчики на события:
-</p><ul>
+<ul class="org-ul">
 <li>регистрация пользователя
 </li>
 <li>успешный вход пользователя
@@ -183,499 +202,435 @@ for the JavaScript code in this tag.
 </li>
 </ul>
 
-
 <p>
-  Что нам для этого нужно?
-</p><ul>
+Что нам для этого нужно?
+</p>
+<ul class="org-ul">
 <li>Сущность <code>User</code>, имеющая поля <code>email</code> и <code>password</code>
 </li>
 <li>Движок создания форм, функции которого определены не здесь
 </li>
 </ul>
 
+<p>
+Как это работает?
+</p>
 
 <p>
-  Как это работает?
+<code>При регистрации</code> пользователь заполняет форму с именем, емейлом и паролем на странице
+регистрации. Страница регистрации доступна только есои пользователь в данный момент не
+залогинен. Контроллер регистрации получает данные формы и вызывает событие создания
+пользователя (<code>create-user</code>).
 </p>
+
 <p>
-  <code>При регистрации</code> пользователь заполняет форму с именем, емейлом и паролем на странице
-  регистрации. Страница регистрации доступна только есои пользователь в данный момент не
-  залогинен. Контроллер регистрации получает данные формы и вызывает событие создания
-  пользователя (<code>create-user</code>).
-</p>
-<p>
-  <code>При логине</code> пользователь вводит email и пароль, который передается контроллеру
-  логина. Контроллер логина извлекает (<code>get-auth-data</code>) email и пароль, проверяет их
-  (<code>check-auth-data</code>) и в случае успеха устанавливает переменную сессии <code>current-user</code> и
-  вызывает <code>auth-success</code>. В случае неудачи вызывает <code>auth-fail</code>.
+<code>При логине</code> пользователь вводит email и пароль, который передается контроллеру
+логина. Контроллер логина извлекает (<code>get-auth-data</code>) email и пароль, проверяет их
+(<code>check-auth-data</code>) и в случае успеха устанавливает переменную сессии <code>current-user</code> и
+вызывает <code>auth-success</code>. В случае неудачи вызывает <code>auth-fail</code>.
 </p>
 </div>
-
 </div>
 
-<div id="outline-container-2" class="outline-2">
+<div id="outline-container-sec-2" class="outline-2">
 <h2 id="sec-2"><span class="section-number-2">2</span> Шаблоны</h2>
 <div class="outline-text-2" id="text-2">
-
-<p>  Соберем шаблоны логина и логаута
+<p>
+Соберем шаблоны логина и логаута
 </p>
 
+<div class="org-src-container">
 
+<pre class="src src-closure-template-html" id="auth_tpl"><span style="color: #b22222;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
+{<span style="color: #228b22; font-weight: bold;">namespace</span> <span style="color: #0000ff;">authtpl</span>}
 
-<pre class="src src-closure-template-html"><span style="color: #cd0000;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
-{<span style="color: #00cd00; font-weight: bold;">namespace</span> <span style="color: #0000ee; font-weight: bold;">authtpl</span>}
+{<span style="color: #228b22; font-weight: bold;">template</span> <span style="color: #0000ff;">logintpl}</span>
+  &lt;&lt;<span style="color: #0000ff;">loginform_tpl</span>&gt;&gt;
+{<span style="color: #228b22; font-weight: bold;">/template</span>}
 
-{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">logintpl}</span>
-  &lt;&lt;<span style="color: #0000ee; font-weight: bold;">loginform_tpl</span>&gt;&gt;
-{<span style="color: #00cd00; font-weight: bold;">/template</span>}
-
-{<span style="color: #00cd00; font-weight: bold;">template</span> <span style="color: #0000ee; font-weight: bold;">logouttpl}</span>
-  &lt;&lt;<span style="color: #0000ee; font-weight: bold;">logoutform_tpl</span>&gt;&gt;
-{<span style="color: #00cd00; font-weight: bold;">/template</span>}
+{<span style="color: #228b22; font-weight: bold;">template</span> <span style="color: #0000ff;">logouttpl}</span>
+  &lt;&lt;<span style="color: #0000ff;">logoutform_tpl</span>&gt;&gt;
+{<span style="color: #228b22; font-weight: bold;">/template</span>}
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3" class="outline-2">
+<div id="outline-container-sec-3" class="outline-2">
 <h2 id="sec-3"><span class="section-number-2">3</span> Функционал</h2>
 <div class="outline-text-2" id="text-3">
-
-
 <p>
-  Соберем контроллеры и все функции, которые контроллеры вызывают
+Соберем контроллеры и все функции, которые контроллеры вызывают
 </p>
 
+<div class="org-src-container">
 
+<pre class="src src-lisp" id="auth_fn">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-<pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
 (closure-template:compile-template
- <span style="color: #0000ee; font-weight: bold;">:common-lisp-backend</span>
+ <span style="color: #483d8b;">:common-lisp-backend</span>
  (pathname
-  (concatenate 'string *base-path* <span style="color: #00cd00;">"mod/auth/auth-tpl.htm"</span>)))
+  (concatenate 'string *base-path* <span style="color: #8b2252;">"mod/auth/auth-tpl.htm"</span>)))
 
 &lt;&lt;auth_fn_contents&gt;&gt;
 
 &lt;&lt;auth_test&gt;&gt;
 </pre>
-
-
-<p>
-  Мы вводим:
-</p>
-
 </div>
 
-<div id="outline-container-3-1" class="outline-3">
+<p>
+Мы вводим:
+</p>
+</div>
+
+<div id="outline-container-sec-3-1" class="outline-3">
 <h3 id="sec-3-1"><span class="section-number-3">3.1</span> Шаблон логина</h3>
 <div class="outline-text-3" id="text-3-1">
+<div class="org-src-container">
 
-
-
-
-
-<pre class="src src-html">&lt;<span style="color: #0000ee; font-weight: bold;">form</span> <span style="color: #cdcd00;">method</span>=<span style="color: #00cd00;">"POST"</span> <span style="color: #cdcd00;">name</span>=<span style="color: #00cd00;">"loginform"</span>&gt;
-    &lt;<span style="color: #0000ee; font-weight: bold;">input</span> <span style="color: #cdcd00;">type</span>=<span style="color: #00cd00;">"text"</span> <span style="color: #cdcd00;">id</span>=<span style="color: #00cd00;">"login"</span> <span style="color: #cdcd00;">name</span>=<span style="color: #00cd00;">"login"</span> /&gt;
-    &lt;<span style="color: #0000ee; font-weight: bold;">input</span> <span style="color: #cdcd00;">type</span>=<span style="color: #00cd00;">"password"</span> <span style="color: #cdcd00;">id</span>=<span style="color: #00cd00;">"password"</span> <span style="color: #cdcd00;">name</span>=<span style="color: #00cd00;">"password"</span> /&gt;
-    &lt;<span style="color: #0000ee; font-weight: bold;">input</span> <span style="color: #cdcd00;">type</span>=<span style="color: #00cd00;">"submit"</span> /&gt;
-&lt;/<span style="color: #0000ee; font-weight: bold;">form</span>&gt;
+<pre class="src src-html" id="loginform_tpl">&lt;<span style="color: #0000ff;">form</span> <span style="color: #a0522d;">method</span>=<span style="color: #8b2252;">"POST"</span> <span style="color: #a0522d;">name</span>=<span style="color: #8b2252;">"loginform"</span>&gt;
+    &lt;<span style="color: #0000ff;">input</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"text"</span> <span style="color: #a0522d;">id</span>=<span style="color: #8b2252;">"login"</span> <span style="color: #a0522d;">name</span>=<span style="color: #8b2252;">"login"</span> /&gt;
+    &lt;<span style="color: #0000ff;">input</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"password"</span> <span style="color: #a0522d;">id</span>=<span style="color: #8b2252;">"password"</span> <span style="color: #a0522d;">name</span>=<span style="color: #8b2252;">"password"</span> /&gt;
+    &lt;<span style="color: #0000ff;">input</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"submit"</span> /&gt;
+&lt;/<span style="color: #0000ff;">form</span>&gt;
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-2" class="outline-3">
+<div id="outline-container-sec-3-2" class="outline-3">
 <h3 id="sec-3-2"><span class="section-number-3">3.2</span> Шаблон логаута</h3>
 <div class="outline-text-3" id="text-3-2">
+<div class="org-src-container">
 
-
-
-
-
-<pre class="src src-html">&lt;<span style="color: #0000ee; font-weight: bold;">form</span> <span style="color: #cdcd00;">method</span>=<span style="color: #00cd00;">"POST"</span> <span style="color: #cdcd00;">name</span>=<span style="color: #00cd00;">"logoutform"</span>&gt;
-    &lt;<span style="color: #0000ee; font-weight: bold;">input</span> <span style="color: #cdcd00;">type</span>=<span style="color: #00cd00;">"hidden"</span> <span style="color: #cdcd00;">name</span>=<span style="color: #00cd00;">"logout"</span> <span style="color: #cdcd00;">value</span>=<span style="color: #00cd00;">"logout"</span> /&gt;
-    &lt;<span style="color: #0000ee; font-weight: bold;">input</span> <span style="color: #cdcd00;">type</span>=<span style="color: #00cd00;">"submit"</span> <span style="color: #cdcd00;">value</span>=<span style="color: #00cd00;">"logout"</span> /&gt;
-&lt;/<span style="color: #0000ee; font-weight: bold;">form</span>&gt;
+<pre class="src src-html" id="logoutform_tpl">&lt;<span style="color: #0000ff;">form</span> <span style="color: #a0522d;">method</span>=<span style="color: #8b2252;">"POST"</span> <span style="color: #a0522d;">name</span>=<span style="color: #8b2252;">"logoutform"</span>&gt;
+    &lt;<span style="color: #0000ff;">input</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"hidden"</span> <span style="color: #a0522d;">name</span>=<span style="color: #8b2252;">"logout"</span> <span style="color: #a0522d;">value</span>=<span style="color: #8b2252;">"logout"</span> /&gt;
+    &lt;<span style="color: #0000ff;">input</span> <span style="color: #a0522d;">type</span>=<span style="color: #8b2252;">"submit"</span> <span style="color: #a0522d;">value</span>=<span style="color: #8b2252;">"logout"</span> /&gt;
+&lt;/<span style="color: #0000ff;">form</span>&gt;
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-3" class="outline-3">
+<div id="outline-container-sec-3-3" class="outline-3">
 <h3 id="sec-3-3"><span class="section-number-3">3.3</span> Страница регистрации и ее контроллер</h3>
 <div class="outline-text-3" id="text-3-3">
-
-
 <p>
-   Страница регистрации использует движок форм для показа формы пользователю и при
-   выполнении регистрации вызывает событие <code>create-user</code>.
+Страница регистрации использует движок форм для показа формы пользователю и при
+выполнении регистрации вызывает событие <code>create-user</code>.
 </p>
 
+<div class="org-src-container">
 
+<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;</span>
-(restas:define-route reg (<span style="color: #00cd00;">"/reg"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (concatenate
-     'string
-     <span style="color: #00cd00;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;&lt;/h1&gt;"</span>
-     (<span style="color: #00cdcd; font-weight: bold;">if</span> *current-user*
-         <span style="color: #00cd00;">"&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/logout\"&gt;Logout&lt;/a&gt;"</span>
-         (frm (tbl
-               (list
-                (row <span style="color: #00cd00;">"&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span> (fld <span style="color: #00cd00;">"name"</span>))
-                (row <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (fld <span style="color: #00cd00;">"password"</span>))
-                (row <span style="color: #00cd00;">"Email"</span> (fld <span style="color: #00cd00;">"email"</span>))
-                (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;&#1089;&#1103;"</span>)))))))))
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1050;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;</span>
-(restas:define-route reg-ctrl (<span style="color: #00cd00;">"/reg"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (setf (hunchentoot:session-value 'current-user)
-            (create-user (getf p <span style="color: #0000ee; font-weight: bold;">:name</span>)
-                         (getf p <span style="color: #0000ee; font-weight: bold;">:password</span>)
-                         (getf p <span style="color: #0000ee; font-weight: bold;">:email</span>))))))
+(<span style="color: #a020f0;">define-page</span> reg <span style="color: #8b2252;">"/reg"</span>
+  (ps-html
+   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;"</span>)
+   (<span style="color: #a020f0;">if</span> *current-user*
+       <span style="color: #8b2252;">"&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;"</span>
+       (ps-html
+        ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;: "</span>)
+           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"name"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;: "</span>)
+           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"Email: "</span>)
+           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">""</span>)
+           ((<span style="color: #483d8b;">:td</span>) %register%)))))))
+  (<span style="color: #483d8b;">:register</span> (ps-html
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"REGISTER"</span>))
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;&#1089;&#1103;"</span>)))
+             (setf (hunchentoot:session-value 'current-user)
+                   (create-user (getf p <span style="color: #483d8b;">:name</span>)
+                                (getf p <span style="color: #483d8b;">:password</span>)
+                                (getf p <span style="color: #483d8b;">:email</span>)))))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-4" class="outline-3">
+<div id="outline-container-sec-3-4" class="outline-3">
 <h3 id="sec-3-4"><span class="section-number-3">3.4</span> Событие создания пользователя</h3>
 <div class="outline-text-3" id="text-3-4">
+<div class="org-src-container">
 
+<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">create-user</span> (name password email)
-  <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;. &#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; id &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((user-id (id (make-user <span style="color: #0000ee; font-weight: bold;">:name</span> name <span style="color: #0000ee; font-weight: bold;">:password</span> password <span style="color: #0000ee; font-weight: bold;">:email</span> email <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time)))))
-    (dbg <span style="color: #00cd00;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;: ~A"</span> user-id)
-    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1077;&#1083;&#1072;&#1077;&#1084; &#1077;&#1075;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084;</span>
-    (upd-user (get-user user-id) (list <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":LOGGED"</span>))
-    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1084; user-id</span>
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">create-user</span> (name password email)
+  <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;. &#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; id &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
+  (<span style="color: #a020f0;">let</span> ((user-id (id (make-user <span style="color: #483d8b;">:name</span> name <span style="color: #483d8b;">:password</span> password <span style="color: #483d8b;">:email</span> email <span style="color: #483d8b;">:ts-create</span> (get-universal-time) <span style="color: #483d8b;">:ts-last</span> (get-universal-time)))))
+    (dbg <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;: ~A"</span> user-id)
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1077;&#1083;&#1072;&#1077;&#1084; &#1077;&#1075;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084;</span>
+    (upd-user (get-user user-id) (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":LOGGED"</span>))
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1084; user-id</span>
     user-id))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-5" class="outline-3">
+<div id="outline-container-sec-3-5" class="outline-3">
 <h3 id="sec-3-5"><span class="section-number-3">3.5</span> Страница выхода из системы и ее контроллер</h3>
 <div class="outline-text-3" id="text-3-5">
+<div class="org-src-container">
 
+<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;</span>
-(restas:define-route logout (<span style="color: #00cd00;">"/logout"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (concatenate
-     'string
-     <span style="color: #00cd00;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;&lt;/h1&gt;"</span>
-     (<span style="color: #00cdcd; font-weight: bold;">if</span> *current-user*
-         (frm (tbl
-               (list
-                (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1042;&#1099;&#1081;&#1090;&#1080;"</span>)))))
-         <span style="color: #00cd00;">"&#1042;&#1099;&#1093;&#1086;&#1076; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1077;&#1085; - &#1085;&#1080;&#1082;&#1090;&#1086; &#1085;&#1077; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;"</span>
-         ))))
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1050;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;</span>
-(restas:define-route logout-ctrl (<span style="color: #00cd00;">"/logout"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (<span style="color: #00cdcd; font-weight: bold;">prog1</span>
-        (format nil <span style="color: #00cd00;">"~A"</span> (logout-user *current-user*))
-      (setf (hunchentoot:session-value 'current-user) nil))))
+(<span style="color: #a020f0;">define-page</span> logout <span style="color: #8b2252;">"/logout"</span>
+  (ps-html
+   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;"</span>)
+   (<span style="color: #a020f0;">if</span> *current-user*
+       (ps-html
+        ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+         %logout%))
+       <span style="color: #8b2252;">"&#1042;&#1099;&#1093;&#1086;&#1076; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1077;&#1085; - &#1085;&#1080;&#1082;&#1090;&#1086; &#1085;&#1077; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;"</span>))
+  (<span style="color: #483d8b;">:logout</span> (ps-html
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"LOGOUT"</span>))
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1042;&#1099;&#1081;&#1090;&#1080;"</span>)))
+           (<span style="color: #a020f0;">prog1</span> (format nil <span style="color: #8b2252;">"~A"</span> (logout-user *current-user*))
+             (setf (hunchentoot:session-value 'current-user) nil))))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-6" class="outline-3">
+<div id="outline-container-sec-3-6" class="outline-3">
 <h3 id="sec-3-6"><span class="section-number-3">3.6</span> Событие выхода пользователя из системы</h3>
 <div class="outline-text-3" id="text-3-6">
+<div class="org-src-container">
 
+<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">logout-user</span> (current-user)
-  (takt (get-user current-user) <span style="color: #0000ee; font-weight: bold;">:unlogged</span>))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072;</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">logout-user</span> (current-user)
+  (takt (get-user current-user) <span style="color: #483d8b;">:unlogged</span>))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-7" class="outline-3">
+<div id="outline-container-sec-3-7" class="outline-3">
 <h3 id="sec-3-7"><span class="section-number-3">3.7</span> Страница логина и ее контроллер</h3>
 <div class="outline-text-3" id="text-3-7">
-
-
 <p>
-   Контроллер логина использует обобщенный метод <code>get-auth-data</code> для извлечения данных
-   авторизации и функцию их проверки <code>check-auth-data</code>.
-</p>
-<p>
-   При успешной проверке устанавливает переменную сессии <code>current-user</code> с помощью функции
-   <code>set-session</code> и выполняет <code>login-user-success</code>.
-</p>
-<p>
-   При неуcпехе выполняет <code>login-user-fail</code>.
+Контроллер логина использует обобщенный метод <code>get-auth-data</code> для извлечения данных
+авторизации и функцию их проверки <code>check-auth-data</code>.
 </p>
 
+<p>
+При успешной проверке устанавливает переменную сессии <code>current-user</code> с помощью функции
+<code>set-session</code> и выполняет <code>login-user-success</code>.
+</p>
 
+<p>
+При неуcпехе выполняет <code>login-user-fail</code>.
+</p>
 
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1083;&#1086;&#1075;&#1080;&#1085;&#1072;</span>
-(restas:define-route login (<span style="color: #00cd00;">"/login"</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (concatenate
-     'string
-     <span style="color: #00cd00;">"&lt;h1&gt;&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1080;&lt;/h1&gt;"</span>
-     (<span style="color: #00cdcd; font-weight: bold;">if</span> *current-user*
-         <span style="color: #00cd00;">"&#1040;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/logout\"&gt;Logout&lt;/a&gt;"</span>
-         (frm (tbl
-               (list
-                (row <span style="color: #00cd00;">"Email"</span> (fld <span style="color: #00cd00;">"email"</span>))
-                (row <span style="color: #00cd00;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;"</span> (fld <span style="color: #00cd00;">"password"</span>))
-                (row <span style="color: #00cd00;">""</span> (submit <span style="color: #00cd00;">"&#1042;&#1086;&#1081;&#1090;&#1080;"</span>)))))))))
+<div class="org-src-container">
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1050;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1083;&#1077;&#1088; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099; &#1083;&#1086;&#1075;&#1080;&#1085;&#1072;</span>
-(restas:define-route login-ctrl (<span style="color: #00cd00;">"/login"</span> <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>)
-  (<span style="color: #00cdcd; font-weight: bold;">with-wrapper</span>
-    (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
-         (<span style="color: #00cdcd; font-weight: bold;">progn</span>
-           (setf (hunchentoot:session-value 'current-user) it)
-           (login-user-success it))
-         (login-user-fail))))
+<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> login <span style="color: #8b2252;">"/login"</span>
+  (ps-html
+   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1080;"</span>)
+   (<span style="color: #a020f0;">if</span> *current-user*
+       <span style="color: #8b2252;">"&#1040;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/logout\"&gt;Logout&lt;/a&gt;"</span>
+       (ps-html
+        ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"Email: "</span>)
+           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;: "</span>)
+           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
+          ((<span style="color: #483d8b;">:tr</span>)
+           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">""</span>)
+           ((<span style="color: #483d8b;">:td</span>) %login%)))))))
+  (<span style="color: #483d8b;">:login</span> (ps-html
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"LOGIN"</span>))
+              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1042;&#1086;&#1081;&#1090;&#1080;"</span>)))
+          (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
+               (<span style="color: #a020f0;">progn</span>
+                 (setf (hunchentoot:session-value 'current-user) it)
+                 (login-user-success it))
+               (login-user-fail))))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-8" class="outline-3">
+<div id="outline-container-sec-3-8" class="outline-3">
 <h3 id="sec-3-8"><span class="section-number-3">3.8</span> Обобщенный метод извлечения авторизационных данных</h3>
 <div class="outline-text-3" id="text-3-8">
-
-
 <p>
-   В простейшем случае данные из объекта <code>request</code>, но возможны и другие варианты,
-   поэтому этот обобщенный метод специфицируется объектом, из которого извлекаются данные.
+В простейшем случае данные из объекта <code>request</code>, но возможны и другие варианты,
+поэтому этот обобщенный метод специфицируется объектом, из которого извлекаются данные.
 </p>
 
+<div class="org-src-container">
 
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1048;&#1079;&#1074;&#1083;&#1077;&#1095;&#1077;&#1085;&#1080;&#1077; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1093; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">get-auth-data</span> ((request list))
+<pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1048;&#1079;&#1074;&#1083;&#1077;&#1095;&#1077;&#1085;&#1080;&#1077; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1093; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
+(<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">get-auth-data</span> ((request list))
   (alist-to-plist request))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-9" class="outline-3">
+<div id="outline-container-sec-3-9" class="outline-3">
 <h3 id="sec-3-9"><span class="section-number-3">3.9</span> Функция проверки авторизационных данных - в простейшем случае логина и пароля</h3>
 <div class="outline-text-3" id="text-3-9">
-
-
 <p>
-   Функция принимает в качестве параметра plist, который должен содержать <code>email</code> и
-   <code>password</code> введенный пользователем.
-</p>
-<p>
-   Функция проверяет, есть ли пользователь с этим email-ом и паролем и если есть -
-   возвращает его id. Если нет - возвращает nil.
+Функция принимает в качестве параметра plist, который должен содержать <code>email</code> и
+<code>password</code> введенный пользователем.
 </p>
 
+<p>
+Функция проверяет, есть ли пользователь с этим email-ом и паролем и если есть -
+возвращает его id. Если нет - возвращает nil.
+</p>
 
+<div class="org-src-container">
 
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1082;&#1072; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1093; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">check-auth-data</span> (auth-data)
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((result (find-user <span style="color: #0000ee; font-weight: bold;">:email</span> (getf auth-data <span style="color: #0000ee; font-weight: bold;">:email</span>) <span style="color: #0000ee; font-weight: bold;">:password</span> (getf auth-data <span style="color: #0000ee; font-weight: bold;">:password</span>))))
-    (<span style="color: #00cdcd; font-weight: bold;">if</span> (null result)
+<pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1082;&#1072; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1093; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">check-auth-data</span> (auth-data)
+  (<span style="color: #a020f0;">let</span> ((result (find-user <span style="color: #483d8b;">:email</span> (getf auth-data <span style="color: #483d8b;">:email</span>) <span style="color: #483d8b;">:password</span> (getf auth-data <span style="color: #483d8b;">:password</span>))))
+    (<span style="color: #a020f0;">if</span> (null result)
         nil
         (id (car result)))))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-10" class="outline-3">
+<div id="outline-container-sec-3-10" class="outline-3">
 <h3 id="sec-3-10"><span class="section-number-3">3.10</span> Событие успешного входа пользователя в систему</h3>
 <div class="outline-text-3" id="text-3-10">
+<div class="org-src-container">
 
-
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086;&#1075;&#1086; &#1074;&#1093;&#1086;&#1076;&#1072;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">login-user-success</span> (id)
-  (takt (get-user id) <span style="color: #0000ee; font-weight: bold;">:logged</span>))
+<pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086;&#1075;&#1086; &#1074;&#1093;&#1086;&#1076;&#1072;</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">login-user-success</span> (id)
+  (takt (get-user id) <span style="color: #483d8b;">:logged</span>))
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-11" class="outline-3">
+<div id="outline-container-sec-3-11" class="outline-3">
 <h3 id="sec-3-11"><span class="section-number-3">3.11</span> Событие неуспешного входа пользователя в систему</h3>
 <div class="outline-text-3" id="text-3-11">
+<div class="org-src-container">
 
-
-
-
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1085;&#1077;&#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086;&#1075;&#1086; &#1074;&#1093;&#1086;&#1076;&#1072;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">login-user-fail</span> ()
-  <span style="color: #00cd00;">"Wrong auth"</span>
+<pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1085;&#1077;&#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086;&#1075;&#1086; &#1074;&#1093;&#1086;&#1076;&#1072;</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">login-user-fail</span> ()
+  <span style="color: #8b2252;">"Wrong auth"</span>
   )
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-12" class="outline-3">
+<div id="outline-container-sec-3-12" class="outline-3">
 <h3 id="sec-3-12"><span class="section-number-3">3.12</span> <span class="todo TODO">TODO</span> Забыл пароль</h3>
-<div class="outline-text-3" id="text-3-12">
-
 </div>
-
-</div>
-
-<div id="outline-container-3-13" class="outline-3">
+<div id="outline-container-sec-3-13" class="outline-3">
 <h3 id="sec-3-13"><span class="section-number-3">3.13</span> <span class="todo TODO">TODO</span> Javascript для форм, необязательно</h3>
-<div class="outline-text-3" id="text-3-13">
-
 </div>
-
-</div>
-
-<div id="outline-container-3-14" class="outline-3">
+<div id="outline-container-sec-3-14" class="outline-3">
 <h3 id="sec-3-14"><span class="section-number-3">3.14</span> <span class="todo TODO">TODO</span> Функцию проверки залогинен ли пользователь</h3>
 <div class="outline-text-3" id="text-3-14">
-
-
 <p>
-   Создадим функцию, которая проверяет залогинен ли пользователь
+Создадим функцию, которая проверяет залогинен ли пользователь
 </p>
 
+<div class="org-src-container">
 
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(defun is-logged (request)</span>
-<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">( (session-value current-user</span>
+<pre class="src src-lisp" id="is-logged"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(defun is-logged (request)</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">( (session-value current-user</span>
 </pre>
-
-
+</div>
+</div>
 </div>
 
-</div>
-
-<div id="outline-container-3-15" class="outline-3">
+<div id="outline-container-sec-3-15" class="outline-3">
 <h3 id="sec-3-15"><span class="section-number-3">3.15</span> <span class="todo TODO">TODO</span> Функцию проверки прав пользователя на доступ к какому-то объекту</h3>
-<div class="outline-text-3" id="text-3-15">
-
 </div>
 </div>
-
-</div>
-
-<div id="outline-container-4" class="outline-2">
+<div id="outline-container-sec-4" class="outline-2">
 <h2 id="sec-4"><span class="section-number-2">4</span> Тесты</h2>
 <div class="outline-text-2" id="text-4">
-
-
 <p>
-  Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
-  протестировать, для этого сформируем тест:
+Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
+протестировать, для этого сформируем тест:
 </p>
 
+<div class="org-src-container">
 
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1102;</span>
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">auth-test</span> ()
+<pre class="src src-lisp" id="auth_test"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1102;</span>
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">auth-test</span> ()
   &lt;&lt;auth_test_contents&gt;&gt;
-  (dbg <span style="color: #00cd00;">"passed: auth-test~%"</span>))
+  (dbg <span style="color: #8b2252;">"passed: auth-test~%"</span>))
 (auth-test)
 </pre>
+</div>
 
+<div class="org-src-container">
 
-
-<pre class="src src-lisp"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1091;&#1077;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
-(<span style="color: #00cdcd; font-weight: bold;">let*</span> ((name <span style="color: #00cd00;">"test-name"</span>)
-       (password <span style="color: #00cd00;">"test-password"</span>)
-       (email <span style="color: #00cd00;">"test-email"</span>)
+<pre class="src src-lisp" id="auth_test_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1091;&#1077;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
+(<span style="color: #a020f0;">let*</span> ((name <span style="color: #8b2252;">"admin"</span>)
+       (password <span style="color: #8b2252;">"tCDm4nFskcBqR7AN"</span>)
+       (email <span style="color: #8b2252;">"nomail@mail.ru"</span>)
        (new-user-id (create-user name password email)))
-  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084; &#1095;&#1090;&#1086; &#1086;&#1085; &#1089;&#1091;&#1097;&#1077;&#1089;&#1090;&#1074;&#1091;&#1077;&#1090;</span>
-  (<span style="color: #cd0000; font-weight: bold;">assert</span> (get-user new-user-id))
-  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1086;&#1085; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;</span>
-  (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">":LOGGED"</span> (state (get-user new-user-id))))
-  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1042;&#1099;&#1093;&#1086;&#1076; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;</span>
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084; &#1095;&#1090;&#1086; &#1086;&#1085; &#1089;&#1091;&#1097;&#1077;&#1089;&#1090;&#1074;&#1091;&#1077;&#1090;</span>
+  (<span style="color: #ff0000; font-weight: bold;">assert</span> (get-user new-user-id))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1086;&#1085; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;</span>
+  (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">":LOGGED"</span> (state (get-user new-user-id))))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1042;&#1099;&#1093;&#1086;&#1076; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;</span>
   (logout-user new-user-id)
-  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1086;&#1085; &#1088;&#1072;&#1079;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;</span>
-  (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">":UNLOGGED"</span> (state (get-user new-user-id))))
-  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1051;&#1086;&#1075;&#1080;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; &#1074; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1091;</span>
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((logged-user-id))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1086;&#1085; &#1088;&#1072;&#1079;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;</span>
+  (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">":UNLOGGED"</span> (state (get-user new-user-id))))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1051;&#1086;&#1075;&#1080;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; &#1074; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1091;</span>
+  (<span style="color: #a020f0;">let</span> ((logged-user-id))
     (aif (check-auth-data (get-auth-data (list (cons 'email email)
                                                (cons 'password password))))
-         (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+         (<span style="color: #a020f0;">progn</span>
            (login-user-success it)
            (setf logged-user-id it))
          (login-user-fail))
-    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1080;&#1083;&#1089;&#1103;</span>
-    (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">":LOGGED"</span> (state (get-user logged-user-id))))
-    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1086;&#1074;a &#1074;&#1099;&#1093;&#1086;&#1076;</span>
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1080;&#1083;&#1089;&#1103;</span>
+    (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">":LOGGED"</span> (state (get-user logged-user-id))))
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1085;&#1086;&#1074;a &#1074;&#1099;&#1093;&#1086;&#1076;</span>
     (logout-user logged-user-id))
-  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1087;&#1099;&#1090;&#1082;&#1072; &#1083;&#1086;&#1075;&#1080;&#1085;&#1072; &#1089; &#1085;&#1077;&#1074;&#1077;&#1088;&#1085;&#1099;&#1084;&#1080; credentials</span>
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((logged-user-id))
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1086;&#1087;&#1099;&#1090;&#1082;&#1072; &#1083;&#1086;&#1075;&#1080;&#1085;&#1072; &#1089; &#1085;&#1077;&#1074;&#1077;&#1088;&#1085;&#1099;&#1084;&#1080; credentials</span>
+  (<span style="color: #a020f0;">let</span> ((logged-user-id))
     (aif (check-auth-data (get-auth-data (list (cons 'email email)
-                                               (cons 'password <span style="color: #00cd00;">"wrong-password"</span>))))
-         (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+                                               (cons 'password <span style="color: #8b2252;">"wrong-password"</span>))))
+         (<span style="color: #a020f0;">progn</span>
            (login-user-success it)
            (setf logged-user-id it))
          (login-user-fail))
-    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1085;&#1077; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1080;&#1090;&#1100;&#1089;&#1103;</span>
-    (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal nil logged-user-id))))
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1080;&#1084;, &#1095;&#1090;&#1086; &#1085;&#1077; &#1091;&#1076;&#1072;&#1083;&#1086;&#1089;&#1100; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1080;&#1090;&#1100;&#1089;&#1103;</span>
+    (<span style="color: #ff0000; font-weight: bold;">assert</span> (equal nil logged-user-id))))
 </pre>
-
 </div>
 </div>
 </div>
-
-<div id="postamble">
-<p class="date">Date: 2014-10-14T21:38+0400</p>
+</div>
+<div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
-<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
-
+<p class="date">Created: 2015-01-28 Ср. 07:01</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
 </html>

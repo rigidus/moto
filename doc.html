@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>moto</title>
-<!-- 2015-01-27 Вт. 16:52 -->
+<!-- 2015-01-28 Ср. 07:01 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -169,7 +169,15 @@ for the JavaScript code in this tag.
 <li><a href="#sec-6-3">6.3. Список пользователей</a></li>
 <li><a href="#sec-6-4">6.4. Список ролей</a></li>
 <li><a href="#sec-6-5">6.5. Список групп</a></li>
-<li><a href="#sec-6-6">6.6. Страничка пользователя</a></li>
+<li><a href="#sec-6-6">6.6. Страничка пользователя</a>
+<ul>
+<li><a href="#sec-6-6-1">6.6.1. Отображение полей пользователя</a></li>
+<li><a href="#sec-6-6-2">6.6.2. Отображение блока управления ролью</a></li>
+<li><a href="#sec-6-6-3">6.6.3. Отображение блока управления группами</a></li>
+<li><a href="#sec-6-6-4">6.6.4. Отображение сообщений пользователя</a></li>
+</ul>
+</li>
+<li><a href="#sec-6-7">6.7. Страничка диалогов пользователя</a></li>
 </ul>
 </li>
 <li><a href="#sec-7">7. Модули</a>
@@ -2049,8 +2057,6 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
       <span style="color: #8b2252;">"&lt;a href=\"/roles\"&gt;&#1056;&#1086;&#1083;&#1080;&lt;/a&gt;"</span>)
     (<span style="color: #a020f0;">when</span> *current-user*
       <span style="color: #8b2252;">"&lt;a href=\"/groups\"&gt;&#1043;&#1088;&#1091;&#1087;&#1087;&#1099;&lt;/a&gt;"</span>)
-    <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/cmpxs\"&gt;&#1046;&#1080;&#1083;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1099;&lt;/a&gt;"</span>
-    <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/find\"&gt;&#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082;&lt;/a&gt;"</span>
     (<span style="color: #a020f0;">when</span> (null *current-user*)
       <span style="color: #8b2252;">"&lt;a href=\"/reg\"&gt;&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103;&lt;/a&gt;"</span>)
     (<span style="color: #a020f0;">when</span> (null *current-user*)
@@ -2059,13 +2065,15 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
       <span style="color: #8b2252;">"&#1041;&#1086;&#1083;&#1100;&#1096;&#1077; &#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1086;&#1089;&#1090;&#1077;&#1081; &#1076;&#1086;&#1089;&#1090;&#1091;&#1087;&#1085;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;&#1084;"</span>)
     (<span style="color: #a020f0;">when</span> *current-user*
       (format nil <span style="color: #8b2252;">"&lt;a href=\"/user/~A\"&gt;&#1052;&#1086;&#1081; &#1087;&#1088;&#1086;&#1092;&#1080;&#1083;&#1100;&lt;/a&gt;"</span> *current-user*))
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">(when *current-user*</span>
+    <span style="color: #b22222;">;;   </span><span style="color: #b22222;">"&lt;a href=\"/im\"&gt;&#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;&lt;/a&gt;")</span>
     (<span style="color: #a020f0;">when</span> *current-user*
       <span style="color: #8b2252;">"&lt;a href=\"/logout\"&gt;&#1042;&#1099;&#1093;&#1086;&#1076;&lt;/a&gt;"</span>)
-    (<span style="color: #a020f0;">when</span> *current-user*
-      <span style="color: #8b2252;">"&lt;a href=\"/im\"&gt;&#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103;&lt;/a&gt;"</span>)
-    (<span style="color: #a020f0;">when</span> *current-user*
-      <span style="color: #8b2252;">"&lt;a href=\"/load\"&gt;&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;&lt;/a&gt;"</span>)
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">(when *current-user*</span>
+    <span style="color: #b22222;">;;   </span><span style="color: #b22222;">"&lt;a href=\"/load\"&gt;&#1047;&#1072;&#1075;&#1088;&#1091;&#1079;&#1082;&#1072; &#1076;&#1072;&#1085;&#1085;&#1099;&#1093;&lt;/a&gt;")</span>
     <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/\"&gt;TODO: &#1056;&#1072;&#1089;&#1096;&#1080;&#1088;&#1077;&#1085;&#1085;&#1099;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082; &#1087;&#1086; &#1046;&#1050;&lt;/a&gt;"</span>
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/cmpxs\"&gt;&#1046;&#1080;&#1083;&#1099;&#1077; &#1082;&#1086;&#1084;&#1087;&#1083;&#1077;&#1082;&#1089;&#1099;&lt;/a&gt;"</span>
+    <span style="color: #b22222;">;; </span><span style="color: #b22222;">"&lt;a href=\"/find\"&gt;&#1055;&#1088;&#1086;&#1089;&#1090;&#1086;&#1081; &#1087;&#1086;&#1080;&#1089;&#1082;&lt;/a&gt;"</span>
     )))
 </pre>
 </div>
@@ -2300,66 +2308,29 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
 
 <pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
+&lt;&lt;user_data_html&gt;&gt;
+
+&lt;&lt;change_role_html&gt;&gt;
+
+&lt;&lt;change_grouphtml&gt;&gt;
+
+&lt;&lt;user_msg_html&gt;&gt;
+
 (<span style="color: #a020f0;">define-page</span> user <span style="color: #8b2252;">"/user/:userid"</span>
   (<span style="color: #a020f0;">let*</span> ((i (parse-integer userid))
          (u (get-user i)))
     (<span style="color: #a020f0;">if</span> (null u)
         <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1075;&#1086; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
-        (format nil <span style="color: #8b2252;">"~{~A~}"</span>
-                (list
-                 (format nil <span style="color: #8b2252;">"~{~A~}"</span>
-                         (<span style="color: #a020f0;">with-element</span> (u u)
-                           (ps-html
-                            ((<span style="color: #483d8b;">:h1</span>) (format nil <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; #~A - ~A"</span> (id u) (name u)))
-                            ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
-                             ((<span style="color: #483d8b;">:tr</span>)
-                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"id"</span>)
-                              ((<span style="color: #483d8b;">:td</span>) (id u)))
-                             ((<span style="color: #483d8b;">:tr</span>)
-                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"name"</span>)
-                              ((<span style="color: #483d8b;">:td</span>) (name u)))
-                             ((<span style="color: #483d8b;">:tr</span>)
-                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"password"</span>)
-                              ((<span style="color: #483d8b;">:td</span>) (password u)))
-                             ((<span style="color: #483d8b;">:tr</span>)
-                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"email"</span>)
-                              ((<span style="color: #483d8b;">:td</span>) (email u)))
-                             ((<span style="color: #483d8b;">:tr</span>)
-                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"ts-create"</span>)
-                              ((<span style="color: #483d8b;">:td</span>) (ts-create u)))
-                             ((<span style="color: #483d8b;">:tr</span>)
-                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"ts-last"</span>)
-                              ((<span style="color: #483d8b;">:td</span>) (ts-last u)))
-                             ((<span style="color: #483d8b;">:tr</span>)
-                              ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"role-id"</span>)
-                              ((<span style="color: #483d8b;">:td</span>) (role-id u))))
-                            ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
-                             ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
-                              ((<span style="color: #483d8b;">:tr</span>)
-                               ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1058;&#1077;&#1082;&#1091;&#1097;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;:"</span>)
-                               ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:select</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"role"</span>)
-                                       ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"0"</span>) <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1088;&#1086;&#1083;&#1100;"</span>)
-                                       (format nil <span style="color: #8b2252;">"~{~A~}"</span>
-                                               (<span style="color: #a020f0;">with-collection</span> (i (sort (all-role) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
-                                                 (<span style="color: #a020f0;">if</span> (equal (id i) (role-id u))
-                                                     (ps-html
-                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i) <span style="color: #483d8b;">:selected</span> <span style="color: #8b2252;">"selected"</span>) (name i)))
-                                                     (ps-html
-                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i)) (name i))))))))
-                               ((<span style="color: #483d8b;">:td</span>) %change-role%))))
-                            ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
-                             ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
-                              ((<span style="color: #483d8b;">:tr</span>)
-                               ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;:"</span>)
-                               ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) ((<span style="color: #483d8b;">:select</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"groups"</span> <span style="color: #483d8b;">:multiple</span> <span style="color: #8b2252;">"multiple"</span> <span style="color: #483d8b;">:size</span> <span style="color: #8b2252;">"7"</span>)
-                                       (format nil <span style="color: #8b2252;">"~{~A~}"</span>
-                                               (<span style="color: #a020f0;">with-collection</span> (i (sort (all-group) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
-                                                 (<span style="color: #a020f0;">if</span> (find (id i) (mapcar #'group-id (find-user2group <span style="color: #483d8b;">:user-id</span> (parse-integer userid))))
-                                                     (ps-html
-                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i) <span style="color: #483d8b;">:selected</span> <span style="color: #8b2252;">"selected"</span>) (name i)))
-                                                     (ps-html
-                                                      ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i)) (name i))))))))
-                               ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) %change-group%)))))))))))
+        (format nil <span style="color: #8b2252;">"~{~A~}"</span> (<span style="color: #a020f0;">with-element</span> (u u)
+                               (ps-html
+                                ((<span style="color: #483d8b;">:h1</span>) (format nil <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; #~A - ~A"</span> (id u) (name u)))
+                                ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0 <span style="color: #483d8b;">:cellspacing</span> 10 <span style="color: #483d8b;">:cellpadding</span> 10)
+                                 ((<span style="color: #483d8b;">:tr</span>)
+                                  ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span> <span style="color: #483d8b;">:bgcolor</span> <span style="color: #8b2252;">"#F8F8F8"</span>) (user-data-html u))
+                                  ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span> <span style="color: #483d8b;">:bgcolor</span> <span style="color: #8b2252;">"#F8F8F8"</span>) (change-role-html u %change-role%))
+                                  ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span> <span style="color: #483d8b;">:bgcolor</span> <span style="color: #8b2252;">"#F8F8F8"</span>) (change-group-html u %change-group%)))
+                                 ((<span style="color: #483d8b;">:tr</span>)
+                                  ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span> <span style="color: #483d8b;">:bgcolor</span> <span style="color: #8b2252;">"#F8F8F8"</span> <span style="color: #483d8b;">:colspan</span> 3) (user-msg-html u)))))))))
   (<span style="color: #483d8b;">:change-role</span> (<span style="color: #a020f0;">if</span> (equal 1 *current-user*)
                     (ps-html
                      ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"CHANGE-ROLE"</span>))
@@ -2383,8 +2354,7 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
                        (<span style="color: #a020f0;">if</span> (null (getf p <span style="color: #483d8b;">:groups</span>))
                            <span style="color: #8b2252;">"-not change-"</span>
                            (<span style="color: #a020f0;">loop</span>
-                              <span style="color: #483d8b;">:initially</span> (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
-                                                     (del-user2group (id x)))
+                              <span style="color: #483d8b;">:initially</span> (mapcar #'(<span style="color: #a020f0;">lambda</span> (x) (del-user2group (id x)))
                                                  (find-user2group <span style="color: #483d8b;">:user-id</span> (parse-integer userid)))
                               <span style="color: #483d8b;">:for</span> lnk
                               <span style="color: #483d8b;">:in</span> (<span style="color: #a020f0;">loop</span>
@@ -2394,6 +2364,193 @@ RabbitMQ, Mbus или ZMQ или даже использовать все их �
                                      <span style="color: #483d8b;">:collect</span> (parse-integer (nth n p)))
                               <span style="color: #483d8b;">:collect</span> (id (make-user2group <span style="color: #483d8b;">:user-id</span> i <span style="color: #483d8b;">:group-id</span> lnk)))))
                      <span style="color: #8b2252;">"access-denied"</span>)))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-6-6-1" class="outline-4">
+<h4 id="sec-6-6-1"><span class="section-number-4">6.6.1</span> Отображение полей пользователя</h4>
+<div class="outline-text-4" id="text-6-6-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="user_data_html">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">user-data-html</span> (u)
+  (ps-html
+   ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"id"</span>)
+     ((<span style="color: #483d8b;">:td</span>) (id u)))
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"name"</span>)
+     ((<span style="color: #483d8b;">:td</span>) (name u)))
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"password"</span>)
+     ((<span style="color: #483d8b;">:td</span>) (password u)))
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"email"</span>)
+     ((<span style="color: #483d8b;">:td</span>) (email u)))
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"ts-create"</span>)
+     ((<span style="color: #483d8b;">:td</span>) (ts-create u)))
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"ts-last"</span>)
+     ((<span style="color: #483d8b;">:td</span>) (ts-last u)))
+    ((<span style="color: #483d8b;">:tr</span>)
+     ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"role-id"</span>)
+     ((<span style="color: #483d8b;">:td</span>) (role-id u))))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-6-2" class="outline-4">
+<h4 id="sec-6-6-2"><span class="section-number-4">6.6.2</span> Отображение блока управления ролью</h4>
+<div class="outline-text-4" id="text-6-6-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="change_role_html">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">change-role-html</span> (u change-role-btn)
+  (ps-html
+   ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+    ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+     ((<span style="color: #483d8b;">:tr</span>)
+      ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1058;&#1077;&#1082;&#1091;&#1097;&#1072;&#1103; &#1088;&#1086;&#1083;&#1100;:"</span>)
+      ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:select</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"role"</span>)
+              ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"0"</span>) <span style="color: #8b2252;">"&#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1088;&#1086;&#1083;&#1100;"</span>)
+              (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                      (<span style="color: #a020f0;">with-collection</span> (i (sort (all-role) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
+                        (<span style="color: #a020f0;">if</span> (equal (id i) (role-id u))
+                            (ps-html
+                             ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i) <span style="color: #483d8b;">:selected</span> <span style="color: #8b2252;">"selected"</span>) (name i)))
+                            (ps-html
+                             ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i)) (name i))))))))
+      ((<span style="color: #483d8b;">:td</span>) change-role-btn))))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-6-3" class="outline-4">
+<h4 id="sec-6-6-3"><span class="section-number-4">6.6.3</span> Отображение блока управления группами</h4>
+<div class="outline-text-4" id="text-6-6-3">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="change_group_html">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">change-group-html</span> (u change-group-btn)
+  (ps-html
+   ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
+    ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
+     ((<span style="color: #483d8b;">:tr</span>)
+      ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) <span style="color: #8b2252;">"&#1043;&#1088;&#1091;&#1087;&#1087;&#1099; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;:"</span>)
+      ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) ((<span style="color: #483d8b;">:select</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"groups"</span> <span style="color: #483d8b;">:multiple</span> <span style="color: #8b2252;">"multiple"</span> <span style="color: #483d8b;">:size</span> <span style="color: #8b2252;">"7"</span>)
+                            (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                                    (<span style="color: #a020f0;">with-collection</span> (i (sort (all-group) #'(<span style="color: #a020f0;">lambda</span> (a b) (&lt; (id a) (id b)))))
+                                      (<span style="color: #a020f0;">if</span> (find (id i) (mapcar #'group-id (find-user2group <span style="color: #483d8b;">:user-id</span> (id u))))
+                                          (ps-html
+                                           ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i) <span style="color: #483d8b;">:selected</span> <span style="color: #8b2252;">"selected"</span>) (name i)))
+                                          (ps-html
+                                           ((<span style="color: #483d8b;">:option</span> <span style="color: #483d8b;">:value</span> (id i)) (name i))))))))
+      ((<span style="color: #483d8b;">:td</span> <span style="color: #483d8b;">:valign</span> <span style="color: #8b2252;">"top"</span>) change-group-btn))))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-6-4" class="outline-4">
+<h4 id="sec-6-6-4"><span class="section-number-4">6.6.4</span> Отображение сообщений пользователя</h4>
+<div class="outline-text-4" id="text-6-6-4">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="user_msg_html">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">user-msg-html</span> (u)
+  (ps-html
+   ((<span style="color: #483d8b;">:h2</span>) <span style="color: #8b2252;">"&#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;:"</span>)
+   ((<span style="color: #483d8b;">:a</span> <span style="color: #483d8b;">:href</span> (format nil <span style="color: #8b2252;">"user/~A/im/new"</span> (id u))) <span style="color: #8b2252;">"&#1053;&#1086;&#1074;&#1086;&#1077; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1077;"</span>)
+   ((<span style="color: #483d8b;">:br</span>))
+   ((<span style="color: #483d8b;">:br</span>))
+   (<span style="color: #a020f0;">let</span> ((msgs (get-last-msg-dialogs-for-user-id (id u))))
+     (<span style="color: #a020f0;">if</span> (equal 0 (length msgs))
+         <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;"</span>
+         (msgtpl:dialogs
+          (list
+           <span style="color: #483d8b;">:content</span>
+           (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                   (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> msgs <span style="color: #483d8b;">:collect</span>
+                      (<span style="color: #a020f0;">cond</span> ((equal <span style="color: #483d8b;">:rcv</span> (car (last item)))
+                             (msgtpl:dlgrcv
+                              (list <span style="color: #483d8b;">:id</span> (car item)
+                                    <span style="color: #483d8b;">:from</span> (cadr item)
+                                    <span style="color: #483d8b;">:time</span> (caddr item)
+                                    <span style="color: #483d8b;">:msg</span> (cadddr item)
+                                    <span style="color: #483d8b;">:state</span> (nth 4 item)
+                                    <span style="color: #483d8b;">:userid</span> (id u)
+                                    )))
+                            ((equal <span style="color: #483d8b;">:snd</span> (car (last item)))
+                             (msgtpl:dlgsnd
+                              (list <span style="color: #483d8b;">:id</span> (car item)
+                                    <span style="color: #483d8b;">:to</span> (cadr item)
+                                    <span style="color: #483d8b;">:time</span> (caddr item)
+                                    <span style="color: #483d8b;">:msg</span> (cadddr item)
+                                    <span style="color: #483d8b;">:state</span> (nth 4 item)
+                                    <span style="color: #483d8b;">:userid</span> (id u)
+                                    )))
+                            (t (err <span style="color: #8b2252;">"unknown dialog type"</span>)))))))))))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6-7" class="outline-3">
+<h3 id="sec-6-7"><span class="section-number-3">6.7</span> Страничка диалогов пользователя</h3>
+<div class="outline-text-3" id="text-6-7">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="iface_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+(<span style="color: #a020f0;">define-page</span> userim <span style="color: #8b2252;">"/user/:userid/im/:imid"</span>
+  (<span style="color: #a020f0;">let*</span> ((user-id (parse-integer userid))
+         (im-id (parse-integer imid))
+         (u (get-user user-id))
+         (j (get-user im-id)))
+    (<span style="color: #a020f0;">if</span> (or (null u) (null j))
+        <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1090;&#1072;&#1082;&#1086;&#1075;&#1086; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
+        (<span style="color: #a020f0;">let</span> ((msgs (get-msg-dialogs-for-two-user-ids user-id im-id)))
+          (<span style="color: #a020f0;">if</span> (equal 0 (length msgs))
+              <span style="color: #8b2252;">"&#1053;&#1077;&#1090; &#1089;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081;"</span>
+              (ps-html
+               ((<span style="color: #483d8b;">:h1</span>) (format nil <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1076;&#1080;&#1072;&#1083;&#1086;&#1075;&#1086;&#1074; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103; #~A - ~A &#1089; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1084; #~A - ~A"</span>
+                              (id u) (name u)
+                              (id j) (name j)))
+               (msgtpl:dialogs
+                (list
+                 <span style="color: #483d8b;">:content</span>
+                 (format nil <span style="color: #8b2252;">"~{~A~}"</span>
+                         (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> item <span style="color: #483d8b;">:in</span> msgs <span style="color: #483d8b;">:collect</span>
+                            (<span style="color: #a020f0;">cond</span> ((equal user-id (cadr item))
+                                   (msgtpl:dlgrcv
+                                    (list <span style="color: #483d8b;">:id</span> (car item)
+                                          <span style="color: #483d8b;">:from</span> (cadr item)
+                                          <span style="color: #483d8b;">:time</span> (caddr item)
+                                          <span style="color: #483d8b;">:msg</span> (cadddr item)
+                                          <span style="color: #483d8b;">:state</span> (nth 4 item)
+                                          <span style="color: #483d8b;">:userid</span> userid
+                                          )))
+                                  ((equal im-id (cadr item))
+                                   (msgtpl:dlgsnd
+                                    (list <span style="color: #483d8b;">:id</span> (car item)
+                                          <span style="color: #483d8b;">:to</span> (cadr item)
+                                          <span style="color: #483d8b;">:time</span> (caddr item)
+                                          <span style="color: #483d8b;">:msg</span> (cadddr item)
+                                          <span style="color: #483d8b;">:state</span> (nth 4 item)
+                                          <span style="color: #483d8b;">:userid</span> userid
+                                          )))
+                                  (t (err <span style="color: #8b2252;">"err 3536262346"</span>)))
+                            ))))))))))
 </pre>
 </div>
 </div>
@@ -4168,7 +4325,7 @@ neato -Tpng -otester.png -n test.dot
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-27 Вт. 16:52</p>
+<p class="date">Created: 2015-01-28 Ср. 07:01</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

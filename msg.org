@@ -131,7 +131,7 @@
 
    На странице диалогов мы хотим видеть список всех диалогов. В каждом диалоге мы хотим
    видеть последнее сообщение. Чтобы получить последние сообщения мы вызываем
-   =get-last-msg-dialog-ids-for-user-id=.
+   =get-last-msg-dialogs-for-user-id=.
 
    Не стоит пытаться называть маршрут =msg= так как это конфликтует с именем сущности,
    определенным в этом же пакете
@@ -149,7 +149,7 @@
      ;;         ((:a :href "/im/new") "Новое сообщение")
      ;;         ((:br))
      ;;         ((:br))
-     ;;         (let ((msgs (get-last-msg-dialog-ids-for-user-id *current-user*)))
+     ;;         (let ((msgs (get-last-msg-dialogs-for-user-id *current-user*)))
      ;;           (if (equal 0 (length msgs))
      ;;               "Нет сообщений"
      ;;               (msgtpl:dialogs
@@ -178,13 +178,6 @@
    #+END_SRC
 
 ** Страница отправки сообщения
-
-   На странице диалогов мы хотим видеть список всех диалогов. В каждом диалоге мы хотим
-   видеть последнее сообщение. Чтобы получить последние сообщения мы вызываем
-   =get-last-msg-dialog-ids-for-user-id=.
-
-   Не стоит пытаться называть маршрут =msg= так как это конфликтует с именем сущности,
-   определенным в этом же пакете
 
    #+NAME: msg_fn_contents
    #+BEGIN_SRC lisp
@@ -233,6 +226,8 @@
 
 ** Функция получения кол-ва непрочитанных сообщений
 
+   Нужна чтобы указать кол-во сообщений в пункте меню "сообщения"
+
    #+NAME: msg_fn_contents
    #+BEGIN_SRC lisp
 
@@ -274,38 +269,26 @@
      (in-package #:moto)
 
      ;; Функция получения всех идентификаторов сообщений для данного пользователя
-     (defun get-last-msg-dialog-ids-for-user-id (user-id)
+     (defun get-last-msg-dialogs-for-user-id (user-id)
        (with-connection *db-spec*
          (let* ((res-snd)
                 (res-rcv)
                 ;; Получим идентификторы всех, кто нам писал, по ним получим последнее написанное ими сообщение
-                (snd (loop
-                        :for sndr
-                        :in  (query (:select :snd-id :distinct :from 'msg :where (:= :rcv-id user-id)))
-                        :collect (query
-                                  (:limit
-                                   (:order-by
-                                    (:select :id :snd-id :ts-create :msg :state
-                                             :from 'msg
-                                             :where (:and (:= :rcv-id user-id)
-                                                          (:= :snd-id (car sndr))))
-                                    (:desc :ts-create))
-                                   1)
-                                  )))
+                (snd (loop :for sndr :in  (query (:select :snd-id :distinct :from 'msg :where (:= :rcv-id user-id))) :collect
+                        (query (:limit (:order-by
+                                        (:select :id :snd-id :ts-create :msg :state
+                                                 :from 'msg :where (:and (:= :rcv-id user-id)
+                                                                         (:= :snd-id (car sndr))))
+                                        (:desc :ts-create))
+                                       1))))
                 ;; Получим идентификторы всех, кому мы писали, по ним получим последнее написанное нами сообщение
-                (rcv (loop
-                        :for rcvr
-                        :in  (query (:select :rcv-id :distinct :from 'msg :where (:= :snd-id user-id)))
-                        :collect (query
-                                  (:limit
-                                   (:order-by
-                                    (:select :id :rcv-id :ts-create :msg :state
-                                             :from 'msg
-                                             :where (:and (:= :snd-id user-id)
-                                                          (:= :rcv-id (car rcvr))))
-                                    (:desc :ts-create))
-                                   1)
-                                  ))))
+                (rcv (loop :for rcvr :in  (query (:select :rcv-id :distinct :from 'msg :where (:= :snd-id user-id))) :collect
+                        (query (:limit (:order-by
+                                        (:select :id :rcv-id :ts-create :msg :state
+                                                 :from 'msg :where (:and (:= :snd-id user-id)
+                                                                         (:= :rcv-id (car rcvr))))
+                                        (:desc :ts-create))
+                                       1)))))
            ;; Проходим по тем последним сообщениям, что присланы нам
            (loop :for item :in snd :do
               ;; (dbg "~%:~A" item)
@@ -318,15 +301,13 @@
                      (if (> (caddar item) (caddar it))
                          ;; Если более позднее то, что нам прислали, то
                          ;; отправляем его в res-snd
-                         (progn
-                           (setf res-snd (append res-snd (list item)))
-                           ;; (dbg "~%|YY|res-snd: ~A" res-snd)
-                           )
+                         (progn (setf res-snd (append res-snd (list item)))
+                                ;; (dbg "~%|YY|res-snd: ~A" res-snd)
+                                )
                          ;; Если то, что послали мы, то оправляем его в res-rcv и удаляем из rcv - останутся только неспаренные
-                         (progn
-                           (setf res-rcv (append res-rcv (list it)))
-                           ;; (dbg "~%|NN|res-rcv: ~A" res-rcv)
-                           (setf rcv (remove it rcv)))))
+                         (progn (setf res-rcv (append res-rcv (list it)))
+                                ;; (dbg "~%|NN|res-rcv: ~A" res-rcv)
+                                (setf rcv (remove it rcv)))))
                    ;; Если нет, то
                    (progn
                      ;; Результат отправляем то что есть в res-snd
@@ -347,8 +328,24 @@
             (append res-snd res-rcv)
             #'(lambda (a b)
                 (> (caddr a) (caddr b)))))))
+
+     ;; (get-last-msg-dialogs-for-user-id 2)
    #+END_SRC
 
+** Функция получения последних сообщений диалогов для пары  пользователей
+
+   #+NAME: msg_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun get-msg-dialogs-for-two-user-ids (user-id-one user-id-two)
+       (with-connection *db-spec*
+         (query (:order-by
+                 (:select :id :rcv-id :ts-create :snd-id :msg :state
+                   :from 'msg :where (:or (:and (:= :rcv-id user-id-one) (:= :snd-id user-id-two))
+                                                     (:and (:= :rcv-id user-id-two) (:= :snd-id user-id-one))))
+                 (:desc :ts-create)))))
+   #+END_SRC
 ** Функция отображения одного сообщения в списке сообщений
 
    #+NAME: msg_fn_contents
@@ -419,7 +416,7 @@
           (let* ((msg-dave-to-bob "Привет, Боб, я хочу добавить тебя в друзья")
                  (msg-dave-to-bob-id (create-msg dave bob msg-dave-to-bob)))
             ;; Получим последние диалоги Боба
-            (let ((last-dialogs (get-last-msg-dialog-ids-for-user-id bob)))
+            (let ((last-dialogs (get-last-msg-dialogs-for-user-id bob)))
               ;; (dbg "~%~A" (bprint last-dialogs))
               ;; Проверим, что в имеем три диалога
               (assert (equal 3 (length last-dialogs)))
