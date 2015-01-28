@@ -1269,7 +1269,7 @@
            "Нет такого пользователя"
            (let ((msgs (get-msg-dialogs-for-two-user-ids user-id im-id)))
              (if (equal 0 (length msgs))
-                 "Нет сообщений"
+                 "Нет сообщений!"
                  (ps-html
                   ((:h1) (format nil "Страница диалогов пользователя #~A - ~A с пользователем #~A - ~A"
                                  (id u) (name u)

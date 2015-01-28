@@ -15,7 +15,7 @@
       <td>{$id | noAutoescape}</td>
       <td>{$time | noAutoescape}</td>
       <td>{$from | noAutoescape}</td>
-      <td><a href="/user/{$userid}/im/{$id}">{$msg | noAutoescape}</a></td>
+      <td><a href="/user/{$userid}/im/{$from}">{$msg | noAutoescape}</a></td>
       <td>{$state | noAutoescape}</td>
   </tr>
 {/template}
@@ -26,7 +26,7 @@
       <td>{$id | noAutoescape}</td>
       <td>{$time | noAutoescape}</td>
       <td>{$to | noAutoescape}</td>
-      <td><a href="/user/{$userid}/im/{$id}">{$msg | noAutoescape}</a></td>
+      <td><a href="/user/{$userid}/im/{$to}">{$msg | noAutoescape}</a></td>
       <td>{$state | noAutoescape}</td>
   </tr>
 {/template}
