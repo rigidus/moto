@@ -159,89 +159,78 @@
      (SYMBOL-MACROLET ((%REGISTER%
                         (PS-HTML
                          ((:INPUT :TYPE "hidden" :NAME "act" :VALUE "REGISTER"))
-                         ((:INPUT :TYPE "submit" :VALUE "Зарегистрироваться")))))
+                         (submit "Зарегистрироваться"))))
        (RESTAS:DEFINE-ROUTE REG
            ("/reg")
          (PROGN
            (START-SESSION)
-           (LET* ((*CURRENT-USER* (SESSION-VALUE 'CURRENT-USER)) (RETVAL))
+           (LET* ((*CURRENT-USER* (SESSION-VALUE 'CURRENT-USER))
+                  (RETVAL))
              (DECLARE (SPECIAL *CURRENT-USER*))
              (HANDLER-CASE
                  (LET ((OUTPUT
                         (WITH-OUTPUT-TO-STRING (*STANDARD-OUTPUT*)
                           (SETF RETVAL
-                                (PS-HTML ((:H1) "Страница регистрации")
-                                         (IF *CURRENT-USER*
-                                             "Регистрация невозможна - пользователь залогинен"
-                                             (PS-HTML
-                                              ((:FORM :METHOD "POST")
-                                               ((:TABLE :BORDER 0)
-                                                ((:TR) ((:TD) "Имя пользователя: ")
-                                                 ((:TD)
-                                                  ((:INPUT :TYPE "text" :NAME "name"
-                                                           :VALUE ""))))
-                                                ((:TR) ((:TD) "Пароль: ")
-                                                 ((:TD)
-                                                  ((:INPUT :TYPE "password" :NAME
-                                                           "password" :VALUE ""))))
-                                                ((:TR) ((:TD) "Email: ")
-                                                 ((:TD)
-                                                  ((:INPUT :TYPE "email" :NAME "email"
-                                                           :VALUE ""))))
-                                                ((:TR) ((:TD) "")
-                                                 ((:TD) %REGISTER%)))))))))))
+                                (form ("regform" "Регистрационные данные")
+                                  (fieldset "Обязательные поля"
+                                    (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
+                                    (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+                                    (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
+                                    (input ("nickname" "Никнейм" :required t :maxlength "50")))
+                                  (fieldset "Необязательные поля"
+                                    (input ("firstname" "Имя" :maxlength "25" ))
+                                    (input ("lastname" "Фамилия" :maxlength "25" ))
+                                    (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер  неверный")
+                                    (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер  неверный")
+                                    (select ("sex" "Пол")
+                                      (option "Please select" "Выбрать пол")
+                                      (option "male" "Мужской")
+                                      (option "female" "Мужской"))
+                                    (ps-html
+                                     ((:div :class "date-container")
+                                      ((:label :for "date-of-birth") "День рождения")
+                                      ((:div :class "date-container__inputs fieldset-validation")
+                                       (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
+                                       (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
+                                       (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
+                                    )
+                                  %REGISTER%)))))
                    (TPL:LOUIS
                     (LIST
                      :HEADER
                      (TPL:HEADER)
                      :CONTENT
                      (tpl:reg
-                      (list :test (form ("regform" "Регистрационные данные")
-                                        (fieldset "Обязательные поля"
-                                          (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
-                                          (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-                                          (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
-                                          (input ("nickname" "Никнейм" :required t :maxlength "50")))
-                                        (fieldset "Необязательные поля"
-                                          (input ("firstname" "Имя" :maxlength "25" ))
-                                          (input ("lastname" "Фамилия" :maxlength "25" ))
-                                          (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер телефона неверный или неполный")
-                                          (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер телефона неверный или неполный")
-                                          (select ("sex" "Пол")
-                                            (option "Please select" "Выбрать пол")
-                                            (option "male" "Мужской")
-                                            (option "female" "Мужской"))
-                                          (ps-html
-                                           ((:div :class "date-container")
-                                            ((:label :for "date-of-birth") "День рождения")
-                                            ((:div :class "date-container__inputs fieldset-validation")
-                                             (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
-                                             (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
-                                             (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
-                                          )
-                                        (submit "Зарегистрироваться"))))
-                     ;; (TPL:CONTENT
-                     ;;  (LIST :INCONTENT
-                     ;;        (FORMAT NIL "~{~A~}"
-                     ;;                (LIST (TPL:DBGBLOCK (LIST :DBGOUT OUTPUT))
-                     ;;                      (TPL:USERBLOCK
-                     ;;                       (LIST :CURRENTUSER
-                     ;;                             (IF (NULL *CURRENT-USER*)
-                     ;;                                 "none"
-                     ;;                                 *CURRENT-USER*)))
-                     ;;                      (IF *CURRENT-USER*
-                     ;;                          (TPL:MSGBLOCK
-                     ;;                           (LIST :MSGCNT
-                     ;;                                 (GET-UNDELIVERED-MSG-CNT
-                     ;;                                  *CURRENT-USER*)))
-                     ;;                          "")
-                     ;;                      (TPL:MENUBLOCK
-                     ;;                       (LIST :MENU
-                     ;;                             (FORMAT NIL "~{~A<br />~}" (MENU))))
-                     ;;                      (TPL:RETVALBLOCK (LIST :RETVAL RETVAL))))))
+                      (list
+                       :menu (TPL:MENUBLOCK
+                              (LIST :MENU
+                                    (FORMAT NIL "~{~A<br />~}" (MENU))))
+
+                       :dbg  (TPL:DBGBLOCK (LIST :DBGOUT OUTPUT))
+                       :user (TPL:USERBLOCK
+                              (LIST :CURRENTUSER
+                                    (IF (NULL *CURRENT-USER*)
+                                        "none"
+                                        ,*CURRENT-USER*)))
+                       :msg  (IF *CURRENT-USER*
+                                 (TPL:MSGBLOCK (LIST :MSGCNT (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*)))
+                                 "")
+                       :ret  (TPL:RETVALBLOCK (LIST :RETVAL retval))
+                       :teasers (ps-html
+                                 (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
+                                   "Адрес электронной почты, телефон и другие данные нигде не показываеются на сайте - мы используем их только для восстановления доступа к аккаунту."
+                                   )
+                                 (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                                   "Пароль к аккаунту храниться в зашифрованной форме - даже оператор сайта не может прочитать его"
+                                   )
+                                 (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                                   "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>."
+                                   )
+                                 (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                                   "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы"
+                                   ))))
                      :FOOTER (TPL:FOOTER) :TITLE "title")))
                (AJAX (AJAX) (OUTPUT AJAX))))))
-
        (RESTAS:DEFINE-ROUTE REG-CTRL
            ("/reg" :METHOD :POST)
          (WITH-WRAPPER

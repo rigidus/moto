@@ -33,9 +33,7 @@
 {/template}
 
 {template retvalblock}
-    <div style="border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;">
-        {$retval | noAutoescape}
-    </div>
+    {$retval | noAutoescape}
 {/template}
 
 {template msgblock}
@@ -2307,6 +2305,9 @@
                         <a title="Логин" href="/reg">Логин</a>
                     </li>
                 </ul>
+                {$menu |noAutoescape}
+                <br />
+                {$user | noAutoescape}
             </div>
 
             <article class="content">
@@ -2330,10 +2331,16 @@
                 </div>
 
                 <div class="content-box size-3-5 switch-content-container">
-                    {$test | noAutoescape}
+                    {$dbg | noAutoescape}
+                    {$msg | noAutoescape}
+                    {$ret | noAutoescape}
                 </div>
 
+
                 <div class="content-box size-1-5">
+
+                    {$teasers | noAutoescape}
+
                     <div class="teaser-box">
                         <div class="inner">
                             <div class="center">

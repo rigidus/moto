@@ -192,6 +192,87 @@
      ;;     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address.")))
    #+END_SRC
 
+** Тизеры
+
+   #+NAME teaser
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro teaser ((&rest rest &key class header &allow-other-keys) &body contents)
+       (let ((result-class "teaser-box")
+             (inner '((:div :class "inner"))))
+         (when class
+           (setf result-class (concatenate 'string result-class " " class)))
+         (when header
+           (setf inner (append inner `(((:div :class "center") ,header)))))
+         (setf inner (append inner `(((:p) ,@contents))))
+         (remf rest :class)
+         (remf rest :header)
+         (let ((teaser-box `(:div :class ,result-class)))
+           (setf teaser-box (append teaser-box rest))
+           `(ps-html
+             (,teaser-box ,inner)))))
+
+     (macroexpand-1 '(teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
+                      "Адрес электронной почты, телефон и другие
+                      данные нигде не показываеются на сайте -
+                      мы используем их только для восстановления
+                      доступа к аккаунту."
+                      ))
+
+     ;; (macroexpand-1 '(teaser (:header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip") "Безопасность данных"))
+     ;;                  "Пароль к аккаунту храниться в
+     ;;                  зашифрованной форме - даже оператор сайта не
+     ;;                  может прочитать его"
+     ;;                  ))
+
+     ;; (macroexpand-1 '(teaser (:class "add" :zzz "zzz")
+     ;;                  "Пароль к аккаунту храниться в
+     ;;                  зашифрованной форме - даже оператор сайта не
+     ;;                  может прочитать его"
+     ;;                  ))
+
+       ;; <div class="content-box size-1-5">
+       ;;     <div class="teaser-box">
+       ;;         <div class="inner">
+       ;;             <div class="center">
+       ;;                 <h2 class="teaser-box--title">Безопасность данных</h2>
+       ;;             </div>
+       ;;             <p>
+       ;;                 Адрес электронной почты, телефон и другие
+       ;;                 данные нигде не показываеются на сайте -
+       ;;                 мы используем их только для восстановления
+       ;;                 доступа к аккаунту.
+       ;;             </p>
+       ;;         </div>
+       ;;     </div>
+       ;;     <div class="teaser-box text-container">
+       ;;         <div class="inner">
+       ;;             <div class="center">
+       ;;                 <img src="https://www.louis.de/content/application/language/de_DE/images/tipp.png" alt="Tip" />
+       ;;             </div>
+       ;;             <p>Пароль к аккаунту храниться в
+       ;;                 зашифрованной форме - даже оператор сайта не
+       ;;                 может прочитать его</p>
+       ;;         </div>
+       ;;     </div>
+
+     ;; (ps-html
+     ;;  ((:div :class "content-box size-1-5")
+     ;;   (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
+     ;;     "Адрес электронной почты, телефон и другие данные нигде не показываеются на сайте - мы используем их только для восстановления доступа к аккаунту."
+     ;;     )
+     ;;   (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+     ;;     "Пароль к аккаунту храниться в зашифрованной форме - даже оператор сайта не может прочитать его"
+     ;;     )
+     ;;   (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+     ;;     "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>."
+     ;;     )
+     ;;   (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+     ;;     "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы"
+     ;;     )))
+
+   #+END_SRC
 * Interface
 
   Соберем веб-интерфейс:
@@ -903,9 +984,7 @@
      {/template}
 
      {template retvalblock}
-         <div style="border: 1px solid red; background-color: #FFFFFF; padding: 2px 20px 2px 20px;">
-             {$retval | noAutoescape}
-         </div>
+         {$retval | noAutoescape}
      {/template}
 
      {template msgblock}
@@ -2966,6 +3045,9 @@
                              <a title="Логин" href="/reg">Логин</a>
                          </li>
                      </ul>
+                     {$menu |noAutoescape}
+                     <br />
+                     {$user | noAutoescape}
                  </div>
 
                  <article class="content">
@@ -2987,55 +3069,14 @@
                              </div>
                          </div>
                      </div>
-
                      <div class="content-box size-3-5 switch-content-container">
-                         {$test | noAutoescape}
+                         {$dbg | noAutoescape}
+                         {$msg | noAutoescape}
+                         {$ret | noAutoescape}
                      </div>
-
                      <div class="content-box size-1-5">
-                         <div class="teaser-box">
-                             <div class="inner">
-                                 <div class="center">
-                                     <h2 class="teaser-box--title">Безопасность данных</h2>
-                                 </div>
-                                 <p>
-                                     Адрес электронной почты, телефон и другие
-                                     данные нигде не показываеются на сайте -
-                                     мы используем их только для восстановления
-                                     доступа к аккаунту.
-                                 </p>
-                             </div>
-                         </div>
-                         <div class="teaser-box text-container">
-                             <div class="inner">
-                                 <div class="center">
-                                     <img src="https://www.louis.de/content/application/language/de_DE/images/tipp.png" alt="Tip" />
-                                 </div>
-                                 <p>Пароль к аккаунту храниться в
-                                     зашифрованной форме - даже оператор сайта не
-                                     может прочитать его</p>
-                             </div>
-                         </div>
-                         <div class="teaser-box text-container">
-                             <div class="inner">
-                                 <div class="center">
-                                     <img src="https://www.louis.de/content/application/language/de_DE/images/tipp.png" alt="Tip" />
-                                 </div>
-                                 <p>Все данные шифруются с использованием <a href="#dataprivacy-overlay" class="js__openOverlay">SSL</a>.</p>
-                             </div>
-                         </div>
-                         <div class="teaser-box text-container">
-                             <div class="inner">
-                                 <div class="center">
-                                     <img src="https://www.louis.de/content/application/language/de_DE/images/tipp.png" alt="Tip" />
-                                 </div>
-                                 <p>Безопасный пароль должен состоять не менее
-                                     чем из 8 символов и включать в себя цифры или
-                                     другие специальные символы</p>
-                             </div>
-                         </div>
+                         {$teasers | noAutoescape}
                      </div>
-
                      <span class="clear"></span>
                  </article>
 
