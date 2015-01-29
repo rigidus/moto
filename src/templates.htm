@@ -2329,78 +2329,19 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="content-box size-3-5 switch-content-container">
                     {$dbg | noAutoescape}
                     {$msg | noAutoescape}
                     {$ret | noAutoescape}
                 </div>
-
-
                 <div class="content-box size-1-5">
-
                     {$teasers | noAutoescape}
-
-                    <div class="teaser-box">
-                        <div class="inner">
-                            <div class="center">
-                                <h2 class="teaser-box--title">Безопасность данных</h2>
-                            </div>
-                            <p>
-                                Адрес электронной почты, телефон и другие
-                                данные нигде не показываеются на сайте -
-                                мы используем их только для восстановления
-                                доступа к аккаунту.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="teaser-box text-container">
-                        <div class="inner">
-                            <div class="center">
-                                <img src="https://www.louis.de/content/application/language/de_DE/images/tipp.png" alt="Tip" />
-                            </div>
-                            <p>Пароль к аккаунту храниться в
-                                зашифрованной форме - даже оператор сайта не
-                                может прочитать его</p>
-                        </div>
-                    </div>
-                    <div class="teaser-box text-container">
-                        <div class="inner">
-                            <div class="center">
-                                <img src="https://www.louis.de/content/application/language/de_DE/images/tipp.png" alt="Tip" />
-                            </div>
-                            <p>Все данные шифруются с использованием <a href="#dataprivacy-overlay" class="js__openOverlay">SSL</a>.</p>
-                        </div>
-                    </div>
-                    <div class="teaser-box text-container">
-                        <div class="inner">
-                            <div class="center">
-                                <img src="https://www.louis.de/content/application/language/de_DE/images/tipp.png" alt="Tip" />
-                            </div>
-                            <p>Безопасный пароль должен состоять не менее
-                                чем из 8 символов и включать в себя цифры или
-                                другие специальные символы</p>
-                        </div>
-                    </div>
                 </div>
-
                 <span class="clear"></span>
             </article>
 
             <div class="overlay-container popup" id="dataprivacy-overlay" data-dontcloseviabg="" data-mustrevalidate="">
-                <div class="overlay dataprivacy-overlay ">
-                    <a class="action-icon action-icon--close" href="#">Close</a>
-                    <h3 class="overlay__title">Information on SSL</h3>
-
-                    <div class="text-container">
-                        <h4>How are my order details protected from prying eyes and manipulation by third parties during transmission?</h4>
-                        <p>Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption. This technique is currently regarded as secure and is also used by some banks for online banking.</p>
-                        <h4>How can I check that the data are actually transmitted encrypted?</h4>
-                        <p>When entering your personal details right-click on the order form and select "Properties" (Internet Explorer) or "View Page Info - Security" (Netscape/Mozilla) and view the information on encryption.</p>
-                        <h4>My browser (Internet Explorer) shows that only 40- or 56-bit encryption is used, and not 128-bit. What can I do?</h4>
-                        <p>Some older browsers do not support high encryption. Please install the latest version of your browser and/or install the updates from the browser manufacturer.</p>
-                    </div>
-                </div>
+                {$overlays | noAutoescape}
             </div>
 
             <span class="clear"></span>

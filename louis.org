@@ -273,6 +273,34 @@
      ;;     )))
 
    #+END_SRC
+
+** Всплывающие окна
+
+   #+NAME overlay
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro overlay ((header &rest rest &key container-class class &allow-other-keys) &body contents)
+       (let ((result-container-class "overlay")
+             (result-class "text-container"))
+         (when container-class
+           (setf result-container-class (concatenate 'string result-container-class " " container-class)))
+         (remf rest :container-class)
+         (remf rest :class)
+         (let ((container `(:div :class ,result-container-class)))
+           (setf container (append container rest))
+           `(ps-html
+             (,container
+               ((:a :class "action-icon action-icon--close" :href "#") "Close")
+               ,header
+               ((:div :class "text-container") ,@contents)
+               )))))
+
+     ;; (macroexpand-1 '(overlay (((:h3 :class "overlay__title") "Information on SSL") :container-class "dataprivacy-overlay" :zzz "zzz")
+     ;;                  ((:h4) "How are my order details protected from prying eyes and manipulation by third parties during transmission?")
+     ;;                  ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption.")))
+   #+END_SRC
+
 * Interface
 
   Соберем веб-интерфейс:
@@ -1706,7 +1734,7 @@
          </header>
      {/template}
    #+END_SRC
-*** Content
+*** COMMENT Content
    #+NAME: tpl_content
    #+BEGIN_SRC closure-template-html
      {template content}
@@ -3081,19 +3109,7 @@
                  </article>
 
                  <div class="overlay-container popup" id="dataprivacy-overlay" data-dontcloseviabg="" data-mustrevalidate="">
-                     <div class="overlay dataprivacy-overlay ">
-                         <a class="action-icon action-icon--close" href="#">Close</a>
-                         <h3 class="overlay__title">Information on SSL</h3>
-
-                         <div class="text-container">
-                             <h4>How are my order details protected from prying eyes and manipulation by third parties during transmission?</h4>
-                             <p>Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption. This technique is currently regarded as secure and is also used by some banks for online banking.</p>
-                             <h4>How can I check that the data are actually transmitted encrypted?</h4>
-                             <p>When entering your personal details right-click on the order form and select "Properties" (Internet Explorer) or "View Page Info - Security" (Netscape/Mozilla) and view the information on encryption.</p>
-                             <h4>My browser (Internet Explorer) shows that only 40- or 56-bit encryption is used, and not 128-bit. What can I do?</h4>
-                             <p>Some older browsers do not support high encryption. Please install the latest version of your browser and/or install the updates from the browser manufacturer.</p>
-                         </div>
-                     </div>
+                     {$overlays | noAutoescape}
                  </div>
 
                  <span class="clear"></span>
