@@ -191,35 +191,55 @@
                                                 ((:TR) ((:TD) "")
                                                  ((:TD) %REGISTER%)))))))))))
                    (TPL:LOUIS
-                    (LIST :HEADER (TPL:HEADER) :CONTENT (tpl:reg (list :test
-                                                                       (ps-html ((:div :style "border: 1px solid green")
-                                                                                 (form ("regform" "Регистрационные данные")
-                                                                                   (fieldset "Обязательные поля"
-                                                                                     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
-                                                                                   (fieldset "Необязательные поля"
-                                                                                     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
-                                                                                   (submit "Зарегистрироваться"))))
-                                                                       ))
-                          ;; (TPL:CONTENT
-                          ;;  (LIST :INCONTENT
-                          ;;        (FORMAT NIL "~{~A~}"
-                          ;;                (LIST (TPL:DBGBLOCK (LIST :DBGOUT OUTPUT))
-                          ;;                      (TPL:USERBLOCK
-                          ;;                       (LIST :CURRENTUSER
-                          ;;                             (IF (NULL *CURRENT-USER*)
-                          ;;                                 "none"
-                          ;;                                 *CURRENT-USER*)))
-                          ;;                      (IF *CURRENT-USER*
-                          ;;                          (TPL:MSGBLOCK
-                          ;;                           (LIST :MSGCNT
-                          ;;                                 (GET-UNDELIVERED-MSG-CNT
-                          ;;                                  *CURRENT-USER*)))
-                          ;;                          "")
-                          ;;                      (TPL:MENUBLOCK
-                          ;;                       (LIST :MENU
-                          ;;                             (FORMAT NIL "~{~A<br />~}" (MENU))))
-                          ;;                      (TPL:RETVALBLOCK (LIST :RETVAL RETVAL))))))
-                          :FOOTER (TPL:FOOTER) :TITLE "title")))
+                    (LIST
+                     :HEADER
+                     (TPL:HEADER)
+                     :CONTENT
+                     (tpl:reg
+                      (list :test (form ("regform" "Регистрационные данные")
+                                        (fieldset "Обязательные поля"
+                                          (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
+                                          (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+                                          (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
+                                          (input ("nickname" "Никнейм" :required t :maxlength "50")))
+                                        (fieldset "Необязательные поля"
+                                          (input ("firstname" "Имя" :maxlength "25" ))
+                                          (input ("lastname" "Фамилия" :maxlength "25" ))
+                                          (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер телефона неверный или неполный")
+                                          (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер телефона неверный или неполный")
+                                          (select ("sex" "Пол")
+                                            (option "Please select" "Выбрать пол")
+                                            (option "male" "Мужской")
+                                            (option "female" "Мужской"))
+                                          (ps-html
+                                           ((:div :class "date-container")
+                                            ((:label :for "date-of-birth") "День рождения")
+                                            ((:div :class "date-container__inputs fieldset-validation")
+                                             (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
+                                             (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
+                                             (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
+                                          )
+                                        (submit "Зарегистрироваться"))))
+                     ;; (TPL:CONTENT
+                     ;;  (LIST :INCONTENT
+                     ;;        (FORMAT NIL "~{~A~}"
+                     ;;                (LIST (TPL:DBGBLOCK (LIST :DBGOUT OUTPUT))
+                     ;;                      (TPL:USERBLOCK
+                     ;;                       (LIST :CURRENTUSER
+                     ;;                             (IF (NULL *CURRENT-USER*)
+                     ;;                                 "none"
+                     ;;                                 *CURRENT-USER*)))
+                     ;;                      (IF *CURRENT-USER*
+                     ;;                          (TPL:MSGBLOCK
+                     ;;                           (LIST :MSGCNT
+                     ;;                                 (GET-UNDELIVERED-MSG-CNT
+                     ;;                                  *CURRENT-USER*)))
+                     ;;                          "")
+                     ;;                      (TPL:MENUBLOCK
+                     ;;                       (LIST :MENU
+                     ;;                             (FORMAT NIL "~{~A<br />~}" (MENU))))
+                     ;;                      (TPL:RETVALBLOCK (LIST :RETVAL RETVAL))))))
+                     :FOOTER (TPL:FOOTER) :TITLE "title")))
                (AJAX (AJAX) (OUTPUT AJAX))))))
 
        (RESTAS:DEFINE-ROUTE REG-CTRL

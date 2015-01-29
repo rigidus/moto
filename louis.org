@@ -26,8 +26,11 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defmacro input ((name title &rest rest &key class required type value &allow-other-keys) &body validator-error)
-       (let ((label `(:label :for ,name)))
+     (defmacro input ((name title &rest rest &key container-class class required type value &allow-other-keys) &body validator-error)
+       (let ((result-container-class "input-container")
+             (label `(:label :for ,name)))
+         (when container-class
+           (setf result-container-class (concatenate 'string result-container-class " " container-class)))
          (when required
            (setf label (append label `(:required "required"))))
          (let ((result-class "form-element input-text"))
@@ -39,6 +42,7 @@
              (setf type "text"))
            (unless value
              (setf value ""))
+           (remf rest :container-class)
            (remf rest :class)
            (remf rest :required)
            (remf rest :type)
@@ -46,7 +50,7 @@
            (let ((input `(:input :type ,type :name ,name :id ,name :class ,result-class :value ,value)))
              (unless (null rest)
                (setf input (append input rest)))
-             (let ((input-container `((:div :class "input-container")
+             (let ((input-container `((:div :class ,result-container-class)
                                       (,label ,title)
                                       (,input))))
                (when validator-error
@@ -55,11 +59,64 @@
                                `(((:p :class "validation-explanation validation-explanation--static hidden") ,@validator-error)))))
                `(ps-html ,input-container))))))
 
+     ;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер телефона неверный или неполный"))
+
      ;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
      ;;                  "Please enter a valid email address."))
 
      ;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
      ;;   "Please enter a valid email address.")
+   #+END_SRC
+
+** Позиция выбора селектора
+
+   #+NAME: select
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro option (value title &rest rest &key &allow-other-keys)
+       (let ((option `(:option :value ,value)))
+         (unless (null rest)
+           (setf option (append option rest)))
+         `(ps-html (,option ,title))))
+
+     ;; (macroexpand-1 '(option "Мужской" "Мужской"))
+   #+END_SRC
+
+** Селектор
+
+   #+NAME: select
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro select ((name title &rest rest &key container-class class required &allow-other-keys) &body options)
+       (let ((result-container-class "input-container")
+             (label `(:label :for ,name)))
+         (when container-class
+           (setf result-container-class (concatenate 'string result-container-class " " container-class)))
+         (when required
+           (setf label (append label `(:required "required"))))
+         (let ((result-class "form-element"))
+           (when required
+             (setf result-class (concatenate 'string result-class " required")))
+           (remf rest :container-class)
+           (remf rest :class)
+           (remf rest :required)
+           (let ((select `(:select :name ,name :id ,name :class ,result-class)))
+             (unless (null rest)
+               (setf input (append input rest)))
+             (let ((select-container `((:div :class ,result-container-class)
+                                       (,label ,title)
+                                       (,select ,@options))))
+               ;; (when validator-error
+               ;;   (setf input-container
+               ;;         (append input-container
+               ;;                 `(((:p :class "validation-explanation validation-explanation--static hidden") ,@validator-error)))))
+               `(ps-html ,select-container))))))
+
+     ;; (macroexpand-1 '(select ("sex" "Пол")
+     ;;                  (option "Мужской" "Мужской")
+     ;;                  (option "Женский" "Женский")))
    #+END_SRC
 
 ** Набор полей формы
@@ -2932,170 +2989,7 @@
                      </div>
 
                      <div class="content-box size-3-5 switch-content-container">
-
                          {$test | noAutoescape}
-                         <form action="#" method="post" name="regform" class="form-section-container js__formValidation" id="regform_on_regpage">
-                             <input type="hidden" name="csrf_registration" id="csrf_registration" value="d34d75644abf8f1f0b9ee7bbaeb8c178-61d7aa05b65801c3185523a93438a225" />
-                             <h2 class="form-headline heading__headline--h2">Регистрационные данные</h2>
-                             <div class="form-section">
-                                 <fieldset>
-                                     <legend>Обязательные поля</legend>
-                                     <div class="input-container">
-                                         <label for="register-mail">Email<span class="required-marker">*</span></label>
-                                         <input name="register-mail"
-                                                required="required"
-                                                class="form-element input-text required"
-                                                maxlength="50"
-                                                id="register-mail"
-                                                value=""
-                                                type="email" />
-                                         <p class="validation-explanation validation-explanation--static hidden">Please enter a valid email address.</p>
-                                     </div>
-                                     <div class="input-container">
-                                         <label for="register-password">Password<span class="required-marker">*</span></label>
-                                         <input name="register-password"
-                                                required="required"
-                                                class="form-element input-text required"
-                                                autocomplete="off"
-                                                id="register-password"
-                                                value=""
-                                                type="password" />
-                                     </div>
-                                     <div class="input-container">
-                                         <label for="register-password-confirm">Repeat password<span class="required-marker">*</span></label>
-                                         <input name="register-password-confirm"
-                                                required="required"
-                                                class="form-element input-text required"
-                                                autocomplete="off"
-                                                id="register-password-confirm"
-                                                value=""
-                                                type="password" />
-                                     </div>
-                                     <div class="input-container">
-                                         <label for="register-nickname">Никнейм<span class="required-marker">*</span></label>
-                                         <input class="form-element input-text"
-                                                name="nickname"
-                                                required="required"
-                                                maxlength="25"
-                                                id="nickname"
-                                                value=""
-                                                type="text" />
-                                     </div>
-                                     <p class="required-note">* Обязательные поля</p>
-                                 </fieldset>
-                             </div>
-                             <div class="form-section">
-                                 <fieldset>
-                                     <legend>Необязательные поля</legend>
-                                     <div class="input-container">
-                                         <label for="register-nickname">Имя</label>
-                                         <input class="form-element input-text"
-                                                name="firstname"
-                                                maxlength="25"
-                                                id="firstname"
-                                                value="" type="text" />
-                                     </div>
-                                     <div class="input-container">
-                                         <label for="register-nickname">Фамилия</label>
-                                         <input class="form-element input-text"
-                                                name="lastname"
-                                                maxlength="25"
-                                                id="lastname"
-                                                value="" type="text" />
-                                     </div>
-                                     <div class="input-container input-container--1-2 odd">
-                                         <p class="validation-explanation validation-explanation--static hidden">
-                                             Номер телефона неверный или неполный
-                                         </p>
-                                         <label for="customer-data-fieldset-telephone">Телефон</label>
-                                         <input class="form-element input-text"
-                                                name="telephone"
-                                                id="telephone"
-                                                maxlength="15"
-                                                value="" type="text" />
-                                     </div>
-                                     <div class="input-container input-container--1-2 even">
-                                         <p class="validation-explanation validation-explanation--static hidden">
-                                             Номер телефона неверный или неполный
-                                         </p>
-                                         <label for="mobile">Мобильный телефон</label>
-                                         <input class="form-element input-text"
-                                                name="mobile"
-                                                id="mobile"
-                                                maxlength="15" value=""
-                                                type="text" />
-                                     </div>
-                                     <div class="input-container" id="salutation-container">
-                                         <label for="salutation-select">Пол<span class="required-marker">*</span></label>
-                                         <select size="1"
-                                                 name="customer-data[customer-address-fieldset][salutation]"
-                                                 class="form-element js__switchContent js__toggleDisabledState"
-                                                 id="salutation-select"
-                                                 data-switch="sizes-select,sizes-select">
-                                             <option value="" label="Please select" data-switch-target="missing-salutation"
-                                             data-disable="garment-size-jacket,garment-size-trousers">Выбрать пол</option>
-                                             <option value="Мужской" label="Mr" data-switch-target="m">Мужской</option>
-                                             <option value="Женский" label="Ms" data-switch-target="f">Женский</option>
-                                         </select>
-                                     </div>
-                                     <div class="date-container">
-                                         <label for="date_of_birth">День рождения</label>
-                                         <div class="date-container__inputs fieldset-validation">
-                                             <div class="hide-label input-container input-container--1st">
-                                                 <p class="validation-explanation validation-explanation--static hidden">
-                                                     Пожалуйста введите
-                                                     день в формтате: XX
-                                                 </p>
-                                             <label class="hidden" for="date_of_birth_day">DD</label>
-                                             <input maxlength="2"
-                                                    name="date_of_birth_day"
-                                                    class="form-element input-text"
-                                                    data-allowed-chars="0-9"
-                                                    id="date_of_birth_day]"
-                                                    value="" type="text" />
-                                             </div>
-                                             <div class="hide-label input-container input-container--2nd input-container--middle">
-                                                 <p class="validation-explanation validation-explanation--static hidden">
-                                                     Пожалуйста введите
-                                                     месяц в формтате: XX
-                                                 </p>
-                                                 <label class="hidden" for="date_of_birth_month">MM</label>
-                                                 <input maxlength="2"
-                                                        name="date_of_birth_month"
-                                                        class="form-element input-text"
-                                                        data-allowed-chars="0-9"
-                                                        id="date_of_birth_month"
-                                                        value=""
-                                                        type="text" />
-                                             </div>
-                                             <div class="hide-label input-container input-container--3rd">
-                                                 <p class="validation-explanation validation-explanation--static hidden">
-                                                     Пожалуйста введите
-                                                     год в формтате: XXXX
-                                                 </p>
-                                                 <label class="hidden" for="date_of_birth_year">YYYY</label>
-                                                 <input maxlength="4"
-                                                        name="date_of_birth_year"
-                                                        class="form-element input-text"
-                                                        data-allowed-chars="0-9"
-                                                        required="required"
-                                                        id="date_of_birth_year"
-                                                        value=""
-                                                        type="text" />
-                                             </div>
-                                             <span class="clear"></span>
-                                         </div>
-                                         <span class="clear"></span>
-                                     </div>
-                                     <span class="clear"></span>
-                                 </fieldset>
-                             </div>
-
-                             <div class="form-send-container">
-                                 <button name="mylouis-customer-data-submit" type="submit" class="button" value="Jetzt registrieren">Зарегистрироваться</button>
-                             </div>
-
-                         </form>
                      </div>
 
                      <div class="content-box size-1-5">
