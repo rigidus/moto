@@ -8,33 +8,130 @@
 
 (in-package #:moto)
 
-(define-page reg "/reg"
-  (ps-html
-   ((:h1) "Страница регистрации")
-   (if *current-user*
-       "Регистрация невозможна - пользователь залогинен"
-       (ps-html
-        ((:form :method "POST")
-         ((:table :border 0)
-          ((:tr)
-           ((:td) "Имя пользователя: ")
-           ((:td) ((:input :type "text" :name "name" :value ""))))
-          ((:tr)
-           ((:td) "Пароль: ")
-           ((:td) ((:input :type "password" :name "password" :value ""))))
-          ((:tr)
-           ((:td) "Email: ")
-           ((:td) ((:input :type "email" :name "email" :value ""))))
-          ((:tr)
-           ((:td) "")
-           ((:td) %register%)))))))
-  (:register (ps-html
-              ((:input :type "hidden" :name "act" :value "REGISTER"))
-              ((:input :type "submit" :value "Зарегистрироваться")))
-             (setf (hunchentoot:session-value 'current-user)
-                   (create-user (getf p :name)
-                                (getf p :password)
-                                (getf p :email)))))
+;; (print (macroexpand-1 '
+;; (define-page reg "/reg"
+;;   (ps-html
+;;    ((:h1) "Страница регистрации")
+;;    (if *current-user*
+;;        "Регистрация невозможна - пользователь залогинен"
+;;        (ps-html
+;;         ((:form :method "POST")
+;;          ((:table :border 0)
+;;           ((:tr)
+;;            ((:td) "Имя пользователя: ")
+;;            ((:td) ((:input :type "text" :name "name" :value ""))))
+;;           ((:tr)
+;;            ((:td) "Пароль: ")
+;;            ((:td) ((:input :type "password" :name "password" :value ""))))
+;;           ((:tr)
+;;            ((:td) "Email: ")
+;;            ((:td) ((:input :type "email" :name "email" :value ""))))
+;;           ((:tr)
+;;            ((:td) "")
+;;            ((:td) %register%)))))))
+;;   (:register (ps-html
+;;               ((:input :type "hidden" :name "act" :value "REGISTER"))
+;;               ((:input :type "submit" :value "Зарегистрироваться")))
+;;              (setf (hunchentoot:session-value 'current-user)
+;;                    (create-user (getf p :name)
+;;                                 (getf p :password)
+;;                                 (getf p :email)))))))
+
+;; (print (macroexpand-1 '
+;; (WITH-WRAPPER
+;;   (PS-HTML ((:H1) "Страница регистрации")
+;;            (IF *CURRENT-USER*
+;;                "Регистрация невозможна - пользователь залогинен"
+;;                (PS-HTML
+;;                 ((:FORM :METHOD "POST")
+;;                  ((:TABLE :BORDER 0)
+;;                   ((:TR) ((:TD) "Имя пользователя: ")
+;;                    ((:TD) ((:INPUT :TYPE "text" :NAME "name" :VALUE ""))))
+;;                   ((:TR) ((:TD) "Пароль: ")
+;;                    ((:TD)
+;;                     ((:INPUT :TYPE "password" :NAME "password" :VALUE
+;;                              ""))))
+;;                   ((:TR) ((:TD) "Email: ")
+;;                    ((:TD)
+;;                     ((:INPUT :TYPE "email" :NAME "email" :VALUE ""))))
+;;                   ((:TR) ((:TD) "") ((:TD) %REGISTER%))))))))))
+
+(SYMBOL-MACROLET ((%REGISTER%
+                   (PS-HTML
+                    ((:INPUT :TYPE "hidden" :NAME "act" :VALUE "REGISTER"))
+                    ((:INPUT :TYPE "submit" :VALUE "Зарегистрироваться")))))
+  (RESTAS:DEFINE-ROUTE REG
+      ("/reg")
+    (PROGN
+      (START-SESSION)
+      (LET* ((*CURRENT-USER* (SESSION-VALUE 'CURRENT-USER)) (RETVAL))
+        (DECLARE (SPECIAL *CURRENT-USER*))
+        (HANDLER-CASE
+            (LET ((OUTPUT
+                   (WITH-OUTPUT-TO-STRING (*STANDARD-OUTPUT*)
+                     (SETF RETVAL
+                           (PS-HTML ((:H1) "Страница регистрации")
+                                    (IF *CURRENT-USER*
+                                        "Регистрация невозможна - пользователь залогинен"
+                                        (PS-HTML
+                                         ((:FORM :METHOD "POST")
+                                          ((:TABLE :BORDER 0)
+                                           ((:TR) ((:TD) "Имя пользователя: ")
+                                            ((:TD)
+                                             ((:INPUT :TYPE "text" :NAME "name"
+                                                      :VALUE ""))))
+                                           ((:TR) ((:TD) "Пароль: ")
+                                            ((:TD)
+                                             ((:INPUT :TYPE "password" :NAME
+                                                      "password" :VALUE ""))))
+                                           ((:TR) ((:TD) "Email: ")
+                                            ((:TD)
+                                             ((:INPUT :TYPE "email" :NAME "email"
+                                                      :VALUE ""))))
+                                           ((:TR) ((:TD) "")
+                                            ((:TD) %REGISTER%)))))))))))
+              (TPL:LOUIS
+               (LIST :HEADER (TPL:HEADER) :CONTENT (tpl:reg (list :test
+                                                                  (ps-html ((:div :style "border: 1px solid green")
+                                                                            (form ("regform" "Регистрационные данные")
+                                                                              (fieldset "Обязательные поля"
+                                                                                (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+                                                                              (fieldset "Необязательные поля"
+                                                                                (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+                                                                              (submit "Зарегистрироваться"))))
+                                                                  ))
+                     ;; (TPL:CONTENT
+                     ;;  (LIST :INCONTENT
+                     ;;        (FORMAT NIL "~{~A~}"
+                     ;;                (LIST (TPL:DBGBLOCK (LIST :DBGOUT OUTPUT))
+                     ;;                      (TPL:USERBLOCK
+                     ;;                       (LIST :CURRENTUSER
+                     ;;                             (IF (NULL *CURRENT-USER*)
+                     ;;                                 "none"
+                     ;;                                 *CURRENT-USER*)))
+                     ;;                      (IF *CURRENT-USER*
+                     ;;                          (TPL:MSGBLOCK
+                     ;;                           (LIST :MSGCNT
+                     ;;                                 (GET-UNDELIVERED-MSG-CNT
+                     ;;                                  *CURRENT-USER*)))
+                     ;;                          "")
+                     ;;                      (TPL:MENUBLOCK
+                     ;;                       (LIST :MENU
+                     ;;                             (FORMAT NIL "~{~A<br />~}" (MENU))))
+                     ;;                      (TPL:RETVALBLOCK (LIST :RETVAL RETVAL))))))
+                     :FOOTER (TPL:FOOTER) :TITLE "title")))
+          (AJAX (AJAX) (OUTPUT AJAX))))))
+
+  (RESTAS:DEFINE-ROUTE REG-CTRL
+      ("/reg" :METHOD :POST)
+    (WITH-WRAPPER
+      (LET* ((P (ALIST-TO-PLIST (POST-PARAMETERS*))))
+        (COND
+          ((STRING= "REGISTER" (GETF P :ACT))
+           (SETF (SESSION-VALUE 'CURRENT-USER)
+                 (CREATE-USER (GETF P :NAME) (GETF P :PASSWORD)
+                              (GETF P :EMAIL))))
+          (T (FORMAT NIL "unk act : ~A" (BPRINT P))))))))
 (in-package #:moto)
 
 ;; Событие создания пользователя

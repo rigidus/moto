@@ -1958,7 +1958,7 @@
         </article>
         <div class="main-ending">
             <div class="last-seen">
-                <h5>Items viewed recently</h5>
+            <h5>Items viewed recently</h5>
 
                 <p>You do not have any recently viewed items.</p>
             </div>
@@ -2331,6 +2331,7 @@
 
                 <div class="content-box size-3-5 switch-content-container">
 
+                    {$test | noAutoescape}
                     <form action="#" method="post" name="regform" class="form-section-container js__formValidation" id="regform_on_regpage">
                         <input type="hidden" name="csrf_registration" id="csrf_registration" value="d34d75644abf8f1f0b9ee7bbaeb8c178-61d7aa05b65801c3185523a93438a225" />
                         <h2 class="form-headline heading__headline--h2">Регистрационные данные</h2>
@@ -2344,7 +2345,8 @@
                                            class="form-element input-text required"
                                            maxlength="50"
                                            id="register-mail"
-                                           value="" type="email" />
+                                           value=""
+                                           type="email" />
                                     <p class="validation-explanation validation-explanation--static hidden">Please enter a valid email address.</p>
                                 </div>
                                 <div class="input-container">
@@ -2354,7 +2356,8 @@
                                            class="form-element input-text required"
                                            autocomplete="off"
                                            id="register-password"
-                                           value="" type="password" />
+                                           value=""
+                                           type="password" />
                                 </div>
                                 <div class="input-container">
                                     <label for="register-password-confirm">Repeat password<span class="required-marker">*</span></label>
@@ -2363,7 +2366,8 @@
                                            class="form-element input-text required"
                                            autocomplete="off"
                                            id="register-password-confirm"
-                                           value="" type="password" />
+                                           value=""
+                                           type="password" />
                                 </div>
                                 <div class="input-container">
                                     <label for="register-nickname">Никнейм<span class="required-marker">*</span></label>
@@ -2372,7 +2376,8 @@
                                            required="required"
                                            maxlength="25"
                                            id="nickname"
-                                           value="" type="text" />
+                                           value=""
+                                           type="text" />
                                 </div>
                                 <p class="required-note">* Обязательные поля</p>
                             </fieldset>

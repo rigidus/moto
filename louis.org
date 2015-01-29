@@ -6,6 +6,135 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
+* Движок форм
+
+** Поле ввода
+
+   Поле ввода внутри формы представляет собой div-контейнер,
+   содержащий label, input и (опционально) информацию
+   валидатора. Также поле может быть обязательным для заполнения
+   (required).
+
+   Наша задача сформировать контейнер и его содержимое, дополняя
+   описание классов, если оно передано и устанавливая другие параметры
+   по умолчанию, если они не переданы.
+
+   Мы также оставляем возможность передать некоторые дополнительные
+   параметры input-у
+
+   #+NAME: input
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro input ((name title &rest rest &key class required type value &allow-other-keys) &body validator-error)
+       (let ((label `(:label :for ,name)))
+         (when required
+           (setf label (append label `(:required "required"))))
+         (let ((result-class "form-element input-text"))
+           (when required
+             (setf result-class (concatenate 'string result-class " required")))
+           (when class
+             (setf result-class (concatenate 'string result-class " " class)))
+           (unless type
+             (setf type "text"))
+           (unless value
+             (setf value ""))
+           (remf rest :class)
+           (remf rest :required)
+           (remf rest :type)
+           (remf rest :value)
+           (let ((input `(:input :type ,type :name ,name :id ,name :class ,result-class :value ,value)))
+             (unless (null rest)
+               (setf input (append input rest)))
+             (let ((input-container `((:div :class "input-container")
+                                      (,label ,title)
+                                      (,input))))
+               (when validator-error
+                 (setf input-container
+                       (append input-container
+                               `(((:p :class "validation-explanation validation-explanation--static hidden") ,@validator-error)))))
+               `(ps-html ,input-container))))))
+
+     ;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
+     ;;                  "Please enter a valid email address."))
+
+     ;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
+     ;;   "Please enter a valid email address.")
+   #+END_SRC
+
+** Набор полей формы
+
+   Оборачивает переданный ему список в div-контейнер и fileset
+
+   #+NAME: fieldset
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro fieldset (legend &body body)
+       `(ps-html ((:div :class "form-section")
+                  ((:fieldset)
+                   ((:legend) ,legend)
+                   (format nil "~{~A~}"
+                           (list ,@body))))))
+
+     (fieldset "Обязательные поля"
+       (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+   #+END_SRC
+
+** Кнопка отправки формы
+
+   #+NAME: fieldset
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro submit (title &rest rest &key class &allow-other-keys)
+       (let ((result-class "button"))
+         (when class (setf result-class (concatenate 'string result-class " " class)))
+         (remf rest :class)
+         (let ((button `(:button :type "submit" :class ,result-class)))
+           (setf button (append button rest))
+           `(ps-html ((:div :class "form-send-container")
+                      (,button ,title))))))
+
+     (macroexpand-1 '(submit "Зарегистрироваться"))
+   #+END_SRC
+
+** Форма
+
+   #+NAME form
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
+       (let ((result-class "form-section-container js__formValidation"))
+         (unless action (setf action "#"))
+         (unless method (setf method "POST"))
+         (when class (setf result-class (concatenate 'string result-class " " class)))
+         (remf rest :action)
+         (remf rest :method)
+         (remf rest :class)
+         (let ((form `(:form :action ,action :method ,method  :id ,name :name ,name :class ,result-class)))
+           (setf form (append form rest))
+           `(ps-html (,form
+                      ((:input :type "hidden" :name ,(format nil "CSRF-~A" name) :value "d34d75644abf8f1f0b9ee7bbaeb8c178-61d7aa05b65801c3185523a93438a225"))
+                      ((:h2 :class "form-headline heading__headline--h2") ,title)
+                      (format nil "~{~A~}"
+                              (list ,@body)))))))
+
+     ;; (macroexpand-1 '(form ("regform" "Регистрационные данные")
+     ;;                  (fieldset "Обязательные поля"
+     ;;                    (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+     ;;                  (fieldset "Необязательные поля"
+     ;;                    (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+     ;;                  ))
+
+     ;; (form ("regform" "Регистрационные данные")
+     ;;   (fieldset "Обязательные поля"
+     ;;     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+     ;;   (fieldset "Необязательные поля"
+     ;;     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address.")))
+   #+END_SRC
+
 * Interface
 
   Соберем веб-интерфейс:
@@ -2736,7 +2865,7 @@
              </article>
              <div class="main-ending">
                  <div class="last-seen">
-                     <h5>Items viewed recently</h5>
+                 <h5>Items viewed recently</h5>
 
                      <p>You do not have any recently viewed items.</p>
                  </div>
@@ -2804,6 +2933,7 @@
 
                      <div class="content-box size-3-5 switch-content-container">
 
+                         {$test | noAutoescape}
                          <form action="#" method="post" name="regform" class="form-section-container js__formValidation" id="regform_on_regpage">
                              <input type="hidden" name="csrf_registration" id="csrf_registration" value="d34d75644abf8f1f0b9ee7bbaeb8c178-61d7aa05b65801c3185523a93438a225" />
                              <h2 class="form-headline heading__headline--h2">Регистрационные данные</h2>
@@ -2817,7 +2947,8 @@
                                                 class="form-element input-text required"
                                                 maxlength="50"
                                                 id="register-mail"
-                                                value="" type="email" />
+                                                value=""
+                                                type="email" />
                                          <p class="validation-explanation validation-explanation--static hidden">Please enter a valid email address.</p>
                                      </div>
                                      <div class="input-container">
@@ -2827,7 +2958,8 @@
                                                 class="form-element input-text required"
                                                 autocomplete="off"
                                                 id="register-password"
-                                                value="" type="password" />
+                                                value=""
+                                                type="password" />
                                      </div>
                                      <div class="input-container">
                                          <label for="register-password-confirm">Repeat password<span class="required-marker">*</span></label>
@@ -2836,7 +2968,8 @@
                                                 class="form-element input-text required"
                                                 autocomplete="off"
                                                 id="register-password-confirm"
-                                                value="" type="password" />
+                                                value=""
+                                                type="password" />
                                      </div>
                                      <div class="input-container">
                                          <label for="register-nickname">Никнейм<span class="required-marker">*</span></label>
@@ -2845,7 +2978,8 @@
                                                 required="required"
                                                 maxlength="25"
                                                 id="nickname"
-                                                value="" type="text" />
+                                                value=""
+                                                type="text" />
                                      </div>
                                      <p class="required-note">* Обязательные поля</p>
                                  </fieldset>

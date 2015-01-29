@@ -191,7 +191,15 @@
                                                 ((:TR) ((:TD) "")
                                                  ((:TD) %REGISTER%)))))))))))
                    (TPL:LOUIS
-                    (LIST :HEADER (TPL:HEADER) :CONTENT (tpl:reg)
+                    (LIST :HEADER (TPL:HEADER) :CONTENT (tpl:reg (list :test
+                                                                       (ps-html ((:div :style "border: 1px solid green")
+                                                                                 (form ("regform" "Регистрационные данные")
+                                                                                   (fieldset "Обязательные поля"
+                                                                                     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+                                                                                   (fieldset "Необязательные поля"
+                                                                                     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+                                                                                   (submit "Зарегистрироваться"))))
+                                                                       ))
                           ;; (TPL:CONTENT
                           ;;  (LIST :INCONTENT
                           ;;        (FORMAT NIL "~{~A~}"
