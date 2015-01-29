@@ -1,10 +1,18 @@
-;; [[file:doc.org::*Interface][iface]]
-;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
-;;;; Licensed under the GNU AGPLv3
+;; [[file:louis.org::*Interface][iface]]
+;;;; 
 
 ;;;; iface.lisp
 
 (in-package #:moto)
+
+;; Компилируем шаблоны
+(closure-template:compile-template
+ :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
+
+(restas:define-route louis ("/louis")
+  (tpl:louis (list :header (tpl:header)
+                   :content (tpl:content (list :incontent "rwerewr")
+                   :footer (tpl:footer)))))
 
 ;; Меню
 
@@ -43,13 +51,50 @@
     ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
     ;; "<a href=\"/find\">Простой поиск</a>"
     )))
-
 (in-package #:moto)
+
+;; (print
+;;  (macroexpand-1 '
+;;   (with-wrapper
+;;     "<h1>Главная страница</h1>"
+;;     )
+;;   ))
 
 (restas:define-route main ("/")
   (with-wrapper
-      "<h1>Главная страница</h1>"
+      "<h1>Главная страница</h1>
+      <form action=\"/en/login\" method=\"post\" novalidate=\"\" class=\"js__formValidation\">
+      <fieldset>
+      <legend>
+      Log in:</legend>
+      <div class=\"input-container hide-label\">
+      <label for=\"login-email\">
+      Email address</label>
+      <div class=\"input-bg\">
+      <input name=\"login-email\" id=\"login-email\" class=\"form-element input-text required\" maxlength=\"50\" required=\"required\" value=\"\" type=\"email\">
+      <p class=\"validation-explanation validation-explanation--static hidden\">
+      Please enter a valid email address.</p>
+      </div>
+      </div>
+      <div class=\"input-container hide-label\">
+      <label for=\"login-password\">
+      Password</label>
+      <div class=\"input-bg\">
+      <input name=\"login-password\" id=\"login-password\" class=\"form-element input-text required\" required=\"required\" autocomplete=\"off\" value=\"\" type=\"password\">
+      </div>
+      </div>
+      <button name=\"login-submit\" type=\"submit\" class=\"button\" value=\"Anmelden\">
+      Log in</button>
+      <p class=\"forgot-pw\">
+      Have you forgotten your <a href=\"/en/mylouis/passwort-vergessen\">
+      password</a>
+      ?</p>
+      <input name=\"csrf_login\" id=\"csrf_login\" value=\"94fd26d9fea3f78f0e5908f78e7bb3d4-387a05de406a0986078b9c5f500ae549\" type=\"hidden\">
+      <input name=\"return-url\" id=\"return-url\" value=\"098e60cbd72a9211eddba994512c4f11\" type=\"hidden\">
+      </fieldset>
+      </form>"
     ))
+
 (in-package #:moto)
 
 (define-page all-users "/users"
@@ -386,7 +431,7 @@
         "Нет такого пользователя"
         (let ((msgs (get-msg-dialogs-for-two-user-ids user-id im-id)))
           (if (equal 0 (length msgs))
-              "Нет сообщений"
+              "Нет сообщений!"
               (ps-html
                ((:h1) (format nil "Страница диалогов пользователя #~A - ~A с пользователем #~A - ~A"
                               (id u) (name u)
@@ -418,44 +463,117 @@
                             ))))))))))
 (in-package #:moto)
 
+(defmacro label ((&rest rest) &body body)
+  (let ((style (format nil "~{~A~^;~}" (mapcar #'(lambda (x) (format nil "~A:~A" (car x) (cdr x)))
+                                               '(("color" . "#45688E")
+                                                 ("line-height" . "1.27em")
+                                                 ("margin" . "0px")
+                                                 ("padding" . "26px 0px 9px")
+                                                 ("font-size" . "1.09em")
+                                                 ("font-weight" . "bold"))))))
+    (when (null body)
+      (setf body (list "")))
+    (if (null rest)
+        `(ps-html ((:div :style ,style) ,@body))
+        `(ps-html ((:div :style ,style ,@rest) ,@body)))))
+
+(defmacro textarea ((&rest rest) &body body)
+  (let ((style (format nil "~{~A~^;~}" (mapcar #'(lambda (x) (format nil "~A:~A" (car x) (cdr x)))
+                                               '(("background" . "#FFFFFF")
+                                                 ("color" . "black")
+                                                 ("border" . "1px solid #C0CAD5")
+                                                 ("width" . "490px")
+                                                 ("min-height" . "120px")
+                                                 ("padding" . "5px 25px 5px 5px")
+                                                 ("vertical-align" . "top")
+                                                 ("margin" . "0")
+                                                 ("overflow" . "auto")
+                                                 ("outline" . "0")
+                                                 ("line-height" . "150%")
+                                                 ("word-wrap" . "break-word")
+                                                 ("cursor" . "text"))))))
+    (when (null body)
+      (setf body (list "")))
+    (if (null rest)
+        `(ps-html ((:textarea :style ,style) ,@body))
+        `(ps-html ((:textarea :style ,style ,@rest) ,@body)))))
+
+(defmacro button ((&rest rest) &body body)
+  (let ((style (format nil "~{~A~^;~}" (mapcar #'(lambda (x) (format nil "~A:~A" (car x) (cdr x)))
+                                               '(("padding" . "6px 16px 7px 16px")
+                                                 ("*padding" . "6px 17px 7px 17px")
+                                                 ("margin" . "0")
+                                                 ("font-size" . "11px")
+                                                 ("display" . "inline-block")
+                                                 ("*display" . "inline")
+                                                 ("zoom" . "1")
+                                                 ("cursor" . "pointer")
+                                                 ("white-space" . "nowrap")
+                                                 ("outline" . "none")
+                                                 ("font-family" . "tahoma, arial, verdana, sans-serif, Lucida Sans")
+                                                 ("vertical-align" . "top")
+                                                 ("overflow" . "visible")
+                                                 ("line-height" . "13px")
+                                                 ("text-decoration" . "none")
+                                                 ("background" . "none")
+                                                 ("background-color" . "#6383a8")
+                                                 ("color" . "#FFF")
+                                                 ("border" . "0")
+                                                 ("*border" . "0")
+                                                 ("-webkit-border-radius" . "2px")
+                                                 ("-khtml-border-radius" . "2px")
+                                                 ("-moz-border-radius" . "2px")
+                                                 ("-ms-border-radius" . "2px")
+                                                 ("border-radius" . "2px")
+                                                 ("-webkit-transition" . "background-color 100ms ease-in-out")
+                                                 ("-khtml-transition" . "background-color 100ms ease-in-out")
+                                                 ("-moz-transition" . "background-color 100ms ease-in-out")
+                                                 ("-ms-transition" . "background-color 100ms ease-in-out")
+                                                 ("-o-transition" . "background-color 100ms ease-in-out")
+                                                 ("transition" . "background-color 100ms ease-in-out"))))))
+    (when (null body)
+      (setf body (list "")))
+    (if (null rest)
+        `(ps-html ((:button :style ,style) ,@body))
+        `(ps-html ((:button :style ,style ,@rest) ,@body)))))
+
+
 (define-page imnew "/user/:userid/im/new"
   (let* ((i (parse-integer userid))
          (u (get-user i)))
     (if (null u)
         "Нет такого пользователя"
-        (format nil "~{~A~}" (with-element (u u)
-                               (ps-html
-                                ((:h1) (format nil "Новое сообщения от пользователя #~A - ~A" (id u) (name u)))
-                                ((:table :border 0 :cellspacing 10 :cellpadding 10)
-                                 ((:tr)
-                                  ((:td :valign "top" :bgcolor "#F8F8F8")
-
-                                   ((:form :method "POST")
-                                    ((:table :border 0)
-                                     ((:tr)
-                                      ((:td) "Кому:")
-                                      ((:td)
-                                       ((:select :name "abonent")
-                                        ((:option :value "0") "Выберите пользователя")
-                                        (format nil "~{~A~}"
-                                                (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
-                                                  (if (equal (id i) (id u))
-                                                      ""
-                                                      (ps-html
-                                                       ((:option :value (id i)) (name i))))))))
-                                      ((:td) %zzz%))
-                                     ((:tr)
-                                      ((:td :colspan "3")
-                                       ((:textarea :name "msg" :cols "90" :rows "7") "")
-                                       ))))))
-
-                                 ((:tr)
-                                  ((:td :valign "top" :bgcolor "#F8F8F8" :colspan 3) (user-msg-html u)))))))))
+        (format nil "~{~A~}"
+                (with-element (u u)
+                  (ps-html
+                   ((:h1) (format nil "Новое сообщения от пользователя #~A - ~A" (id u) (name u)))
+                   ((:form :method "POST")
+                    ((:div :style "width: 600px; font-family: tahoma,arial,verdana,sans-serif,Lucida Sans; font-size: 11px; font-weight: normal; line-height: 140%;")
+                     ((:div :style "background: none repeat scroll 0% 0% #597BA5; padding: 0 10px 10px 10px; position: relative; overflow: hidden;")
+                      ((:div :style "padding: 17px 26px 18px; margin: -10px -10px -11px; color: #C7D7E9; transition: color 100ms linear 0s; float: right; text-decoration: none; cursor: pointer;  ") "Закрыть")
+                      ((:div :style "color: #FFF; backgound-color: #D7E7F9; padding: 7px 16px; font-weight: bold; font-size: 1.09em; ") "Новое сообщение")
+                      ((:div :style "padding: 26px; background: #F7F7F7;")
+                       ((:div :style "display: block; margin: 0px; float: right; color: #000;")
+                        ((:a :href "/im?sel=3754275" :style "color: #2B587A; text-decoration: none; cursor: pointer;") "Перейти к диалогу"))
+                       ((:div :style "padding-top: 0px; color: #45688E; line-height: 1.27em; margin: 0px; padding: 26px 0px 9px; font-size: 1.09em; font-weight: bold; ") "Получатель")
+                       ((:select :name "abonent")
+                        ((:option :value "0") "Выберите пользователя")
+                        (format nil "~{~A~}"
+                                (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
+                                  (if (equal (id i) (id u))
+                                      ""
+                                      (ps-html
+                                       ((:option :value (id i)) (name i)))))))
+                       ((:div :style "padding-top: 0px; color: #45688E; line-height: 1.27em; margin: 0px; padding: 26px 0px 9px; font-size: 1.09em; font-weight: bold; ") "Сообщение")
+                       (textarea (:name "msg"))
+                       ((:div :style "padding-top: 16px")
+                        %zzz%)
+                       )))))))))
   (:zzz (if (or (equal 1 *current-user*)
                 (equal *current-user* (parse-integer userid)))
             (ps-html
              ((:input :type "hidden" :name "act" :value "ZZZ"))
-             ((:input :type "submit" :value "Отправить")))
+             (button () "Отправить"))
             " [access-denied for send message]")
 
         (if (or (equal 1 *current-user*)

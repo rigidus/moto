@@ -104,10 +104,14 @@
     (if (null result)
         nil
         (id (car result)))))
+(in-package #:moto)
 
 ;; Событие успешного входа
 (defun login-user-success (id)
-  (takt (get-user id) :logged))
+  (let ((u (get-user id)))
+    (when (equal ":LOGGED" (state u))
+      (upd-user u (list :state ":UNLOGGED")))
+    (takt u :logged)))
 
 ;; Событие неуспешного входа
 (defun login-user-fail ()
@@ -117,6 +121,8 @@
 
 ;; Тестируем авторизацию
 (defun auth-test ()
+  (in-package #:moto)
+  
   ;; Зарегистрируем пользователя
   (let* ((name "admin")
          (password "tCDm4nFskcBqR7AN")

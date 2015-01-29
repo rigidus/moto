@@ -1,0 +1,356 @@
+blink{
+	background-color:magenta
+}
+
+.element--right{
+	float:right
+}
+
+.element--left{
+	float:left
+}
+
+.image--broken{
+	background-color:transparent!important;
+	background-repeat:no-repeat!important;
+	background-position:center!important;
+	text-indent:-9999em!important
+}
+
+img[data-lazy-src]{
+	background-image:url(../layout/loading.gif);
+	background-position:center;
+	background-repeat:no-repeat;
+	text-indent:-9999em;
+	direction:ltr
+}
+
+.important{
+	color:#b10618
+}
+
+.important-positive{
+	color:#007f00
+}
+
+.tab{
+	display:none;
+	overflow:hidden;
+	height:0
+}
+
+.tab.active{
+	display:block;
+	height:auto;
+	overflow:visible
+}
+
+.switch-content{
+	display:none
+}
+
+.switch-content.active{
+	display:block
+}
+
+.heading__headline{
+	position:relative
+}
+
+.heading__headline h2,.heading__headline h3{
+	margin-bottom:0;
+	position:absolute
+}
+
+.heading__headline h2{
+	line-height:1.1em
+}
+
+.heading__mood{
+	display:block;
+	text-indent:-9999em
+}
+
+.content-box{
+	position:relative;
+	display:block;
+	clear:both
+}
+
+.content-box--last-bottom{
+	margin-bottom:0!important
+}
+
+.box__headline{
+	background:#ddd
+}
+
+.box__headline--bold{
+	font-weight:bold
+}
+
+.box--no-background{
+	background:0
+}
+
+.box--no-border{
+	border:0
+}
+
+.button{
+	font-family:Arial,Helvetica,Verdana,sans-serif;
+	font-weight:bold;
+	position:relative;
+	color:#fff;
+	text-align:center;
+	text-decoration:none;
+	text-shadow:1px 1px 1px rgba(0,0,0,0.5)
+}
+
+.button--secondary{
+	background-color:#f1f1f1!important;
+	color:#343434;
+	text-shadow:1px 1px 1px #fff
+}
+
+.button--link:after{
+	content:'';
+	position:absolute;
+	top:50%;
+	right:0;
+	display:block;
+	margin-top:-7px;
+	width:0;
+	height:0;
+	border:7px solid transparent;
+	border-left-color:#fff
+}
+
+.button--link.button--back:after{
+	right:auto;
+	left:0;
+	border-left-color:transparent;
+	border-right-color:#fff
+}
+
+.button--link.button--secondary:after{
+	border-left-color:#343434
+}
+
+.button--link.button--secondary.button--back:after{
+	border-right-color:#343434;
+	border-left-color:transparent
+}
+
+.button--link.button--secondary.button--back:before{
+	border-right-color:#fff;
+	border-left-color:transparent
+}
+
+.jump-to-top{
+	position:relative
+}
+
+.center{
+	display:block;
+	text-align:center;
+	margin:0 auto;
+	float:none!important
+}
+
+.amount{
+	text-align:right
+}
+
+.amount--positive{
+	color:green
+}
+
+.amount--negative{
+	color:#b90000
+}
+
+.system-message--error{
+	color:#b90000
+}
+
+.system-message__text-container{
+	display:table
+}
+
+.system-message__text{
+	display:table-cell;
+	vertical-align:middle
+}
+
+.system-message__text p:last-child{
+	margin-bottom:0
+}
+
+.loading{
+	display:block;
+	text-indent:-9999em;
+	direction:ltr;
+	background-repeat:no-repeat;
+	background-position:center;
+	background-color:transparent
+}
+
+.article-item__top{
+	display:block;
+	background:#007f00;
+	color:#fff;
+	font-weight:bold;
+	line-height:1.4em;
+	white-space:nowrap
+}
+
+.special--top-offer{
+	background:#bb0b1c;
+	color:#fff
+}
+
+.price__current--offer{
+	color:#bb0b1c
+}
+
+.link-fake{
+	text-decoration:underline
+}
+
+.paginator__link{
+	display:block;
+	border:1px solid #ddd;
+	background:#fff;
+	text-align:center;
+	text-decoration:none
+}
+
+.active>.paginator__link{
+	border-color:#949494;
+	font-weight:bold
+}
+
+.paginator__link--disabled{
+	cursor:default!important;
+	pointer-events:none!important
+}
+
+.paginator__link--disabled>.icon{
+	border-color:#ccc!important;
+	background-color:#ddd!important
+}
+
+.icon{
+	border:1px solid #676767;
+	border-color:rgba(0,0,0,.25);
+	background-color:#717171;
+	text-indent:-9999em;
+	display:block;
+	position:relative
+}
+
+.icon:before{
+	position:absolute;
+	top:0;
+	right:0;
+	bottom:0;
+	left:0;
+	display:block;
+	background-image:-webkit-gradient(linear,left top,left bottom,color-stop(0%,rgba(255,255,255,.2)),color-stop(50%,rgba(255,255,255,.2)),color-stop(50%,rgba(255,255,255,0)));
+	background-image:-webkit-linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 50%);
+	background-image:-moz-linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 50%);
+	background-image:-ms-linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 50%);
+	background-image:-o-linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 50%);
+	background-image:linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 50%);
+	content:''
+}
+
+.toolbar__sort-links li{
+	float:left
+}
+
+.toolbar__sort-links a{
+	display:block
+}
+
+.contentslider{
+	position:relative
+}
+
+.contentslider__content{
+	position:relative;
+	overflow:hidden
+}
+
+.contentslider__area{
+	position:absolute;
+	top:0;
+	left:100%;
+	width:100%
+}
+
+.contentslider__area.active{
+	left:0
+}
+
+.contentslider.sliding .change a{
+	opacity:.6;
+	cursor:default
+}
+
+.contentslider .control .disabled a{
+	opacity:.15
+}
+
+.contentslider .control.paging .active a{
+	font-weight:bold
+}
+
+.go-to-bar a[data-prevent="true"]{
+	color:#999;
+	cursor:default;
+	pointer-events:none
+}
+
+.nr{
+	display:block;
+	width:1.42em;
+	height:1.42em;
+	color:#fff;
+	font-weight:bold;
+	text-align:center;
+	-webkit-border-radius:1.42em;
+	-moz-border-radius:1.42em;
+	border-radius:1.42em;
+	background:#c8051a;
+	text-shadow:1px 1px 1px rgba(0,0,0,.5)
+}
+
+.seo-container{
+	display:block;
+	overflow:hidden
+}
+
+.seo-container:after{
+	background:-webkit-gradient(linear,left bottom,left top,color-stop(0%,rgba(255,255,255,1)),color-stop(100%,rgba(255,255,255,0)));
+	background:-webkit-linear-gradient(bottom,rgba(255,255,255,1) 0,rgba(255,255,255,0) 100%);
+	background:linear-gradient(to top,rgba(255,255,255,1) 0,rgba(255,255,255,0) 100%)
+}
+
+.seo-container:after{
+	width:90%;
+	position:absolute;
+	display:block;
+	content:''
+}
+
+.box .seo-container:after{
+	background:-webkit-gradient(linear,left bottom,left top,color-stop(0%,rgba(244,244,244,1)),color-stop(100%,rgba(244,244,244,0)));
+	background:-webkit-linear-gradient(bottom,rgba(244,244,244,1) 0,rgba(244,244,244,0) 100%);
+	background:linear-gradient(to top,rgba(244,244,244,1) 0,rgba(244,244,244,0) 100%)
+}
+
+.seo-container.full:after{
+	background:0
+}

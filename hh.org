@@ -342,7 +342,7 @@ send_responds for all
               (when (null vacancy)
                 (return))))))
 
-     (run)
+     ;; (run)
    #+END_SRC
 
 ** Составление правил и работа с ними
@@ -1328,6 +1328,8 @@ send_responds for all
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+     <<search_form>>
+
      (defmacro/ps s+ (&body body)
        `(concatenate 'string ,@body))
 
@@ -1368,6 +1370,7 @@ send_responds for all
                 (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b))))))
            (with-wrapper
              (ps-html
+              (search-form)
               ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
               ((:script :src "/js/jquery.sortable.js"))
               ((:input :type "button" :name "toggle_rules" :value "toggle_rules" :onclick "ShowHide('rules');return false;"))
@@ -1466,6 +1469,21 @@ send_responds for all
                                     (list :response (getf p :response))))
                    (respond id 7628220 (getf p :response)))))
    #+END_SRC
+
+** Поиск
+
+   #+NAME: search_form
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun search-form ()
+       (ps-html
+        ((:table :border 1 :id "rules" :style "font-size: small;")
+         ((:th) "Поиск")
+         ((:tr)
+          ((:td :width 500 :valign "top")
+           ((:input :type "text")))))))
+  #+END_SRC
 
 ** Галлерея (parenscript)
 

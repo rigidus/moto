@@ -6,6 +6,16 @@
 ;; Страницы
 (in-package #:moto)
 
+(in-package #:moto)
+
+(defun search-form ()
+  (ps-html
+   ((:table :border 1 :id "rules" :style "font-size: small;")
+    ((:th) "Поиск")
+    ((:tr)
+     ((:td :width 500 :valign "top")
+      ((:input :type "text")))))))
+
 (defmacro/ps s+ (&body body)
   `(concatenate 'string ,@body))
 
@@ -46,6 +56,7 @@
            (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b))))))
       (with-wrapper
         (ps-html
+         (search-form)
          ((:link :href "/css/dnd.css" :rel "stylesheet" :media "all"))
          ((:script :src "/js/jquery.sortable.js"))
          ((:input :type "button" :name "toggle_rules" :value "toggle_rules" :onclick "ShowHide('rules');return false;"))
