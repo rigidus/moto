@@ -1003,64 +1003,11 @@
             (handler-case
                 (let ((output (with-output-to-string (*standard-output*)
                                 (setf retval ,@body))))
-                  (tpl:root
-                   (list
-                    :title "title"
-                    :content
-                    (format
-                     nil "~{~A~}"
-                     (list
-                      (tpl:dbgblock (list :dbgout output))
-                      (tpl:userblock (list :currentuser (if (null *current-user*)
-                                                            "none"
-                                                            ,*current-user*)))
-                      (if *current-user*
-                          (tpl:msgblock
-                           (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
-                          "")
-                      (tpl:menublock
-                       (list
-                        :menu
-                        (format
-                         nil "~{~A<br />~}"
-                         (menu))))
-                      (tpl:retvalblock (list :retval retval)))))))
-              (ajax (ajax) (output ajax))))))
-
-     ;; Вторая версия
-     (defmacro with-wrapper (&body body)
-       `(progn
-          (hunchentoot:start-session)
-          (let* ((*current-user* (hunchentoot:session-value 'current-user))
-                 (retval))
-            (declare (special *current-user*))
-            (handler-case
-                (let ((output (with-output-to-string (*standard-output*)
-                                (setf retval ,@body))))
                   (tpl:louis
-                   (list :header (tpl:header)
-                         :content (tpl:content (list :incontent (format
-                                                                 nil "~{~A~}"
-                                                                 (list
-                                                                  (tpl:dbgblock (list :dbgout output))
-                                                                  (tpl:userblock (list :currentuser (if (null *current-user*)
-                                                                                                        "none"
-                                                                                                        ,*current-user*)))
-                                                                  (if *current-user*
-                                                                      (tpl:msgblock
-                                                                       (list :msgcnt (get-undelivered-msg-cnt *current-user*)))
-                                                                      "")
-                                                                  (tpl:menublock
-                                                                   (list
-                                                                    :menu
-                                                                    (format
-                                                                     nil "~{~A<br />~}"
-                                                                     (menu))))
-                                                                  (tpl:retvalblock (list :retval retval))))))
-                         :footer (tpl:footer)
-
-                         :title "title"
-                         )))
+                   (list :title "title"
+                         :header (tpl:header)
+                         :content retval
+                         :footer (tpl:footer (list :dbg (format nil "<pre>~A</pre>" output))))))
               (ajax (ajax) (output ajax))))))
 
      ;; Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
