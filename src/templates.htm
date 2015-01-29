@@ -665,7 +665,6 @@
 {/template}
 
 {template content}
-    <hr class="hidden" id="content" />
     <section class="container">
         <p class="breadcrumb">
             <span class="breadcrumb__title">You are here:</span> <span class="breadcrumb__content"><span>Home</span></span>
@@ -1963,7 +1962,6 @@
         </div>
         <div class="overlay-bg"></div>
     </section>
-    <hr class="hidden" />
 {/template}
 
 {template footer}
@@ -2275,82 +2273,15 @@
 {/template}
 
 {template reg}
-    <hr class="hidden" id="content" />
     <section class="container">
-
-        <p class="breadcrumb">
-            <span class="breadcrumb__title">Вы тут:</span>
-            <span class="breadcrumb__content">
-                <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb">
-                    <a href="/en" itemprop="url">
-                        <span itemprop="title">Главная</span>
-                    </a>
-                </span>
-                /
-                <span>Регистрация нового пользователя</span>
-            </span>
-        </p>
-
+        {$breadcrumb |noAutoescape}
         <div class="main hasNavigation ">
-
-            <div class="category-nav-container">
-                <p class="category-nav-container__headline trail">
-                    <a title="Незарегистрированный пользователь" href="/en/mylouis">Незарегистрированный пользователь</a>
-                </p>
-                <ul class="category-nav--lvl0 category-nav">
-                    <li class="active">
-                        <a title="Регистрация" href="/reg">Регистрация</a>
-                    </li>
-                    <li>
-                        <a title="Логин" href="/reg">Логин</a>
-                    </li>
-                </ul>
-                {$menu |noAutoescape}
-                <br />
-                {$user | noAutoescape}
-            </div>
-
-            <article class="content">
-                <div class="content-box">
-                    <div class="heading">
-                        <div class="heading__inner">
-                            <div class="heading__headline">
-                                <h1 class="heading__headline--h1">Зарегистрируйтесь как пользователь</h1>
-                            </div>
-                            <div class="heading__text">
-                                <p>
-                                    После регистрации вы сможете
-                                    общаться с другими пользователями,
-                                    искать товары и делать заказы,
-                                    создавать и отслеживать свои
-                                    задачи.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="content-box size-3-5 switch-content-container">
-                    {$dbg | noAutoescape}
-                    {$msg | noAutoescape}
-                    {$ret | noAutoescape}
-                </div>
-                <div class="content-box size-1-5">
-                    {$teasers | noAutoescape}
-                </div>
-                <span class="clear"></span>
-            </article>
-
-            <div class="overlay-container popup" id="dataprivacy-overlay" data-dontcloseviabg="" data-mustrevalidate="">
-                {$overlays | noAutoescape}
-            </div>
-
-            <span class="clear"></span>
-
+            {$ret |noAutoescape}
         </div>
         <div class="overlay-bg"></div>
     </section>
-    <hr class="hidden" />
 {/template}
+
 
 {template louis}
     <!DOCTYPE html>
@@ -2420,7 +2351,11 @@
 
             {$header |noAutoescape}
 
+            <hr class="hidden" id="content" />
+
             {$content |noAutoescape}
+
+            <hr class="hidden" />
 
             {$footer |noAutoescape}
 

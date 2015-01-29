@@ -301,6 +301,45 @@
      ;;                  ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption.")))
    #+END_SRC
 
+** Заголовок страницы
+
+   #+NAME: heading
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro heading (headline headtext)
+       `(ps-html
+         ((:div :class "heading")
+          ((:div :class "heading__headline")
+           ((:h1 :class "heading__headline--h1") ,headline))
+          ((:div :class "heading__text")
+           ((:p) ,headtext)))))
+   #+END_SRC
+
+** Хлебные крошки
+
+   #+NAME: breadcrumb
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defmacro breadcrumb (last &rest prevs)
+       (let ((acc nil))
+         (loop :for (url . title) :in prevs :do
+            (setf acc (append acc `(((:span :itemscope "" :itemtype "http://data-vocabulary.org/Breadcrumb")
+                                     ((:a :href ,url :itemprop "url")
+                                      ((:span :itemprop "title") ,title)))
+                                    "&nbsp;/&nbsp;"))))
+         (setf acc (append acc `(((:span) ,last))))
+         `(ps-html ,`((:p :class "breadcrumb")
+                      ((:span :class "breadcrumb__title") "Вы тут:")
+                      ((:span :class "breadcrumb__content") ,@acc
+                       )))))
+
+     ;; (macroexpand-1 '(breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная")))
+
+     ;; (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
+   #+END_SRC
+
 * Interface
 
   Соберем веб-интерфейс:
@@ -338,34 +377,48 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+           ;; <ul class="category-nav--lvl0 category-nav">
+           ;;     <li class="active">
+           ;;         <a title="Регистрация" href="/reg">Регистрация</a>
+           ;;     </li>
+           ;;     <li>
+           ;;         <a title="Логин" href="/reg">Логин</a>
+           ;;     </li>
+           ;; </ul>
+
      (defun menu ()
-       (remove-if
-        #'null
-        (list
-         (when *current-user*
-           "<a href=\"/users\">Пользователи</a>")
-         (when *current-user*
-           "<a href=\"/roles\">Роли</a>")
-         (when *current-user*
-           "<a href=\"/groups\">Группы</a>")
-         (when (null *current-user*)
-           "<a href=\"/reg\">Регистрация</a>")
-         (when (null *current-user*)
-           "<a href=\"/login\">Логин</a>")
-         (when (null *current-user*)
-           "Больше возможностей доступно залогиненным пользователям")
-         (when *current-user*
-           (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
-         ;; (when *current-user*
-         ;;   "<a href=\"/im\">Сообщения</a>")
-         (when *current-user*
-           "<a href=\"/logout\">Выход</a>")
-         ;; (when *current-user*
-         ;;   "<a href=\"/load\">Загрузка данных</a>")
-         ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
-         ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
-         ;; "<a href=\"/find\">Простой поиск</a>"
-         )))
+       (if (null *current-user*)
+           (ps-html
+            ((:li :class "active")
+             ((:a :title "Регистрация" :href "/reg") "Регистрация"))
+            ((:li)
+             ((:a :title "Логин" :href "/login") "Логин")))
+           (ps-html
+            ((:li)
+             ((:a :title "Пользователи" :href "/users"))))))
+       ;; (remove-if
+       ;;  #'null
+       ;;  (list
+       ;;   (when *current-user*
+       ;;     "<a href=\"/users\">Пользователи</a>")
+       ;;   (when *current-user*
+       ;;     "<a href=\"/roles\">Роли</a>")
+       ;;   (when *current-user*
+       ;;     "<a href=\"/groups\">Группы</a>")
+       ;;   (when (null *current-user*)
+       ;;     "Больше возможностей доступно залогиненным пользователям")
+       ;;   (when *current-user*
+       ;;     (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
+       ;;   ;; (when *current-user*
+       ;;   ;;   "<a href=\"/im\">Сообщения</a>")
+       ;;   (when *current-user*
+       ;;     "<a href=\"/logout\">Выход</a>")
+       ;;   ;; (when *current-user*
+       ;;   ;;   "<a href=\"/load\">Загрузка данных</a>")
+       ;;   ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
+       ;;   ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
+       ;;   ;; "<a href=\"/find\">Простой поиск</a>"
+       ;;   )))
    #+END_SRC
 
 ** Главная страница
@@ -1103,7 +1156,11 @@
 
                  {$header |noAutoescape}
 
+                 <hr class="hidden" id="content" />
+
                  {$content |noAutoescape}
+
+                 <hr class="hidden" />
 
                  {$footer |noAutoescape}
 
@@ -1734,11 +1791,10 @@
          </header>
      {/template}
    #+END_SRC
-*** COMMENT Content
+*** Content
    #+NAME: tpl_content
    #+BEGIN_SRC closure-template-html
      {template content}
-         <hr class="hidden" id="content" />
          <section class="container">
              <p class="breadcrumb">
                  <span class="breadcrumb__title">You are here:</span> <span class="breadcrumb__content"><span>Home</span></span>
@@ -3036,399 +3092,331 @@
              </div>
              <div class="overlay-bg"></div>
          </section>
-         <hr class="hidden" />
      {/template}
    #+END_SRC
 
    #+NAME: tpl_reg
    #+BEGIN_SRC closure-template-html
      {template reg}
-         <hr class="hidden" id="content" />
          <section class="container">
-
-             <p class="breadcrumb">
-                 <span class="breadcrumb__title">Вы тут:</span>
-                 <span class="breadcrumb__content">
-                     <span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb">
-                         <a href="/en" itemprop="url">
-                             <span itemprop="title">Главная</span>
-                         </a>
-                     </span>
-                     /
-                     <span>Регистрация нового пользователя</span>
-                 </span>
-             </p>
-
+             {$breadcrumb |noAutoescape}
              <div class="main hasNavigation ">
-
-                 <div class="category-nav-container">
-                     <p class="category-nav-container__headline trail">
-                         <a title="Незарегистрированный пользователь" href="/en/mylouis">Незарегистрированный пользователь</a>
-                     </p>
-                     <ul class="category-nav--lvl0 category-nav">
-                         <li class="active">
-                             <a title="Регистрация" href="/reg">Регистрация</a>
-                         </li>
-                         <li>
-                             <a title="Логин" href="/reg">Логин</a>
-                         </li>
-                     </ul>
-                     {$menu |noAutoescape}
-                     <br />
-                     {$user | noAutoescape}
-                 </div>
-
-                 <article class="content">
-                     <div class="content-box">
-                         <div class="heading">
-                             <div class="heading__inner">
-                                 <div class="heading__headline">
-                                     <h1 class="heading__headline--h1">Зарегистрируйтесь как пользователь</h1>
-                                 </div>
-                                 <div class="heading__text">
-                                     <p>
-                                         После регистрации вы сможете
-                                         общаться с другими пользователями,
-                                         искать товары и делать заказы,
-                                         создавать и отслеживать свои
-                                         задачи.
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
-                     <div class="content-box size-3-5 switch-content-container">
-                         {$dbg | noAutoescape}
-                         {$msg | noAutoescape}
-                         {$ret | noAutoescape}
-                     </div>
-                     <div class="content-box size-1-5">
-                         {$teasers | noAutoescape}
-                     </div>
-                     <span class="clear"></span>
-                 </article>
-
-                 <div class="overlay-container popup" id="dataprivacy-overlay" data-dontcloseviabg="" data-mustrevalidate="">
-                     {$overlays | noAutoescape}
-                 </div>
-
-                 <span class="clear"></span>
-
+                 {$ret |noAutoescape}
              </div>
              <div class="overlay-bg"></div>
          </section>
-         <hr class="hidden" />
      {/template}
+
    #+END_SRC
 
 *** Footer
    #+NAME: tpl_footer
    #+BEGIN_SRC closure-template-html
-              {template footer}
-                  <footer class="footer footer--full-content">
-                      <div class="container">
+     {template footer}
+         <footer class="footer footer--full-content">
+             <div class="container">
 
-                          <form novalidate="" action="#" method="post">
-                              <button class="button button--footer-toggle js__footerToggle" type="submit">
-                                  <span class="button__text">
-                                      Show less               </span>
-                                  <span class="button__icon"></span>
-                              </button>
-                          </form>
-                          <p class="price-note footer__price-note">
-                              All prices <a href="/en/service/kaufen-und-versenden/tax-free">incl. statutory VAT</a> (Germany),<br />but do not include €4.95 <a href="/en/service/kaufen-und-versenden/versandkosten">shipping costs</a> in Germany. </p>
+                 <form novalidate="" action="#" method="post">
+                     <button class="button button--footer-toggle js__footerToggle" type="submit">
+                         <span class="button__text">
+                             Show less               </span>
+                         <span class="button__icon"></span>
+                     </button>
+                 </form>
+                 <p class="price-note footer__price-note">
+                     All prices <a href="/en/service/kaufen-und-versenden/tax-free">incl. statutory VAT</a> (Germany),<br />but do not include €4.95 <a href="/en/service/kaufen-und-versenden/versandkosten">shipping costs</a> in Germany. </p>
 
 
-                          <span class="clear"></span>
+                 <span class="clear"></span>
 
-                          <div class="footer-toggle">
-                              <div class="odd">
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-small footer-box--shopping-at-louis">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                 <div class="footer-toggle">
+                     <div class="odd">
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-small footer-box--shopping-at-louis">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>Shopping at Louis</h4>
+                                 <div class="media__content">
+                                     <h4>Shopping at Louis</h4>
 
-                                              <p>Be it online, by telephone or in one of more than 70 stores. There are so many ways to buy our products.                 <a href="/en/service/kaufen-und-versenden/einkaufen">More...</a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-small footer-box--shipment-costs">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                                     <p>Be it online, by telephone or in one of more than 70 stores. There are so many ways to buy our products.                 <a href="/en/service/kaufen-und-versenden/einkaufen">More...</a>
+                                     </p>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-small footer-box--shipment-costs">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>Shipping costs</h4>
+                                 <div class="media__content">
+                                     <h4>Shipping costs</h4>
 
-                                              <p>Orders within Germany or from other countries, 24-hour service.                  <a href="/en/service/kaufen-und-versenden/versandkosten">More...</a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <span class="clear"></span>
+                                     <p>Orders within Germany or from other countries, 24-hour service.                  <a href="/en/service/kaufen-und-versenden/versandkosten">More...</a>
+                                     </p>
+                                 </div>
+                             </div>
+                         </div>
+                         <span class="clear"></span>
 
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-small footer-box--payment">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-small footer-box--payment">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>Payment</h4>
+                                 <div class="media__content">
+                                     <h4>Payment</h4>
 
-                                              <p>Payment options for Germany and abroad. <a href="/en/service/kaufen-und-versenden/zahlungsarten">More...</a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-small footer-box--return">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                                     <p>Payment options for Germany and abroad. <a href="/en/service/kaufen-und-versenden/zahlungsarten">More...</a>
+                                     </p>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-small footer-box--return">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>Right of return</h4>
+                                 <div class="media__content">
+                                     <h4>Right of return</h4>
 
-                                              <p>Right of return extended to 2 years subject to the following conditions.                 <a href="/en/service/louis/agb#rueckgabebelehrung">More...</a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <span class="clear"></span>
+                                     <p>Right of return extended to 2 years subject to the following conditions.                 <a href="/en/service/louis/agb#rueckgabebelehrung">More...</a>
+                                     </p>
+                                 </div>
+                             </div>
+                         </div>
+                         <span class="clear"></span>
 
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-small footer-box--reshipment">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-small footer-box--reshipment">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>Free returns</h4>
+                                 <div class="media__content">
+                                     <h4>Free returns</h4>
 
-                                              <p>Money-back guarantee – no-risk shopping. <a href="/en/service/kaufen-und-versenden/ruecksendung">More...</a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-small footer-box--return-info">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                                     <p>Money-back guarantee – no-risk shopping. <a href="/en/service/kaufen-und-versenden/ruecksendung">More...</a>
+                                     </p>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-small footer-box--return-info">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>Returns advice</h4>
+                                 <div class="media__content">
+                                     <h4>Returns advice</h4>
 
-                                              <p>If you receive a wrong or faulty item, here's what to do.                    <a href="/en/service/kaufen-und-versenden/reklamation">More...</a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <span class="clear"></span>
+                                     <p>If you receive a wrong or faulty item, here's what to do.                    <a href="/en/service/kaufen-und-versenden/reklamation">More...</a>
+                                     </p>
+                                 </div>
+                             </div>
+                         </div>
+                         <span class="clear"></span>
 
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-small footer-box--newsletter text-container">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-small footer-box--newsletter text-container">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>Newsletter – subscribe now</h4>
+                                 <div class="media__content">
+                                     <h4>Newsletter – subscribe now</h4>
 
-                                              <p><a href="/en/service/newsletter">Register</a> here free of charge.</p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box">
-                                          <div class="media__content">
-                                              <p>More than 200,000 fans follow Louis on:</p>
-                                              <div style="width: 100%; margin-top: 5px; text-align: center;">
-                                                  <div class="footer-box--facebook footer-social-link first">
-                                                      <a class="footer-box__icon" target="_blank" href="/en/m/redirect?url=https://www.facebook.com/louismotorrad"></a>
-                                                  </div>
-                                                  <div class="footer-box--youtube footer-social-link">
-                                                      <a class="footer-box__icon" target="_blank" href="/en/m/redirect?url=http://www.youtube.com/louismotorrad"></a>
-                                                  </div>
-                                                  <div class="footer-box--googleplus footer-social-link">
-                                                      <a class="footer-box__icon" target="_blank" href="/en/m/redirect?url=https://plus.google.com/%2Blouis"></a>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <span class="clear"></span>
-                              </div>
+                                     <p><a href="/en/service/newsletter">Register</a> here free of charge.</p>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box">
+                                 <div class="media__content">
+                                     <p>More than 200,000 fans follow Louis on:</p>
+                                     <div style="width: 100%; margin-top: 5px; text-align: center;">
+                                         <div class="footer-box--facebook footer-social-link first">
+                                             <a class="footer-box__icon" target="_blank" href="/en/m/redirect?url=https://www.facebook.com/louismotorrad"></a>
+                                         </div>
+                                         <div class="footer-box--youtube footer-social-link">
+                                             <a class="footer-box__icon" target="_blank" href="/en/m/redirect?url=http://www.youtube.com/louismotorrad"></a>
+                                         </div>
+                                         <div class="footer-box--googleplus footer-social-link">
+                                             <a class="footer-box__icon" target="_blank" href="/en/m/redirect?url=https://plus.google.com/%2Blouis"></a>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                         <span class="clear"></span>
+                     </div>
 
-                              <div class="even">
-                                  <div class="content-box size-1-4">
-                                      <div class="footer-box footer-box--height-large footer-box--storefinder">
-                                          <h4>Store finder</h4>
-                                          <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/storefinder.png" alt="Store finder" height="140" width="220" />
+                     <div class="even">
+                         <div class="content-box size-1-4">
+                             <div class="footer-box footer-box--height-large footer-box--storefinder">
+                                 <h4>Store finder</h4>
+                                 <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/storefinder.png" alt="Store finder" height="140" width="220" />
 
-                                          <p>You can buy motorcycle clothing and accessories off the shelf in more than 70 stores in Germany and Austria. <a href="/en/service/filialen">More...</a>
-                                          </p>
-                                          <form action="/en/service/filialen/suche/3" method="post" novalidate="" name="storeSearch" id="searchStoreFooter">
-                                              <div class="input-bg hide-label">
-                                                  <label for="footer-storefinder-q">Enter postcode or town</label><input name="search_string" id="footer-storefinder-q" class="form-element input-text" value="" type="text" />            </div>
+                                 <p>You can buy motorcycle clothing and accessories off the shelf in more than 70 stores in Germany and Austria. <a href="/en/service/filialen">More...</a>
+                                 </p>
+                                 <form action="/en/service/filialen/suche/3" method="post" novalidate="" name="storeSearch" id="searchStoreFooter">
+                                     <div class="input-bg hide-label">
+                                         <label for="footer-storefinder-q">Enter postcode or town</label><input name="search_string" id="footer-storefinder-q" class="form-element input-text" value="" type="text" />            </div>
 
-                                              <button name="search_submit" type="submit" class="button button--form" value="Shop finden">Shop finden<span class="button__icon"></span></button>
-                                      </form>     </div>
-                                  </div>
-                                  <div class="content-box size-1-4">
-                                      <div class="media footer-box footer-box--height-large footer-box--order-phone">
-                                          <span class="media__item media__item--left footer-box__icon"></span>
+                                     <button name="search_submit" type="submit" class="button button--form" value="Shop finden">Shop finden<span class="button__icon"></span></button>
+                             </form>     </div>
+                         </div>
+                         <div class="content-box size-1-4">
+                             <div class="media footer-box footer-box--height-large footer-box--order-phone">
+                                 <span class="media__item media__item--left footer-box__icon"></span>
 
-                                          <div class="media__content">
-                                              <h4>
-                                                  24h order hotline<span>0049 40 734 193 60</span>                </h4>
-                                              <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/order-phone.png" alt="Louis Ordering Service Team" height="140" width="220" />
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <span class="clear"></span>
+                                 <div class="media__content">
+                                     <h4>
+                                         24h order hotline<span>0049 40 734 193 60</span>                </h4>
+                                     <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/order-phone.png" alt="Louis Ordering Service Team" height="140" width="220" />
+                                 </div>
+                             </div>
+                         </div>
+                         <span class="clear"></span>
 
-                                  <div class="odd">
-                                      <div class="content-box size-1-4">
-                                          <div class="footer-box footer-box--height-small">
-                                              <h4>Tested Online Shop</h4>
+                         <div class="odd">
+                             <div class="content-box size-1-4">
+                                 <div class="footer-box footer-box--height-small">
+                                     <h4>Tested Online Shop</h4>
 
-                                              <p class="center">
-                                                  <a target="_blank" href="/en/m/redirect?url=https://www.shopinfo.net/zertifizierte-shops/zertifikat/index.html?memberkey%3DBVH%26shopurl%3Dwww.louis.de">
-                                                      <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/ehi.png" alt="EHI" height="52" width="165" />
-                                                  </a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                      <div class="content-box size-1-4">
-                                          <div class="footer-box footer-box--height-small">
-                                              <h4>Excellence awards</h4>
+                                     <p class="center">
+                                         <a target="_blank" href="/en/m/redirect?url=https://www.shopinfo.net/zertifizierte-shops/zertifikat/index.html?memberkey%3DBVH%26shopurl%3Dwww.louis.de">
+                                             <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/ehi.png" alt="EHI" height="52" width="165" />
+                                         </a>
+                                     </p>
+                                 </div>
+                             </div>
+                             <div class="content-box size-1-4">
+                                 <div class="footer-box footer-box--height-small">
+                                     <h4>Excellence awards</h4>
 
-                                              <p class="center">
-                                                  <a href="/en/service/louis/auszeichnungen">
-                                                      <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/language/en_GB/images/BB_2014.gif" alt="Best Brand 2014" height="49" width="126" />
-                                                  </a>
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <div class="content-box size-1-4">
-                                      <div class="footer-box center">
-                                          <a target="_blank" href="/en/m/redirect?url=https://www.trustedshops.com/bewertung/info_X7A8300DB1729CB894766736632C77ECC.html">
-                                              <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="/en/m/redirect?url=https://www.trustedshops.com/bewertung/widget/widgets/X7A8300DB1729CB894766736632C77ECC.gif" alt="Customer rating" height="191" width="140" />
-                                          </a>
-                                      </div>
-                                  </div>
-                              </div>
-                              <span class="clear"></span>
+                                     <p class="center">
+                                         <a href="/en/service/louis/auszeichnungen">
+                                             <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/language/en_GB/images/BB_2014.gif" alt="Best Brand 2014" height="49" width="126" />
+                                         </a>
+                                     </p>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="content-box size-1-4">
+                             <div class="footer-box center">
+                                 <a target="_blank" href="/en/m/redirect?url=https://www.trustedshops.com/bewertung/info_X7A8300DB1729CB894766736632C77ECC.html">
+                                     <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="/en/m/redirect?url=https://www.trustedshops.com/bewertung/widget/widgets/X7A8300DB1729CB894766736632C77ECC.gif" alt="Customer rating" height="191" width="140" />
+                                 </a>
+                             </div>
+                         </div>
+                     </div>
+                     <span class="clear"></span>
 
-                              <div class="content-box size-1-2">
-                                  <div class="media footer-box footer-box--request footer-box--contact text-container">
-                                      <span class="media__item media__item--left footer-box__icon"></span>
+                     <div class="content-box size-1-2">
+                         <div class="media footer-box footer-box--request footer-box--contact text-container">
+                             <span class="media__item media__item--left footer-box__icon"></span>
 
-                                      <div class="media__content">
-                                          <h4>Quick contact</h4>
+                             <div class="media__content">
+                                 <h4>Quick contact</h4>
 
-                                          <p>Do you have a general question or a query about your order? Do you wish to critique the site or simply have your say?<br />Please contact us.</p>
+                                 <p>Do you have a general question or a query about your order? Do you wish to critique the site or simply have your say?<br />Please contact us.</p>
 
-                                          <a class="button button--link" href="/en/service/louis/kontakt">
-                                              Go to Contact page              <span class="button__icon"></span>
-                                          </a>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div class="content-box size-1-2">
-                                  <div class="media footer-box footer-box--request footer-box--technical-questions text-container">
-                                      <span class="media__item media__item--left footer-box__icon"></span>
+                                 <a class="button button--link" href="/en/service/louis/kontakt">
+                                     Go to Contact page              <span class="button__icon"></span>
+                                 </a>
+                             </div>
+                         </div>
+                     </div>
+                     <div class="content-box size-1-2">
+                         <div class="media footer-box footer-box--request footer-box--technical-questions text-container">
+                             <span class="media__item media__item--left footer-box__icon"></span>
 
-                                      <div class="media__content">
-                                          <h4>Technical questions</h4>
+                             <div class="media__content">
+                                 <h4>Technical questions</h4>
 
-                                          <p>If you are having trouble getting spare parts for a Pannonia P20, or if you have a technical question, the Louis Technical Centre has no end of experience, reference books and contacts.</p>
-                                          <a class="button button--link" href="/en/service/louis/technikanfrage">
-                                              Go to Technical query               <span class="button__icon"></span>
-                                          </a>
-                                      </div>
-                                  </div>
-                              </div>
-                              <span class="clear"></span>
+                                 <p>If you are having trouble getting spare parts for a Pannonia P20, or if you have a technical question, the Louis Technical Centre has no end of experience, reference books and contacts.</p>
+                                 <a class="button button--link" href="/en/service/louis/technikanfrage">
+                                     Go to Technical query               <span class="button__icon"></span>
+                                 </a>
+                             </div>
+                         </div>
+                     </div>
+                     <span class="clear"></span>
 
-                              <div class="content-box">
-                                  <h4>If you want to make an order, then choose louis.de</h4>
+                     <div class="content-box">
+                         <h4>If you want to make an order, then choose louis.de</h4>
 
-                                  <div class="footer-box footer-box--text text-container">
-                                      <p><strong>Helmets, motorbike clothing, leisurewear, luggage systems, camping and travel accessories, tuning and add-on parts, wearing and spare parts, care and maintenance: more than 30,000 articles to do with motorcycling in one shop – Louis.de!</strong>
-                                      </p><p><strong>Helmets for everybody:</strong> full-face helmets, flip-up helmets, motocross helmets, police and jet helmets – you will find helmets for every purpose to suit every budget at Louis. Our helmet brands include Shoei, Schuberth, x-lite, Nolan, roof, Shark, Scorpion and Nexx. You have 18 brand names to choose from, plus a huge range of designs and colours. And, of course, Louis carries visors, goggles, helmet accessories and intercom systems as well.
-                                      </p><p><strong>Motorbike clothing to kit you out from head to toe:</strong> Louis has jackets and trousers, gloves, boots, base layers and everything else bikers could possibly need. For example, protector upgrades, neck warmers, kidney belts and, of course, rainsuits. It makes no difference whether your style is casual or sporty, or you prefer leather or textile. You will find a large selection of women's attire at Louis, too. Louis also stocks a full clothing range for children. We have all the big brands – Vanucci, rukka, Held, Büse, Probiker, Cycle Spirit, Highway 1 and many more besides.
-                                      </p><p><strong>Leisurewear for bikers:</strong> T-shirts, polo shirts, sweatshirts, hoodies, fleece and softshell jackets, army jackets, cargo trousers – fashionable styles, good quality and very affordable prices. Of course, Louis also has sneakers, boots and other leisure footwear.
-                                      </p><p><strong>Luggage systems, camping and travel accessories for on tour:</strong> Any motorbike can be turned into a pack horse. Louis offers not only classic case systems and top boxes from respected manufacturers such as Hepco &amp; Becker, SW-Motech, Givi and moto-detail, but also luggage systems for superbikes and enduro bikes. For example, tank bags for attachment with straps, magnets or click mechanism. Plus waterproof saddlebags, tail bags and roll bags in all shapes and sizes. Cruiser and chopper riders in particular will love the large range of leather saddlebags. To help you find the best way to get to your destination, Louis also has sat navs from Tomtom and Garmin. For those who love the freedom of camping, Louis also stocks an extensive range of camping accessories from camping mats to tents, flashlights to camping crockery.
-                                      </p><p><strong>Tuning and add-on parts for more than 3,000 motorbikes:</strong> Want to improve the look, function or character of your motorbike? Louis offers a huge selection of (LED) turn signals, mirrors, license plate holders, tank pads, exhaust systems... the list goes on and on. Looking for better ergonomics? Try alternative handlebars, levers and footrests. Louis also carries practical accessories such as heated grips, headlights and the legendary Scottoiler. Of course, we also stock all the big names like Kellermann, LSL, Bos, Lazer, Puig, magazi, MRA, gilles, Abus.
-                                      </p><p><strong>Wearing and spare parts, care and maintenance:</strong> Whatever it takes to maintain the value and function of your motorbike or scooter, Louis has it. Consumables like fork and engine oil, brake fluid and chain spray from renowned brands like Castrol and S100; care products for your bike as well as for leather and textile clothing. Then there's wearing parts like Champion air and oil filters, batteries from DELO and Exide, spark plugs from NGK, D.I.D. chainsets, brake pads and brake discs from TRW Lucas, and much much more. And to make light work of repair and maintenance, Louis stocks everything from paddock stands to chargers, torque wrenches to tyre repair sets for on the road. In fact, you'll find more than enough tools from Proxxon and Rothewald to kit out a professional workshop.
-                                      </p><p><strong>Not only that:</strong> Because we understand your passion for the lifestyle, Louis also carries a wide range of gift items and jewellery as well as books and maps.</p><p><a href="http://www.louis.at">Louis in Austria - www.louis.at</a> | <a href="http://www.louis-moto.co.uk">Louis in the UK - www.louis-moto.co.uk</a> | <a href="http://www.louis-moto.fr">Louis in France - www.louis-moto.fr</a> | <a href="http://www.louis.ie">Louis in Ireland - www.louis.ie</a> | <a href="http://www.louis.eu">Louis in Europe - www.louis.eu</a></p><p><a href="http://louis-de.taobao.com" rel="nofollow" target="_blank">louis在中国的淘宝店铺：http://louis-de.taobao.com</a></p><p><strong>You will find interesting offers in the categories:</strong></p><p><a href="https://www.louis.de/promotion/motorradbekleidung.asp">Motorcycle clothing</a>, <a href="https://www.louis.de/promotion/motorradjacke.asp">Motorcycle jackets</a>, <a href="https://www.louis.de/promotion/motorradhose.asp">Motorcycle trousers</a>, <a href="https://www.louis.de/promotion/lederkombi.asp">Leather suits</a>, <a href="https://www.louis.de/promotion/motorradhelme.asp">Motorcycle helmets</a>, <a href="https://www.louis.de/promotion/motorradzubehoer.asp">Motorcycle accessories</a>, <a href="https://www.louis.de/promotion/motorrad_ersatzteile.asp">Motorcycle spares</a>, <a href="https://www.louis.de/promotion/motorrad.asp">Motorcycle</a>, <a href="https://www.louis.de/promotion/outdoor.asp">Outdoor</a></p>          </div>
-                              </div>
-                          </div>
+                         <div class="footer-box footer-box--text text-container">
+                             <p><strong>Helmets, motorbike clothing, leisurewear, luggage systems, camping and travel accessories, tuning and add-on parts, wearing and spare parts, care and maintenance: more than 30,000 articles to do with motorcycling in one shop – Louis.de!</strong>
+                             </p><p><strong>Helmets for everybody:</strong> full-face helmets, flip-up helmets, motocross helmets, police and jet helmets – you will find helmets for every purpose to suit every budget at Louis. Our helmet brands include Shoei, Schuberth, x-lite, Nolan, roof, Shark, Scorpion and Nexx. You have 18 brand names to choose from, plus a huge range of designs and colours. And, of course, Louis carries visors, goggles, helmet accessories and intercom systems as well.
+                             </p><p><strong>Motorbike clothing to kit you out from head to toe:</strong> Louis has jackets and trousers, gloves, boots, base layers and everything else bikers could possibly need. For example, protector upgrades, neck warmers, kidney belts and, of course, rainsuits. It makes no difference whether your style is casual or sporty, or you prefer leather or textile. You will find a large selection of women's attire at Louis, too. Louis also stocks a full clothing range for children. We have all the big brands – Vanucci, rukka, Held, Büse, Probiker, Cycle Spirit, Highway 1 and many more besides.
+                             </p><p><strong>Leisurewear for bikers:</strong> T-shirts, polo shirts, sweatshirts, hoodies, fleece and softshell jackets, army jackets, cargo trousers – fashionable styles, good quality and very affordable prices. Of course, Louis also has sneakers, boots and other leisure footwear.
+                             </p><p><strong>Luggage systems, camping and travel accessories for on tour:</strong> Any motorbike can be turned into a pack horse. Louis offers not only classic case systems and top boxes from respected manufacturers such as Hepco &amp; Becker, SW-Motech, Givi and moto-detail, but also luggage systems for superbikes and enduro bikes. For example, tank bags for attachment with straps, magnets or click mechanism. Plus waterproof saddlebags, tail bags and roll bags in all shapes and sizes. Cruiser and chopper riders in particular will love the large range of leather saddlebags. To help you find the best way to get to your destination, Louis also has sat navs from Tomtom and Garmin. For those who love the freedom of camping, Louis also stocks an extensive range of camping accessories from camping mats to tents, flashlights to camping crockery.
+                             </p><p><strong>Tuning and add-on parts for more than 3,000 motorbikes:</strong> Want to improve the look, function or character of your motorbike? Louis offers a huge selection of (LED) turn signals, mirrors, license plate holders, tank pads, exhaust systems... the list goes on and on. Looking for better ergonomics? Try alternative handlebars, levers and footrests. Louis also carries practical accessories such as heated grips, headlights and the legendary Scottoiler. Of course, we also stock all the big names like Kellermann, LSL, Bos, Lazer, Puig, magazi, MRA, gilles, Abus.
+                             </p><p><strong>Wearing and spare parts, care and maintenance:</strong> Whatever it takes to maintain the value and function of your motorbike or scooter, Louis has it. Consumables like fork and engine oil, brake fluid and chain spray from renowned brands like Castrol and S100; care products for your bike as well as for leather and textile clothing. Then there's wearing parts like Champion air and oil filters, batteries from DELO and Exide, spark plugs from NGK, D.I.D. chainsets, brake pads and brake discs from TRW Lucas, and much much more. And to make light work of repair and maintenance, Louis stocks everything from paddock stands to chargers, torque wrenches to tyre repair sets for on the road. In fact, you'll find more than enough tools from Proxxon and Rothewald to kit out a professional workshop.
+                             </p><p><strong>Not only that:</strong> Because we understand your passion for the lifestyle, Louis also carries a wide range of gift items and jewellery as well as books and maps.</p><p><a href="http://www.louis.at">Louis in Austria - www.louis.at</a> | <a href="http://www.louis-moto.co.uk">Louis in the UK - www.louis-moto.co.uk</a> | <a href="http://www.louis-moto.fr">Louis in France - www.louis-moto.fr</a> | <a href="http://www.louis.ie">Louis in Ireland - www.louis.ie</a> | <a href="http://www.louis.eu">Louis in Europe - www.louis.eu</a></p><p><a href="http://louis-de.taobao.com" rel="nofollow" target="_blank">louis在中国的淘宝店铺：http://louis-de.taobao.com</a></p><p><strong>You will find interesting offers in the categories:</strong></p><p><a href="https://www.louis.de/promotion/motorradbekleidung.asp">Motorcycle clothing</a>, <a href="https://www.louis.de/promotion/motorradjacke.asp">Motorcycle jackets</a>, <a href="https://www.louis.de/promotion/motorradhose.asp">Motorcycle trousers</a>, <a href="https://www.louis.de/promotion/lederkombi.asp">Leather suits</a>, <a href="https://www.louis.de/promotion/motorradhelme.asp">Motorcycle helmets</a>, <a href="https://www.louis.de/promotion/motorradzubehoer.asp">Motorcycle accessories</a>, <a href="https://www.louis.de/promotion/motorrad_ersatzteile.asp">Motorcycle spares</a>, <a href="https://www.louis.de/promotion/motorrad.asp">Motorcycle</a>, <a href="https://www.louis.de/promotion/outdoor.asp">Outdoor</a></p>          </div>
+                     </div>
+                 </div>
 
-                          <div class="js__setSameHeight">
-                              <div class="content-box size-1-2">
-                                  <div style="min-height: 209px;" class="footer-box footer-box--links js__setSameHeight-item">
-                                      <div class="footer-box--links__list">
-                                          <h4>How things work at Louis</h4>
-                                          <ul>
-                                              <li><a href="/en/service/kaufen-und-versenden/versandkosten">Shipping costs</a></li>
-                                              <li><a href="/en/service/kaufen-und-versenden/zahlungsarten">Payment options</a></li>
-                                              <li><a href="/en/service/kaufen-und-versenden/ratenkauf">Payment by instalments</a></li>
-                                              <li><a href="/en/service/kaufen-und-versenden/reklamation">Complaints &amp; Returns</a></li>
-                                              <li><a href="/en/service/kaufen-und-versenden/tax-free">VAT refund</a></li>
-                                              <li><a href="/en/service/foreign-customers">Customers outside Germany</a></li>
-                                          </ul>
-                                      </div>
-                                      <div class="footer-box--links__list">
-                                          <h4>Help &amp; Advice</h4>
-                                          <ul>
-                                              <li><a href="/en/service/louis/kontakt">Contact</a></li>
-                                              <li><a href="/en/service/louis/technikanfrage">Technical query</a></li>
-                                              <li><a href="/en/rund-ums-motorrad/schraubertipps">Tips for DIY mechanics</a></li>
-                                              <li><a href="/en/rund-ums-motorrad/bike-datenbank">Bike database</a></li>
-                                              <li><a href="/en/fuer-die-motorradreise/tourentipps">Touring tips</a></li>
-                                              <li><a href="/en/service/downloads/motorrad-hintergrundbilder">Wallpapers</a></li>
-                                              <li><a href="/en/service/materiallexikon">Material lexicon</a></li>
-                                              <li><a href="/en/mylouis">My Louis</a></li>
-                                          </ul>
-                                      </div>
-                                      <div class="footer-box--links__list last">
-                                          <h4>News &amp; Info</h4>
-                                          <ul>
-                                              <li><a href="/en/service/katalog-bestellen">Catalogue</a></li>
-                                              <li><a href="/en/service/newsletter">Newsletter</a></li>
-                                              <li><a href="/en/katalog/geschenkgutscheine">Gift vouchers</a></li>
-                                              <li><a href="/en/service/louis-funcard">LouisFunCard</a></li>
-                                              <li><a href="/en/service/louismastercard">LouisMasterCard</a></li>
-                                              <li><a href="/en/service/rund-ums-einkaufen/gewinnspiel">Competition</a></li>
-                                          </ul>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div class="content-box size-1-2">
-                                  <div style="min-height: 209px;" class="footer-box footer-box--links js__setSameHeight-item">
-                                      <div class="footer-box--links__list">
-                                          <h4>About Louis</h4>
-                                          <ul>
-                                              <li><a href="/en/service/louis/jobs">Jobs</a></li>
-                                              <li><a href="/en/service/louis/ausbildung">Training</a></li>
-                                              <li><a href="/en/service/louis/videos">Presenting Louis</a></li>
-                                              <li><a href="/en/service/filialen">Stores</a></li>
-                                          </ul>
-                                      </div>
-                                      <div class="footer-box--links__list last">
-                                          <h4>Legal</h4>
-                                          <ul>
-                                              <li><a href="/en/service/louis/impressum">Legal notice</a></li>
-                                              <li><a href="/en/service/louis/agb">T&amp;Cs</a></li>
-                                              <li><a href="/en/service/louis/agb#datenschutz">Privacy Policy</a></li>
-                                              <li><a href="/en/service/louis/agb#widerruf">Right of cancellation</a></li>
-                                              <li><a href="/en/service/louis/agb#widerrufsformular">Cancellation form</a></li>
-                                          </ul>
-                                      </div>
-                                  </div>
-                              </div>
-                              <span class="clear"></span>
-                          </div>
-                          <p class="copy">Copyright © 2014 Louis -<br />Europe's No.1 in the Motorcycle &amp; Leisure world.</p>
-                          <a class="button go-to-top" href="#top">To the top</a>
-                      </div>
-                  </footer>
-              {/template}
+                 <div class="js__setSameHeight">
+                     <div class="content-box size-1-2">
+                         <div style="min-height: 209px;" class="footer-box footer-box--links js__setSameHeight-item">
+                             <div class="footer-box--links__list">
+                                 <h4>How things work at Louis</h4>
+                                 <ul>
+                                     <li><a href="/en/service/kaufen-und-versenden/versandkosten">Shipping costs</a></li>
+                                     <li><a href="/en/service/kaufen-und-versenden/zahlungsarten">Payment options</a></li>
+                                     <li><a href="/en/service/kaufen-und-versenden/ratenkauf">Payment by instalments</a></li>
+                                     <li><a href="/en/service/kaufen-und-versenden/reklamation">Complaints &amp; Returns</a></li>
+                                     <li><a href="/en/service/kaufen-und-versenden/tax-free">VAT refund</a></li>
+                                     <li><a href="/en/service/foreign-customers">Customers outside Germany</a></li>
+                                 </ul>
+                             </div>
+                             <div class="footer-box--links__list">
+                                 <h4>Help &amp; Advice</h4>
+                                 <ul>
+                                     <li><a href="/en/service/louis/kontakt">Contact</a></li>
+                                     <li><a href="/en/service/louis/technikanfrage">Technical query</a></li>
+                                     <li><a href="/en/rund-ums-motorrad/schraubertipps">Tips for DIY mechanics</a></li>
+                                     <li><a href="/en/rund-ums-motorrad/bike-datenbank">Bike database</a></li>
+                                     <li><a href="/en/fuer-die-motorradreise/tourentipps">Touring tips</a></li>
+                                     <li><a href="/en/service/downloads/motorrad-hintergrundbilder">Wallpapers</a></li>
+                                     <li><a href="/en/service/materiallexikon">Material lexicon</a></li>
+                                     <li><a href="/en/mylouis">My Louis</a></li>
+                                 </ul>
+                             </div>
+                             <div class="footer-box--links__list last">
+                                 <h4>News &amp; Info</h4>
+                                 <ul>
+                                     <li><a href="/en/service/katalog-bestellen">Catalogue</a></li>
+                                     <li><a href="/en/service/newsletter">Newsletter</a></li>
+                                     <li><a href="/en/katalog/geschenkgutscheine">Gift vouchers</a></li>
+                                     <li><a href="/en/service/louis-funcard">LouisFunCard</a></li>
+                                     <li><a href="/en/service/louismastercard">LouisMasterCard</a></li>
+                                     <li><a href="/en/service/rund-ums-einkaufen/gewinnspiel">Competition</a></li>
+                                 </ul>
+                             </div>
+                         </div>
+                     </div>
+                     <div class="content-box size-1-2">
+                         <div style="min-height: 209px;" class="footer-box footer-box--links js__setSameHeight-item">
+                             <div class="footer-box--links__list">
+                                 <h4>About Louis</h4>
+                                 <ul>
+                                     <li><a href="/en/service/louis/jobs">Jobs</a></li>
+                                     <li><a href="/en/service/louis/ausbildung">Training</a></li>
+                                     <li><a href="/en/service/louis/videos">Presenting Louis</a></li>
+                                     <li><a href="/en/service/filialen">Stores</a></li>
+                                 </ul>
+                             </div>
+                             <div class="footer-box--links__list last">
+                                 <h4>Legal</h4>
+                                 <ul>
+                                     <li><a href="/en/service/louis/impressum">Legal notice</a></li>
+                                     <li><a href="/en/service/louis/agb">T&amp;Cs</a></li>
+                                     <li><a href="/en/service/louis/agb#datenschutz">Privacy Policy</a></li>
+                                     <li><a href="/en/service/louis/agb#widerruf">Right of cancellation</a></li>
+                                     <li><a href="/en/service/louis/agb#widerrufsformular">Cancellation form</a></li>
+                                 </ul>
+                             </div>
+                         </div>
+                     </div>
+                     <span class="clear"></span>
+                 </div>
+                 <p class="copy">Copyright © 2014 Louis -<br />Europe's No.1 in the Motorcycle &amp; Leisure world.</p>
+                 <a class="button go-to-top" href="#top">To the top</a>
+             </div>
+         </footer>
+     {/template}
    #+END_SRC

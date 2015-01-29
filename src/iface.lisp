@@ -23,34 +23,48 @@
 ;; Страницы
 (in-package #:moto)
 
+      ;; <ul class="category-nav--lvl0 category-nav">
+      ;;     <li class="active">
+      ;;         <a title="Регистрация" href="/reg">Регистрация</a>
+      ;;     </li>
+      ;;     <li>
+      ;;         <a title="Логин" href="/reg">Логин</a>
+      ;;     </li>
+      ;; </ul>
+
 (defun menu ()
-  (remove-if
-   #'null
-   (list
-    (when *current-user*
-      "<a href=\"/users\">Пользователи</a>")
-    (when *current-user*
-      "<a href=\"/roles\">Роли</a>")
-    (when *current-user*
-      "<a href=\"/groups\">Группы</a>")
-    (when (null *current-user*)
-      "<a href=\"/reg\">Регистрация</a>")
-    (when (null *current-user*)
-      "<a href=\"/login\">Логин</a>")
-    (when (null *current-user*)
-      "Больше возможностей доступно залогиненным пользователям")
-    (when *current-user*
-      (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
-    ;; (when *current-user*
-    ;;   "<a href=\"/im\">Сообщения</a>")
-    (when *current-user*
-      "<a href=\"/logout\">Выход</a>")
-    ;; (when *current-user*
-    ;;   "<a href=\"/load\">Загрузка данных</a>")
-    ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
-    ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
-    ;; "<a href=\"/find\">Простой поиск</a>"
-    )))
+  (if (null *current-user*)
+      (ps-html
+       ((:li :class "active")
+        ((:a :title "Регистрация" :href "/reg") "Регистрация"))
+       ((:li)
+        ((:a :title "Логин" :href "/login") "Логин")))
+      (ps-html
+       ((:li)
+        ((:a :title "Пользователи" :href "/users"))))))
+  ;; (remove-if
+  ;;  #'null
+  ;;  (list
+  ;;   (when *current-user*
+  ;;     "<a href=\"/users\">Пользователи</a>")
+  ;;   (when *current-user*
+  ;;     "<a href=\"/roles\">Роли</a>")
+  ;;   (when *current-user*
+  ;;     "<a href=\"/groups\">Группы</a>")
+  ;;   (when (null *current-user*)
+  ;;     "Больше возможностей доступно залогиненным пользователям")
+  ;;   (when *current-user*
+  ;;     (format nil "<a href=\"/user/~A\">Мой профиль</a>" *current-user*))
+  ;;   ;; (when *current-user*
+  ;;   ;;   "<a href=\"/im\">Сообщения</a>")
+  ;;   (when *current-user*
+  ;;     "<a href=\"/logout\">Выход</a>")
+  ;;   ;; (when *current-user*
+  ;;   ;;   "<a href=\"/load\">Загрузка данных</a>")
+  ;;   ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
+  ;;   ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
+  ;;   ;; "<a href=\"/find\">Простой поиск</a>"
+  ;;   )))
 (in-package #:moto)
 
 ;; (print
