@@ -46,22 +46,4 @@
         (let ((x (car (last rows))))
           (push (format "   (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x)) result))))
     (mapconcat 'identity (reverse result) "")))
-
-(defun gen-automat (name docstring flds states)
-  (let ((result))
-    (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
-    (push (gen-fields flds) result)
-    (push (gen-states states) result)
-    (push (gen-actions states) result)
-    (push ")\n" result)
-    (mapconcat 'identity (reverse result) "")))
-
-(defun gen-entity (name docstring flds)
-  (let ((result))
-    (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
-    (push (gen-fields flds) result)
-    (push ")\n" result)
-    (push "\n" result)
-    (push (format "(make-%s-table)\n" name) result)
-    (mapconcat 'identity (reverse result) "")))
 ;; generators ends here

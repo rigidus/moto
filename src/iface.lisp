@@ -860,6 +860,37 @@
             "access-denied")))
 (in-package #:moto)
 
+(defun js-reg ()
+  (ps-html
+   ((:script :type "text/javascript")
+    (ps
+      (defun get-val (selector)
+        ((@ ($ selector) val)))
+      (defun empty (string)
+        (if (equal "" string) t false))
+      (defun contains (string pattern)
+        (if (+ 1 ((@ string index-of) pattern)) t false))
+      (defun add_explanation (selector content)
+        ((@ ((@ ($ selector) parent)) append)
+         (lambda (index value)
+           (concatenate 'string "<p class='validation-explanation validation-explanation--static'>" content "</p>"))))
+      (defun reg_valid ()
+        ((@ ($ ".validation-explanation") remove))
+        (let ((errs 0))
+        (when (not (contains (get-val "#mail")  "@"))
+          (add_explanation "#mail" "Пожалуйста, введите корректный емайл")
+          (incf errs))
+        (when (empty (get-val "#password"))
+          (add_explanation "#password" "Пожалуйста, введите непустой пароль")
+          (incf errs))
+        (when (not (equal (get-val "#password") (get-val "#password-confirm")))
+          (add_explanation "#password-confirm" "Пожалуйста, введите подтверждение пароля совпадающее с паролем")
+          (incf errs))
+          (if (equal errs 0)
+            t
+            false)))
+      ))))
+
 (define-page reg "/reg"
   (let ((teasers (format nil "~{~A~}"
                          (list
@@ -885,35 +916,7 @@
      (format nil "~{~A~}"
              (list
               (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-              (ps-html
-               ((:script :type "text/javascript")
-                (ps
-                  (defun get-val (selector)
-                    ((@ ($ selector) val)))
-                  (defun empty (string)
-                    (if (equal "" string) t false))
-                  (defun contains (string pattern)
-                    (if (+ 1 ((@ string index-of) pattern)) t false))
-                  (defun add_explanation (selector content)
-                    ((@ ((@ ($ selector) parent)) append)
-                     (lambda (index value)
-                       (concatenate 'string "<p class='validation-explanation validation-explanation--static'>" content "</p>"))))
-                  (defun say ()
-                    ;; Удалим все предупреждения о некорректно заполненных полях, если эти предупреждения существуют
-                    ((@ ($ ".validation-explanation") remove))
-                    (let ((errs 0)) ;; Кол-во ошибок
-                      ;; Проверим правильность заполнения поля mail
-                      (unless (contains (get-val "#mail")  "@")
-                        (add_explanation "#mail" "Пожалуйста, введите корректный емайл")
-                        (incf errs))
-                      ;; Проверим правильность заполнения поля password
-                      (when (empty (get-val "#password"))
-                        (add_explanation "#password" "Пожалуйста, введите корректный пароль")
-                        (incf errs))
-                      ;; Если ошибок нет - возвращаем true
-                      (if (equal errs 0)
-                          t
-                          false))))))
+              (js-reg)
               (form ("regform" "Регистрационные данные") ;;  js__formValidation
                 (fieldset "Обязательные поля"
                   (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
@@ -942,7 +945,7 @@
      :overlay overlay))
     (:register (ps-html
                 ((:input :type "hidden" :name "act" :value "REGISTER"))
-                (submit "Зарегистрироваться" :onclick "return say();"))
+                (submit "Зарегистрироваться" :onclick "return reg_valid();"))
                (dbg (bprint p))
                ;; (setf (hunchentoot:session-value 'current-user)
                ;;       (create-user (getf p :name)

@@ -248,29 +248,27 @@
    Теперь у нас есть все необходимое, чтобы сгенерировать автомат:
 
    #+NAME: gen_automat
-   #+BEGIN_SRC emacs-lisp
-     (defun gen-automat (name docstring flds states)
-       (let ((result))
-         (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
-         (push (gen-fields flds) result)
-         (push (gen-states states) result)
-         (push (gen-actions states) result)
-         (push ")\n" result)
-         (mapconcat 'identity (reverse result) "")))
+   #+BEGIN_SRC emacs-lisp :var name="1" docstring="2" flds="3" states="4" :exports none
+     (let ((result))
+       (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
+       (push (gen-fields flds) result)
+       (push (gen-states states) result)
+       (push (gen-actions states) result)
+       (push ")\n" result)
+       (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
    Или сущность
 
    #+NAME: gen_entity
-   #+BEGIN_SRC emacs-lisp
-     (defun gen-entity (name docstring flds)
-       (let ((result))
-         (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
-         (push (gen-fields flds) result)
-         (push ")\n" result)
-         (push "\n" result)
-         (push (format "(make-%s-table)\n" name) result)
-         (mapconcat 'identity (reverse result) "")))
+   #+BEGIN_SRC emacs-lisp :var name="1" docstring="2" flds="3" :exports none
+     (let ((result))
+       (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
+       (push (gen-fields flds) result)
+       (push ")\n" result)
+       (push "\n" result)
+       (push (format "(make-%s-table)\n" name) result)
+       (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
    Соберем все это в один файл:
@@ -286,10 +284,6 @@
      <<gen_states>>
 
      <<gen_actions>>
-
-     <<gen_automat>>
-
-     <<gen_entity>>
    #+END_SRC
 
    И загрузим его:
@@ -1311,145 +1305,63 @@
    Соберем все сущности и автоматы
 
    #+NAME: entity_and_automates
-   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports noneh :padline no :comments link
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      ;;;; <<copyright>>
      (in-package #:moto)
 
-     <<asm_user()>>
+     <<gen_automat("user", "пользователя", user_flds, user_state)>>
 
      <<user_actions_func>>
 
      <<create_user>>
 
 
-     <<asm_role()>>
+     <<gen_entity("role", "роли", role_flds)>>
 
      <<create_roles>>
 
 
-     <<asm_group()>>
+     <<gen_entity("group", "группы", group_flds)>>
 
      <<create_groups>>
 
-     <<asm_user2group()>>
+     <<gen_entity("user2group", "связи пользователя и группы", user2group_flds)>>
 
 
-     <<asm_msg()>>
+     <<gen_automat("msg", "сообщения", msg_flds, msg_state)>>
 
      <<msg_actions_func>>
 
 
-     <<asm_que()>>
+     <<gen_entity("que", "очереди", que_flds)>>
 
      <<que_contents>>
 
-     <<asm_quelt()>>
+     <<gen_entity("quelt", "элемента очереди", quelt_flds)>>
 
      <<quelt_contents>>
 
 
-     <<asm_avatar()>>
+     <<gen_automat("avatar", "аватара", avatar_flds, avatar_state)>>
 
      <<avatar_actions_func>>
 
      <<create_avatar>>
 
 
-     <<asm_moto()>>
+     <<gen_automat("moto", "мотоцикла", moto_flds, moto_state)>>
 
      <<moto_actions_func>>
 
      <<create_moto>>
 
 
-     <<asm_color()>>
+     <<gen_entity("color", "цвета", color_flds)>>
 
+     <<gen_entity("vendor", "производителя", vendor_flds)>>
 
-     <<asm_vendor()>>
-
-
-     <<asm_bratan()>>
+     <<gen_entity("bratan", "братана", bratan_flds)>>
    #+END_SRC
-
-*** Пользователи
-
-    #+NAME: asm_user
-    #+BEGIN_SRC emacs-lisp :var flds=user_flds states=user_state :exports none
-      (gen-automat "user" "пользователя" flds states)
-    #+END_SRC
-
-*** Роли
-
-    #+NAME: asm_role
-    #+BEGIN_SRC emacs-lisp :var flds=role_flds :exports none
-      (gen-entity "role" "роли" flds)
-    #+END_SRC
-
-*** Группы
-
-    #+NAME: asm_group
-    #+BEGIN_SRC emacs-lisp :var flds=group_flds :exports none
-      (gen-entity "group" "группы" flds)
-    #+END_SRC
-
-    #+NAME: asm_user2group
-    #+BEGIN_SRC emacs-lisp :var flds=user2group_flds :exports none
-      (gen-entity "user2group" "связи пользователя и группы" flds)
-    #+END_SRC
-
-*** Сообщения
-
-    #+NAME: asm_msg
-    #+BEGIN_SRC emacs-lisp :var flds=msg_flds states=msg_state :exports none
-      (gen-automat "msg" "сообщения" flds states)
-    #+END_SRC
-
-*** Очереди
-
-    #+NAME: asm_que
-    #+BEGIN_SRC emacs-lisp :var flds=que_flds :exports none
-      (gen-entity "que" "очереди" flds)
-    #+END_SRC
-
-    #+NAME: asm_quelt
-    #+BEGIN_SRC emacs-lisp :var flds=quelt_flds :exports none
-      (gen-entity "quelt" "элемента очереди" flds)
-    #+END_SRC
-
-*** Аватары
-
-    #+NAME: asm_avatar
-    #+BEGIN_SRC emacs-lisp :var flds=avatar_flds states=avatar_state :exports none
-      (gen-automat "avatar" "аватара" flds states)
-    #+END_SRC
-
-*** Мотоциклы
-
-    #+NAME: asm_moto
-    #+BEGIN_SRC emacs-lisp :var flds=moto_flds states=moto_state :exports none
-      (gen-automat "moto" "мотоцикла" flds states)
-    #+END_SRC
-
-*** Цвета
-
-    #+NAME: asm_color
-    #+BEGIN_SRC emacs-lisp :var flds=color_flds :exports none
-      (gen-entity "color" "цвета" flds)
-    #+END_SRC
-
-*** Производители
-
-    #+NAME: asm_vendor
-    #+BEGIN_SRC emacs-lisp :var flds=vendor_flds :exports none
-      (gen-entity "vendor" "производителя" flds)
-    #+END_SRC
-
-*** Братаны
-
-    #+NAME: asm_bratan
-    #+BEGIN_SRC emacs-lisp :var flds=bratan_flds :exports none
-      (gen-entity "bratan" "братана" flds)
-    #+END_SRC
 
 ** Подготовка к старту
 

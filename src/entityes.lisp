@@ -231,13 +231,11 @@
 (make-color-table)
 
 
-
 (define-entity vendor "Сущность производителя"
   ((id serial)
    (name varchar)))
 
 (make-vendor-table)
-
 
 
 (define-entity bratan "Сущность братана"
