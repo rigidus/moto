@@ -3425,6 +3425,7 @@
                      (input ("lastname" "Фамилия" :maxlength "25" ))
                      (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер  неверный")
                      (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер  неверный")
+                     (ps-html ((:span :class "clear")))
                      (select ("sex" "Пол")
                        (option "Please select" "Выбрать пол")
                        (option "male" "Мужской")
@@ -3448,7 +3449,7 @@
           ((:p) "Some older browsers do not support high encryption. Please install the latest version of your browser and/or install the updates from the browser manufacturer.")))
        (:register (ps-html
                    ((:input :type "hidden" :name "act" :value "REGISTER"))
-                   ((:input :type "submit" :value "Зарегистрироваться")))
+                   (submit "Зарегистрироваться"))
                   (setf (hunchentoot:session-value 'current-user)
                         (create-user (getf p :name)
                                      (getf p :password)
