@@ -108,16 +108,19 @@
   (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
 (in-package #:moto)
 
-(defmacro submit (title &rest rest &key class &allow-other-keys)
-  (let ((result-class "button"))
+(defmacro submit (title &rest rest &key class container-class &allow-other-keys)
+  (let ((result-container-class "button")
+        (result-class "form-send-container"))
+    (when container-class (setf result-container-class (concatenate 'string result-container-class " " container-class)))
+    (remf rest :container-class)
     (when class (setf result-class (concatenate 'string result-class " " class)))
     (remf rest :class)
-    (let ((button `(:button :type "submit" :class ,result-class)))
+    (let ((button `(:button :type "submit" :class ,result-container-class)))
       (setf button (append button rest))
-      `(ps-html ((:div :class "form-send-container")
+      `(ps-html ((:div :class ,result-class)
                  (,button ,title))))))
 
-(macroexpand-1 '(submit "Зарегистрироваться"))
+(macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))
 (in-package #:moto)
 
 (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
@@ -864,64 +867,62 @@
 (in-package #:moto)
 
 (define-page reg "/reg"
-  (standard-page
-   :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
-   :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
-   :menu (menu)
-   :heading (heading "Зарегистрируйтесь как пользователь"
-                     "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи.")
-   :teasers
-   (format nil "~{~A~}"
-           (list
-            (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
-              "Адрес электронной почты, телефон и другие данные не показываются на сайте - мы используем их только для восстановления доступа к аккаунту.")
-            (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
-              "Пароль к аккаунту хранится в зашифрованной форме - даже оператор сайта не может прочитать его")
-            (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
-              "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>.")
-            (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
-              "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы")))
-   :incontent
-   (format nil "~{~A~}"
-           (list
-            (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-            (form ("regform" "Регистрационные данные")
-              (fieldset "Обязательные поля"
-                (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
-                (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-                (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
-                (input ("nickname" "Никнейм" :required t :maxlength "50")))
-              (fieldset "Необязательные поля"
-                (input ("firstname" "Имя" :maxlength "25" ))
-                (input ("lastname" "Фамилия" :maxlength "25" ))
-                (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер  неверный")
-                (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер  неверный")
-                (select ("sex" "Пол")
-                  (option "Please select" "Выбрать пол")
-                  (option "male" "Мужской")
-                  (option "female" "Мужской"))
-                (ps-html
-                 ((:div :class "date-container")
-                  ((:label :for "date-of-birth") "День рождения")
-                  ((:div :class "date-container__inputs fieldset-validation")
-                   (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
-                   (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
-                   (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
-                )
-              %REGISTER%)))
-   :overlay
-   (overlay (((:h3 :class "overlay__title") "Information on SSL") :container-class "dataprivacy-overlay" :zzz "zzz")
-     ((:h4) "How are my order details protected from prying eyes and manipulation by third parties during transmission?")
-     ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption. This technique is currently regarded as secure and is also used by some banks for online banking.")
-     ((:h4) "How can I check that the data are actually transmitted encrypted?")
-     ((:p) "When entering your personal details right-click on the order form and select \"Properties\" (Internet Explorer) or \"View Page Info - Security\" (Netscape/Mozilla) and view the information on encryption.")
-     ((:h4) "My browser (Internet Explorer) shows that only 40- or 56-bit encryption is used, and not 128-bit. What can I do?")
-     ((:p) "Some older browsers do not support high encryption. Please install the latest version of your browser and/or install the updates from the browser manufacturer.")))
-  (:register (ps-html
-              ((:input :type "hidden" :name "act" :value "REGISTER"))
-              ((:input :type "submit" :value "Зарегистрироваться")))
-             (setf (hunchentoot:session-value 'current-user)
-                   (create-user (getf p :name)
-                                (getf p :password)
-                                (getf p :email)))))
+  (let ((teasers (format nil "~{~A~}"
+                         (list
+                          (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
+                            "Адрес электронной почты, телефон и другие данные не показываются на сайте - мы используем их только для восстановления доступа к аккаунту.")
+                          (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                            "Пароль к аккаунту хранится в зашифрованной форме - даже оператор сайта не может прочитать его")
+                          (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                            "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>.")
+                          (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                            "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы"))))
+        (overlay (overlay (((:h3 :class "overlay__title") "Information on SSL") :container-class "dataprivacy-overlay" :zzz "zzz")
+                   ((:h4) "How are my order details protected from prying eyes and manipulation by third parties during transmission?")
+                   ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption."))))
+    (standard-page
+     :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
+     :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
+     :menu (menu)
+     :heading (heading "Зарегистрируйтесь как пользователь"
+                       "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи.")
+     :teasers teasers
+     :incontent
+     (format nil "~{~A~}"
+             (list
+              (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
+              (form ("regform" "Регистрационные данные")
+                (fieldset "Обязательные поля"
+                  (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
+                  (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+                  (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
+                  (input ("nickname" "Никнейм" :required t :maxlength "50")))
+                (fieldset "Необязательные поля"
+                  (input ("firstname" "Имя" :maxlength "25" ))
+                  (input ("lastname" "Фамилия" :maxlength "25" ))
+                  (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер  неверный")
+                  (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер  неверный")
+                  (ps-html ((:span :class "clear")))
+                  (select ("sex" "Пол")
+                    (option "Please select" "Выбрать пол")
+                    (option "male" "Мужской")
+                    (option "female" "Мужской"))
+                  (ps-html
+                   ((:div :class "date-container")
+                    ((:label :for "date-of-birth") "День рождения")
+                    ((:div :class "date-container__inputs fieldset-validation")
+                     (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
+                     (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
+                     (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
+                  )
+                %REGISTER%)))
+     :overlay overlay))
+    (:register (ps-html
+                ((:input :type "hidden" :name "act" :value "REGISTER"))
+                (submit "Зарегистрироваться" :onclick "alert(1)"))
+               ;; (setf (hunchentoot:session-value 'current-user)
+               ;;       (create-user (getf p :name)
+               ;;                    (getf p :password)
+               ;;                    (getf p :email)))
+               ))
 ;; iface ends here
