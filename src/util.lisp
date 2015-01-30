@@ -75,7 +75,7 @@
        (handler-case
            (let ((output (with-output-to-string (*standard-output*)
                            (setf retval ,@body))))
-             (TPL:LOUIS
+             (tpl:louis
               (list :title "title"
                     :header (tpl:header)
                     :content retval
