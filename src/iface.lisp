@@ -918,8 +918,13 @@
                 %REGISTER%)))
      :overlay overlay))
     (:register (ps-html
+                ((:script :type "text/javascript")
+                 (ps
+                   (defun say ()
+                     (alert "1"))))
                 ((:input :type "hidden" :name "act" :value "REGISTER"))
-                (submit "Зарегистрироваться" :onclick "alert(1)"))
+                (submit "Зарегистрироваться" :onclick (ps (say) (return false))
+                        ))
                ;; (setf (hunchentoot:session-value 'current-user)
                ;;       (create-user (getf p :name)
                ;;                    (getf p :password)
