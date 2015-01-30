@@ -135,7 +135,7 @@
             {$footer |noAutoescape}
             <script type="text/javascript" src="/js/jquery-v-1.10.2.js"></script>
             <script type="text/javascript" src="/js/jquery-ui-v-1.10.3.js"></script>
-            <script type="text/javascript" src="/js/scdc.js"></script>
+            <script type="text/javascript" src="/js/___scdc.js"></script>
             <script type="text/javascript" src="/js/i18n.en_GB.utf8.js"></script>
             <script type="text/javascript" src="/js/config.js"></script>
         </body>
@@ -2402,7 +2402,7 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defmacro input ((name title &rest rest &key container-class class required type value &allow-other-keys) &body validator-error)
+     (defmacro input ((name title &rest rest &key container-class class required type value &allow-other-keys) &body nobody)
        (let ((result-container-class "input-container")
              (label `(:label :for ,name)))
          (when container-class
@@ -2429,19 +2429,13 @@
              (let ((input-container `((:div :class ,result-container-class)
                                       (,label ,title)
                                       (,input))))
-               (when validator-error
-                 (setf input-container
-                       (append input-container
-                               `(((:p :class "validation-explanation validation-explanation--static hidden") ,@validator-error)))))
                `(ps-html ,input-container))))))
 
-     ;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер телефона неверный или неполный"))
+     ;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even")))
 
-     ;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
-     ;;                  "Please enter a valid email address."))
+     ;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50")))
 
-     ;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
-     ;;   "Please enter a valid email address.")
+     ;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
    #+END_SRC
 
 ** Позиция выбора селектора
@@ -2542,7 +2536,7 @@
      (in-package #:moto)
 
      (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
-       (let ((result-class "form-section-container js__formValidation"))
+       (let ((result-class "form-section-container")) ;;  js__formValidation
          (unless action (setf action "#"))
          (unless method (setf method "POST"))
          (when class (setf result-class (concatenate 'string result-class " " class)))
@@ -3425,20 +3419,43 @@
                    (ps-html
                     ((:script :type "text/javascript")
                      (ps
+                       (defun get-val (selector)
+                         ((@ ($ selector) val)))
+                       (defun empty (string)
+                         (if (equal "" string) t false))
+                       (defun contains (string pattern)
+                         (if (+ 1 ((@ string index-of) pattern)) t false))
+                       (defun add_explanation (selector content)
+                         ((@ ((@ ($ selector) parent)) append)
+                          (lambda (index value)
+                            (concatenate 'string "<p class='validation-explanation validation-explanation--static'>" content "</p>"))))
                        (defun say ()
-                         (alert "1")
-                         (return false)))))
-                   (form ("regform" "Регистрационные данные" :onsubmit "say();")
+                         ;; Удалим все предупреждения о некорректно заполненных полях, если эти предупреждения существуют
+                         ((@ ($ ".validation-explanation") remove))
+                         (let ((errs 0)) ;; Кол-во ошибок
+                           ;; Проверим правильность заполнения поля mail
+                           (unless (contains (get-val "#mail")  "@")
+                             (add_explanation "#mail" "Пожалуйста, введите корректный емайл")
+                             (incf errs))
+                           ;; Проверим правильность заполнения поля password
+                           (when (empty (get-val "#password"))
+                             (add_explanation "#password" "Пожалуйста, введите корректный пароль")
+                             (incf errs))
+                           ;; Если ошибок нет - возвращаем true
+                           (if (equal errs 0)
+                               t
+                               false))))))
+                   (form ("regform" "Регистрационные данные") ;;  js__formValidation
                      (fieldset "Обязательные поля"
-                       (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
+                       (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
                        (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
                        (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
                        (input ("nickname" "Никнейм" :required t :maxlength "50")))
                      (fieldset "Необязательные поля"
                        (input ("firstname" "Имя" :maxlength "25" ))
                        (input ("lastname" "Фамилия" :maxlength "25" ))
-                       (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер  неверный")
-                       (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер  неверный")
+                       (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
+                       (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
                        (ps-html ((:span :class "clear")))
                        (select ("sex" "Пол")
                          (option "Please select" "Выбрать пол")
@@ -3456,13 +3473,11 @@
           :overlay overlay))
          (:register (ps-html
                      ((:input :type "hidden" :name "act" :value "REGISTER"))
-                     (submit "Зарегистрироваться"))
+                     (submit "Зарегистрироваться" :onclick "return say();"))
+                    (dbg (bprint p))
                     ;; (setf (hunchentoot:session-value 'current-user)
                     ;;       (create-user (getf p :name)
                     ;;                    (getf p :password)
                     ;;                    (getf p :email)))
                     ))
-
-     (macroexpand-1 '
-     (form ("a" "b" :onsubmit "zzz();") "aaa"))
    #+END_SRC

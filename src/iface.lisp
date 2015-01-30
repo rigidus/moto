@@ -16,7 +16,7 @@
 
 (in-package #:moto)
 
-(defmacro input ((name title &rest rest &key container-class class required type value &allow-other-keys) &body validator-error)
+(defmacro input ((name title &rest rest &key container-class class required type value &allow-other-keys) &body nobody)
   (let ((result-container-class "input-container")
         (label `(:label :for ,name)))
     (when container-class
@@ -43,19 +43,13 @@
         (let ((input-container `((:div :class ,result-container-class)
                                  (,label ,title)
                                  (,input))))
-          (when validator-error
-            (setf input-container
-                  (append input-container
-                          `(((:p :class "validation-explanation validation-explanation--static hidden") ,@validator-error)))))
           `(ps-html ,input-container))))))
 
-;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер телефона неверный или неполный"))
+;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even")))
 
-;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
-;;                  "Please enter a valid email address."))
+;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50")))
 
-;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" )
-;;   "Please enter a valid email address.")
+;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
 (in-package #:moto)
 
 (defmacro option (value title &rest rest &key &allow-other-keys)
@@ -124,7 +118,7 @@
 (in-package #:moto)
 
 (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
-  (let ((result-class "form-section-container js__formValidation"))
+  (let ((result-class "form-section-container")) ;;  js__formValidation
     (unless action (setf action "#"))
     (unless method (setf method "POST"))
     (when class (setf result-class (concatenate 'string result-class " " class)))
@@ -891,17 +885,46 @@
      (format nil "~{~A~}"
              (list
               (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-              (form ("regform" "Регистрационные данные")
+              (ps-html
+               ((:script :type "text/javascript")
+                (ps
+                  (defun get-val (selector)
+                    ((@ ($ selector) val)))
+                  (defun empty (string)
+                    (if (equal "" string) t false))
+                  (defun contains (string pattern)
+                    (if (+ 1 ((@ string index-of) pattern)) t false))
+                  (defun add_explanation (selector content)
+                    ((@ ((@ ($ selector) parent)) append)
+                     (lambda (index value)
+                       (concatenate 'string "<p class='validation-explanation validation-explanation--static'>" content "</p>"))))
+                  (defun say ()
+                    ;; Удалим все предупреждения о некорректно заполненных полях, если эти предупреждения существуют
+                    ((@ ($ ".validation-explanation") remove))
+                    (let ((errs 0)) ;; Кол-во ошибок
+                      ;; Проверим правильность заполнения поля mail
+                      (unless (contains (get-val "#mail")  "@")
+                        (add_explanation "#mail" "Пожалуйста, введите корректный емайл")
+                        (incf errs))
+                      ;; Проверим правильность заполнения поля password
+                      (when (empty (get-val "#password"))
+                        (add_explanation "#password" "Пожалуйста, введите корректный пароль")
+                        (incf errs))
+                      ;; Если ошибок нет - возвращаем true
+                      (if (equal errs 0)
+                          t
+                          false))))))
+              (form ("regform" "Регистрационные данные") ;;  js__formValidation
                 (fieldset "Обязательные поля"
-                  (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
+                  (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
                   (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
                   (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
                   (input ("nickname" "Никнейм" :required t :maxlength "50")))
                 (fieldset "Необязательные поля"
                   (input ("firstname" "Имя" :maxlength "25" ))
                   (input ("lastname" "Фамилия" :maxlength "25" ))
-                  (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd") "Номер  неверный")
-                  (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even") "Номер  неверный")
+                  (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
+                  (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
                   (ps-html ((:span :class "clear")))
                   (select ("sex" "Пол")
                     (option "Please select" "Выбрать пол")
@@ -918,13 +941,9 @@
                 %REGISTER%)))
      :overlay overlay))
     (:register (ps-html
-                ((:script :type "text/javascript")
-                 (ps
-                   (defun say ()
-                     (alert "1"))))
                 ((:input :type "hidden" :name "act" :value "REGISTER"))
-                (submit "Зарегистрироваться" :onclick (ps (say) (return false))
-                        ))
+                (submit "Зарегистрироваться" :onclick "return say();"))
+               (dbg (bprint p))
                ;; (setf (hunchentoot:session-value 'current-user)
                ;;       (create-user (getf p :name)
                ;;                    (getf p :password)
