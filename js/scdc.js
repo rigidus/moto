@@ -4305,17 +4305,17 @@ shared.Forms = (function(f) {
         shared.Forms.Validation.init(R)
     }
 
-    function B(J) {
-        console.log("shared.Forms: addSubmitListener()");
-        J.on("click", function() {
-            var L = f(this),
-                K = L.closest("form");
-            i(K, L);
-            if (L.data("form-action")) {
-                j(L.data("form-action"), K)
-            }
-        })
-    }
+    // function B(J) {
+    //     console.log("shared.Forms: addSubmitListener()");
+    //     J.on("click", function() {
+    //         var L = f(this),
+    //             K = L.closest("form");
+    //         i(K, L);
+    //         if (L.data("form-action")) {
+    //             j(L.data("form-action"), K)
+    //         }
+    //     })
+    // }
 
     function q(J) {
         console.log("shared.Forms: addInnerFormInputsListener()");

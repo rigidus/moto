@@ -3422,7 +3422,13 @@
           (format nil "~{~A~}"
                   (list
                    (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-                   (form ("regform" "Регистрационные данные")
+                   (ps-html
+                    ((:script :type "text/javascript")
+                     (ps
+                       (defun say ()
+                         (alert "1")
+                         (return false)))))
+                   (form ("regform" "Регистрационные данные" :onsubmit "say();")
                      (fieldset "Обязательные поля"
                        (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50" ) "Please enter a valid email address.")
                        (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
@@ -3449,16 +3455,14 @@
                      %REGISTER%)))
           :overlay overlay))
          (:register (ps-html
-                     ((:script :type "text/javascript")
-                      (ps
-                        (defun say ()
-                          (alert "1"))))
                      ((:input :type "hidden" :name "act" :value "REGISTER"))
-                     (submit "Зарегистрироваться" :onclick (ps (say) (return false))
-                             ))
+                     (submit "Зарегистрироваться"))
                     ;; (setf (hunchentoot:session-value 'current-user)
                     ;;       (create-user (getf p :name)
                     ;;                    (getf p :password)
                     ;;                    (getf p :email)))
                     ))
+
+     (macroexpand-1 '
+     (form ("a" "b" :onsubmit "zzz();") "aaa"))
    #+END_SRC
