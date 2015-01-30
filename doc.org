@@ -245,33 +245,7 @@
          (mapconcat 'identity (reverse result) "")))
    #+END_SRC
 
-   Теперь у нас есть все необходимое, чтобы сгенерировать автомат:
-
-   #+NAME: gen_automat
-   #+BEGIN_SRC emacs-lisp :var name="1" docstring="2" flds="3" states="4" :exports none
-     (let ((result))
-       (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
-       (push (gen-fields flds) result)
-       (push (gen-states states) result)
-       (push (gen-actions states) result)
-       (push ")\n" result)
-       (mapconcat 'identity (reverse result) ""))
-   #+END_SRC
-
-   Или сущность
-
-   #+NAME: gen_entity
-   #+BEGIN_SRC emacs-lisp :var name="1" docstring="2" flds="3" :exports none
-     (let ((result))
-       (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
-       (push (gen-fields flds) result)
-       (push ")\n" result)
-       (push "\n" result)
-       (push (format "(make-%s-table)\n" name) result)
-       (mapconcat 'identity (reverse result) ""))
-   #+END_SRC
-
-   Соберем все это в один файл:
+   Соберем все это в один файл, чтобы загружать перед кодогенерацией проекта:
 
    #+NAME: generators
    #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code :padline no :comments link
@@ -287,9 +261,35 @@
    #+END_SRC
 
    И загрузим его:
+
    #+NAME: generators
    #+BEGIN_SRC emacs-lisp
      (load-file "generators.el")
+   #+END_SRC
+
+   Теперь у нас есть все необходимое, чтобы написать вызываемые при
+   tangle генераторы сущностей и автоматов:
+
+   #+NAME: gen_entity
+   #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
+     (let ((result))
+       (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
+       (push (gen-fields flds) result)
+       (push ")\n" result)
+       (push "\n" result)
+       (push (format "(make-%s-table)\n" name) result)
+       (mapconcat 'identity (reverse result) ""))
+   #+END_SRC
+
+   #+NAME: gen_automat
+   #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() states='() :exports none
+     (let ((result))
+       (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
+       (push (gen-fields flds) result)
+       (push (gen-states states) result)
+       (push (gen-actions states) result)
+       (push ")\n" result)
+       (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
 ** DONE Пользователи (user)
