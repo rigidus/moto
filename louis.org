@@ -135,7 +135,7 @@
             {$footer |noAutoescape}
             <script type="text/javascript" src="/js/jquery-v-1.10.2.js"></script>
             <script type="text/javascript" src="/js/jquery-ui-v-1.10.3.js"></script>
-            <script type="text/javascript" src="/js/___scdc.js"></script>
+            <script type="text/javascript" src="/js/scdc.js"></script>
             <script type="text/javascript" src="/js/i18n.en_GB.utf8.js"></script>
             <script type="text/javascript" src="/js/config.js"></script>
         </body>
@@ -3418,10 +3418,28 @@
      | #mail             | (not (contains (get-val "#mail")  "@"))                           | "Пожалуйста, введите корректный емайл"                           |
      | #password         | (empty (get-val "#password"))                                     | "Пожалуйста, введите непустой пароль"                            |
      | #password-confirm | (not (equal (get-val "#password") (get-val "#password-confirm"))) | "Пожалуйста, введите подтверждение пароля совпадающее с паролем" |
+     | #nickname         | (empty (get-val "#password"))                                     | "Никнейм не может быть пустым"                                   |
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
      (in-package #:moto)
+
+     (defun reg-teasers ()
+       (format nil "~{~A~}"
+               (list
+                (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
+                  "Адрес электронной почты, телефон и другие данные не показываются на сайте - мы используем их только для восстановления доступа к аккаунту.")
+                (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                  "Пароль к аккаунту хранится в зашифрованной форме - даже оператор сайта не может прочитать его")
+                (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                  "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>.")
+                (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                  "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы"))))
+
+     (defun reg-overlay ()
+       (overlay (((:h3 :class "overlay__title") "Information on SSL") :container-class "dataprivacy-overlay" :zzz "zzz")
+         ((:h4) "How are my order details protected from prying eyes and manipulation by third parties during transmission?")
+         ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption.")))
 
      (defun js-reg ()
        (ps-html
@@ -3441,58 +3459,45 @@
            ))))
 
      (define-page reg "/reg"
-       (let ((teasers (format nil "~{~A~}"
-                              (list
-                               (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
-                                 "Адрес электронной почты, телефон и другие данные не показываются на сайте - мы используем их только для восстановления доступа к аккаунту.")
-                               (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
-                                 "Пароль к аккаунту хранится в зашифрованной форме - даже оператор сайта не может прочитать его")
-                               (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
-                                 "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>.")
-                               (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
-                                 "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы"))))
-             (overlay (overlay (((:h3 :class "overlay__title") "Information on SSL") :container-class "dataprivacy-overlay" :zzz "zzz")
-                        ((:h4) "How are my order details protected from prying eyes and manipulation by third parties during transmission?")
-                        ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption."))))
-         (standard-page
-          :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
-          :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
-          :menu (menu)
-          :heading (heading "Зарегистрируйтесь как пользователь"
-                            "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи.")
-          :teasers teasers
-          :incontent
-          (format nil "~{~A~}"
-                  (list
-                   (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-                   (js-reg)
-                   (form ("regform" "Регистрационные данные") ;;  js__formValidation
-                     (fieldset "Обязательные поля"
-                       (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
-                       (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-                       (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
-                       (input ("nickname" "Никнейм" :required t :maxlength "50")))
-                     (fieldset "Необязательные поля"
-                       (input ("firstname" "Имя" :maxlength "25" ))
-                       (input ("lastname" "Фамилия" :maxlength "25" ))
-                       (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
-                       (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
-                       (ps-html ((:span :class "clear")))
-                       (select ("sex" "Пол")
-                         (option "Please select" "Выбрать пол")
-                         (option "male" "Мужской")
-                         (option "female" "Мужской"))
-                       (ps-html
-                        ((:div :class "date-container")
-                         ((:label :for "date-of-birth") "День рождения")
-                         ((:div :class "date-container__inputs fieldset-validation")
-                          (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
-                          (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
-                          (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
-                       )
-                     %REGISTER%)))
-          :overlay overlay))
-         (:register (ps-html
+       (standard-page
+        :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
+        :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
+        :menu (menu)
+        :heading (heading "Зарегистрируйтесь как пользователь"
+                          "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи.")
+        :teasers (reg-teasers)
+        :incontent
+        (format nil "~{~A~}"
+                (list
+                 (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
+                 (js-reg)
+                 (form ("regform" "Регистрационные данные") ;;  js__formValidation
+                   (fieldset "Обязательные поля"
+                     (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
+                     (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+                     (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
+                     (input ("nickname" "Никнейм" :required t :maxlength "50")))
+                   (fieldset "Необязательные поля"
+                     (input ("firstname" "Имя" :maxlength "25" ))
+                     (input ("lastname" "Фамилия" :maxlength "25" ))
+                     (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
+                     (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
+                     (ps-html ((:span :class "clear")))
+                     (select ("sex" "Пол")
+                       (option "Please select" "Выбрать пол")
+                       (option "male" "Мужской")
+                       (option "female" "Мужской"))
+                     (ps-html
+                      ((:div :class "date-container")
+                       ((:label :for "date-of-birth") "День рождения")
+                       ((:div :class "date-container__inputs fieldset-validation")
+                        (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
+                        (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
+                        (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
+                     )
+                   %REGISTER%)))
+        :overlay (reg-overlay))
+       (:register (ps-html
                      ((:input :type "hidden" :name "act" :value "REGISTER"))
                      (submit "Зарегистрироваться" :onclick "return reg_valid();"))
                     (dbg (bprint p))

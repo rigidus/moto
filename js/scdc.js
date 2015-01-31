@@ -1471,6 +1471,7 @@ louis.Misc = (function(x) {
         })
     }
 
+    // open overlay listener
     function a(N) {
         console.log("Misc: addOpenOverlayListener()");
         N.on("click", function(O) {
@@ -1642,6 +1643,7 @@ louis.Misc = (function(x) {
         }, 1)
     }
 
+    // open overlay maker
     function g(P) {
         console.log("Misc: openOverlay()");
         var O = P.data("jump-to");
