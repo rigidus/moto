@@ -9,11 +9,6 @@
 (closure-template:compile-template
  :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
 
-(restas:define-route louis ("/louis")
-  (tpl:louis (list :header (tpl:header)
-                   :content (tpl:content (list :incontent "rwerewr")
-                   :footer (tpl:footer)))))
-
 (in-package #:moto)
 
 (defmacro input ((name title &rest rest &key container-class class required type value &allow-other-keys) &body nobody)
@@ -47,9 +42,9 @@
 
 ;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even")))
 
-;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50")))
+;; (macroexpand-1 '(input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50")))
 
-;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
+;; (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
 (in-package #:moto)
 
 (defmacro option (value title &rest rest &key &allow-other-keys)
@@ -98,8 +93,8 @@
               (format nil "~{~A~}"
                       (list ,@body))))))
 
-(fieldset "Обязательные поля"
-  (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+;; (fieldset "Обязательные поля"
+;;   (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
 (in-package #:moto)
 
 (defmacro submit (title &rest rest &key class container-class &allow-other-keys)
@@ -114,7 +109,7 @@
       `(ps-html ((:div :class ,result-class)
                  (,button ,title))))))
 
-(macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))
+;; (macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))
 (in-package #:moto)
 
 (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
@@ -135,16 +130,16 @@
 
 ;; (macroexpand-1 '(form ("regform" "Регистрационные данные")
 ;;                  (fieldset "Обязательные поля"
-;;                    (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+;;                    (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
 ;;                  (fieldset "Необязательные поля"
-;;                    (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+;;                    (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
 ;;                  ))
 
 ;; (form ("regform" "Регистрационные данные")
 ;;   (fieldset "Обязательные поля"
-;;     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+;;     (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
 ;;   (fieldset "Необязательные поля"
-;;     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address.")))
+;;     (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address.")))
 (in-package #:moto)
 
 (defmacro teaser ((&rest rest &key class header &allow-other-keys) &body contents)
@@ -244,21 +239,22 @@
 ;;                  ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption.")))
 (in-package #:moto)
 
-(defmacro heading (headline headtext)
-  `(ps-html
-    ((:div :class "heading")
-     ((:div :class "heading__headline")
-      ((:h1 :class "heading__headline--h1") ,headline))
-     ((:div :class "heading__text")
-      ((:p) ,headtext)))))
+(defmacro heading ((title &rest rest &key class &allow-other-keys) &body body)
+  (let ((result-box-class "heading"))
+    (when class
+      (setf result-box-class (concatenate 'string result-box-class " " class)))
+    (remf rest :class)
+    (let ((box `(:div :class ,result-box-class)))
+      (unless (null rest)
+        (setf box (append box rest)))
+      (setf box (append `(,box) `(((:div :class "heading__inner")
+                                   ((:div :class "heading__headline")
+                                    ((:h1 :class "heading__headline--h1") ,title))))))
+      (unless (null body)
+        (setf box (append box `(((:div :class "heading__text") ,@body)))))
+      `(ps-html ,box))))
 
-(defmacro heading-2  (headline)
-  `(ps-html
-    ((:div :class "heading")
-     ((:div :class "heading__inner")
-      ((:div :class "heading__headline")
-       ((:h1 :class "heading__headline--h1") ,headline))
-      ))))
+;; (macroexpand-1 '(heading ("title") "text"))
 (in-package #:moto)
 
 (defmacro breadcrumb (last &rest prevs)
@@ -291,53 +287,59 @@
       `(ps-html (,box ,@body)))))
 (in-package #:moto)
 
-(defmacro standard-page (&key breadcrumb user menu content overlay)
+(defmacro system-msg ((msg-type &rest rest &key class &allow-other-keys) &body body)
+  "msg-type: sucess | caution | advantage"
+  (let ((result-box-class "box system-message"))
+    (when class
+      (setf result-box-class (concatenate 'string result-box-class " " class)))
+    (remf rest :class)
+    (let ((box `(:div :class ,result-box-class)))
+      (unless (null rest)
+        (setf box (append box rest)))
+      (let ((result-icon-type (format nil "result-icon result-icon--~A media__item media__item--left" msg-type)))
+        `(ps-html (,box ((:span :class ,result-icon-type))
+                        ((:div :class "system-message__text-container")
+                         ((:div :class "system-message__text") ,@body))
+                        ((:span :class "clear"))))))))
+
+;; (macroexpand-1 '(system-msg ("success") "zzz"))
+;; (system-msg (success) "zzz")
+(in-package #:moto)
+
+(defmacro system-msg ((msg-type &rest rest &key class &allow-other-keys) &body body)
+  "msg-type: sucess | caution | advantage"
+  (let ((result-box-class "box system-message"))
+    (when class
+      (setf result-box-class (concatenate 'string result-box-class " " class)))
+    (remf rest :class)
+    (let ((box `(:div :class ,result-box-class)))
+      (unless (null rest)
+        (setf box (append box rest)))
+      (let ((result-icon-type (format nil "result-icon result-icon--~A media__item media__item--left" msg-type)))
+        `(ps-html (,box ((:span :class ,result-icon-type))
+                        ((:div :class "system-message__text-container")
+                         ((:div :class "system-message__text") ,@body))
+                        ((:span :class "clear"))))))))
+
+
+(defmacro standard-page ((&rest rest &key breadcrumb user menu overlay &allow-other-keys) &body body)
+  (unless overlay
+    (setf overlay ""))
   `(ps-html
     ((:section :class "container")
      ,breadcrumb
      ((:div :class "main hasNavigation")
       ((:div :class "category-nav-container")
-       ((:p :class "category-nav-container__headline trail")
-        ,user)
-       ((:ul :class "category-nav--lvl0 category-nav")
-        ,menu))
-      ((:article :class "content")
-       ,content)
-      ((:div :class "overlay-container popup" :id "dataprivacy-overlay" :data-dontcloseviabg "" :data-mustrevalidate "")
-       ,overlay)
+       ((:p :class "category-nav-container__headline trail") ,user)
+       ((:ul :class "category-nav--lvl0 category-nav") ,menu))
+      ((:article :class "content") ,@body)
+      ((:div :class "overlay-container popup" :id "dataprivacy-overlay" :data-dontcloseviabg "" :data-mustrevalidate "") ,overlay)
       ((:span :class "clear")))
      ((:div :class "main-ending")
       ((:div :class "last-seen")
        ((:h5) "Items viewed recently")
        ((:p) "You do not have any recently viewed items.")))
      ((:div :class "overlay-bg")))))
-
-;; <article class="content">
-;;     <div class="content-box">
-;;         <div class="heading">
-;;             <div class="heading__inner">
-;;                 <div class="heading__headline">
-;;                     <h1 class="heading__headline--h1">Create a Louis customer account</h1>
-;;                 </div>
-;;             </div>
-;;         </div>
-;;     </div>
-
-;;     <div class="content-box">
-;;         <div class="box system-message">
-;;             <span class="result-icon result-icon--success media__item media__item--left"></span>
-;;             <div class="system-message__text-container">
-;;                 <div class="system-message__text">
-;;                     <p>Your login details have been saved successfully!</p>
-;;                     <p>Your registration will be checked and confirmation sent to you at the address aaa@aa.de within the next two working days. You can then use your email address and your password to log into "My Louis" or to place an order.</p>
-;;                 </div>
-;;             </div>
-;;             <span class="clear"></span>
-;;         </div>
-;;     </div>
-
-;;     <span class="clear"></span>
-;; </article>
 
 ;; Враппер веб-интерфейса
 
@@ -379,39 +381,8 @@
 
 (restas:define-route main ("/")
   (with-wrapper
-      "<h1>Главная страница</h1>
-      <form action=\"/en/login\" method=\"post\" novalidate=\"\" class=\"js__formValidation\">
-      <fieldset>
-      <legend>
-      Log in:</legend>
-      <div class=\"input-container hide-label\">
-      <label for=\"login-email\">
-      Email address</label>
-      <div class=\"input-bg\">
-      <input name=\"login-email\" id=\"login-email\" class=\"form-element input-text required\" maxlength=\"50\" required=\"required\" value=\"\" type=\"email\">
-      <p class=\"validation-explanation validation-explanation--static hidden\">
-      Please enter a valid email address.</p>
-      </div>
-      </div>
-      <div class=\"input-container hide-label\">
-      <label for=\"login-password\">
-      Password</label>
-      <div class=\"input-bg\">
-      <input name=\"login-password\" id=\"login-password\" class=\"form-element input-text required\" required=\"required\" autocomplete=\"off\" value=\"\" type=\"password\">
-      </div>
-      </div>
-      <button name=\"login-submit\" type=\"submit\" class=\"button\" value=\"Anmelden\">
-      Log in</button>
-      <p class=\"forgot-pw\">
-      Have you forgotten your <a href=\"/en/mylouis/passwort-vergessen\">
-      password</a>
-      ?</p>
-      <input name=\"csrf_login\" id=\"csrf_login\" value=\"94fd26d9fea3f78f0e5908f78e7bb3d4-387a05de406a0986078b9c5f500ae549\" type=\"hidden\">
-      <input name=\"return-url\" id=\"return-url\" value=\"098e60cbd72a9211eddba994512c4f11\" type=\"hidden\">
-      </fieldset>
-      </form>"
+      "<h1>Главная страница</h1>"
     ))
-
 (in-package #:moto)
 
 (define-page all-users "/users"
@@ -930,137 +901,106 @@
         ((@ ((@ ($ (concatenate 'string "#" selector)) parent)) append)
          (lambda (index value)
            (concatenate 'string "<p class='validation-explanation validation-explanation--static'>" content "</p>"))))
-      ;; (defun reg-valid ()
-      ;;   ((@ ($ ".validation-explanation") remove))
-      ;;   (let ((err-cnt 0))
-      ;;     (when (not (contains (get-val "mail")  "@"))
-      ;;       (add_explanation "mail" "Пожалуйста, введите корректный емайл")
-      ;;       (incf err-cnt))
-      ;;     (when (empty (get-val "password"))
-      ;;       (add_explanation "password" "Пожалуйста, введите непустой пароль")
-      ;;       (incf err-cnt))
-      ;;     (when (not (equal (get-val "password") (get-val "password-confirm")))
-      ;;       (add_explanation "password-confirm" "Пожалуйста, введите подтверждение пароля совпадающее с паролем")
-      ;;       (incf err-cnt))
-      ;;     (when (empty (get-val "nickname"))
-      ;;       (add_explanation "nickname" "Никнейм не может быть пустым")
-      ;;       (incf err-cnt))
-      ;;     (if (equal err-cnt 0)
-      ;;       t
-      ;;       false)))
+      (defun reg-js-valid ()
+        ((@ ($ ".validation-explanation") remove))
+        (let ((err-cnt 0))
+          (when (not (contains (get-val "email")  "@"))
+            (add_explanation "email" "Пожалуйста, введите корректный емайл")
+            (incf err-cnt))
+          (when (empty (get-val "password"))
+            (add_explanation "password" "Пожалуйста, введите непустой пароль")
+            (incf err-cnt))
+          (when (not (equal (get-val "password") (get-val "password-confirm")))
+            (add_explanation "password-confirm" "Пожалуйста, введите подтверждение пароля совпадающее с паролем")
+            (incf err-cnt))
+          (when (empty (get-val "nickname"))
+            (add_explanation "nickname" "Никнейм не может быть пустым")
+            (incf err-cnt))
+          (if (equal err-cnt 0)
+            t
+            false)))
       ))))
 
 (define-page reg "/reg"
-  (standard-page
-   :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
-   :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
-   :menu (menu)
-   :content
-   (format nil "~{~A~}"
-           (list
-            (content-box () (heading "Зарегистрируйтесь как пользователь"
-                                     "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи."))
-            (content-box (:class "size-3-5 switch-content-container")
-              (format nil "~{~A~}"
-                      (list
-                       (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-                       (js-reg)
-                       (form ("regform" "Регистрационные данные") ;;  js__formValidation
-                         (fieldset "Обязательные поля"
-                           (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
-                           (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-                           (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
-                           (input ("nickname" "Никнейм" :required t :maxlength "50")))
-                         (fieldset "Необязательные поля"
-                           (input ("firstname" "Имя" :maxlength "25" ))
-                           (input ("lastname" "Фамилия" :maxlength "25" ))
-                           (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
-                           (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
-                           (ps-html ((:span :class "clear")))
-                           (select ("sex" "Пол")
-                             (option "Please select" "Выбрать пол")
-                             (option "male" "Мужской")
-                             (option "female" "Мужской"))
-                           (ps-html
-                            ((:div :class "date-container")
-                             ((:label :for "date-of-birth") "День рождения")
-                             ((:div :class "date-container__inputs fieldset-validation")
-                              (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
-                              (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
-                              (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
-                           )
-                         %REGISTER%))))
-            (content-box (:class "size-1-5") (reg-teasers))
-            (ps-html ((:span :class "clear")))))
-   :overlay (reg-overlay))
-
+  (let ((breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная")))
+        (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ("Зарегистрируйтесь как пользователь") "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи."))
+      (content-box (:class "size-3-5 switch-content-container")
+        (format nil "~{~A~}"
+                (list
+                 (if *current-user* (format nil "Кол-во недоставленных сообщений: ~A" (get-undelivered-msg-cnt *current-user*)) "")
+                 (js-reg)
+                 (form ("regform" "Регистрационные данные") ;;  js__formValidation
+                   (fieldset "Обязательные поля"
+                     (input ("email" "Электронная почта" :required t :type "email" :maxlength "50"))
+                     (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+                     (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
+                     (input ("nickname" "Никнейм" :required t :maxlength "50")))
+                   (fieldset "Необязательные поля"
+                     (input ("firstname" "Имя" :maxlength "25" ))
+                     (input ("lastname" "Фамилия" :maxlength "25" ))
+                     (input ("phone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
+                     (input ("mobilephone" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
+                     (ps-html ((:span :class "clear")))
+                     (select ("sex" "Пол")
+                       (option "" "Выбрать пол")
+                       (option "male" "Мужской")
+                       (option "female" "Мужской"))
+                     (ps-html
+                      ((:div :class "date-container")
+                       ((:label :for "date-of-birth") "День рождения")
+                       ((:div :class "date-container__inputs fieldset-validation")
+                        (input ("birth-day" "" :maxlength "2" :container-class "hide-label input-container--1st"))
+                        (input ("birth-month" "" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
+                        (input ("birth-year" "" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
+                     )
+                   %REGISTER%))))
+      (content-box (:class "size-1-5") (reg-teasers))
+      (ps-html ((:span :class "clear")))))
   (:register (ps-html
-                ((:input :type "hidden" :name "act" :value "REGISTER"))
-                (submit "Зарегистрироваться" :onclick (ps (return (reg-valid)))))
-             ))
-
-;; <<<<<-------------
-
-  ;;            (macrolet ((get-val (selector)
-  ;;                         `(getf p ,(intern (string-upcase selector) :keyword))))
-  ;;              (defun reg-valid (p)
-  ;;                (let ((errors))
-  ;;                (when (not (contains (get-val "mail")  "@"))
-  ;;                  (push "Пожалуйста, введите корректный емайл" errors))
-  ;;                (when (empty (get-val "password"))
-  ;;                  (push "Пожалуйста, введите непустой пароль" errors))
-  ;;                (when (not (equal (get-val "password") (get-val "password-confirm")))
-  ;;                  (push "Пожалуйста, введите подтверждение пароля совпадающее с паролем" errors))
-  ;;                (when (empty (get-val "nickname"))
-  ;;                  (push "Никнейм не может быть пустым" errors))
-  ;;                  errors))
-  ;;              (aif (reg-valid p)
-  ;;                   ;; Возвращены ошибки
-  ;;                   (dbg "~A" (bprint it))
-  ;;                   ;; Ошибок нет, можно регистрировать пользователя
-  ;;                   (dbg (bprint p))
-  ;;                   ;; Проверяем данные, потом создаем пользователя
-  ;;                   ;; (let ((user-id (create-user (getf p :name)
-  ;;                   ;;                             (getf p :password)
-  ;;                   ;;                             (getf p :email))))
-  ;;                   ;;   ;; и сохраняем его id в сесии
-  ;;                   ;;   (setf (hunchentoot:session-value 'current-user) user-id))
-  ;;                   ;; (standard-page
-  ;;  ;;                  :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
-  ;;  ;;                  :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
-  ;;  ;;                  :menu (menu)
-  ;;  ;;                  :heading (heading-2 "Регистрация успешна")
-  ;;  ;;                  :teasers (reg-teasers)
-  ;;  ;; :incontent
-  ;;  ;; (format nil "~{~A~}"
-  ;;  ;;         (list
-  ;;  ;;          (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-  ;;  ;;          (js-reg)
-  ;;  ;;          (form ("regform" "Регистрационные данные") ;;  js__formValidation
-  ;;  ;;            (fieldset "Обязательные поля"
-  ;;  ;;              (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
-  ;;  ;;              (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-  ;;  ;;              (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
-  ;;  ;;              (input ("nickname" "Никнейм" :required t :maxlength "50")))
-  ;;  ;;            (fieldset "Необязательные поля"
-  ;;  ;;              (input ("firstname" "Имя" :maxlength "25" ))
-  ;;  ;;              (input ("lastname" "Фамилия" :maxlength "25" ))
-  ;;  ;;              (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
-  ;;  ;;              (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
-  ;;  ;;              (ps-html ((:span :class "clear")))
-  ;;  ;;              (select ("sex" "Пол")
-  ;;  ;;                (option "Please select" "Выбрать пол")
-  ;;  ;;                (option "male" "Мужской")
-  ;;  ;;                (option "female" "Мужской"))
-  ;;  ;;              (ps-html
-  ;;  ;;               ((:div :class "date-container")
-  ;;  ;;                ((:label :for "date-of-birth") "День рождения")
-  ;;  ;;                ((:div :class "date-container__inputs fieldset-validation")
-  ;;  ;;                 (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
-  ;;  ;;                 (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
-  ;;  ;;                 (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
-  ;;  ;;              )
-  ;;  ;;            %REGISTER%)))
-  ;;  ;; :overlay (reg-overlay))
-  ;;                   ))))
+              ((:input :type "hidden" :name "act" :value "REGISTER"))
+              (submit "Зарегистрироваться" :onclick (ps (return (reg-js-valid)))))
+             (macrolet ((get-val (selector)
+                          `(getf p ,(intern (string-upcase selector) :keyword))))
+               (defun reg-ctrl-valid (p)
+                 (let ((errors))
+                 (when (not (contains (get-val "email")  "@"))
+                   (push "Пожалуйста, введите корректный емайл" errors))
+                 (when (empty (get-val "password"))
+                   (push "Пожалуйста, введите непустой пароль" errors))
+                 (when (not (equal (get-val "password") (get-val "password-confirm")))
+                   (push "Пожалуйста, введите подтверждение пароля совпадающее с паролем" errors))
+                 (when (empty (get-val "nickname"))
+                   (push "Никнейм не может быть пустым" errors))
+                   errors))
+               (aif (reg-ctrl-valid p)
+                    ;; Возвращены ошибки
+                    (dbg "~A" (bprint it))
+                    ;; Ошибок нет, cоздаем пользователя
+                    (let* ((user-id (create-user (getf p :nickname) (getf p :password) (getf p :email)))
+                           (user (get-user user-id)))
+                      (dbg "~A :|<BR/>|: ~A" (bprint p) user-id)
+                      ;; И сохраняем его id в сесии и thread-local переменной *current-user*
+                      (setf (hunchentoot:session-value 'current-user) user-id)
+                      (setf *current-user* user-id)
+                      ;; Заполняем поля пользователя
+                      (upd-user user (list :firstname   (getf p :firstname)     :lastname    (getf p :lastname)       :phone       (getf p :phone)
+                                           :mobilephone (getf p :mobilephone)   :sex         (getf p :sex)            :birth-day   (getf p :birth-day)
+                                           :birth-month (getf p :birth-month)   :birth-year  (getf p :birth-year)))
+                      ;; Выводим страничку о успешной регистрации
+                      (let ((breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная")))
+                            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+                        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                          (content-box ()
+                            (heading ("Успешная регистрация")))
+                          (content-box ()
+                            (system-msg ("success")
+                              (let ((tmp (format nil "Подтверждение регистрации будет выслано на <b>~A</b> в течение пары дней. ~A"
+                                                 (getf p :email)
+                                                 "Вы можете использовать свой email и пароль для входа в профиль в любое время")))
+                                (ps-html ((:p) "Ваши регистрационные данные успешно сохранены")
+                                         ((:p) tmp)))))
+                          (ps-html ((:span :class "clear"))))))))))
 ;; iface ends here

@@ -20,11 +20,6 @@
   (closure-template:compile-template
    :common-lisp-backend (pathname (concatenate 'string *base-path* "templates.htm")))
 
-  (restas:define-route louis ("/louis")
-    (tpl:louis (list :header (tpl:header)
-                     :content (tpl:content (list :incontent "rwerewr")
-                     :footer (tpl:footer)))))
-
   <<input>>
   <<option>>
   <<select>>
@@ -36,6 +31,8 @@
   <<heading>>
   <<breadcrumb>>
   <<menu>>
+  <<content_box>>
+  <<system-msg>>
   <<standard-page>>
 
   ;; Враппер веб-интерфейса
@@ -764,1311 +761,6 @@
      {/template}
    #+END_SRC
 
-** Content
-
-   #+NAME: tpl_content
-   #+BEGIN_SRC closure-template-html
-     {template content}
-         <section class="container">
-             <p class="breadcrumb">
-                 <span class="breadcrumb__title">You are here:</span> <span class="breadcrumb__content"><span>Home</span></span>
-             </p>
-             <article class="main content home">
-                 <div class="content-box">
-                     {$incontent |noAutoescape}
-                     <div class="main-article-teaser contentslider" data-cs-autoplay="true" data-cs-cycle="false" data-cs-duration="2000" data-cs-delay="5000" data-cs-endatfirst="true">
-                         <ul class="contentslider__content">
-                             <li class="contentslider__area active">
-                                 <img alt="" src="https://cdn3.louis.de/content/teaser/teaser/1810/teaser_pos_en_1.jpg?t=1422359384" height="368" width="940" />
-                                 <div class="main-article-teaser__links">
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 193px; height: 184px;" target="_blank">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 194px; height: 184px;" target="_blank">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 194px; height: 184px;" target="_blank">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 194px; height: 184px;" target="_blank">&nbsp;</a>
-                                     <span class="clear"></span>
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 193px; height: 184px;" target="_blank">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 194px; height: 184px;" target="_blank">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 194px; height: 184px;" target="_blank">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1810" href="https://cdn1.louis.de/content/teaser/teaser/1810/files/en/GS_WEB_SW_EN.pdf" style="width: 194px; height: 184px;" target="_blank">&nbsp;</a>
-                                 </div>
-                             </li>
-                             <li class="contentslider__area">
-                                 <img alt="" src="https://cdn1.louis.de/content/teaser/teaser/1811/teaser_pos_en_1.jpg?t=1421939515" height="368" width="940" />
-                                 <div class="main-article-teaser__links">
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 193px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <span class="clear"></span>
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 193px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1811" href="/en/katalog/aktuelle-werbung/only-from-louis-products/117" style="width: 194px; height: 184px;">&nbsp;</a>
-                                 </div>
-                             </li>
-                             <li class="contentslider__area">
-                                 <img alt="" src="https://cdn1.louis.de/content/teaser/teaser/1762/teaser_pos_en_1.jpg?t=1420194681" height="368" width="940" />
-                                 <div class="main-article-teaser__links">
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/m/redirect?url=http://katalog.louis.de/" style="width: 193px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/m/redirect?url=http://katalog.louis.de/" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/m/redirect?url=http://katalog.louis.de/" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/service/katalog-bestellen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <span class="clear"></span>
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/m/redirect?url=http://katalog.louis.de/" style="width: 193px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/m/redirect?url=http://katalog.louis.de/" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/m/redirect?url=http://katalog.louis.de/" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1762" href="/en/service/katalog-bestellen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                 </div>
-                             </li>
-                             <li class="contentslider__area">
-                                 <img alt="" src="https://cdn3.louis.de/content/teaser/teaser/1807/teaser_pos_en_1.jpg?t=1421934722" height="368" width="940" />
-                                 <div class="main-article-teaser__links">
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 193px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <span class="clear"></span>
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 193px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                     <a class="main-article-teaser__link teaser-slider-1807" href="/en/service/louis/auszeichnungen" style="width: 194px; height: 184px;">&nbsp;</a>
-                                 </div>
-                             </li>
-                         </ul>
-                         <ul class="paging control teaser-button">
-                             <li class="active">
-                                 <a class="button" href="#">
-                                     <img alt="" src="https://cdn1.louis.de/content/teaser/teaser/1810/teaser_pos_en_2.jpg?t=1421945385" height="70" width="143" />
-                                 </a>
-                             </li>
-                             <li class="">
-                                 <a class="button" href="#">
-                                     <img alt="" src="https://cdn2.louis.de/content/teaser/teaser/1811/teaser_pos_en_2.jpg?t=1421939515" height="70" width="143" />
-                                 </a>
-                             </li>
-                             <li class="">
-                                 <a class="button" href="#">
-                                     <img alt="" src="https://cdn2.louis.de/content/teaser/teaser/1762/teaser_pos_en_2.jpg?t=1420194681" height="70" width="143" />
-                                 </a>
-                             </li>
-                             <li class="">
-                                 <a class="button" href="#">
-                                     <img alt="" src="https://cdn3.louis.de/content/teaser/teaser/1807/teaser_pos_en_2.jpg?t=1421934722" height="70" width="143" />
-                                 </a>
-                             </li>
-                         </ul>
-                     </div>
-                 </div>
-                 <div class="top-brands preview-slider">
-                     <div class="inner">
-                         <h2 class="sticker">
-                             <span class="sticker__line"></span>
-                             <span class="sticker__text">
-                                 <span>Top brands at Louis</span>
-                             </span>
-                         </h2>
-                         <a class="read-more" href="/en/katalog/marken">Discover all brands</a>
-                         <div class="contentslider">
-                             <div class="contentslider__content">
-                                 <ul class="contentslider__area active">
-                                     <li>
-                                         <a href="/en/katalog/marken/schuberth-helme/29">
-                                             <img alt="Schuberth Helme" src="https://cdn2.louis.de/content/teaser/teaser/1211/teaser_pos_en_2.png?t=1373013285" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/cardo/460">
-                                             <img alt="Cardo" src="https://cdn2.louis.de/content/teaser/teaser/1116/teaser_pos_en_2.png?t=1417181662" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/shoei/58">
-                                             <img alt="Shoei" src="https://cdn2.louis.de/content/teaser/teaser/1219/teaser_pos_en_2.png?t=1417187577" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/garmin/424">
-                                             <img alt="Garmin" src="https://cdn3.louis.de/content/teaser/teaser/1136/teaser_pos_en_2.png?t=1417182778" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/x-lite/57">
-                                             <img alt="X-lite" src="https://cdn2.louis.de/content/teaser/teaser/1240/teaser_pos_en_2.png?t=1417188635" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/sw-motech/225">
-                                             <img alt="SW-Motech" src="https://cdn2.louis.de/content/teaser/teaser/1228/teaser_pos_en_2.png?t=1373280233" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/vanucci/34">
-                                             <img alt="Vanucci" src="https://cdn3.louis.de/content/teaser/teaser/1232/teaser_pos_en_2.png?t=1373284731" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                 </ul>
-                                 <ul style="" class="contentslider__area lazy-load">
-                                     <li>
-                                         <a href="/en/katalog/marken/castrol/17">
-                                             <img alt="Castrol" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/teaser/teaser/1118/teaser_pos_en_2.png?t=1414673851" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/rukka/88">
-                                             <img alt="Rukka" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn2.louis.de/content/teaser/teaser/1207/teaser_pos_en_2.png?t=1417189143" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/held/23">
-                                             <img alt="Held" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/teaser/teaser/1143/teaser_pos_en_2.png?t=1417183259" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/alpinestars/507">
-                                             <img alt="alpinestars" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn3.louis.de/content/teaser/teaser/1102/teaser_pos_en_2.png?t=1416588391" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/rothewald/432">
-                                             <img alt="Rothewald" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/teaser/teaser/1206/teaser_pos_en_2.png?t=1373011846" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/daytona-stiefel/53">
-                                             <img alt="Daytona Stiefel" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn2.louis.de/content/teaser/teaser/1123/teaser_pos_en_2.png?t=1414674371" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                     <li>
-                                         <a href="/en/katalog/marken/s100/10">
-                                             <img alt="S100" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/teaser/teaser/1208/teaser_pos_en_2.png?t=1417186860" height="60" width="130" />
-                                         </a>
-                                     </li>
-                                 </ul>
-                             </div>
-                             <ul class="paging control"><li class="active"><a href="#">1</a></li><li><a href="#">2</a></li></ul><ul class="change control"><li class="prev disabled"><a href="#previous"><span>previous</span></a></li><li class="next"><a href="#next"><span>next</span></a></li></ul></div>
-                     </div>
-                 </div>
-
-                 <div class="content-box size-1-2">
-
-                     <div class="media teaser teaser--double" id="teaser-double-1742">
-                         <div class="inner">
-                             <div class="media__item media__item--right">
-                                 <a href="/en/artikel/procharger-charger-diagnostic-unit/10003695?filter_article_number=10003695">
-                                     <img src="https://cdn3.louis.de/content/teaser/teaser/1742/teaser_pos_en_1.jpg?t=1418126230" alt="ProCharger" height="222" width="230" />
-                                 </a>
-                             </div>
-                             <div class="media__content text-container inner-container" style="background:#FFFFFF">
-                                 <h2 class="teaser-box--title" style="color:#000000">Perfect and economical charging!</h2>
-                                 <p style="color:#000000">Multi-award-winning intelligent battery charger, diagnostic and test device for motorcycle, scooter and quad/ATV starter batteries</p>
-                                 <h2 class="teaser-box--title" style="color:#FF0000">€ 39.95</h2>
-                                 <p style="color:#000000"><small>instead of € 49.95</small></p>
-                                 <p><a class="button button--link button--calltoaction" href="/en/artikel/procharger-charger-diagnostic-unit/10003695?filter_article_number=10003695">Go to the product</a></p>
-                             </div>
-                             <span class="clear"></span>
-                         </div>
-                     </div>
-
-                 </div>
-                 <div class="content-box size-1-2">
-
-                     <div class="media teaser teaser--double" id="teaser-double-1809">
-                         <div class="inner">
-                             <div class="media__item media__item--right"><a href="/en/artikel/vanucci-rv4-microfiber/202032"><img src="https://cdn1.louis.de/content/teaser/teaser/1809/teaser_pos_en_1.jpg?t=1422260645" alt="Vanucci RV4" height="222" width="230" /></a></div>
-
-                             <div class="media__content text-container inner-container" style="background:#FFFFFF">
-                                 <h2 class="teaser-box--title">Vanucci RV4</h2><p style="color:#000000">Proven racing boot and test winner – now at a premium price.</p><h2 class="teaser-box--title" style="color:#FF0000">from € 179.95 per pair</h2><p style="color:#000000"><small>instead of € 199.95 per pair</small></p><p><a class="button button--link button--calltoaction" href="/en/artikel/vanucci-rv4-microfiber/202032">Go to the product</a></p>
-                             </div>
-                             <span class="clear"></span>
-                         </div>
-                     </div>
-
-                 </div>  <span class="clear"></span>
-                 <div class="content-box size-1-2">
-
-                     <div class="media teaser teaser--double" id="teaser-double-1670">
-                         <div class="inner">
-                             <div class="media__item media__item--right"><a href="/en/artikel/fastlane-f1244/208789"><img src="https://cdn1.louis.de/content/teaser/teaser/1670/teaser_pos_en_1.jpg?t=1413459968" alt="Fastlane Textiljacke F1244" height="222" width="230" /></a>      </div>
-
-                             <div class="media__content text-container inner-container" style="background:#FFFFFF">
-                                 <h2 class="teaser-box--title" style="color:#000000">Fastlane textile jacket</h2><p style="color:#000000">Waterproof textile jacket at rock-bottom price!</p><h2 class="teaser-box--title" style="color:#FF0000">€ 69.95 each</h2><p style="color:#000000"><small>from € 99.95</small></p><p><a class="button button--link button--calltoaction" href="/en/artikel/fastlane-f1244/208789">Go to the product</a></p>
-                             </div>
-                             <span class="clear"></span>
-                         </div>
-                     </div>
-
-                 </div>
-                 <div class="content-box size-1-2">
-
-                     <div class="media teaser teaser--double" id="teaser-double-1808">
-                         <div class="inner">
-                             <div class="media__item media__item--right"><a href="/en/artikel/tomtom-rider-premium-pack-satnav/10001687?filter_article_number=10001687"><img src="https://cdn3.louis.de/content/teaser/teaser/1808/teaser_pos_en_1.jpg?t=1421944162" alt="TomTom RIDER Premium Pack" height="222" width="230" /></a>      </div>
-
-                             <div class="media__content text-container inner-container" style="background:#FFFFFF">
-                                 <h2 class="teaser-box--title" style="color:#000000">TomTom RIDER Premium Pack</h2><p style="color:#000000">Navi complete package incl. anti-theft solution,<br />travel protection bag and car mounting set!</p><h2 class="teaser-box--title" style="color:#FF0000">only € 419 per kit</h2><p style="color:#000000"><small>instead of € 499</small></p><p><a class="button button--link button--calltoaction" href="/en/artikel/tomtom-rider-premium-pack-satnav/10001687?filter_article_number=10001687">Go to the product</a></p>
-                             </div>
-                             <span class="clear"></span>
-                         </div>
-                     </div>
-
-                 </div>
-                 <span class="clear"></span>
-
-                 <div class="content-box size-1-4">
-                     <a href="/en/rund-ums-motorrad/bike-datenbank" class="teaser-box teaser teaser--simple" id="teaser-simple-1580">
-                         <div class="inner">
-                             <h2 class="teaser-single-box--title">Bike Database</h2>
-                             <p>All suitable spare and wearing parts as well as upgrades for your bike. Enter your bike in the search field or <br /><span class="link-fake">here</span></p>
-                             <img alt="" src="https://cdn1.louis.de/content/teaser/teaser/1580/teaser_pos_en_4.png?t=1408107165" height="140" width="218" />
-                         </div>
-                     </a>
-                 </div>
-                 <div class="content-box size-1-4">
-                     <a href="/en/service/katalog-bestellen" class="teaser-box teaser teaser--simple" id="teaser-simple-1367">
-                         <div class="inner">
-                             <h2 class="teaser-single-box--title">The catalog</h2>               <p>
-                                 Europe`s largest catalog for motorcycle clothing, motorcycle accessories and technology. Written in German.<br /><span class="link-fake">Order the catalog!</span>                </p>
-                             <img alt="" src="https://cdn2.louis.de/content/teaser/teaser/1367/teaser_pos_en_4.png?t=1418386225" height="140" width="218" />       </div>
-                     </a>
-                 </div>
-                 <div class="content-box size-1-4">
-                     <a href="/en/service/newsletter" class="teaser-box teaser teaser--simple" id="teaser-simple-1791">
-                         <div class="inner">
-                             <h2 class="teaser-single-box--title">Newsletter</h2>                <p>
-                                 <span class="link-fake">Sign up here and good luck!</span>              </p>
-                             <img alt="" src="https://cdn2.louis.de/content/teaser/teaser/1791/teaser_pos_en_4.png?t=1420627361" height="140" width="218" />       </div>
-                     </a>
-                 </div>
-                 <div class="content-box size-1-4">
-                     <a href="/en/service/foreign-customers" class="teaser-box teaser teaser--simple" id="teaser-simple-1370">
-                         <div class="inner">
-                             <h2 class="teaser-single-box--title">Information for shopping. </h2>                <p>
-                                 <span class="link-fake">Choose your language.</span>                </p>
-                             <img alt="" src="https://cdn3.louis.de/content/teaser/teaser/1370/teaser_pos_en_4.png?t=1399039039" height="140" width="218" />       </div>
-                     </a>
-                 </div>
-                 <span class="clear"></span>
-
-                 <div class="items4 preview-slider preview-slider--articles">
-                     <div class="inner">
-                         <h2 class="sticker">
-                             <span class="sticker__line"></span> <span class="sticker__text"><span>Sale %</span> </span>
-                         </h2>
-                         <a class="read-more" href="/en/katalog/restposten">Show all offers</a>
-                         <div class="contentslider">
-                             <div class="contentslider__content">
-                                 <ul class="contentslider__area active lazy-load">
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/vanucci-profi-ii-gloves/201268?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/201269_340_FR_13.JPG" alt="VANUCCI PROFI II" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170" src="https://cdn1.louis.de/content/catalogue/articles/img170x170/201269_340_FR_13.JPG" alt="VANUCCI PROFI II" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-                                                 <p class="article-item__top">
-                                                     Best in test                </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/vanucci-profi-ii-gloves/201268?list=41767369">
-                                                         <h3 class="article-item__title">VANUCCI PROFI II</h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Extremely comfy<br />Good grip<br />Kangaroo leather<br />             </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:53.2%;">
-                                                         Rating                      : 2.66 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;129.<span class="cent">95</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;79.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/vanucci-profi-ii-gloves/201268?list=41767369"> To the product              <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/rothewald-chain-breaker-and-riveter/10002792?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/10002792_910_FR03_13.JPG" alt="ROTHEWALD CHAIN BREAKER" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170" src="https://cdn1.louis.de/content/catalogue/articles/img170x170/10002792_910_FR03_13.JPG" alt="ROTHEWALD CHAIN BREAKER" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/rothewald-chain-breaker-and-riveter/10002792?list=41767369">
-                                                         <h3 class="article-item__title">ROTHEWALD CHAIN BREAKER</h3>
-                                                     </a>
-                                                     <p class="article-item__description">
-                                                         Top quality tool for<br />breaking and rivetting<br />D.I.D chains<br /></p>
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:54%;">Rating : 2.7 out of 5</span>
-                                                 </p>
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;49.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;33.<span class="cent">00</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/rothewald-chain-breaker-and-riveter/10002792?list=41767369"> To the product<span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/iron-horse-saddlebags-compact-leatherette-8l/10025195?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/10025195_730_FR01_12.JPG" alt="IRON HORSE SADDLEBAGS" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170" src="https://cdn1.louis.de/content/catalogue/articles/img170x170/10025195_730_FR01_12.JPG" alt="IRON HORSE SADDLEBAGS" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">Sale %</p>
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/iron-horse-saddlebags-compact-leatherette-8l/10025195?list=41767369">
-                                                         <h3 class="article-item__title">IRON HORSE SADDLEBAGS</h3>
-                                                     </a>
-                                                     <p class="article-item__description">Classic saddlebags for<br />125cc machines or oldies<br />Volume 2 x 8 litres<br /></p>
-                                                 </div>
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:100%;">Rating : 5 out of 5</span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">instead of <span class="price__number"><span class="currency">€</span>&nbsp;49.<span class="cent">95</span></span></p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;39.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/iron-horse-saddlebags-compact-leatherette-8l/10025195?list=41767369"> To the product               <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/probiker-rsx-5/215595?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/215595_410_FR01_14.JPG" alt="PROBIKER RSX 5" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170" src="https://cdn1.louis.de/content/catalogue/articles/img170x170/215595_410_FR01_14.JPG" alt="PROBIKER RSX 5" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">Sale %</p>
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/probiker-rsx-5/215595?list=41767369"><h3 class="article-item__title">PROBIKER RSX 5</h3></a>
-
-                                                     <p class="article-item__description">
-                                                         Sporty full-face helmet<br />made of fibreglass<br />with integral sun visor<br />             </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:66.6%;">Rating                      : 3.33 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;159.<span class="cent">95</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;79.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                     <li class="article__action">
-                                                         <a href="/en/katalog/produktvergleich/vergleichen/215595" class="js__openPopup" data-title="productCompare" target="productCompare">Compare</a>
-                                                     </li>
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/probiker-rsx-5/215595?list=41767369"> To the product               <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-                                 </ul>
-                                 <ul style="" class="contentslider__area lazy-load">
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/mc-queen-t-shirt-banner-dark-grey/218183?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn2.louis.de/content/catalogue/articles/img170x170/218183_270_INET01_14.JPG" alt="MC QUEEN T-SHIRT" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170" src="https://cdn2.louis.de/content/catalogue/articles/img170x170/218183_270_INET01_14.JPG" alt="MC QUEEN T-SHIRT" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/mc-queen-t-shirt-banner-dark-grey/218183?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             MC QUEEN T-SHIRT                    </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Cool shirt of cultactor<br />and motorsportfan<br />Steve Mc Queen<br />               </p>
-
-                                                 </div>
-
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;49.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;19.<span class="cent">99</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/mc-queen-t-shirt-banner-dark-grey/218183?list=41767369"> To the product                <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/madhead-fiber-mex-light-matt-black-orange/215852?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/215852_410_FR1_11.JPG" alt="MADHEAD FIBER-MEX LIGHT" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170" src="https://cdn1.louis.de/content/catalogue/articles/img170x170/215852_410_FR1_11.JPG" alt="MADHEAD FIBER-MEX LIGHT" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/madhead-fiber-mex-light-matt-black-orange/215852?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             MADHEAD FIBER-MEX LIGHT                 </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Very light motocross<br />helmet made of fibreglass<br />with 2 shell sizes<br />              </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:93.2%;">
-                                                         Rating                      : 4.66 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;99.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;69.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                     <li class="article__action">
-                                                         <a href="/en/katalog/produktvergleich/vergleichen/215852" class="js__openPopup" data-title="productCompare" target="productCompare">Compare</a>
-                                                     </li>
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/madhead-fiber-mex-light-matt-black-orange/215852?list=41767369"> To the product                <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/germas-kidney-belt-textile-breathable/505516?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn3.louis.de/content/catalogue/articles/img170x170/505516.JPG" alt="GERMAS KIDNEY BELT" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170" src="https://cdn3.louis.de/content/catalogue/articles/img170x170/505516.JPG" alt="GERMAS KIDNEY BELT" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/germas-kidney-belt-textile-breathable/505516?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             GERMAS KIDNEY BELT                  </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Breathable, slightly<br />padded kidney belt with<br />back reinforcements.<br />              </p>
-
-                                                 </div>
-
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;19.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;9.<span class="cent">99</span></span>                  </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/germas-kidney-belt-textile-breathable/505516?list=41767369"> To the product                <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/x-lite-x-802r-brave/216344?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn2.louis.de/content/catalogue/articles/img170x170/216344_410_FR_14.JPG" alt="X-LITE X-802R BRAVE" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn2.louis.de/content/catalogue/articles/img170x170/216344_410_FR_14.JPG"
-                                                          alt="X-LITE X-802R BRAVE" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-                                                 <p class="article-item__top">
-                                                     Best in test                </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/x-lite-x-802r-brave/216344?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             X-LITE X-802R BRAVE                 </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Composite-Fibre material<br />adjustable rear spoiler<br />3 helmet shell sizes<br />              </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:95%;">
-                                                         Rating                      : 4.75 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;529.<span class="cent">00</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;319.<span class="cent">00</span></span>                    </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                     <li class="article__action">
-                                                         <a href="/en/katalog/produktvergleich/vergleichen/216344" class="js__openPopup" data-title="productCompare" target="productCompare">Compare</a>
-                                                     </li>
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/x-lite-x-802r-brave/216344?list=41767369"> To the product              <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-                                 </ul>
-                                 <ul style="" class="contentslider__area lazy-load">
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/camping-set-4-piece-louis75-special-edition/10002479?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/10002479_610_ANW03_FR_13.JPG" alt="CAMPING-SET 4 PIECE" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn1.louis.de/content/catalogue/articles/img170x170/10002479_610_ANW03_FR_13.JPG"
-                                                          alt="CAMPING-SET 4 PIECE" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/camping-set-4-piece-louis75-special-edition/10002479?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             CAMPING-SET 4 PIECE                 </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Tent,sleeping bag and mat<br />in the Speedbag and you<br />are ready to hit the road<br />                </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:52.8%;">
-                                                         Rating                      : 2.64 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;111.<span class="cent">96</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;49.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/camping-set-4-piece-louis75-special-edition/10002479?list=41767369"> To the product                <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/shark-speed-r-duke/216115?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn2.louis.de/content/catalogue/articles/img170x170/216115_410_DFR01_14.JPG" alt="SHARK SPEED-R DUKE" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn2.louis.de/content/catalogue/articles/img170x170/216115_410_DFR01_14.JPG"
-                                                          alt="SHARK SPEED-R DUKE" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-                                                 <p class="article-item__top">
-                                                     Best in test                </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/shark-speed-r-duke/216115?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             SHARK SPEED-R DUKE                  </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Fiberglass! 2 helmet<br />shell sizes! Sun visor!<br />Predisposition SHARKTOOTH<br />             </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:80%;">
-                                                         Rating                      : 4 out of 5                    </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;359.<span class="cent">00</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;229.<span class="cent">00</span></span>                    </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                     <li class="article__action">
-                                                         <a href="/en/katalog/produktvergleich/vergleichen/216115" class="js__openPopup" data-title="productCompare" target="productCompare">Compare</a>
-                                                     </li>
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/shark-speed-r-duke/216115?list=41767369"> To the product               <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/caberg-285-freedom/203607?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/20360702_410_FR02_14.JPG" alt="CABERG 285 FREEDOM" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn1.louis.de/content/catalogue/articles/img170x170/20360702_410_FR02_14.JPG"
-                                                          alt="CABERG 285 FREEDOM" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/caberg-285-freedom/203607?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             CABERG 285 FREEDOM                  </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Retro look helmet shell<br />with metal emblem and<br />removable neck section<br />               </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:58.4%;">
-                                                         Rating                      : 2.92 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;99.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;69.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                     <li class="article__action">
-                                                         <a href="/en/katalog/produktvergleich/vergleichen/203607" class="js__openPopup" data-title="productCompare" target="productCompare">Compare</a>
-                                                     </li>
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/caberg-285-freedom/203607?list=41767369"> To the product               <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/t-shirt-king-kerosin-gas-black/218143?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/218143_270_FR_13.JPG" alt="T-SHIRT KING KEROSIN" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn1.louis.de/content/catalogue/articles/img170x170/218143_270_FR_13.JPG"
-                                                          alt="T-SHIRT KING KEROSIN" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/t-shirt-king-kerosin-gas-black/218143?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             T-SHIRT KING KEROSIN                    </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         King Kerosin<br />T-Shirt with<br />skull motive<br />             </p>
-
-                                                 </div>
-
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;29.<span class="cent">90</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;19.<span class="cent">90</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/t-shirt-king-kerosin-gas-black/218143?list=41767369"> To the product               <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-                                 </ul>
-                                 <ul style="" class="contentslider__area lazy-load">
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/ddd-headband-flower-with-rhinestones-blue/20011474?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn3.louis.de/content/catalogue/articles/img170x170/20011474_360_FR01_15.JPG" alt="DDD HEADBAND FLOWER" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn3.louis.de/content/catalogue/articles/img170x170/20011474_360_FR01_15.JPG"
-                                                          alt="DDD HEADBAND FLOWER" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/ddd-headband-flower-with-rhinestones-blue/20011474?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             DDD HEADBAND FLOWER                 </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         head and neckband<br />with motives with<br />qualitative rhinesstones<br />               </p>
-
-                                                 </div>
-
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;24.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;14.<span class="cent">99</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/ddd-headband-flower-with-rhinestones-blue/20011474?list=41767369"> To the product              <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/fastlane-casual-shoe-ffs23-black/219418?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn3.louis.de/content/catalogue/articles/img170x170/21941840_330_FR01_15.JPG" alt="FASTLANE CASUAL SHOE" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn3.louis.de/content/catalogue/articles/img170x170/21941840_330_FR01_15.JPG"
-                                                          alt="FASTLANE CASUAL SHOE" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/fastlane-casual-shoe-ffs23-black/219418?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             FASTLANE CASUAL SHOE                    </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         styled casual shoe<br />with synthetic leather<br />for small money<br />              </p>
-
-                                                 </div>
-
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;24.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;12.<span class="cent">99</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/fastlane-casual-shoe-ffs23-black/219418?list=41767369"> To the product             <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/fastlane-casual-shoe-ffs18-grey/219411?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn2.louis.de/content/catalogue/articles/img170x170/219411_330_FR01_14.JPG" alt="FASTLANE CASUAL SHOE" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn2.louis.de/content/catalogue/articles/img170x170/219411_330_FR01_14.JPG"
-                                                          alt="FASTLANE CASUAL SHOE" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/fastlane-casual-shoe-ffs18-grey/219411?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             FASTLANE CASUAL SHOE                    </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         The classical<br />sneaker for<br />a top price<br />              </p>
-
-                                                 </div>
-
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;19.<span class="cent">99</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;12.<span class="cent">99</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/fastlane-casual-shoe-ffs18-grey/219411?list=41767369"> To the product              <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/pike-road-jacket/209914?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/209914_270_FR_14.JPG" alt="PIKE ROAD JACKET" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn1.louis.de/content/catalogue/articles/img170x170/209914_270_FR_14.JPG"
-                                                          alt="PIKE ROAD JACKET" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/pike-road-jacket/209914?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             PIKE ROAD JACKET                    </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Cool casual jacket<br />with layered-look.<br /><br />             </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:80%;">
-                                                         Rating                      : 4 out of 5                    </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;99.<span class="cent">90</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;59.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/pike-road-jacket/209914?list=41767369"> To the product             <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-                                 </ul>
-                                 <ul style="" class="contentslider__area lazy-load">
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/roleff-jacket-ro-371-black-white/508062?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/508062_210_INET01_15.JPG" alt="ROLEFF JACKET RO 371" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn1.louis.de/content/catalogue/articles/img170x170/508062_210_INET01_15.JPG"
-                                                          alt="ROLEFF JACKET RO 371" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/roleff-jacket-ro-371-black-white/508062?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             ROLEFF JACKET RO 371                    </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         Resistant motorcycle<br />jacket in fine black.<br /><br />                </p>
-
-                                                 </div>
-
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;159.<span class="cent">00</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;79.<span class="cent">00</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/roleff-jacket-ro-371-black-white/508062?list=41767369"> To the product             <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/roleff-ro-451-kodra-textile-trousers-black/502488?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn3.louis.de/content/catalogue/articles/img170x170/502488_240_FR_TO_10.JPG" alt="ROLEFF RO 451 KODRA" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn3.louis.de/content/catalogue/articles/img170x170/502488_240_FR_TO_10.JPG"
-                                                          alt="ROLEFF RO 451 KODRA" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/roleff-ro-451-kodra-textile-trousers-black/502488?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             ROLEFF RO 451 KODRA                 </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         KODRA outer shell<br />Built-in kidney belt<br />Protectors<br />              </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:75.2%;">
-                                                         Rating                      : 3.76 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;99.<span class="cent">95</span></span>                      </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;59.<span class="cent">95</span></span>                 </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/roleff-ro-451-kodra-textile-trousers-black/502488?list=41767369"> To the product               <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/x-lite-x-702-gt-chased/215825?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/catalogue/articles/img170x170/215825_410_INET01_14.JPG" alt="X-LITE X-702 GT CHASED" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn1.louis.de/content/catalogue/articles/img170x170/215825_410_INET01_14.JPG"
-                                                          alt="X-LITE X-702 GT CHASED" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-                                                 <p class="article-item__top">
-                                                     Best in test                </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/x-lite-x-702-gt-chased/215825?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             X-LITE X-702 GT CHASED                  </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         More comfortable helmet<br />with a new lining and 4<br />helmet shell sizes<br />             </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:67.4%;">
-                                                         Rating                      : 3.37 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;499.<span class="cent">00</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;329.<span class="cent">00</span></span>                    </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                     <li class="article__action">
-                                                         <a href="/en/katalog/produktvergleich/vergleichen/215825" class="js__openPopup" data-title="productCompare" target="productCompare">Compare</a>
-                                                     </li>
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/x-lite-x-702-gt-chased/215825?list=41767369"> To the product               <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-
-                                     <li class="article-item article-item--grid">
-                                         <div class="inner">
-                                             <a class="article-item__image" href="/en/artikel/vanucci-racing-ii-jacket/207061?list=41767369">
-                                                 <img src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn2.louis.de/content/catalogue/articles/img170x170/207061_110_FR_TO_09.JPG" alt="VANUCCI RACING II JACKET" height="170" width="170" />
-                                                 <noscript>
-                                                     <img width="170" height="170"
-                                                          src="https://cdn2.louis.de/content/catalogue/articles/img170x170/207061_110_FR_TO_09.JPG"
-                                                          alt="VANUCCI RACING II JACKET" / />
-                                                 </noscript>
-                                             </a>
-
-                                             <div class="article-item__info">
-                                                 <p class="article-item__special special--sale">
-                                                     Sale %              </p>
-                                                 <p class="article-item__top">
-                                                     Best in test                </p>
-
-                                                 <div class="article-item__main-info">
-                                                     <a class="article-item__title-link" href="/en/artikel/vanucci-racing-ii-jacket/207061?list=41767369">
-                                                         <h3 class="article-item__title">
-                                                             VANUCCI RACING II JACKET                    </h3>
-
-                                                     </a>
-
-                                                     <p class="article-item__description">
-                                                         No frills, just style<br />Supple cowhide<br />Available in 2 colours<br />                </p>
-
-                                                 </div>
-
-                                                 <p class="rating">
-                                                     <span class="rating__value" style="width:65%;">
-                                                         Rating                      : 3.25 out of 5                 </span>
-                                                 </p>
-
-
-                                                 <div class="price">
-                                                     <p class="price__old">
-                                                         instead of <span class="price__number"><span class="currency">€</span>&nbsp;349.<span class="cent">95</span></span>                     </p>
-                                                     <p class="price__current  price__current--offer">
-                                                         <!-- TODO price-min laut design nur optional -->
-                                                         <span class="price__number"><span class="currency">€</span>&nbsp;149.<span class="cent">95</span></span>                    </p>
-                                                 </div>
-
-
-                                                 <ul class="article-item__actions">
-                                                     <li class="article__action">
-                                                         <a href="/en/katalog/produktvergleich/vergleichen/207061" class="js__openPopup" data-title="productCompare" target="productCompare">Compare</a>
-                                                     </li>
-                                                 </ul>
-
-                                                 <a class="button button--link" href="/en/artikel/vanucci-racing-ii-jacket/207061?list=41767369"> To the product             <span class="button__icon"></span>
-                                                 </a>
-                                             </div>
-                                         </div>
-                                     </li>
-                                 </ul>
-                             </div>
-                             <ul class="paging control"><li class="active"><a href="#">1</a></li><li><a href="#">2</a></li><li><a href="#">3</a></li><li><a href="#">4</a></li><li><a href="#">5</a></li></ul><ul class="change control"><li class="prev disabled"><a href="#previous"><span>previous</span></a></li><li class="next"><a href="#next"><span>next</span></a></li></ul></div>
-                     </div>
-                 </div>
-             </article>
-             <div class="main-ending">
-                 <div class="last-seen">
-                 <h5>Items viewed recently</h5>
-
-                     <p>You do not have any recently viewed items.</p>
-                 </div>
-             </div>
-             <div class="overlay-bg"></div>
-         </section>
-     {/template}
-   #+END_SRC
-
 ** Footer
 
    #+NAME: tpl_footer
@@ -2433,9 +1125,9 @@
 
      ;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even")))
 
-     ;; (macroexpand-1 '(input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50")))
+     ;; (macroexpand-1 '(input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50")))
 
-     ;; (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
+     ;; (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
    #+END_SRC
 
 ** Позиция выбора селектора
@@ -2504,8 +1196,8 @@
                    (format nil "~{~A~}"
                            (list ,@body))))))
 
-     (fieldset "Обязательные поля"
-       (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+     ;; (fieldset "Обязательные поля"
+     ;;   (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
    #+END_SRC
 
 ** Кнопка отправки формы
@@ -2526,7 +1218,7 @@
            `(ps-html ((:div :class ,result-class)
                       (,button ,title))))))
 
-     (macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))
+     ;; (macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))
    #+END_SRC
 
 ** Форма
@@ -2553,16 +1245,16 @@
 
      ;; (macroexpand-1 '(form ("regform" "Регистрационные данные")
      ;;                  (fieldset "Обязательные поля"
-     ;;                    (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+     ;;                    (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
      ;;                  (fieldset "Необязательные поля"
-     ;;                    (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+     ;;                    (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
      ;;                  ))
 
      ;; (form ("regform" "Регистрационные данные")
      ;;   (fieldset "Обязательные поля"
-     ;;     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+     ;;     (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
      ;;   (fieldset "Необязательные поля"
-     ;;     (input ("register-mail" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address.")))
+     ;;     (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address.")))
    #+END_SRC
 
 ** Тизеры
@@ -2775,7 +1467,8 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defmacro system-msg ((&rest rest &key class &allow-other-keys) &body body)
+     (defmacro system-msg ((msg-type &rest rest &key class &allow-other-keys) &body body)
+       "msg-type: sucess | caution | advantage"
        (let ((result-box-class "box system-message"))
          (when class
            (setf result-box-class (concatenate 'string result-box-class " " class)))
@@ -2783,25 +1476,15 @@
          (let ((box `(:div :class ,result-box-class)))
            (unless (null rest)
              (setf box (append box rest)))
-           `(ps-html (,box ((:span :class "result-icon result-icon--success media__item media__item--left"))
-                           ((:div :class "system-message__text-container")
-                            ((:div :class "system-message__text") ,@body))
-                           ((:span :class "clear")))))))
+           (let ((result-icon-type (format nil "result-icon result-icon--~A media__item media__item--left" msg-type)))
+             `(ps-html (,box ((:span :class ,result-icon-type))
+                             ((:div :class "system-message__text-container")
+                              ((:div :class "system-message__text") ,@body))
+                             ((:span :class "clear"))))))))
 
-     ;; (macroexpand-1 '(system-msg () "zzz"))
-     ;; (system-msg () "zzz")
-     ;;                                     <span class=\"result-icon result-icon--success media__item media__item--left\"></span>
-     ;;                                     <div class=\"system-message__text-container\">
-     ;;                                         <div class=\"system-message__text\">
-     ;;                                             <p>Your login details have been saved successfully!</p>
-     ;;                                             <p>Your registration will be checked and confirmation sent to you at the address aaa@aa.de within the next two working days. You can then use your email address and your password to log into \"My Louis\" or to place an order.</p>
-     ;;                                         </div>
-     ;;                                     </div>
-     ;;                                     <span class=\"clear\"></span>
-
+     ;; (macroexpand-1 '(system-msg ("success") "zzz"))
+     ;; (system-msg (success) "zzz")
    #+END_SRC
-
-
 
 ** Обычная страница
 
@@ -2809,7 +1492,25 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defmacro standard-page (&key breadcrumb user menu content overlay)
+     (defmacro system-msg ((msg-type &rest rest &key class &allow-other-keys) &body body)
+       "msg-type: sucess | caution | advantage"
+       (let ((result-box-class "box system-message"))
+         (when class
+           (setf result-box-class (concatenate 'string result-box-class " " class)))
+         (remf rest :class)
+         (let ((box `(:div :class ,result-box-class)))
+           (unless (null rest)
+             (setf box (append box rest)))
+           (let ((result-icon-type (format nil "result-icon result-icon--~A media__item media__item--left" msg-type)))
+             `(ps-html (,box ((:span :class ,result-icon-type))
+                             ((:div :class "system-message__text-container")
+                              ((:div :class "system-message__text") ,@body))
+                             ((:span :class "clear"))))))))
+
+
+     (defmacro standard-page ((&rest rest &key breadcrumb user menu overlay &allow-other-keys) &body body)
+       (unless overlay
+         (setf overlay ""))
        `(ps-html
          ((:section :class "container")
           ,breadcrumb
@@ -2817,7 +1518,7 @@
            ((:div :class "category-nav-container")
             ((:p :class "category-nav-container__headline trail") ,user)
             ((:ul :class "category-nav--lvl0 category-nav") ,menu))
-           ((:article :class "content") ,content)
+           ((:article :class "content") ,@body)
            ((:div :class "overlay-container popup" :id "dataprivacy-overlay" :data-dontcloseviabg "" :data-mustrevalidate "") ,overlay)
            ((:span :class "clear")))
           ((:div :class "main-ending")
@@ -2843,39 +1544,8 @@
 
    (restas:define-route main ("/")
      (with-wrapper
-         "<h1>Главная страница</h1>
-         <form action=\"/en/login\" method=\"post\" novalidate=\"\" class=\"js__formValidation\">
-         <fieldset>
-         <legend>
-         Log in:</legend>
-         <div class=\"input-container hide-label\">
-         <label for=\"login-email\">
-         Email address</label>
-         <div class=\"input-bg\">
-         <input name=\"login-email\" id=\"login-email\" class=\"form-element input-text required\" maxlength=\"50\" required=\"required\" value=\"\" type=\"email\">
-         <p class=\"validation-explanation validation-explanation--static hidden\">
-         Please enter a valid email address.</p>
-         </div>
-         </div>
-         <div class=\"input-container hide-label\">
-         <label for=\"login-password\">
-         Password</label>
-         <div class=\"input-bg\">
-         <input name=\"login-password\" id=\"login-password\" class=\"form-element input-text required\" required=\"required\" autocomplete=\"off\" value=\"\" type=\"password\">
-         </div>
-         </div>
-         <button name=\"login-submit\" type=\"submit\" class=\"button\" value=\"Anmelden\">
-         Log in</button>
-         <p class=\"forgot-pw\">
-         Have you forgotten your <a href=\"/en/mylouis/passwort-vergessen\">
-         password</a>
-         ?</p>
-         <input name=\"csrf_login\" id=\"csrf_login\" value=\"94fd26d9fea3f78f0e5908f78e7bb3d4-387a05de406a0986078b9c5f500ae549\" type=\"hidden\">
-         <input name=\"return-url\" id=\"return-url\" value=\"098e60cbd72a9211eddba994512c4f11\" type=\"hidden\">
-         </fieldset>
-         </form>"
+         "<h1>Главная страница</h1>"
        ))
-
  #+END_SRC
 
 ** Список пользователей
@@ -3482,7 +2152,7 @@
    #+NAME: reg_valid_cond
      | field            | validator                                                       | explanation                                                      |
      |------------------+-----------------------------------------------------------------+------------------------------------------------------------------|
-     | mail             | (not (contains (get-val "mail")  "@"))                          | "Пожалуйста, введите корректный емайл"                           |
+     | email            | (not (contains (get-val "email")  "@"))                         | "Пожалуйста, введите корректный емайл"                           |
      | password         | (empty (get-val "password"))                                    | "Пожалуйста, введите непустой пароль"                            |
      | password-confirm | (not (equal (get-val "password") (get-val "password-confirm"))) | "Пожалуйста, введите подтверждение пароля совпадающее с паролем" |
      | nickname         | (empty (get-val "nickname"))                                    | "Никнейм не может быть пустым"                                   |
@@ -3522,86 +2192,79 @@
              ((@ ((@ ($ (concatenate 'string "#" selector)) parent)) append)
               (lambda (index value)
                 (concatenate 'string "<p class='validation-explanation validation-explanation--static'>" content "</p>"))))
-           ;; <<gen_js_validator("reg-valid", reg_valid_cond)>>
+           <<gen_js_validator("reg-js-valid", reg_valid_cond)>>
            ))))
 
      (define-page reg "/reg"
-       (standard-page
-        :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
-        :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
-        :menu (menu)
-        :content
-        (format nil "~{~A~}"
-                (list
-                 (content-box ()
-                   (heading ("Зарегистрируйтесь как пользователь") "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи."))
-                 (content-box (:class "size-3-5 switch-content-container")
-                   (format nil "~{~A~}"
-                           (list
-                            (IF *CURRENT-USER* (GET-UNDELIVERED-MSG-CNT *CURRENT-USER*) "")
-                            (js-reg)
-                            (form ("regform" "Регистрационные данные") ;;  js__formValidation
-                              (fieldset "Обязательные поля"
-                                (input ("mail" "Электронная почта" :required t :type "email" :maxlength "50"))
-                                (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-                                (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
-                                (input ("nickname" "Никнейм" :required t :maxlength "50")))
-                              (fieldset "Необязательные поля"
-                                (input ("firstname" "Имя" :maxlength "25" ))
-                                (input ("lastname" "Фамилия" :maxlength "25" ))
-                                (input ("telephone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
-                                (input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
-                                (ps-html ((:span :class "clear")))
-                                (select ("sex" "Пол")
-                                  (option "Please select" "Выбрать пол")
-                                  (option "male" "Мужской")
-                                  (option "female" "Мужской"))
-                                (ps-html
-                                 ((:div :class "date-container")
-                                  ((:label :for "date-of-birth") "День рождения")
-                                  ((:div :class "date-container__inputs fieldset-validation")
-                                   (input ("birth-day" "DD" :maxlength "2" :container-class "hide-label input-container--1st"))
-                                   (input ("birth-day" "MM" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
-                                   (input ("birth-day" "MM" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
-                                )
-                              %REGISTER%))))
-                 (content-box (:class "size-1-5") (reg-teasers))
-                 (ps-html ((:span :class "clear")))))
-        :overlay (reg-overlay))
+       (let ((breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная")))
+             (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (content-box ()
+             (heading ("Зарегистрируйтесь как пользователь") "После регистрации вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи."))
+           (content-box (:class "size-3-5 switch-content-container")
+             (format nil "~{~A~}"
+                     (list
+                      (if *current-user* (format nil "Кол-во недоставленных сообщений: ~A" (get-undelivered-msg-cnt *current-user*)) "")
+                      (js-reg)
+                      (form ("regform" "Регистрационные данные") ;;  js__formValidation
+                        (fieldset "Обязательные поля"
+                          (input ("email" "Электронная почта" :required t :type "email" :maxlength "50"))
+                          (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+                          (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
+                          (input ("nickname" "Никнейм" :required t :maxlength "50")))
+                        (fieldset "Необязательные поля"
+                          (input ("firstname" "Имя" :maxlength "25" ))
+                          (input ("lastname" "Фамилия" :maxlength "25" ))
+                          (input ("phone" "Телефон" :maxlength "15" :container-class "input-container--1-2 odd"))
+                          (input ("mobilephone" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even"))
+                          (ps-html ((:span :class "clear")))
+                          (select ("sex" "Пол")
+                            (option "" "Выбрать пол")
+                            (option "male" "Мужской")
+                            (option "female" "Мужской"))
+                          (ps-html
+                           ((:div :class "date-container")
+                            ((:label :for "date-of-birth") "День рождения")
+                            ((:div :class "date-container__inputs fieldset-validation")
+                             (input ("birth-day" "" :maxlength "2" :container-class "hide-label input-container--1st"))
+                             (input ("birth-month" "" :maxlength "2" :container-class "hide-label input-container--2nd input-container--middle"))
+                             (input ("birth-year" "" :maxlength "4" :container-class "hide-label input-container input-container--3rd")))))
+                          )
+                        %REGISTER%))))
+           (content-box (:class "size-1-5") (reg-teasers))
+           (ps-html ((:span :class "clear")))))
        (:register (ps-html
-                     ((:input :type "hidden" :name "act" :value "REGISTER"))
-                     (submit "Зарегистрироваться" :onclick (ps (return (reg-valid)))))
+                   ((:input :type "hidden" :name "act" :value "REGISTER"))
+                   (submit "Зарегистрироваться" :onclick (ps (return (reg-js-valid)))))
                   (macrolet ((get-val (selector)
                                `(getf p ,(intern (string-upcase selector) :keyword))))
-                    ;; <<gen_controller_validator("reg-valid", reg_valid_cond)>>
-                    ;; (aif (reg-valid p)
-                    ;;      ;; Возвращены ошибки
-                    ;;      (dbg "~A" (bprint it))
-                    ;;      ;; Ошибок нет, можно регистрировать пользователя
-                    ;;      (dbg (bprint p))
-                    ;;      Проверяем данные, потом создаем пользователя
-                    ;;      (let ((user-id (create-user (getf p :name)
-                    ;;                                  (getf p :password)
-                    ;;                                  (getf p :email))))
-                    ;;        ;; и сохраняем его id в сесии
-                    ;;        (setf (hunchentoot:session-value 'current-user) user-id))
-                    (standard-page
-                         :breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная"))
-                         :user (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))
-                         :menu (menu)
-                         :content
-                         (format nil "~{~A~}"
-                                 (list
-                                  (content-box ()
-                                    (heading ("Успешная регистрация")))
-                                  (content-box ()
-                                    (system-msg ()
-                                      (let ((tmp (format nil "Подтверждение регистрации будет выслано на <b>~A</b> в течение пары дней. ~A"
-                                                         (getf p :email)
-                                                         "Вы можете использовать свой email и пароль для входа в профиль в любое время")))
-                                        (ps-html ((:p) "Ваши регистрационные данные успешно сохранены")
-                                                 ((:p) tmp)))))
-                                  (ps-html ((:span :class "clear")))))
-                         :overlay (reg-overlay))
-                    )))
+                    <<gen_controller_validator("reg-ctrl-valid", reg_valid_cond)>>
+                    (aif (reg-ctrl-valid p)
+                         ;; Возвращены ошибки
+                         (dbg "~A" (bprint it))
+                         ;; Ошибок нет, cоздаем пользователя
+                         (let* ((user-id (create-user (getf p :nickname) (getf p :password) (getf p :email)))
+                                (user (get-user user-id)))
+                           (dbg "~A :|<BR/>|: ~A" (bprint p) user-id)
+                           ;; И сохраняем его id в сесии и thread-local переменной *current-user*
+                           (setf (hunchentoot:session-value 'current-user) user-id)
+                           (setf *current-user* user-id)
+                           ;; Заполняем поля пользователя
+                           (upd-user user (list :firstname   (getf p :firstname)     :lastname    (getf p :lastname)       :phone       (getf p :phone)
+                                                :mobilephone (getf p :mobilephone)   :sex         (getf p :sex)            :birth-day   (getf p :birth-day)
+                                                :birth-month (getf p :birth-month)   :birth-year  (getf p :birth-year)))
+                           ;; Выводим страничку о успешной регистрации
+                           (let ((breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная")))
+                                 (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+                             (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                               (content-box ()
+                                 (heading ("Успешная регистрация")))
+                               (content-box ()
+                                 (system-msg ("success")
+                                   (let ((tmp (format nil "Подтверждение регистрации будет выслано на <b>~A</b> в течение пары дней. ~A"
+                                                      (getf p :email)
+                                                      "Вы можете использовать свой email и пароль для входа в профиль в любое время")))
+                                     (ps-html ((:p) "Ваши регистрационные данные успешно сохранены")
+                                              ((:p) tmp)))))
+                               (ps-html ((:span :class "clear"))))))))))
    #+END_SRC
