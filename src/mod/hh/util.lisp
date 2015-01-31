@@ -55,10 +55,6 @@ E.g.:
       (setf (getf result prop) value)))
   result))
 
-(defun contains (string pattern)
-  (if (search pattern string)
-      t))
-
 ;; eval-always
 
 (defmacro eval-always (&body body)

@@ -3391,21 +3391,39 @@
    клиента нам необходимо сгенерировать функцию-валидатор, которая
    будет транслирована в javascript
 
-   #+NAME: gen_validator
+   #+NAME: gen_js_validator
    #+BEGIN_SRC emacs-lisp :var fname="name" rows="rows" :exports none
        (let ((result))
          (mapcar (lambda (row)
-                   (push (format "\n  (when %s" (cadr row)) result)
-                   (push (format "\n    (add_explanation \"%s\" \"%s\")" (car row) (nth 2 row)) result)
-                   (push (format "\n    (incf errs))") result))
+                   (push (format "\n    (when %s" (cadr row)) result)
+                   (push (format "\n      (add_explanation \"%s\" \"%s\")" (car row) (nth 2 row)) result)
+                   (push (format "\n      (incf err-cnt))") result))
                  rows)
          (concat (format "(defun %s ()" fname)
                  "\n  ((@ ($ \".validation-explanation\") remove))"
-                 "\n  (let ((errs 0))"
+                 "\n  (let ((err-cnt 0))"
                  (mapconcat 'identity (reverse result) "")
-                 "\n    (if (equal errs 0)"
+                 "\n    (if (equal err-cnt 0)"
                  "\n      t"
                  "\n      false)))"))
+   #+END_SRC
+
+   Точно таким же образом и из тех же данных мы генерируем
+   функцию-валидатор на стороне сервера. В отличии от
+   javascript-функции она возвращает найденные ошибки или nil - если
+   ошибок нет:
+
+   #+NAME: gen_controller_validator
+   #+BEGIN_SRC emacs-lisp :var fname="name" rows="rows" :exports none
+     (let ((result))
+       (mapcar (lambda (row)
+                 (push (format "\n  (when %s" (cadr row)) result)
+                 (push (format "\n    (push \"%s\" errors))" (nth 2 row)) result))
+               rows)
+       (concat (format "(defun %s (p)" fname)
+               "\n  (let ((errors))"
+               (mapconcat 'identity (reverse result) "")
+               "\n    errors))"))
    #+END_SRC
 
    Условия валидации, которые являются входными данными для
@@ -3413,12 +3431,12 @@
 
    #+CAPTION: Условия валидации
    #+NAME: reg_valid_cond
-     | field             | validator                                                         | explanation                                                      |
-     |-------------------+-------------------------------------------------------------------+------------------------------------------------------------------|
-     | #mail             | (not (contains (get-val "#mail")  "@"))                           | "Пожалуйста, введите корректный емайл"                           |
-     | #password         | (empty (get-val "#password"))                                     | "Пожалуйста, введите непустой пароль"                            |
-     | #password-confirm | (not (equal (get-val "#password") (get-val "#password-confirm"))) | "Пожалуйста, введите подтверждение пароля совпадающее с паролем" |
-     | #nickname         | (empty (get-val "#password"))                                     | "Никнейм не может быть пустым"                                   |
+     | field            | validator                                                       | explanation                                                      |
+     |------------------+-----------------------------------------------------------------+------------------------------------------------------------------|
+     | mail             | (not (contains (get-val "mail")  "@"))                          | "Пожалуйста, введите корректный емайл"                           |
+     | password         | (empty (get-val "password"))                                    | "Пожалуйста, введите непустой пароль"                            |
+     | password-confirm | (not (equal (get-val "password") (get-val "password-confirm"))) | "Пожалуйста, введите подтверждение пароля совпадающее с паролем" |
+     | nickname         | (empty (get-val "nickname"))                                    | "Никнейм не может быть пустым"                                   |
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
@@ -3446,16 +3464,16 @@
         ((:script :type "text/javascript")
          (ps
            (defun get-val (selector)
-             ((@ ($ selector) val)))
+             ((@ ($ (concatenate 'string "#" selector)) val)))
            (defun empty (string)
              (if (equal "" string) t false))
            (defun contains (string pattern)
              (if (+ 1 ((@ string index-of) pattern)) t false))
            (defun add_explanation (selector content)
-             ((@ ((@ ($ selector) parent)) append)
+             ((@ ((@ ($ (concatenate 'string "#" selector)) parent)) append)
               (lambda (index value)
                 (concatenate 'string "<p class='validation-explanation validation-explanation--static'>" content "</p>"))))
-           <<gen_validator("reg_valid", reg_valid_cond)>>
+           <<gen_js_validator("reg-valid", reg_valid_cond)>>
            ))))
 
      (define-page reg "/reg"
@@ -3499,11 +3517,20 @@
         :overlay (reg-overlay))
        (:register (ps-html
                      ((:input :type "hidden" :name "act" :value "REGISTER"))
-                     (submit "Зарегистрироваться" :onclick "return reg_valid();"))
-                    (dbg (bprint p))
-                    ;; (setf (hunchentoot:session-value 'current-user)
-                    ;;       (create-user (getf p :name)
-                    ;;                    (getf p :password)
-                    ;;                    (getf p :email)))
-                    ))
+                     (submit "Зарегистрироваться" :onclick (ps (return (reg-valid)))))
+                  (macrolet ((get-val (selector)
+                               `(getf p ,(intern (string-upcase selector) :keyword))))
+                    <<gen_controller_validator("reg-valid", reg_valid_cond)>>
+                    (aif (reg-valid p)
+                         ;; Возвращены ошибки
+                         (dbg "~A" (bprint it))
+                         ;; Ошибок нет, можно регистрировать пользователя
+                         (dbg (bprint p))
+                         ;; Проверяем данные, потом создаем пользователя
+                         ;; (let ((user-id (create-user (getf p :name)
+                         ;;                             (getf p :password)
+                         ;;                             (getf p :email))))
+                         ;;   ;; и сохраняем его id в сесии
+                         ;;   (setf (hunchentoot:session-value 'current-user) user-id))
+                         ))))
    #+END_SRC

@@ -253,4 +253,15 @@
                  (query (:drop-table (intern (string-upcase tblname))))))))
       (loop :for tblname :in tables :collect
          (rmtbl tblname)))))
+
+;; contains
+(defun contains (string pattern)
+  (if (search pattern string)
+      t))
+
+;; empty
+(defun empty (string)
+  (if (or (null string)
+          (equal "" string))
+      t))
 ;; utility_file ends here

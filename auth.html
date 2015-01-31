@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль авторизации и аккаунтинга</title>
-<!-- 2015-01-28 Ср. 07:01 -->
+<!-- 2015-01-31 Сб. 04:00 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -144,27 +144,33 @@ for the JavaScript code in this tag.
 <div id="text-table-of-contents">
 <ul>
 <li><a href="#sec-1">1. Введение</a></li>
-<li><a href="#sec-2">2. Шаблоны</a></li>
-<li><a href="#sec-3">3. Функционал</a>
+<li><a href="#sec-2">2. Как это работает?</a>
 <ul>
-<li><a href="#sec-3-1">3.1. Шаблон логина</a></li>
-<li><a href="#sec-3-2">3.2. Шаблон логаута</a></li>
-<li><a href="#sec-3-3">3.3. Страница регистрации и ее контроллер</a></li>
-<li><a href="#sec-3-4">3.4. Событие создания пользователя</a></li>
-<li><a href="#sec-3-5">3.5. Страница выхода из системы и ее контроллер</a></li>
-<li><a href="#sec-3-6">3.6. Событие выхода пользователя из системы</a></li>
-<li><a href="#sec-3-7">3.7. Страница логина и ее контроллер</a></li>
-<li><a href="#sec-3-8">3.8. Обобщенный метод извлечения авторизационных данных</a></li>
-<li><a href="#sec-3-9">3.9. Функция проверки авторизационных данных - в простейшем случае логина и пароля</a></li>
-<li><a href="#sec-3-10">3.10. Событие успешного входа пользователя в систему</a></li>
-<li><a href="#sec-3-11">3.11. Событие неуспешного входа пользователя в систему</a></li>
-<li><a href="#sec-3-12">3.12. <span class="todo nilTODO">TODO</span> Забыл пароль</a></li>
-<li><a href="#sec-3-13">3.13. <span class="todo nilTODO">TODO</span> Javascript для форм, необязательно</a></li>
-<li><a href="#sec-3-14">3.14. <span class="todo nilTODO">TODO</span> Функцию проверки залогинен ли пользователь</a></li>
-<li><a href="#sec-3-15">3.15. <span class="todo nilTODO">TODO</span> Функцию проверки прав пользователя на доступ к какому-то объекту</a></li>
+<li><a href="#sec-2-1">2.1. Регистрация</a></li>
+<li><a href="#sec-2-2">2.2. Логин</a></li>
+<li><a href="#sec-2-3">2.3. Логаут</a></li>
 </ul>
 </li>
-<li><a href="#sec-4">4. Тесты</a></li>
+<li><a href="#sec-3">3. Шаблоны</a></li>
+<li><a href="#sec-4">4. Функционал</a>
+<ul>
+<li><a href="#sec-4-1">4.1. Шаблон логина</a></li>
+<li><a href="#sec-4-2">4.2. Шаблон логаута</a></li>
+<li><a href="#sec-4-3">4.3. Событие создания пользователя</a></li>
+<li><a href="#sec-4-4">4.4. Страница выхода из системы и ее контроллер</a></li>
+<li><a href="#sec-4-5">4.5. Событие выхода пользователя из системы</a></li>
+<li><a href="#sec-4-6">4.6. Страница логина и ее контроллер</a></li>
+<li><a href="#sec-4-7">4.7. Обобщенный метод извлечения авторизационных данных</a></li>
+<li><a href="#sec-4-8">4.8. Функция проверки авторизационных данных - в простейшем случае логина и пароля</a></li>
+<li><a href="#sec-4-9">4.9. Событие успешного входа пользователя в систему</a></li>
+<li><a href="#sec-4-10">4.10. Событие неуспешного входа пользователя в систему</a></li>
+<li><a href="#sec-4-11">4.11. <span class="todo nilTODO">TODO</span> Забыл пароль</a></li>
+<li><a href="#sec-4-12">4.12. <span class="todo nilTODO">TODO</span> Javascript для форм, необязательно</a></li>
+<li><a href="#sec-4-13">4.13. <span class="todo nilTODO">TODO</span> Функцию проверки залогинен ли пользователь</a></li>
+<li><a href="#sec-4-14">4.14. <span class="todo nilTODO">TODO</span> Функцию проверки прав пользователя на доступ к какому-то объекту</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5. Тесты</a></li>
 </ul>
 </div>
 </div>
@@ -211,18 +217,41 @@ for the JavaScript code in this tag.
 <li>Движок создания форм, функции которого определены не здесь
 </li>
 </ul>
+</div>
+</div>
 
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Как это работает?</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Регистрация</h3>
+<div class="outline-text-3" id="text-2-1">
 <p>
-Как это работает?
+<code>При регистрации</code> пользователя контроллер регистрации должен вызвать создание пользователя
+(<code>create-user</code>), передав <code>name</code>, <code>password</code> и <code>email</code> пользователя.
 </p>
 
 <p>
-<code>При регистрации</code> пользователь заполняет форму с именем, емейлом и паролем на странице
-регистрации. Страница регистрации доступна только есои пользователь в данный момент не
-залогинен. Контроллер регистрации получает данные формы и вызывает событие создания
-пользователя (<code>create-user</code>).
+Обязанность проверки корректности данных лежит на контроллере. <code>create-user</code> просто
+создает пользователя, делает его залогиненным и возвращает числовой идентификатор
+пользователя.
 </p>
 
+<p>
+Этот идентификатор контроллер может использовать по собственному усмотрению, например
+занести в переменную сессии - при этом контроль за сессией - прерогатива контроллера.
+</p>
+
+<p>
+В случае, если по каким-то причинам (разве что отказ базы данных) не удалось создать
+пользователя - сигнализируется ошибка.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Логин</h3>
+<div class="outline-text-3" id="text-2-2">
 <p>
 <code>При логине</code> пользователь вводит email и пароль, который передается контроллеру
 логина. Контроллер логина извлекает (<code>get-auth-data</code>) email и пароль, проверяет их
@@ -232,9 +261,24 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-2" class="outline-2">
-<h2 id="sec-2"><span class="section-number-2">2</span> Шаблоны</h2>
-<div class="outline-text-2" id="text-2">
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Логаут</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+<code>При логауте</code> пользователь посылает запрос на логаут, контроллер вызывает <code>logout-user</code> и
+обнуляет переменную сессии <code>current-user</code>
+</p>
+
+<p>
+TODO: Забыл пароль и восстановление пароля
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Шаблоны</h2>
+<div class="outline-text-2" id="text-3">
 <p>
 Соберем шаблоны логина и логаута
 </p>
@@ -256,9 +300,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3" class="outline-2">
-<h2 id="sec-3"><span class="section-number-2">3</span> Функционал</h2>
-<div class="outline-text-2" id="text-3">
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Функционал</h2>
+<div class="outline-text-2" id="text-4">
 <p>
 Соберем контроллеры и все функции, которые контроллеры вызывают
 </p>
@@ -284,9 +328,9 @@ for the JavaScript code in this tag.
 </p>
 </div>
 
-<div id="outline-container-sec-3-1" class="outline-3">
-<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Шаблон логина</h3>
-<div class="outline-text-3" id="text-3-1">
+<div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Шаблон логина</h3>
+<div class="outline-text-3" id="text-4-1">
 <div class="org-src-container">
 
 <pre class="src src-html" id="loginform_tpl">&lt;<span style="color: #0000ff;">form</span> <span style="color: #a0522d;">method</span>=<span style="color: #8b2252;">"POST"</span> <span style="color: #a0522d;">name</span>=<span style="color: #8b2252;">"loginform"</span>&gt;
@@ -299,9 +343,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-2" class="outline-3">
-<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Шаблон логаута</h3>
-<div class="outline-text-3" id="text-3-2">
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Шаблон логаута</h3>
+<div class="outline-text-3" id="text-4-2">
 <div class="org-src-container">
 
 <pre class="src src-html" id="logoutform_tpl">&lt;<span style="color: #0000ff;">form</span> <span style="color: #a0522d;">method</span>=<span style="color: #8b2252;">"POST"</span> <span style="color: #a0522d;">name</span>=<span style="color: #8b2252;">"logoutform"</span>&gt;
@@ -313,53 +357,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-3" class="outline-3">
-<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Страница регистрации и ее контроллер</h3>
-<div class="outline-text-3" id="text-3-3">
-<p>
-Страница регистрации использует движок форм для показа формы пользователю и при
-выполнении регистрации вызывает событие <code>create-user</code>.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
-
-(<span style="color: #a020f0;">define-page</span> reg <span style="color: #8b2252;">"/reg"</span>
-  (ps-html
-   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1080;"</span>)
-   (<span style="color: #a020f0;">if</span> *current-user*
-       <span style="color: #8b2252;">"&#1056;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;"</span>
-       (ps-html
-        ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
-         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1048;&#1084;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;: "</span>)
-           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"text"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"name"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;: "</span>)
-           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"Email: "</span>)
-           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">""</span>)
-           ((<span style="color: #483d8b;">:td</span>) %register%)))))))
-  (<span style="color: #483d8b;">:register</span> (ps-html
-              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"REGISTER"</span>))
-              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100;&#1089;&#1103;"</span>)))
-             (setf (hunchentoot:session-value 'current-user)
-                   (create-user (getf p <span style="color: #483d8b;">:name</span>)
-                                (getf p <span style="color: #483d8b;">:password</span>)
-                                (getf p <span style="color: #483d8b;">:email</span>)))))
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-sec-3-4" class="outline-3">
-<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Событие создания пользователя</h3>
-<div class="outline-text-3" id="text-3-4">
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Событие создания пользователя</h3>
+<div class="outline-text-3" id="text-4-3">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -367,45 +367,47 @@ for the JavaScript code in this tag.
 <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1089;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1103; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">create-user</span> (name password email)
   <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085;&#1080;&#1077; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;. &#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1090; id &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;"</span>
-  (<span style="color: #a020f0;">let</span> ((user-id (id (make-user <span style="color: #483d8b;">:name</span> name <span style="color: #483d8b;">:password</span> password <span style="color: #483d8b;">:email</span> email <span style="color: #483d8b;">:ts-create</span> (get-universal-time) <span style="color: #483d8b;">:ts-last</span> (get-universal-time)))))
-    (dbg <span style="color: #8b2252;">"&#1057;&#1086;&#1079;&#1076;&#1072;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;: ~A"</span> user-id)
-    <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1077;&#1083;&#1072;&#1077;&#1084; &#1077;&#1075;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084;</span>
-    (upd-user (get-user user-id) (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":LOGGED"</span>))
-    <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1084; user-id</span>
-    user-id))
+  (aif (make-user <span style="color: #483d8b;">:name</span> name <span style="color: #483d8b;">:password</span> password <span style="color: #483d8b;">:email</span> email <span style="color: #483d8b;">:ts-create</span> (get-universal-time) <span style="color: #483d8b;">:ts-last</span> (get-universal-time))
+       (<span style="color: #a020f0;">progn</span>
+         <span style="color: #b22222;">;; </span><span style="color: #b22222;">(dbg "&#1057;&#1086;&#1079;&#1076;&#1072;&#1085; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;: ~A" (id it))</span>
+         <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1044;&#1077;&#1083;&#1072;&#1077;&#1084; &#1077;&#1075;&#1086; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1085;&#1099;&#1084;</span>
+         (upd-user (get-user (id it)) (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":LOGGED"</span>))
+         <span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1042;&#1086;&#1079;&#1074;&#1088;&#1072;&#1097;&#1072;&#1077;&#1084; user-id</span>
+         (id it))
+       (err 'err-create-user)))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-3-5" class="outline-3">
-<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Страница выхода из системы и ее контроллер</h3>
-<div class="outline-text-3" id="text-3-5">
+<div id="outline-container-sec-4-4" class="outline-3">
+<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Страница выхода из системы и ее контроллер</h3>
+<div class="outline-text-3" id="text-4-4">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(in-package #:moto)</span>
 
-(<span style="color: #a020f0;">define-page</span> logout <span style="color: #8b2252;">"/logout"</span>
-  (ps-html
-   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;"</span>)
-   (<span style="color: #a020f0;">if</span> *current-user*
-       (ps-html
-        ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
-         %logout%))
-       <span style="color: #8b2252;">"&#1042;&#1099;&#1093;&#1086;&#1076; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1077;&#1085; - &#1085;&#1080;&#1082;&#1090;&#1086; &#1085;&#1077; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;"</span>))
-  (<span style="color: #483d8b;">:logout</span> (ps-html
-              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"LOGOUT"</span>))
-              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1042;&#1099;&#1081;&#1090;&#1080;"</span>)))
-           (<span style="color: #a020f0;">prog1</span> (format nil <span style="color: #8b2252;">"~A"</span> (logout-user *current-user*))
-             (setf (hunchentoot:session-value 'current-user) nil))))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(define-page logout "/logout"</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(ps-html</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">((:h1) "&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1074;&#1099;&#1093;&#1086;&#1076;&#1072; &#1080;&#1079; &#1089;&#1080;&#1089;&#1090;&#1077;&#1084;&#1099;")</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(if *current-user*</span>
+<span style="color: #b22222;">;;        </span><span style="color: #b22222;">(ps-html</span>
+<span style="color: #b22222;">;;         </span><span style="color: #b22222;">((:form :method "POST")</span>
+<span style="color: #b22222;">;;          </span><span style="color: #b22222;">%logout%))</span>
+<span style="color: #b22222;">;;        </span><span style="color: #b22222;">"&#1042;&#1099;&#1093;&#1086;&#1076; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1077;&#1085; - &#1085;&#1080;&#1082;&#1090;&#1086; &#1085;&#1077; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;"))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(:logout (ps-html</span>
+<span style="color: #b22222;">;;               </span><span style="color: #b22222;">((:input :type "hidden" :name "act" :value "LOGOUT"))</span>
+<span style="color: #b22222;">;;               </span><span style="color: #b22222;">((:input :type "submit" :value "&#1042;&#1099;&#1081;&#1090;&#1080;")))</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">(prog1 (format nil "~A" (logout-user *current-user*))</span>
+<span style="color: #b22222;">;;              </span><span style="color: #b22222;">(setf (hunchentoot:session-value 'current-user) nil))))</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-3-6" class="outline-3">
-<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Событие выхода пользователя из системы</h3>
-<div class="outline-text-3" id="text-3-6">
+<div id="outline-container-sec-4-5" class="outline-3">
+<h3 id="sec-4-5"><span class="section-number-3">4.5</span> Событие выхода пользователя из системы</h3>
+<div class="outline-text-3" id="text-4-5">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
@@ -418,9 +420,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-7" class="outline-3">
-<h3 id="sec-3-7"><span class="section-number-3">3.7</span> Страница логина и ее контроллер</h3>
-<div class="outline-text-3" id="text-3-7">
+<div id="outline-container-sec-4-6" class="outline-3">
+<h3 id="sec-4-6"><span class="section-number-3">4.6</span> Страница логина и ее контроллер</h3>
+<div class="outline-text-3" id="text-4-6">
 <p>
 Контроллер логина использует обобщенный метод <code>get-auth-data</code> для извлечения данных
 авторизации и функцию их проверки <code>check-auth-data</code>.
@@ -437,41 +439,41 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">(in-package #:moto)</span>
 
-(<span style="color: #a020f0;">define-page</span> login <span style="color: #8b2252;">"/login"</span>
-  (ps-html
-   ((<span style="color: #483d8b;">:h1</span>) <span style="color: #8b2252;">"&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1080;"</span>)
-   (<span style="color: #a020f0;">if</span> *current-user*
-       <span style="color: #8b2252;">"&#1040;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/logout\"&gt;Logout&lt;/a&gt;"</span>
-       (ps-html
-        ((<span style="color: #483d8b;">:form</span> <span style="color: #483d8b;">:method</span> <span style="color: #8b2252;">"POST"</span>)
-         ((<span style="color: #483d8b;">:table</span> <span style="color: #483d8b;">:border</span> 0)
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"Email: "</span>)
-           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"email"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">"&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;: "</span>)
-           ((<span style="color: #483d8b;">:td</span>) ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"password"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">""</span>))))
-          ((<span style="color: #483d8b;">:tr</span>)
-           ((<span style="color: #483d8b;">:td</span>) <span style="color: #8b2252;">""</span>)
-           ((<span style="color: #483d8b;">:td</span>) %login%)))))))
-  (<span style="color: #483d8b;">:login</span> (ps-html
-              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"hidden"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"act"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"LOGIN"</span>))
-              ((<span style="color: #483d8b;">:input</span> <span style="color: #483d8b;">:type</span> <span style="color: #8b2252;">"submit"</span> <span style="color: #483d8b;">:value</span> <span style="color: #8b2252;">"&#1042;&#1086;&#1081;&#1090;&#1080;"</span>)))
-          (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
-               (<span style="color: #a020f0;">progn</span>
-                 (setf (hunchentoot:session-value 'current-user) it)
-                 (login-user-success it))
-               (login-user-fail))))
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">(define-page login "/login"</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(ps-html</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">((:h1) "&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1072; &#1072;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1080;")</span>
+<span style="color: #b22222;">;;    </span><span style="color: #b22222;">(if *current-user*</span>
+<span style="color: #b22222;">;;        </span><span style="color: #b22222;">"&#1040;&#1074;&#1090;&#1086;&#1088;&#1080;&#1079;&#1072;&#1094;&#1080;&#1103; &#1085;&#1077;&#1074;&#1086;&#1079;&#1084;&#1086;&#1078;&#1085;&#1072; - &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;. &lt;a href=\"/logout\"&gt;Logout&lt;/a&gt;"</span>
+<span style="color: #b22222;">;;        </span><span style="color: #b22222;">(ps-html</span>
+<span style="color: #b22222;">;;         </span><span style="color: #b22222;">((:form :method "POST")</span>
+<span style="color: #b22222;">;;          </span><span style="color: #b22222;">((:table :border 0)</span>
+<span style="color: #b22222;">;;           </span><span style="color: #b22222;">((:tr)</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">((:td) "Email: ")</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">((:td) ((:input :type "email" :name "email" :value ""))))</span>
+<span style="color: #b22222;">;;           </span><span style="color: #b22222;">((:tr)</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">((:td) "&#1055;&#1072;&#1088;&#1086;&#1083;&#1100;: ")</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">((:td) ((:input :type "password" :name "password" :value ""))))</span>
+<span style="color: #b22222;">;;           </span><span style="color: #b22222;">((:tr)</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">((:td) "")</span>
+<span style="color: #b22222;">;;            </span><span style="color: #b22222;">((:td) %login%)))))))</span>
+<span style="color: #b22222;">;;   </span><span style="color: #b22222;">(:login (ps-html</span>
+<span style="color: #b22222;">;;               </span><span style="color: #b22222;">((:input :type "hidden" :name "act" :value "LOGIN"))</span>
+<span style="color: #b22222;">;;               </span><span style="color: #b22222;">((:input :type "submit" :value "&#1042;&#1086;&#1081;&#1090;&#1080;")))</span>
+<span style="color: #b22222;">;;           </span><span style="color: #b22222;">(aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))</span>
+<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(progn</span>
+<span style="color: #b22222;">;;                  </span><span style="color: #b22222;">(setf (hunchentoot:session-value 'current-user) it)</span>
+<span style="color: #b22222;">;;                  </span><span style="color: #b22222;">(login-user-success it))</span>
+<span style="color: #b22222;">;;                </span><span style="color: #b22222;">(login-user-fail))))</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-3-8" class="outline-3">
-<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Обобщенный метод извлечения авторизационных данных</h3>
-<div class="outline-text-3" id="text-3-8">
+<div id="outline-container-sec-4-7" class="outline-3">
+<h3 id="sec-4-7"><span class="section-number-3">4.7</span> Обобщенный метод извлечения авторизационных данных</h3>
+<div class="outline-text-3" id="text-4-7">
 <p>
 В простейшем случае данные из объекта <code>request</code>, но возможны и другие варианты,
 поэтому этот обобщенный метод специфицируется объектом, из которого извлекаются данные.
@@ -487,9 +489,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-9" class="outline-3">
-<h3 id="sec-3-9"><span class="section-number-3">3.9</span> Функция проверки авторизационных данных - в простейшем случае логина и пароля</h3>
-<div class="outline-text-3" id="text-3-9">
+<div id="outline-container-sec-4-8" class="outline-3">
+<h3 id="sec-4-8"><span class="section-number-3">4.8</span> Функция проверки авторизационных данных - в простейшем случае логина и пароля</h3>
+<div class="outline-text-3" id="text-4-8">
 <p>
 Функция принимает в качестве параметра plist, который должен содержать <code>email</code> и
 <code>password</code> введенный пользователем.
@@ -513,22 +515,27 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-10" class="outline-3">
-<h3 id="sec-3-10"><span class="section-number-3">3.10</span> Событие успешного входа пользователя в систему</h3>
-<div class="outline-text-3" id="text-3-10">
+<div id="outline-container-sec-4-9" class="outline-3">
+<h3 id="sec-4-9"><span class="section-number-3">4.9</span> Событие успешного входа пользователя в систему</h3>
+<div class="outline-text-3" id="text-4-9">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086;&#1075;&#1086; &#1074;&#1093;&#1086;&#1076;&#1072;</span>
+<pre class="src src-lisp" id="auth_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086;&#1075;&#1086; &#1074;&#1093;&#1086;&#1076;&#1072;</span>
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">login-user-success</span> (id)
-  (takt (get-user id) <span style="color: #483d8b;">:logged</span>))
+  (<span style="color: #a020f0;">let</span> ((u (get-user id)))
+    (<span style="color: #a020f0;">when</span> (equal <span style="color: #8b2252;">":LOGGED"</span> (state u))
+      (upd-user u (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":UNLOGGED"</span>)))
+    (takt u <span style="color: #483d8b;">:logged</span>)))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-3-11" class="outline-3">
-<h3 id="sec-3-11"><span class="section-number-3">3.11</span> Событие неуспешного входа пользователя в систему</h3>
-<div class="outline-text-3" id="text-3-11">
+<div id="outline-container-sec-4-10" class="outline-3">
+<h3 id="sec-4-10"><span class="section-number-3">4.10</span> Событие неуспешного входа пользователя в систему</h3>
+<div class="outline-text-3" id="text-4-10">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="auth_fn_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1057;&#1086;&#1073;&#1099;&#1090;&#1080;&#1077; &#1085;&#1077;&#1091;&#1089;&#1087;&#1077;&#1096;&#1085;&#1086;&#1075;&#1086; &#1074;&#1093;&#1086;&#1076;&#1072;</span>
@@ -540,15 +547,15 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-12" class="outline-3">
-<h3 id="sec-3-12"><span class="section-number-3">3.12</span> <span class="todo TODO">TODO</span> Забыл пароль</h3>
+<div id="outline-container-sec-4-11" class="outline-3">
+<h3 id="sec-4-11"><span class="section-number-3">4.11</span> <span class="todo TODO">TODO</span> Забыл пароль</h3>
 </div>
-<div id="outline-container-sec-3-13" class="outline-3">
-<h3 id="sec-3-13"><span class="section-number-3">3.13</span> <span class="todo TODO">TODO</span> Javascript для форм, необязательно</h3>
+<div id="outline-container-sec-4-12" class="outline-3">
+<h3 id="sec-4-12"><span class="section-number-3">4.12</span> <span class="todo TODO">TODO</span> Javascript для форм, необязательно</h3>
 </div>
-<div id="outline-container-sec-3-14" class="outline-3">
-<h3 id="sec-3-14"><span class="section-number-3">3.14</span> <span class="todo TODO">TODO</span> Функцию проверки залогинен ли пользователь</h3>
-<div class="outline-text-3" id="text-3-14">
+<div id="outline-container-sec-4-13" class="outline-3">
+<h3 id="sec-4-13"><span class="section-number-3">4.13</span> <span class="todo TODO">TODO</span> Функцию проверки залогинен ли пользователь</h3>
+<div class="outline-text-3" id="text-4-13">
 <p>
 Создадим функцию, которая проверяет залогинен ли пользователь
 </p>
@@ -562,13 +569,13 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-3-15" class="outline-3">
-<h3 id="sec-3-15"><span class="section-number-3">3.15</span> <span class="todo TODO">TODO</span> Функцию проверки прав пользователя на доступ к какому-то объекту</h3>
+<div id="outline-container-sec-4-14" class="outline-3">
+<h3 id="sec-4-14"><span class="section-number-3">4.14</span> <span class="todo TODO">TODO</span> Функцию проверки прав пользователя на доступ к какому-то объекту</h3>
 </div>
 </div>
-<div id="outline-container-sec-4" class="outline-2">
-<h2 id="sec-4"><span class="section-number-2">4</span> Тесты</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Тесты</h2>
+<div class="outline-text-2" id="text-5">
 <p>
 Теперь у нас есть весь необходимый функционал, для работы авторизации. Мы можем его
 протестировать, для этого сформируем тест:
@@ -586,7 +593,9 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="auth_test_contents"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1091;&#1077;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
+<pre class="src src-lisp" id="auth_test_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+
+<span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1047;&#1072;&#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1080;&#1088;&#1091;&#1077;&#1084; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;</span>
 (<span style="color: #a020f0;">let*</span> ((name <span style="color: #8b2252;">"admin"</span>)
        (password <span style="color: #8b2252;">"tCDm4nFskcBqR7AN"</span>)
        (email <span style="color: #8b2252;">"nomail@mail.ru"</span>)
@@ -628,7 +637,7 @@ for the JavaScript code in this tag.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-01-28 Ср. 07:01</p>
+<p class="date">Created: 2015-01-31 Сб. 04:00</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
