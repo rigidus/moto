@@ -174,6 +174,15 @@
   - Очищалка базы для каждого модуля должна лежать в модуле
   - И сущности тоже туда переложить
 * Определения сущностей
+
+  Соберем все сущности и автоматы в один файл =src/entityes.lisp=
+
+  #+NAME: entity_and_automates
+  #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+    ;;;; <<copyright>>
+    (in-package #:moto)
+  #+END_SRC
+
 ** Функции для кодогенерации сущностей
 
    Эти функции будут кодогенерировать сущности и автоматы из таблиц с наименованием и
@@ -351,34 +360,24 @@
      }
    #+END_SRC
 
-   Теперь определим функции, которые вызываются на переходах из одного
-   состояния в другое
+   Теперь сгенерируем код и определим функции, которые вызываются на
+   переходах из одного состояния в другое
 
-   #+NAME: user_actions_func
-   #+BEGIN_SRC lisp
+   #+NAME: user_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("user", "пользователя", user_flds, user_state)>>
      (defun registration ()
-       "unregistred -> logged"
-       )
-
+       "unregistred -> logged")
      (defun unregistration ()
-       "logged -> unregistred"
-       )
-
+       "logged -> unregistred")
      (defun enter ()
-       "unlogged -> logged"
-       )
-
+       "unlogged -> logged")
      (defun leave ()
-       "logged -> unlogged"
-       )
-
+       "logged -> unlogged")
      (defun forgot ()
-       "unlogged -> sended"
-       )
-
+       "unlogged -> sended")
      (defun remember ()
-       "sended -> logged"
-       )
+       "sended -> logged")
    #+END_SRC
 
 ** DONE Роли (role)
@@ -398,15 +397,15 @@
      | id         | serial               | идентификатор |
      | name       | (or db-null varchar) | имя роли      |
 
-   Создадим необходимые роли:
+   Теперь сгенерируем код и cоздадим необходимые роли:
 
-   #+NAME: create_roles
-   #+BEGIN_SRC lisp
+   #+NAME: role_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("role", "роли", role_flds)>>
      (make-role :name "admin")
      (make-role :name "manager")
      (make-role :name "moderator")
-     (make-role :name "editor")
-     (make-role :name "robot")
+     (make-role :name "system")
    #+END_SRC
 
 ** DONE Группы (group, user2group)
@@ -425,10 +424,11 @@
      | id         | serial     | идентификатор |
      | name       | varchar    | имя группы    |
 
-   Создадим необходимые группы:
+   Сгенерируем код и создадим необходимые группы:
 
-   #+NAME: create_groups
-   #+BEGIN_SRC lisp
+   #+NAME: group_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("group", "группы", group_flds)>>
      (make-group :name "oldman")
      (make-group :name "newboy")
      (make-group :name "veteran")
@@ -445,6 +445,13 @@
      | id         | serial     | идентификатор              |
      | user-id    | integer    | идентификатор пользователя |
      | group-id   | integer    | идентификатор группы       |
+
+   И сгенерируем код для нее:
+
+   #+NAME: user2group_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("user2group", "связи пользователя и группы", user2group_flds)>>
+   #+END_SRC
 
 ** Сообщения (msg)
 
@@ -472,14 +479,13 @@
      |----------+-------------+-----------|
      | delivery | undelivered | delivered |
 
+   Теперь сгенерируем код и определим функции, которые вызываются на переходах
 
-   Теперь определим функции, которые вызываются на переходах
-
-   #+NAME: msg_actions_func
-   #+BEGIN_SRC lisp
+   #+NAME: msg_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("msg", "сообщения", msg_flds, msg_state)>>
      (defun delivery ()
-       "undelivered -> delivered"
-       )
+       "undelivered -> delivered")
    #+END_SRC
 
 ** Очереди (que, quelt)
@@ -510,10 +516,12 @@
      | que-id     | integer    | идентификатор очереди |
      | text       | varchar    | содержимое            |
 
-   Создадим необходимые очереди:
+   Сгенерируем код и создадим необходимые очереди:
 
-   #+NAME: que_contents
-   #+BEGIN_SRC lisp
+   #+NAME: que_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("que", "очереди", que_flds)>>
+     <<gen_entity("quelt", "элемента очереди", quelt_flds)>>
      ;; (make-que :name "admin")
      ;; (make-que :name "manager")
      ;; (make-que :name "moderator")
@@ -545,18 +553,15 @@
      | avatar-off | active   | inactive |
      | avatar-on  | inactive | active   |
 
+   Теперь сгенерируем код и определим функции, которые вызываются на переходах
 
-   Теперь определим функции, которые вызываются на переходах
-
-   #+NAME: avatar_actions_func
-   #+BEGIN_SRC lisp
+   #+NAME: avatar_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("avatar", "аватара", avatar_flds, avatar_state)>>
      (defun avatar-off ()
-       "active -> inactive"
-       )
-
+       "active -> inactive")
      (defun avatar-on ()
-       "inactive -> active"
-       )
+       "inactive -> active")
    #+END_SRC
 
 ** Мотоциклы (moto)
@@ -658,10 +663,11 @@
      }
    #+END_SRC
 
-   Теперь определим функции, которые вызываются на переходах
+   Теперь сгенерируем код и определим функции, которые вызываются на переходах
 
-   #+NAME: moto_actions_func
-   #+BEGIN_SRC lisp
+   #+NAME: moto_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("moto", "мотоцикла", moto_flds, moto_state)>>
      (defun |выставление.на.продажу| ()
        "используется -> продается")
      (defun |сломался| ()
@@ -741,9 +747,14 @@
      | id         | serial     | идентификатор |
      | name       | varchar    | имя цвета     |
 
+   #+NAME: color_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+    <<gen_entity("color", "цвета", color_flds)>>
+   #+END_SRC
+
 ** Производитель (vendor)
 
-   Цвета мотоциклов - простая сущность и не имеет состояния.
+   Производитель мотоциклов - простая сущность и не имеет состояния.
 
    #+CAPTION: Данные производителя
    #+NAME: vendor_flds
@@ -751,6 +762,11 @@
      |------------+------------+-------------------|
      | id         | serial     | идентификатор     |
      | name       | varchar    | имя производителя |
+
+   #+NAME: vendor_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+    <<gen_entity("vendor", "производителя", vendor_flds)>>
+   #+END_SRC
 
 ** Братан (bratan)
 
@@ -784,6 +800,11 @@
      | photos      | (or db-null varchar) | фотографии                         |
      | avatar      | (or db-null varchar) | аватар                             |
      | motos       | (or db-null varchar) | мотоциклы                          |
+
+   #+NAME: bratan_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+    <<gen_entity("bratan", "братана", bratan_flds)>>
+   #+END_SRC
 
 * События
 
@@ -1298,69 +1319,6 @@
                                #:defgeneric
                                #:standard-generic-function
                                #:class-name))
-   #+END_SRC
-
-** Сущности и автоматы
-
-   Соберем все сущности и автоматы
-
-   #+NAME: entity_and_automates
-   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
-     ;;;; <<copyright>>
-     (in-package #:moto)
-
-     <<gen_automat("user", "пользователя", user_flds, user_state)>>
-
-     <<user_actions_func>>
-
-     <<create_user>>
-
-
-     <<gen_entity("role", "роли", role_flds)>>
-
-     <<create_roles>>
-
-
-     <<gen_entity("group", "группы", group_flds)>>
-
-     <<create_groups>>
-
-     <<gen_entity("user2group", "связи пользователя и группы", user2group_flds)>>
-
-
-     <<gen_automat("msg", "сообщения", msg_flds, msg_state)>>
-
-     <<msg_actions_func>>
-
-
-     <<gen_entity("que", "очереди", que_flds)>>
-
-     <<que_contents>>
-
-     <<gen_entity("quelt", "элемента очереди", quelt_flds)>>
-
-     <<quelt_contents>>
-
-
-     <<gen_automat("avatar", "аватара", avatar_flds, avatar_state)>>
-
-     <<avatar_actions_func>>
-
-     <<create_avatar>>
-
-
-     <<gen_automat("moto", "мотоцикла", moto_flds, moto_state)>>
-
-     <<moto_actions_func>>
-
-     <<create_moto>>
-
-
-     <<gen_entity("color", "цвета", color_flds)>>
-
-     <<gen_entity("vendor", "производителя", vendor_flds)>>
-
-     <<gen_entity("bratan", "братана", bratan_flds)>>
    #+END_SRC
 
 ** Подготовка к старту

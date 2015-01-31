@@ -1,8 +1,9 @@
-;; [[file:doc.org::*Сущности и автоматы][entity_and_automates]]
+;; [[file:doc.org::*Определения сущностей][entity_and_automates]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
 ;;;; Licensed under the GNU AGPLv3
 (in-package #:moto)
-
+;; entity_and_automates ends here
+;; [[file:doc.org::*Пользователи (user)][user_automat]]
 (define-automat user "Автомат пользователя"
   ((id serial)
    (name varchar)
@@ -19,70 +20,53 @@
    (:unlogged :sended :forgot)
    (:sended :logged :remember)))
 
-
 (defun registration ()
-  "unregistred -> logged"
-  )
-
+  "unregistred -> logged")
 (defun unregistration ()
-  "logged -> unregistred"
-  )
-
+  "logged -> unregistred")
 (defun enter ()
-  "unlogged -> logged"
-  )
-
+  "unlogged -> logged")
 (defun leave ()
-  "logged -> unlogged"
-  )
-
+  "logged -> unlogged")
 (defun forgot ()
-  "unlogged -> sended"
-  )
-
+  "unlogged -> sended")
 (defun remember ()
-  "sended -> logged"
-  )
-
-
-
-
+  "sended -> logged")
+;; user_automat ends here
+;; [[file:doc.org::*Роли (role)][role_entity]]
 (define-entity role "Сущность роли"
   ((id serial)
    (name (or db-null varchar))))
 
 (make-role-table)
 
-
 (make-role :name "admin")
 (make-role :name "manager")
 (make-role :name "moderator")
-(make-role :name "editor")
-(make-role :name "robot")
-
-
+(make-role :name "system")
+;; role_entity ends here
+;; [[file:doc.org::*Группы (group, user2group)][group_entity]]
 (define-entity group "Сущность группы"
   ((id serial)
    (name varchar)))
 
 (make-group-table)
 
-
 (make-group :name "oldman")
 (make-group :name "newboy")
 (make-group :name "veteran")
 (make-group :name "traveler")
 (make-group :name "troll")
-
+;; group_entity ends here
+;; [[file:doc.org::*Группы (group, user2group)][user2group_entity]]
 (define-entity user2group "Сущность связи пользователя и группы"
   ((id serial)
    (user-id integer)
    (group-id integer)))
 
 (make-user2group-table)
-
-
-
+;; user2group_entity ends here
+;; [[file:doc.org::*Сообщения (msg)][msg_automat]]
 (define-automat msg "Автомат сообщения"
   ((id serial)
    (snd-id integer)
@@ -93,23 +77,15 @@
   (:delivered :undelivered)
   ((:undelivered :delivered :delivery)))
 
-
 (defun delivery ()
-  "undelivered -> delivered"
-  )
-
-
+  "undelivered -> delivered")
+;; msg_automat ends here
+;; [[file:doc.org::*Очереди (que, quelt)][que_entity]]
 (define-entity que "Сущность очереди"
   ((id serial)
    (name varchar)))
 
 (make-que-table)
-
-
-;; (make-que :name "admin")
-;; (make-que :name "manager")
-;; (make-que :name "moderator")
-;; (make-que :name "robot")
 
 (define-entity quelt "Сущность элемента очереди"
   ((id serial)
@@ -118,10 +94,12 @@
 
 (make-quelt-table)
 
-
-
-
-
+;; (make-que :name "admin")
+;; (make-que :name "manager")
+;; (make-que :name "moderator")
+;; (make-que :name "robot")
+;; que_entity ends here
+;; [[file:doc.org::*Аватары (avatar)][avatar_automat]]
 (define-automat avatar "Автомат аватара"
   ((id serial)
    (user-id integer)
@@ -132,18 +110,12 @@
   ((:active :inactive :avatar-off)
    (:inactive :active :avatar-on)))
 
-
 (defun avatar-off ()
-  "active -> inactive"
-  )
-
+  "active -> inactive")
 (defun avatar-on ()
-  "inactive -> active"
-  )
-
-
-
-
+  "inactive -> active")
+;; avatar_automat ends here
+;; [[file:doc.org::*Мотоциклы (moto)][moto_automat]]
 (define-automat moto "Автомат мотоцикла"
   ((id serial)
    (vendor-id (or db-null integer))
@@ -175,7 +147,6 @@
    (:продан :куплен :покупка)
    (:куплен :используется :ввод.в.эксплуатацию)
    (:угнан :используется :возврат.с.угона)))
-
 
 (defun |выставление.на.продажу| ()
   "используется -> продается")
@@ -209,35 +180,22 @@
   "куплен -> используется")
 (defun |возврат.с.угона| ()
   "угнан -> используется")
-(in-package #:moto)
-
-;; (loop :for item :in (with-connection *db-spec*
-;;                        (query
-;;                         (:limit
-;;                          (:select 'motos
-;;                                   :from 'bratan
-;;                                   :where (:not (:like "" 'motos)))
-;;                                  999999999999))) :do
-;;    (format t "~%~A"
-;;             (ppcre:split "\\s+" (car item))))
-
-
-
-
+;; moto_automat ends here
+;; [[file:doc.org::*Цвет (color)][color_entity]]
 (define-entity color "Сущность цвета"
   ((id serial)
    (name varchar)))
 
 (make-color-table)
-
-
+;; color_entity ends here
+;; [[file:doc.org::*Производитель (vendor)][vendor_entity]]
 (define-entity vendor "Сущность производителя"
   ((id serial)
    (name varchar)))
 
 (make-vendor-table)
-
-
+;; vendor_entity ends here
+;; [[file:doc.org::*Братан (bratan)][bratan_entity]]
 (define-entity bratan "Сущность братана"
   ((id serial)
    (bratan-id (or db-null integer))
@@ -259,4 +217,4 @@
    (motos (or db-null varchar))))
 
 (make-bratan-table)
-;; entity_and_automates ends here
+;; bratan_entity ends here
