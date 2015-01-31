@@ -173,7 +173,7 @@
   - Забираем пользователей с других ресурсов
   - Очищалка базы для каждого модуля должна лежать в модуле
   - И сущности тоже туда переложить
-* Определения сущностей
+* Сущности
 
   Соберем все сущности и автоматы в один файл =src/entityes.lisp=
 
@@ -309,15 +309,23 @@
 
    #+CAPTION: Данные пользователя
    #+NAME: user_flds
-     | field name | field type           | note                          |
-     |------------+----------------------+-------------------------------|
-     | id         | serial               | идентификатор                 |
-     | name       | varchar              | имя пользователя              |
-     | password   | varchar              | пароль                        |
-     | email      | varchar              | емейл                         |
-     | ts-create  | bigint               | время создания                |
-     | ts-last    | bigint               | время когда был последний раз |
-     | role-id    | (or db-null integer) | идентификатор роли            |
+     | field name  | field type           | note                      |
+     |-------------+----------------------+---------------------------|
+     | id          | serial               | идентификатор             |
+     | name        | varchar              | никнейм пользователя      |
+     | password    | varchar              | пароль                    |
+     | email       | varchar              | емейл                     |
+     | firstname   | (or db-null varchar) | имя                       |
+     | lastname    | (or db-null varchar) | фамилия                   |
+     | phone       | (or db-null varchar) | телефон                   |
+     | mobilephone | (or db-null varchar) | мобильный телефон         |
+     | sex         | (or db-null varchar) | пол                       |
+     | birth-day   | (or db-null varchar) | день рождения             |
+     | birth-month | (or db-null varchar) | месяц рождения            |
+     | birth-year  | (or db-null varchar) | год рождения              |
+     | ts-create   | bigint               | время регистрации         |
+     | ts-last     | bigint               | время последнего действия |
+     | role-id     | (or db-null integer) | идентификатор роли        |
 
    В нашей системе пользователь может существовать (или не существовать) в одном их
    нескольких состояний:

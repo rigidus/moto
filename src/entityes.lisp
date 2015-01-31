@@ -1,4 +1,4 @@
-;; [[file:doc.org::*Определения сущностей][entity_and_automates]]
+;; [[file:doc.org::*Сущности][entity_and_automates]]
 ;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
 ;;;; Licensed under the GNU AGPLv3
 (in-package #:moto)
@@ -9,6 +9,14 @@
    (name varchar)
    (password varchar)
    (email varchar)
+   (firstname (or db-null varchar))
+   (lastname (or db-null varchar))
+   (phone (or db-null varchar))
+   (mobilephone (or db-null varchar))
+   (sex (or db-null varchar))
+   (birth-day (or db-null varchar))
+   (birth-month (or db-null varchar))
+   (birth-year (or db-null varchar))
    (ts-create bigint)
    (ts-last bigint)
    (role-id (or db-null integer)))
