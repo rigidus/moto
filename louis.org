@@ -321,24 +321,7 @@
                                      <span class="hover"></span>
                                  </div>
                              </div>
-                             <div class="flyout-parent user-nav__item user-nav__item--my-louis">
-                                 <div>
-                                     <a href="#" class="nav-button js__setFocus" data-set-focus="login-email" id="mylouis-flyout-link">
-                                         <span class="nav-button__text">My Louis</span>
-                                         <span class="nav-button__icon sprite"></span>
-                                     </a>
-                                 </div>
-                                 <div class="user-nav__flyout flyout flyout--my-louis flyout--my-louis--login popup">
-                                     <span class="hover"></span>
-                                     <a class="action-icon action-icon--close" href="#">×</a>
-                                     {$login |noAutoescape}
-                                     <div class="box">
-                                         <div class="box--title">New to Louis?</div>
-                                         <p>Register now and enjoy benefits.</p>
-                                         <a class="button button--link button--secondary " href="/en/mylouis/registrieren"> Register now<span class="button__icon"></span></a>
-                                     </div>
-                                 </div>
-                             </div>
+                             {$login |noAutoescape}
                              <ul class="shopping-nav user-nav__item">
                                  <li id="header-memo" class="shopping-nav__item shopping-nav__item--memo ">
                                      <a class="nav-button" href="/en/einkauf/merkzettel">
