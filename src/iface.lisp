@@ -25,72 +25,6 @@
     ))
 (in-package #:moto)
 
-(define-page all-users "/users"
-  (ps-html
-   ((:h1) "Пользователи")
-   (if (null *current-user*)
-       "Только авторизованный пользователи могут просматривать список пользователей"
-       (ps-html
-        ((:table :border 0)
-         (:th "id")
-         (:th "name")
-         (:th "password")
-         (:th "email")
-         (:th "ts-create")
-         (:th "ts-last")
-         (:th "role-id")
-         (:th "")
-         (format nil "~{~A~}"
-                 (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
-                   (ps-html
-                    ((:tr)
-                     ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
-                     ((:td) (name i))
-                     ((:td) (if (equal 1 *current-user*) (password i) ""))
-                     ((:td) (email i))
-                     ((:td) (ts-create i))
-                     ((:td) (ts-last i))
-                     ((:td) (role-id i))
-                     ((:td) %del%))))))
-        (if (equal 1 *current-user*)
-            (ps-html
-             ((:h2) "Зарегистрировать нового пользователя")
-             ((:form :method "POST")
-              ((:table :border 0)
-               ((:tr)
-                ((:td) "Имя пользователя: ")
-                ((:td) ((:input :type "text" :name "name" :value ""))))
-               ((:tr)
-                ((:td) "Пароль: ")
-                ((:td) ((:input :type "password" :name "password" :value ""))))
-               ((:tr)
-                ((:td) "Email: ")
-                ((:td) ((:input :type "email" :name "email" :value ""))))
-               ((:tr)
-                ((:td) "")
-                ((:td) %new%)))))
-            ""))))
-  (:del (if (and (equal 1 *current-user*)
-                 (not (equal 1 (id i))))
-              (ps-html
-               ((:form :method "POST")
-                ((:input :type "hidden" :name "act" :value "DEL"))
-                ((:input :type "hidden" :name "data" :value (id i)))
-                ((:input :type "submit" :value "Удалить"))))
-              "")
-        (del-user (getf p :data)))
-  (:new (ps-html
-         ((:input :type "hidden" :name "act" :value "NEW"))
-         ((:input :type "submit" :value "Создать")))
-        (progn
-          (make-user :name (getf p :name)
-                     :email (getf p :email)
-                     :password (getf p :password)
-                     :ts-create (get-universal-time)
-                     :ts-last (get-universal-time))
-          "Пользователь создан")))
-(in-package #:moto)
-
 (define-page all-roles "/roles"
   (ps-html
    ((:h1) "Роли")
@@ -698,6 +632,7 @@
               (if u
                   (progn
                     (setf (hunchentoot:session-value 'current-user) (id u))
+                    (setf *current-user* (id u))
                     (login-user-success (id u))
                     (let ((breadcrumb (breadcrumb "Логин"))
                           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -708,6 +643,7 @@
                           (system-msg ("success")
                             (ps-html ((:p) "Вы зашли на сайт. Теперь вы можете использовать все его возможности"))))
                         (ps-html ((:span :class "clear"))))))
+                  ;; user not found
                   (progn
                     (login-user-fail)
                     (let ((breadcrumb (breadcrumb "Логин"))
@@ -720,4 +656,72 @@
                             (ps-html ((:p) "К сожалению, мы не смогли вас опознать. Попробуйте снова!"))))
                         (form-section (aif (post-parameter "email") it "") %LOGIN%)
                         (ps-html ((:span :class "clear")))))))))))
+(in-package #:moto)
+
+(define-page all-users "/users"
+  (let ((breadcrumb (breadcrumb "Список пользователей"))
+        (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ("Список пользователей") ""))
+      (content-box ()
+        (if (null *current-user*)
+            (content-box ()
+              (system-msg ("caution")
+                (ps-html ((:p) "Только авторизованный пользователи могут просматривать список пользователей"))))
+            ;; else
+            (ps-html
+             ((:table :border 0)
+              (:th "id")
+              (:th "name")
+              (:th "password")
+              (:th "email")
+              (:th "ts-create")
+              (:th "ts-last")
+              (:th "role-id")
+              (:th "")
+              (format nil "~{~A~}"
+                      (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
+                        (ps-html
+                         ((:tr)
+                          ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
+                          ((:td) (name i))
+                          ((:td) (if (equal 1 *current-user*) (password i) ""))
+                          ((:td) (email i))
+                          ((:td) (ts-create i))
+                          ((:td) (ts-last i))
+                          ((:td) (role-id i))
+                          ((:td) %del%))))))
+             (if (equal 1 *current-user*)
+                 (form ("loginform" "Зарегистрировать нового пользователя" :class "form-section-container")
+                   ((:div :class "form-section")
+                    (input ("name" "Имя пользователя" :required t :type "text" :autocomplete "off"))
+                    (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+                    (input ("email" "Электронная почта" :required t :type "email" :maxlength "50")))
+                   %new%)
+                 ""))))
+      (ps-html ((:span :class "clear")))))
+  (:DEL (if (and (equal 1 *current-user*)
+                 (not (equal 1 (id i))))
+            (ps-html
+             ((:form :method "POST")
+              ((:input :type "hidden" :name "act" :value "DEL"))
+              ((:input :type "hidden" :name "data" :value (id i)))
+              ((:div :class "form-send-container")
+               (submit "Удалить" ))))
+            "")
+        (progn
+          (del-user (getf p :data))
+          (redirect "/users")))
+  (:new (ps-html
+         ((:input :type "hidden" :name "act" :value "NEW"))
+         ((:div :class "form-send-container")
+          (submit "Создать" )))
+        (progn
+          (make-user :name (getf p :name)
+                     :email (getf p :email)
+                     :password (getf p :password)
+                     :ts-create (get-universal-time)
+                     :ts-last (get-universal-time))
+          (redirect "/users"))))
 ;; iface ends here

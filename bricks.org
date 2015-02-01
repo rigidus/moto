@@ -207,7 +207,7 @@
           `(ps-html ,form))))
 
     ;; (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
-    ;;   (let ((result-class "form-section-container")) ;;  js__formValidation
+    ;;   (let ((result-class "form-section-container"))
     ;;     (unless action (setf action "#"))
     ;;     (unless method (setf method "POST"))
     ;;     (when class (setf result-class (concatenate 'string result-class " " class)))
@@ -511,6 +511,22 @@
           ((:div :class "category-nav-container")
            ((:p :class "category-nav-container__headline trail") ,user)
            ((:ul :class "category-nav--lvl0 category-nav") ,menu))
+          ((:article :class "content") ,@body)
+          ((:div :class "overlay-container popup" :id "dataprivacy-overlay" :data-dontcloseviabg "" :data-mustrevalidate "") ,overlay)
+          ((:span :class "clear")))
+         ((:div :class "main-ending")
+          ((:div :class "last-seen")
+           ((:h5) "Items viewed recently")
+           ((:p) "You do not have any recently viewed items.")))
+         ((:div :class "overlay-bg")))))
+
+    (defmacro base-page ((&rest rest &key breadcrumb overlay &allow-other-keys) &body body)
+      (unless overlay
+        (setf overlay ""))
+      `(ps-html
+        ((:section :class "container")
+         ,breadcrumb
+         ((:div :class "main")
           ((:article :class "content") ,@body)
           ((:div :class "overlay-container popup" :id "dataprivacy-overlay" :data-dontcloseviabg "" :data-mustrevalidate "") ,overlay)
           ((:span :class "clear")))

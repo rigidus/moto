@@ -100,19 +100,6 @@
                                                   ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
                                                    ((:span :class "button__icon"))))))
                                                )))
-                        ;; <div class="flyout-parent user-nav__item user-nav__item--my-louis">
-                        ;;     <div>
-                        ;;         <a href="#" class="nav-button js__setFocus" data-set-focus="login-email" id="mylouis-flyout-link">
-                        ;;             <span class="nav-button__text">My Louis</span>
-                        ;;             <span class="nav-button__icon sprite"></span>
-                        ;;         </a>
-                        ;;     </div>
-                        ;;     <div class="user-nav__flyout flyout flyout--my-louis flyout--my-louis--login popup">
-                        ;;         <span class="hover"></span>
-                        ;;         <a class="action-icon action-icon--close" href="#">×</a>
-                        ;;         {$login |noAutoescape}
-                        ;;     </div>
-                        ;; </div>
                     :content retval
                     :footer (tpl:footer (list :dbg (format nil "<pre>~A</pre>" output))))))
          (ajax (ajax) (output ajax))))))

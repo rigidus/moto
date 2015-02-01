@@ -1,6 +1,5 @@
 ;; [[file:hh.org::*Сущности и автоматы][entity_and_automates]]
 (in-package #:moto)
-
 (define-automat vacancy "Автомат вакансии"
   ((id serial)
    (src-id integer)
