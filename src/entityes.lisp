@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Сущности][entity_and_automates]]
-;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Copyright © 2014-2015 Glukhov Mikhail. All rights reserved.
 ;;;; Licensed under the GNU AGPLv3
 (in-package #:moto)
 ;; entity_and_automates ends here
@@ -40,6 +40,9 @@
   "unlogged -> sended")
 (defun remember ()
   "sended -> logged")
+;; NAME DB CONSTRAINT
+(with-connection *db-spec*
+  (query (:alter-table "user" :add-constraint "uniq_name" :unique "name")))
 ;; user_automat ends here
 ;; [[file:doc.org::*Роли (role)][role_entity]]
 (define-entity role "Сущность роли"

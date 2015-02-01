@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Утилиты][utility_file]]
-;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Copyright © 2014-2015 Glukhov Mikhail. All rights reserved.
    ;;;; Licensed under the GNU AGPLv3
    ;;;; util.lisp
 
@@ -77,92 +77,100 @@
                            (setf retval ,@body))))
              (tpl:louis
               (list :title "title"
-                    :header (tpl:header)
+                    :header (tpl:header (list :login
+                                              (form ("loginform" nil :action "/login")
+                                                (fieldset "Вход:"
+                                                  (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
+                                                  (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
+                                                  (ps-html ((:input :type "hidden" :name "act" :value "REGISTER")))
+                                                  (submit "Войти")
+                                                  (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href "/lostpassword") "пароль") "?"))
+                                              ))))
                     :content retval
                     :footer (tpl:footer (list :dbg (format nil "<pre>~A</pre>" output))))))
          (ajax (ajax) (output ajax))))))
 
 ;; Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
 
-(defun input (type &key name value other)
-  (format nil "~%<input type=\"~A\"~A~A~A/>" type
-          (if name  (format nil " name=\"~A\"" name) "")
-          (if value (format nil " value=\"~A\"" value) "")
-          (if other (format nil " ~A" other) "")))
+;; (defun input (type &key name value other)
+;;   (format nil "~%<input type=\"~A\"~A~A~A/>" type
+;;           (if name  (format nil " name=\"~A\"" name) "")
+;;           (if value (format nil " value=\"~A\"" value) "")
+;;           (if other (format nil " ~A" other) "")))
 
-;; (input "text" :name "zzz" :value 111)
-;; (input "submit" :name "submit-btn" :value "send")
+;; ;; (input "text" :name "zzz" :value 111)
+;; ;; (input "submit" :name "submit-btn" :value "send")
 
-(defmacro select ((name &optional attrs) &body options)
-  `(format nil "~%<select name=\"~A\"~A>~{~%~A~}~%</select>"
-           ,name
-           (aif ,attrs (format nil " ~A" it) "")
-           (loop :for (name value selected) :in ,@options :collect
-              (format nil "<option value=\"~A\"~A>~A</option>"
-                      value
-                      (if selected (format nil " ~A" selected) "")
-                      name))))
+;; (defmacro select ((name &optional attrs) &body options)
+;;   `(format nil "~%<select name=\"~A\"~A>~{~%~A~}~%</select>"
+;;            ,name
+;;            (aif ,attrs (format nil " ~A" it) "")
+;;            (loop :for (name value selected) :in ,@options :collect
+;;               (format nil "<option value=\"~A\"~A>~A</option>"
+;;                       value
+;;                       (if selected (format nil " ~A" selected) "")
+;;                       name))))
 
-(defun fld (name &optional (value ""))
-  (input "text" :name name :value value))
+;; (defun fld (name &optional (value ""))
+;;   (input "text" :name name :value value))
 
-(defun btn (name &optional (value ""))
-  (input "button" :name name :value value))
+;; (defun btn (name &optional (value ""))
+;;   (input "button" :name name :value value))
 
-(defun hid (name &optional (value ""))
-  (input "hidden" :name name :value value))
+;; (defun hid (name &optional (value ""))
+;;   (input "hidden" :name name :value value))
 
-(defun submit (&optional value)
-  (if value
-      (input "submit" :value value)
-      (input "submit")))
+;; (defun submit (&optional value)
+;;   (if value
+;;       (input "submit" :value value)
+;;       (input "submit")))
 
-(defun act-btn (act data title)
-  (format nil "~%~{~%~A~}"
-          (list
-           (hid "act"  act)
-           (hid "data" data)
-           (submit title))))
+;; (defun act-btn (act data title)
+;;   (format nil "~%~{~%~A~}"
+;;           (list
+;;            (hid "act"  act)
+;;            (hid "data" data)
+;;            (submit title))))
 
-(defmacro row (title &body body)
-  `(format nil "~%<tr>~%<td>~A</td>~%<td>~A~%</td>~%</tr>"
-           ,title
-           ,@body))
+;; (defmacro row (title &body body)
+;;   `(format nil "~%<tr>~%<td>~A</td>~%<td>~A~%</td>~%</tr>"
+;;            ,title
+;;            ,@body))
 
-;; (row "thetitrle" (submit))
+;; ;; (row "thetitrle" (submit))
 
-(defun td (dat)
-  (format nil "~%<td>~%~A~%</td>" dat))
+;; (defun td (dat)
+;;   (format nil "~%<td>~%~A~%</td>" dat))
 
-(defun tr (&rest dat)
-  (format nil "~%<tr>~%~{~A~}~%</tr>"
-          dat))
+;; (defun tr (&rest dat)
+;;   (format nil "~%<tr>~%~{~A~}~%</tr>"
+;;           dat))
 
-;; (tr "wfewf")
-;; (tr "wfewf" 1111)
+;; ;; (tr "wfewf")
+;; ;; (tr "wfewf" 1111)
 
-(defun frm (contents &key name (method "POST") action)
-  (format nil "~%<form method=\"~A\"~A~A>~{~A~}~%</form>"
-          method
-          (if name (format nil " name=\"~A\"" name) "")
-          (if action (format nil " action=\"~A\"" action) "")
-          (if (consp contents)
-              contents
-              (list contents))))
+;; (defun frm (contents &key name (method "POST") action)
+;;   (format nil "~%<form method=\"~A\"~A~A>~{~A~}~%</form>"
+;;           method
+;;           (if name (format nil " name=\"~A\"" name) "")
+;;           (if action (format nil " action=\"~A\"" action) "")
+;;           (if (consp contents)
+;;               contents
+;;               (list contents))))
 
-;; (frm "form-content" :name "nnnnn")
+;; ;; (frm "form-content" :name "nnnnn")
 
-(defun tbl (contents &key name border)
-  (format nil "~%<table~A~A>~{~A~}~%</table>"
-          (if name (format nil " name=\"~A\"" name) "")
-          (if border (format nil " border=\"~A\"" border) "")
-          (if (consp contents)
-              contents
-              (list contents))))
+;; (defun tbl (contents &key name border)
+;;   (format nil "~%<table~A~A>~{~A~}~%</table>"
+;;           (if name (format nil " name=\"~A\"" name) "")
+;;           (if border (format nil " border=\"~A\"" border) "")
+;;           (if (consp contents)
+;;               contents
+;;               (list contents))))
 
-;; (tbl (list "zzz") :name "table")
+;; ;; (tbl (list "zzz") :name "table")
 
-;; (frm (tbl (list (row "username" (fld "user")))))
+;; ;; (frm (tbl (list (row "username" (fld "user")))))
 
 ;; Макрос создает маршрут и маршрут-контроллер, таким образом,
 ;; чтобы связать действия контроллера и кнопки

@@ -1,5 +1,5 @@
 ;; [[file:doc.org::*Каркас проекта][defsystem]]
-;;;; Copyright © 2014 Glukhov Mikhail. All rights reserved.
+;;;; Copyright © 2014-2015 Glukhov Mikhail. All rights reserved.
      ;;;; Licensed under the GNU AGPLv3
      ;;;; moto.asd
 
@@ -33,6 +33,7 @@
                (:file "prepare")    ;; подготовка к старту
                (:file "util")       ;; файл с утилитами
                (:file "globals")    ;; файл с глобальными определеями
+               (:file "bricks")     ;; компоненты для создания интерфейсов
                ;; Модуль сущностей, автоматов и их тестов
                (:module "entity"
                         :serial t
@@ -47,42 +48,42 @@
                         :components ((:static-file "auth-tpl.htm")
                                      (:file "auth")))
                ;; Модуль очередей
-               (:module "que"
-                        :serial t
-                        :pathname "mod/que"
-                        :components ((:file "que")))
-               ;; Модуль сообщений
-               (:module "msg"
-                        :serial t
-                        :pathname "mod/msg"
-                        :components ((:static-file "msg-tpl.htm")
-                                     (:file "msg-prepare")
-                                     (:file "msg")))
-               ;; Модуль trend
-               ;; (:module "trend"
+               ;; (:module "que"
                ;;          :serial t
-               ;;          :pathname "mod/trend"
-               ;;          :components ((:static-file "trend-tpl.htm")
-               ;;                       (:file "trend-prepare")
-               ;;                       (:file "entityes")
-               ;;                       (:file "loader")
-               ;;                       (:file "trend")
-               ;;                       (:file "iface")))
+               ;;          :pathname "mod/que"
+               ;;          :components ((:file "que")))
+               ;; Модуль сообщений
+               ;; (:module "msg"
+               ;;          :serial t
+               ;;          :pathname "mod/msg"
+               ;;          :components ((:static-file "msg-tpl.htm")
+               ;;                       (:file "msg-prepare")
+               ;;                       (:file "msg")))
+               ;; Модуль trend
+               ;; ;; (:module "trend"
+               ;; ;;          :serial t
+               ;; ;;          :pathname "mod/trend"
+               ;; ;;          :components ((:static-file "trend-tpl.htm")
+               ;; ;;                       (:file "trend-prepare")
+               ;; ;;                       (:file "entityes")
+               ;; ;;                       (:file "loader")
+               ;; ;;                       (:file "trend")
+               ;; ;;                       (:file "iface")))
                ;; Модуль мотобратан
-               (:module "bratan"
-                        :serial t
-                        :pathname "mod/bratan"
-                        :components ((:file "bratan")))
+               ;; (:module "bratan"
+               ;;          :serial t
+               ;;          :pathname "mod/bratan"
+               ;;          :components ((:file "bratan")))
                ;; Модуль HeadHunter
-               (:module "hh"
-                        :serial t
-                        :pathname "mod/hh"
-                        :components ((:file "f-util")
-                                     (:file "util")
-                                     (:file "globals")
-                                     (:file "entityes")
-                                     (:file "hh")
-                                     (:file "iface")))
+               ;; (:module "hh"
+               ;;          :serial t
+               ;;          :pathname "mod/hh"
+               ;;          :components ((:file "f-util")
+               ;;                       (:file "util")
+               ;;                       (:file "globals")
+               ;;                       (:file "entityes")
+               ;;                       (:file "hh")
+               ;;                       (:file "iface")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ))
