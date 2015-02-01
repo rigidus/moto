@@ -1426,12 +1426,12 @@
 
    #+CAPTION: Условия валидации
    #+NAME: reg_valid_cond
-     | field            | validator                                                       | explanation                                                      |
-     |------------------+-----------------------------------------------------------------+------------------------------------------------------------------|
-     | email            | (not (contains (get-val "email")  "@"))                         | "Пожалуйста, введите корректный емайл"                           |
-     | password         | (empty (get-val "password"))                                    | "Пожалуйста, введите непустой пароль"                            |
-     | password-confirm | (not (equal (get-val "password") (get-val "password-confirm"))) | "Пожалуйста, введите подтверждение пароля совпадающее с паролем" |
-     | nickname         | (empty (get-val "nickname"))                                    | "Никнейм не может быть пустым"                                   |
+     | field                | validator                                                               | explanation                                                      |
+     |----------------------+-------------------------------------------------------------------------+------------------------------------------------------------------|
+     | regemail             | (not (contains (get-val "regemail")  "@"))                              | "Пожалуйста, введите корректный емайл"                           |
+     | regpassword          | (empty (get-val "regpassword"))                                         | "Пожалуйста, введите непустой пароль"                            |
+     | regpasswordconfirm   | (not (equal (get-val "regpassword") (get-val "regpasswordconfirm")))    | "Пожалуйста, введите подтверждение пароля совпадающее с паролем" |
+     | regnickname          | (empty (get-val "regnickname"))                                         | "Никнейм не может быть пустым"                                   |
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
@@ -1483,10 +1483,10 @@
              (form ("regform" "Регистрационные данные" :action "/reg" :class "form-section-container")
                ((:div :class "form-section")
                 (fieldset "Обязательные поля"
-                  (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :value (aif (get-parameter "email") it "")))
-                  (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-                  (input ("password-confirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
-                  (input ("nickname" "Никнейм" :required t :maxlength "50":value (aif (get-parameter "nickname") it "")))))
+                  (input ("regemail" "Электронная почта" :required t :type "email" :maxlength "50" :value (aif (get-parameter "regemail") it "")))
+                  (input ("regpassword" "Пароль" :required t :type "password" :autocomplete "off"))
+                  (input ("regpasswordconfirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
+                  (input ("regnickname" "Никнейм" :required t :maxlength "50":value (aif (get-parameter "regnickname") it "")))))
                ((:div :class "form-section")
                 (fieldset "Необязательные поля"
                   (input ("firstname" "Имя" :maxlength "25" :value (aif (get-parameter "firstname") it "")))
@@ -1525,7 +1525,7 @@
                          (dbg "~A" (bprint it))
                          ;; Ошибок нет, создаем пользователя
                          (handler-case
-                             (let* ((user-id (create-user (getf p :nickname) (getf p :password) (getf p :email)))
+                             (let* ((user-id (create-user (getf p :regnickname) (getf p :regpassword) (getf p :regemail)))
                                     (user (get-user user-id)))
                                ;; (dbg "~A :|<BR/>|: ~A" (bprint p) user-id)
                                ;; И сохраняем его id в сесии и thread-local переменной *current-user*
@@ -1544,7 +1544,7 @@
                                    (content-box ()
                                      (system-msg ("success")
                                        (let ((tmp (format nil "Подтверждение регистрации будет выслано на <b>~A</b> в течение пары дней. ~A"
-                                                          (getf p :email)
+                                                          (getf p :regemail)
                                                           "Вы можете использовать свой email и пароль для входа в профиль в любое время")))
                                          (ps-html ((:p) "Ваши регистрационные данные успешно сохранены")
                                                   ((:p) tmp)))))
@@ -1558,7 +1558,7 @@
                                    (heading ("Успешная регистрация")))
                                  (content-box ()
                                    (system-msg ("caution")
-                                     (let ((tmp (format nil "К сожалению, кто-то уже занял никнейм <b>~A</b>. Но вы можете выбрать другой!" (getf p :nickname))))
+                                     (let ((tmp (format nil "К сожалению, кто-то уже занял никнейм <b>~A</b>. Но вы можете выбрать другой!" (getf p :regnickname))))
                                        (ps-html ((:p) tmp)
                                                 ((:p) "Не беспокойтесь, вам не придется заполнять форму снова. Просто поменяйте никнейм и вновь введите пароль!")
                                                 (submit "Попробовать снова"
