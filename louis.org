@@ -1497,8 +1497,8 @@
 
 ** Страница регистрации
 
-   Страница регистрации использует движок форм для показа формы пользователю и при
-   выполнении регистрации вызывает событие =create-user=.
+   Страница регистрации при выполнении регистрации вызывает событие
+   =create-user= из модуля [[file:auth.org][auth]].
 
    Чтобы проверить правильность заполнения полей еще на стороне
    клиента нам необходимо сгенерировать функцию-валидатор, которая
@@ -1690,4 +1690,66 @@
                                                         )))))
                                  (ps-html ((:span :class "clear"))))))
                                  )))))
+   #+END_SRC
+
+** Страница логина
+
+   Контроллер логина использует обобщенный метод =get-auth-data= для извлечения данных
+   авторизации и функцию их проверки =check-auth-data=.
+
+   При успешной проверке устанавливает переменную сессии =current-user= с помощью функции
+   =set-session= и выполняет =login-user-success=.
+
+   При неуcпехе выполняет =login-user-fail=.
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (flet ((form-section (default-email btn)
+              (content-box (:class "size-3-5 switch-content-container")
+                (form ("loginform" "Вход" :action "/login" :class "form-section-container")
+                  ((:div :class "form-section")
+                   (fieldset "Обязательные поля"
+                     (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :value default-email))
+                     (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))))
+                  btn))))
+       (define-page login "/login"
+         (let ((breadcrumb (breadcrumb "Логин"))
+               (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+           (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+             (content-box ()
+               (heading ("Страница входа на сайт") "Вы не зашли на сайт. После входа вы сможете общаться с другими пользователями, искать товары и делать заказы, создавать и отслеживать свои задачи."))
+             (form-section (aif (post-parameter "email") it "") %LOGIN%)
+             (ps-html ((:span :class "clear")))))
+         (:LOGIN (ps-html
+                  ((:input :type "hidden" :name "act" :value "LOGIN"))
+                  ((:div :class "form-send-container")
+                   (submit "Войти" )))
+                 (let ((u (car (find-user :email (getf p :email) :password (getf p :password)))))
+                   (if u
+                       (progn
+                         (setf (hunchentoot:session-value 'current-user) (id u))
+                         (login-user-success (id u))
+                         (let ((breadcrumb (breadcrumb "Логин"))
+                               (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+                           (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                             (content-box ()
+                               (heading ("Успешно")))
+                             (content-box ()
+                               (system-msg ("success")
+                                 (ps-html ((:p) "Вы зашли на сайт. Теперь вы можете использовать все его возможности"))))
+                             (ps-html ((:span :class "clear"))))))
+                       (progn
+                         (login-user-fail)
+                         (let ((breadcrumb (breadcrumb "Логин"))
+                               (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+                           (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                             (content-box ()
+                               (heading ("Неудачный логин")))
+                             (content-box ()
+                               (system-msg ("caution")
+                                 (ps-html ((:p) "К сожалению, мы не смогли вас опознать. Попробуйте снова!"))))
+                             (form-section (aif (post-parameter "email") it "") %LOGIN%)
+                             (ps-html ((:span :class "clear")))))))))))
    #+END_SRC

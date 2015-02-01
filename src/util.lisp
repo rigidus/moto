@@ -91,7 +91,7 @@
                                                    (fieldset "Вход:"
                                                      (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
                                                      (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
-                                                     (ps-html ((:input :type "hidden" :name "act" :value "REGISTER")))
+                                                     (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
                                                      (submit "Войти")
                                                      (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href "/lostpassword") "пароль") "?"))))
                                                  ((:div :class "box")

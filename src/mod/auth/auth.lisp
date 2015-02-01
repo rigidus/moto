@@ -39,33 +39,6 @@
 ;; Событие выхода
 (defun logout-user (current-user)
   (takt (get-user current-user) :unlogged))
-;; (in-package #:moto)
-
-;; (define-page login "/login"
-;;   (ps-html
-;;    ((:h1) "Страница авторизации")
-;;    (if *current-user*
-;;        "Авторизация невозможна - пользователь залогинен. <a href=\"/logout\">Logout</a>"
-;;        (ps-html
-;;         ((:form :method "POST")
-;;          ((:table :border 0)
-;;           ((:tr)
-;;            ((:td) "Email: ")
-;;            ((:td) ((:input :type "email" :name "email" :value ""))))
-;;           ((:tr)
-;;            ((:td) "Пароль: ")
-;;            ((:td) ((:input :type "password" :name "password" :value ""))))
-;;           ((:tr)
-;;            ((:td) "")
-;;            ((:td) %login%)))))))
-;;   (:login (ps-html
-;;               ((:input :type "hidden" :name "act" :value "LOGIN"))
-;;               ((:input :type "submit" :value "Войти")))
-;;           (aif (check-auth-data (get-auth-data (hunchentoot:post-parameters*)))
-;;                (progn
-;;                  (setf (hunchentoot:session-value 'current-user) it)
-;;                  (login-user-success it))
-;;                (login-user-fail))))
 
 ;; Извлечение авторизационных данных
 (defmethod get-auth-data ((request list))
