@@ -1638,6 +1638,66 @@
                              (ps-html ((:span :class "clear")))))))))))
    #+END_SRC
 
+** Страница логаута
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (define-page logout "/logout"
+       (let ((breadcrumb (breadcrumb "Логаут"))
+             (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (if *current-user*
+               (concatenate 'string
+                            (content-box ()
+                              (heading ("Страница выхода из системы") "В целях безопасности вы можете выйти из своего аккаунта"))
+                            (content-box (:class "size-3-5 switch-content-container")
+                              (form ("logoutform" nil :class "form-section-container")
+                                ((:div :class "form-section")
+                                 ((:p :class "font-size: big") "Вы действительно хотите выйти?"))
+                                %LOGOUT%)))
+               ;; else - not logged
+               (concatenate 'string
+                            (content-box ()
+                              (heading ("Страница выхода из системы")))
+                            (content-box ()
+                              (system-msg ("caution")
+                                (ps-html
+                                 ((:p :style "font-size: large") "В данный момент вы не залогины на сайте"))
+                                ((:a :class "button button--link" :href "/login") "Перейти к логину"
+                                 ((:span :class "button__icon")))
+                                ((:br))
+                                ((:br))
+                                (ps-html
+                                 ((:div :class "box")
+                                  ((:div :class "box--title") "У вас нет аккаунта?")
+                                  ((:p) "Зарегистрируйтесь и оцените преимущества!")
+                                  ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
+                                   ((:span :class "button__icon")))))))))
+           (ps-html ((:span :class "clear")))))
+       (:LOGOUT (form ("logoutform" nil :action "/logout" :class "form-section-container")
+                  ((:input :type "hidden" :name "act" :value "LOGOUT"))
+                  ((:div :class "form-send-container")
+                   (submit "Выйти" )))
+                (progn
+                  (when *current-user*
+                    (logout-user *current-user*)
+                    (setf (hunchentoot:session-value 'current-user) nil))
+                  (let ((breadcrumb (breadcrumb "Логаут"))
+                        (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+                    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                      (content-box ()
+                        (heading ("Страница выхода из системы")))
+                      (content-box ()
+                        (system-msg ("success")
+                          (ps-html
+                           ((:p :style "font-size: large") "Вы успешно вышли из системы"))
+                          ((:a :class "button button--link" :href "/login") "Перейти к логину"
+                           ((:span :class "button__icon")))))
+                      (ps-html ((:span :class "clear"))))))))
+   #+END_SRC
+
 ** Список пользователей
 
  #+NAME: iface_contents

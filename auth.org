@@ -136,27 +136,6 @@
             (err 'err-create-user)))
    #+END_SRC
 
-** Страница выхода из системы и ее контроллер
-
-   #+NAME: auth_fn_contents
-   #+BEGIN_SRC lisp
-     ;; (in-package #:moto)
-
-     ;; (define-page logout "/logout"
-     ;;   (ps-html
-     ;;    ((:h1) "Страница выхода из системы")
-     ;;    (if *current-user*
-     ;;        (ps-html
-     ;;         ((:form :method "POST")
-     ;;          %logout%))
-     ;;        "Выход невозможен - никто не залогинен"))
-     ;;   (:logout (ps-html
-     ;;               ((:input :type "hidden" :name "act" :value "LOGOUT"))
-     ;;               ((:input :type "submit" :value "Выйти")))
-     ;;            (prog1 (format nil "~A" (logout-user *current-user*))
-     ;;              (setf (hunchentoot:session-value 'current-user) nil))))
-   #+END_SRC
-
 ** Событие выхода пользователя из системы
 
    #+NAME: auth_fn_contents
