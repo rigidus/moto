@@ -57,9 +57,9 @@
             <script type="text/javascript" src="/js/modernizr.js"></script />
             <script type="text/javascript" src="/js/jquery.sortable.original.js"></script>
         </head>
-        <body id="louis-de" class="en" data-background-image="https://cdn2.louis.de/content/application/layout/images/bg-05.jpg">
+        <body id="louis-de" class="en" data-background-image="/img/bg-05.jpg">
             <div style="height: 1077px; position: fixed; transform: translateY(0px);" id="js__bg" class="bg">
-                <img alt="Louis Background" src="https://cdn2.louis.de/content/application/layout/images/bg-05.jpg" />
+                <img alt="Louis Background" src="/img/bg-05.jpg" />
             </div>
             {$header |noAutoescape}
             <hr class="hidden" id="content" />
@@ -98,7 +98,7 @@
                  <div class="logo">
                      <meta itemprop="legalName" content="Detlev Louis Motorradvertriebs GmbH" />
                      <a itemprop="url" class="logo__link" href="/en">
-                         <img itemprop="logo" src="https://cdn1.louis.de/content/application/layout/images/logo.png" alt="Louis – Motorcycle &amp; Leisure" height="67" width="121" />
+                         <img itemprop="logo" src="/img/logo2.png" alt="logo" height="67" width="121" />
                      </a>
                  </div>
                  <div class="branding__slogan">Europe’s No.1 in the Motorcycle &amp; Leisure world!</div>
@@ -177,7 +177,7 @@
                                              <div class="text-container bikedb-select-flyout__actions">
                                                  <p>In order to use the following function, you must first log into "<a href="#mylouis-flyout-link" class="js__triggerEvent" data-trigger-event="click">My Louis</a>".</p>
                                                  <div class="system-message media">
-                                                     <img class="media__item media__item--left" src="https://cdn2.louis.de/content/application/images/info.png" alt="Info" height="45" width="45" />
+                                                     <img class="media__item media__item--left" src="/img/info.png" alt="Info" height="45" width="45" />
                                                      <div class="system-message__text-container media__content">
                                                          <div class="system-message__text">
                                                              <p><strong>Saving and loading in "My Louis" replaces the respective list.</strong></p>
@@ -277,13 +277,13 @@
                              {$login |noAutoescape}
                              <ul class="shopping-nav user-nav__item">
                                  <li id="header-memo" class="shopping-nav__item shopping-nav__item--memo ">
-                                     <a class="nav-button" href="/en/einkauf/merkzettel">
-                                         <span class="nav-button__text"> Wish list</span>
+                                     <a class="nav-button" href="/hh">
+                                         <span class="nav-button__text">Работа</span>
                                      </a>
                                  </li>
                                  <li class="shopping-nav__item">
-                                     <a class="nav-button js__openPopup" id="header-compare" href="/en/katalog/produktvergleich" data-title="product-compare" target="product-compare">
-                                         <span class="nav-button__text">Comparison</span>
+                                     <a class="nav-button js__openPopup" id="header-compare" href="/hh" data-title="hh" target="hh">
+                                         <span class="nav-button__text">PopUp</span>
                                          <div id="product-compare-counter"></div>
                                      </a>
                                  </li>
@@ -450,19 +450,19 @@
                                      <div style="left: 172px;" class="flyout nav-flyout popup">
                                          <div class="nav-category"><ul class="nav-category__list"><li>
                                                      <a href="/en/katalog/themen-welten/meine-werkstatt">
-                                                         <img src="https://cdn2.louis.de/content/themeworlds/screenshot/language/en_GB/images/meine-werkstatt.jpg" alt="My Workshop" />
+                                                         <img src="/img/meine-werkstatt.jpg" alt="My Workshop" />
                                                          <span>My Workshop</span>
                                                      </a>
                                                  </li>
                                                  <li>
                                                      <a href="/en/katalog/themen-welten/motomania">
-                                                         <img src="https://cdn2.louis.de/content/themeworlds/screenshot/language/en_GB/images/motomania.jpg" alt="Motomania" />
+                                                         <img src="/img/motomania.jpg" alt="Motomania" />
                                                          <span>Motomania</span>
                                                      </a>
                                                  </li>
                                                  <li>
                                                      <a href="/en/katalog/themen-welten/vanucci">
-                                                         <img src="https://cdn1.louis.de/content/themeworlds/screenshot/language/en_GB/images/vanucci.jpg" alt="Vanucci" />
+                                                         <img src="/img/vanucci.jpg" alt="Vanucci" />
                                                          <span>Vanucci</span>
                                                      </a>
                                                  </li>
@@ -700,7 +700,7 @@
                          <div class="content-box size-1-4">
                              <div class="footer-box footer-box--height-large footer-box--storefinder">
                                  <h4>Store finder</h4>
-                                 <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/storefinder.png" alt="Store finder" height="140" width="220" />
+                                 <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/storefinder.png" alt="Store finder" height="140" width="220" />
 
                                  <p>You can buy motorcycle clothing and accessories off the shelf in more than 70 stores in Germany and Austria. <a href="/en/service/filialen">More...</a>
                                  </p>
@@ -718,7 +718,7 @@
                                  <div class="media__content">
                                      <h4>
                                          24h order hotline<span>0049 40 734 193 60</span>                </h4>
-                                     <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/order-phone.png" alt="Louis Ordering Service Team" height="140" width="220" />
+                                     <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/order-phone.png" alt="Louis Ordering Service Team" height="140" width="220" />
                                  </div>
                              </div>
                          </div>
@@ -731,7 +731,7 @@
 
                                      <p class="center">
                                          <a target="_blank" href="/en/m/redirect?url=https://www.shopinfo.net/zertifizierte-shops/zertifikat/index.html?memberkey%3DBVH%26shopurl%3Dwww.louis.de">
-                                             <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/ehi.png" alt="EHI" height="52" width="165" />
+                                             <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/ehi.png" alt="EHI" height="52" width="165" />
                                          </a>
                                      </p>
                                  </div>
@@ -742,7 +742,7 @@
 
                                      <p class="center">
                                          <a href="/en/service/louis/auszeichnungen">
-                                             <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/language/en_GB/images/BB_2014.gif" alt="Best Brand 2014" height="49" width="126" />
+                                             <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/language/en_GB/images/BB_2014.gif" alt="Best Brand 2014" height="49" width="126" />
                                          </a>
                                      </p>
                                  </div>
@@ -751,7 +751,7 @@
                          <div class="content-box size-1-4">
                              <div class="footer-box center">
                                  <a target="_blank" href="/en/m/redirect?url=https://www.trustedshops.com/bewertung/info_X7A8300DB1729CB894766736632C77ECC.html">
-                                     <img class="lazy-load" src="https://cdn1.louis.de/layout/transparency.gif" data-lazy-src="/en/m/redirect?url=https://www.trustedshops.com/bewertung/widget/widgets/X7A8300DB1729CB894766736632C77ECC.gif" alt="Customer rating" height="191" width="140" />
+                                     <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="/en/m/redirect?url=https://www.trustedshops.com/bewertung/widget/widgets/X7A8300DB1729CB894766736632C77ECC.gif" alt="Customer rating" height="191" width="140" />
                                  </a>
                              </div>
                          </div>
@@ -1442,11 +1442,11 @@
                (list
                 (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
                   "Адрес электронной почты, телефон и другие данные не показываются на сайте - мы используем их только для восстановления доступа к аккаунту.")
-                (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                (teaser (:class "text-container" :header ((:img :src "/img/tipp.png" :alt "Tip")))
                   "Пароль к аккаунту хранится в зашифрованной форме - даже оператор сайта не может прочитать его")
-                (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                (teaser (:class "text-container" :header ((:img :src "/img/tipp.png" :alt "Tip")))
                   "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>.")
-                (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+                (teaser (:class "text-container" :header ((:img :src "/img/tipp.png" :alt "Tip")))
                   "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы"))))
 
      (defun reg-overlay ()

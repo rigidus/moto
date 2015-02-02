@@ -47,14 +47,14 @@
 
 ;; (macroexpand-1 '(define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
 ;;                                               (not (contains "Java" (getf vacancy :name)))))
-;;                  (setf (getf vacancy :interested) t)
+;;                  (setf (getf vacancy :interesting) t)
 ;;                  :stop))
 
 ;; test
 
 ;; (define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
 ;;                                   (not (contains "Java" (getf vacancy :name)))))
-;;   (setf (getf vacancy :interested) t)
+;;   (setf (getf vacancy :interesting) t)
 ;;   :stop)
 
 ;; (let ((vacancy '(:name "Python" :salary 80000)))
@@ -63,7 +63,7 @@
 ;;           (hi-salary-java-consequent vacancy))
 ;;     (print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))
 
-;; ->"vacancy: (:INTERESTED T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
+;; ->"vacancy: (:INTERESTING T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
 
 (in-package #:moto)
 

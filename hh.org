@@ -110,7 +110,7 @@ send_responds for all
    Пусть у нас есть возможность создавать именованные =правила=, которые получают на вход
    список, представляющий собой тизер или вакансию, анализируют его, и выполняют какие-то
    действия. В качестве примера, мы могли бы создать правило, которое добавляет к вакансии
-   поле =interested= если зарплата и язык разработки нас устраивает.
+   поле =interesting= если зарплата и язык разработки нас устраивает.
 
    Правило принимает на вход условие срабатывания и код, который будет выполнен, в случае
    если условие выполняется на обрабатываемой вакансии.
@@ -135,14 +135,14 @@ send_responds for all
 
      ;; (macroexpand-1 '(define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
      ;;                                               (not (contains "Java" (getf vacancy :name)))))
-     ;;                  (setf (getf vacancy :interested) t)
+     ;;                  (setf (getf vacancy :interesting) t)
      ;;                  :stop))
 
      ;; test
 
      ;; (define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
      ;;                                   (not (contains "Java" (getf vacancy :name)))))
-     ;;   (setf (getf vacancy :interested) t)
+     ;;   (setf (getf vacancy :interesting) t)
      ;;   :stop)
 
      ;; (let ((vacancy '(:name "Python" :salary 80000)))
@@ -151,7 +151,7 @@ send_responds for all
      ;;           (hi-salary-java-consequent vacancy))
      ;;     (print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))
 
-     ;; ->"vacancy: (:INTERESTED T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
+     ;; ->"vacancy: (:INTERESTING T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
    #+END_SRC
 
 ** Процессор правил
@@ -1110,7 +1110,7 @@ send_responds for all
    После загрузки, вакансия получает статус =unsort=
 
    После сортировки пользователем ваканисия может принять один из статусов: =unsort=,
-   =interested= или =not_interested=
+   =interesting= или =uninteresting=
 
    Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
    действия, переводящие вакансию из одного состояния в другое: когда пользователь
@@ -1118,11 +1118,13 @@ send_responds for all
 
    #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
-   | action             | from       | to             |
-   |--------------------+------------+----------------|
-   | set-not-interested | unsort     | not_interested |
-   | set-interested     | unsort     | interested     |
-   | respond            | interested | responded      |
+   | action             | from          | to            |
+   |--------------------+---------------+---------------|
+   | set-uninteresting  | unsort        | uninteresting |
+   | set-interesting    | unsort        | interesting   |
+   | loop-interesting   | interesting   | interesting   |
+   | loop-uninteresting | uninteresting | uninteresting |
+   | respond            | interesting   | responded     |
 
    Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 
@@ -1141,6 +1143,9 @@ send_responds for all
      }
    #+END_SRC
 
+   #+results:
+   [[file:img/vacancy-state.png]]
+
    #+NAME: hh_fn_contents
    #+BEGIN_SRC lisp
      (in-package #:moto)
@@ -1150,6 +1155,15 @@ send_responds for all
 
      (defun rejection-favorite ()
        "rejection-favorite")
+
+     (defun set-interesting ()
+       "set-interesting")
+
+     (defun loop-interesting ()
+       "loop-interesting")
+
+     (defun loop-uninteresting ()
+       "loop-uninteresting")
    #+END_SRC
 
 ** Печать вакансий
@@ -1328,49 +1342,65 @@ send_responds for all
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defmacro vac-elt (id name salary class)
-       `(ps-html ((:li :title ,salary :class ,class)
-                  ((:span) "&nbsp×&nbsp")
-                  ((:a :href ,id)
-                   ,name))))
-
-     (labels ((mrg (param)
-                (if (null param)
-                    (vac-elt 0 "Нет вакансий" 0 "highlight")
-                    (reduce #'(lambda (x y)
-                                (concatenate 'string x (string #\NewLine) y))
-                            (mapcar #'(lambda (x)
-                                        (vac-elt (format nil "/vac/~A" (id x))
-                                                 (name x)
-                                                 (salary-max x)
-                                                 (if (equal ":UNSORT" (state x)) "highlight" "")))
-                                    param)))))
-       (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-              (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b))))))
-         (define-page hh-main "/hh"
-           (let ((breadcrumb (breadcrumb "HeadHunter"))
-                 (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-             (base-page (:breadcrumb breadcrumb)
-               (content-box ()
-                 (heading ("Модуль HeadHunter") "Так я ищу работу."))
-               (content-box (:style "position:relative; x: -600")
-                 %SAVE%
-                 ((:section :class "dnd-area")
-                  ((:ul :class "connected handles list")
-                   ((:div :class "dnd-head"))
-                   (mrg (remove-if-not #'(lambda (x)
-                                           (equal ":NOT-INTERESTING" (state x)))
-                                       sorted-vacs)))
-                  ((:ul :class "connected handles list no2")
-                   ((:div :class "dnd-head"))
-                   (mrg (remove-if #'(lambda (x)
-                                       (equal ":NOT-INTERESTING" (state x)))
-                                   sorted-vacs)))))
-               (ps-html ((:span :class "clear")))))
-           (:SAVE (ps-html
-                   ((:input :type "hidden" :name "act" :value "SAVE"))
-                   (submit "SAVE" :onclick "save_state();return false;"))
-                  (print "todo:save")))))
+     (define-page hh-main "/hh"
+       (labels ((mrg (param)
+                  (if (null param)
+                      (vac-elt 0 "Нет вакансий" 0 "highlight")
+                      (reduce #'(lambda (x y)
+                                  (concatenate 'string x (string #\NewLine) y))
+                              (mapcar #'(lambda (x)
+                                          (ps-html ((:li :id (src-id x)
+                                                         :class (if (equal ":UNSORT" (state x)) "highlight" ""))
+                                                    ((:span) (salary-max x))
+                                                    ((:a :href (format nil "/vac/~A" (src-id x)))
+                                                     (name x)))))
+                                      param)))))
+         (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
+                (breadcrumb (breadcrumb "HeadHunter"))
+                (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+           (base-page (:breadcrumb breadcrumb)
+             ((:script)
+              (ps
+                (defun get-child-ids (selector)
+                  ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+                (defun save ()
+                  ((@ $ post) "/hh" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
+                   (lambda (data status)
+                     (if (not (equal status "success"))
+                         (alert (concatenate 'string "err-ajax-fail: " status))
+                         (eval data))))
+                  false)))
+             (content-box ()
+               (heading ("Модуль HeadHunter") "Желтым выделены вакансии, которые появились в момент последнего сбора данных. "
+                        "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
+                        "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет."))
+             (content-box (:style "position:relative; x: -600")
+               %SAVE%
+               ((:section :class "dnd-area")
+                ((:ul :class "connected handles list" :id "not")
+                 (mrg (remove-if-not #'(lambda (x)
+                                         (equal ":UNINTERESTING" (state x)))
+                                     sorted-vacs)))
+                ((:ul :class "connected handles list no2" :id "yep")
+                 (mrg (remove-if #'(lambda (x)
+                                     (equal ":UNINTERESTING" (state x)))
+                                 sorted-vacs)))))
+             (ps-html ((:span :class "clear"))))))
+       (:SAVE (ps-html
+               ((:input :type "hidden" :name "act" :value "SAVE"))
+               (submit "SAVE" :onclick "save();return false;"))
+              (progn
+                (setf *tmp1* (split-sequence:split-sequence #\, (getf p :not)))
+                (setf *tmp2* (split-sequence:split-sequence #\, (getf p :yep)))
+                (mapcar #'(lambda (x)
+                            (takt (car (find-vacancy :src-id (parse-integer x))) :uninteresting))
+                        (split-sequence:split-sequence #\, (getf p :not)))
+                (mapcar #'(lambda (x)
+                            (takt (car (find-vacancy :src-id (parse-integer x))) :interesting))
+                        (split-sequence:split-sequence #\, (getf p :yep)))
+                (error 'ajax :output (ps (@ ((@ ($ ".highlight") remove-class) "highlight")))))
+              ))
    #+END_SRC
 
 ** Страница вакансии
@@ -1575,7 +1605,6 @@ send_responds for all
 
    Когда мы собираем вакансии, распарсивая их с других сайтов, мы должны отслеживать их
    состояние на этих сайтах. Мы узнаем о вакансии, ко
-
 
 *** Для красоты
     Хотелось бы чтобы в сгенерированном html можно было сворачивать куски исходников, ну и
@@ -2045,9 +2074,9 @@ send_responds for all
 
    Из =favorited= мы снова можем отправить отзыв.
 
-   Из =favorited= пользователь может вернуть вакансию обратно в =interested= или =hidden=.
+   Из =favorited= пользователь может вернуть вакансию обратно в =interesting= или =hidden=.
 
-   Из =hidden= пользователь может вернуть вакансию в =interested=.
+   Из =hidden= пользователь может вернуть вакансию в =interesting=.
 
    Если по вакансии позвонили, пользователю обычно нужно ее быстро найти. Нужна форма поиска
    по вакансиям в статусе =responded= - пользователь ищет обычно по названию фирмы.
@@ -2085,13 +2114,13 @@ send_responds for all
    примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
    статусов и текущее положение вакансии в нем.
 
-   | refuse-new                             | new                  | not-interested       |
-   | set-interested                         | new                  | interested           |
-   | refuse-interested                      | interested           | hidden               |
-   | respond                                | interested           | responded            |
-   | favor                                  | interested           | favorited            |
+   | refuse-new                             | new                  | uninteresting       |
+   | set-interesting                         | new                  | interesting           |
+   | refuse-interesting                      | interesting           | hidden               |
+   | respond                                | interesting           | responded            |
+   | favor                                  | interesting           | favorited            |
    | send-respond-from-favorited            | favorited            | responded            |
-   | unfavor                                | favorited            | interested           |
+   | unfavor                                | favorited            | interesting           |
    | hide-after-favor                       | favorited            | hidden               |
    | call                                   | responded            | called               |
    | invite-interview                       | called               | wait_interview       |
@@ -2353,11 +2382,11 @@ send_responds for all
       ;;                 (td
       ;;                  (format nil "<div style=\"background-color:green\">~A</div>"
       ;;                          (input "radio" :name (format nil "R~A" (id vac)) :value "y"
-      ;;                                 :other (if (string= ":INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+      ;;                                 :other (if (string= ":INTERESTING" (state vac)) "checked=\"checked\"" ""))))
       ;;                 (td
       ;;                  (format nil "<div style=\"background-color:red\">~A</div>"
       ;;                          (input "radio" :name (format nil "R~A" (id vac)) :value "n"
-      ;;                                 :other (if (string= ":NOT_INTERESTED" (state vac)) "checked=\"checked\"" ""))))
+      ;;                                 :other (if (string= ":UNINTERESTING" (state vac)) "checked=\"checked\"" ""))))
       ;;                 (td (format nil "<a href=\"/vacancy/~A\">~A</a>" (id vac) (name vac)))
       ;;                 (td (salary-text vac))
       ;;                 (td (currency vac))))
@@ -2418,22 +2447,22 @@ send_responds for all
       ;;                       (vac (get-vacancy id)))
       ;;                  (list id
       ;;                        (cond ((string= "y" val)
-      ;;                               (unless (string= ":INTERESTED" (state vac))
-      ;;                                 (takt vac :interested)))
+      ;;                               (unless (string= ":INTERESTING" (state vac))
+      ;;                                 (takt vac :interesting)))
       ;;                              ((string= "n" val)
-      ;;                               (unless (string= ":NOT_INTERESTED" (state vac))
-      ;;                                 (takt vac :not_interested)))
+      ;;                               (unless (string= ":UNINTERESTING" (state vac))
+      ;;                                 (takt vac :uninteresting)))
       ;;                              (t "err param"))))))
       ;;   (:show-all (format nil "<input type=\"button\" onclick=\"test('SHOW-ALL');\" value=\"все\">")
       ;;              (error 'ajax :output (vacancy-table (find-vacancy :profile-id 1))))
       ;;   (:show-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-INTERESTS');\" value=\"интересные\">")
-      ;;                    (error 'ajax :output (vacancy-table (find-vacancy :state ":INTERESTED" :profile-id 1))))
+      ;;                    (error 'ajax :output (vacancy-table (find-vacancy :state ":INTERESTING" :profile-id 1))))
       ;;   (:show-not-interests (format nil "<input type=\"button\" onclick=\"test('SHOW-NOT-INTERESTS');\" value=\"неинтересные\">")
-      ;;                        (error 'ajax :output (vacancy-table (find-vacancy :state ":NOT_INTERESTED" :profile-id 1))))
+      ;;                        (error 'ajax :output (vacancy-table (find-vacancy :state ":UNINTERESTING" :profile-id 1))))
       ;;   (:show-other (format nil "<input type=\"button\" onclick=\"test('SHOW-OTHER');\" value=\"остальные\">")
       ;;                (error 'ajax :output (vacancy-table (remove-if #'(lambda (x)
-      ;;                                                                   (or (string= ":NOT_INTERESTED" (state x) )
-      ;;                                                                       (string= ":INTERESTED" (state x))))
+      ;;                                                                   (or (string= ":UNINTERESTING" (state x) )
+      ;;                                                                       (string= ":INTERESTING" (state x))))
       ;;                                                               (find-vacancy :profile-id 1)))))
       ;;   (:proceess-interests (act-btn "PROCEESS-INTERESTS" "" "Собрать данные интересных вакансий")
       ;;                        "TODO"))

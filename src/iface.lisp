@@ -449,11 +449,11 @@
           (list
            (teaser (:header ((:h2 :class "teaser-box--title") "Безопасность данных"))
              "Адрес электронной почты, телефон и другие данные не показываются на сайте - мы используем их только для восстановления доступа к аккаунту.")
-           (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+           (teaser (:class "text-container" :header ((:img :src "/img/tipp.png" :alt "Tip")))
              "Пароль к аккаунту хранится в зашифрованной форме - даже оператор сайта не может прочитать его")
-           (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+           (teaser (:class "text-container" :header ((:img :src "/img/tipp.png" :alt "Tip")))
              "Все данные шифруются с использованием <a href=\"#dataprivacy-overlay\" class=\"js__openOverlay\">SSL</a>.")
-           (teaser (:class "text-container" :header ((:img :src "https://www.louis.de/content/application/language/de_DE/images/tipp.png" :alt "Tip")))
+           (teaser (:class "text-container" :header ((:img :src "/img/tipp.png" :alt "Tip")))
              "Безопасный пароль должен состоять не менее чем из 8 символов и включать в себя цифры или другие специальные символы"))))
 
 (defun reg-overlay ()
