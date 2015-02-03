@@ -167,6 +167,9 @@
                                      ((:div :class "input-bg")
                                       (,textarea ,@value)))))
               `(ps-html ,textarea-container))))))
+
+    ;; (macroexpand-1 '(textarea ("notes" "Заметки") "zzz"))
+
   #+END_SRC
 
 * Селектор
@@ -237,15 +240,15 @@
     (in-package #:moto)
 
     (defmacro submit (title &rest rest &key class container-class &allow-other-keys)
-      (let ((result-container-class "button")
-            (result-class ""))
+      (let ((result-container-class "")
+            (result-class "button"))
         (when container-class (setf result-container-class (concatenate 'string result-container-class " " container-class)))
         (remf rest :container-class)
         (when class (setf result-class (concatenate 'string result-class " " class)))
         (remf rest :class)
-        (let ((button `(:button :type "submit" :class ,result-container-class)))
+        (let ((button `(:button :type "submit" :class ,result-class)))
           (setf button (append button rest))
-          `(ps-html ((:div :class ,result-class)
+          `(ps-html ((:div :class ,result-container-class)
                      (,button ,title))))))
 
     ;; (macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))

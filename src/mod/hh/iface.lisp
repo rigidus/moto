@@ -89,14 +89,6 @@
          ))
 (in-package #:moto)
 
-(define-page vacancy "/vac/:id"
-  (ps-html
-   ((:form :method "POST")
-     (format nil "~{~A~}"
-          (list
-           (to-html (car (find-vacancy :src-id id)))
-           %save% %respond%))))
-
 (define-page vacancy "/vac/:src-id"
   (let* ((vac (car (find-vacancy :src-id src-id)))
          (breadcrumb (if (null vac)
@@ -131,8 +123,7 @@
                (textarea ("notes" "Заметки") (notes vac))
                (textarea ("repsonse" "Сопроводительное письмо") (response vac))
                (ps-html ((:span :class "clear")))))
-
-            %SAVE%))
+            %RESPOND% %SAVE%))
         (ps-html ((:span :class "clear")))))
   (:SAVE (ps-html
           ((:input :type "hidden" :name "act" :value "SAVE"))

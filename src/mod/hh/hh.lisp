@@ -593,12 +593,8 @@
                                                                                                                           (html5-parser:node-to-xmls
                                                                                                                            (html5-parser:parse-html5-fragment html)))))))))))))))))))))))))))
 
-(print
- (hh-parse-vacancy-teasers
-  *last-parse-data*))
-
-(hh-parse-vacancy-teasers
- (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
+;; (hh-parse-vacancy-teasers
+;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
 
 (in-package #:moto)
 
