@@ -36,11 +36,72 @@
                                   (,input)))))
           `(ps-html ,input-container))))))
 
+(defmacro textarea ((name title &rest rest &key container-class class required type value &allow-other-keys) &body nobody)
+  (let ((result-container-class "input-container")
+        (label `(:label :for ,name)))
+    (when container-class
+      (setf result-container-class (concatenate 'string result-container-class " " container-class)))
+    (when required
+      (setf label (append label `(:required "required"))))
+    (let ((result-class "form-element textarea-text"))
+      (when required
+        (setf result-class (concatenate 'string result-class " required")))
+      (when class
+        (setf result-class (concatenate 'string result-class " " class)))
+      (unless type
+        (setf type "text"))
+      (unless value
+        (setf value ""))
+      (remf rest :container-class)
+      (remf rest :class)
+      (remf rest :required)
+      (remf rest :type)
+      (remf rest :value)
+      (let ((textarea `(:textarea :type ,type :name ,name :id ,name :class ,result-class :value ,value)))
+        (unless (null rest)
+          (setf textarea (append textarea rest)))
+        (let ((textarea-container `((:div :class ,result-container-class)
+                                 (,label ,title)
+                                 ((:div :class "input-bg")
+                                  (,textarea)))))
+          `(ps-html ,textarea-container))))))
+
 ;; (macroexpand-1 '(input ("mobile" "Мобильный телефон" :maxlength "15" :container-class "input-container--1-2 even")))
 
 ;; (macroexpand-1 '(input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50")))
 
 ;; (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
+(in-package #:moto)
+
+(defmacro textarea ((name title &rest rest &key container-class class required type value &allow-other-keys) &body nobody)
+  (let ((result-container-class "input-container")
+        (label `(:label :for ,name)))
+    (when container-class
+      (setf result-container-class (concatenate 'string result-container-class " " container-class)))
+    (when required
+      (setf label (append label `(:required "required"))))
+    (let ((result-class "form-element textarea-text"))
+      (when required
+        (setf result-class (concatenate 'string result-class " required")))
+      (when class
+        (setf result-class (concatenate 'string result-class " " class)))
+      (unless type
+        (setf type "text"))
+      (unless value
+        (setf value ""))
+      (remf rest :container-class)
+      (remf rest :class)
+      (remf rest :required)
+      (remf rest :type)
+      (remf rest :value)
+      (let ((textarea `(:textarea :type ,type :name ,name :id ,name :class ,result-class :value ,value)))
+        (unless (null rest)
+          (setf textarea (append textarea rest)))
+        (let ((textarea-container `((:div :class ,result-container-class)
+                                 (,label ,title)
+                                 ((:div :class "input-bg")
+                                  (,textarea)))))
+          `(ps-html ,textarea-container))))))
 (in-package #:moto)
 
 (defmacro select ((name title &rest rest &key container-class class required default &allow-other-keys) &body options)

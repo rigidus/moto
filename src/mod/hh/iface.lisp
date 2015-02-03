@@ -6,7 +6,29 @@
 ;; Страницы
 (in-package #:moto)
 
-(define-page hh-main "/hh"
+(define-page hh "/hh"
+  (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+         (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
+         (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (base-page (:breadcrumb breadcrumb)
+      (content-box ()
+        (heading ("Модуль HeadHunter") "Меню модуля"))
+      (content-box ()
+        ((:section :class "dnd-area")
+         ((:ul :class "connected handles list" :id "not")
+          ((:li)
+           ((:a :href "/hh/vacs") "Отобранные вакансии") "")
+          ((:li)
+           ((:a :href "/hh/rules") "Правила обработки") ""))))
+      (ps-html ((:span :class "clear")))))
+  (:SAVE (ps-html
+          ((:input :type "hidden" :name "act" :value "SAVE"))
+          (submit "SAVE" :onclick "save();return false;"))
+         (progn nil)))
+(in-package #:moto)
+
+(define-page vacs "/hh/vacs"
   (labels ((mrg (param)
              (if (null param)
                  (vac-elt 0 "Нет вакансий" 0 "highlight")
@@ -21,7 +43,7 @@
                                  param)))))
     (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
            (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
-           (breadcrumb (breadcrumb "HeadHunter"))
+           (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
       (base-page (:breadcrumb breadcrumb)
         ((:script)
@@ -67,39 +89,61 @@
          ))
 (in-package #:moto)
 
-(defmethod to-html ((vac vacancy) &key filter &allow-other-keys)
-  (ps-html
-   ((:table :border 0 :style "font-size: small;")
-    ((:tr)
-     ((:td) "id:")         ((:td) (id vac))         ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "src-id:")     ((:td) (src-id vac))     ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "archive:")    ((:td) (archive vac))    ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "emp-id:")     ((:td) (emp-id vac))     ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "emp-name:")   ((:td) (emp-name vac))   ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "city:")       ((:td) (city vac))       ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "metro:")      ((:td) (metro vac))      ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "experience:") ((:td) (experience vac)) ((:td) "&nbsp;&nbsp;&nbsp;")
-     ((:td) "date:")       ((:td) (date vac))       ((:td) "&nbsp;&nbsp;&nbsp;")))
-   ((:h3) (name vac) "&nbsp;&nbsp;&nbsp;" ((:span :style "color:red") (salary-text vac)))
-   ((:pre) (descr vac))
-   ((:table :border 0)
-    ((:th) "notes")
-    ((:th) "response")
-    ((:tr)
-     ((:td :width 500 :valign "top") ((:textarea :name "notes" :cols 60 :rows 6) (notes vac)))
-     ((:td :width 500 :valign "top") ((:textarea :name "response" :cols 60 :rows 6) (response vac)))))))
-
-(define-page vacancy "/vacancy/:id"
+(define-page vacancy "/vac/:id"
   (ps-html
    ((:form :method "POST")
      (format nil "~{~A~}"
           (list
            (to-html (car (find-vacancy :src-id id)))
            %save% %respond%))))
-  (:save  "<input type=\"submit\" name=\"act\" value=\"SAVE\" />"
-          (id (upd-vacancy (car (find-vacancy :src-id id))
-                           (list :notes (getf p :notes) :response (getf p :response)))))
-  (:respond "<input type=\"submit\" name=\"act\" value=\"RESPOND\" />"
+
+(define-page vacancy "/vac/:src-id"
+  (let* ((vac (car (find-vacancy :src-id src-id)))
+         (breadcrumb (if (null vac)
+                         (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))
+                         (breadcrumb (name vac) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
+         (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
+      (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+        (content-box ()
+          (heading ((format nil "~A ~A" (name vac) (ps-html ((:span :style "color:red") (salary-text vac)))))
+            ((:table :border 0 :style "font-size: small;")
+                    ((:tr)
+                     ((:td) "id:")         ((:td) (id vac))                                      ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "src-id:")     ((:td) (src-id vac))                                  ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "archive:")    ((:td) (archive vac))                                 ((:td) "&nbsp;&nbsp;&nbsp;"))
+                    ((:tr)
+                     ((:td) "emp-id:")     ((:td) (emp-id vac))                                  ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "emp-name:")   ((:td) ((:span :style "color:red") (emp-name vac)))   ((:td) "&nbsp;&nbsp;&nbsp;"))
+                    ((:tr)
+                     ((:td) "city:")       ((:td) (city vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "metro:")      ((:td) (metro vac))                                   ((:td) "&nbsp;&nbsp;&nbsp;"))
+                    ((:tr)
+                     ((:td) "experience:") ((:td) (experience vac))                              ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "date:")       ((:td) (date vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")))
+            ))
+        (content-box ()
+          ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
+        (content-box ()
+          (form ("regform" nil :action "/reg" :class "form-section-container")
+            ((:div :class "form-section")
+             (fieldset "Заметки"
+               (textarea ("notes" "Заметки") (notes vac))
+               (textarea ("repsonse" "Сопроводительное письмо") (response vac))
+               (ps-html ((:span :class "clear")))))
+
+            %SAVE%))
+        (ps-html ((:span :class "clear")))))
+  (:SAVE (ps-html
+          ((:input :type "hidden" :name "act" :value "SAVE"))
+          ((:div :class "form-send-container")
+           (submit "SAVE" :onclick "save();return false;")))
+         (id (upd-vacancy (car (find-vacancy :src-id id))
+                          (list :notes (getf p :notes) :response (getf p :response)))))
+  (:respond (ps-html
+             ((:input :type "hidden" :name "act" :value "SAVE"))
+             ((:div :class "form-send-container")
+              (submit "SAVE" :onclick "save();return false;")))
             (progn
               (id (upd-vacancy (car (find-vacancy :src-id id))
                                (list :response (getf p :response))))
