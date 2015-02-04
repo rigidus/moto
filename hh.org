@@ -9,6 +9,10 @@
 #+END_HTML
 
 send_responds for all
+Работодатель хочет подтверждения навыков соискателя - для этого и тестовые задания. Надо
+автоматизировать этот момент - если соискатель заявляет, к примеру, знания С++ - он должен
+сделать некий тестовый код.
+
 
 * Цель
 
@@ -1114,13 +1118,17 @@ send_responds for all
 
    #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
-   | action             | from          | to            |
-   |--------------------+---------------+---------------|
-   | set-uninteresting  | unsort        | uninteresting |
-   | set-interesting    | unsort        | interesting   |
-   | loop-interesting   | interesting   | interesting   |
-   | loop-uninteresting | uninteresting | uninteresting |
-   | respond            | interesting   | responded     |
+   | action                    | from          | to            |
+   |---------------------------+---------------+---------------|
+   | set-uninteresting         | unsort        | uninteresting |
+   | set-interesting           | unsort        | interesting   |
+   | loop-interesting          | interesting   | interesting   |
+   | loop-uninteresting        | uninteresting | uninteresting |
+   | uninteresting-interesting | uninteresting | interesting   |
+   | interesting-respond       | interesting   | responded     |
+   | respond-immediately       | unsort        | responded     |
+
+
 
    Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 
@@ -1146,20 +1154,29 @@ send_responds for all
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defun teaser-rejection ()
-       "teaser-rejection")
-
-     (defun rejection-favorite ()
-       "rejection-favorite")
-
      (defun set-interesting ()
        "set-interesting")
+
+     (defun set-uninteresting ()
+       "set-uninteresting")
 
      (defun loop-interesting ()
        "loop-interesting")
 
      (defun loop-uninteresting ()
        "loop-uninteresting")
+
+     (defun interesting-respond ()
+       "interesting ->respond")
+
+     (defun interesting-respond ()
+       "interesting ->respond")
+
+     (defun respond-immediately ()
+       "unsort ->respond")
+
+     (defun uninteresting-interesting ()
+       "uninteresting-interesting")
    #+END_SRC
 
 ** Печать вакансий
@@ -1309,6 +1326,10 @@ send_responds for all
                :force-binary t)
               :external-format :utf-8)))))
 
+     ;; (response (car (find-vacancy :src-id "12644276")))
+
+     ;; (respond 12644276 7628220 "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")
+
      ;; (let ((respond (respond 12646549 7628220 "тест")))
      ;;   (print respond))
 
@@ -1358,6 +1379,7 @@ send_responds for all
    #+END_SRC
 
 ** Страница списка вакансий
+
    http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
    http://romka.eu/blog/jquery-table-drag-and-drop
 
@@ -1368,18 +1390,21 @@ send_responds for all
      (define-page vacs "/hh/vacs"
        (labels ((mrg (param)
                   (if (null param)
-                      (vac-elt 0 "Нет вакансий" 0 "highlight")
+                      ""
                       (reduce #'(lambda (x y)
                                   (concatenate 'string x (string #\NewLine) y))
                               (mapcar #'(lambda (x)
                                           (ps-html ((:li :id (src-id x)
-                                                         :class (if (equal ":UNSORT" (state x)) "highlight" ""))
-                                                    ((:span) (salary-max x))
-                                                    ((:a :href (format nil "/vac/~A" (src-id x)))
+                                                         :class (string-downcase (subseq (state x) 1))
+                                                         :title (notes x))
+                                                    ((:span) (format nil "~A~A"
+                                                                     (if (not (empty (notes x))) "*" "")
+                                                                     (salary-max x)))
+                                                    ((:a :href (format nil "/hh/vac/~A" (src-id x)))
                                                      (name x)))))
                                       param)))))
          (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
+                (sorted-vacs (sort vacs #'(lambda (a b) (> (salary-max a) (salary-max b)))))
                 (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
                 (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
            (base-page (:breadcrumb breadcrumb)
@@ -1388,16 +1413,21 @@ send_responds for all
                 (defun get-child-ids (selector)
                   ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
                 (defun save ()
-                  ((@ $ post) "/hh" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
+                  ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
                    (lambda (data status)
                      (if (not (equal status "success"))
                          (alert (concatenate 'string "err-ajax-fail: " status))
                          (eval data))))
                   false)))
              (content-box ()
-               (heading ("Модуль HeadHunter") "Желтым выделены вакансии, которые появились в момент последнего сбора данных. "
-                        "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
-                        "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет."))
+               (heading ("Модуль HeadHunter")
+                 "В правой колонке - интересные вакансии, в левой - неинтересные. "
+                 ((:span :class "unsort") "Желтым")
+                 " выделены вакансии, которые появились в момент последнего сбора данных. "
+                 "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
+                 "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет. "
+                 ((:span :class "responded") "Зеленым") " выделены вакансии, на которые отправлен отзыв. "
+                 "Звездочкой* помечены вакансии, к которым есть заметки."))
              (content-box (:style "position:relative; x: -600")
                %SAVE%
                ((:section :class "dnd-area")
@@ -1420,7 +1450,9 @@ send_responds for all
                             (takt (car (find-vacancy :src-id (parse-integer x))) :uninteresting))
                         (split-sequence:split-sequence #\, (getf p :not)))
                 (mapcar #'(lambda (x)
-                            (takt (car (find-vacancy :src-id (parse-integer x))) :interesting))
+                            (let ((vac (car (find-vacancy :src-id (parse-integer x)))))
+                              (unless (equal (state vac) ":RESPONDED")
+                                (takt vac :interesting))))
                         (split-sequence:split-sequence #\, (getf p :yep)))
                 (error 'ajax :output (ps (@ ((@ ($ ".highlight") remove-class) "highlight")))))
               ))
@@ -1432,7 +1464,7 @@ send_responds for all
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (define-page vacancy "/vac/:src-id"
+     (define-page vacancy "/hh/vac/:src-id"
        (let* ((vac (car (find-vacancy :src-id src-id)))
               (breadcrumb (if (null vac)
                               (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))
@@ -1478,8 +1510,13 @@ send_responds for all
                  (progn
                    (id (upd-vacancy (car (find-vacancy :src-id src-id))
                                     (list :notes (getf p :notes) :response (getf p :response))))
-                   (respond src-id 7628220 (getf p :response)))
-                 ))
+                   (dbg (respond src-id 7628220 (getf p :response)))
+                   (dbg (takt (car (find-vacancy :src-id "12644276")) :responded))
+                   )))
+
+     ;; (takt (car (find-vacancy :src-id "12611079")) :responded)
+
+     ;; (response (car (find-vacancy :src-id "12644276")))
    #+END_SRC
 
 ** Галлерея (parenscript)

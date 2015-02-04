@@ -811,6 +811,10 @@
           :force-binary t)
          :external-format :utf-8)))))
 
+;; (response (car (find-vacancy :src-id "12644276")))
+
+;; (respond 12644276 7628220 "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")
+
 ;; (let ((respond (respond 12646549 7628220 "тест")))
 ;;   (print respond))
 

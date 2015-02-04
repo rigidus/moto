@@ -73,7 +73,7 @@
 ;; (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
 (in-package #:moto)
 
-(defmacro textarea ((name title &rest rest &key container-class class required type value &allow-other-keys) &body nobody)
+(defmacro textarea ((name title &rest rest &key container-class class required type &allow-other-keys) &body text)
   (let ((result-container-class "input-container")
         (label `(:label :for ,name)))
     (when container-class
@@ -87,21 +87,21 @@
         (setf result-class (concatenate 'string result-class " " class)))
       (unless type
         (setf type "text"))
-      (unless value
-        (setf value ""))
       (remf rest :container-class)
       (remf rest :class)
       (remf rest :required)
       (remf rest :type)
-      (remf rest :value)
-      (let ((textarea `(:textarea :type ,type :name ,name :id ,name :class ,result-class :value ,value)))
+      (let ((textarea `(:textarea :type ,type :name ,name :id ,name :class ,result-class)))
         (unless (null rest)
           (setf textarea (append textarea rest)))
         (let ((textarea-container `((:div :class ,result-container-class)
                                  (,label ,title)
                                  ((:div :class "input-bg")
-                                  (,textarea)))))
+                                  (,textarea ,@text)))))
           `(ps-html ,textarea-container))))))
+
+;; (macroexpand-1 '(textarea ("notes" "Заметки") "zzz"))
+
 (in-package #:moto)
 
 (defmacro select ((name title &rest rest &key container-class class required default &allow-other-keys) &body options)
@@ -152,15 +152,15 @@
 (in-package #:moto)
 
 (defmacro submit (title &rest rest &key class container-class &allow-other-keys)
-  (let ((result-container-class "button")
-        (result-class ""))
+  (let ((result-container-class "")
+        (result-class "button"))
     (when container-class (setf result-container-class (concatenate 'string result-container-class " " container-class)))
     (remf rest :container-class)
     (when class (setf result-class (concatenate 'string result-class " " class)))
     (remf rest :class)
-    (let ((button `(:button :type "submit" :class ,result-container-class)))
+    (let ((button `(:button :type "submit" :class ,result-class)))
       (setf button (append button rest))
-      `(ps-html ((:div :class ,result-class)
+      `(ps-html ((:div :class ,result-container-class)
                  (,button ,title))))))
 
 ;; (macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))

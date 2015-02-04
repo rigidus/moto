@@ -138,7 +138,7 @@
   #+BEGIN_SRC lisp
     (in-package #:moto)
 
-    (defmacro textarea ((name title &rest rest &key container-class class required type &allow-other-keys) &body value)
+    (defmacro textarea ((name title &rest rest &key container-class class required type &allow-other-keys) &body text)
       (let ((result-container-class "input-container")
             (label `(:label :for ,name)))
         (when container-class
@@ -152,20 +152,17 @@
             (setf result-class (concatenate 'string result-class " " class)))
           (unless type
             (setf type "text"))
-          (unless value
-            (setf value ""))
           (remf rest :container-class)
           (remf rest :class)
           (remf rest :required)
           (remf rest :type)
-          (remf rest :value)
           (let ((textarea `(:textarea :type ,type :name ,name :id ,name :class ,result-class)))
             (unless (null rest)
               (setf textarea (append textarea rest)))
             (let ((textarea-container `((:div :class ,result-container-class)
                                      (,label ,title)
                                      ((:div :class "input-bg")
-                                      (,textarea ,@value)))))
+                                      (,textarea ,@text)))))
               `(ps-html ,textarea-container))))))
 
     ;; (macroexpand-1 '(textarea ("notes" "Заметки") "zzz"))

@@ -25,5 +25,7 @@
    (:unsort :interesting :set-interesting)
    (:interesting :interesting :loop-interesting)
    (:uninteresting :uninteresting :loop-uninteresting)
-   (:interesting :responded :respond)))
+   (:uninteresting :interesting :uninteresting-interesting)
+   (:interesting :responded :interesting-respond)
+   (:unsort :responded :respond-immediately)))
 ;; entity_and_automates ends here

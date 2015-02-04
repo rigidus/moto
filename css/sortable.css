@@ -30,7 +30,6 @@ h1, h2 {
 .connected li, .sortable li, .exclude li, .handles li {
     list-style: none;
     border: 1px solid #CCC;
-    background: #F6F6F6;
     font-family: "Tahoma";
     color: #1C94C4;
     margin: 5px;
@@ -59,8 +58,17 @@ li.disabled {
     height: 80px;
     text-align: center;
 }
-li.highlight {
+.uninteresting {
+    background: #F6F6F6;
+}
+.interesting {
+    background: #F6F6F6;
+}
+.unsort {
     background: #FEE25F;
+}
+.responded {
+    background: #5FFE61;
 }
 .dnd-area {
     width: 939px;
@@ -76,10 +84,12 @@ li.highlight {
     margin: auto;
 }
 .connected {
+    min-height: 300px;
     float: left;
     width: 467px;
 }
 .connected.no2 {
+    min-height: 300px;
     float: right;
 }
 li.sortable-placeholder {
