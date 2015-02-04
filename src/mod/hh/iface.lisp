@@ -36,12 +36,10 @@
                              (concatenate 'string x (string #\NewLine) y))
                          (mapcar #'(lambda (x)
                                      (ps-html ((:li :id (src-id x)
-                                                    :class (if (equal ":UNSORT" (state x)) "highlight" "")
+                                                    :class (string-downcase (subseq (state x) 1))
                                                     :title (notes x))
-                                               ((:span) (format nil "~A~A~A"
-                                                                (if (not (empty (notes x))) "*" "")
-                                                                (if (equal ":RESPONDED" (state x)) "~" "")
-                                                                (salary-max x)))
+                                               ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
+                                                (salary-max x))
                                                ((:a :href (format nil "/hh/vac/~A" (src-id x)))
                                                 (name x)))))
                                  param)))))
@@ -62,10 +60,17 @@
                     (eval data))))
              false)))
         (content-box ()
-          (heading ("Модуль HeadHunter") "Желтым выделены вакансии, которые появились в момент последнего сбора данных. "
-                   "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
-                   "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет."))
-        (content-box (:style "position:relative; x: -600")
+          (heading ("Модуль HeadHunter")
+            "В правой колонке - интересные вакансии, в левой - неинтересные. "
+            ((:span :class "unsort") "&nbsp;Желтым&nbsp;")
+            " выделены вакансии, которые появились в момент последнего сбора данных. "
+            "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
+            "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет. "
+            ((:span :class "responded") "&nbsp;Зеленым&nbsp;") " выделены вакансии, на которые отправлен отзыв. "
+            "Вакансии, к которым есть заметки, выделяются зарплатой на "
+            ((:span :class "notes") "&nbsp;красном&nbsp;") " фоне. "
+            "При наведении на такую вакансию можно увидеть текст заметки."))
+        (content-box ()
           %SAVE%
           ((:section :class "dnd-area")
            ((:ul :class "connected handles list" :id "not")
@@ -91,8 +96,7 @@
                          (unless (equal (state vac) ":RESPONDED")
                            (takt vac :interesting))))
                    (split-sequence:split-sequence #\, (getf p :yep)))
-           (error 'ajax :output (ps (@ ((@ ($ ".highlight") remove-class) "highlight")))))
-         ))
+           (error 'ajax :output "window.location.href='/hh/vacs'"))))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"

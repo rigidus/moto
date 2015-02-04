@@ -8,11 +8,7 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
-send_responds for all
-Работодатель хочет подтверждения навыков соискателя - для этого и тестовые задания. Надо
-автоматизировать этот момент - если соискатель заявляет, к примеру, знания С++ - он должен
-сделать некий тестовый код.
-
+Нужно отслеживать, отказал ли работодатель
 
 * Цель
 
@@ -1033,6 +1029,11 @@ send_responds for all
                                                                    ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
                                                              (return-from exp-extract (list :exp exp))) tree))))
                    (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
+                 (let ((respond-result (block respond-extract (mtm (`("div" (("class" "g-attention m-attention_good b-vacancy-message"))
+                                                                            "Вы уже откликались на эту вакансию. "
+                                                                            ("a" (("href" ,resp)) "Посмотреть отклики."))
+                                                                     (return-from respond-extract (list :respond resp))) tree))))
+                   (if (equal 2 (length respond-result)) respond-result (list :respond nil)))
                  (block descr-extract
                    (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
                           (return-from descr-extract (list :descr (transform-description descr)))) tree)))))
@@ -1041,7 +1042,7 @@ send_responds for all
      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
 
      ;; (print
-     ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
+     ;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
    #+END_SRC
 
 ** Сохранение вакансии и ее структура данных
@@ -1068,6 +1069,7 @@ send_responds for all
    | metro       | varchar              | метро                                           |
    | experience  | varchar              | требуемый опыт работы                           |
    | date        | varchar              | дата опубликования в источнике                  |
+   | respond     | varchar              | ссылка на отклик                                |
    | descr       | varchar              | описание вакансии                               |
    | notes       | (or db-null varchar) | заметки по вакансии                             |
    | response    | (or db-null varchar) | текст отклика на вакансию                       |
@@ -1099,7 +1101,8 @@ send_responds for all
                             :experience (getf vacancy :exp)
                             :archive (getf vacancy :archive)
                             :date (getf vacancy :date)
-                            :state ":UNSORT"
+                            :respond (aif (getf vacancy :respond) it "")
+                            :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
                             :descr (bprint (getf vacancy :descr))
                             :notes ""
                             :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
@@ -1118,15 +1121,18 @@ send_responds for all
 
    #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
-   | action                    | from          | to            |
-   |---------------------------+---------------+---------------|
-   | set-uninteresting         | unsort        | uninteresting |
-   | set-interesting           | unsort        | interesting   |
-   | loop-interesting          | interesting   | interesting   |
-   | loop-uninteresting        | uninteresting | uninteresting |
-   | uninteresting-interesting | uninteresting | interesting   |
-   | interesting-respond       | interesting   | responded     |
-   | respond-immediately       | unsort        | responded     |
+   | action                      | from          | to            |
+   |-----------------------------+---------------+---------------|
+   | unsort-uninteresting        | unsort        | uninteresting |
+   | unsort-interesting          | unsort        | interesting   |
+   | unsort-responded            | unsort        | responded     |
+   | uninteresting-interesting   | uninteresting | interesting   |
+   | uninteresting-responded     | uninteresting | responded     |
+   | uninteresting-uninteresting | uninteresting | uninteresting |
+   | interesting-uninteresting   | interesting   | uninteresting |
+   | interesting-responded       | interesting   | responded     |
+   | interesting-interesting     | interesting   | interesting   |
+   | responded-responded         | responded     | responded     |
 
 
 
@@ -1154,29 +1160,35 @@ send_responds for all
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defun set-interesting ()
-       "set-interesting")
+     (defun unsort-uninteresting ()
+       "unsort-uninteresting")
 
-     (defun set-uninteresting ()
-       "set-uninteresting")
+     (defun unsort-interesting ()
+       "unsort-interesting")
 
-     (defun loop-interesting ()
-       "loop-interesting")
-
-     (defun loop-uninteresting ()
-       "loop-uninteresting")
-
-     (defun interesting-respond ()
-       "interesting ->respond")
-
-     (defun interesting-respond ()
-       "interesting ->respond")
-
-     (defun respond-immediately ()
-       "unsort ->respond")
+     (defun unsort-responded ()
+       "unsort-responded")
 
      (defun uninteresting-interesting ()
        "uninteresting-interesting")
+
+     (defun uninteresting-responded ()
+       "uninteresting-responded")
+
+     (defun uninteresting-uninteresting ()
+       "uninteresting-uninteresting")
+
+     (defun interesting-uninteresting ()
+       "interesting-uninteresting")
+
+     (defun interesting-responded ()
+       "interesting-responded")
+
+     (defun interesting-interesting ()
+       "interesting-interesting")
+
+     (defun responded-responded ()
+       "responded-responded")
    #+END_SRC
 
 ** Печать вакансий
@@ -1397,9 +1409,8 @@ send_responds for all
                                           (ps-html ((:li :id (src-id x)
                                                          :class (string-downcase (subseq (state x) 1))
                                                          :title (notes x))
-                                                    ((:span) (format nil "~A~A"
-                                                                     (if (not (empty (notes x))) "*" "")
-                                                                     (salary-max x)))
+                                                    ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
+                                                     (salary-max x))
                                                     ((:a :href (format nil "/hh/vac/~A" (src-id x)))
                                                      (name x)))))
                                       param)))))
@@ -1422,13 +1433,15 @@ send_responds for all
              (content-box ()
                (heading ("Модуль HeadHunter")
                  "В правой колонке - интересные вакансии, в левой - неинтересные. "
-                 ((:span :class "unsort") "Желтым")
+                 ((:span :class "unsort") "&nbsp;Желтым&nbsp;")
                  " выделены вакансии, которые появились в момент последнего сбора данных. "
                  "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
                  "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет. "
-                 ((:span :class "responded") "Зеленым") " выделены вакансии, на которые отправлен отзыв. "
-                 "Звездочкой* помечены вакансии, к которым есть заметки."))
-             (content-box (:style "position:relative; x: -600")
+                 ((:span :class "responded") "&nbsp;Зеленым&nbsp;") " выделены вакансии, на которые отправлен отзыв. "
+                 "Вакансии, к которым есть заметки, выделяются зарплатой на "
+                 ((:span :class "notes") "&nbsp;красном&nbsp;") " фоне. "
+                 "При наведении на такую вакансию можно увидеть текст заметки."))
+             (content-box ()
                %SAVE%
                ((:section :class "dnd-area")
                 ((:ul :class "connected handles list" :id "not")
@@ -1454,8 +1467,7 @@ send_responds for all
                               (unless (equal (state vac) ":RESPONDED")
                                 (takt vac :interesting))))
                         (split-sequence:split-sequence #\, (getf p :yep)))
-                (error 'ajax :output (ps (@ ((@ ($ ".highlight") remove-class) "highlight")))))
-              ))
+                (error 'ajax :output "window.location.href='/hh/vacs'"))))
    #+END_SRC
 
 ** Страница вакансии
@@ -2090,6 +2102,10 @@ send_responds for all
     - =отправил-тестовое-задание=,
     - =получен-оффер=,
     - =вакансия-закрыта= итп.
+
+  Работодатель хочет подтверждения навыков соискателя - для этого и тестовые задания. Надо
+  автоматизировать этот момент - если соискатель заявляет, к примеру, знания С++ - он должен
+  сделать некий тестовый код.
 
   Я бы хотел ранжировать вакансии вручную (по выставленным приоритетам) и автоматически
   (т.е. скриптом), например в зависимости от зарплаты или удаленности.

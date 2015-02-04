@@ -37,12 +37,18 @@ h1, h2 {
 }
 .handles span {
     cursor: move;
-    background-color: #FFECEC;
-    color: #FF1E1E;
     width: 50px;
     border: 1px solid #FF1E1E;
     margin: 0 5px 0 0;
     padding: 0 5px 0 5px;
+}
+.emptynotes {
+    background-color: #FFECEC;
+    color: #FF1E1E;
+}
+.notes {
+    background-color: #FF1E1E;
+    color: #FFECEC;
 }
 .handle span {
     cursor: move;

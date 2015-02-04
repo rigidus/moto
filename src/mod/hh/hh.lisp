@@ -644,6 +644,11 @@
                                                               ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
                                                         (return-from exp-extract (list :exp exp))) tree))))
               (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
+            (let ((respond-result (block respond-extract (mtm (`("div" (("class" "g-attention m-attention_good b-vacancy-message"))
+                                                                       "Вы уже откликались на эту вакансию. "
+                                                                       ("a" (("href" ,resp)) "Посмотреть отклики."))
+                                                                (return-from respond-extract (list :respond resp))) tree))))
+              (if (equal 2 (length respond-result)) respond-result (list :respond nil)))
             (block descr-extract
               (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
                      (return-from descr-extract (list :descr (transform-description descr)))) tree)))))
@@ -652,7 +657,7 @@
 ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
 
 ;; (print
-;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12581768")))
+;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
 
 (defmethod process-teaser (current-teaser)
   (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
@@ -707,7 +712,8 @@
                        :experience (getf vacancy :exp)
                        :archive (getf vacancy :archive)
                        :date (getf vacancy :date)
-                       :state ":UNSORT"
+                       :respond (aif (getf vacancy :respond) it "")
+                       :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
                        :descr (bprint (getf vacancy :descr))
                        :notes ""
                        :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
