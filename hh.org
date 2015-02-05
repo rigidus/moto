@@ -1408,50 +1408,47 @@
      (in-package #:moto)
 
      (defun hh-parse-responds (html)
-       (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
-       ;;   (append (block header-extract
-       ;;             (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
-       ;;                           ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
-       ;;                    (return-from header-extract
-       ;;                      (append (list :name name :archive (if archive t nil))
-       ;;                              (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
-       ;;                                                      (return-from emp-block
-       ;;                                                        (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
-       ;;                                                              :emp-name emp-name))) rest)))))
-       ;;                  tree))
-       ;;           (let ((salary-result (block salary-extract
-       ;;                                  (mtm (`("div" (("class" "l-paddings"))
-       ;;                                                ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-       ;;                                                ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
-       ;;                                                ,salary-text)
-       ;;                                         (return-from salary-extract (list :currency currency :base-salary (parse-integer base-salary) :salary-text salary-text)))
-       ;;                                       tree))))
-       ;;             (if (equal 6 (length salary-result))
-       ;;                 salary-result
-       ;;                 (list :currency nil :base-salary nil :salary-text nil)))
-       ;;           (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
-       ;;                                                         (return-from city-extract (list :city city))) tree))))
-       ;;             (if (equal 2 (length city-result)) city-result (list :city nil)))
-       ;;           (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
-       ;;                                                             ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
-       ;;                                                       (return-from exp-extract (list :exp exp))) tree))))
-       ;;             (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
-       ;;           (let ((respond-result (block respond-extract (mtm (`("div" (("class" "g-attention m-attention_good b-vacancy-message"))
-       ;;                                                                      "Вы уже откликались на эту вакансию. "
-       ;;                                                                      ("a" (("href" ,resp)) "Посмотреть отклики."))
-       ;;                                                               (return-from respond-extract (list :respond resp))) tree))))
-       ;;             (if (equal 2 (length respond-result)) respond-result (list :respond nil)))
-       ;;           (block descr-extract
-       ;;             (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
-       ;;                    (return-from descr-extract (list :descr (transform-description descr)))) tree))))
-       tree)
-       )
+       "Получение списка откликов из html"
+       (block subtree-extract
+         (mtm (`("tbody" NIL ,@rest)
+                (return-from subtree-extract rest))
+              (mtm (`("tr"
+                      (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_))
+                      (:RESULT ,result)
+                      Z
+                      ,data
+                      Z
+                      (:RESULT-DATE ,result-date) ,@rest)
+                     `(:topic-id ,topic-id :result ,result ,@data))
+                   (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")))
+                          `Z)
+                        (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon"))))
+                               `Z)
+                             (mtm (`("td" (("class" "prosper-table__cell")))
+                                    `Z)
+                                  (mtm (`("td" (("class" "prosper-table__cell"))
+                                               ("div" (("class" "responses-vacancy responses-vacancy_disabled"))
+                                                      ,vacancy-name)
+                                               ("div" (("class" "responses-company")) ,emp-name))
+                                         `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
+                                       (mtm (`("td" (("class" "prosper-table__cell"))
+                                                    ("div" (("class" "responses-vacancy"))
+                                                           ("a"
+                                                            (("class" "prosper-link HH-Negotiations-Responses-VacancyLink")
+                                                             ("target" "_blank") ("href" ,vacancy-link))
+                                                            ,vacancy-name))
+                                                    ("div" (("class" "responses-company")) ,emp-name))
+                                              `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
+                                            (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) ,result)
+                                                   `(:result ,result))
+                                                 (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                              ("span" (("class" "responses-date")) ,result-date))
+                                                        `(:result-date, result-date))
+                                                      (html5-parser:node-to-xmls
+                                                       (html5-parser:parse-html5-fragment html)))))))))))))
 
      ;; (print
-     ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
-
-     ;; (print
-     ;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
+     ;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=0")))
 
      (defmethod process-respond (respond)
        t)
@@ -1480,8 +1477,8 @@
                       (go get-new-respond)
                       (return-from get-responds current-respond))))))))
 
-     (funcall
-      (response-factory 'hh))
+     ;; (funcall
+     ;;  (response-factory 'hh))
    #+END_SRC
 
 * Interface
