@@ -331,7 +331,7 @@
 
      <<save_vacancy>>
 
-     <<respond>>
+     <<send_respond>>
 
      (defun run ()
        (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
@@ -395,7 +395,7 @@
                   (get-all-rules)))
    #+END_SRC
 
-** DONE Правила отсева тизеров
+** Правила отсева тизеров
 
    Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
    вакансий? В основном те, которые не устраивают по зарплате и те, у которых в названиях
@@ -412,7 +412,14 @@
        ;; (dbg "  - no salary")
        )
 
-     (define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary-max) 90000))
+     (define-drop-teaser-rule (salary-2-low (or
+                                             (and (equal (getf vacancy :currency) "RUR")
+                                                  (< (getf vacancy :salary-max) 90000))
+                                             (and (equal (getf vacancy :currency) "USD")
+                                                  (< (getf vacancy :salary-max) (floor 90000 67)))
+                                             (and (equal (getf vacancy :currency) "USD")
+                                                  (< (getf vacancy :salary-max) (floor 90000 77)))
+                                             ))
        ;; (dbg "  - no salary")
        )
 
@@ -522,7 +529,7 @@
      ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
    #+END_SRC
 
-** DONE Правила анализа вакансий
+** Правила анализа вакансий
 
    - Я не хочу смотреть на вакансии, в компаниях где я уже работал.
    - Если это уже существующая в базе вакансия и ничего не изменилось - игнорируем и
@@ -954,6 +961,10 @@
                 ((search "–" salary-text)
                  (let ((splt (ppcre:split "–" salary-text)))
                    (setf salary-min (parse-integer (car splt)))
+                   (setf salary-max (parse-integer (cadr splt)))))
+                ((search "-" salary-text)
+                 (let ((splt (ppcre:split "-" salary-text)))
+                   (setf salary-min (parse-integer (car splt)))
                    (setf salary-max (parse-integer (cadr splt))))))
           (when (null salary-min)
             (setf salary-min salary-max))
@@ -1237,7 +1248,7 @@
 
 ** Отправка отклика
 
-   #+NAME: respond
+   #+NAME: send_respond
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -1249,7 +1260,7 @@
            ("Cache-Control"    . "no-cache")
            ("Cookie"           . ,(format nil "~{~{~A=~A~}~^; ~}" cookies))))
 
-     (defun respond (vacancy-id resume-id letter)
+     (defun send-respond (vacancy-id resume-id letter)
        (let* ((hhtoken     "ES030IVQP52ULPbRqN9DQOcMIR!T")
               (hhuid       "x_FxSYWUbySJe1LhHIQxDA--")
               (xsrf        "ed689ea1ff02a3074c848b69225e3c78")
@@ -1508,23 +1519,24 @@
                ((:div :class "form-section")
                 (fieldset "Заметки"
                   (textarea ("notes" "Заметки") (notes vac))
-                  (textarea ("repsonse" "Сопроводительное письмо") (response vac))
+                  (textarea ("response" "Сопроводительное письмо") (response vac))
                   (ps-html ((:span :class "clear")))))
                %RESPOND% %SAVE%))
            (ps-html ((:span :class "clear")))))
        (:SAVE (ps-html ((:div :class "form-send-container")
                         (submit "Сохранить вакансию" :name "act" :value "SAVE")))
-              (id (upd-vacancy (car (find-vacancy :src-id src-id))
-                               (list :notes (getf p :notes) :response (getf p :response)))))
+              (progn
+                (id (upd-vacancy (car (find-vacancy :src-id src-id))
+                                 (list :notes (getf p :notes) :response (getf p :response))))
+                (redirect (format nil "/hh/vac/~A" src-id))))
        (:respond (ps-html
                   ((:div :class "form-send-container")
                    (submit "Отправить отклик" :name "act" :value "RESPOND")))
                  (progn
                    (id (upd-vacancy (car (find-vacancy :src-id src-id))
                                     (list :notes (getf p :notes) :response (getf p :response))))
-                   (dbg (respond src-id 7628220 (getf p :response)))
-                   (dbg (takt (car (find-vacancy :src-id "12644276")) :responded))
-                   )))
+                   (dbg (send-respond src-id 7628220 (getf p :response)))
+                   (dbg (takt (car (find-vacancy :src-id "12644276")) :responded)))))
 
      ;; (takt (car (find-vacancy :src-id "12611079")) :responded)
 
@@ -2693,7 +2705,7 @@
 
     <<run>>
 
-    <<_hh_fn_contents>>
+    <<hh_fn_contents>>
 
     <<_hh_parse>>
 
