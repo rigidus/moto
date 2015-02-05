@@ -98,8 +98,39 @@
                                                   ((:div :class "box--title") "Впервые здесь?")
                                                   ((:p) "Зарегистрируйтесь и оцените преимущества!")
                                                   ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
-                                                   ((:span :class "button__icon"))))))
-                                               )))
+                                                   ((:span :class "button__icon")))))))
+                                              :zzz (ps-html
+                                                    ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
+                                                     ((:div)
+                                                      ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus "email" :id "mylouis-flyout-link")
+                                                       ((:span :class "nav-button__text") "Мой профиль")
+                                                       ((:span :class "nav-button__icon sprite"))))
+                                                     ((:div :class "user-nav__flyout flyout flyout--my-louis flyout--my-louis--login popup")
+                                                      ((:span :class "hover"))
+                                                      ((:a :class "action-icon action-icon--close" :href "#") "×")
+                                                      (form ("loginform" nil :action "/login")
+                                                        (fieldset "Вход:"
+                                                          (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
+                                                          (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
+                                                          (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
+                                                          (submit "Войти")
+                                                          (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href "/lostpassword") "пароль") "?"))))
+                                                      ((:div :class "box")
+                                                       ((:div :class "box--title") "Впервые здесь?")
+                                                       ((:p) "Зарегистрируйтесь и оцените преимущества!")
+                                                       ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
+                                                        ((:span :class "button__icon")))))))
+                                              :search
+                                              (ps-html
+                                              ((:form :action "/search" :method "get" :novalidate "" :name "article-search" :class "header-search" :id="article-search")
+                                               ((:fieldset)
+                                                ((:legend :class "hidden") "search")
+                                                ((:div :class "input-container hide-label")
+                                                 ((:label :for "header-search-q") "Поиск вакансий и фирм")
+                                                 ((:input :name "search_term" :id "header-search-q" :class "input-text form-element header-search__input"
+                                                          :maxlength "50" :required "required" :autocomplete "off" :value "" :type "text")))
+                                                ((:button :name "searchButton" :type "submit" :class "button button--header-search" :value "")
+                                                 ((:span :class "button__icon sprite") "Search")))))))
                     :content retval
                     :footer (tpl:footer (list :dbg (format nil "<pre>~A</pre>" output))))))
          (ajax (ajax) (output ajax))))))

@@ -9,6 +9,9 @@
 #+END_HTML
 
 Нужно отслеживать, отказал ли работодатель
+Нужен поиск по responded-вакансиям
+Нужны сообщения
+Нужны резюме
 
 * Цель
 
@@ -1132,20 +1135,26 @@
 
    #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
-   | action                      | from          | to            |
-   |-----------------------------+---------------+---------------|
-   | unsort-uninteresting        | unsort        | uninteresting |
-   | unsort-interesting          | unsort        | interesting   |
-   | unsort-responded            | unsort        | responded     |
-   | uninteresting-interesting   | uninteresting | interesting   |
-   | uninteresting-responded     | uninteresting | responded     |
-   | uninteresting-uninteresting | uninteresting | uninteresting |
-   | interesting-uninteresting   | interesting   | uninteresting |
-   | interesting-responded       | interesting   | responded     |
-   | interesting-interesting     | interesting   | interesting   |
-   | responded-responded         | responded     | responded     |
-
-
+   | action  | from          | to            |
+   |---------+---------------+---------------|
+   | uns-uni | unsort        | uninteresting |
+   | uns-int | unsort        | interesting   |
+   | uns-res | unsort        | responded     |
+   | uni-int | uninteresting | interesting   |
+   | uni-res | uninteresting | responded     |
+   | uni-uni | uninteresting | uninteresting |
+   | int-uni | interesting   | uninteresting |
+   | int-res | interesting   | responded     |
+   | int-int | interesting   | interesting   |
+   | res-res | responded     | responded     |
+   | res-bee | responded     | beenviewed    |
+   | bee-bee | beenviewed    | beenviewed    |
+   | res-rej | responded     | reject        |
+   | rej-rej | reject        | reject        |
+   | res-rej | beenviewed    | reject        |
+   | res-inv | responded     | invite        |
+   | bee-inv | beenviewed    | invite        |
+   | inv-inv | invite        | invite        |
 
    Теперь мы можем полностью описать поведение вакансии как конечный автомат:
 
@@ -1171,35 +1180,59 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defun unsort-uninteresting ()
-       "unsort-uninteresting")
+     (defun uns-uni ()
+       "unsort        | uninteresting")
 
-     (defun unsort-interesting ()
-       "unsort-interesting")
+     (defun uns-int ()
+       "unsort        | interesting  ")
 
-     (defun unsort-responded ()
-       "unsort-responded")
+     (defun uns-res ()
+       "unsort        | responded    ")
 
-     (defun uninteresting-interesting ()
-       "uninteresting-interesting")
+     (defun uni-int ()
+       "uninteresting | interesting  ")
 
-     (defun uninteresting-responded ()
-       "uninteresting-responded")
+     (defun uni-res ()
+       "uninteresting | responded    ")
 
-     (defun uninteresting-uninteresting ()
-       "uninteresting-uninteresting")
+     (defun uni-uni ()
+       "uninteresting | uninteresting")
 
-     (defun interesting-uninteresting ()
-       "interesting-uninteresting")
+     (defun int-uni ()
+       "interesting   | uninteresting")
 
-     (defun interesting-responded ()
-       "interesting-responded")
+     (defun int-res ()
+       "interesting   | responded    ")
 
-     (defun interesting-interesting ()
-       "interesting-interesting")
+     (defun int-int ()
+       "interesting   | interesting  ")
 
-     (defun responded-responded ()
-       "responded-responded")
+     (defun res-res ()
+       "responded     | responded    ")
+
+     (defun res-bee ()
+       "responded     | beenviewed   ")
+
+     (defun bee-bee ()
+       "beenviewed    | beenviewed   ")
+
+     (defun res-rej ()
+       "responded     | reject       ")
+
+     (defun rej-rej ()
+       "reject        | reject       ")
+
+     (defun res-rej ()
+       "beenviewed    | reject       ")
+
+     (defun res-inv ()
+       "responded     | invite       ")
+
+     (defun bee-inv ()
+       "beenviewed    | invite       ")
+
+     (defun inv-inv ()
+       "invite        | invite       ")
    #+END_SRC
 
 ** Печать вакансий
@@ -1421,6 +1454,9 @@
                                                          :class (string-downcase (subseq (state x) 1))
                                                          :title (notes x))
                                                     ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
+                                                     (cond ((equal "USD" (currency x)) "$")
+                                                           ((equal "EUR" (currency x)) "€")
+                                                           ((equal "RUR" (currency x)) ""))
                                                      (salary-max x))
                                                     ((:a :href (format nil "/hh/vac/~A" (src-id x)))
                                                      (name x)))))
@@ -1541,6 +1577,144 @@
      ;; (takt (car (find-vacancy :src-id "12611079")) :responded)
 
      ;; (response (car (find-vacancy :src-id "12644276")))
+   #+END_SRC
+
+** START Страница правил
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (define-page rules "/hh/rules"
+       (labels ((mrg (param)
+                  (if (null param)
+                      ""
+                      (reduce #'(lambda (x y)
+                                  (concatenate 'string x (string #\NewLine) y))
+                              (mapcar #'(lambda (x)
+                                          (ps-html ((:li ;; :id (src-id x)
+                                                         ;; :class (string-downcase (subseq (state x) 1))
+                                                         ;; :title (notes x)
+                                                         )
+                                                    ;; ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
+                                                    ;;  (cond ((equal "USD" (currency x)) "$")
+                                                    ;;        ((equal "EUR" (currency x)) "€")
+                                                    ;;        ((equal "RUR" (currency x)) ""))
+                                                    ;;  (salary-max x))
+                                                    ((:a :href (format nil "/hh/rule/~A" ;; (src-id x)
+                                                                       0
+                                                                       ))
+                                                     (symbol-name x)))))
+                                      param)))))
+         (let* ((breadcrumb (breadcrumb "Правила" ("/hh" . "HeadHunter")))
+                (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+           (base-page (:breadcrumb breadcrumb)
+             ((:script)
+              (ps
+                (defun get-child-ids (selector)
+                  ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+                (defun save ()
+                  ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
+                   (lambda (data status)
+                     (if (not (equal status "success"))
+                         (alert (concatenate 'string "err-ajax-fail: " status))
+                         (eval data))))
+                  false)))
+             (content-box ()
+               (heading ("Правила обработки")
+                 "В правой колонке - Правила для тизеров, в левой - для вакансий. "))
+             (content-box ()
+               %SAVE%
+               ((:section :class "dnd-area")
+                ((:ul :class "connected handles list" :id "not")
+                 (mrg (rules-for-teaser)))
+                ((:ul :class "connected handles list no2" :id "yep")
+                 (mrg (rules-for-vacancy)))))
+             (ps-html ((:span :class "clear"))))))
+       (:SAVE (ps-html
+               ((:input :type "hidden" :name "act" :value "SAVE"))
+               (submit "SAVE" :onclick "save();return false;"))
+              (progn
+                (setf *tmp1* (split-sequence:split-sequence #\, (getf p :not)))
+                (setf *tmp2* (split-sequence:split-sequence #\, (getf p :yep)))
+                (mapcar #'(lambda (x)
+                            (takt (car (find-vacancy :src-id (parse-integer x))) :uninteresting))
+                        (split-sequence:split-sequence #\, (getf p :not)))
+                (mapcar #'(lambda (x)
+                            (let ((vac (car (find-vacancy :src-id (parse-integer x)))))
+                              (unless (equal (state vac) ":RESPONDED")
+                                (takt vac :interesting))))
+                        (split-sequence:split-sequence #\, (getf p :yep)))
+                (error 'ajax :output "window.location.href='/hh/rules'"))))
+   #+END_SRC
+
+** Страница поиска
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (define-page search-vacancy "/hh/search"
+       (labels ((mrg (param)
+                  (if (null param)
+                      ""
+                      (reduce #'(lambda (x y)
+                                  (concatenate 'string x (string #\NewLine) y))
+                              (mapcar #'(lambda (x)
+                                          (ps-html ((:li ;; :id (src-id x)
+                                                         ;; :class (string-downcase (subseq (state x) 1))
+                                                         ;; :title (notes x)
+                                                         )
+                                                    ;; ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
+                                                    ;;  (cond ((equal "USD" (currency x)) "$")
+                                                    ;;        ((equal "EUR" (currency x)) "€")
+                                                    ;;        ((equal "RUR" (currency x)) ""))
+                                                    ;;  (salary-max x))
+                                                    ((:a :href (format nil "/hh/rule/~A" ;; (src-id x)
+                                                                       0
+                                                                       ))
+                                                     (symbol-name x)))))
+                                      param)))))
+         (let* ((breadcrumb (breadcrumb "Правила" ("/hh" . "HeadHunter")))
+                (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+           (base-page (:breadcrumb breadcrumb)
+             ((:script)
+              (ps
+                (defun get-child-ids (selector)
+                  ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+                (defun save ()
+                  ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
+                   (lambda (data status)
+                     (if (not (equal status "success"))
+                         (alert (concatenate 'string "err-ajax-fail: " status))
+                         (eval data))))
+                  false)))
+             (content-box ()
+               (heading ("Правила обработки")
+                 "В правой колонке - Правила для тизеров, в левой - для вакансий. "))
+             (content-box ()
+               %SAVE%
+               ((:section :class "dnd-area")
+                ((:ul :class "connected handles list" :id "not")
+                 (mrg (rules-for-teaser)))
+                ((:ul :class "connected handles list no2" :id "yep")
+                 (mrg (rules-for-vacancy)))))
+             (ps-html ((:span :class "clear"))))))
+       (:SAVE (ps-html
+               ((:input :type "hidden" :name "act" :value "SAVE"))
+               (submit "SAVE" :onclick "save();return false;"))
+              (progn
+                (setf *tmp1* (split-sequence:split-sequence #\, (getf p :not)))
+                (setf *tmp2* (split-sequence:split-sequence #\, (getf p :yep)))
+                (mapcar #'(lambda (x)
+                            (takt (car (find-vacancy :src-id (parse-integer x))) :uninteresting))
+                        (split-sequence:split-sequence #\, (getf p :not)))
+                (mapcar #'(lambda (x)
+                            (let ((vac (car (find-vacancy :src-id (parse-integer x)))))
+                              (unless (equal (state vac) ":RESPONDED")
+                                (takt vac :interesting))))
+                        (split-sequence:split-sequence #\, (getf p :yep)))
+                (error 'ajax :output "window.location.href='/hh/rules'"))))
    #+END_SRC
 
 ** Галлерея (parenscript)
@@ -2213,13 +2387,13 @@
    примечания по изменению. Будет красиво, если в интерфейсе будет отображаться полный граф
    статусов и текущее положение вакансии в нем.
 
-   | refuse-new                             | new                  | uninteresting       |
-   | set-interesting                         | new                  | interesting           |
-   | refuse-interesting                      | interesting           | hidden               |
-   | respond                                | interesting           | responded            |
-   | favor                                  | interesting           | favorited            |
+   | refuse-new                             | new                  | uninteresting        |
+   | set-interesting                        | new                  | interesting          |
+   | refuse-interesting                     | interesting          | hidden               |
+   | respond                                | interesting          | responded            |
+   | favor                                  | interesting          | favorited            |
    | send-respond-from-favorited            | favorited            | responded            |
-   | unfavor                                | favorited            | interesting           |
+   | unfavor                                | favorited            | interesting          |
    | hide-after-favor                       | favorited            | hidden               |
    | call                                   | responded            | called               |
    | invite-interview                       | called               | wait_interview       |

@@ -73,18 +73,7 @@
             <div class="helper">
                 <div class="container">
                     <div class="header-search-container">
-                        <form action="/en/katalog/suche" method="get" novalidate="" name="article-search" class="header-search js__formValidation" data-url="/autosuggest.php" id="article-search">
-                            <fieldset>
-                                <legend class="hidden">Search shop</legend>
-                                <div class="input-container hide-label">
-                                    <label for="header-search-q">Поиск вакансий и фирм</label>
-                                    <input name="search_term" id="header-search-q" class="input-text form-element header-search__input" maxlength="50" required="required" autocomplete="off" value="" type="text" />
-                                </div>
-                                <button name="searchButton" type="submit" class="button button--header-search" value="">
-                                    <span class="button__icon sprite">Search</span>
-                                </button>
-                            </fieldset>
-                        </form>
+                        {$search |noAutoescape}
                     </div>
                     <div class="user-nav">
                         <div class="flyout-parent user-nav__item user-nav__item--my-bike" id="mybike-flyout-parent">

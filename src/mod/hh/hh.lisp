@@ -265,7 +265,14 @@
   ;; (dbg "  - no salary")
   )
 
-(define-drop-teaser-rule (salary-2-low (< (getf vacancy :salary-max) 90000))
+(define-drop-teaser-rule (salary-2-low (or
+                                        (and (equal (getf vacancy :currency) "RUR")
+                                             (< (getf vacancy :salary-max) 90000))
+                                        (and (equal (getf vacancy :currency) "USD")
+                                             (< (getf vacancy :salary-max) (floor 90000 67)))
+                                        (and (equal (getf vacancy :currency) "USD")
+                                             (< (getf vacancy :salary-max) (floor 90000 77)))
+                                        ))
   ;; (dbg "  - no salary")
   )
 
@@ -495,6 +502,10 @@
            (setf salary-max (parse-integer (ppcre:regex-replace-all "до " salary-text ""))))
           ((search "–" salary-text)
            (let ((splt (ppcre:split "–" salary-text)))
+             (setf salary-min (parse-integer (car splt)))
+             (setf salary-max (parse-integer (cadr splt)))))
+          ((search "-" salary-text)
+           (let ((splt (ppcre:split "-" salary-text)))
              (setf salary-min (parse-integer (car splt)))
              (setf salary-max (parse-integer (cadr splt))))))
     (when (null salary-min)
@@ -728,7 +739,7 @@
       ("Cache-Control"    . "no-cache")
       ("Cookie"           . ,(format nil "~{~{~A=~A~}~^; ~}" cookies))))
 
-(defun respond (vacancy-id resume-id letter)
+(defun send-respond (vacancy-id resume-id letter)
   (let* ((hhtoken     "ES030IVQP52ULPbRqN9DQOcMIR!T")
          (hhuid       "x_FxSYWUbySJe1LhHIQxDA--")
          (xsrf        "ed689ea1ff02a3074c848b69225e3c78")
@@ -836,3 +847,59 @@
            (return))))))
 
 ;; (run)
+
+(in-package #:moto)
+
+(defun uns-uni ()
+  "unsort        | uninteresting")
+
+(defun uns-int ()
+  "unsort        | interesting  ")
+
+(defun uns-res ()
+  "unsort        | responded    ")
+
+(defun uni-int ()
+  "uninteresting | interesting  ")
+
+(defun uni-res ()
+  "uninteresting | responded    ")
+
+(defun uni-uni ()
+  "uninteresting | uninteresting")
+
+(defun int-uni ()
+  "interesting   | uninteresting")
+
+(defun int-res ()
+  "interesting   | responded    ")
+
+(defun int-int ()
+  "interesting   | interesting  ")
+
+(defun res-res ()
+  "responded     | responded    ")
+
+(defun res-bee ()
+  "responded     | beenviewed   ")
+
+(defun bee-bee ()
+  "beenviewed    | beenviewed   ")
+
+(defun res-rej ()
+  "responded     | reject       ")
+
+(defun rej-rej ()
+  "reject        | reject       ")
+
+(defun res-rej ()
+  "beenviewed    | reject       ")
+
+(defun res-inv ()
+  "responded     | invite       ")
+
+(defun bee-inv ()
+  "beenviewed    | invite       ")
+
+(defun inv-inv ()
+  "invite        | invite       ")
