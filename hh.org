@@ -1648,73 +1648,47 @@
                 (error 'ajax :output "window.location.href='/hh/rules'"))))
    #+END_SRC
 
-** Страница поиска
+** START Страница поиска
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
      (define-page search-vacancy "/hh/search"
-       (labels ((mrg (param)
-                  (if (null param)
-                      ""
-                      (reduce #'(lambda (x y)
-                                  (concatenate 'string x (string #\NewLine) y))
-                              (mapcar #'(lambda (x)
-                                          (ps-html ((:li ;; :id (src-id x)
-                                                         ;; :class (string-downcase (subseq (state x) 1))
-                                                         ;; :title (notes x)
-                                                         )
-                                                    ;; ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
-                                                    ;;  (cond ((equal "USD" (currency x)) "$")
-                                                    ;;        ((equal "EUR" (currency x)) "€")
-                                                    ;;        ((equal "RUR" (currency x)) ""))
-                                                    ;;  (salary-max x))
-                                                    ((:a :href (format nil "/hh/rule/~A" ;; (src-id x)
-                                                                       0
-                                                                       ))
-                                                     (symbol-name x)))))
-                                      param)))))
-         (let* ((breadcrumb (breadcrumb "Правила" ("/hh" . "HeadHunter")))
-                (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-           (base-page (:breadcrumb breadcrumb)
-             ((:script)
-              (ps
-                (defun get-child-ids (selector)
-                  ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
-                (defun save ()
-                  ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
-                   (lambda (data status)
-                     (if (not (equal status "success"))
-                         (alert (concatenate 'string "err-ajax-fail: " status))
-                         (eval data))))
-                  false)))
-             (content-box ()
-               (heading ("Правила обработки")
-                 "В правой колонке - Правила для тизеров, в левой - для вакансий. "))
-             (content-box ()
-               %SAVE%
-               ((:section :class "dnd-area")
-                ((:ul :class "connected handles list" :id "not")
-                 (mrg (rules-for-teaser)))
-                ((:ul :class "connected handles list no2" :id "yep")
-                 (mrg (rules-for-vacancy)))))
-             (ps-html ((:span :class "clear"))))))
-       (:SAVE (ps-html
-               ((:input :type "hidden" :name "act" :value "SAVE"))
-               (submit "SAVE" :onclick "save();return false;"))
-              (progn
-                (setf *tmp1* (split-sequence:split-sequence #\, (getf p :not)))
-                (setf *tmp2* (split-sequence:split-sequence #\, (getf p :yep)))
-                (mapcar #'(lambda (x)
-                            (takt (car (find-vacancy :src-id (parse-integer x))) :uninteresting))
-                        (split-sequence:split-sequence #\, (getf p :not)))
-                (mapcar #'(lambda (x)
-                            (let ((vac (car (find-vacancy :src-id (parse-integer x)))))
-                              (unless (equal (state vac) ":RESPONDED")
-                                (takt vac :interesting))))
-                        (split-sequence:split-sequence #\, (getf p :yep)))
-                (error 'ajax :output "window.location.href='/hh/rules'"))))
+       (let* ((breadcrumb (breadcrumb "Поиск" ("/hh" . "HeadHunter")))
+              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (base-page (:breadcrumb breadcrumb)
+           (content-box ()
+             (heading ("Поиск по вакансиям в состоянии :RESPOND") ""))
+           (content-box ()
+             (let ((q (get-parameter "q")))
+               (if (null q)
+                   "empty searchstring"
+                   (ps-html
+                    ((:ul)
+                     (format nil "~{~A~}"
+                             (mapcar #'(lambda (x)
+                                         (ps-html
+                                          ((:li :style "padding: 3px")
+                                           ((:a :href (format nil "/hh/vac/~A" (src-id (car x))))
+                                            (name (car x))
+                                            "&nbsp&nbsp:&nbsp&nbsp"
+                                            (emp-name (car x))))))
+                                     (sort (remove-if #'(lambda (x)
+                                                          (equal (cdr x) 0))
+                                                      (mapcar #'(lambda (x)
+                                                                  (let ((rel 0))
+                                                                    (when (contains (string-downcase (name x)) (string-downcase q))
+                                                                      (incf rel 3))
+                                                                    (when (contains (string-downcase (emp-name x)) (string-downcase q))
+                                                                      (incf rel 5))
+                                                                    (when (contains (string-downcase (descr x)) (string-downcase q))
+                                                                      (incf rel))
+                                                                    (cons x rel)))
+                                                              (find-vacancy :state ":RESPONDED")))
+                                           #'(lambda (a b)
+                                               (> (cdr a) (cdr b)))))))))))
+           (ps-html ((:span :class "clear"))))))
    #+END_SRC
 
 ** Галлерея (parenscript)

@@ -122,14 +122,14 @@
                                                         ((:span :class "button__icon")))))))
                                               :search
                                               (ps-html
-                                              ((:form :action "/search" :method "get" :novalidate "" :name "article-search" :class "header-search" :id="article-search")
+                                              ((:form :action "/hh/search" :method "get" :novalidate "" :name "article-search" :class "header-search" :id="article-search")
                                                ((:fieldset)
                                                 ((:legend :class "hidden") "search")
                                                 ((:div :class "input-container hide-label")
                                                  ((:label :for "header-search-q") "Поиск вакансий и фирм")
-                                                 ((:input :name "search_term" :id "header-search-q" :class "input-text form-element header-search__input"
-                                                          :maxlength "50" :required "required" :autocomplete "off" :value "" :type "text")))
-                                                ((:button :name "searchButton" :type "submit" :class "button button--header-search" :value "")
+                                                 ((:input :name "q" :id "header-search-q" :class "input-text form-element header-search__input"
+                                                          :maxlength "50" :required "required" :autocomplete "off" :value (aif (get-parameter "q") it "") :type "text")))
+                                                ((:button :type "submit" :class "button button--header-search" :value "")
                                                  ((:span :class "button__icon sprite") "Search")))))))
                     :content retval
                     :footer (tpl:footer (list :dbg (format nil "<pre>~A</pre>" output))))))
