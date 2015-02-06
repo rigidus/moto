@@ -438,19 +438,52 @@
 
 (in-package #:moto)
 
+
+
 (defun hh-get-page (url)
   "Получение страницы"
-  (flexi-streams:octets-to-string
-   (drakma:http-request url
-                        :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
-                        :additional-headers `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                                              ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
-                                              ("Accept-Charset" . "utf-8")
-                                              ("Referer" . "http://spb.hh.ru/")
-                                              ("Cookie" . "redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=85014f262b894a1e9fc57b4b838e48e8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616")
-                                              ("Cache-Control" . "max-age=0"))
-                        :force-binary t)
-   :external-format :utf-8))
+  (labels ((get-html-data (uri)
+             (flexi-streams:octets-to-string
+              (drakma:http-request url
+                                   :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+                                   :additional-headers `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                                         ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                                         ("Accept-Charset" . "utf-8")
+                                                         ("Referer" . "http://spb.hh.ru/")
+                                                         ("Cookie" . "redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=85014f262b894a1e9fc57b4b838e48e8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616")
+                                                         ("Cache-Control" . "max-age=0"))
+                                   :force-binary t)
+              :external-format :utf-8)))
+    (get-html-data url)))
+
+    ;; (let ((html (get-html-data url)))
+    ;;   (when (is_login html)
+    ;;     (return-from hh-get-page html))
+    ;; (hh-login html))))
+
+(defun is_login (html)
+  "Проверям наличие в html блока 'Войти'"
+  (not (contains html "data-qa=\"mainmenu_loginForm\">Войти</div>")))
+
+;; (defun hh-login (html)
+;;   ;; Разбираем html
+;;   (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+;;          (loginform (block loginform-ext (mtm (`("div" (("class" "loginform") ("data-qa" "account-login")) ,form ,_) (return-from loginform-extract form)) tree)))
+;;          (xsrf (block xsrf-ext (mtm (`("form" (("action" ,action) ("autocomplete" "on") ("method" ,method) ("data-qa" "account-login-form") ("novalidate" "novalidate")
+;;                                                ("class" "account-form account-form_social"))
+;;                                               ("input" (("type" "hidden") ("value" ,backurl) ("name" "backUrl")))
+;;                                               ("input" (("type" "hidden") ("name" "failUrl") ("value" ,failurl)))
+;;                                               ,inputblock ,passwordblock ,backurlblock ,rememberblock ,submitblock ,registerblock
+;;                                               ("input" (("type" "hidden") ("name" "_xsrf") ("value" ,xsrf))))
+;;                                       (return-from xsrf-ext xsrf))
+;;                                     loginfrom))))
+;;     xsrf))
+  ;; Получаем xsrf
+  ;; Формируем запрос
+  ;; Анализируем результаты
+
+;; (print
+;;  (hh-login (hh-get-page "http://spb.hh.ru/vacancy/12262385")))
 
 (in-package #:moto)
 
