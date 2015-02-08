@@ -440,50 +440,110 @@
 
 
 
-(defun hh-get-page (url)
-  "Получение страницы"
-  (labels ((get-html-data (uri)
-             (flexi-streams:octets-to-string
-              (drakma:http-request url
-                                   :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
-                                   :additional-headers `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                                                         ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
-                                                         ("Accept-Charset" . "utf-8")
-                                                         ("Referer" . "http://spb.hh.ru/")
-                                                         ("Cookie" . "redirect_host=spb.hh.ru; regions=2; __utma=192485224.1206865564.1390484616.1410378170.1417257232.29; __utmz=192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=85014f262b894a1e9fc57b4b838e48e8; hhtoken=ES030IVQP52ULPbRqN9DQOcMIR!T; hhuid=x_FxSYWUbySJe1LhHIQxDA--; hhrole=anonymous; GMT=3; display=desktop; unique_banner_user=1418008672.846376826735616")
-                                                         ("Cache-Control" . "max-age=0"))
-                                   :force-binary t)
-              :external-format :utf-8)))
-    (get-html-data url)))
+;; (setf drakma:*header-stream* *standard-output*)
 
-    ;; (let ((html (get-html-data url)))
-    ;;   (when (is_login html)
-    ;;     (return-from hh-get-page html))
-    ;; (hh-login html))))
+(defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0")
 
-(defun is_login (html)
+(defparameter *additional-headers* `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                     ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                     ("Accept-Charset" . "utf-8")))
+
+(defparameter *cookies* nil)
+
+(defparameter *cookie-jar* (make-instance 'drakma:cookie-jar))
+
+(defparameter *referer* "")
+
+(defparameter *login-post* `(("username" . "avenger-f%40yandex.ru")
+                             ("password" . "jGwPswRAfU6sKEhVXX")
+                             ("backUrl" . "http%3A%2F%2Fspb.hh.ru%2F")
+                             ("remember" . "yes")
+                             ("action" . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")))
+
+(defun is-logged (html)
   "Проверям наличие в html блока 'Войти'"
   (not (contains html "data-qa=\"mainmenu_loginForm\">Войти</div>")))
 
-;; (defun hh-login (html)
-;;   ;; Разбираем html
-;;   (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-;;          (loginform (block loginform-ext (mtm (`("div" (("class" "loginform") ("data-qa" "account-login")) ,form ,_) (return-from loginform-extract form)) tree)))
-;;          (xsrf (block xsrf-ext (mtm (`("form" (("action" ,action) ("autocomplete" "on") ("method" ,method) ("data-qa" "account-login-form") ("novalidate" "novalidate")
-;;                                                ("class" "account-form account-form_social"))
-;;                                               ("input" (("type" "hidden") ("value" ,backurl) ("name" "backUrl")))
-;;                                               ("input" (("type" "hidden") ("name" "failUrl") ("value" ,failurl)))
-;;                                               ,inputblock ,passwordblock ,backurlblock ,rememberblock ,submitblock ,registerblock
-;;                                               ("input" (("type" "hidden") ("name" "_xsrf") ("value" ,xsrf))))
-;;                                       (return-from xsrf-ext xsrf))
-;;                                     loginfrom))))
-;;     xsrf))
-  ;; Получаем xsrf
-  ;; Формируем запрос
-  ;; Анализируем результаты
+(defun get-cookies-alist (cookie-jar)
+  (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
+     (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
-;; (print
-;;  (hh-login (hh-get-page "http://spb.hh.ru/vacancy/12262385")))
+(defun make-post-string (alist-param)
+  (format nil "~{~A~^&~}"
+          (mapcar #'(lambda (x) (format nil "~A=~A" (car x) (cdr x)))
+                  alist-param)))
+
+(defun make-cookies-string (alist-param)
+  (format nil "~{~A~^; ~}"
+          (mapcar #'(lambda (x) (format nil "~A=~A" (car x) (cdr x)))
+                  alist-param)))
+
+;; (defun get-password-forms (tree)
+;;   "Получение форм содержащих input password"
+;;   (let* ((forms (let ((forms))
+;;                   (mtm (`("form" ,attrs ,@rest) (push `("form" ,attrs ,@rest) forms)) tree)
+;;                   (labels ((is-contains-password (x)
+;;                              (mtm (`("type" "password") (return-from is-contains-password t)) x)
+;;                              (return-from is-contains-password nil)))
+;;                     (remove-if-not #'is-contains-password forms)))))
+;;     (loop :for form :in forms :collect
+;;        (let ((rs (list (cadr form))))
+;;          (mtm (`("input" ,attrs) (setf rs (append rs (list (let ((tmp (loop :for (key val) :in attrs :append (list (intern (string-upcase key) :keyword) val))))
+;;                                                              (list (getf tmp :name) (getf tmp :type) (getf tmp :value))))))) form)
+;;          rs))))
+
+(defun remote-login (xsrf cookies referer cookie-jar)
+  (flexi-streams:octets-to-string
+   (drakma:http-request "https://spb.hh.ru/account/login"
+                        :user-agent *user-agent*
+                        :method :post
+                        :content (make-post-string (append *login-post*  `(("_xsrf" . ,xsrf))))
+                        :additional-headers (append *additional-headers* `(("Cookie"  . ,(make-cookies-string cookies)) ("Referer" . ,*referer*)))
+                        :cookie-jar cookie-jar
+                        :force-binary t)
+   :external-format :utf-8))
+
+(defun recovery-login ()
+  (let* ((start-uri "http://spb.hh.ru/")
+         (cookie-jar (make-instance 'drakma:cookie-jar))
+         (additional-headers *additional-headers*)
+         (tree (html5-parser:node-to-xmls
+                (html5-parser:parse-html5-fragment
+                 (flexi-streams:octets-to-string
+                  (drakma:http-request start-uri :user-agent *user-agent* :additional-headers additional-headers :force-binary t :cookie-jar cookie-jar)
+                  :external-format :utf-8))))
+         (cookies (get-cookies-alist cookie-jar))
+         (xsrf (cdr (assoc "_xsrf" cookies :test #'equal)))
+         (html (remote-login xsrf cookies start-uri cookie-jar)))
+    (get-cookies-alist cookie-jar)))
+
+(defparameter *need-start* t)
+
+(defun set-start ()
+  (html5-parser:node-to-xmls
+   (html5-parser:parse-html5-fragment
+    (hh-get-page "http://spb.hh.ru"))))
+
+(defun hh-get-page (url)
+  "Получение страницы"
+  (when *need-start*
+    (setf *need-start* nil)
+    (set-start))
+  (labels ((get-html-data (uri)
+             (flexi-streams:octets-to-string
+              (drakma:http-request url
+                                   :user-agent *user-agent*
+                                   :additional-headers (append *additional-headers* `(("Cookie"  . ,(make-cookies-string *cookies*))
+                                                                                      ("Referer" . ,*referer*)))
+                                   :force-binary t
+                                   :cookie-jar *cookie-jar*)
+              :external-format :utf-8)))
+    (let ((html (get-html-data url)))
+      (when (is-logged html)
+        (setf *referer* url)
+        (return-from hh-get-page html))
+      (setf *cookies* (recovery-login))
+      (hh-get-page url))))
 
 (in-package #:moto)
 
