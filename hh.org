@@ -8,7 +8,8 @@
 <link rel="stylesheet" type="text/css" href="css/css.css" />
 #+END_HTML
 
-Нужно отслеживать, отказал ли работодатель
+((!)) Нужно отслеживать, отказал ли работодатель
+
 Нужны сообщения
 Нужны резюме
 
@@ -778,11 +779,51 @@
      - Если не залогинены - логинимся и получаем страницу снова.
        - Если во время логина произошла ошибка - сигнализируем условие.
 
+   Есть также одна особенность (типа баг) в результате которой drakma неправильно
+   воспринимает сформированные в get-запросе параметры и говорит что URI malformed. Мы
+   обходим это с помощью глобального флага =*need-start*= что является временным решением.
+
    #+NAME: hh_get_page
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
      <<hh_login>>
+
+     (defun hh-get-page (url)
+       "Получение страницы"
+       (when *need-start*
+         (setf *need-start* nil)
+         (set-start))
+       (labels ((get-html-data (uri)
+                  (flexi-streams:octets-to-string
+                   (drakma:http-request url
+                                        :user-agent *user-agent*
+                                        :additional-headers (append *additional-headers* `(("Cookie"  . ,(make-cookies-string *cookies*))
+                                                                                           ("Referer" . ,*referer*)))
+                                        :force-binary t
+                                        :cookie-jar *cookie-jar*)
+                   :external-format :utf-8)))
+         (let ((html (get-html-data url)))
+           (when (is-logged html)
+             (setf *referer* url)
+             (return-from hh-get-page html))
+           (setf *cookies* (recovery-login))
+           (hh-get-page url))))
+   #+END_SRC
+
+** Логин на источник
+
+   Прежде чем мы получим возможность забирать авторизованную информацию с нашего источника,
+   нам нужно иметь способ залогиниться на него. В дополнение к этому мы должны отслеживать
+   момент потери авторизованной сесии и в каждый конкретный момент определять, залогинены ли
+   мы. Обычно это можно определить по наличию формы для логина на любой загружаемой
+   странице. Мы хотим в случае обрыва сессии перелогиниваться прозрачно для всего остального
+   кода, поэтому процедура логина должна вызвываться по необходимости из процедуры загрузки
+   любой страницы. Также важно обрабатывать ошибки, которые могут произойти при логине,
+   например, если неверен пароль, но это пока не делается.
+
+   #+NAME: hh_login
+   #+BEGIN_SRC lisp
 
      ;; (setf drakma:*header-stream* *standard-output*)
 
@@ -867,44 +908,7 @@
        (html5-parser:node-to-xmls
         (html5-parser:parse-html5-fragment
          (hh-get-page "http://spb.hh.ru"))))
-
-     (defun hh-get-page (url)
-       "Получение страницы"
-       (when *need-start*
-         (setf *need-start* nil)
-         (set-start))
-       (labels ((get-html-data (uri)
-                  (flexi-streams:octets-to-string
-                   (drakma:http-request url
-                                        :user-agent *user-agent*
-                                        :additional-headers (append *additional-headers* `(("Cookie"  . ,(make-cookies-string *cookies*))
-                                                                                           ("Referer" . ,*referer*)))
-                                        :force-binary t
-                                        :cookie-jar *cookie-jar*)
-                   :external-format :utf-8)))
-         (let ((html (get-html-data url)))
-           (when (is-logged html)
-             (setf *referer* url)
-             (return-from hh-get-page html))
-           (setf *cookies* (recovery-login))
-           (hh-get-page url))))
    #+END_SRC
-
-** Логин на источник
-
-   Прежде чем мы получим возможность забирать авторизованную информацию с нашего источника,
-   нам нужно иметь способ залогиниться на него. В дополнение к этому мы должны отслеживать
-   момент потери авторизованной сесии и в каждый конкретный момент определять, залогинены ли
-   мы. Обычно это можно определить по наличию формы для логина на любой загружаемой
-   странице. Мы хотим в случае обрыва сессии перелогиниваться прозрачно для всего остального
-   кода, поэтому процедура логина должна вызвываться по необходимости из процедуры загрузки
-   любой страницы. Также важно обрабатывать ошибки, которые могут произойти при логине,
-   например, если неверен пароль.
-
-   #+NAME: hh_login
-   #+BEGIN_SRC lisp
-   #+END_SRC
-
 
 ** Разбор тизеров вакансий
 
@@ -1527,49 +1531,67 @@
 
      (defun hh-parse-responds (html)
        "Получение списка откликов из html"
-       (block subtree-extract
-         (mtm (`("tbody" NIL ,@rest)
-                (return-from subtree-extract rest))
-              (mtm (`("tr"
-                      (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_))
-                      (:RESULT ,result)
-                      Z
-                      ,data
-                      Z
-                      (:RESULT-DATE ,result-date) ,@rest)
-                     `(:topic-id ,topic-id :result ,result ,@data))
-                   (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")))
-                          `Z)
-                        (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon"))))
-                               `Z)
-                             (mtm (`("td" (("class" "prosper-table__cell")))
-                                    `Z)
-                                  (mtm (`("td" (("class" "prosper-table__cell"))
-                                               ("div" (("class" "responses-vacancy responses-vacancy_disabled"))
-                                                      ,vacancy-name)
-                                               ("div" (("class" "responses-company")) ,emp-name))
-                                         `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
-                                       (mtm (`("td" (("class" "prosper-table__cell"))
-                                                    ("div" (("class" "responses-vacancy"))
-                                                           ("a"
-                                                            (("class" "prosper-link HH-Negotiations-Responses-VacancyLink")
-                                                             ("target" "_blank") ("href" ,vacancy-link))
-                                                            ,vacancy-name))
-                                                    ("div" (("class" "responses-company")) ,emp-name))
-                                              `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
-                                            (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) ,result)
-                                                   `(:result ,result))
-                                                 (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                              ("span" (("class" "responses-date")) ,result-date))
-                                                        `(:result-date, result-date))
-                                                      (html5-parser:node-to-xmls
-                                                       (html5-parser:parse-html5-fragment html)))))))))))))
+       (mapcar #'(lambda (x) (reduce #'append x))
+               (mtm (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
+                      `(,@(remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
+                    (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) `Z)
+                         (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) `Z)
+                              (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) `Z)
+                                   (mtm (`("td" (("class" "prosper-table__cell"))) `Z)
+                                        (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
+                                                     ("div" (("class" "responses-company")) ,emp-name))
+                                               `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
+                                             (mtm (`("td" (("class" "prosper-table__cell"))
+                                                          ("div" (("class" "responses-vacancy"))
+                                                                 ("a"
+                                                                  (("class" ,_)
+                                                                   ("target" "_blank") ("href" ,vacancy-link))
+                                                                  ,vacancy-name))
+                                                          ("div" (("class" "responses-company")) ,emp-name))
+                                                    `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
+                                                  (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t))
+                                                       (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен"))
+                                                            (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен"))
+                                                                 (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                              ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение"))
+                                                                      (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                   ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ"))
+                                                                           (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                        ("span" (("class" "responses-date")) ,result-date))
+                                                                                  `(:result-date, result-date))
+                                                                                (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                             ("span" (("class" "responses-date responses-date_dimmed")) ,result))
+                                                                                       `(:response-date ,result))
+                                                                                     (block subtree-extract
+                                                                                       (mtm (`("tbody" NIL ,@rest)
+                                                                                              (return-from subtree-extract rest))
+                                                                                            (html5-parser:node-to-xmls
+                                                                                             (html5-parser:parse-html5-fragment html))))))))))))))))))))
 
-     (print
-      (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=0")))
+     ;; (print
+     ;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))
 
      (defmethod process-respond (respond)
-       t)
+       ;; Найти src-id вакансии
+       (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
+         ;; Найти вакансию в БД
+         ;; (dbg (getf respond :result))
+         (let (target (car (find-vacancy :src-id src-id)))
+           ;; Если такая вакансия есть в бд
+           (unless (null target)
+             ;; (dbg "~A : ~A" (state target) (getf respond :result))
+             ;; и у нее статус RESPONDED - установить статус
+             (when (equal ":RESPONDED" (state target))
+               (cond ((equal "Просмотрен" (getf respond :result))
+                      (takt target :beenviewed))
+                     ((equal "Отказ" (getf respond :result))
+                      (takt target :reject))
+                     ((equal "Приглашение" (getf respond :result))
+                      (takt target :invite))
+                     ((equal "Не просмотрен" (getf respond :result))
+                      nil)
+                     (t (err (format nil "unk respond state ~A" (state target)))))))))
+       respond)
 
      (defmethod response-factory ((vac-src (eql 'hh)))
        (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
@@ -1595,8 +1617,22 @@
                       (go get-new-respond)
                       (return-from get-responds current-respond))))))))
 
-     ;; (funcall
-     ;;  (response-factory 'hh))
+     (defun run-response ()
+       (let ((archive-cnt 0))
+         (let ((gen (response-factory 'hh)))
+           (loop :for i :from 1 :to 100 :do
+              (let ((target (funcall gen)))
+                (when (null target)
+                  (return-from run-response 'FIN-NIL))
+                (when (getf target :archive)
+                  (incf archive-cnt))
+                (when (> archive-cnt 40)
+                  (return-from run-response 'ARCHIVE))
+                ;; (print target)
+                ))
+           (return-from run-response 'loop))))
+
+     ;; (run-response)
    #+END_SRC
 
 * Interface
