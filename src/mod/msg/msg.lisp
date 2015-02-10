@@ -1,68 +1,80 @@
 (in-package #:moto)
 
-;; (in-package #:moto)
+(in-package #:moto)
 
-;; (define-page im "/im"
-;;   (ps-html
-;;    ((:h1) "Страница сообщений")
-;;    (if (null *current-user*)
-;;        "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
-;;        (ps-html
-;;         ((:a :href "/im/new") "Новое сообщение")
-;;         ((:br))
-;;         ((:br))
-;;         (let ((msgs (get-last-msg-dialogs-for-user-id *current-user*)))
-;;           (if (equal 0 (length msgs))
-;;               "Нет сообщений"
-;;               (msgtpl:dialogs
-;;                (list
-;;                 :content
-;;                 (format nil "~{~A~}"
-;;                         (loop :for item :in msgs :collect
-;;                            (cond ((equal :rcv (car (last item)))
-;;                                   (msgtpl:dlgrcv
-;;                                    (list
-;;                                    :id (car item)
-;;                                          :from (cadr item)
-;;                                          :time (caddr item)
-;;                                          :msg (cadddr item)
-;;                                          :state (nth 4 item)
-;;                                          )))
-;;                                  ((equal :snd (car (last item)))
-;;                                   (msgtpl:dlgsnd
-;;                                    (list :id (car item)
-;;                                          :to (cadr item)
-;;                                          :time (caddr item)
-;;                                          :msg (cadddr item)
-;;                                          :state (nth 4 item)
-;;                                          )))
-;;                                  (t (err "unknown dialog type")))))))))))))
+(define-page im "/im"
+  (let* ((breadcrumb (breadcrumb "Сообщения" ("/" . "Главная")))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ("Страница сообщений")
+          "Тут будут сообщения"))
+      (content-box ()
+        (if (null *current-user*)
+            "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+            (ps-html
+             ((:a :href "/im/new") "Новое сообщение")
+             ((:br))
+             ((:br))
+             (let ((msgs (get-last-msg-dialogs-for-user-id *current-user*)))
+               (if (equal 0 (length msgs))
+                   "Нет сообщений"
+                   (msgtpl:dialogs
+                    (list
+                     :content
+                     (format nil "~{~A~}"
+                             (loop :for item :in msgs :collect
+                                (cond ((equal :rcv (car (last item)))
+                                       (msgtpl:dlgrcv
+                                        (list
+                                         :id (car item)
+                                         :from (cadr item)
+                                         :time (caddr item)
+                                         :msg (cadddr item)
+                                         :state (nth 4 item)
+                                         )))
+                                      ((equal :snd (car (last item)))
+                                       (msgtpl:dlgsnd
+                                        (list :id (car item)
+                                              :to (cadr item)
+                                              :time (caddr item)
+                                              :msg (cadddr item)
+                                              :state (nth 4 item)
+                                              )))
+                                      (t (err "unknown dialog type"))))))))))))
+      (ps-html ((:span :class "clear")))))
+  (:SAVE (ps-html ((:div :class "form-send-container")
+                   (submit "Сохранить вакансию" :name "act" :value "SAVE")))
+         (progn
+           (id (upd-vacancy (car (find-vacancy :src-id src-id))
+                            (list :notes (getf p :notes) :response (getf p :response))))
+           (redirect (format nil "/hh/vac/~A" src-id)))))
 (in-package #:moto)
 
 ;; Страница сообщений
-(restas:define-route im-new ("/im/new")
-  (with-wrapper
-      (concatenate
-       'string
-       "<h1>Страница отправки нового сообщения</h1>"
-       (if (not *current-user*)
-           "Невозможно отпраить сообщение - пользователь не залогинен. <a href=\"/login\">Login</a>"
-           (format
-            nil "~{~A<br/>~}"
-            (list
-             (frm (tbl
-                   (list
-                    (row "Идентификатор пользователя" (fld "user_id"))
-                    (row "Сообщение" (fld "msg"))
-                    (row "" (submit "Отправить")))))))))))
-
-(restas:define-route im-new-ctrl ("/im/new" :method :post)
-  (with-wrapper
-    (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-      (create-msg *current-user*
-                  (getf p :user_id)
-                  (getf p :msg)))))
-
+(define-page im-new "/im/new"
+  (let* ((breadcrumb (breadcrumb "Сообщения" ("/" . "Главная")))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ("Страница отправки нового сообщения")
+          ""))
+      (content-box ()
+        (if (not *current-user*)
+            "Невозможно отправить сообщение - пользователь не залогинен. <a href=\"/login\">Login</a>"
+            (form ("vacform" nil :class "form-section-container")
+              ((:div :class "form-section")
+               (fieldset "Сообщение"
+                 (input ("receiverid" "Кому"))
+                 (textarea ("msg" "Сообщение"))
+                 (ps-html ((:span :class "clear")))))
+              %SND%)))
+      (ps-html ((:span :class "clear")))))
+  (:SND (ps-html ((:div :class "form-send-container")
+                   (submit "Отправить сообщение" :name "act" :value "SND")))
+        (progn
+          (create-msg *current-user* (getf p :receiverid) (getf p :msg))
+          (redirect (format nil "/im")))))
 
 ;; Событие отправки сообщения
 (defun create-msg (snd-id rcv-id msg)

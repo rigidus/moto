@@ -53,12 +53,12 @@
                ;;          :pathname "mod/que"
                ;;          :components ((:file "que")))
                ;; Модуль сообщений
-               ;; (:module "msg"
-               ;;          :serial t
-               ;;          :pathname "mod/msg"
-               ;;          :components ((:static-file "msg-tpl.htm")
-               ;;                       (:file "msg-prepare")
-               ;;                       (:file "msg")))
+               (:module "msg"
+                        :serial t
+                        :pathname "mod/msg"
+                        :components ((:static-file "msg-tpl.htm")
+                                     (:file "msg-prepare")
+                                     (:file "msg")))
                ;; Модуль trend
                ;; ;; (:module "trend"
                ;; ;;          :serial t
