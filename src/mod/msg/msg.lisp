@@ -7,8 +7,8 @@
          (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
     (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
       (content-box ()
-        (heading ("Страница сообщений")
-          "Тут будут сообщения"))
+        (heading ("Страница диалогов")
+          "direction, abonent-id, from, time, msg, state"))
       (content-box ()
         (if (null *current-user*)
             "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
@@ -42,6 +42,57 @@
                                               :state (nth 4 item)
                                               )))
                                       (t (err "unknown dialog type"))))))))))))
+      (ps-html ((:span :class "clear")))))
+  (:SAVE (ps-html ((:div :class "form-send-container")
+                   (submit "Сохранить вакансию" :name "act" :value "SAVE")))
+         (progn
+           (id (upd-vacancy (car (find-vacancy :src-id src-id))
+                            (list :notes (getf p :notes) :response (getf p :response))))
+           (redirect (format nil "/hh/vac/~A" src-id)))))
+(in-package #:moto)
+
+(define-page dlg "/dlg/:abonent-id"
+  (let* ((breadcrumb (breadcrumb "Диалог" ("/" . "Главная") ("/im" . "Сообщения")))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ((format nil "Страница диалога с ~A" (name (get-user (parse-integer abonent-id)))))
+          "direction, abonent-id, from, time, msg, state"))
+      (content-box ()
+        (if (null *current-user*)
+            "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+            (ps-html
+             ((:a :href "/im/new") "Новое сообщение")
+             ((:br))
+             ((:br))
+             (let ((msgs (get-msg-dialogs-for-two-user-ids *current-user* (parse-integer abonent-id))))
+               (if (equal 0 (length msgs))
+                   "Нет сообщений"
+                   ;; (format nil "<pre>~A</pre>" msgs)
+                   (msgtpl:dialogs
+                    (list
+                     :content
+                     (format nil "~{~A~}"
+                             (loop :for item :in msgs :collect
+                                (cond ((equal :rcv (car (last item)))
+                                       (msgtpl:dlgrcv
+                                        (list
+                                         :id (car item)
+                                         :from (cadr item)
+                                         :time (caddr item)
+                                         :msg (cadddr item)
+                                         :state (nth 4 item)
+                                         )))
+                                      ((equal :snd (car (last item)))
+                                       (msgtpl:dlgsnd
+                                        (list :id (car item)
+                                              :to (cadr item)
+                                              :time (caddr item)
+                                              :msg (cadddr item)
+                                              :state (nth 4 item)
+                                              )))
+                                      (t (err "unknown dialog type")))))))
+                   )))))
       (ps-html ((:span :class "clear")))))
   (:SAVE (ps-html ((:div :class "form-send-container")
                    (submit "Сохранить вакансию" :name "act" :value "SAVE")))
@@ -167,12 +218,16 @@
 (in-package #:moto)
 
 (defun get-msg-dialogs-for-two-user-ids (user-id-one user-id-two)
-  (with-connection *db-spec*
-    (query (:order-by
-            (:select :id :rcv-id :ts-create :snd-id :msg :state
-              :from 'msg :where (:or (:and (:= :rcv-id user-id-one) (:= :snd-id user-id-two))
-                                                (:and (:= :rcv-id user-id-two) (:= :snd-id user-id-one))))
-            (:desc :ts-create)))))
+  (mapcar #'(lambda (x)
+              (if (equal user-id-one (cadr x))
+                  (append x `(:snd))
+                  (append x `(:rcv))))
+          (with-connection *db-spec*
+            (query (:order-by
+                    (:select :id :rcv-id :ts-create :snd-id :msg :state
+                             :from 'msg :where (:or (:and (:= :rcv-id user-id-one) (:= :snd-id user-id-two))
+                                                    (:and (:= :rcv-id user-id-two) (:= :snd-id user-id-one))))
+                    (:desc :ts-create))))))
 (in-package #:moto)
 
 ;; Функция отображения одного сообщения в списке сообщений

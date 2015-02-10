@@ -12,21 +12,21 @@
 {template dlgrcv}
   <tr>
       <td>-></td>
-      <td>{$id | noAutoescape}</td>
-      <td>{$time | noAutoescape}</td>
-      <td>{$from | noAutoescape}</td>
-      <td><a href="/user/{$userid}/im/{$from}">{$msg | noAutoescape}</a></td>
-      <td>{$state | noAutoescape}</td>
+      <td>msg-id: {$id | noAutoescape}</td>
+      <td>time: {$time | noAutoescape}</td>
+      <td>from: {$from | noAutoescape}</td>
+      <td>msg: <a href="/dlg/{$from}">{$msg | noAutoescape}</a></td>
+      <td>state: {$state | noAutoescape}</td>
   </tr>
 {/template}
 
 {template dlgsnd}
   <tr>
       <td><-</td>
-      <td>{$id | noAutoescape}</td>
-      <td>{$time | noAutoescape}</td>
-      <td>{$to | noAutoescape}</td>
-      <td><a href="/user/{$userid}/im/{$to}">{$msg | noAutoescape}</a></td>
-      <td>{$state | noAutoescape}</td>
+      <td>msg-id: {$id | noAutoescape}</td>
+      <td>time: {$time | noAutoescape}</td>
+      <td>to: {$to | noAutoescape}</td>
+      <td>msg: <a href="/dlg/{$to}">{$msg | noAutoescape}</a></td>
+      <td>state: {$state | noAutoescape}</td>
   </tr>
 {/template}
