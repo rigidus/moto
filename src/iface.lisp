@@ -81,38 +81,43 @@
 (in-package #:moto)
 
 (define-page all-groups "/groups"
-  (ps-html
-   ((:h1) "Группы")
-   "Группы пользователей определяют набор операций, которые
+  (let* ((breadcrumb (breadcrumb "Группы" ("/" . "Главная")))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ("Группы")
+          "Группы пользователей определяют набор операций, которые
 пользователь может выполнять над объектами системы. В отличие от
 ролей, один пользователь может входить в несколько групп или не
-входить ни в одну из них."
-   (if (null *current-user*)
-       "Только авторизованный пользователи могут просматривать список групп"
-       (ps-html
-        ((:table :border 0)
-         (:th "id")
-         (:th "name")
-         (:th "")
-         (format nil "~{~A~}"
-                 (with-collection (i (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))
-                   (ps-html
-                    ((:tr)
-                     ((:td) (id i))
-                     ((:td) (name i))
-                     ((:td) %del%))))))
-        (if (equal 1 *current-user*)
+входить ни в одну из них."))
+      (content-box ()
+        (if (null *current-user*)
+            "Только авторизованный пользователи могут просматривать список групп"
             (ps-html
-             ((:h2) "Зарегистрировать новую группу")
-             ((:form :method "POST")
-              ((:table :border 0)
-               ((:tr)
-                ((:td) "Имя шруппы: ")
-                ((:td) ((:input :type "text" :name "name" :value ""))))
-               ((:tr)
-                ((:td) "")
-                ((:td) %new%)))))
-            ""))))
+             ((:table :border 0)
+              (:th "id")
+              (:th "name")
+              (:th "")
+              (format nil "~{~A~}"
+                      (with-collection (i (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))
+                        (ps-html
+                         ((:tr)
+                          ((:td) (id i))
+                          ((:td) (name i))
+                          ((:td) %del%))))))
+             (if (equal 1 *current-user*)
+                 (ps-html
+                  ((:h2) "Зарегистрировать новую группу")
+                  ((:form :method "POST")
+                   ((:table :border 0)
+                    ((:tr)
+                     ((:td) "Имя шруппы: ")
+                     ((:td) ((:input :type "text" :name "name" :value ""))))
+                    ((:tr)
+                     ((:td) "")
+                     ((:td) %new%)))))
+                 ""))))
+      (ps-html ((:span :class "clear")))))
   (:del (if (equal 1 *current-user*)
             (ps-html
              ((:form :method "POST")
@@ -235,20 +240,32 @@
 ;;                             (t (err "unknown dialog type")))))))))))
 
 (define-page user "/user/:userid"
-  (let* ((i (parse-integer userid))
-         (u (get-user i)))
-    (if (null u)
-        "Нет такого пользователя"
-        (format nil "~{~A~}" (with-element (u u)
-                               (ps-html
-                                ((:h1) (format nil "Страница пользователя #~A - ~A" (id u) (name u)))
-                                ((:table :border 0 :cellspacing 10 :cellpadding 10)
-                                 ((:tr)
-                                  ((:td :valign "top" :bgcolor "#F8F8F8") (user-data-html u))
-                                  ((:td :valign "top" :bgcolor "#F8F8F8") (change-role-html u %change-role%))
-                                  ((:td :valign "top" :bgcolor "#F8F8F8") (change-group-html u %change-group%)))
-                                 ((:tr)
-                                  ((:td :valign "top" :bgcolor "#F8F8F8" :colspan 3) (user-msg-html u)))))))))
+  (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (if (null (get-user (parse-integer userid)))
+        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+          (if (null (get-user (parse-integer userid)))
+              (content-box ()
+                (system-msg ("caution")
+                  (let ((tmp (format nil "К сожалению, кто-то уже занял никнейм <b>~A</b>. Но вы можете выбрать другой!" (getf p :regnickname))))
+                    (ps-html ((:p) "Нет такого пользователя")))))))
+        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+          (content-box ()
+            (heading ((format nil "Страница пользователя ~A" (name (get-user (parse-integer userid)))))
+              "direction, abonent-id, from, time, msg, state"))
+          (content-box ()
+            (with-element (u (get-user (parse-integer userid)))
+              (ps-html
+               ((:h1) (format nil "Страница пользователя #~A - ~A" (id u) (name u)))
+               ((:table :border 0 :cellspacing 10 :cellpadding 10)
+                ((:tr)
+                 ((:td :valign "top" :bgcolor "#F8F8F8") (user-data-html u))
+                 ((:td :valign "top" :bgcolor "#F8F8F8") (change-role-html u %change-role%))
+                 ((:td :valign "top" :bgcolor "#F8F8F8") (change-group-html u %change-group%)))
+                ((:tr)
+                 ;; ((:td :valign "top" :bgcolor "#F8F8F8" :colspan 3) (user-msg-html u))
+                 )))))
+          (ps-html ((:span :class "clear"))))))
   (:change-role (if (equal 1 *current-user*)
                     (ps-html
                      ((:input :type "hidden" :name "act" :value "CHANGE-ROLE"))
