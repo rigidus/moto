@@ -22,24 +22,21 @@
                    (ps-html ((:table)
                              (format nil "~{~A~}"
                                      (loop :for item :in msgs :collect
+                                        ;; (format nil "~A <br/><br/>" item)
                                         (cond ((equal :rcv (car (last item)))
                                                (ps-html
                                                 ((:tr)
+                                                 ((:td) (get-avatar-img (nth 1 item) :small))
                                                  ((:td)
-                                                  (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
-                                                       (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
-                                                       "Нет аватара"))
-                                                 ((:td)
-                                                  (nth 4 item)))))
+                                                  ((:a :href (format nil "/dlg/~A" (nth 1 item)))
+                                                   (nth 3 item))))))
                                               ((equal :snd (car (last item)))
                                                (ps-html
                                                 ((:tr)
+                                                 ((:td) (get-avatar-img (nth 1 item) :small))
                                                  ((:td)
-                                                  (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
-                                                       (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
-                                                       "Нет аватара"))
-                                                 ((:td)
-                                                  (nth 4 item)))))
+                                                  ((:a :href (format nil "/dlg/~A" (nth 1 item)))
+                                                   (nth 3 item))))))
                                               (t (err "unknown dialog type"))))))))))))
       (ps-html ((:span :class "clear")))))
   (:SAVE (ps-html ((:div :class "form-send-container")
@@ -48,52 +45,57 @@
            (id (upd-vacancy (car (find-vacancy :src-id src-id))
                             (list :notes (getf p :notes) :response (getf p :response))))
            (redirect (format nil "/hh/vac/~A" src-id)))))
+
+;; (print
+;;  (email (get-user 6)))
+
+;; (print
+;;  (password (get-user 6)))
+
 (in-package #:moto)
 
 (define-page dlg "/dlg/:abonent-id"
   (let* ((breadcrumb (breadcrumb "Диалог" ("/" . "Главная") ("/im" . "Сообщения")))
          (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-      (content-box ()
-        (heading ((format nil "Страница диалога с ~A" (name (get-user (parse-integer abonent-id)))))
-          "direction, abonent-id, from, time, msg, state"))
-      (content-box ()
-        (form ("vacform" nil :class "form-section-container")
-          ((:div :class "form-section")
-           (fieldset "Сообщение"
-             (textarea ("msg" "Сообщение"))
-             (ps-html ((:span :class "clear")))))
-          %SND%))
-      (content-box ()
-        (if (null *current-user*)
-            "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
-            (ps-html
-             (let ((msgs (get-msg-dialogs-for-two-user-ids *current-user* (parse-integer abonent-id))))
-               (if (equal 0 (length msgs))
-                   "Нет сообщений"
-                   (ps-html ((:table)
-                     (format nil "~{~A~}"
-                             (loop :for item :in msgs :collect
-                                (cond ((equal :rcv (car (last item)))
-                                       (ps-html
-                                        ((:tr)
-                                         ((:td)
-                                          (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
-                                               (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
-                                               "Нет аватара"))
-                                         ((:td)
-                                          (nth 4 item)))))
-                                      ((equal :snd (car (last item)))
-                                       (ps-html
-                                        ((:tr)
-                                         ((:td)
-                                          (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
-                                               (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
-                                               "Нет аватара"))
-                                         ((:td)
-                                          (nth 4 item)))))
-                                      (t (err "unknown dialog type"))))))))))))
-      (ps-html ((:span :class "clear")))))
+      (if (null *current-user*)
+          (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+            (content-box ()
+              (system-msg ("caution")
+                (ps-html ((:p) "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>")))))
+          ;; else
+          (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+            (content-box ()
+              (heading ((format nil "Страница диалога с ~A" (name (get-user (parse-integer abonent-id)))))
+                "direction, abonent-id, from, time, msg, state"))
+            (content-box ()
+              (form ("vacform" nil :class "form-section-container")
+                ((:div :class "form-section")
+                 (fieldset "Сообщение"
+                   (textarea ("msg" "Сообщение"))
+                   (ps-html ((:span :class "clear")))))
+                %SND%))
+            (content-box ()
+              (if (null *current-user*)
+                  "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
+                  (ps-html
+                   (let ((msgs (get-msg-dialogs-for-two-user-ids *current-user* (parse-integer abonent-id))))
+                     (if (equal 0 (length msgs))
+                         "Нет сообщений"
+                         (ps-html ((:table)
+                                   (format nil "~{~A~}"
+                                           (loop :for item :in msgs :collect
+                                              (cond ((equal :rcv (car (last item)))
+                                                     (ps-html
+                                                      ((:tr)
+                                                       ((:td) (get-avatar-img (nth 3 item) :small))
+                                                       ((:td) (nth 4 item)))))
+                                                    ((equal :snd (car (last item)))
+                                                     (ps-html
+                                                      ((:tr)
+                                                       ((:td) (get-avatar-img (nth 3 item) :small))
+                                                       ((:td) (nth 4 item)))))
+                                                    (t (err "unknown dialog type"))))))))))))
+            (ps-html ((:span :class "clear"))))))
   (:SAVE (ps-html ((:div :class "form-send-container")
                    (submit "Сохранить вакансию" :name "act" :value "SAVE")))
          (progn
