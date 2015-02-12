@@ -445,11 +445,11 @@
    #+NAME: group_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("group", "группы", group_flds)>>
-     (make-group :name "oldman")
-     (make-group :name "newboy")
-     (make-group :name "veteran")
-     (make-group :name "traveler")
-     (make-group :name "troll")
+     ;; (make-group :name "oldman")
+     ;; (make-group :name "newboy")
+     ;; (make-group :name "veteran")
+     ;; (make-group :name "traveler")
+     ;; (make-group :name "troll")
    #+END_SRC
 
    Теперь создадим таблицу связи, которая свяжет пользователей и группы:

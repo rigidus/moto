@@ -65,11 +65,11 @@
 
 (make-group-table)
 
-(make-group :name "oldman")
-(make-group :name "newboy")
-(make-group :name "veteran")
-(make-group :name "traveler")
-(make-group :name "troll")
+;; (make-group :name "oldman")
+;; (make-group :name "newboy")
+;; (make-group :name "veteran")
+;; (make-group :name "traveler")
+;; (make-group :name "troll")
 ;; group_entity ends here
 ;; [[file:doc.org::*Группы (group, user2group)][user2group_entity]]
 (define-entity user2group "Сущность связи пользователя и группы"
