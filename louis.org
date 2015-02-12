@@ -1025,7 +1025,7 @@
 
    <<user_msg_html>>
 
-   ;; (make-avatar :user-id 1 :path "1.jpg" :state ":ACTIVE")
+   (make-avatar :user-id 1 :origin "1.jpg" :ts-create (get-universal-time) :state ":ACTIVE")
 
    (define-page user "/user/:userid"
      (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
@@ -1039,8 +1039,9 @@
              ;; else
              (let* ((user (get-user id))
                     (left-name (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
-                    (user-ava (format nil "/ava/~A.jpg" id))
-                    (user-ava-html (ps-html  ((:img :src user-ava)))))
+                    (user-ava-html (aif (car (find-avatar :user-id id :state ":ACTIVE"))
+                                        (ps-html  ((:img :src (format nil "/ava/~A" (origin it)))))
+                                        "")))
                (standard-page (:breadcrumb breadcrumb :user left-name :menu (menu) :overlay (reg-overlay))
                  (content-box ()
                    (heading ((format nil "Страница пользователя ~A" (name user)))
@@ -1729,7 +1730,6 @@
                                         ((:tr)
                                          ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
                                          ((:td) (name i))
-                                         ((:td) (email i))
                                          ((:td) (ts-create i))
                                          ((:td) (ts-last i))
                                          ((:td) (role-id i))
@@ -1739,7 +1739,6 @@
             ((:table :border 0)
              (:th "id")
              (:th "name")
-             (:th "email")
              (:th "ts-create")
              (:th "ts-last")
              (:th "role-id")
