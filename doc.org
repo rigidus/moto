@@ -408,10 +408,10 @@
 
    #+CAPTION: Данные роли
    #+NAME: role_flds
-     | field name | field type           | note          |
-     |------------+----------------------+---------------|
-     | id         | serial               | идентификатор |
-     | name       | (or db-null varchar) | имя роли      |
+     | field name | field type | note          |
+     |------------+------------+---------------|
+     | id         | serial     | идентификатор |
+     | name       | varchar    | имя роли      |
 
    Теперь сгенерируем код и cоздадим необходимые роли:
 
@@ -435,21 +435,21 @@
 
    #+CAPTION: Данные группы
    #+NAME: group_flds
-     | field name | field type | note          |
-     |------------+------------+---------------|
-     | id         | serial     | идентификатор |
-     | name       | varchar    | имя группы    |
+     | field name | field type           | note            |
+     |------------+----------------------+-----------------|
+     | id         | serial               | идентификатор   |
+     | name       | varchar              | имя группы      |
+     | descr      | (or db-null varchar) | описание группы |
 
    Сгенерируем код и создадим необходимые группы:
 
    #+NAME: group_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("group", "группы", group_flds)>>
-     ;; (make-group :name "oldman")
-     ;; (make-group :name "newboy")
-     ;; (make-group :name "veteran")
-     ;; (make-group :name "traveler")
-     ;; (make-group :name "troll")
+     (make-role :name "Исполнитель желаний" :descr "Может сделать то что ты хочешь. Обращайся")
+     (make-role :name "Пропускать везде" :descr "Для этого пользователя нет запретных мест")
+     (make-role :name "Острый глаз" :descr "Обладает способностью замечать мельчайшие недоработки")
+     (make-role :name "Основатель" :descr "Стоял у истоков проекта")
    #+END_SRC
 
    Теперь создадим таблицу связи, которая свяжет пользователей и группы:
@@ -601,6 +601,8 @@
        (ps-html ((:img :src (aif (car (find-avatar :user-id user-id :state ":ACTIVE"))
                                  (concatenate 'string "/ava/big/" (origin it))
                                  "/ava/big/0.png")))))
+
+     ;; (drop '("group"))
    #+END_SRC
 
    В будущем этот код будет генерироваться из исполняемой спецификации

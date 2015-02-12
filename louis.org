@@ -963,32 +963,26 @@
    ролей, один пользователь может входить в несколько групп или не
    входить ни в одну из них."))
          (content-box ()
-           (if (null *current-user*)
-               "Только авторизованный пользователи могут просматривать список групп"
-               (ps-html
-                ((:table :border 0)
-                 (:th "id")
-                 (:th "name")
-                 (:th "")
-                 (format nil "~{~A~}"
-                         (with-collection (i (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))
-                           (ps-html
-                            ((:tr)
-                             ((:td) (id i))
-                             ((:td) (name i))
-                             ((:td) %del%))))))
-                (if (equal 1 *current-user*)
-                    (ps-html
-                     ((:h2) "Зарегистрировать новую группу")
-                     ((:form :method "POST")
-                      ((:table :border 0)
-                       ((:tr)
-                        ((:td) "Имя шруппы: ")
-                        ((:td) ((:input :type "text" :name "name" :value ""))))
-                       ((:tr)
-                        ((:td) "")
-                        ((:td) %new%)))))
-                    ""))))
+           (let ((elts (mapcar #'(lambda (x)
+                                   (list-element x))
+                               (all-group))))
+             (ps-html
+              ((:div :class "article-list-container article-list-container--list")
+               ((:ul :class "article-list article-list--list")
+                (format nil "~{~A~}" elts)
+                )))))
+         ;;        (if (equal 1 *current-user*)
+         ;;            (ps-html
+         ;;             ((:h2) "Зарегистрировать новую группу")
+         ;;             ((:form :method "POST")
+         ;;              ((:table :border 0)
+         ;;               ((:tr)
+         ;;                ((:td) "Имя шруппы: ")
+         ;;                ((:td) ((:input :type "text" :name "name" :value ""))))
+         ;;               ((:tr)
+         ;;                ((:td) "")
+         ;;                ((:td) %new%)))))
+         ;;            "")))
          (ps-html ((:span :class "clear")))))
      (:del (if (equal 1 *current-user*)
                (ps-html
@@ -1009,6 +1003,21 @@
                  (make-group :name (getf p :name))
                  "Группа создана")
                "")))
+
+   (defmethod list-element ((group group))
+     (ps-html
+      ((:li :class "article-item article-item--list" :style "height: inherit;;")
+       ((:div :class "inner")
+        ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
+         ((:div :class "article-item__main-info")
+          ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id group)))
+           ((:h3 :class "article-item__title") (name group))
+           ;; ((:h4 :class "article-item__subtitle") (role-id user))
+           )
+          ((:p :class "article-item__description") (descr group)))
+         ;; ((:a :class "button button--link" :href "#") "Сообщение"
+         ;;  ((:span :class "button__icon")))
+         ((:span :class "clear")))))))
  #+END_SRC
 
 ** Страничка пользователя
@@ -1496,32 +1505,40 @@
          (content-box ()
            (heading ("Список пользователей") ""))
          (content-box ()
-           (let ((collection (format nil "~{~A~}"
-                                     (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
-                                       (ps-html
-                                        ((:tr)
-                                         ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
-                                         ((:td) (name i))
-                                         ((:td) (ts-create i))
-                                         ((:td) (ts-last i))
-                                         ((:td) (role-id i))
-                                         ((:td) %del%
-                                          )))))))
-           (ps-html
-            ((:table :border 0)
-             (:th "id")
-             (:th "name")
-             (:th "ts-create")
-             (:th "ts-last")
-             (:th "role-id")
-             (:th "")
-             collection))))
-         (content-box ()
-           (let ((zzz (format nil "~A" (list-element (get-user 1)))))
+           (let ((elts (mapcar #'(lambda (x)
+                                   (list-element x))
+                               (all-user))))
              (ps-html
               ((:div :class "article-list-container article-list-container--list")
                ((:ul :class "article-list article-list--list")
-                zzz)))))
+                (format nil "~{~A~}" elts)
+                )))))
+           ;; (let ((collection (format nil "~{~A~}"
+           ;;                           (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
+           ;;                             (ps-html
+           ;;                              ((:tr)
+           ;;                               ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
+           ;;                               ((:td) (name i))
+           ;;                               ((:td) (ts-create i))
+           ;;                               ((:td) (ts-last i))
+           ;;                               ((:td) (role-id i))
+           ;;                               ((:td) %del%
+           ;;                                )))))))
+           ;; (ps-html
+           ;;  ((:table :border 0)
+           ;;   (:th "id")
+           ;;   (:th "name")
+           ;;   (:th "ts-create")
+           ;;   (:th "ts-last")
+           ;;   (:th "role-id")
+           ;;   (:th "")
+           ;;   collection))))
+         ;; (content-box ()
+         ;;   (let ((zzz (format nil "~A" (list-element (get-user 1)))))
+         ;;     (ps-html
+         ;;      ((:div :class "article-list-container article-list-container--list")
+         ;;       ((:ul :class "article-list article-list--list")
+         ;;        zzz)))))
          (ps-html ((:span :class "clear")))))
      (:DEL (if (and (equal 1 *current-user*)
                     (not (equal 1 (id i))))
@@ -1559,21 +1576,28 @@
          ((:li :class "article-item article-item--list")
           ((:div :class "inner")
            ((:a :class "article-item__image" :href "#")
-            ((:img :src "https://cdn2.louis.de/content/catalogue/articles/img170x170/10014344_370_FR_14.JPG" :height "170" :width "170")))
+            (get-avatar-img (id user) :middle))
            ((:div :class "article-item__info" :style "width: 540px;")
-            ((:img :class "article-item__manufacturer" :src "https://cdn1.louis.de/content/catalogue/manufacturer/images/43.gif"))
+            ;; ((:img :class "article-item__manufacturer" :src "43.gif"))
             ((:div :class "article-item__main-info")
-             ((:a :class "article-item__title-link" :href "#")
-              ((:h3 :class "article-item__title") "BELT BUCKLE *EAGLE*")
-              ((:h4 :class "article-item__subtitle") "SIZE: 11 X 8 CM"))
-             ((:p :class "article-item__description") "Suitable for belts up to 4,5 cm, messing retro style"))
-            ((:div :class "price")
-             ((:p :class "price__current")
-              ((:span :class "price__number")
-               ((:span :class "currency") "€")
-               "&nbsp;12"
-               ((:span :class "cent") "99"))))
-            ((:a :class "button button--link" :href "#") "zzzz"
+             ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id user)))
+              ((:h3 :class "article-item__title") (name user))
+              ((:h4 :class "article-item__subtitle") (role-id user))
+              )
+             ((:p :class "article-item__description")
+              (format nil "~{~A~^, ~}"
+                      (mapcar #'(lambda (x)
+                                  (ps-html
+                                   ((:a :href (format nil "/group/~A" (id x)))
+                                    (name (get-group (group-id x))))))
+                              (find-user2group :user-id (id user))))))
+            ;; ((:div :class "price")
+            ;;  ((:p :class "price__current")
+            ;;   ((:span :class "price__number")
+            ;;    ((:span :class "currency") "€")
+            ;;    "&nbsp;12"
+            ;;    ((:span :class "cent") "99"))))
+            ((:a :class "button button--link" :href "#") "Сообщение"
              ((:span :class "button__icon")))
             ((:span :class "clear")))))))
     #+END_SRC

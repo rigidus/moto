@@ -49,7 +49,7 @@
 ;; [[file:doc.org::*Роли (role)][role_entity]]
 (define-entity role "Сущность роли"
   ((id serial)
-   (name (or db-null varchar))))
+   (name varchar)))
 
 (make-role-table)
 
@@ -61,15 +61,15 @@
 ;; [[file:doc.org::*Группы (group, user2group)][group_entity]]
 (define-entity group "Сущность группы"
   ((id serial)
-   (name varchar)))
+   (name varchar)
+   (descr (or db-null varchar))))
 
 (make-group-table)
 
-;; (make-group :name "oldman")
-;; (make-group :name "newboy")
-;; (make-group :name "veteran")
-;; (make-group :name "traveler")
-;; (make-group :name "troll")
+(make-role :name "Исполнитель желаний" :descr "Может сделать то что ты хочешь. Обращайся")
+(make-role :name "Пропускать везде" :descr "Для этого пользователя нет запретных мест")
+(make-role :name "Острый глаз" :descr "Обладает способностью замечать мельчайшие недоработки")
+(make-role :name "Основатель" :descr "Стоял у истоков проекта")
 ;; group_entity ends here
 ;; [[file:doc.org::*Группы (group, user2group)][user2group_entity]]
 (define-entity user2group "Сущность связи пользователя и группы"
@@ -144,6 +144,8 @@
   (ps-html ((:img :src (aif (car (find-avatar :user-id user-id :state ":ACTIVE"))
                             (concatenate 'string "/ava/big/" (origin it))
                             "/ava/big/0.png")))))
+
+;; (drop '("group"))
 ;; avatar_automat ends here
 ;; [[file:doc.org::*Мотоциклы (moto)][moto_automat]]
 (define-automat moto "Автомат мотоцикла"
