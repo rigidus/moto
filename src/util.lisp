@@ -76,7 +76,7 @@
            (let ((output (with-output-to-string (*standard-output*)
                            (setf retval ,@body))))
              (tpl:louis
-              (list :title "title"
+              (list :title ""
                     :header (tpl:header (list :login
                                               (ps-html
                                                ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
