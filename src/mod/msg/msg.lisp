@@ -59,47 +59,55 @@
         (heading ((format nil "Страница диалога с ~A" (name (get-user (parse-integer abonent-id)))))
           "direction, abonent-id, from, time, msg, state"))
       (content-box ()
+        (form ("vacform" nil :class "form-section-container")
+          ((:div :class "form-section")
+           (fieldset "Сообщение"
+             (textarea ("msg" "Сообщение"))
+             (ps-html ((:span :class "clear")))))
+          %SND%))
+      (content-box ()
         (if (null *current-user*)
             "Невозможно посмотреть сообщения - пользователь не залогинен. <a href=\"/login\">Login</a>"
             (ps-html
-             ((:a :href "/im/new") "Новое сообщение")
-             ((:br))
-             ((:br))
              (let ((msgs (get-msg-dialogs-for-two-user-ids *current-user* (parse-integer abonent-id))))
                (if (equal 0 (length msgs))
                    "Нет сообщений"
-                   ;; (format nil "<pre>~A</pre>" msgs)
                    (msgtpl:dialogs
                     (list
                      :content
                      (format nil "~{~A~}"
                              (loop :for item :in msgs :collect
                                 (cond ((equal :rcv (car (last item)))
-                                       (msgtpl:dlgrcv
-                                        (list
-                                         :id (car item)
-                                         :from (cadr item)
-                                         :time (caddr item)
-                                         :msg (nth 4 item)
-                                         :state (nth 5 item)
-                                         )))
+                                       (ps-html
+                                        ((:tr)
+                                         ((:td)
+                                          (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
+                                               (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
+                                               "Нет аватара"))
+                                         ((:td)
+                                          (nth 4 item)))))
                                       ((equal :snd (car (last item)))
-                                       (msgtpl:dlgsnd
-                                        (list :id (car item)
-                                              :to (cadr item)
-                                              :time (caddr item)
-                                              :msg (nth 4 item)
-                                              :state (nth 5 item)
-                                              )))
-                                      (t (err "unknown dialog type")))))))
-                   )))))
+                                       (ps-html
+                                        ((:tr)
+                                         ((:td)
+                                          (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
+                                               (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
+                                               "Нет аватара"))
+                                         ((:td)
+                                          (nth 4 item)))))
+                                      (t (err "unknown dialog type"))))))))))))
       (ps-html ((:span :class "clear")))))
   (:SAVE (ps-html ((:div :class "form-send-container")
                    (submit "Сохранить вакансию" :name "act" :value "SAVE")))
          (progn
            (id (upd-vacancy (car (find-vacancy :src-id src-id))
                             (list :notes (getf p :notes) :response (getf p :response))))
-           (redirect (format nil "/hh/vac/~A" src-id)))))
+           (redirect (format nil "/hh/vac/~A" src-id))))
+  (:SND (ps-html ((:div :class "form-send-container")
+                  (submit "Отправить сообщение" :name "act" :value "SND")))
+        (progn
+          (create-msg *current-user* (parse-integer abonent-id) (getf p :msg))
+          (redirect (format nil "/dlg/~A" abonent-id)))))
 (in-package #:moto)
 
 ;; Страница сообщений

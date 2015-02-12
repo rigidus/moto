@@ -203,43 +203,9 @@
                                            ((:option :value (id i)) (name i))))))))
       ((:td :valign "top") change-group-btn))))))
 
-(in-package #:moto)
 
-;; (defun user-msg-html (u)
-;;   (ps-html
-;;    ((:h2) "Сообщения пользователя:")
-;;    ((:a :href (format nil "/user/~A/im/new" (id u))) "Новое сообщение")
-;;    ((:br))
-;;    ((:br))
-;;    (let ((msgs (get-last-msg-dialogs-for-user-id (id u))))
-;;      (if (equal 0 (length msgs))
-;;          "Нет сообщений"
-;;          (msgtpl:dialogs
-;;           (list
-;;            :content
-;;            (format nil "~{~A~}"
-;;                    (loop :for item :in msgs :collect
-;;                       (cond ((equal :rcv (car (last item)))
-;;                              (msgtpl:dlgrcv
-;;                               (list :id (car item)
-;;                                     :from (cadr item)
-;;                                     :time (caddr item)
-;;                                     :msg (cadddr item)
-;;                                     :state (nth 4 item)
-;;                                     :userid (id u)
-;;                                     )))
-;;                             ((equal :snd (car (last item)))
-;;                              (msgtpl:dlgsnd
-;;                               (list :id (car item)
-;;                                     :to (cadr item)
-;;                                     :time (caddr item)
-;;                                     :msg (cadddr item)
-;;                                     :state (nth 4 item)
-;;                                     :userid (id u)
-;;                                     )))
-;;                             (t (err "unknown dialog type")))))))))))
 
-;; (make-avatar :user-id 1 :path "1.jpg" :state ":ACTIVE")
+(make-avatar :user-id 1 :origin "1.jpg" :ts-create (get-universal-time) :state ":ACTIVE")
 
 (define-page user "/user/:userid"
   (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
@@ -253,8 +219,9 @@
           ;; else
           (let* ((user (get-user id))
                  (left-name (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
-                 (user-ava (format nil "/ava/~A.jpg" id))
-                 (user-ava-html (ps-html  ((:img :src user-ava)))))
+                 (user-ava-html (aif (car (find-avatar :user-id id :state ":ACTIVE"))
+                                     (ps-html  ((:img :src (format nil "/ava/~A" (origin it)))))
+                                     "")))
             (standard-page (:breadcrumb breadcrumb :user left-name :menu (menu) :overlay (reg-overlay))
               (content-box ()
                 (heading ((format nil "Страница пользователя ~A" (name user)))
@@ -295,166 +262,6 @@
                                      :collect (parse-integer (nth n p)))
                               :collect (id (make-user2group :user-id i :group-id lnk)))))
                      "access-denied")))
-(in-package #:moto)
-
-;; (define-page userim "/user/:userid/im/:imid"
-;;   (let* ((user-id (parse-integer userid))
-;;          (im-id (parse-integer imid))
-;;          (u (get-user user-id))
-;;          (j (get-user im-id)))
-;;     (if (or (null u) (null j))
-;;         "Нет такого пользователя"
-;;         (let ((msgs (get-msg-dialogs-for-two-user-ids user-id im-id)))
-;;           (if (equal 0 (length msgs))
-;;               "Нет сообщений!"
-;;               (ps-html
-;;                ((:h1) (format nil "Страница диалогов пользователя #~A - ~A с пользователем #~A - ~A"
-;;                               (id u) (name u)
-;;                               (id j) (name j)))
-;;                (msgtpl:dialogs
-;;                 (list
-;;                  :content
-;;                  (format nil "~{~A~}"
-;;                          (loop :for item :in msgs :collect
-;;                             (cond ((equal user-id (cadr item))
-;;                                    (msgtpl:dlgrcv
-;;                                     (list :id (car item)
-;;                                           :from (cadr item)
-;;                                           :time (caddr item)
-;;                                           :msg (cadddr item)
-;;                                           :state (nth 4 item)
-;;                                           :userid userid
-;;                                           )))
-;;                                   ((equal im-id (cadr item))
-;;                                    (msgtpl:dlgsnd
-;;                                     (list :id (car item)
-;;                                           :to (cadr item)
-;;                                           :time (caddr item)
-;;                                           :msg (cadddr item)
-;;                                           :state (nth 4 item)
-;;                                           :userid userid
-;;                                           )))
-;;                                   (t (err "err 3536262346")))
-;;                             ))))))))))
-(in-package #:moto)
-
-;; (defmacro label ((&rest rest) &body body)
-;;   (let ((style (format nil "~{~A~^;~}" (mapcar #'(lambda (x) (format nil "~A:~A" (car x) (cdr x)))
-;;                                                '(("color" . "#45688E")
-;;                                                  ("line-height" . "1.27em")
-;;                                                  ("margin" . "0px")
-;;                                                  ("padding" . "26px 0px 9px")
-;;                                                  ("font-size" . "1.09em")
-;;                                                  ("font-weight" . "bold"))))))
-;;     (when (null body)
-;;       (setf body (list "")))
-;;     (if (null rest)
-;;         `(ps-html ((:div :style ,style) ,@body))
-;;         `(ps-html ((:div :style ,style ,@rest) ,@body)))))
-
-;; (defmacro textarea ((&rest rest) &body body)
-;;   (let ((style (format nil "~{~A~^;~}" (mapcar #'(lambda (x) (format nil "~A:~A" (car x) (cdr x)))
-;;                                                '(("background" . "#FFFFFF")
-;;                                                  ("color" . "black")
-;;                                                  ("border" . "1px solid #C0CAD5")
-;;                                                  ("width" . "490px")
-;;                                                  ("min-height" . "120px")
-;;                                                  ("padding" . "5px 25px 5px 5px")
-;;                                                  ("vertical-align" . "top")
-;;                                                  ("margin" . "0")
-;;                                                  ("overflow" . "auto")
-;;                                                  ("outline" . "0")
-;;                                                  ("line-height" . "150%")
-;;                                                  ("word-wrap" . "break-word")
-;;                                                  ("cursor" . "text"))))))
-;;     (when (null body)
-;;       (setf body (list "")))
-;;     (if (null rest)
-;;         `(ps-html ((:textarea :style ,style) ,@body))
-;;         `(ps-html ((:textarea :style ,style ,@rest) ,@body)))))
-
-;; (defmacro button ((&rest rest) &body body)
-;;   (let ((style (format nil "~{~A~^;~}" (mapcar #'(lambda (x) (format nil "~A:~A" (car x) (cdr x)))
-;;                                                '(("padding" . "6px 16px 7px 16px")
-;;                                                  ("*padding" . "6px 17px 7px 17px")
-;;                                                  ("margin" . "0")
-;;                                                  ("font-size" . "11px")
-;;                                                  ("display" . "inline-block")
-;;                                                  ("*display" . "inline")
-;;                                                  ("zoom" . "1")
-;;                                                  ("cursor" . "pointer")
-;;                                                  ("white-space" . "nowrap")
-;;                                                  ("outline" . "none")
-;;                                                  ("font-family" . "tahoma, arial, verdana, sans-serif, Lucida Sans")
-;;                                                  ("vertical-align" . "top")
-;;                                                  ("overflow" . "visible")
-;;                                                  ("line-height" . "13px")
-;;                                                  ("text-decoration" . "none")
-;;                                                  ("background" . "none")
-;;                                                  ("background-color" . "#6383a8")
-;;                                                  ("color" . "#FFF")
-;;                                                  ("border" . "0")
-;;                                                  ("*border" . "0")
-;;                                                  ("-webkit-border-radius" . "2px")
-;;                                                  ("-khtml-border-radius" . "2px")
-;;                                                  ("-moz-border-radius" . "2px")
-;;                                                  ("-ms-border-radius" . "2px")
-;;                                                  ("border-radius" . "2px")
-;;                                                  ("-webkit-transition" . "background-color 100ms ease-in-out")
-;;                                                  ("-khtml-transition" . "background-color 100ms ease-in-out")
-;;                                                  ("-moz-transition" . "background-color 100ms ease-in-out")
-;;                                                  ("-ms-transition" . "background-color 100ms ease-in-out")
-;;                                                  ("-o-transition" . "background-color 100ms ease-in-out")
-;;                                                  ("transition" . "background-color 100ms ease-in-out"))))))
-;;     (when (null body)
-;;       (setf body (list "")))
-;;     (if (null rest)
-;;         `(ps-html ((:button :style ,style) ,@body))
-;;         `(ps-html ((:button :style ,style ,@rest) ,@body)))))
-
-
-(define-page imnew "/user/:userid/im/new"
-  (let* ((i (parse-integer userid))
-         (u (get-user i)))
-    (if (null u)
-        "Нет такого пользователя"
-        (format nil "~{~A~}"
-                (with-element (u u)
-                  (ps-html
-                   ((:h1) (format nil "Новое сообщения от пользователя #~A - ~A" (id u) (name u)))
-                   ((:form :method "POST")
-                    ((:div :style "width: 600px; font-family: tahoma,arial,verdana,sans-serif,Lucida Sans; font-size: 11px; font-weight: normal; line-height: 140%;")
-                     ((:div :style "background: none repeat scroll 0% 0% #597BA5; padding: 0 10px 10px 10px; position: relative; overflow: hidden;")
-                      ((:div :style "padding: 17px 26px 18px; margin: -10px -10px -11px; color: #C7D7E9; transition: color 100ms linear 0s; float: right; text-decoration: none; cursor: pointer;  ") "Закрыть")
-                      ((:div :style "color: #FFF; backgound-color: #D7E7F9; padding: 7px 16px; font-weight: bold; font-size: 1.09em; ") "Новое сообщение")
-                      ((:div :style "padding: 26px; background: #F7F7F7;")
-                       ((:div :style "display: block; margin: 0px; float: right; color: #000;")
-                        ((:a :href "/im?sel=3754275" :style "color: #2B587A; text-decoration: none; cursor: pointer;") "Перейти к диалогу"))
-                       ((:div :style "padding-top: 0px; color: #45688E; line-height: 1.27em; margin: 0px; padding: 26px 0px 9px; font-size: 1.09em; font-weight: bold; ") "Получатель")
-                       ((:select :name "abonent")
-                        ((:option :value "0") "Выберите пользователя")
-                        (format nil "~{~A~}"
-                                (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
-                                  (if (equal (id i) (id u))
-                                      ""
-                                      (ps-html
-                                       ((:option :value (id i)) (name i)))))))
-                       ((:div :style "padding-top: 0px; color: #45688E; line-height: 1.27em; margin: 0px; padding: 26px 0px 9px; font-size: 1.09em; font-weight: bold; ") "Сообщение")
-                       (textarea (:name "msg"))
-                       ((:div :style "padding-top: 16px")
-                        %zzz%)
-                       )))))))))
-  (:zzz (if (or (equal 1 *current-user*)
-                (equal *current-user* (parse-integer userid)))
-            (ps-html
-             ((:input :type "hidden" :name "act" :value "ZZZ"))
-             (button () "Отправить"))
-            " [access-denied for send message]")
-
-        (if (or (equal 1 *current-user*)
-                (equal *current-user* (parse-integer userid)))
-            (create-msg (parse-integer userid) (getf p :abonent) (getf p :msg))
-            "access-denied")))
 (in-package #:moto)
 
 (defun reg-teasers ()
@@ -725,6 +532,16 @@
                  (ps-html ((:span :class "clear"))))))))
 (in-package #:moto)
 
+;;    (if (equal 1 *current-user*)
+;;        (form ("loginform" "Зарегистрировать нового пользователя" :class "form-section-container")
+;;          ((:div :class "form-section")
+;;           (input ("name" "Имя пользователя" :required t :type "text" :autocomplete "off"))
+;;           (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
+;;           (input ("email" "Электронная почта" :required t :type "email" :maxlength "50")))
+;;          ;; %new%
+;;        "")))
+
+
 (define-page all-users "/users"
   (let ((breadcrumb (breadcrumb "Список пользователей"))
         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -732,41 +549,50 @@
       (content-box ()
         (heading ("Список пользователей") ""))
       (content-box ()
-        (if (null *current-user*)
-            (content-box ()
-              (system-msg ("caution")
-                (ps-html ((:p) "Только авторизованный пользователи могут просматривать список пользователей"))))
-            ;; else
-            (ps-html
-             ((:table :border 0)
-              (:th "id")
-              (:th "name")
-              (:th "password")
-              (:th "email")
-              (:th "ts-create")
-              (:th "ts-last")
-              (:th "role-id")
-              (:th "")
-              (format nil "~{~A~}"
-                      (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
-                        (ps-html
-                         ((:tr)
-                          ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
-                          ((:td) (name i))
-                          ((:td) (if (equal 1 *current-user*) (password i) ""))
-                          ((:td) (email i))
-                          ((:td) (ts-create i))
-                          ((:td) (ts-last i))
-                          ((:td) (role-id i))
-                          ((:td) %del%))))))
-             (if (equal 1 *current-user*)
-                 (form ("loginform" "Зарегистрировать нового пользователя" :class "form-section-container")
-                   ((:div :class "form-section")
-                    (input ("name" "Имя пользователя" :required t :type "text" :autocomplete "off"))
-                    (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-                    (input ("email" "Электронная почта" :required t :type "email" :maxlength "50")))
-                   %new%)
-                 ""))))
+        (let ((collection (format nil "~{~A~}"
+                                  (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
+                                    (ps-html
+                                     ((:tr)
+                                      ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
+                                      ((:td) (name i))
+                                      ((:td) (ts-create i))
+                                      ((:td) (ts-last i))
+                                      ((:td) (role-id i))
+                                      ((:td) %del%
+                                       )))))))
+        (ps-html
+         ((:table :border 0)
+          (:th "id")
+          (:th "name")
+          (:th "ts-create")
+          (:th "ts-last")
+          (:th "role-id")
+          (:th "")
+          collection))))
+      (content-box ()
+        (ps-html
+         ((:div :class "article-list-container article-list-container--list")
+          ((:ul :class "article-list article-list--list")
+           ((:li :class "article-item article-item--list")
+            ((:div :class "inner")
+             ((:a :class "article-item__image" :href "#")
+              ((:img :src "https://cdn2.louis.de/content/catalogue/articles/img170x170/10014344_370_FR_14.JPG" :height "170" :width "170")))
+             ((:div :class "article-item__info" :style "width: 540px;")
+              ((:img :class "article-item__manufacturer" :src "https://cdn1.louis.de/content/catalogue/manufacturer/images/43.gif"))
+              ((:div :class "article-item__main-info")
+               ((:a :class "article-item__title-link" :href "#")
+                ((:h3 :class "article-item__title") "BELT BUCKLE *EAGLE*")
+                ((:h4 :class "article-item__subtitle") "SIZE: 11 X 8 CM"))
+               ((:p :class "article-item__description") "Suitable for belts up to 4,5 cm, messing retro style"))
+              ((:div :class "price")
+               ((:p :class "price__current")
+                ((:span :class "price__number")
+                 ((:span :class "currency") "€")
+                 "&nbsp;12"
+                 ((:span :class "cent") "99"))))
+              ((:a :class "button button--link" :href "#") "zzzz"
+               ((:span :class "button__icon")))
+              ((:span :class "clear")))))))))
       (ps-html ((:span :class "clear")))))
   (:DEL (if (and (equal 1 *current-user*)
                  (not (equal 1 (id i))))
