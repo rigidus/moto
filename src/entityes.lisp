@@ -127,6 +127,24 @@
 (defun avatar-on ()
   "inactive -> active")
 ;; avatar_automat ends here
+;; [[file:doc.org::*Аватары (avatar)][avatar_automat]]
+(in-package #:moto)
+
+(defmethod get-avatar-img ((user-id integer) (size (eql :small))) ;; 50x50
+  (ps-html ((:img :src (aif (car (find-avatar :user-id user-id :state ":ACTIVE"))
+                            (concatenate 'string "/ava/small/" (origin it))
+                            "/ava/small/0.png")))))
+
+(defmethod get-avatar-img ((user-id integer) (size (eql :middle))) ;; 170x170
+  (ps-html ((:img :src (aif (car (find-avatar :user-id user-id :state ":ACTIVE"))
+                            (concatenate 'string "/ava/middle/" (origin it))
+                            "/ava/middle/0.png")))))
+
+(defmethod get-avatar-img ((user-id integer) (size (eql :big))) ;; 512x512
+  (ps-html ((:img :src (aif (car (find-avatar :user-id user-id :state ":ACTIVE"))
+                            (concatenate 'string "/ava/big/" (origin it))
+                            "/ava/big/0.png")))))
+;; avatar_automat ends here
 ;; [[file:doc.org::*Мотоциклы (moto)][moto_automat]]
 (define-automat moto "Автомат мотоцикла"
   ((id serial)

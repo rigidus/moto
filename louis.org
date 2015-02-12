@@ -1025,8 +1025,6 @@
 
    <<user_msg_html>>
 
-   (make-avatar :user-id 1 :origin "1.jpg" :ts-create (get-universal-time) :state ":ACTIVE")
-
    (define-page user "/user/:userid"
      (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
             (id (handler-case (parse-integer userid)
@@ -1039,15 +1037,15 @@
              ;; else
              (let* ((user (get-user id))
                     (left-name (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
-                    (user-ava-html (aif (car (find-avatar :user-id id :state ":ACTIVE"))
-                                        (ps-html  ((:img :src (format nil "/ava/~A" (origin it)))))
-                                        "")))
+                    (user-ava-html (get-avatar-img id :middle)))
                (standard-page (:breadcrumb breadcrumb :user left-name :menu (menu) :overlay (reg-overlay))
                  (content-box ()
-                   (heading ((format nil "Страница пользователя ~A" (name user)))
-                     user-ava-html))
+                   (heading ((format nil "Страница пользователя ~A" (name user)))))
                  (content-box ()
-                   (user-data-html user))
+                   ((:table)
+                    ((:tr)
+                     ((:td) user-ava-html)
+                     ((:td) (user-data-html user)))))
                  (content-box ()
                    (change-role-html user %change-role%))
                  (content-box ()
@@ -1099,21 +1097,22 @@
        ((:tr)
         ((:td) "name")
         ((:td) (name u)))
-       ((:tr)
-        ((:td) "password")
-        ((:td) (password u)))
-       ((:tr)
-        ((:td) "email")
-        ((:td) (email u)))
-       ((:tr)
-        ((:td) "ts-create")
-        ((:td) (ts-create u)))
-       ((:tr)
-        ((:td) "ts-last")
-        ((:td) (ts-last u)))
-       ((:tr)
-        ((:td) "role-id")
-        ((:td) (role-id u))))))
+       ;; ((:tr)
+       ;;  ((:td) "password")
+       ;;  ((:td) (password u)))
+       ;; ((:tr)
+       ;;  ((:td) "email")
+       ;;  ((:td) (email u)))
+       ;; ((:tr)
+       ;;  ((:td) "ts-create")
+       ;;  ((:td) (ts-create u)))
+       ;; ((:tr)
+       ;;  ((:td) "ts-last")
+       ;;  ((:td) (ts-last u)))
+       ;; ((:tr)
+       ;;  ((:td) "role-id")
+       ;;  ((:td) (role-id u)))
+       )))
  #+END_SRC
 
 *** Отображение блока управления ролью
@@ -1490,16 +1489,6 @@
  #+BEGIN_SRC lisp
    (in-package #:moto)
 
-   ;;    (if (equal 1 *current-user*)
-   ;;        (form ("loginform" "Зарегистрировать нового пользователя" :class "form-section-container")
-   ;;          ((:div :class "form-section")
-   ;;           (input ("name" "Имя пользователя" :required t :type "text" :autocomplete "off"))
-   ;;           (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))
-   ;;           (input ("email" "Электронная почта" :required t :type "email" :maxlength "50")))
-   ;;          ;; %new%
-   ;;        "")))
-
-
    (define-page all-users "/users"
      (let ((breadcrumb (breadcrumb "Список пользователей"))
            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -1528,29 +1517,11 @@
              (:th "")
              collection))))
          (content-box ()
-           (ps-html
-            ((:div :class "article-list-container article-list-container--list")
-             ((:ul :class "article-list article-list--list")
-              ((:li :class "article-item article-item--list")
-               ((:div :class "inner")
-                ((:a :class "article-item__image" :href "#")
-                 ((:img :src "https://cdn2.louis.de/content/catalogue/articles/img170x170/10014344_370_FR_14.JPG" :height "170" :width "170")))
-                ((:div :class "article-item__info" :style "width: 540px;")
-                 ((:img :class "article-item__manufacturer" :src "https://cdn1.louis.de/content/catalogue/manufacturer/images/43.gif"))
-                 ((:div :class "article-item__main-info")
-                  ((:a :class "article-item__title-link" :href "#")
-                   ((:h3 :class "article-item__title") "BELT BUCKLE *EAGLE*")
-                   ((:h4 :class "article-item__subtitle") "SIZE: 11 X 8 CM"))
-                  ((:p :class "article-item__description") "Suitable for belts up to 4,5 cm, messing retro style"))
-                 ((:div :class "price")
-                  ((:p :class "price__current")
-                   ((:span :class "price__number")
-                    ((:span :class "currency") "€")
-                    "&nbsp;12"
-                    ((:span :class "cent") "99"))))
-                 ((:a :class "button button--link" :href "#") "zzzz"
-                  ((:span :class "button__icon")))
-                 ((:span :class "clear")))))))))
+           (let ((zzz (format nil "~A" (list-element (get-user 1)))))
+             (ps-html
+              ((:div :class "article-list-container article-list-container--list")
+               ((:ul :class "article-list article-list--list")
+                zzz)))))
          (ps-html ((:span :class "clear")))))
      (:DEL (if (and (equal 1 *current-user*)
                     (not (equal 1 (id i))))
@@ -1576,3 +1547,33 @@
                         :ts-last (get-universal-time))
              (redirect "/users"))))
  #+END_SRC
+
+*** Отображение пользователя в списке
+
+    #+NAME: iface_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defmethod list-element ((user user))
+        (ps-html
+         ((:li :class "article-item article-item--list")
+          ((:div :class "inner")
+           ((:a :class "article-item__image" :href "#")
+            ((:img :src "https://cdn2.louis.de/content/catalogue/articles/img170x170/10014344_370_FR_14.JPG" :height "170" :width "170")))
+           ((:div :class "article-item__info" :style "width: 540px;")
+            ((:img :class "article-item__manufacturer" :src "https://cdn1.louis.de/content/catalogue/manufacturer/images/43.gif"))
+            ((:div :class "article-item__main-info")
+             ((:a :class "article-item__title-link" :href "#")
+              ((:h3 :class "article-item__title") "BELT BUCKLE *EAGLE*")
+              ((:h4 :class "article-item__subtitle") "SIZE: 11 X 8 CM"))
+             ((:p :class "article-item__description") "Suitable for belts up to 4,5 cm, messing retro style"))
+            ((:div :class "price")
+             ((:p :class "price__current")
+              ((:span :class "price__number")
+               ((:span :class "currency") "€")
+               "&nbsp;12"
+               ((:span :class "cent") "99"))))
+            ((:a :class "button button--link" :href "#") "zzzz"
+             ((:span :class "button__icon")))
+            ((:span :class "clear")))))))
+    #+END_SRC
