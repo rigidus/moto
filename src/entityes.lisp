@@ -62,7 +62,8 @@
 (define-entity group "Сущность группы"
   ((id serial)
    (name varchar)
-   (descr (or db-null varchar))))
+   (descr (or db-null varchar))
+   (author-id (or db-null integer))))
 
 (make-group-table)
 

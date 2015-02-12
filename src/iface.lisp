@@ -90,27 +90,24 @@
 пользователь может выполнять над объектами системы. В отличие от
 ролей, один пользователь может входить в несколько групп или не
 входить ни в одну из них."))
+      (if (not (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id *current-user*)) :test #'equal))
+          ""
+          (content-box ()
+            (form ("makegroupform" "Создать группу" :class "form-section-container")
+              ((:div :class "form-section")
+               (fieldset ""
+                 (input ("name" "Имя" :required t :type "text"))
+                 (textarea ("descr" "Описание"))))
+              %NEW%)))
       (content-box ()
         (let ((elts (mapcar #'(lambda (x)
                                 (list-element x))
-                            (all-group))))
+                            (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))))
           (ps-html
            ((:div :class "article-list-container article-list-container--list")
             ((:ul :class "article-list article-list--list")
              (format nil "~{~A~}" elts)
              )))))
-      ;;        (if (equal 1 *current-user*)
-      ;;            (ps-html
-      ;;             ((:h2) "Зарегистрировать новую группу")
-      ;;             ((:form :method "POST")
-      ;;              ((:table :border 0)
-      ;;               ((:tr)
-      ;;                ((:td) "Имя шруппы: ")
-      ;;                ((:td) ((:input :type "text" :name "name" :value ""))))
-      ;;               ((:tr)
-      ;;                ((:td) "")
-      ;;                ((:td) %new%)))))
-      ;;            "")))
       (ps-html ((:span :class "clear")))))
   (:del (if (equal 1 *current-user*)
             (ps-html
@@ -121,16 +118,23 @@
             "")
         (if (equal 1 *current-user*)
             (del-group (getf p :data))))
-  (:new (if (equal 1 *current-user*)
-            (ps-html
-             ((:input :type "hidden" :name "act" :value "NEW"))
-             ((:input :type "submit" :value "Создать")))
-            "")
-        (if (equal 1 *current-user*)
-            (progn
-              (make-group :name (getf p :name))
-              "Группа создана")
+  (:new (ps-html
+         ((:div :class "form-send-container")
+          (submit "Создать новую группу" :name "act" :value "NEW")))
+        (if (member "Пропускать везде" (mapcar #'(lambda (x)
+                                                   (name (get-group (group-id x))))
+                                               (find-user2group :user-id *current-user*)) :test #'equal)
+            (progn (make-group :name (getf p :name) :descr (getf p :descr) :author *current-user*)
+                   (redirect "/groups"))
             "")))
+
+;; (print
+;; (mapcar #'(lambda (x)
+;;             (list (id x)
+;;                   (name x)
+;;                   (descr x)))
+;;         (all-group)))
+
 
 (defmethod list-element ((group group))
   (ps-html
@@ -140,11 +144,16 @@
       ((:div :class "article-item__main-info")
        ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id group)))
         ((:h3 :class "article-item__title") (name group))
-        ;; ((:h4 :class "article-item__subtitle") (role-id user))
+        ((:h4 :class "article-item__subtitle") (aif (author-id group)
+                                                    (format nil "author:&nbsp;~A"
+                                                            (ps-html
+                                                             ((:a :href (format nil "/user/~A" it))
+                                                              (name (get-user it)))))
+                                                    ""))
         )
        ((:p :class "article-item__description") (descr group)))
-      ;; ((:a :class "button button--link" :href "#") "Сообщение"
-      ;;  ((:span :class "button__icon")))
+      ((:a :class "button button--link" :href "#") "Удалить"
+       ((:span :class "button__icon")))
       ((:span :class "clear")))))))
 (in-package #:moto)
 
