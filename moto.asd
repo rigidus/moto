@@ -56,9 +56,7 @@
                (:module "msg"
                         :serial t
                         :pathname "mod/msg"
-                        :components ((:static-file "msg-tpl.htm")
-                                     (:file "msg-prepare")
-                                     (:file "msg")))
+                        :components ((:file "msg")))
                ;; Модуль trend
                ;; ;; (:module "trend"
                ;; ;;          :serial t

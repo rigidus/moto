@@ -893,9 +893,7 @@
      (:module "msg"
               :serial t
               :pathname "mod/msg"
-              :components ((:static-file "msg-tpl.htm")
-                           (:file "msg-prepare")
-                           (:file "msg")))
+              :components ((:file "msg")))
    #+END_SRC
 
    Собственно описание модуля вынесено в файл [[file:msg.org]]

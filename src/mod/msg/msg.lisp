@@ -19,29 +19,28 @@
              (let ((msgs (get-last-msg-dialogs-for-user-id *current-user*)))
                (if (equal 0 (length msgs))
                    "Нет сообщений"
-                   (msgtpl:dialogs
-                    (list
-                     :content
-                     (format nil "~{~A~}"
-                             (loop :for item :in msgs :collect
-                                (cond ((equal :rcv (car (last item)))
-                                       (msgtpl:dlgrcv
-                                        (list
-                                         :id (car item)
-                                         :from (cadr item)
-                                         :time (caddr item)
-                                         :msg (cadddr item)
-                                         :state (nth 4 item)
-                                         )))
-                                      ((equal :snd (car (last item)))
-                                       (msgtpl:dlgsnd
-                                        (list :id (car item)
-                                              :to (cadr item)
-                                              :time (caddr item)
-                                              :msg (cadddr item)
-                                              :state (nth 4 item)
-                                              )))
-                                      (t (err "unknown dialog type"))))))))))))
+                   (ps-html ((:table)
+                             (format nil "~{~A~}"
+                                     (loop :for item :in msgs :collect
+                                        (cond ((equal :rcv (car (last item)))
+                                               (ps-html
+                                                ((:tr)
+                                                 ((:td)
+                                                  (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
+                                                       (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
+                                                       "Нет аватара"))
+                                                 ((:td)
+                                                  (nth 4 item)))))
+                                              ((equal :snd (car (last item)))
+                                               (ps-html
+                                                ((:tr)
+                                                 ((:td)
+                                                  (aif (car (find-avatar :user-id (nth 3 item) :state ":ACTIVE"))
+                                                       (ps-html ((:img :src (format nil "/ava/~A" (origin it)))))
+                                                       "Нет аватара"))
+                                                 ((:td)
+                                                  (nth 4 item)))))
+                                              (t (err "unknown dialog type"))))))))))))
       (ps-html ((:span :class "clear")))))
   (:SAVE (ps-html ((:div :class "form-send-container")
                    (submit "Сохранить вакансию" :name "act" :value "SAVE")))
@@ -72,9 +71,7 @@
              (let ((msgs (get-msg-dialogs-for-two-user-ids *current-user* (parse-integer abonent-id))))
                (if (equal 0 (length msgs))
                    "Нет сообщений"
-                   (msgtpl:dialogs
-                    (list
-                     :content
+                   (ps-html ((:table)
                      (format nil "~{~A~}"
                              (loop :for item :in msgs :collect
                                 (cond ((equal :rcv (car (last item)))
