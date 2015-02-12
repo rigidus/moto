@@ -41,8 +41,10 @@
 (defun remember ()
   "sended -> logged")
 ;; NAME DB CONSTRAINT
+
 (with-connection *db-spec*
-  (query (:alter-table "user" :add-constraint "uniq_name" :unique "name")))
+  (unless (table-exists-p "user")
+    (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
 ;; user_automat ends here
 ;; [[file:doc.org::*Роли (role)][role_entity]]
 (define-entity role "Сущность роли"
@@ -51,10 +53,10 @@
 
 (make-role-table)
 
-(make-role :name "admin")
-(make-role :name "manager")
-(make-role :name "moderator")
-(make-role :name "system")
+;; (make-role :name "admin")
+;; (make-role :name "manager")
+;; (make-role :name "moderator")
+;; (make-role :name "system")
 ;; role_entity ends here
 ;; [[file:doc.org::*Группы (group, user2group)][group_entity]]
 (define-entity group "Сущность группы"
@@ -114,7 +116,6 @@
 (define-automat avatar "Автомат аватара"
   ((id serial)
    (user-id integer)
-   (name varchar)
    (origin varchar)
    (ts-create bigint))
   (:inactive :active)

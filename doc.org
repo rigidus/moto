@@ -80,6 +80,8 @@
   - Мототур "по бабам"
 
 * Стартап
+
+  Одоната
   идея. жизнь на пракачку, или как из омеги заальфаться для задротов.
   приложение на мобилку, которое раздает тебе очки за то что ты делаешь что-то
   душеспасительное и полезное.
@@ -388,8 +390,10 @@
      (defun remember ()
        "sended -> logged")
      ;; NAME DB CONSTRAINT
+
      (with-connection *db-spec*
-       (query (:alter-table "user" :add-constraint "uniq_name" :unique "name")))
+       (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
    #+END_SRC
 
 ** DONE Роли (role)
@@ -414,10 +418,10 @@
    #+NAME: role_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("role", "роли", role_flds)>>
-     (make-role :name "admin")
-     (make-role :name "manager")
-     (make-role :name "moderator")
-     (make-role :name "system")
+     ;; (make-role :name "admin")
+     ;; (make-role :name "manager")
+     ;; (make-role :name "moderator")
+     ;; (make-role :name "system")
    #+END_SRC
 
 ** DONE Группы (group, user2group)
@@ -552,7 +556,6 @@
      |------------+------------+------------------------------------|
      | id         | serial     | идентификатор                      |
      | user-id    | integer    | идентификатор пользователя         |
-     | name       | varchar    | имя пользователя                   |
      | origin     | varchar    | путь к файлу оригинального размера |
      | ts-create  | bigint     | время создания                     |
 
@@ -1298,9 +1301,9 @@
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; clear db
-     (drop '("user" "role" "group" "user2group" "avatar" "msg"
-             "que" "quelt" "bratan" "cmpx" "plex" "crps" "flat"
-             "city" "district" "metro" "deadline"))
+     ;; (drop '("user" "role" "group" "user2group" "msg"
+     ;;         "que" "quelt" "bratan" "cmpx" "plex" "crps" "flat"
+     ;;         "city" "district" "metro" "deadline"))
    #+END_SRC
 
 ** Каркас проекта

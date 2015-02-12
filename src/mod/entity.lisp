@@ -1,4 +1,3 @@
-
 ;;;; entity.lisp
 
 (in-package #:moto)
@@ -25,7 +24,7 @@
        ,(let ((table (intern (symbol-name name))))
          `(defun ,(intern (concatenate 'string "MAKE-" (symbol-name name) "-TABLE")) ()
            (with-connection *db-spec*
-             (unless (table-exists-p ',table)
+             (unless (table-exists-p (string-downcase (symbol-name ',table)))
                (execute (dao-table-definition ',table))))))
        
        ;; make-entity

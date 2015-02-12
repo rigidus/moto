@@ -451,55 +451,55 @@
     (in-package #:moto)
 
     ;; Зарегистрируем четырех пользователей
-    (let ((alice (create-user "alice" "aXJAVtBT" "alice@mail.com"))
-          (bob   (create-user "bob"   "pDa84LAh" "bob@mail.com"))
-          (carol (create-user "carol" "zDgjGus7" "carol@mail.com"))
-          (dave  (create-user "dave"  "6zt5GmvE" "dave@mail.com")))
-      ;; Пусть Алиса пошлет Бобу сообщение
-      (let* ((test-msg "Привет, Боб, это Алиса!")
-             (msg-id (create-msg alice bob test-msg)))
-        ;; Проверим, что сообщение существует
-        (assert (get-msg msg-id))
-        ;; Проверим, что оно находится в статусе "недоставлено"
-        (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
-        ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
-        (let ((undelivered-msg-cnt (get-undelivered-msg-cnt bob)))
-          ;; Проверим, что там одно непрочитанное сообщение
-          (assert (equal 1 undelivered-msg-cnt))
-          ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
-          (let ((undelivered-msg-ids (get-undelivered-msg-ids alice bob)))
-            ;; Проверим, что в списке идентификторов непрочитанных сообщений один элемент
-            (assert (equal 1 (length undelivered-msg-ids)))
-            ;; Получим это сообщение
-            (let* ((read-msg-id (car undelivered-msg-ids))
-                   (read-msg (delivery-msg read-msg-id)))
-              ;; Проверим, что это именно то сообщение, которое послал первый пользователь
-              (assert (equal test-msg (msg read-msg)))
-              ;; Проверим, что сообщение теперь доставлено
-              (assert (equal ":DELIVERED" (state (get-msg read-msg-id))))))))
-      ;; Пусть Боб ответит Алисе и напишет Кэрол
-      (sleep 1)
-      (let* ((reply-bob-to-alice "Здравствуй, Алиса, я получил твое письмо. Я напишу Кэрол что ты нашла меня")
-             (reply-bob-to-alice-id (create-msg bob alice reply-bob-to-alice)))
-        (sleep 1)
-        (let* ((msg-bob-to-carol "Кэрол, передаю привет от Алисы. Боб.")
-               (msg-bob-to-carol-id (create-msg bob carol msg-bob-to-carol)))
-          (sleep 1)
-          ;; Пусть Дэйв напишет Бобу
-          (let* ((msg-dave-to-bob "Привет, Боб, я хочу добавить тебя в друзья")
-                 (msg-dave-to-bob-id (create-msg dave bob msg-dave-to-bob)))
-            ;; Получим последние диалоги Боба
-            (let ((last-dialogs (get-last-msg-dialogs-for-user-id bob)))
-              ;; (dbg "~%~A" (bprint last-dialogs))
-              ;; Проверим, что в имеем три диалога
-              (assert (equal 3 (length last-dialogs)))
-              ;; Проверим, что сообщения правильно упорядочены
-              (assert (equal (list msg-dave-to-bob-id
-                                   msg-bob-to-carol-id
-                                   reply-bob-to-alice-id)
-                             (mapcar #'car last-dialogs)))))))
-      (logout-user dave)
-      (logout-user carol)
-      (logout-user bob)
-      (logout-user alice))
+    ;; (let ((alice (create-user "alice" "aXJAVtBT" "alice@mail.com"))
+    ;;       (bob   (create-user "bob"   "pDa84LAh" "bob@mail.com"))
+    ;;       (carol (create-user "carol" "zDgjGus7" "carol@mail.com"))
+    ;;       (dave  (create-user "dave"  "6zt5GmvE" "dave@mail.com")))
+    ;;   ;; Пусть Алиса пошлет Бобу сообщение
+    ;;   (let* ((test-msg "Привет, Боб, это Алиса!")
+    ;;          (msg-id (create-msg alice bob test-msg)))
+    ;;     ;; Проверим, что сообщение существует
+    ;;     (assert (get-msg msg-id))
+    ;;     ;; Проверим, что оно находится в статусе "недоставлено"
+    ;;     (assert (equal ":UNDELIVERED" (state (get-msg msg-id))))
+    ;;     ;; Пусть второй пользователь запросит кол-во непрочитанных сообщений
+    ;;     (let ((undelivered-msg-cnt (get-undelivered-msg-cnt bob)))
+    ;;       ;; Проверим, что там одно непрочитанное сообщение
+    ;;       (assert (equal 1 undelivered-msg-cnt))
+    ;;       ;; Пусть второй пользователь запросит идентификаторы всех своих непрочитанных сообщений
+    ;;       (let ((undelivered-msg-ids (get-undelivered-msg-ids alice bob)))
+    ;;         ;; Проверим, что в списке идентификторов непрочитанных сообщений один элемент
+    ;;         (assert (equal 1 (length undelivered-msg-ids)))
+    ;;         ;; Получим это сообщение
+    ;;         (let* ((read-msg-id (car undelivered-msg-ids))
+    ;;                (read-msg (delivery-msg read-msg-id)))
+    ;;           ;; Проверим, что это именно то сообщение, которое послал первый пользователь
+    ;;           (assert (equal test-msg (msg read-msg)))
+    ;;           ;; Проверим, что сообщение теперь доставлено
+    ;;           (assert (equal ":DELIVERED" (state (get-msg read-msg-id))))))))
+    ;;   ;; Пусть Боб ответит Алисе и напишет Кэрол
+    ;;   (sleep 1)
+    ;;   (let* ((reply-bob-to-alice "Здравствуй, Алиса, я получил твое письмо. Я напишу Кэрол что ты нашла меня")
+    ;;          (reply-bob-to-alice-id (create-msg bob alice reply-bob-to-alice)))
+    ;;     (sleep 1)
+    ;;     (let* ((msg-bob-to-carol "Кэрол, передаю привет от Алисы. Боб.")
+    ;;            (msg-bob-to-carol-id (create-msg bob carol msg-bob-to-carol)))
+    ;;       (sleep 1)
+    ;;       ;; Пусть Дэйв напишет Бобу
+    ;;       (let* ((msg-dave-to-bob "Привет, Боб, я хочу добавить тебя в друзья")
+    ;;              (msg-dave-to-bob-id (create-msg dave bob msg-dave-to-bob)))
+    ;;         ;; Получим последние диалоги Боба
+    ;;         (let ((last-dialogs (get-last-msg-dialogs-for-user-id bob)))
+    ;;           ;; (dbg "~%~A" (bprint last-dialogs))
+    ;;           ;; Проверим, что в имеем три диалога
+    ;;           (assert (equal 3 (length last-dialogs)))
+    ;;           ;; Проверим, что сообщения правильно упорядочены
+    ;;           (assert (equal (list msg-dave-to-bob-id
+    ;;                                msg-bob-to-carol-id
+    ;;                                reply-bob-to-alice-id)
+    ;;                          (mapcar #'car last-dialogs)))))))
+    ;;   (logout-user dave)
+    ;;   (logout-user carol)
+    ;;   (logout-user bob)
+    ;;   (logout-user alice))
   #+END_SRC

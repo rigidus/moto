@@ -239,6 +239,8 @@
 ;;                                     )))
 ;;                             (t (err "unknown dialog type")))))))))))
 
+;; (make-avatar :user-id 1 :path "1.jpg" :state ":ACTIVE")
+
 (define-page user "/user/:userid"
   (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
          (id (handler-case (parse-integer userid)
