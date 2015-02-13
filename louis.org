@@ -952,53 +952,65 @@
  #+BEGIN_SRC lisp
    (in-package #:moto)
 
-   (define-page all-groups "/groups"
-     (let* ((breadcrumb (breadcrumb "Группы" ("/" . "Главная")))
-            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-       (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-         (content-box ()
-           (heading ("Группы")
-             "Группы пользователей определяют набор операций, которые
-   пользователь может выполнять над объектами системы. В отличие от
-   ролей, один пользователь может входить в несколько групп или не
-   входить ни в одну из них."))
-         (if (not (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id *current-user*)) :test #'equal))
-             ""
-             (content-box ()
-               (form ("makegroupform" "Создать группу" :class "form-section-container")
-                 ((:div :class "form-section")
-                  (fieldset ""
-                    (input ("name" "Имя" :required t :type "text"))
-                    (textarea ("descr" "Описание"))))
-                 %NEW%)))
-         (content-box ()
-           (let ((elts (mapcar #'(lambda (x)
-                                   (list-element x))
-                               (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))))
-             (ps-html
-              ((:div :class "article-list-container article-list-container--list")
-               ((:ul :class "article-list article-list--list")
-                (format nil "~{~A~}" elts)
-                )))))
-         (ps-html ((:span :class "clear")))))
-     (:del (if (equal 1 *current-user*)
-               (ps-html
-                ((:form :method "POST")
-                 ((:input :type "hidden" :name "act" :value "DEL"))
-                 ((:input :type "hidden" :name "data" :value (id i)))
-                 ((:input :type "submit" :value "Удалить"))))
-               "")
-           (if (equal 1 *current-user*)
-               (del-group (getf p :data))))
-     (:new (ps-html
-            ((:div :class "form-send-container")
-             (submit "Создать новую группу" :name "act" :value "NEW")))
-           (if (member "Пропускать везде" (mapcar #'(lambda (x)
-                                                      (name (get-group (group-id x))))
-                                                  (find-user2group :user-id *current-user*)) :test #'equal)
-               (progn (make-group :name (getf p :name) :descr (getf p :descr) :author *current-user*)
-                      (redirect "/groups"))
-               "")))
+   (labels ((perm-check (current-user)
+              (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+     (define-page all-groups "/groups"
+       (let* ((breadcrumb (breadcrumb "Группы" ("/" . "Главная")))
+              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (content-box ()
+             (heading ("Группы")
+               "Группы пользователей определяют набор операций, которые пользователь может выполнять над объектами системы. В отличие от"
+               "ролей, один пользователь может входить в несколько групп или не входить ни в одну из них."))
+           (if (not (perm-check *current-user*))
+               ""
+               (content-box ()
+                 (form ("makegroupform" "Создать группу" :class "form-section-container")
+                   ((:div :class "form-section")
+                    (fieldset ""
+                      (input ("name" "Имя" :required t :type "text"))
+                      (textarea ("descr" "Описание"))))
+                   %NEW%)))
+           (content-box ()
+             (labels ((list-element (group)
+                         (ps-html
+                          ((:li :class "article-item article-item--list" :style "height: inherit;;")
+                           ((:div :class "inner")
+                            ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
+                             ((:div :class "article-item__main-info")
+                              ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id group)))
+                               ((:h3 :class "article-item__title") (name group))
+                               ((:h4 :class "article-item__subtitle")
+                                (aif (author-id group)
+                                     (format nil "author:&nbsp;~A"
+                                             (ps-html ((:a :href (format nil "/user/~A" it)) (name (get-user it))))) "")))
+                              ((:p :class "article-item__description") (descr group)))
+                             %DEL%
+                             ((:span :class "clear"))))
+                           ))))
+                (let ((elts (mapcar #'(lambda (x) (list-element x)) (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))))
+                  (ps-html
+                   ((:form :method "POST")
+                    ((:input :type "hidden" :name "act" :value "DEL"))
+                    ((:div :class "article-list-container article-list-container--list")
+                     ((:ul :class "article-list article-list--list")
+                      (format nil "~{~A~}" elts)
+                      )))))))
+           (ps-html ((:span :class "clear")))))
+       (:del (if (perm-check *current-user*)
+                 (submit "Удалить" :name "data" :value (id group))
+                 "")
+             (if (perm-check *current-user*)
+                 (progn (del-group (getf p :data))
+                        (redirect "/groups"))
+                 ""))
+       (:new (ps-html
+              ((:div :class "form-send-container")
+               (submit "Создать новую группу" :name "act" :value "NEW")))
+             (if (perm-check *current-user*)
+                 (progn (make-group :name (getf p :name) :descr (getf p :descr) :ts-create (get-universal-time) :author-id *current-user*)
+                        (redirect "/groups"))
+                 ""))))
 
    ;; (print
    ;; (mapcar #'(lambda (x)
@@ -1009,24 +1021,7 @@
 
 
    (defmethod list-element ((group group))
-     (ps-html
-      ((:li :class "article-item article-item--list" :style "height: inherit;;")
-       ((:div :class "inner")
-        ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
-         ((:div :class "article-item__main-info")
-          ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id group)))
-           ((:h3 :class "article-item__title") (name group))
-           ((:h4 :class "article-item__subtitle") (aif (author-id group)
-                                                       (format nil "author:&nbsp;~A"
-                                                               (ps-html
-                                                                ((:a :href (format nil "/user/~A" it))
-                                                                 (name (get-user it)))))
-                                                       ""))
-           )
-          ((:p :class "article-item__description") (descr group)))
-         ((:a :class "button button--link" :href "#") "Удалить"
-          ((:span :class "button__icon")))
-         ((:span :class "clear")))))))
+     )
  #+END_SRC
 
 ** Страничка пользователя

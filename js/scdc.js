@@ -1132,7 +1132,7 @@ louis.Misc = (function(x) {
             ad = ab.find("[data-autofocus]"),
             R = ab.find(".js__arrangeItems"),
             af = ab.find(".js__closeWindow"),
-            S = ab.find(".lazy-load, .article-list"),
+            // S = ab.find(".lazy-load, .article-list"),
             ah = ab.find(".user-nav__flyout, .user-nav .flyout-parent .nav-button, .show-flyout");
         f(ab);
         if (ad.length > 0) {
@@ -1150,9 +1150,9 @@ louis.Misc = (function(x) {
         if (P.length > 0) {
             v(P)
         }
-        if (S.length > 0) {
-            shared.Misc.addLazyLoadListener(S)
-        }
+        // if (S.length > 0) {
+        //     shared.Misc.addLazyLoadListener(S)
+        // }
         if (N.length > 0) {
             i(N)
         }

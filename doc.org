@@ -440,6 +440,7 @@
      | id         | serial               | идентификатор                  |
      | name       | varchar              | имя группы                     |
      | descr      | (or db-null varchar) | описание группы                |
+     | ts-create  | bigint               | время создания группы          |
      | author-id  | (or db-null integer) | идентификатор создателя группы |
 
    Сгенерируем код и создадим необходимые группы:
@@ -447,12 +448,36 @@
    #+NAME: group_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("group", "группы", group_flds)>>
-     (make-group :name "Исполнитель желаний" :descr "Создатель штук, которых еще нет. Исправлятель штук, которые неправильно работают." :author-id 1)
-     (make-group :name "Пропускать везде" :descr "Для этого пользователя нет запретных мест" :author-id 1)
-     (make-group :name "Острый глаз" :descr "Обладает способностью замечать недоработки" :author-id 1)
-     (make-group :name "Основатель" :descr "Был с нами еще до того как это стало мейнстримом" :author-id 1)
-     (make-group :name "Рулевой" :descr "Управляет пользователями и назначает права доступа" :author-id 1)
-     (make-group :name "Засыпающие в Мариинке" :descr "Группа товарисчей, которые категорически засыпают в Мариинском театре на вечерних спектаклях :)" :author-id 6)
+     ;; (make-group
+     ;;  :name "Исполнитель желаний"
+     ;;  :descr "Создатель штук, которых еще нет. Исправлятель штук, которые неправильно работают."
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Пропускать везде"
+     ;;  :descr "Для этого пользователя нет запретных мест"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Острый глаз"
+     ;;  :descr "Обладает способностью замечать недоработки"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Основатель"
+     ;;  :descr "Был с нами еще до того как это стало мейнстримом"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Рулевой"
+     ;;  :descr "Управляет пользователями и назначает права доступа"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Засыпающие в Мариинке"
+     ;;  :descr "Группа товарисчей, которые категорически засыпают в Мариинском театре на вечерних спектаклях :)"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 6)
    #+END_SRC
 
    Теперь создадим таблицу связи, которая свяжет пользователей и группы:

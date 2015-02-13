@@ -63,14 +63,41 @@
   ((id serial)
    (name varchar)
    (descr (or db-null varchar))
+   (ts-create bigint)
    (author-id (or db-null integer))))
 
 (make-group-table)
 
-(make-role :name "Исполнитель желаний" :descr "Может сделать то что ты хочешь. Обращайся")
-(make-role :name "Пропускать везде" :descr "Для этого пользователя нет запретных мест")
-(make-role :name "Острый глаз" :descr "Обладает способностью замечать мельчайшие недоработки")
-(make-role :name "Основатель" :descr "Стоял у истоков проекта")
+;; (make-group
+;;  :name "Исполнитель желаний"
+;;  :descr "Создатель штук, которых еще нет. Исправлятель штук, которые неправильно работают."
+;;  :ts-create (get-universal-time)
+;;  :author-id 1)
+;; (make-group
+;;  :name "Пропускать везде"
+;;  :descr "Для этого пользователя нет запретных мест"
+;;  :ts-create (get-universal-time)
+;;  :author-id 1)
+;; (make-group
+;;  :name "Острый глаз"
+;;  :descr "Обладает способностью замечать недоработки"
+;;  :ts-create (get-universal-time)
+;;  :author-id 1)
+;; (make-group
+;;  :name "Основатель"
+;;  :descr "Был с нами еще до того как это стало мейнстримом"
+;;  :ts-create (get-universal-time)
+;;  :author-id 1)
+;; (make-group
+;;  :name "Рулевой"
+;;  :descr "Управляет пользователями и назначает права доступа"
+;;  :ts-create (get-universal-time)
+;;  :author-id 1)
+;; (make-group
+;;  :name "Засыпающие в Мариинке"
+;;  :descr "Группа товарисчей, которые категорически засыпают в Мариинском театре на вечерних спектаклях :)"
+;;  :ts-create (get-universal-time)
+;;  :author-id 6)
 ;; group_entity ends here
 ;; [[file:doc.org::*Группы (group, user2group)][user2group_entity]]
 (define-entity user2group "Сущность связи пользователя и группы"
