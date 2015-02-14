@@ -865,6 +865,80 @@
      {/template}
    #+END_SRC
 
+* Отображение списков элементов
+
+  Часто на странице нужно отобразить список каких-нибудь сущностей
+  системы - например, пользователей или групп. Хочется, чтобы такого
+  рода отображения с одной стороны выполнялись по одному шаблону, а с
+  другой - были специфицированы типом отображаемого обьекта.
+
+  Чтобы обеспечить эти противоречивые требования введем метод show
+  который принимает разные типы параметров. Если ему передан список -
+  он отображает блок со списком элементов и рекурсивно вызывает сам
+  себя для отображения каждого элемента - таким образом обеспечивается
+  унификация.
+
+  Есть также один частный случай - пустой список. Тут нужно
+  отобразить, что элементов нет.
+
+  #+NAME: iface_contents
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defmethod show ((param (eql nil)) &key &allow-other-keys)
+      (ps-html
+       ((:div :class "article-list-container article-list-container--list")
+        ((:ul :class "article-list article-list--list")
+         ((:p) "Нет элементов для отображения")))))
+  #+END_SRC
+
+  #+NAME: iface_contents
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defmethod show ((param list) &key &allow-other-keys)
+      (setf (car param) (show (car param)))
+      (ps-html
+       ((:div :class "article-list-container article-list-container--list")
+        ((:ul :class "article-list article-list--list")
+         (reduce #'(lambda (acc elt) (concatenate 'string acc (show elt))) param)))))
+  #+END_SRC
+
+  #+NAME: iface_contents
+  #+BEGIN_SRC lisp
+    (in-package #:moto)
+
+    (defmethod show ((param user) &key &allow-other-keys)
+      (ps-html
+       ((:li :class "article-item article-item--list")
+        ((:div :class "inner")
+         ((:a :class "article-item__image" :href "#")
+          (get-avatar-img (id param) :middle))
+         ((:div :class "article-item__info" :style "width: 540px;")
+          ;; ((:img :class "article-item__manufacturer" :src "43.gif"))
+          ((:div :class "article-item__main-info")
+           ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id param)))
+            ((:h3 :class "article-item__title") (name param))
+            ((:h4 :class "article-item__subtitle") (role-id param))
+            )
+           ((:p :class "article-item__description")
+            (format nil "~{~A~^, ~}"
+                    (mapcar #'(lambda (x)
+                                (ps-html
+                                 ((:a :href (format nil "/group/~A" (id x)))
+                                  (name (get-group (group-id x))))))
+                            (find-user2group :user-id (id param))))))
+          ;; ((:div :class "price")
+          ;;  ((:p :class "price__current")
+          ;;   ((:span :class "price__number")
+          ;;    ((:span :class "currency") "€")
+          ;;    "&nbsp;12"
+          ;;    ((:span :class "cent") "99"))))
+          ((:a :class "button button--link" :href "#") "Сообщение"
+           ((:span :class "button__icon")))
+          ((:span :class "clear")))))))
+  #+END_SRC
+
 * Страницы
 ** Главная страница
 
@@ -1022,6 +1096,73 @@
 
    (defmethod list-element ((group group))
      )
+ #+END_SRC
+
+** Страница группы
+
+ #+NAME: iface_contents
+ #+BEGIN_SRC lisp
+   (in-package #:moto)
+
+   <<user_data_html>>
+
+   <<change_role_html>>
+
+   <<change_group_html>>
+
+   <<user_msg_html>>
+
+   (define-page group "/group/:groupid"
+     (let* ((breadcrumb (breadcrumb "Профиль группы" ("/" . "Главная")))
+            (id (handler-case (parse-integer groupid)
+                  (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+         (if (null (get-group id))
+             (base-page (:breadcrumb breadcrumb)
+               (content-box ()
+                 (system-msg ("caution")
+                   (ps-html ((:p) "Нет такой группы")))))
+             ;; else
+             (let* ((group (get-group id))
+                    (left-name (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+               (standard-page (:breadcrumb breadcrumb :user left-name :menu (menu) :overlay (reg-overlay))
+                 (content-box ()
+                   (heading ((format nil "Страница группы ~A" (name group)))))
+                 (content-box ()
+                   (show (mapcar #'(lambda (x)
+                                     (get-user (user-id x)))
+                                 (find-user2group :group-id id))))
+                 ;; (content-box ()
+                 ;;   (change-group-html user %change-group%))
+                 (ps-html ((:span :class "clear")))))))
+     (:change-role (if (equal 1 *current-user*)
+                       (submit "Изменить" :name "act" :value "CHANGE-ROLE")
+                       "")
+                   (if (equal 1 *current-user*)
+                       (let* ((i (parse-integer userid))
+                              (u (get-user i)))
+                         (aif (getf p :role)
+                              (role-id (upd-user u (list :role-id (parse-integer it))))
+                              "role changed"))
+                       "access-denied"))
+     (:change-group (if (equal 1 *current-user*)
+                        (submit "Изменить" :name "act" :value "CHANGE-GROUP")
+                        "")
+                    (if (equal 1 *current-user*)
+                        (let* ((i (parse-integer userid))
+                               (u (get-user i)))
+                          (if (null (getf p :groups))
+                              "-not change-"
+                              (loop
+                                 :initially (mapcar #'(lambda (x) (del-user2group (id x)))
+                                                    (find-user2group :user-id (parse-integer userid)))
+                                 :for lnk
+                                 :in (loop
+                                        :for key  :in p    :by #'cddr
+                                        :for n    :from 1  :to 10 :by (+ 2)
+                                        :when    (equal key :groups)
+                                        :collect (parse-integer (nth n p)))
+                                 :collect (id (make-user2group :user-id i :group-id lnk)))))
+                        "access-denied")))
  #+END_SRC
 
 ** Страничка пользователя
@@ -1509,40 +1650,7 @@
          (content-box ()
            (heading ("Список пользователей") ""))
          (content-box ()
-           (let ((elts (mapcar #'(lambda (x)
-                                   (list-element x))
-                               (all-user))))
-             (ps-html
-              ((:div :class "article-list-container article-list-container--list")
-               ((:ul :class "article-list article-list--list")
-                (format nil "~{~A~}" elts)
-                )))))
-           ;; (let ((collection (format nil "~{~A~}"
-           ;;                           (with-collection (i (sort (all-user) #'(lambda (a b) (< (id a) (id b)))))
-           ;;                             (ps-html
-           ;;                              ((:tr)
-           ;;                               ((:td) ((:a :href (format nil "/user/~A" (id i))) (id i)))
-           ;;                               ((:td) (name i))
-           ;;                               ((:td) (ts-create i))
-           ;;                               ((:td) (ts-last i))
-           ;;                               ((:td) (role-id i))
-           ;;                               ((:td) %del%
-           ;;                                )))))))
-           ;; (ps-html
-           ;;  ((:table :border 0)
-           ;;   (:th "id")
-           ;;   (:th "name")
-           ;;   (:th "ts-create")
-           ;;   (:th "ts-last")
-           ;;   (:th "role-id")
-           ;;   (:th "")
-           ;;   collection))))
-         ;; (content-box ()
-         ;;   (let ((zzz (format nil "~A" (list-element (get-user 1)))))
-         ;;     (ps-html
-         ;;      ((:div :class "article-list-container article-list-container--list")
-         ;;       ((:ul :class "article-list article-list--list")
-         ;;        zzz)))))
+           (show (all-user)))
          (ps-html ((:span :class "clear")))))
      (:DEL (if (and (equal 1 *current-user*)
                     (not (equal 1 (id i))))
@@ -1568,40 +1676,3 @@
                         :ts-last (get-universal-time))
              (redirect "/users"))))
  #+END_SRC
-
-*** Отображение пользователя в списке
-
-    #+NAME: iface_contents
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (defmethod list-element ((user user))
-        (ps-html
-         ((:li :class "article-item article-item--list")
-          ((:div :class "inner")
-           ((:a :class "article-item__image" :href "#")
-            (get-avatar-img (id user) :middle))
-           ((:div :class "article-item__info" :style "width: 540px;")
-            ;; ((:img :class "article-item__manufacturer" :src "43.gif"))
-            ((:div :class "article-item__main-info")
-             ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id user)))
-              ((:h3 :class "article-item__title") (name user))
-              ((:h4 :class "article-item__subtitle") (role-id user))
-              )
-             ((:p :class "article-item__description")
-              (format nil "~{~A~^, ~}"
-                      (mapcar #'(lambda (x)
-                                  (ps-html
-                                   ((:a :href (format nil "/group/~A" (id x)))
-                                    (name (get-group (group-id x))))))
-                              (find-user2group :user-id (id user))))))
-            ;; ((:div :class "price")
-            ;;  ((:p :class "price__current")
-            ;;   ((:span :class "price__number")
-            ;;    ((:span :class "currency") "€")
-            ;;    "&nbsp;12"
-            ;;    ((:span :class "cent") "99"))))
-            ((:a :class "button button--link" :href "#") "Сообщение"
-             ((:span :class "button__icon")))
-            ((:span :class "clear")))))))
-    #+END_SRC
