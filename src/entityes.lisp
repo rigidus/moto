@@ -53,10 +53,10 @@
 
 (make-role-table)
 
-;; (make-role :name "admin")
-;; (make-role :name "manager")
-;; (make-role :name "moderator")
-;; (make-role :name "system")
+(make-role :name "webuser")
+(make-role :name "timebot")
+(make-role :name "autotester")
+(make-role :name "system")
 ;; role_entity ends here
 ;; [[file:doc.org::*Группы (group, user2group)][group_entity]]
 (define-entity group "Сущность группы"

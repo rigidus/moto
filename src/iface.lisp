@@ -12,50 +12,24 @@
 ;; Страницы
 (in-package #:moto)
 
-(defmethod show ((param (eql nil)) &key &allow-other-keys)
+(defmethod show ((param (eql nil)) &rest actions &key &allow-other-keys)
   (ps-html
    ((:div :class "article-list-container article-list-container--list")
     ((:ul :class "article-list article-list--list")
      ((:p) "Нет элементов для отображения")))))
 (in-package #:moto)
 
-(defmethod show ((param list) &key &allow-other-keys)
-  (setf (car param) (show (car param)))
+(defmethod show ((param list) &rest actions &key &allow-other-keys)
+  (setf (car param)
+        (apply #'show (list* (car param) actions)))
   (ps-html
    ((:div :class "article-list-container article-list-container--list")
     ((:ul :class "article-list article-list--list")
-     (reduce #'(lambda (acc elt) (concatenate 'string acc (show elt))) param)))))
-(in-package #:moto)
-
-(defmethod show ((param user) &key &allow-other-keys)
-  (ps-html
-   ((:li :class "article-item article-item--list")
-    ((:div :class "inner")
-     ((:a :class "article-item__image" :href "#")
-      (get-avatar-img (id param) :middle))
-     ((:div :class "article-item__info" :style "width: 540px;")
-      ;; ((:img :class "article-item__manufacturer" :src "43.gif"))
-      ((:div :class "article-item__main-info")
-       ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id param)))
-        ((:h3 :class "article-item__title") (name param))
-        ((:h4 :class "article-item__subtitle") (role-id param))
-        )
-       ((:p :class "article-item__description")
-        (format nil "~{~A~^, ~}"
-                (mapcar #'(lambda (x)
-                            (ps-html
-                             ((:a :href (format nil "/group/~A" (id x)))
-                              (name (get-group (group-id x))))))
-                        (find-user2group :user-id (id param))))))
-      ;; ((:div :class "price")
-      ;;  ((:p :class "price__current")
-      ;;   ((:span :class "price__number")
-      ;;    ((:span :class "currency") "€")
-      ;;    "&nbsp;12"
-      ;;    ((:span :class "cent") "99"))))
-      ((:a :class "button button--link" :href "#") "Сообщение"
-       ((:span :class "button__icon")))
-      ((:span :class "clear")))))))
+     (reduce #'(lambda (acc elt)
+                 (concatenate 'string
+                              acc
+                              (apply #'show (list* elt actions))))
+             param)))))
 (in-package #:moto)
 
 ;; (print
@@ -146,30 +120,8 @@
                    (textarea ("descr" "Описание"))))
                 %NEW%)))
         (content-box ()
-          (labels ((list-element (group)
-                      (ps-html
-                       ((:li :class "article-item article-item--list" :style "height: inherit;;")
-                        ((:div :class "inner")
-                         ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
-                          ((:div :class "article-item__main-info")
-                           ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id group)))
-                            ((:h3 :class "article-item__title") (name group))
-                            ((:h4 :class "article-item__subtitle")
-                             (aif (author-id group)
-                                  (format nil "author:&nbsp;~A"
-                                          (ps-html ((:a :href (format nil "/user/~A" it)) (name (get-user it))))) "")))
-                           ((:p :class "article-item__description") (descr group)))
-                          %DEL%
-                          ((:span :class "clear"))))
-                        ))))
-             (let ((elts (mapcar #'(lambda (x) (list-element x)) (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))))
-               (ps-html
-                ((:form :method "POST")
-                 ((:input :type "hidden" :name "act" :value "DEL"))
-                 ((:div :class "article-list-container article-list-container--list")
-                  ((:ul :class "article-list article-list--list")
-                   (format nil "~{~A~}" elts)
-                   )))))))
+          (let ((tmp (show (sort (all-group) #'(lambda (a b) (< (id a) (id b)))) :del #'(lambda (group) %DEL%))))
+            (ps-html ((:form :method "POST") ((:input :type "hidden" :name "act" :value "DEL")) tmp))))
         (ps-html ((:span :class "clear")))))
     (:del (if (perm-check *current-user*)
               (submit "Удалить" :name "data" :value (id group))
@@ -185,17 +137,26 @@
               (progn (make-group :name (getf p :name) :descr (getf p :descr) :ts-create (get-universal-time) :author-id *current-user*)
                      (redirect "/groups"))
               ""))))
+(in-package #:moto)
 
-;; (print
-;; (mapcar #'(lambda (x)
-;;             (list (id x)
-;;                   (name x)
-;;                   (descr x)))
-;;         (all-group)))
-
-
-(defmethod list-element ((group group))
-  )
+(defmethod show ((param group) &rest actions &key &allow-other-keys)
+  (ps-html
+   ((:li :class "article-item article-item--list" :style "height: inherit;;")
+    ((:div :class "inner")
+     ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
+      ((:div :class "article-item__main-info")
+       ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id param)))
+        ((:h3 :class "article-item__title") (name param))
+        ((:h4 :class "article-item__subtitle")
+         (aif (author-id param)
+              (format nil "author:&nbsp;~A"
+                      (ps-html ((:a :href (format nil "/user/~A" it)) (name (get-user it))))) "")))
+       ((:p :class "article-item__description") (descr param)))
+      (unless (null actions)
+        (format nil "~{~A~}"
+                (loop :for action-key :in actions :by #'cddr :collect
+                   (funcall (getf actions action-key) param))))
+      ((:span :class "clear")))))))
 (in-package #:moto)
 
 (in-package #:moto)
@@ -279,13 +240,11 @@
                  (left-name (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
             (standard-page (:breadcrumb breadcrumb :user left-name :menu (menu) :overlay (reg-overlay))
               (content-box ()
-                (heading ((format nil "Страница группы ~A" (name group)))))
+                (heading ((format nil "Пользователи группы \"~A\"" (name group)))))
               (content-box ()
                 (show (mapcar #'(lambda (x)
                                   (get-user (user-id x)))
                               (find-user2group :group-id id))))
-              ;; (content-box ()
-              ;;   (change-group-html user %change-group%))
               (ps-html ((:span :class "clear")))))))
   (:change-role (if (equal 1 *current-user*)
                     (submit "Изменить" :name "act" :value "CHANGE-ROLE")
@@ -385,10 +344,12 @@
 
 
 
-(define-page user "/user/:userid"
-  (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
-         (id (handler-case (parse-integer userid)
-               (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+(labels ((perm-check (current-user)
+           (member "Рулевой" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+  (define-page user "/user/:userid"
+    (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
+           (id (handler-case (parse-integer userid)
+                 (SB-INT:SIMPLE-PARSE-ERROR () 0))))
       (if (null (get-user id))
           (base-page (:breadcrumb breadcrumb)
             (content-box ()
@@ -411,35 +372,37 @@
               (content-box ()
                 (change-group-html user %change-group%))
               (ps-html ((:span :class "clear")))))))
-  (:change-role (if (equal 1 *current-user*)
-                    (submit "Изменить" :name "act" :value "CHANGE-ROLE")
-                    "")
-                (if (equal 1 *current-user*)
-                    (let* ((i (parse-integer userid))
-                           (u (get-user i)))
-                      (aif (getf p :role)
-                           (role-id (upd-user u (list :role-id (parse-integer it))))
-                           "role changed"))
-                    "access-denied"))
-  (:change-group (if (equal 1 *current-user*)
-                     (submit "Изменить" :name "act" :value "CHANGE-GROUP")
-                     "")
-                 (if (equal 1 *current-user*)
-                     (let* ((i (parse-integer userid))
-                            (u (get-user i)))
-                       (if (null (getf p :groups))
-                           "-not change-"
-                           (loop
-                              :initially (mapcar #'(lambda (x) (del-user2group (id x)))
-                                                 (find-user2group :user-id (parse-integer userid)))
-                              :for lnk
-                              :in (loop
-                                     :for key  :in p    :by #'cddr
-                                     :for n    :from 1  :to 10 :by (+ 2)
-                                     :when    (equal key :groups)
-                                     :collect (parse-integer (nth n p)))
-                              :collect (id (make-user2group :user-id i :group-id lnk)))))
-                     "access-denied")))
+    (:change-role (if (perm-check *current-user*)
+                      (submit "Изменить" :name "act" :value "CHANGE-ROLE")
+                      "")
+                  (if (perm-check *current-user*)
+                      (let* ((i (parse-integer userid))
+                             (u (get-user i)))
+                        (aif (getf p :role)
+                             (role-id (upd-user u (list :role-id (parse-integer it))))
+                             "role changed")
+                        (redirect (format nil "/user/~A" userid)))
+                      "access-denied"))
+    (:change-group (if (perm-check *current-user*)
+                       (submit "Изменить" :name "act" :value "CHANGE-GROUP")
+                       "")
+                   (if (perm-check *current-user*)
+                       (let* ((i (parse-integer userid))
+                              (u (get-user i)))
+                         (if (null (getf p :groups))
+                             "-not change-"
+                             (loop
+                                :initially (mapcar #'(lambda (x) (del-user2group (id x)))
+                                                   (find-user2group :user-id (parse-integer userid)))
+                                :for lnk
+                                :in (loop
+                                       :for key  :in p    :by #'cddr
+                                       :for n    :from 1  :to 10 :by (+ 2)
+                                       :when    (equal key :groups)
+                                       :collect (parse-integer (nth n p)))
+                                :collect (id (make-user2group :user-id i :group-id lnk))))
+                         (redirect (format nil "/user/~A" userid))
+                       "access-denied")))))
 (in-package #:moto)
 
 (defun reg-teasers ()
@@ -717,7 +680,7 @@
       (content-box ()
         (heading ("Список пользователей") ""))
       (content-box ()
-        (show (all-user)))
+        (show (sort (all-user) #'(lambda (a b) (< (id a) (id b))))))
       (ps-html ((:span :class "clear")))))
   (:DEL (if (and (equal 1 *current-user*)
                  (not (equal 1 (id i))))
@@ -742,4 +705,40 @@
                      :ts-create (get-universal-time)
                      :ts-last (get-universal-time))
           (redirect "/users"))))
+(in-package #:moto)
+
+(defmethod show ((param user) &key &allow-other-keys)
+  (ps-html
+   ((:li :class "article-item article-item--list")
+    ((:div :class "inner")
+     ((:a :class "article-item__image" :href "#")
+      (get-avatar-img (id param) :middle))
+     ((:div :class "article-item__info" :style "width: 540px;")
+      ;; ((:img :class "article-item__manufacturer" :src "43.gif"))
+      ((:div :class "article-item__main-info")
+       ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id param)))
+        ((:h3 :class "article-item__title") (name param)))
+       (aif (role-id param)
+            (ps-html
+             ((:div :class "article-item__main-info")
+              ((:a :class "article-item__title-link" :href (format nil "/role/~A" it))
+               ((:h4 :class "article-item__subtitle")
+                (name (get-role it))))))
+            "")
+       ((:p :class "article-item__description")
+        (format nil "~{~A~^, ~}"
+                (mapcar #'(lambda (x)
+                            (ps-html
+                             ((:a :href (format nil "/group/~A" (id x)))
+                              (name (get-group (group-id x))))))
+                        (find-user2group :user-id (id param))))))
+      ;; ((:div :class "price")
+      ;;  ((:p :class "price__current")
+      ;;   ((:span :class "price__number")
+      ;;    ((:span :class "currency") "€")
+      ;;    "&nbsp;12"
+      ;;    ((:span :class "cent") "99"))))
+      ((:a :class "button button--link" :href "#") "Сообщение"
+       ((:span :class "button__icon")))
+      ((:span :class "clear")))))))
 ;; iface ends here
