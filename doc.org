@@ -303,6 +303,33 @@
        (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
+** События
+
+   События протоколируют все что происходит в системе. Каждое создание
+   сущности, каждое изменение состояния автомата регистрируется
+   здесь. Роботы используют эти события для своей работы. Также
+   информация о событиях попадает на главную страницу.
+
+   Событие является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: event_flds
+     | field name | field type           | note                   |
+     |------------+----------------------+------------------------|
+     | id         | serial               | идентификатор          |
+     | name       | (or db-null varchar) | имя события            |
+     | tag        | (or db-null varchar) | тег события            |
+     | msg        | (or db-null varchar) | сообщение или описание |
+     | author-id  | (or db-null varchar) | инициатор события      |
+     | ts-create  | bigint               | время события          |
+
+   Теперь сгенерируем код и cоздадим необходимые роли:
+
+   #+NAME: event_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("event", "события", event_flds)>>
+   #+END_SRC
+
 ** DONE Пользователи (user)
 
    Для начала надо определиться, какие данные мы собираемся хранить о пользователях, и

@@ -3,6 +3,17 @@
 ;;;; Licensed under the GNU AGPLv3
 (in-package #:moto)
 ;; entity_and_automates ends here
+;; [[file:doc.org::*События][event_entity]]
+(define-entity event "Сущность события"
+  ((id serial)
+   (name (or db-null varchar))
+   (tag (or db-null varchar))
+   (msg (or db-null varchar))
+   (author-id (or db-null varchar))
+   (ts-create bigint)))
+
+(make-event-table)
+;; event_entity ends here
 ;; [[file:doc.org::*Пользователи (user)][user_automat]]
 (define-automat user "Автомат пользователя"
   ((id serial)

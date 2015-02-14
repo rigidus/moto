@@ -615,7 +615,9 @@
 (in-package #:moto)
 
 (labels ((perm-check-dev (current-user)
-           (member "Исполнитель желаний" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+           (member "Исполнитель желаний" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal))
+         (perm-check (current-user)
+           (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
   (define-page all-users "/users"
     (let ((breadcrumb (breadcrumb "Список пользователей"))
           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -642,35 +644,51 @@
                                                  (sort (all-role) #'(lambda (a b) (< (id a) (id b))))))))))))
                 %NEW%)))
         (content-box ()
-          (show (sort (all-user) #'(lambda (a b) (< (id a) (id b))))))
+          (let ((tmp (show (sort (all-user) #'(lambda (a b) (< (id a) (id b))))
+                           :del #'(lambda (user) %DEL%)
+                           :msg #'(lambda (user) %MSG%))))
+            (ps-html ((:form :method "POST") ((:input :type "hidden" :name "act" :value "DEL")) tmp))))
         (ps-html ((:span :class "clear")))))
-    (:DEL (if (and (equal 1 *current-user*)
-                   (not (equal 1 (id i))))
-              (ps-html
-               ((:form :method "POST")
-                ((:input :type "hidden" :name "act" :value "DEL"))
-                ((:input :type "hidden" :name "data" :value (id i)))
-                ((:div :class "form-send-container")
-                 (submit "Удалить" ))))
+    (:DEL (if (or (perm-check-dev *current-user*)
+                  (perm-check *current-user*))
+              (ps-html ((:form :method "POST")
+                        ((:input :type "hidden" :name "act" :value "DEL"))
+                        (submit "Удалить" :name "data" :value (id user))))
               "")
-          (progn
-            (del-user (getf p :data))
-            (redirect "/users")))
-    (:new (ps-html
-           ((:input :type "hidden" :name "act" :value "NEW"))
-           ((:div :class "form-send-container")
-            (submit "Создать пользователя" )))
-          (progn
-            (make-user :name (getf p :name)
-                       :role-id (parse-integer (getf p :role))
-                       :password ""
-                       :email ""
-                       :ts-create (get-universal-time)
-                       :ts-last (get-universal-time))
-            (redirect "/users")))))
+          (if (or (perm-check-dev *current-user*)
+                  (perm-check *current-user*))
+              (progn
+                (del-group (getf p :data))
+                (redirect "/users"))
+              ""))
+    (:msg (if (or (perm-check-dev *current-user*)
+                  (perm-check *current-user*))
+              "" ;;(submit "Сообщение" :name "data" :value (id user))
+              "")
+          (if (or (perm-check-dev *current-user*)
+                  (perm-check *current-user*))
+              (progn
+                (del-group (getf p :data))
+                (redirect "/users"))
+              ""))
+    (:new (if (not (perm-check-dev *current-user*))
+              ""
+              (ps-html
+               ((:input :type "hidden" :name "act" :value "NEW"))
+               ((:div :class "form-send-container")
+                (submit "Создать пользователя" ))))
+          (if (not (perm-check-dev *current-user*))
+              ""
+              (let ((new-id (create-user (getf p :name) "" "")))
+                (upd-user (get-user new-id)
+                          (list
+                           :role-id (parse-integer (getf p :role))
+                           :ts-create (get-universal-time)
+                           :ts-last (get-universal-time)))
+                (redirect "/users"))))))
 (in-package #:moto)
 
-(defmethod show ((param user) &key &allow-other-keys)
+(defmethod show ((param user) &rest actions &key &allow-other-keys)
   (let* ((role (name (get-role (role-id param))))
          (avatar (cond ((equal role "timebot") (ps-html ((:img :src "/ava/middle/timebot.png"))))
                        ((equal role "autotester") (ps-html ((:img :src "/ava/middle/tester.png"))))
@@ -706,8 +724,10 @@
       ;;    ((:span :class "currency") "€")
       ;;    "&nbsp;12"
       ;;    ((:span :class "cent") "99"))))
-      ((:a :class "button button--link" :href "#") "Сообщение"
-       ((:span :class "button__icon")))
+      (unless (null actions)
+        (format nil "~{~A~}"
+                (loop :for action-key :in actions :by #'cddr :collect
+                   (funcall (getf actions action-key) param))))
       ((:span :class "clear"))))))))
 (in-package #:moto)
 

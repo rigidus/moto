@@ -11,14 +11,29 @@
 ;; Событие создания пользователя
 (defun create-user (name password email)
   "Создание пользователя. Возвращает id пользователя"
-  (aif (make-user :name name :password password :email email :ts-create (get-universal-time) :ts-last (get-universal-time))
-       (progn
-         ;; (dbg "Создан пользователь: ~A" (id it))
-         ;; Делаем его залогиненным
-         (upd-user (get-user (id it)) (list :state ":LOGGED"))
-         ;; Возвращаем user-id
-         (id it))
-       (err 'err-create-user)))
+  (let ((new-user (make-user :name name :password password :email email :ts-create (get-universal-time) :ts-last (get-universal-time))))
+    (if (null new-user)
+        (err 'err-create-user)
+        ;; else
+        (progn
+          (make-event :name "create-user"
+                      :tag "create"
+                      :msg (aif *current-user*
+                                (format nil "Пользователь #~A : ~A cоздал пользователя #~A : ~A"
+                                        *current-user*
+                                        (name (get-user *current-user*))
+                                        (id new-user)
+                                        (name new-user))
+                                ;; else
+                                (format nil "Зарегистрировался пользователь #~A : ~A"
+                                        (id new-user)
+                                        (name new-user)))
+                      :author-id *current-user*
+                      :ts-create (get-universal-time))
+          ;; Делаем его залогиненным
+          (upd-user (get-user (id new-user)) (list :state ":LOGGED"))
+          ;; Возвращаем user-id
+          (id new-user)))))
 (in-package #:moto)
 
 ;; Событие выхода
