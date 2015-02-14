@@ -32,17 +32,32 @@
              param)))))
 (in-package #:moto)
 
-;; (print
-;;  (macroexpand-1 '
-;;   (with-wrapper
-;;     "<h1>Главная страница</h1>"
-;;     )
-;;   ))
+(define-page main "/"
+  (let ((breadcrumb (breadcrumb "Список пользователей"))
+        (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ("Что происходит?") "Последние события:"))
+      (content-box ()
+        (show (sort (all-event) #'(lambda (a b) (> (id a) (id b))))))
+      (ps-html ((:span :class "clear"))))))
 
-(restas:define-route main ("/")
-  (with-wrapper
-      "<h1>Главная страница</h1>"
-    ))
+(defmethod show ((param event) &rest actions &key &allow-other-keys)
+  (ps-html
+   ((:li :class "article-item article-item--list" :style "height: inherit;;")
+    ((:div :class "inner")
+     ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
+      ((:div :class "article-item__main-info")
+       ;; ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id param)))
+       ;;  ((:h3 :class "article-item__title") (name param))
+       ;;  ((:h4 :class "article-item__subtitle")))
+       ((:p :class "article-item__description") (msg param)))
+      ;; (if (null actions)
+      ;; ""
+      ;;   (format nil "~{~A~}"
+      ;;           (loop :for action-key :in actions :by #'cddr :collect
+      ;;              (funcall (getf actions action-key) param))))
+      ((:span :class "clear")))))))
 (in-package #:moto)
 
 (define-page all-roles "/roles"
@@ -658,17 +673,19 @@
           (if (or (perm-check-dev *current-user*)
                   (perm-check *current-user*))
               (progn
-                (del-group (getf p :data))
+                (del-user (getf p :data))
                 (redirect "/users"))
               ""))
     (:msg (if (or (perm-check-dev *current-user*)
                   (perm-check *current-user*))
-              "" ;;(submit "Сообщение" :name "data" :value (id user))
+              (ps-html ((:form :method "POST")
+                        ((:input :type "hidden" :name "act" :value "MSG"))
+                        (submit "Сообщение (пока не работает)" :name "data" :value (id user))))
               "")
           (if (or (perm-check-dev *current-user*)
                   (perm-check *current-user*))
               (progn
-                (del-group (getf p :data))
+                ;; (del-group (getf p :data))
                 (redirect "/users"))
               ""))
     (:new (if (not (perm-check-dev *current-user*))
@@ -695,40 +712,42 @@
                        ((equal role "system") (ps-html ((:img :src "/ava/middle/system.png"))))
                        (t (get-avatar-img (id param) :middle))))
          (birka  (if (not (equal role "webuser")) "/ava/small/robot.png" "/img/transparency.gif")))
-  (ps-html
-   ((:li :class "article-item article-item--list")
-    ((:div :class "inner")
-     ((:a :class "article-item__image" :href "#") avatar)
-     ((:div :class "article-item__info" :style "width: 540px;")
-      ((:img :class "article-item__manufacturer" :src birka))
-      ((:div :class "article-item__main-info")
-       ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id param)))
-        ((:h3 :class "article-item__title") (name param)))
-       (aif (role-id param)
-            (ps-html
-             ((:div :class "article-item__main-info")
-              ((:a :class "article-item__title-link" :href (format nil "/role/~A" it))
-               ((:h4 :class "article-item__subtitle")
-                (name (get-role it))))))
-            "")
-       ((:p :class "article-item__description")
-        (format nil "~{~A~^, ~}"
-                (mapcar #'(lambda (x)
-                            (ps-html
-                             ((:a :href (format nil "/group/~A" (id x)))
-                              (name (get-group (group-id x))))))
-                        (find-user2group :user-id (id param))))))
-      ;; ((:div :class "price")
-      ;;  ((:p :class "price__current")
-      ;;   ((:span :class "price__number")
-      ;;    ((:span :class "currency") "€")
-      ;;    "&nbsp;12"
-      ;;    ((:span :class "cent") "99"))))
-      (unless (null actions)
-        (format nil "~{~A~}"
-                (loop :for action-key :in actions :by #'cddr :collect
-                   (funcall (getf actions action-key) param))))
-      ((:span :class "clear"))))))))
+    (ps-html
+     ((:li :class "article-item article-item--list")
+      ((:div :class "inner")
+       ((:a :class "article-item__image" :href "#") avatar)
+       ((:div :class "article-item__info" :style "width: 540px;")
+        ((:img :class "article-item__manufacturer" :src birka))
+        ((:div :class "article-item__main-info")
+         ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id param)))
+          ((:h3 :class "article-item__title") (name param)))
+         (aif (role-id param)
+              (ps-html
+               ((:div :class "article-item__main-info")
+                ((:a :class "article-item__title-link" :href (format nil "/role/~A" it))
+                 ((:h4 :class "article-item__subtitle")
+                  (name (get-role it))))))
+              "")
+         ((:p :class "article-item__description")
+          (format nil "~{~A~^, ~}"
+                  (mapcar #'(lambda (y)
+                              (ps-html
+                               ((:a :href (format nil "/group/~A" (group-id y)))
+                                (name (get-group (group-id y))))))
+                          (find-user2group :user-id (id param))))
+          ))
+        ;; ((:div :class "price")
+        ;;  ((:p :class "price__current")
+        ;;   ((:span :class "price__number")
+        ;;    ((:span :class "currency") "€")
+        ;;    "&nbsp;12"
+        ;;    ((:span :class "cent") "99"))))
+        (if (null actions)
+            ""
+            (format nil "~{~A~}"
+                    (loop :for action-key :in actions :by #'cddr :collect
+                       (funcall (getf actions action-key) param))))
+        ((:span :class "clear"))))))))
 (in-package #:moto)
 
 (labels ((perm-check (current-user)
@@ -783,9 +802,10 @@
               (format nil "author:&nbsp;~A"
                       (ps-html ((:a :href (format nil "/user/~A" it)) (name (get-user it))))) "")))
        ((:p :class "article-item__description") (descr param)))
-      (unless (null actions)
-        (format nil "~{~A~}"
-                (loop :for action-key :in actions :by #'cddr :collect
-                   (funcall (getf actions action-key) param))))
+      (if (null actions)
+          ""
+          (format nil "~{~A~}"
+                  (loop :for action-key :in actions :by #'cddr :collect
+                     (funcall (getf actions action-key) param))))
       ((:span :class "clear")))))))
 ;; iface ends here
