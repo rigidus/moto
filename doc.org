@@ -418,10 +418,10 @@
    #+NAME: role_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("role", "роли", role_flds)>>
-     (make-role :name "webuser")
-     (make-role :name "timebot")
-     (make-role :name "autotester")
-     (make-role :name "system")
+     ;; (make-role :name "webuser")
+     ;; (make-role :name "timebot")
+     ;; (make-role :name "autotester")
+     ;; (make-role :name "system")
    #+END_SRC
 
 ** DONE Группы (group, user2group)
