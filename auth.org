@@ -158,9 +158,15 @@
 
      ;; Событие выхода
      (defun logout-user (current-user)
-       (takt (get-user current-user) :unlogged))
+       (takt (get-user current-user) :unlogged)
+       (make-event :name "logout-user"
+                   :tag "logout"
+                   :msg (format nil "Пользователь #~A : ~A вышел из системы"
+                                current-user
+                                (name (get-user current-user)))
+                   :author-id current-user
+                   :ts-create (get-universal-time)))
    #+END_SRC
-
 ** Обобщенный метод извлечения авторизационных данных
 
    В простейшем случае данные из объекта =request=, но возможны и другие варианты,
@@ -204,18 +210,29 @@
        (let ((u (get-user id)))
          (when (equal ":LOGGED" (state u))
            (upd-user u (list :state ":UNLOGGED")))
-         (takt u :logged)))
+         (takt u :logged)
+         (make-event :name "login-user-success"
+                     :tag "login-success"
+                     :msg (format nil "Пользователь #~A : ~A вошел в систему"
+                                  (id u)
+                                  (name u))
+                     :author-id (id u)
+                     :ts-create (get-universal-time))))
    #+END_SRC
 
 ** Событие неуспешного входа пользователя в систему
 
    #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
+     (in-package #:moto)
 
      ;; Событие неуспешного входа
      (defun login-user-fail ()
-       "Wrong auth"
-       )
+       (make-event :name "login-user-fail"
+                   :tag "login-fail"
+                   :msg (format nil "Неудачная попытка входа")
+                   :author-id 0
+                   :ts-create (get-universal-time)))
    #+END_SRC
 
 ** TODO Забыл пароль

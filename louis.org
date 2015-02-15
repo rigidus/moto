@@ -1639,8 +1639,12 @@
                              ((:input :type "hidden" :name "act" :value "MSG"))
                              (submit "Сообщение (пока не работает)" :name "data" :value (id user))))
                    "")
-               (if (or (perm-check-dev *current-user*)
-                       (perm-check *current-user*))
+               (if (and
+                    (or (perm-check-dev *current-user*)
+                        (perm-check *current-user*))
+                    (not (member "Мизантроп" (mapcar #'(lambda (x)
+                                                         (name (get-group (group-id x))))
+                                                     (find-user2group :user-id (id user))) :test #'equal)))
                    (progn
                      ;; (del-group (getf p :data))
                      (redirect "/users"))
