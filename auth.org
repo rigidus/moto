@@ -324,9 +324,37 @@
 
 ** TODO Событие удаление группы
 
-   При удалении группы следует удалить все связи пользователей с этой ролью!
+   При удалении группы следует удалить все связи пользователей с этой ролью.
 
-** TODO Событие удаления пользователя
+   #+NAME: auth_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun remove-group (group-id)
+       "Удаление группы"
+       (let ((group (get-user group-id)))
+         ;; Удаление связей пользователей с этой группой
+         (mapcar #'(lambda (x)
+                     (del-user2group (id x)))
+                 (find-user2group :group-id group-id))
+         (prog1 (del-group group-id)
+           (make-event :name "remove-group"
+                           :tag "remove"
+                           :msg (aif *current-user*
+                                     (format nil "Пользователь #~A : ~A удалил группу #~A : ~A"
+                                             ,*current-user*
+                                             (name (get-user *current-user*))
+                                             (id group)
+                                             (name group))
+                                     ;; else
+                                     (err "Unauthorized delete group"))
+                           :author-id *current-user*
+                           :ts-create (get-universal-time)))))
+   #+END_SRC
+
+
+** Событие удаления пользователя
+
    #+NAME: auth_fn_contents
    #+BEGIN_SRC lisp
      (in-package #:moto)
@@ -987,7 +1015,7 @@
                                                          (name (get-group (group-id x))))
                                                      (find-user2group :user-id (id user))) :test #'equal)))
                    (progn
-                     ;; (del-group (getf p :data))
+                     (err "TODO")
                      (redirect "/users"))
                    ""))
          (:new (if (not (perm-check-dev *current-user*))
@@ -1100,7 +1128,7 @@
                    (submit "Удалить" :name "data" :value (id group))
                    "")
                (if (perm-check *current-user*)
-                   (progn (del-group (getf p :data))
+                   (progn (remove-group (parse-integer (getf p :data)))
                           (redirect "/groups"))
                    ""))
          (:new (ps-html
