@@ -77,49 +77,7 @@
                            (setf retval ,@body))))
              (tpl:louis
               (list :title ""
-                    :header (tpl:header (list :login
-                                              (ps-html
-                                               ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
-                                                ((:div)
-                                                 ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus "email" :id "mylouis-flyout-link")
-                                                  ((:span :class "nav-button__text") "Мой профиль")
-                                                  ((:span :class "nav-button__icon sprite"))))
-                                                ((:div :class "user-nav__flyout flyout flyout--my-louis flyout--my-louis--login popup")
-                                                 ((:span :class "hover"))
-                                                 ((:a :class "action-icon action-icon--close" :href "#") "×")
-                                                 (form ("loginform" nil :action "/login")
-                                                   (fieldset "Вход:"
-                                                     (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
-                                                     (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
-                                                     (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
-                                                     (submit "Войти")
-                                                     (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href "/lostpassword") "пароль") "?"))))
-                                                 ((:div :class "box")
-                                                  ((:div :class "box--title") "Впервые здесь?")
-                                                  ((:p) "Зарегистрируйтесь и оцените преимущества!")
-                                                  ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
-                                                   ((:span :class "button__icon")))))))
-                                              :zzz (ps-html
-                                                    ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
-                                                     ((:div)
-                                                      ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus "email" :id "mylouis-flyout-link")
-                                                       ((:span :class "nav-button__text") "Мой профиль")
-                                                       ((:span :class "nav-button__icon sprite"))))
-                                                     ((:div :class "user-nav__flyout flyout flyout--my-louis flyout--my-louis--login popup")
-                                                      ((:span :class "hover"))
-                                                      ((:a :class "action-icon action-icon--close" :href "#") "×")
-                                                      (form ("loginform" nil :action "/login")
-                                                        (fieldset "Вход:"
-                                                          (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
-                                                          (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
-                                                          (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
-                                                          (submit "Войти")
-                                                          (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href "/lostpassword") "пароль") "?"))))
-                                                      ((:div :class "box")
-                                                       ((:div :class "box--title") "Впервые здесь?")
-                                                       ((:p) "Зарегистрируйтесь и оцените преимущества!")
-                                                       ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
-                                                        ((:span :class "button__icon")))))))
+                    :header (tpl:header (list :login (head-login-block)
                                               :search
                                               (ps-html
                                               ((:form :action "/hh/search" :method "get" :novalidate "" :name "article-search" :class "header-search" :id="article-search")

@@ -238,6 +238,7 @@
 
    #+NAME: msg_fn_contents
    #+BEGIN_SRC lisp
+     (in-package #:moto)
 
      ;; Событие отправки сообщения
      (defun create-msg (snd-id rcv-id msg)
@@ -245,6 +246,16 @@
          (dbg "Создано сообщение: ~A" msg-id)
          ;; Делаем его недоставленным
          (upd-msg (get-msg msg-id) (list :state ":UNDELIVERED"))
+         ;; Создаем событие
+         (make-event :name "create-msg"
+                     :tag "create"
+                     :msg (format nil "Пользователь #~A : ~A послал сообщение пользователю #~A : ~A"
+                                  snd-id
+                                  (name (get-user snd-id))
+                                  rcv-id
+                                  (name (get-user rcv-id)))
+                     :author-id *current-user*
+                     :ts-create (get-universal-time))
          ;; Возвращаем msg-id
          msg-id))
    #+END_SRC

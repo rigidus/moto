@@ -14,6 +14,28 @@
 
 (make-event-table)
 ;; event_entity ends here
+;; [[file:doc.org::*Роли (role)][role_entity]]
+(in-package #:moto)
+(define-entity role "Сущность роли"
+  ((id serial)
+   (name varchar)
+   (descr (or db-null varchar))))
+
+(make-role-table)
+
+;; (make-role :name "webuser")
+;; (make-role :name "timebot")
+;; (make-role :name "autotester")
+;; (make-role :name "system")
+
+;; (upd-role (get-role 1) (list :descr "Пользователи сайта. Они могут выполнять все пользовательские сценарии, (начиная с \"регистрации\" и \"логина\") и использовать все функциональные элементы на страницах сайта. Некоторые из пользователей, имеющих эту роль имеют дополнительные права, например на редактирование групп"))
+
+;; (upd-role (get-role 2) (list :descr "Роботы, выполняющие задачи по расписанию. Могут подключаться к таймерам и использовать низкоуровневое API сайта для сбора и обработки данных. Они представляют собой код, который работает прямо внутри системы"))
+
+;; (upd-role (get-role 3) (list :descr "Роботы, выполняющие тестирование внешних API сайта. Могу подключаться к таймерам и использовать внешнее REST-API сайта по протоколам взаимодейтствия, определенным для внешних агентов. Они представляют собой код, который работает как сторонняя программа, возможно даже на другой машине"))
+
+;; (upd-role (get-role 4) (list :name "agent" :descr "Сторонние программы и агенты (такие, как мобильные приложения), которые могут только использовать только внешнее REST-API системы"))
+;; role_entity ends here
 ;; [[file:doc.org::*Пользователи (user)][user_automat]]
 (define-automat user "Автомат пользователя"
   ((id serial)
@@ -39,6 +61,12 @@
    (:unlogged :sended :forgot)
    (:sended :logged :remember)))
 
+(with-connection *db-spec*
+  (unless (table-exists-p "user")
+    (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
+(with-connection *db-spec*
+  (unless (table-exists-p "user")
+    (query (:alter-table "user" :add-constraint "foreign_role" :foreign-key ("role_id") ("role" "id")))))
 (defun registration ()
   "unregistred -> logged")
 (defun unregistration ()
@@ -51,24 +79,7 @@
   "unlogged -> sended")
 (defun remember ()
   "sended -> logged")
-;; NAME DB CONSTRAINT
-
-(with-connection *db-spec*
-  (unless (table-exists-p "user")
-    (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
 ;; user_automat ends here
-;; [[file:doc.org::*Роли (role)][role_entity]]
-(define-entity role "Сущность роли"
-  ((id serial)
-   (name varchar)))
-
-(make-role-table)
-
-;; (make-role :name "webuser")
-;; (make-role :name "timebot")
-;; (make-role :name "autotester")
-;; (make-role :name "system")
-;; role_entity ends here
 ;; [[file:doc.org::*Группы (group, user2group)][group_entity]]
 (define-entity group "Сущность группы"
   ((id serial)

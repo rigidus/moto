@@ -312,7 +312,7 @@
 
    Событие является простой сущностью и не имеет состояния.
 
-   #+CAPTION: Данные роли
+   #+CAPTION: Данные события
    #+NAME: event_flds
      | field name | field type           | note                   |
      |------------+----------------------+------------------------|
@@ -323,11 +323,49 @@
      | author-id  | (or db-null varchar) | инициатор события      |
      | ts-create  | bigint               | время события          |
 
-   Теперь сгенерируем код и cоздадим необходимые роли:
+   Теперь сгенерируем код:
 
    #+NAME: event_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("event", "события", event_flds)>>
+   #+END_SRC
+
+** DONE Роли (role)
+
+   Роли определяют набор сценариев, которые пользователь выполняет на
+   сайте. Функционал, который выполняют сценарии запрашивает
+   разрешение на выполнение действий, которое опирается на роль,
+   присвоенную пользователю. Пользователь может иметь только одну роль
+   или не иметь ее вовсе.
+
+   Роль является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: role_flds
+     | field name | field type           | note          |
+     |------------+----------------------+---------------|
+     | id         | serial               | идентификатор |
+     | name       | varchar              | имя           |
+     | descr      | (or db-null varchar) | описание      |
+
+   Теперь сгенерируем код и cоздадим необходимые роли:
+
+   #+NAME: role_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     (in-package #:moto)
+     <<gen_entity("role", "роли", role_flds)>>
+     ;; (make-role :name "webuser")
+     ;; (make-role :name "timebot")
+     ;; (make-role :name "autotester")
+     ;; (make-role :name "system")
+
+     ;; (upd-role (get-role 1) (list :descr "Пользователи сайта. Они могут выполнять все пользовательские сценарии, (начиная с \"регистрации\" и \"логина\") и использовать все функциональные элементы на страницах сайта. Некоторые из пользователей, имеющих эту роль имеют дополнительные права, например на редактирование групп"))
+
+     ;; (upd-role (get-role 2) (list :descr "Роботы, выполняющие задачи по расписанию. Могут подключаться к таймерам и использовать низкоуровневое API сайта для сбора и обработки данных. Они представляют собой код, который работает прямо внутри системы"))
+
+     ;; (upd-role (get-role 3) (list :descr "Роботы, выполняющие тестирование внешних API сайта. Могу подключаться к таймерам и использовать внешнее REST-API сайта по протоколам взаимодейтствия, определенным для внешних агентов. Они представляют собой код, который работает как сторонняя программа, возможно даже на другой машине"))
+
+     ;; (upd-role (get-role 4) (list :name "agent" :descr "Сторонние программы и агенты (такие, как мобильные приложения), которые могут только использовать только внешнее REST-API системы"))
    #+END_SRC
 
 ** DONE Пользователи (user)
@@ -397,6 +435,27 @@
      }
    #+END_SRC
 
+   Для того чтобы избежать дублирования ников и связанной с этим
+   ситуации, когда один пользователь выдает себя за другого, следует
+   определить констрейнт на уникальность поля =name=
+
+   #+NAME: user_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
+   #+END_SRC
+
+   Так как в системе все пользователи тесно связаны с ролями, следует
+   определить внешний ключ на таблицу ролей:
+
+   #+NAME: user_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "foreign_role" :foreign-key ("role_id") ("role" "id")))))
+   #+END_SRC
+
    Теперь сгенерируем код и определим функции, которые вызываются на
    переходах из одного состояния в другое. Также установим ограничение
    на колонку =name= чтобы избежать дублирования ников.
@@ -404,6 +463,7 @@
    #+NAME: user_automat
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_automat("user", "пользователя", user_flds, user_state)>>
+     <<user_constraints>>
      (defun registration ()
        "unregistred -> logged")
      (defun unregistration ()
@@ -416,39 +476,6 @@
        "unlogged -> sended")
      (defun remember ()
        "sended -> logged")
-     ;; NAME DB CONSTRAINT
-
-     (with-connection *db-spec*
-       (unless (table-exists-p "user")
-         (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
-   #+END_SRC
-
-** DONE Роли (role)
-
-   Роли определяют набор сценариев, которые пользователь выполняет на
-   сайте. Функционал, который выполняют сценарии запрашивает
-   разрешение на выполнение действий, которое опирается на роль,
-   присвоенную пользователю. Пользователь может иметь только одну роль
-   или не иметь ее вовсе.
-
-   Роль является простой сущностью и не имеет состояния.
-
-   #+CAPTION: Данные роли
-   #+NAME: role_flds
-     | field name | field type | note          |
-     |------------+------------+---------------|
-     | id         | serial     | идентификатор |
-     | name       | varchar    | имя роли      |
-
-   Теперь сгенерируем код и cоздадим необходимые роли:
-
-   #+NAME: role_entity
-   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
-     <<gen_entity("role", "роли", role_flds)>>
-     ;; (make-role :name "webuser")
-     ;; (make-role :name "timebot")
-     ;; (make-role :name "autotester")
-     ;; (make-role :name "system")
    #+END_SRC
 
 ** DONE Группы (group, user2group)
@@ -1117,49 +1144,7 @@
                                 (setf retval ,@body))))
                   (tpl:louis
                    (list :title ""
-                         :header (tpl:header (list :login
-                                                   (ps-html
-                                                    ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
-                                                     ((:div)
-                                                      ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus "email" :id "mylouis-flyout-link")
-                                                       ((:span :class "nav-button__text") "Мой профиль")
-                                                       ((:span :class "nav-button__icon sprite"))))
-                                                     ((:div :class "user-nav__flyout flyout flyout--my-louis flyout--my-louis--login popup")
-                                                      ((:span :class "hover"))
-                                                      ((:a :class "action-icon action-icon--close" :href "#") "×")
-                                                      (form ("loginform" nil :action "/login")
-                                                        (fieldset "Вход:"
-                                                          (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
-                                                          (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
-                                                          (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
-                                                          (submit "Войти")
-                                                          (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href "/lostpassword") "пароль") "?"))))
-                                                      ((:div :class "box")
-                                                       ((:div :class "box--title") "Впервые здесь?")
-                                                       ((:p) "Зарегистрируйтесь и оцените преимущества!")
-                                                       ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
-                                                        ((:span :class "button__icon")))))))
-                                                   :zzz (ps-html
-                                                         ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
-                                                          ((:div)
-                                                           ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus "email" :id "mylouis-flyout-link")
-                                                            ((:span :class "nav-button__text") "Мой профиль")
-                                                            ((:span :class "nav-button__icon sprite"))))
-                                                          ((:div :class "user-nav__flyout flyout flyout--my-louis flyout--my-louis--login popup")
-                                                           ((:span :class "hover"))
-                                                           ((:a :class "action-icon action-icon--close" :href "#") "×")
-                                                           (form ("loginform" nil :action "/login")
-                                                             (fieldset "Вход:"
-                                                               (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
-                                                               (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
-                                                               (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
-                                                               (submit "Войти")
-                                                               (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href "/lostpassword") "пароль") "?"))))
-                                                           ((:div :class "box")
-                                                            ((:div :class "box--title") "Впервые здесь?")
-                                                            ((:p) "Зарегистрируйтесь и оцените преимущества!")
-                                                            ((:a :class "button button--link button--secondary" :href "/reg") "Зарегистрироваться"
-                                                             ((:span :class "button__icon")))))))
+                         :header (tpl:header (list :login (head-login-block)
                                                    :search
                                                    (ps-html
                                                    ((:form :action "/hh/search" :method "get" :novalidate "" :name "article-search" :class "header-search" :id="article-search")
