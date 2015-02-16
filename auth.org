@@ -326,6 +326,29 @@
 
    При удалении группы следует удалить все связи пользователей с этой ролью!
 
+** TODO Событие удаления пользователя
+   #+NAME: auth_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun remove-user (user-id)
+       "Удаление пользователя"
+       (let ((user (get-user user-id)))
+         (prog1 (del-user user-id)
+           (make-event :name "remove-user"
+                           :tag "remove"
+                           :msg (aif *current-user*
+                                     (format nil "Пользователь #~A : ~A удалил пользователя #~A : ~A"
+                                             ,*current-user*
+                                             (name (get-user *current-user*))
+                                             (id user)
+                                             (name user))
+                                     ;; else
+                                     (err "Unauthorized delete user"))
+                           :author-id *current-user*
+                           :ts-create (get-universal-time)))))
+   #+END_SRC
+
 * Страницы
 ** Страница регистрации
 
@@ -944,7 +967,7 @@
                (if (or (perm-check-dev *current-user*)
                        (perm-check *current-user*))
                    (progn
-                     (del-user (getf p :data))
+                     (remove-user (parse-integer (getf p :data)))
                      (redirect "/users"))
                    ""))
          (:msg (if (and
@@ -982,6 +1005,7 @@
                                 :ts-create (get-universal-time)
                                 :ts-last (get-universal-time)))
                      (redirect "/users"))))))
+
    #+END_SRC
 
 *** Элемент списка пользователей
