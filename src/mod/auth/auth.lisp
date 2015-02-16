@@ -48,6 +48,29 @@
            ((:span :class "button__icon")))))))))
 (in-package #:moto)
 
+;; Событие создания роли
+(defun create-role (name descr)
+  "Создание пользователя. Возвращает id пользователя"
+  (let ((new (make-role :name name :descr descr)))
+    (if (null new)
+        (err 'err-create-role)
+        ;; else
+        (progn
+          (make-event :name "create-role"
+                      :tag "create"
+                      :msg (aif *current-user*
+                                (format nil "Пользователь #~A : ~A cоздал роль #~A : ~A"
+                                        *current-user*
+                                        (name (get-user *current-user*))
+                                        (id new)
+                                        (name new)))
+                      :author-id *current-user*
+                      :ts-create (get-universal-time))
+          ;; Возвращаем user-id
+          (id new))
+        )))
+(in-package #:moto)
+
 ;; Событие создания пользователя
 (defun create-user (name password email)
   "Создание пользователя. Возвращает id пользователя"
@@ -126,7 +149,7 @@
 (defun remove-role (role-id)
   "Удаление роли"
   (let* ((role (get-role role-id))
-         (name (name get-role)))
+         (name (name role)))
     (prog1 (del-role role-id)
       (make-event :name "del-role"
                   :tag "remove"
@@ -137,6 +160,55 @@
                                name)
                   :author-id *current-user*
                   :ts-create (get-universal-time)))))
+(in-package #:moto)
+
+(defun remove-group (group-id)
+  "Удаление группы"
+  (let ((group (get-group group-id))
+        (links (mapcar #'(lambda (x)
+                           (let ((user (get-user (user-id x))))
+                             (list (id user) (name user))))
+                       (find-user2group :group-id group-id))))
+    ;; Создание события
+    (make-event :name "remove-group"
+                :tag "remove"
+                :msg (aif *current-user*
+                          (format nil "Пользователь #~A : ~A удалил группу #~A : ~A и вместе с ней связи: ~{~A,~^, ~}"
+                                  *current-user*
+                                  (name (get-user *current-user*))
+                                  (id group)
+                                  (name group)
+                                  (mapcar #'(lambda (x)
+                                              (format nil "~A-~A" (car x) (cadr x)))
+                                          links))
+                          ;; else
+                          (err "Unauthorized delete group"))
+                :author-id *current-user*
+                :ts-create (get-universal-time))
+    ;; Удаление связей пользователей с этой группой
+    (mapcar #'(lambda (x)
+                (del-user2group (id x)))
+            (find-user2group :group-id group-id))
+    ;; Удаление группы
+    (prog1 (del-group group-id))))
+(in-package #:moto)
+
+(defun remove-user (user-id)
+  "Удаление пользователя"
+  (let ((user (get-user user-id)))
+    (prog1 (del-user user-id)
+      (make-event :name "remove-user"
+                      :tag "remove"
+                      :msg (aif *current-user*
+                                (format nil "Пользователь #~A : ~A удалил пользователя #~A : ~A"
+                                        *current-user*
+                                        (name (get-user *current-user*))
+                                        (id user)
+                                        (name user))
+                                ;; else
+                                (err "Unauthorized delete user"))
+                      :author-id *current-user*
+                      :ts-create (get-universal-time)))))
 
 (in-package #:moto)
 
@@ -718,7 +790,7 @@
           (if (or (perm-check-dev *current-user*)
                   (perm-check *current-user*))
               (progn
-                (del-user (getf p :data))
+                (remove-user (parse-integer (getf p :data)))
                 (redirect "/users"))
               ""))
     (:msg (if (and
@@ -738,7 +810,7 @@
                                                     (name (get-group (group-id x))))
                                                 (find-user2group :user-id (id user))) :test #'equal)))
               (progn
-                ;; (del-group (getf p :data))
+                (err "TODO")
                 (redirect "/users"))
               ""))
     (:new (if (not (perm-check-dev *current-user*))
@@ -756,6 +828,7 @@
                            :ts-create (get-universal-time)
                            :ts-last (get-universal-time)))
                 (redirect "/users"))))))
+
 (in-package #:moto)
 
 (defmethod show ((param user) &rest actions &key &allow-other-keys)
@@ -838,7 +911,7 @@
               (submit "Удалить" :name "data" :value (id group))
               "")
           (if (perm-check *current-user*)
-              (progn (del-group (getf p :data))
+              (progn (remove-group (parse-integer (getf p :data)))
                      (redirect "/groups"))
               ""))
     (:new (ps-html
@@ -906,7 +979,7 @@
            ((:div :class "form-send-container")
             (submit "Создать новую роль" :name "act" :value "NEW")))
           (if (perm-check *current-user*)
-              (progn (create-role (getf p :name) :descr (getf p :descr) :ts-create (get-universal-time) :author-id *current-user*)
+              (progn (create-role (getf p :name) (getf p :descr))
                      (redirect "/roles"))
               ""))))
 (in-package #:moto)
@@ -936,6 +1009,8 @@
 ;; Тестируем авторизацию
 (defun auth-test ()
   (in-package #:moto)
+  
+  ;; (upd-user (get-user 40) (list :rol
   
   ;; Зарегистрируем пользователя
   ;; (let* ((name "admin")

@@ -164,6 +164,35 @@
     <<auth_test>>
   #+END_SRC
 
+** Событие создания роли
+
+   #+NAME: auth_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; Событие создания роли
+     (defun create-role (name descr)
+       "Создание пользователя. Возвращает id пользователя"
+       (let ((new (make-role :name name :descr descr)))
+         (if (null new)
+             (err 'err-create-role)
+             ;; else
+             (progn
+               (make-event :name "create-role"
+                           :tag "create"
+                           :msg (aif *current-user*
+                                     (format nil "Пользователь #~A : ~A cоздал роль #~A : ~A"
+                                             ,*current-user*
+                                             (name (get-user *current-user*))
+                                             (id new)
+                                             (name new)))
+                           :author-id *current-user*
+                           :ts-create (get-universal-time))
+               ;; Возвращаем user-id
+               (id new))
+             )))
+   #+END_SRC
+
 ** Событие создания пользователя
 
    #+NAME: auth_fn_contents
@@ -309,7 +338,7 @@
      (defun remove-role (role-id)
        "Удаление роли"
        (let* ((role (get-role role-id))
-              (name (name get-role)))
+              (name (name role)))
          (prog1 (del-role role-id)
            (make-event :name "del-role"
                        :tag "remove"
@@ -322,7 +351,7 @@
                        :ts-create (get-universal-time)))))
    #+END_SRC
 
-** TODO Событие удаление группы
+** Событие удаление группы
 
    При удалении группы следует удалить все связи пользователей с этой ролью.
 
@@ -332,26 +361,34 @@
 
      (defun remove-group (group-id)
        "Удаление группы"
-       (let ((group (get-user group-id)))
+       (let ((group (get-group group-id))
+             (links (mapcar #'(lambda (x)
+                                (let ((user (get-user (user-id x))))
+                                  (list (id user) (name user))))
+                            (find-user2group :group-id group-id))))
+         ;; Создание события
+         (make-event :name "remove-group"
+                     :tag "remove"
+                     :msg (aif *current-user*
+                               (format nil "Пользователь #~A : ~A удалил группу #~A : ~A и вместе с ней связи: ~{~A,~^, ~}"
+                                       ,*current-user*
+                                       (name (get-user *current-user*))
+                                       (id group)
+                                       (name group)
+                                       (mapcar #'(lambda (x)
+                                                   (format nil "~A-~A" (car x) (cadr x)))
+                                               links))
+                               ;; else
+                               (err "Unauthorized delete group"))
+                     :author-id *current-user*
+                     :ts-create (get-universal-time))
          ;; Удаление связей пользователей с этой группой
          (mapcar #'(lambda (x)
                      (del-user2group (id x)))
                  (find-user2group :group-id group-id))
-         (prog1 (del-group group-id)
-           (make-event :name "remove-group"
-                           :tag "remove"
-                           :msg (aif *current-user*
-                                     (format nil "Пользователь #~A : ~A удалил группу #~A : ~A"
-                                             ,*current-user*
-                                             (name (get-user *current-user*))
-                                             (id group)
-                                             (name group))
-                                     ;; else
-                                     (err "Unauthorized delete group"))
-                           :author-id *current-user*
-                           :ts-create (get-universal-time)))))
+         ;; Удаление группы
+         (prog1 (del-group group-id))))
    #+END_SRC
-
 
 ** Событие удаления пользователя
 
@@ -1207,7 +1244,7 @@
                 ((:div :class "form-send-container")
                  (submit "Создать новую роль" :name "act" :value "NEW")))
                (if (perm-check *current-user*)
-                   (progn (create-role (getf p :name) :descr (getf p :descr) :ts-create (get-universal-time) :author-id *current-user*)
+                   (progn (create-role (getf p :name) (getf p :descr))
                           (redirect "/roles"))
                    ""))))
  #+END_SRC
@@ -1258,6 +1295,8 @@
   #+NAME: auth_test_contents
   #+BEGIN_SRC lisp
     (in-package #:moto)
+
+    ;; (upd-user (get-user 40) (list :rol
 
     ;; Зарегистрируем пользователя
     ;; (let* ((name "admin")

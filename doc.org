@@ -1624,12 +1624,12 @@
         использую, поменялся способ работы с org-tables, поэтому я
         рекомендую забирать версию с моего репозитория:
 
-        =git-clone https://github.com/rigidus/org-mode.git=
+        =git clone https://github.com/rigidus/org-mode.git=
 
         Переходим в появившийся каталог и собираем:
 
-        =cd org-mode/lisp=
-
+        =cd org-mode=
+        =make=
         =make autoloads=
 
         Открываем файл конфигурации emacs =~/.emacs.d/init.el= и

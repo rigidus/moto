@@ -194,25 +194,6 @@
                        ,body))
                   `((t (format nil "unk act : ~A" (bprint p))))))))))))
 
-
-;; Макрос создает интерфейс для удаления и добавления сущностей
-(defmacro define-iface-add-del-entity (name url h1 h2 content all-entity-func url-elt fields new-form new del)
-  `(define-page ,name ,url
-     (concatenate
-      'string "<h1>" ,h1 "</h1>" ,content "<br /><br />"
-      (tbl
-       (with-collection (i (funcall ,all-entity-func))
-         (tr
-          (td (format nil "<a href=\"/~A/~A\">~A</a>" ,url-elt (id i) (id i)))
-          ,@(loop :for fld :in fields :collect
-               `(td (,fld i)))
-          (td (frm %del%))))
-       :border 1)
-      "<h2>" ,h2 "</h2>"
-      ,new-form)
-     ,new
-     ,del))
-
 ;; Чтобы выводить коллекции напишем макрос
 
 (defmacro with-collection ((item collection) &body body)
