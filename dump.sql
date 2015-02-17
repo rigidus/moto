@@ -815,6 +815,13 @@ COPY event (id, name, tag, msg, author_id, ts_create) FROM stdin;
 24	create-msg	create	Пользователь #1 : admin послал сообщение пользователю #6 : Aeternitas	1	3633072682
 25	login-user-success	login-success	Пользователь #1 : admin вошел в систему	1	3633076919
 26	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633077621
+27	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633080255
+28	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633104862
+29	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633109084
+30	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633146963
+31	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633148391
+32	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633150252
+33	login-user-success	login-success	Пользователь #1 : admin вошел в систему	1	3633155145
 \.
 
 
@@ -822,7 +829,7 @@ COPY event (id, name, tag, msg, author_id, ts_create) FROM stdin;
 -- Name: event_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
 --
 
-SELECT pg_catalog.setval('event_id_seq', 26, true);
+SELECT pg_catalog.setval('event_id_seq', 33, true);
 
 
 --
@@ -898,6 +905,8 @@ COPY msg (id, snd_id, rcv_id, msg, ts_create, ts_delivery, state) FROM stdin;
 31	1	6	Я вижу еще пару таких странных багов...	3633064498	0	:UNDELIVERED
 32	6	1	Ну может быть это потому, что я таки тыкала в кнопку Сообщения, которая не работает))	3633065942	0	:UNDELIVERED
 33	1	6	А, ну тогда ладно )	3633072682	0	:UNDELIVERED
+34	6	1	Может расскажешь? \r\nА то получается, что моим подругам ты больше доверяешь, чем мне... По-моему странно!	3633106622	0	:UNDELIVERED
+35	6	1	...\r\n	3633109310	0	:UNDELIVERED
 \.
 
 
@@ -905,7 +914,7 @@ COPY msg (id, snd_id, rcv_id, msg, ts_create, ts_delivery, state) FROM stdin;
 -- Name: msg_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
 --
 
-SELECT pg_catalog.setval('msg_id_seq', 33, true);
+SELECT pg_catalog.setval('msg_id_seq', 35, true);
 
 
 --
@@ -963,12 +972,12 @@ SELECT pg_catalog.setval('role_id_seq', 4, true);
 
 COPY "user" (id, name, password, email, firstname, lastname, phone, mobilephone, sex, birth_day, birth_month, birth_year, ts_create, ts_last, role_id, state) FROM stdin;
 7	timer			\N	\N	\N	\N	\N	\N	\N	\N	3632900824	3632900824	2	\N
-1	admin	tCDm4nFskcBqR7AN	nomail@mail.ru	\N	\N	\N	\N	\N	\N	\N	\N	3632713382	3632713382	1	:LOGGED
 6	Aeternitas	b15zz09helm	lemyriets@gmail.com					female				3632719463	3632719463	1	:LOGGED
 2	alice	aXJAVtBT	alice@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	2	:UNLOGGED
 3	bob	pDa84LAh	bob@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	3	:UNLOGGED
 4	carol	zDgjGus7	carol@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	4	:UNLOGGED
 5	dave	6zt5GmvE	dave@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	4	:UNLOGGED
+1	admin	tCDm4nFskcBqR7AN	nomail@mail.ru	\N	\N	\N	\N	\N	\N	\N	\N	3632713382	3632713382	1	:LOGGED
 \.
 
 
@@ -1355,6 +1364,22 @@ ALTER TABLE ONLY vendor
 
 ALTER TABLE ONLY "user"
     ADD CONSTRAINT foreign_role FOREIGN KEY (role_id) REFERENCES role(id) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: on_del_group; Type: FK CONSTRAINT; Schema: public; Owner: ylg
+--
+
+ALTER TABLE ONLY user2group
+    ADD CONSTRAINT on_del_group FOREIGN KEY (group_id) REFERENCES "group"(id) ON UPDATE RESTRICT ON DELETE CASCADE;
+
+
+--
+-- Name: on_del_user; Type: FK CONSTRAINT; Schema: public; Owner: ylg
+--
+
+ALTER TABLE ONLY user2group
+    ADD CONSTRAINT on_del_user FOREIGN KEY (user_id) REFERENCES "user"(id) ON UPDATE RESTRICT ON DELETE CASCADE;
 
 
 --
