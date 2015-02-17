@@ -383,9 +383,9 @@
                      :author-id *current-user*
                      :ts-create (get-universal-time))
          ;; Удаление связей пользователей с этой группой
-         (mapcar #'(lambda (x)
-                     (del-user2group (id x)))
-                 (find-user2group :group-id group-id))
+         ;; (mapcar #'(lambda (x)
+         ;;             (del-user2group (id x)))
+         ;;         (find-user2group :group-id group-id))
          ;; Удаление группы
          (prog1 (del-group group-id))))
    #+END_SRC

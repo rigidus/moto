@@ -527,11 +527,6 @@
      ;;  :descr "Управляет пользователями и назначает права доступа"
      ;;  :ts-create (get-universal-time)
      ;;  :author-id 1)
-     ;; (make-group
-     ;;  :name "Засыпающие в Мариинке"
-     ;;  :descr "Группа товарисчей, которые категорически засыпают в Мариинском театре на вечерних спектаклях :)"
-     ;;  :ts-create (get-universal-time)
-     ;;  :author-id 6)
    #+END_SRC
 
    Теперь создадим таблицу связи, которая свяжет пользователей и группы:
@@ -544,11 +539,23 @@
      | user-id    | integer    | идентификатор пользователя |
      | group-id   | integer    | идентификатор группы       |
 
+   #+NAME: user2group_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (in-package #:moto)
+
+     (with-connection *db-spec*
+       (unless (table-exists-p "user2group")
+         (query (:alter-table "user2group" :add-constraint "on_del_user"  :foreign-key ("user_id") ("user" "id") :cascade))
+         (query (:alter-table "user2group" :add-constraint "on_del_group" :foreign-key ("group_id") ("group" "id") :cascade))))
+   #+END_SRC
+
+
    И сгенерируем код для нее:
 
    #+NAME: user2group_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("user2group", "связи пользователя и группы", user2group_flds)>>
+     <<user2group_constraints>>
    #+END_SRC
 
 ** Сообщения (msg)

@@ -115,11 +115,6 @@
 ;;  :descr "Управляет пользователями и назначает права доступа"
 ;;  :ts-create (get-universal-time)
 ;;  :author-id 1)
-;; (make-group
-;;  :name "Засыпающие в Мариинке"
-;;  :descr "Группа товарисчей, которые категорически засыпают в Мариинском театре на вечерних спектаклях :)"
-;;  :ts-create (get-universal-time)
-;;  :author-id 6)
 ;; group_entity ends here
 ;; [[file:doc.org::*Группы (group, user2group)][user2group_entity]]
 (define-entity user2group "Сущность связи пользователя и группы"
@@ -128,6 +123,13 @@
    (group-id integer)))
 
 (make-user2group-table)
+
+(in-package #:moto)
+
+(with-connection *db-spec*
+  (unless (table-exists-p "user2group")
+    (query (:alter-table "user2group" :add-constraint "on_del_user"  :foreign-key ("user_id") ("user" "id") :cascade))
+    (query (:alter-table "user2group" :add-constraint "on_del_group" :foreign-key ("group_id") ("group" "id") :cascade))))
 ;; user2group_entity ends here
 ;; [[file:doc.org::*Сообщения (msg)][msg_automat]]
 (define-automat msg "Автомат сообщения"
