@@ -539,10 +539,11 @@
      | user-id    | integer    | идентификатор пользователя |
      | group-id   | integer    | идентификатор группы       |
 
+   Чтобы пары в таблице связи удалялись при удалении связанных групп и
+   пользователей следует установить on-delete foreigh keys.
+
    #+NAME: user2group_constraints
    #+BEGIN_SRC lisp :exports none :padline no :comments link
-     (in-package #:moto)
-
      (with-connection *db-spec*
        (unless (table-exists-p "user2group")
          (query (:alter-table "user2group" :add-constraint "on_del_user"  :foreign-key ("user_id") ("user" "id") :cascade))

@@ -212,6 +212,16 @@
 
 (in-package #:moto)
 
+(defun get-usergroups-names (user-id)
+  (mapcar #'(lambda (x)
+              (name (get-group (group-id x))))
+          (find-user2group :user-id user-id)))
+(in-package #:moto)
+
+(defun is-in-group (target-group-name user-id)
+  (if (member target-group-name (get-usergroups-names user-id) :test #'equal) t nil))
+(in-package #:moto)
+
 (defun reg-teasers ()
   (format nil "~{~A~}"
           (list
@@ -500,73 +510,6 @@
             (ps-html ((:span :class "clear"))))))))
 (in-package #:moto)
 
-(in-package #:moto)
-
-(defun user-data-html (u)
-  (ps-html
-   ((:table :border 0)
-    ((:tr)
-     ((:td) "id")
-     ((:td) (id u)))
-    ((:tr)
-     ((:td) "name")
-     ((:td) (name u)))
-    ;; ((:tr)
-    ;;  ((:td) "password")
-    ;;  ((:td) (password u)))
-    ;; ((:tr)
-    ;;  ((:td) "email")
-    ;;  ((:td) (email u)))
-    ;; ((:tr)
-    ;;  ((:td) "ts-create")
-    ;;  ((:td) (ts-create u)))
-    ;; ((:tr)
-    ;;  ((:td) "ts-last")
-    ;;  ((:td) (ts-last u)))
-    ;; ((:tr)
-    ;;  ((:td) "role-id")
-    ;;  ((:td) (role-id u)))
-    )))
-
-(in-package #:moto)
-
-(defun change-role-html (u change-role-btn)
-  (ps-html
-   ((:form :method "POST")
-    ((:table :border 0)
-     ((:tr)
-      ((:td) "Текущая роль:")
-      ((:td) ((:select :name "role" :class "form-element")
-              ((:option :value "0") "Выберите роль")
-              (format nil "~{~A~}"
-                      (with-collection (i (sort (all-role) #'(lambda (a b) (< (id a) (id b)))))
-                        (if (equal (id i) (role-id u))
-                            (ps-html
-                             ((:option :value (id i) :selected "selected") (name i)))
-                            (ps-html
-                             ((:option :value (id i)) (name i))))))))
-      ((:td) change-role-btn))))))
-
-(in-package #:moto)
-
-(defun change-group-html (u change-group-btn)
-  (ps-html
-   ((:form :method "POST")
-    ((:table :border 0)
-     ((:tr)
-      ((:td :valign "top") "Группы пользователя:")
-      ((:td :valign "top") ((:select :name "groups" :multiple "multiple" :size "7" :class "form-element" :style "height: 100px")
-                            (format nil "~{~A~}"
-                                    (with-collection (i (sort (all-group) #'(lambda (a b) (< (id a) (id b)))))
-                                      (if (find (id i) (mapcar #'group-id (find-user2group :user-id (id u))))
-                                          (ps-html
-                                           ((:option :value (id i) :selected "selected") (name i)))
-                                          (ps-html
-                                           ((:option :value (id i)) (name i))))))))
-      ((:td :valign "top") change-group-btn))))))
-
-
-
 (define-page group "/group/:groupid"
   (let* ((breadcrumb (breadcrumb "Профиль группы" ("/" . "Главная")))
          (id (handler-case (parse-integer groupid)
@@ -686,7 +629,7 @@
 
 
 (labels ((perm-check (current-user)
-           (member "Рулевой" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+           (is-in-group "Рулевой" current-user)))
   (define-page user "/user/:userid"
     (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
            (id (handler-case (parse-integer userid)
@@ -747,9 +690,9 @@
 (in-package #:moto)
 
 (labels ((perm-check-dev (current-user)
-           (member "Исполнитель желаний" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal))
+           (is-in-group "Исполнитель желаний" current-user))
          (perm-check (current-user)
-           (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+           (is-in-group "Пропускать везде" current-user)))
   (define-page all-users "/users"
     (let ((breadcrumb (breadcrumb "Список пользователей"))
           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -885,7 +828,7 @@
         ((:span :class "clear"))))))))
 (in-package #:moto)
 
-(labels ((perm-check (current-user) (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+(labels ((perm-check (current-user) (is-in-group "Пропускать везде" curent-user)))
   (define-page all-groups "/groups"
     (let* ((breadcrumb (breadcrumb "Группы" ("/" . "Главная")))
            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -945,7 +888,7 @@
 (in-package #:moto)
 
 (labels ((perm-check (current-user)
-           (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+           (is-in-group "Пропускать везде" current-user)))
   (define-page all-roles "/roles"
     (let* ((breadcrumb (breadcrumb "Роли" ("/" . "Главная")))
            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -1009,8 +952,6 @@
 ;; Тестируем авторизацию
 (defun auth-test ()
   (in-package #:moto)
-  
-  ;; (upd-user (get-user 40) (list :rol
   
   ;; Зарегистрируем пользователя
   ;; (let* ((name "admin")

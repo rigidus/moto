@@ -325,6 +325,28 @@
    #+END_SRC
 
 ** TODO Функцию проверки прав пользователя на доступ к какому-то объекту
+** Функция, которая возвращает список имен групп пользователя
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun get-usergroups-names (user-id)
+       (mapcar #'(lambda (x)
+                   (name (get-group (group-id x))))
+               (find-user2group :user-id user-id)))
+   #+END_SRC
+
+** Функция, котора проверят что пользователь входит в искомую группа
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun is-in-group (target-group-name user-id)
+       (if (member target-group-name (get-usergroups-names user-id) :test #'equal) t nil))
+   #+END_SRC
+
 ** Событие удаления роли
 
    При удалении роли я хочу проверять, есть ли пользователи, которые имеют эту роль, и
@@ -768,14 +790,6 @@
  #+BEGIN_SRC lisp
    (in-package #:moto)
 
-   <<user_data_html>>
-
-   <<change_role_html>>
-
-   <<change_group_html>>
-
-   <<user_msg_html>>
-
    (define-page group "/group/:groupid"
      (let* ((breadcrumb (breadcrumb "Профиль группы" ("/" . "Главная")))
             (id (handler-case (parse-integer groupid)
@@ -829,77 +843,77 @@
 
 ** Страничка пользователя
 
- #+NAME: iface_contents
- #+BEGIN_SRC lisp
-   (in-package #:moto)
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-   <<user_data_html>>
+     <<user_data_html>>
 
-   <<change_role_html>>
+     <<change_role_html>>
 
-   <<change_group_html>>
+     <<change_group_html>>
 
-   <<user_msg_html>>
+     <<user_msg_html>>
 
-   (labels ((perm-check (current-user)
-              (member "Рулевой" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
-     (define-page user "/user/:userid"
-       (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
-              (id (handler-case (parse-integer userid)
-                    (SB-INT:SIMPLE-PARSE-ERROR () 0))))
-         (if (null (get-user id))
-             (base-page (:breadcrumb breadcrumb)
-               (content-box ()
-                 (system-msg ("caution")
-                   (ps-html ((:p) "Нет такого пользователя")))))
-             ;; else
-             (let* ((user (get-user id))
-                    (left-name (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
-                    (user-ava-html (get-avatar-img id :middle)))
-               (standard-page (:breadcrumb breadcrumb :user left-name :menu (menu) :overlay (reg-overlay))
+     (labels ((perm-check (current-user)
+                (is-in-group "Рулевой" current-user)))
+       (define-page user "/user/:userid"
+         (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
+                (id (handler-case (parse-integer userid)
+                      (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+           (if (null (get-user id))
+               (base-page (:breadcrumb breadcrumb)
                  (content-box ()
-                   (heading ((format nil "Страница пользователя ~A" (name user)))))
-                 (content-box ()
-                   ((:table)
-                    ((:tr)
-                     ((:td) user-ava-html)
-                     ((:td) (user-data-html user)))))
-                 (content-box ()
-                   (change-role-html user %change-role%))
-                 (content-box ()
-                   (change-group-html user %change-group%))
-                 (ps-html ((:span :class "clear")))))))
-       (:change-role (if (perm-check *current-user*)
-                         (submit "Изменить" :name "act" :value "CHANGE-ROLE")
-                         "")
-                     (if (perm-check *current-user*)
-                         (let* ((i (parse-integer userid))
-                                (u (get-user i)))
-                           (aif (getf p :role)
-                                (role-id (upd-user u (list :role-id (parse-integer it))))
-                                "role changed")
-                           (redirect (format nil "/user/~A" userid)))
-                         "access-denied"))
-       (:change-group (if (perm-check *current-user*)
-                          (submit "Изменить" :name "act" :value "CHANGE-GROUP")
-                          "")
-                      (if (perm-check *current-user*)
-                          (let* ((i (parse-integer userid))
-                                 (u (get-user i)))
-                            (if (null (getf p :groups))
-                                "-not change-"
-                                (loop
-                                   :initially (mapcar #'(lambda (x) (del-user2group (id x)))
-                                                      (find-user2group :user-id (parse-integer userid)))
-                                   :for lnk
-                                   :in (loop
-                                          :for key  :in p    :by #'cddr
-                                          :for n    :from 1  :to 10 :by (+ 2)
-                                          :when    (equal key :groups)
-                                          :collect (parse-integer (nth n p)))
-                                   :collect (id (make-user2group :user-id i :group-id lnk))))
-                            (redirect (format nil "/user/~A" userid))
-                          "access-denied")))))
+                   (system-msg ("caution")
+                     (ps-html ((:p) "Нет такого пользователя")))))
+               ;; else
+               (let* ((user (get-user id))
+                      (left-name (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
+                      (user-ava-html (get-avatar-img id :middle)))
+                 (standard-page (:breadcrumb breadcrumb :user left-name :menu (menu) :overlay (reg-overlay))
+                   (content-box ()
+                     (heading ((format nil "Страница пользователя ~A" (name user)))))
+                   (content-box ()
+                     ((:table)
+                      ((:tr)
+                       ((:td) user-ava-html)
+                       ((:td) (user-data-html user)))))
+                   (content-box ()
+                     (change-role-html user %change-role%))
+                   (content-box ()
+                     (change-group-html user %change-group%))
+                   (ps-html ((:span :class "clear")))))))
+         (:change-role (if (perm-check *current-user*)
+                           (submit "Изменить" :name "act" :value "CHANGE-ROLE")
+                           "")
+                       (if (perm-check *current-user*)
+                           (let* ((i (parse-integer userid))
+                                  (u (get-user i)))
+                             (aif (getf p :role)
+                                  (role-id (upd-user u (list :role-id (parse-integer it))))
+                                  "role changed")
+                             (redirect (format nil "/user/~A" userid)))
+                           "access-denied"))
+         (:change-group (if (perm-check *current-user*)
+                            (submit "Изменить" :name "act" :value "CHANGE-GROUP")
+                            "")
+                        (if (perm-check *current-user*)
+                            (let* ((i (parse-integer userid))
+                                   (u (get-user i)))
+                              (if (null (getf p :groups))
+                                  "-not change-"
+                                  (loop
+                                     :initially (mapcar #'(lambda (x) (del-user2group (id x)))
+                                                        (find-user2group :user-id (parse-integer userid)))
+                                     :for lnk
+                                     :in (loop
+                                            :for key  :in p    :by #'cddr
+                                            :for n    :from 1  :to 10 :by (+ 2)
+                                            :when    (equal key :groups)
+                                            :collect (parse-integer (nth n p)))
+                                     :collect (id (make-user2group :user-id i :group-id lnk))))
+                              (redirect (format nil "/user/~A" userid))
+                            "access-denied")))))
  #+END_SRC
 
 *** Отображение полей пользователя
@@ -989,9 +1003,9 @@
      (in-package #:moto)
 
      (labels ((perm-check-dev (current-user)
-                (member "Исполнитель желаний" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal))
+                (is-in-group "Исполнитель желаний" current-user))
               (perm-check (current-user)
-                (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+                (is-in-group "Пропускать везде" current-user)))
        (define-page all-users "/users"
          (let ((breadcrumb (breadcrumb "Список пользователей"))
                (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -1139,7 +1153,7 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (labels ((perm-check (current-user) (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+     (labels ((perm-check (current-user) (is-in-group "Пропускать везде" curent-user)))
        (define-page all-groups "/groups"
          (let* ((breadcrumb (breadcrumb "Группы" ("/" . "Главная")))
                 (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -1210,7 +1224,7 @@
      (in-package #:moto)
 
      (labels ((perm-check (current-user)
-                (member "Пропускать везде" (mapcar #'(lambda (x) (name (get-group (group-id x)))) (find-user2group :user-id current-user)) :test #'equal)))
+                (is-in-group "Пропускать везде" current-user)))
        (define-page all-roles "/roles"
          (let* ((breadcrumb (breadcrumb "Роли" ("/" . "Главная")))
                 (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -1295,8 +1309,6 @@
   #+NAME: auth_test_contents
   #+BEGIN_SRC lisp
     (in-package #:moto)
-
-    ;; (upd-user (get-user 40) (list :rol
 
     ;; Зарегистрируем пользователя
     ;; (let* ((name "admin")

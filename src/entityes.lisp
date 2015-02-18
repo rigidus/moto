@@ -124,8 +124,6 @@
 
 (make-user2group-table)
 
-(in-package #:moto)
-
 (with-connection *db-spec*
   (unless (table-exists-p "user2group")
     (query (:alter-table "user2group" :add-constraint "on_del_user"  :foreign-key ("user_id") ("user" "id") :cascade))
