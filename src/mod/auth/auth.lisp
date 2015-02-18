@@ -437,7 +437,7 @@
 (in-package #:moto)
 
 (define-page logout "/logout"
-  (let ((breadcrumb (breadcrumb "Логаут"))
+  (let ((breadcrumb (breadcrumb "Выход"))
         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
     (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
       (if *current-user*
@@ -563,34 +563,6 @@
 
 (in-package #:moto)
 
-(defun user-data-html (u)
-  (ps-html
-   ((:table :border 0)
-    ((:tr)
-     ((:td) "id")
-     ((:td) (id u)))
-    ((:tr)
-     ((:td) "name")
-     ((:td) (name u)))
-    ;; ((:tr)
-    ;;  ((:td) "password")
-    ;;  ((:td) (password u)))
-    ;; ((:tr)
-    ;;  ((:td) "email")
-    ;;  ((:td) (email u)))
-    ;; ((:tr)
-    ;;  ((:td) "ts-create")
-    ;;  ((:td) (ts-create u)))
-    ;; ((:tr)
-    ;;  ((:td) "ts-last")
-    ;;  ((:td) (ts-last u)))
-    ;; ((:tr)
-    ;;  ((:td) "role-id")
-    ;;  ((:td) (role-id u)))
-    )))
-
-(in-package #:moto)
-
 (defun change-role-html (u change-role-btn)
   (ps-html
    ((:form :method "POST")
@@ -650,7 +622,7 @@
                 ((:table)
                  ((:tr)
                   ((:td) user-ava-html)
-                  ((:td) (user-data-html user)))))
+                  ((:td) (name user)))))
               (content-box ()
                 (change-role-html user %change-role%))
               (content-box ()
@@ -793,7 +765,7 @@
     (ps-html
      ((:li :class "article-item article-item--list")
       ((:div :class "inner")
-       ((:a :class "article-item__image" :href "#") avatar)
+       ((:a :class "article-item__image" :href (format nil "/user/~A" (id param))) avatar)
        ((:div :class "article-item__info" :style "width: 540px;")
         ((:img :class "article-item__manufacturer" :src birka))
         ((:div :class "article-item__main-info")

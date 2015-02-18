@@ -384,22 +384,30 @@
        ((:li :class "active")
         ((:a :title "Регистрация" :href "/reg") "Регистрация"))
        ((:li)
-        ((:a :title "Логин" :href "/login") "Логин")))
-      (ps-html
+        ((:a :title "Логин" :href "/login") "Логин"))
        ((:li)
         ((:a :title "Пользователи" :href "/users") "Пользователи"))
        ((:li)
         ((:a :title "Группы" :href "/groups") "Группы"))
        ((:li)
-        ((:a :title "Профиль" :href (format nil "/user/~A" *current-user*)) "Профиль"))
-       ((:li)
-        ((:a :title "Сообщения" :href "/im") "Сообщения"))
-       ((:li)
-        ((:a :title "Выход" :href "/logout") "Выход")))))
-    ;; "<a href=\"/load\">Загрузка данных</a>")
-    ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
-    ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
-    ;; "<a href=\"/find\">Простой поиск</a>"
+        ((:a :title "Роли" :href "/roles") "Роли")))
+       (ps-html
+        ((:li)
+         ((:a :title "Пользователи" :href "/users") "Пользователи"))
+        ((:li)
+         ((:a :title "Группы" :href "/groups") "Группы"))
+        ((:li)
+         ((:a :title "Роли" :href "/roles") "Роли"))
+        ((:li)
+         ((:a :title "Профиль" :href (format nil "/user/~A" *current-user*)) "Профиль"))
+        ((:li)
+         ((:a :title "Сообщения" :href "/im") "Сообщения"))
+        ((:li)
+         ((:a :title "Выход" :href "/logout") "Выход")))))
+  ;; "<a href=\"/load\">Загрузка данных</a>")
+  ;; "<a href=\"/\">TODO: Расширенный поиск по ЖК</a>"
+  ;; "<a href=\"/cmpxs\">Жилые комплексы</a>"
+  ;; "<a href=\"/find\">Простой поиск</a>"
 (in-package #:moto)
 
 (defmacro content-box ((&rest rest &key class &allow-other-keys) &body body)
