@@ -438,6 +438,43 @@ ALTER SEQUENCE role_id_seq OWNED BY role.id;
 
 
 --
+-- Name: task; Type: TABLE; Schema: public; Owner: ylg; Tablespace: 
+--
+
+CREATE TABLE task (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    owner_id integer,
+    exec_id integer,
+    ts_create bigint NOT NULL,
+    state character varying
+);
+
+
+ALTER TABLE public.task OWNER TO ylg;
+
+--
+-- Name: task_id_seq; Type: SEQUENCE; Schema: public; Owner: ylg
+--
+
+CREATE SEQUENCE task_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.task_id_seq OWNER TO ylg;
+
+--
+-- Name: task_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ylg
+--
+
+ALTER SEQUENCE task_id_seq OWNED BY task.id;
+
+
+--
 -- Name: user; Type: TABLE; Schema: public; Owner: ylg; Tablespace: 
 --
 
@@ -684,6 +721,13 @@ ALTER TABLE ONLY role ALTER COLUMN id SET DEFAULT nextval('role_id_seq'::regclas
 -- Name: id; Type: DEFAULT; Schema: public; Owner: ylg
 --
 
+ALTER TABLE ONLY task ALTER COLUMN id SET DEFAULT nextval('task_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: ylg
+--
+
 ALTER TABLE ONLY "user" ALTER COLUMN id SET DEFAULT nextval('user_id_seq'::regclass);
 
 
@@ -822,6 +866,30 @@ COPY event (id, name, tag, msg, author_id, ts_create) FROM stdin;
 31	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633148391
 32	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633150252
 33	login-user-success	login-success	Пользователь #1 : admin вошел в систему	1	3633155145
+34	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633160092
+35	logout-user	logout	Пользователь #6 : Aeternitas вышел из системы	6	3633160121
+36	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633160126
+37	create-user	create	Пользователь #6 : Aeternitas cоздал пользователя #40 : Nik	6	3633160536
+38	logout-user	logout	Пользователь #40 : Nik вышел из системы	40	3633160869
+39	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633160872
+40	logout-user	logout	Пользователь #6 : Aeternitas вышел из системы	6	3633162189
+41	login-user-fail	login-fail	Неудачная попытка входа	0	3633162271
+42	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633175019
+43	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633178854
+44	login-user-success	login-success	Пользователь #1 : admin вошел в систему	1	3633228092
+45	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633234461
+46	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633243062
+47	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633245295
+48	login-user-success	login-success	Пользователь #1 : admin вошел в систему	1	3633248543
+49	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633260668
+50	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633275719
+51	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633322411
+52	login-user-success	login-success	Пользователь #1 : admin вошел в систему	1	3633326033
+53	create-group	create	Пользователь #1 : admin cоздал группу #13 : test	1	3633328369
+54	remove-group	remove	Пользователь #1 : admin удалил группу #13 : test и вместе с ней связи: 	1	3633328381
+55	login-user-success	login-success	Пользователь #6 : Aeternitas вошел в систему	6	3633329898
+56	login-user-success	login-success	Пользователь #1 : admin вошел в систему	1	3633332917
+57	remove-user	remove	Пользователь #1 : admin удалил пользователя #40 : Nik	1	3633332925
 \.
 
 
@@ -829,7 +897,7 @@ COPY event (id, name, tag, msg, author_id, ts_create) FROM stdin;
 -- Name: event_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
 --
 
-SELECT pg_catalog.setval('event_id_seq', 33, true);
+SELECT pg_catalog.setval('event_id_seq', 57, true);
 
 
 --
@@ -838,11 +906,12 @@ SELECT pg_catalog.setval('event_id_seq', 33, true);
 
 COPY "group" (id, name, descr, ts_create, author_id) FROM stdin;
 1	Исполнитель желаний	Создатель штук, которых еще нет. Исправлятель штук, которые неправильно работают.	3632802473	1
-2	Пропускать везде	Для этого пользователя нет запретных мест	3632802473	1
-3	Острый глаз	Обладает способностью замечать недоработки	3632802473	1
-4	Основатель	Был с нами еще до того как это стало мейнстримом	3632802473	1
-5	Рулевой	Управляет пользователями и назначает права доступа	3632802473	1
-11	Мизантроп	Не умеет общаться - не пишет и не получает сообщений от других пользователей. Большинство роботов - типичные мизантропы	3632912723	1
+2	Пропускать везде	Для этого пользователя нет запретных мест.	3632802473	1
+3	Острый глаз	Обладает способностью замечать недоработки.	3632802473	1
+4	Основатель	Был с нами еще до того, как это стало мейнстримом.	3632802473	1
+5	Рулевой	Управляет пользователями и назначает права доступа.	3632802473	1
+11	Мизантроп	Не умеет общаться - не пишет и не получает сообщений от других пользователей. Большинство роботов - типичные мизантропы.	3632912723	1
+12	Постановщик задач	Может, умеет и любит ставить задачи и получать результат их исполнения	3633327558	1
 \.
 
 
@@ -850,7 +919,7 @@ COPY "group" (id, name, descr, ts_create, author_id) FROM stdin;
 -- Name: group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
 --
 
-SELECT pg_catalog.setval('group_id_seq', 11, true);
+SELECT pg_catalog.setval('group_id_seq', 13, true);
 
 
 --
@@ -907,6 +976,8 @@ COPY msg (id, snd_id, rcv_id, msg, ts_create, ts_delivery, state) FROM stdin;
 33	1	6	А, ну тогда ладно )	3633072682	0	:UNDELIVERED
 34	6	1	Может расскажешь? \r\nА то получается, что моим подругам ты больше доверяешь, чем мне... По-моему странно!	3633106622	0	:UNDELIVERED
 35	6	1	...\r\n	3633109310	0	:UNDELIVERED
+36	1	6	Три точки - это сбой?	3633229566	0	:UNDELIVERED
+37	6	1	три точки - это проверка была	3633331391	0	:UNDELIVERED
 \.
 
 
@@ -914,7 +985,7 @@ COPY msg (id, snd_id, rcv_id, msg, ts_create, ts_delivery, state) FROM stdin;
 -- Name: msg_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
 --
 
-SELECT pg_catalog.setval('msg_id_seq', 35, true);
+SELECT pg_catalog.setval('msg_id_seq', 37, true);
 
 
 --
@@ -967,17 +1038,32 @@ SELECT pg_catalog.setval('role_id_seq', 4, true);
 
 
 --
+-- Data for Name: task; Type: TABLE DATA; Schema: public; Owner: ylg
+--
+
+COPY task (id, name, owner_id, exec_id, ts_create, state) FROM stdin;
+\.
+
+
+--
+-- Name: task_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
+--
+
+SELECT pg_catalog.setval('task_id_seq', 1, false);
+
+
+--
 -- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: ylg
 --
 
 COPY "user" (id, name, password, email, firstname, lastname, phone, mobilephone, sex, birth_day, birth_month, birth_year, ts_create, ts_last, role_id, state) FROM stdin;
 7	timer			\N	\N	\N	\N	\N	\N	\N	\N	3632900824	3632900824	2	\N
 6	Aeternitas	b15zz09helm	lemyriets@gmail.com					female				3632719463	3632719463	1	:LOGGED
+1	admin	tCDm4nFskcBqR7AN	nomail@mail.ru	\N	\N	\N	\N	\N	\N	\N	\N	3632713382	3632713382	1	:LOGGED
 2	alice	aXJAVtBT	alice@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	2	:UNLOGGED
 3	bob	pDa84LAh	bob@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	3	:UNLOGGED
 4	carol	zDgjGus7	carol@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	4	:UNLOGGED
 5	dave	6zt5GmvE	dave@mail.com	\N	\N	\N	\N	\N	\N	\N	\N	3632713383	3632713383	4	:UNLOGGED
-1	admin	tCDm4nFskcBqR7AN	nomail@mail.ru	\N	\N	\N	\N	\N	\N	\N	\N	3632713382	3632713382	1	:LOGGED
 \.
 
 
@@ -989,15 +1075,16 @@ COPY user2group (id, user_id, group_id) FROM stdin;
 8	6	2
 9	6	3
 10	6	5
-11	1	1
-12	1	2
-13	1	4
-14	1	5
 16	2	11
 17	3	11
 18	4	11
 19	5	11
 20	7	11
+21	1	1
+22	1	2
+23	1	4
+24	1	5
+25	1	12
 \.
 
 
@@ -1005,14 +1092,14 @@ COPY user2group (id, user_id, group_id) FROM stdin;
 -- Name: user2group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
 --
 
-SELECT pg_catalog.setval('user2group_id_seq', 20, true);
+SELECT pg_catalog.setval('user2group_id_seq', 25, true);
 
 
 --
 -- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ylg
 --
 
-SELECT pg_catalog.setval('user_id_seq', 39, true);
+SELECT pg_catalog.setval('user_id_seq', 41, true);
 
 
 --
@@ -1319,6 +1406,22 @@ ALTER TABLE ONLY role
 
 
 --
+-- Name: task_pkey; Type: CONSTRAINT; Schema: public; Owner: ylg; Tablespace: 
+--
+
+ALTER TABLE ONLY task
+    ADD CONSTRAINT task_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: uniq_email; Type: CONSTRAINT; Schema: public; Owner: ylg; Tablespace: 
+--
+
+ALTER TABLE ONLY "user"
+    ADD CONSTRAINT uniq_email UNIQUE (email);
+
+
+--
 -- Name: uniq_name; Type: CONSTRAINT; Schema: public; Owner: ylg; Tablespace: 
 --
 
@@ -1380,6 +1483,14 @@ ALTER TABLE ONLY user2group
 
 ALTER TABLE ONLY user2group
     ADD CONSTRAINT on_del_user FOREIGN KEY (user_id) REFERENCES "user"(id) ON UPDATE RESTRICT ON DELETE CASCADE;
+
+
+--
+-- Name: on_del_user; Type: FK CONSTRAINT; Schema: public; Owner: ylg
+--
+
+ALTER TABLE ONLY task
+    ADD CONSTRAINT on_del_user FOREIGN KEY (owner_id) REFERENCES "user"(id) ON UPDATE RESTRICT ON DELETE CASCADE;
 
 
 --

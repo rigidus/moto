@@ -303,7 +303,7 @@
        (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
-** События
+** DONE События
 
    События протоколируют все что происходит в системе. Каждое создание
    сущности, каждое изменение состояния автомата регистрируется
@@ -394,7 +394,7 @@
      | ts-last     | bigint               | время последнего действия |
      | role-id     | (or db-null integer) | идентификатор роли        |
 
-   В нашей системе пользователь может существовать (или не существовать) в одном их
+   В нашей системе пользователь может существовать (или не существовать) в одном из
    нескольких состояний:
     + Когда пользователь еще не зарегистрирован на сайте мы можем считать его
       незарегистрированным (=unregistred=)
@@ -421,14 +421,14 @@
    Теперь мы можем полностью описать поведение пользователя как конечный автомат:
 
    #+NAME: user_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports none :cache yes
+   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports none
      (mapcar #'(lambda (x)
                  (princ (format "%s -> %s [label =\"%s\"];\n"
                                 (second x) (third x) (first x))))
-             (nthcdr 2 table))
+             table)
    #+END_SRC
 
-   #+BEGIN_SRC dot :file img/user-state.png :var input=user_state_graph :exports results :cache yes
+   #+BEGIN_SRC dot :file img/user-state.png :var input=user_state_graph :exports results
      digraph G {
        rankdir = LR;
        $input
@@ -437,12 +437,13 @@
 
    Для того чтобы избежать дублирования ников и связанной с этим
    ситуации, когда один пользователь выдает себя за другого, следует
-   определить констрейнт на уникальность поля =name=
+   определить констрейнт на уникальность поля =name= и =email=
 
    #+NAME: user_constraints
    #+BEGIN_SRC lisp :exports none :padline no :comments link
      (with-connection *db-spec*
        (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "uniq_email" :unique "email"))
          (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
    #+END_SRC
 
@@ -559,7 +560,7 @@
      <<user2group_constraints>>
    #+END_SRC
 
-** Сообщения (msg)
+** DONE Сообщения (msg)
 
    О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
    сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
@@ -592,6 +593,118 @@
      <<gen_automat("msg", "сообщения", msg_flds, msg_state)>>
      (defun delivery ()
        "undelivered -> delivered")
+   #+END_SRC
+
+** DONE Задачи (task)
+
+   #+CAPTION: Данные задачи
+   #+NAME: task_flds
+     | field name | field type           | note                      |
+     |------------+----------------------+---------------------------|
+     | id         | serial               | идентификатор             |
+     | name       | varchar              | название                  |
+     | owner-id   | (or db-null integer) | идентификатор владельца   |
+     | exec-id    | (or db-null integer) | идентификатор исполнителя |
+     | ts-create  | bigint               | время регистрации         |
+
+   В нашей системе задача может существовать  в одном из
+   нескольких состояний:
+    + Создана, но еще ни разу не исполнялась (=new=).
+    + Исполняется в данный момент (=inaction=)
+    + Была исполнена но еще не завершена, возможно потребуется исполнять
+      еще раз или по расписанию (=standby=)
+    + Отменена (=cancelled=)
+    + Завершена (=terminated=)
+
+   Все эти переходы и состояния сведем в единую таблицу:
+
+   #+CAPTION: Состояния конечного автомата пользователя
+   #+NAME: task_state
+     | action               | from     | to         |
+     |----------------------+----------+------------|
+     | starttask            | new      | inaction   |
+     | stoptask             | inaction | standby    |
+     | restarttask          | standby  | inaction   |
+     | cancelnewtask        | new      | cancelled  |
+     | cancelactiontask     | inaction | cancelled  |
+     | cancelstandbytask    | standby  | cancelled  |
+     | terminateactiontask  | inaction | terminated |
+     | terminatestandbytask | standby  | terminated |
+
+   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+
+   #+NAME: task_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=task_state :results output :exports none
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+   #+results: task_state_graph
+   : new -> inaction [label ="starttask"];
+   : inaction -> standby [label ="stoptask"];
+   : standby -> inaction [label ="restarttask"];
+   : new -> cancelled [label ="cancelnewtask"];
+   : inaction -> cancelled [label ="cancelactiontask"];
+   : standby -> cancelled [label ="cancelstandbytask"];
+   : inaction -> terminated [label ="terminateactiontask"];
+   : standby -> terminated [label ="terminatestandbytask"];
+
+   #+BEGIN_SRC dot :file img/task-state.png :var input=task_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+   Для того чтобы избежать дублирования задач, следует определить
+   констрейнт на уникальность поля =name=
+
+   #+NAME: task_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "task")
+         (query (:alter-table "task" :add-constraint "task_name" :unique "name"))))
+   #+END_SRC
+
+   Так как в системе все пользователи тесно связаны с задачами,
+   следует определить внешний ключ на таблицу пользователей так, чтобы
+   при удалении пользователей-владельцев задач удалялись и их задачи.
+
+   #+NAME: task_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (in-package #:moto)
+
+     (with-connection *db-spec*
+       (unless (table-exists-p "task")
+         (query (:alter-table "task" :add-constraint "on_del_user" :foreign-key ("owner_id") ("user" "id") :cascade))))
+   #+END_SRC
+
+   Теперь сгенерируем код и определим функции, которые вызываются на
+   переходах из одного состояния в другое. Также установим ограничение
+   на колонку =name= чтобы избежать дублирования ников.
+
+   #+NAME: task_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("task", "задачи", task_flds, task_state)>>
+     <<task_constraints>>
+     (defun starttask ()
+       "new -> inaction")
+     (defun stoptask ()
+       "inaction -> standby")
+     (defun restarttask ()
+       "standby -> inaction")
+     (defun cancelnewtask ()
+       "new -> cancelled")
+     (defun cancelactiontask ()
+       "inaction -> cancelled")
+     (defun cancelstandbytask ()
+       "standby -> cancelled")
+     (defun terminateactiontask ()
+       "inaction -> action")
+     (defun terminatestandbytask ()
+       "standby -> terminated")
    #+END_SRC
 
 ** Очереди (que, quelt)
@@ -783,14 +896,14 @@
    Теперь мы можем полностью описать поведение мотоцикла как конечный автомат:
 
    #+NAME: moto_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports none :cache yes
+   #+BEGIN_SRC emacs-lisp :var table=moto_state :results output :exports none
      (mapcar #'(lambda (x)
                  (princ (format "%s -> %s [label =\"%s\"];\n"
                                 (second x) (third x) (first x))))
              table)
    #+END_SRC
 
-   #+BEGIN_SRC dot :file img/moto-state.png :var input=moto_state_graph :exports results :cache yes
+   #+BEGIN_SRC dot :file img/moto-state.png :var input=moto_state_graph :exports results
      digraph G {
        rankdir = LR;
        $input

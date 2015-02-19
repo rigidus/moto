@@ -63,6 +63,7 @@
 
 (with-connection *db-spec*
   (unless (table-exists-p "user")
+    (query (:alter-table "user" :add-constraint "uniq_email" :unique "email"))
     (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
 (with-connection *db-spec*
   (unless (table-exists-p "user")
@@ -143,6 +144,48 @@
 (defun delivery ()
   "undelivered -> delivered")
 ;; msg_automat ends here
+;; [[file:doc.org::*Задачи (task)][task_automat]]
+(define-automat task "Автомат задачи"
+  ((id serial)
+   (name varchar)
+   (owner-id (or db-null integer))
+   (exec-id (or db-null integer))
+   (ts-create bigint))
+  (:terminated :cancelled :standby :inaction :new)
+  ((:new :inaction :starttask)
+   (:inaction :standby :stoptask)
+   (:standby :inaction :restarttask)
+   (:new :cancelled :cancelnewtask)
+   (:inaction :cancelled :cancelactiontask)
+   (:standby :cancelled :cancelstandbytask)
+   (:inaction :terminated :terminateactiontask)
+   (:standby :terminated :terminatestandbytask)))
+
+(with-connection *db-spec*
+  (unless (table-exists-p "task")
+    (query (:alter-table "task" :add-constraint "task_name" :unique "name"))))
+(in-package #:moto)
+
+(with-connection *db-spec*
+  (unless (table-exists-p "task")
+    (query (:alter-table "task" :add-constraint "on_del_user" :foreign-key ("owner_id") ("user" "id") :cascade))))
+(defun starttask ()
+  "new -> inaction")
+(defun stoptask ()
+  "inaction -> standby")
+(defun restarttask ()
+  "standby -> inaction")
+(defun cancelnewtask ()
+  "new -> cancelled")
+(defun cancelactiontask ()
+  "inaction -> cancelled")
+(defun cancelstandbytask ()
+  "standby -> cancelled")
+(defun terminateactiontask ()
+  "inaction -> action")
+(defun terminatestandbytask ()
+  "standby -> terminated")
+;; task_automat ends here
 ;; [[file:doc.org::*Очереди (que, quelt)][que_entity]]
 (define-entity que "Сущность очереди"
   ((id serial)
