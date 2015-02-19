@@ -99,6 +99,26 @@
           (id new-user)))))
 (in-package #:moto)
 
+(defun create-group (name descr)
+  "Создание пользователя. Возвращает id пользователя"
+  (let ((new-item (make-group :name name :descr descr :ts-create (get-universal-time) :author-id *current-user*)))
+    (if (null new-item)
+        (err 'err-create-group)
+        ;; else
+        (progn
+          (make-event :name "create-group"
+                      :tag "create"
+                      :msg (format nil "Пользователь #~A : ~A cоздал группу #~A : ~A"
+                                   *current-user*
+                                   (name (get-user *current-user*))
+                                   (id new-item)
+                                   (name new-item))
+                      :author-id *current-user*
+                      :ts-create (get-universal-time))
+          ;; Возвращаем id
+          (id new-item)))))
+(in-package #:moto)
+
 ;; Событие выхода
 (defun logout-user (current-user)
   (takt (get-user current-user) :unlogged)
@@ -619,10 +639,8 @@
               (content-box ()
                 (heading ((format nil "Страница пользователя ~A" (name user)))))
               (content-box ()
-                ((:table)
-                 ((:tr)
-                  ((:td) user-ava-html)
-                  ((:td) (name user)))))
+                user-ava-html
+                (name user))
               (content-box ()
                 (change-role-html user %change-role%))
               (content-box ()
@@ -800,7 +818,7 @@
         ((:span :class "clear"))))))))
 (in-package #:moto)
 
-(labels ((perm-check (current-user) (is-in-group "Пропускать везде" curent-user)))
+(labels ((perm-check (current-user) (is-in-group "Пропускать везде" current-user)))
   (define-page all-groups "/groups"
     (let* ((breadcrumb (breadcrumb "Группы" ("/" . "Главная")))
            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -833,7 +851,7 @@
            ((:div :class "form-send-container")
             (submit "Создать новую группу" :name "act" :value "NEW")))
           (if (perm-check *current-user*)
-              (progn (make-group :name (getf p :name) :descr (getf p :descr) :ts-create (get-universal-time) :author-id *current-user*)
+              (progn (create-group (getf p :name) (getf p :descr))
                      (redirect "/groups"))
               ""))))
 (in-package #:moto)

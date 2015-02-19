@@ -33,7 +33,7 @@
 (in-package #:moto)
 
 (define-page main "/"
-  (let ((breadcrumb (breadcrumb "Список пользователей"))
+  (let ((breadcrumb (breadcrumb "Последние измениния"))
         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
     (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
       (content-box ()
@@ -65,4 +65,54 @@
       ;;           (loop :for action-key :in actions :by #'cddr :collect
       ;;              (funcall (getf actions action-key) param))))
       ((:span :class "clear"))))))))
+(in-package #:moto)
+
+(labels ((perm-check (current-user)
+           (is-in-group "Постановщик задач" current-user)))
+  (define-page all-tasks "/tasks"
+    (let ((breadcrumb (breadcrumb "Список задач"))
+          (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+      (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+        (content-box ()
+          (heading ("Список задач")
+            "Задачи - это обьекты, созданные пользователями для роботов, которые из исполняют и предоставляют результат. "
+            "Задачи можно создавать, удалять, запускать на выполнение немедленно, запускать на выполнение по расписанию и приостанавливать."))
+        (if (not (perm-check *current-user*))
+            ""
+            (content-box ()
+              (form ("maketaskform" "Создать задачу" :class "form-section-container")
+                ((:div :class "form-section")
+                 (fieldset ""
+                   (input ("name" "Имя" :required t :type "text"))))
+                %NEW%)))
+        ;; (content-box ()
+        ;;   (let ((tmp (show (sort (all-task) #'(lambda (a b) (< (id a) (id b))))
+        ;;                    :del #'(lambda (user) %DEL%))))
+        ;;     (ps-html ((:form :method "POST") ((:input :type "hidden" :name "act" :value "DEL")) tmp))))
+        (ps-html ((:span :class "clear")))))
+    (:DEL (if (perm-check *current-user*)
+              (ps-html ((:form :method "POST")
+                        ((:input :type "hidden" :name "act" :value "DEL"))
+                        (submit "Удалить" :name "data" :value (id task))))
+              "")
+          (if (perm-check *current-user*)
+              (progn
+                (remove-task (parse-integer (getf p :data)))
+                (redirect "/tasks"))
+              ""))
+    (:new (if (not (perm-check *current-user*))
+              ""
+              (ps-html
+               ((:input :type "hidden" :name "act" :value "NEW"))
+               ((:div :class "form-send-container")
+                (submit "Создать задачу" ))))
+          (if (not (perm-check *current-user*))
+              ""
+              (let ((new-id (create-task (getf p :name) "" "")))
+                (upd-task (get-task new-id)
+                          (list
+                           :role-id (parse-integer (getf p :role))
+                           :ts-create (get-universal-time)
+                           :ts-last (get-universal-time)))
+                (redirect "/tasks"))))))
 ;; iface ends here

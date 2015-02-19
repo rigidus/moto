@@ -942,41 +942,139 @@
 * Страницы
 ** Главная страница
 
- #+NAME: iface_contents
- #+BEGIN_SRC lisp
-   (in-package #:moto)
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
 
-   (define-page main "/"
-     (let ((breadcrumb (breadcrumb "Список пользователей"))
-           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-       (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-         (content-box ()
-           (heading ("Что происходит?") "Последние события:"))
-         (content-box ()
-           (show (sort (all-event) #'(lambda (a b) (> (id a) (id b))))))
-         (ps-html ((:span :class "clear"))))))
+     (define-page main "/"
+       (let ((breadcrumb (breadcrumb "Последние измениния"))
+             (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (content-box ()
+             (heading ("Что происходит?") "Последние события:"))
+           (content-box ()
+             (show (sort (all-event) #'(lambda (a b) (> (id a) (id b))))))
+           (ps-html ((:span :class "clear"))))))
 
-   (defmethod show ((param event) &rest actions &key &allow-other-keys)
-     (let ((time-record
-            (multiple-value-bind (second minute hour date month year day daylight-p zone)
-                (decode-universal-time (ts-create param))
-              (format nil "~A:~A:~A ~A.~A.~A"
-                      hour minute second date month year))))
+     (defmethod show ((param event) &rest actions &key &allow-other-keys)
+       (let ((time-record
+              (multiple-value-bind (second minute hour date month year day daylight-p zone)
+                  (decode-universal-time (ts-create param))
+                (format nil "~A:~A:~A ~A.~A.~A"
+                        hour minute second date month year))))
 
-     (ps-html
-      ((:li :class "article-item article-item--list" :style "height: inherit;;")
-       ((:div :class "inner")
-        ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
-         ((:div :class "article-item__main-info")
-          ;; ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id param)))
-          ;;  ((:h3 :class "article-item__title") (name param))
-          ;;  ((:h4 :class "article-item__subtitle")))
-          ((:p :class "article-item__description") (msg param)))
-         time-record
-         ;; (if (null actions)
-         ;; ""
-         ;;   (format nil "~{~A~}"
-         ;;           (loop :for action-key :in actions :by #'cddr :collect
-         ;;              (funcall (getf actions action-key) param))))
-         ((:span :class "clear"))))))))
+       (ps-html
+        ((:li :class "article-item article-item--list" :style "height: inherit;;")
+         ((:div :class "inner")
+          ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
+           ((:div :class "article-item__main-info")
+            ;; ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id param)))
+            ;;  ((:h3 :class "article-item__title") (name param))
+            ;;  ((:h4 :class "article-item__subtitle")))
+            ((:p :class "article-item__description") (msg param)))
+           time-record
+           ;; (if (null actions)
+           ;; ""
+           ;;   (format nil "~{~A~}"
+           ;;           (loop :for action-key :in actions :by #'cddr :collect
+           ;;              (funcall (getf actions action-key) param))))
+           ((:span :class "clear"))))))))
  #+END_SRC
+
+** Страница поисковых задач
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (labels ((perm-check (current-user)
+                (is-in-group "Постановщик задач" current-user)))
+       (define-page all-tasks "/tasks"
+         (let ((breadcrumb (breadcrumb "Список задач"))
+               (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+           (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+             (content-box ()
+               (heading ("Список задач")
+                 "Задачи - это обьекты, созданные пользователями для роботов, которые из исполняют и предоставляют результат. "
+                 "Задачи можно создавать, удалять, запускать на выполнение немедленно, запускать на выполнение по расписанию и приостанавливать."))
+             (if (not (perm-check *current-user*))
+                 ""
+                 (content-box ()
+                   (form ("maketaskform" "Создать задачу" :class "form-section-container")
+                     ((:div :class "form-section")
+                      (fieldset ""
+                        (input ("name" "Имя" :required t :type "text"))))
+                     %NEW%)))
+             ;; (content-box ()
+             ;;   (let ((tmp (show (sort (all-task) #'(lambda (a b) (< (id a) (id b))))
+             ;;                    :del #'(lambda (user) %DEL%))))
+             ;;     (ps-html ((:form :method "POST") ((:input :type "hidden" :name "act" :value "DEL")) tmp))))
+             (ps-html ((:span :class "clear")))))
+         (:DEL (if (perm-check *current-user*)
+                   (ps-html ((:form :method "POST")
+                             ((:input :type "hidden" :name "act" :value "DEL"))
+                             (submit "Удалить" :name "data" :value (id task))))
+                   "")
+               (if (perm-check *current-user*)
+                   (progn
+                     (remove-task (parse-integer (getf p :data)))
+                     (redirect "/tasks"))
+                   ""))
+         (:new (if (not (perm-check *current-user*))
+                   ""
+                   (ps-html
+                    ((:input :type "hidden" :name "act" :value "NEW"))
+                    ((:div :class "form-send-container")
+                     (submit "Создать задачу" ))))
+               (if (not (perm-check *current-user*))
+                   ""
+                   (let ((new-id (create-task (getf p :name) "" "")))
+                     (upd-task (get-task new-id)
+                               (list
+                                :role-id (parse-integer (getf p :role))
+                                :ts-create (get-universal-time)
+                                :ts-last (get-universal-time)))
+                     (redirect "/tasks"))))))
+
+   #+END_SRC
+
+Поисковый запрос
+  Искать только
+    в названии вакансии
+    в названии компании
+    в описании вакансии
+Профессиональная область
+Отрасль компании
+Регион
+Уровень заработной платы
+  Скрыть вакансии без указания зарплаты
+Требуемый опыт работы
+  Не имеет значения
+  Нет опыта
+  От 1 года до 3 лет
+  От 3 до 6 лет
+  Более 6 лет
+Тип занятости
+  Полная занятость
+  Частичная занятость
+  Проектная/Временная работа
+  ВолонтерствоСтажировка
+График работы
+  Полный день
+  Сменный график
+  Гибкий график
+  Удаленная работа
+  Вахтовый метод
+Скрыть в результатах поиска
+  Вакансии агентств
+  Вакансии, недоступные людям с инвалидностьюЧто это?
+Сортировать
+  По дате изменения
+  По убыванию зарплат
+  По возрастанию зарплаты
+  По соответствию
+Выводить
+  За месяц
+  За неделю
+  За последние три дня
+  За сутки
