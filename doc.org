@@ -641,22 +641,15 @@
              table)
    #+END_SRC
 
-   #+results: task_state_graph
-   : new -> inaction [label ="starttask"];
-   : inaction -> standby [label ="stoptask"];
-   : standby -> inaction [label ="restarttask"];
-   : new -> cancelled [label ="cancelnewtask"];
-   : inaction -> cancelled [label ="cancelactiontask"];
-   : standby -> cancelled [label ="cancelstandbytask"];
-   : inaction -> terminated [label ="terminateactiontask"];
-   : standby -> terminated [label ="terminatestandbytask"];
-
    #+BEGIN_SRC dot :file img/task-state.png :var input=task_state_graph :exports results
      digraph G {
        rankdir = LR;
        $input
      }
    #+END_SRC
+
+   #+results:
+   [[file:img/task-state.png]]
 
    Для того чтобы избежать дублирования задач, следует определить
    констрейнт на уникальность поля =name=
