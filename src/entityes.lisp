@@ -148,6 +148,7 @@
 (define-automat task "Автомат задачи"
   ((id serial)
    (name varchar)
+   (blockdata varchar)
    (owner-id (or db-null integer))
    (exec-id (or db-null integer))
    (ts-create bigint))
