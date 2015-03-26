@@ -94,60 +94,23 @@
         )))
 
 (defmethod show ((param task) &rest actions &key &allow-other-keys)
-  ;; (let ((birka  "/img/transparency.gif")
-  ;;       (avatar (get-avatar-img (id param) :middle))
-  ;;       (role-id 0)
-  ;;       (role-name "Нет роли"))
-  ;;   (if (integerp (role-id param))
-  ;;       (progn
-  ;;         (setf role-id (role-id param))
-  ;;         (setf role-name (name (get-role (role-id param))))
-  ;;         (setf birka (if (not (equal role-name "webuser")) "/ava/small/robot.png"))
-  ;;         (cond ((equal role-name "timebot")
-  ;;                (setf avatar (ps-html ((:img :src "/ava/middle/timebot.png")))))
-  ;;               ((equal role-name "autotester")
-  ;;                (setf avatar (ps-html ((:img :src "/ava/middle/tester.png")))))
-  ;;               ((equal role-name "agent")
-  ;;                (setf avatar (ps-html ((:img :src "/ava/middle/system.png"))))))))
-    (ps-html
-     ((:li :class "article-item article-item--list")
-      ((:div :class "inner")
-       ;; ((:a :class "article-item__image" :href (format nil "/user/~A" (id param))) avatar)
-       ((:div :class "article-item__info" :style "width: 540px;")
-        ;; ((:img :class "article-item__manufacturer" :src birka))
-        ((:div :class "article-item__main-info")
-         ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id param)))
-          ((:h3 :class "article-item__title") (name param)))
-         ;; (if (equal 0 role-id)
-         ;;     ""
-         ;;     (ps-html
-         ;;      ((:div :class "article-item__main-info")
-         ;;       ((:a :class "article-item__title-link" :href (format nil "/role/~A" role-id))
-         ;;        ((:h4 :class "article-item__subtitle")
-         ;;         role-name)))))
-         ((:p :class "article-item__description")
-          ;; (format nil "~{~A~^, ~}"
-          ;;         (mapcar #'(lambda (y)
-          ;;                     (ps-html
-          ;;                      ((:a :href (format nil "/group/~A" (group-id y)))
-          ;;                       (name (get-group (group-id y))))))
-          ;;                 (find-user2group :user-id (id param))))
-          "(blockdata param)"
-          ))
-        ;; ((:div :class "price")
-        ;;  ((:p :class "price__current")
-        ;;   ((:span :class "price__number")
-        ;;    ((:span :class "currency") "€")
-        ;;    "&nbsp;12"
-        ;;    ((:span :class "cent") "99"))))
-        ;; (if (null actions)
-        ;;     ""
-        ;;     (format nil "~{~A~}"
-        ;;             (loop :for action-key :in actions :by #'cddr :collect
-        ;;                (funcall (getf actions action-key) param))))
-        ((:span :class "clear"))))))
-    )
-  ;; )
+  (ps-html
+   ((:li :class "article-item article-item--list")
+    ((:div :class "inner")
+     ;; ((:a :class "article-item__image" :href (format nil "/user/~A" (id param))) avatar)
+     ((:div :class "article-item__info" :style "width: 540px;")
+      ;; ((:img :class "article-item__manufacturer" :src birka))
+      ((:div :class "article-item__main-info")
+       ((:a :class "article-item__title-link" :href (format nil "/user/~A" (id param)))
+        ((:h3 :class "article-item__title") (name param)))
+       ((:p :class "article-item__description")
+        (blockdata param)))
+      ;; (if (null actions)
+      ;;     ""
+      ;;     (format nil "~{~A~}"
+      ;;             (loop :for action-key :in actions :by #'cddr :collect
+      ;;                (funcall (getf actions action-key) param))))
+      ((:span :class "clear")))))))
 
 (labels ((perm-check (current-user)
            (is-in-group "Постановщик задач" current-user)))
@@ -203,4 +166,21 @@
                 ;;            :ts-create (get-universal-time)
                 ;;            :ts-last (get-universal-time)))
                 (redirect "/tasks"))))))
+
+(in-package #:moto)
+
+;; (restas:define-route frp ("/frp")
+;;   "<script type=\"text/javascript\" src=\"/js/frp.js\"></script>")
+
+
+;; (define-page frp "/frp"
+;;   ;; (let ((breadcrumb (breadcrumb "FRP"))
+;;   ;;       (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+;;   ;;   (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+;;   ;;     (content-box ()
+;;   ;;       (heading ("FRP")
+;;   ;;         "Тестируем FRP")
+;;         "<script type=\"text/javascript\" src=\"/js/frp.js\"></script>")
+;;       (ps-html ((:span :class "clear")))))
+;;   )
 ;; iface ends here

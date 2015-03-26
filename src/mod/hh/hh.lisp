@@ -438,6 +438,7 @@
 
 (in-package #:moto)
 
+(in-package #:moto)
 
 ;; (setf drakma:*header-stream* *standard-output*)
 
@@ -660,7 +661,7 @@
                                                                                 (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
                                                                                        (list :emp-name emp-name))
                                                                                      (mtm (`("div" (("class" "search-result-item__company"))
-                                                                                                   ("a" (("href" ,emp-id)
+                                                                                                   ("a" (("href" ,`emp-id)
                                                                                                          ("class" "search-result-item__company-link")
                                                                                                          ("data-qa" "vacancy-serp__vacancy-employer"))
                                                                                                         ,emp-name))
@@ -808,7 +809,7 @@
                        :salary-text (getf vacancy :salary-text)
                        :salary-max (getf vacancy :salary-max)
                        :salary-min (getf vacancy :salary-min)
-                       :emp-id (getf vacancy :emp-id)
+                       :emp-id (aif (getf vacancy :emp-id) it 0)
                        :emp-name (getf vacancy :emp-name)
                        :city (getf vacancy :city)
                        :metro (getf vacancy :metro)
@@ -832,9 +833,9 @@
       ("Cookie"           . ,(format nil "~{~{~A=~A~}~^; ~}" cookies))))
 
 (defun send-respond (vacancy-id resume-id letter)
-  (let* ((hhtoken     "ES030IVQP52ULPbRqN9DQOcMIR!T")
-         (hhuid       "x_FxSYWUbySJe1LhHIQxDA--")
-         (xsrf        "ed689ea1ff02a3074c848b69225e3c78")
+  (let* ((hhtoken     (cdr (assoc "hhtoken" *cookies* :test #'equal)))
+         (hhuid       (cdr (assoc "hhuid" *cookies* :test #'equal)))
+         (xsrf        (cdr (assoc "_xsrf" *cookies* :test #'equal)))
          (hhrole      "applicant")
          (crypted-id  "2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8")
          (cookie-jar (make-instance 'drakma:cookie-jar))
@@ -853,7 +854,7 @@
          (unique-banner-user (getf cookie-data :unique_banner_user)))
     (assert (equal crypted-id (getf cookie-data :crypted_id)))
     (assert (equal "applicant" (getf cookie-data :hhrole)))
-    (assert (equal xsrf (getf cookie-data :_xsrf)))
+    ;; (assert (equal xsrf (getf cookie-data :_xsrf)))
     (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
            (name (block namer (mtm (`("div" (("class" "navi-item__switcher HH-Navi-MenuItems-Switcher") ("data-qa" "mainmenu_normalUserName"))
                                             ,name ("span" (("class" "navi-item__post"))))
@@ -938,7 +939,7 @@
          (when (null vacancy)
            (return))))))
 
-;; (run)
+(run)
 
 (in-package #:moto)
 
@@ -977,6 +978,9 @@
 
 (defun bee-bee ()
   "beenviewed    | beenviewed   ")
+
+(defun bee-uni ()
+  "beenviewed    | uninteresting   ")
 
 (defun res-rej ()
   "responded     | reject       ")

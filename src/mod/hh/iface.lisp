@@ -151,9 +151,11 @@
               (id (upd-vacancy (car (find-vacancy :src-id src-id))
                                (list :notes (getf p :notes) :response (getf p :response))))
               (dbg (send-respond src-id 7628220 (getf p :response)))
-              (dbg (takt (car (find-vacancy :src-id "12644276")) :responded)))))
+              (dbg (takt (car (find-vacancy :src-id src-id)) :responded)))))
 
-;; (takt (car (find-vacancy :src-id "12611079")) :responded)
+;; (state (car (find-vacancy :src-id "12689535")))
+
+;; (takt (car (find-vacancy :src-id "12689535")) :responded)
 
 ;; (response (car (find-vacancy :src-id "12644276")))
 (in-package #:moto)

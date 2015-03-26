@@ -34,6 +34,8 @@
    (:responded :responded :res-res)
    (:responded :beenviewed :res-bee)
    (:beenviewed :beenviewed :bee-bee)
+   (:beenviewed :interesting :bee-uni)
+   (:beenviewed :uninteresting :bee-uni)
    (:responded :reject :res-rej)
    (:reject :reject :rej-rej)
    (:beenviewed :reject :res-rej)

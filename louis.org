@@ -56,6 +56,7 @@
             <script type="text/javascript" src="/js/jquery-ui-v-1.10.3.js"></script>
             <script type="text/javascript" src="/js/modernizr.js"></script />
             <script type="text/javascript" src="/js/jquery.sortable.original.js"></script>
+            <script type="text/javascript" src="/js/frp.js"></script>
         </head>
         <body id="louis-de" class="en" data-background-image="/img/bg-05.jpg">
             <div style="height: 1077px; position: fixed; transform: translateY(0px);" id="js__bg" class="bg">
@@ -1091,43 +1092,24 @@
 
    #+END_SRC
 
-Поисковый запрос
-  Искать только
-    в названии вакансии
-    в названии компании
-    в описании вакансии
-Профессиональная область
-Отрасль компании
-Регион
-Уровень заработной платы
-  Скрыть вакансии без указания зарплаты
-Требуемый опыт работы
-  Не имеет значения
-  Нет опыта
-  От 1 года до 3 лет
-  От 3 до 6 лет
-  Более 6 лет
-Тип занятости
-  Полная занятость
-  Частичная занятость
-  Проектная/Временная работа
-  ВолонтерствоСтажировка
-График работы
-  Полный день
-  Сменный график
-  Гибкий график
-  Удаленная работа
-  Вахтовый метод
-Скрыть в результатах поиска
-  Вакансии агентств
-  Вакансии, недоступные людям с инвалидностьюЧто это?
-Сортировать
-  По дате изменения
-  По убыванию зарплат
-  По возрастанию зарплаты
-  По соответствию
-Выводить
-  За месяц
-  За неделю
-  За последние три дня
-  За сутки
+* FRP
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     ;; (restas:define-route frp ("/frp")
+     ;;   "<script type=\"text/javascript\" src=\"/js/frp.js\"></script>")
+
+
+     (define-page frp "/frp"
+       (let ((breadcrumb (breadcrumb "FRP"))
+             (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (content-box ()
+             (heading ("FRP")
+               "Тестируем FRP")
+             (ps-html ((:div :id "frp")))
+           (ps-html ((:span :class "clear")))))
+       ))
+   #+END_SRC
