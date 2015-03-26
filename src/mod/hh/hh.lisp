@@ -94,7 +94,7 @@
 
 (defmacro define-drop-vacancy-rule ((name antecedent) &body consequent)
   `(define-rule (,(intern (concatenate 'string "DROP-VACANCY-IF-"(symbol-name name))) ,antecedent)
-     (dbg "drop vacancy:")
+     (dbg "drop vacancy: ~A : ~A" (getf vacancy :name) (getf vacancy :emp-name))
      ,@consequent
      (setf vacancy nil)
      :stop))
@@ -154,26 +154,31 @@
     (get-output-stream-string output)))
 
 (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
-  ;; (dbg "already worked: ~A" (getf vacancy :emp-name))
-  )
+  (dbg "   - already worked"))
+
+(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
+  (dbg "   - already worked"))
+
+(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
+  (dbg "   - already worked"))
 
 (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
   (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
-    (dbg "already exists: ~A : ~A : ~A" (id exists) (name exists) (emp-name exists))))
+    (dbg "   - already exists")))
 
 (define-rule (set-rank t)
   (setf (getf vacancy :rank) (getf vacancy :salary)))
 
 (define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
-  ;; (dbg "up rank by Lisp")
+  (dbg "up rank by Lisp")
   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
 
 (define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
-  ;; (dbg "up rank by Erlang")
+  (dbg "up rank by Erlang")
   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
 
 (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
-  ;; (dbg "up rank by Haskell")
+  (dbg "up rank by Haskell")
   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
 
 (define-rule (z-print t)
@@ -189,7 +194,8 @@
 
 (defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
   `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
-     ;; (dbg "drop teaser:")
+     (dbg "drop teaser: ~A-~A (~A) ~A" (getf vacancy :salary-min) (getf vacancy :salary-max) (getf vacancy :currency) (getf vacancy :name))
+     ;; (dbg "~A" vacancy)
      ,@consequent
      (setf vacancy nil)
      :stop))
@@ -215,7 +221,7 @@
 (defmacro define-drop-teaser-by-name-rule (str &body consequent)
   `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
                               (contains (getf vacancy :name) ,str))
-     ;; (dbg "  - :name contains ~A" ,str)
+     (dbg "  - :name contains ~A" ,str)
      ,@consequent))
 
 ;; expand
@@ -262,8 +268,7 @@
 ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
 
 (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
-  ;; (dbg "  - no salary")
-  )
+  (dbg "  - no salary"))
 
 (define-drop-teaser-rule (salary-2-low (or
                                         (and (equal (getf vacancy :currency) "RUR")
@@ -273,9 +278,7 @@
                                         (and (equal (getf vacancy :currency) "USD")
                                              (< (getf vacancy :salary-max) (floor 90000 77)))
                                         ))
-  ;; (dbg "  - no salary")
-  )
-
+  (dbg "  - low salary"))
 
 (define-drop-all-teaser-when-name-contains-rule
     "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
