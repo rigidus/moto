@@ -661,7 +661,7 @@
                                                                                 (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
                                                                                        (list :emp-name emp-name))
                                                                                      (mtm (`("div" (("class" "search-result-item__company"))
-                                                                                                   ("a" (("href" ,`emp-id)
+                                                                                                   ("a" (("href" ,emp-id)
                                                                                                          ("class" "search-result-item__company-link")
                                                                                                          ("data-qa" "vacancy-serp__vacancy-employer"))
                                                                                                         ,emp-name))
@@ -854,7 +854,7 @@
          (unique-banner-user (getf cookie-data :unique_banner_user)))
     (assert (equal crypted-id (getf cookie-data :crypted_id)))
     (assert (equal "applicant" (getf cookie-data :hhrole)))
-    ;; (assert (equal xsrf (getf cookie-data :_xsrf)))
+    (assert (equal xsrf (getf cookie-data :_xsrf)))
     (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
            (name (block namer (mtm (`("div" (("class" "navi-item__switcher HH-Navi-MenuItems-Switcher") ("data-qa" "mainmenu_normalUserName"))
                                             ,name ("span" (("class" "navi-item__post"))))
@@ -921,8 +921,6 @@
           :force-binary t)
          :external-format :utf-8)))))
 
-;; (response (car (find-vacancy :src-id "12644276")))
-
 ;; (respond 12644276 7628220 "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")
 
 ;; (let ((respond (respond 12646549 7628220 "тест")))
@@ -939,7 +937,7 @@
          (when (null vacancy)
            (return))))))
 
-(run)
+;; (run)
 
 (in-package #:moto)
 
@@ -999,3 +997,29 @@
 
 (defun inv-inv ()
   "invite        | invite       ")
+(in-package #:moto)
+
+(defun rai ()
+  "active-inactive")
+
+(defun ria ()
+  "inactive-active")
+(in-package #:moto)
+
+(make-resume
+ :src-id "1036680cff007465bc0039ed1f736563726574"
+ :title "Ведущий программист (web) / Руководитель проекта"
+ :res-id "7628220"
+ :state ":ACTIVE")
+
+ (make-resume
+  :src-id "9555a7ecff02588d3c0039ed1f454162305732"
+  :title "Senior Developer"
+  :res-id "39357756"
+  :state ":ACTIVE")
+
+(make-resume
+ :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
+ :title "Lisp-разработчик"
+ :res-id "33273224"
+ :state ":ACTIVE")

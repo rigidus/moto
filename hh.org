@@ -345,7 +345,7 @@
               (when (null vacancy)
                 (return))))))
 
-     (run)
+     ;; (run)
    #+END_SRC
 
 ** Составление правил и работа с ними
@@ -988,7 +988,7 @@
                                                                                      (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
                                                                                             (list :emp-name emp-name))
                                                                                           (mtm (`("div" (("class" "search-result-item__company"))
-                                                                                                        ("a" (("href" ,`emp-id)
+                                                                                                        ("a" (("href" ,emp-id)
                                                                                                               ("class" "search-result-item__company-link")
                                                                                                               ("data-qa" "vacancy-serp__vacancy-employer"))
                                                                                                              ,emp-name))
@@ -1405,6 +1405,84 @@
          (get-output-stream-string output)))
    #+END_SRC
 
+** Резюме соискателя
+
+   Иногда у одного соискателя может быть несколько резюме. Опишем структуру данных резюме:
+
+   #+CAPTION: Данные резюме
+   #+NAME: resume_flds
+   | field name | field type           | note                                   |
+   |------------+----------------------+----------------------------------------|
+   | id         | serial               | идентификатор                          |
+   | src-id     | (or db-null varchar) | идентификатор страницы резюме на hh.ru |
+   | res-id     | (or db-null varchar) | идентификатор резюме на hh.ru          |
+   | title      | varchar              | заголовок резюме                       |
+
+   Резюме может быть активным или неактивным:
+
+   #+CAPTION: Состояния конечного автомата вакансии
+   #+NAME: resume_state
+   | action | from     | to       |
+   |--------+----------+----------|
+   | rai    | active   | inactive |
+   | ria    | inactive | active   |
+
+   Теперь мы можем полностью описать поведение резюме как конечный автомат:
+
+   #+NAME: resume_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=resume_state :results output
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+   #+BEGIN_SRC dot :file img/resume-state.png :var input=resume_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+   #+results:
+   [[file:img/resume-state.png]]
+
+   #+NAME: hh_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun rai ()
+       "active-inactive")
+
+     (defun ria ()
+       "inactive-active")
+   #+END_SRC
+
+   Создадим резюме, связав их с резюме на hh:
+
+   #+NAME: hh_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (make-resume
+      :src-id "1036680cff007465bc0039ed1f736563726574"
+      :title "Ведущий программист (web) / Руководитель проекта"
+      :res-id "7628220"
+      :state ":ACTIVE")
+
+      (make-resume
+       :src-id "9555a7ecff02588d3c0039ed1f454162305732"
+       :title "Senior Developer"
+       :res-id "39357756"
+       :state ":ACTIVE")
+
+     (make-resume
+      :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
+      :title "Lisp-разработчик"
+      :res-id "33273224"
+      :state ":ACTIVE")
+   #+END_SRC
+
 ** Отправка отклика
 
    #+NAME: send_respond
@@ -1441,7 +1519,7 @@
               (unique-banner-user (getf cookie-data :unique_banner_user)))
          (assert (equal crypted-id (getf cookie-data :crypted_id)))
          (assert (equal "applicant" (getf cookie-data :hhrole)))
-         ;; (assert (equal xsrf (getf cookie-data :_xsrf)))
+         (assert (equal xsrf (getf cookie-data :_xsrf)))
          (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
                 (name (block namer (mtm (`("div" (("class" "navi-item__switcher HH-Navi-MenuItems-Switcher") ("data-qa" "mainmenu_normalUserName"))
                                                  ,name ("span" (("class" "navi-item__post"))))
@@ -1507,8 +1585,6 @@
                :cookie-jar cookie-jar
                :force-binary t)
               :external-format :utf-8)))))
-
-     ;; (response (car (find-vacancy :src-id "12644276")))
 
      ;; (respond 12644276 7628220 "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")
 
@@ -1807,7 +1883,7 @@
                   (ps-html ((:span :class "clear")))))
                %RESPOND% %SAVE%))
            (ps-html ((:span :class "clear")))))
-       (:SAVE (ps-html ((:div :class "form-send-container")
+       (:save (ps-html ((:div :class "form-send-container")
                         (submit "Сохранить вакансию" :name "act" :value "SAVE")))
               (progn
                 (id (upd-vacancy (car (find-vacancy :src-id src-id))
@@ -1815,12 +1891,24 @@
                 (redirect (format nil "/hh/vac/~A" src-id))))
        (:respond (ps-html
                   ((:div :class "form-send-container")
+                   (eval
+                    (macroexpand
+                     (append '(select ("resume" "Выбрать резюме для отправки отклика:"))
+                             (list
+                              (mapcar #'(lambda (x) (cons (id x) (title x)))
+                                      (sort (all-resume) #'(lambda (a b) (< (id a) (id b)))))))))
+
                    (submit "Отправить отклик" :name "act" :value "RESPOND")))
                  (progn
                    (id (upd-vacancy (car (find-vacancy :src-id src-id))
                                     (list :notes (getf p :notes) :response (getf p :response))))
-                   (dbg (send-respond src-id 7628220 (getf p :response)))
-                   (dbg (takt (car (find-vacancy :src-id src-id)) :responded)))))
+                   (dbg (send-respond
+                         src-id
+                         (res-id (get-resume (parse-integer (getf p :resume))))
+                         (getf p :response)))
+                   (dbg (takt (car (find-vacancy :src-id src-id)) :responded))
+                   )
+                 ))
 
      ;; (state (car (find-vacancy :src-id "12689535")))
 
@@ -3577,6 +3665,7 @@
    #+BEGIN_SRC lisp :tangle src/mod/hh/entityes.lisp :noweb tangle :padline no :comments link
      (in-package #:moto)
      <<gen_automat("vacancy", "вакансии", vacancy_flds, vacancy_state)>>
+     <<gen_automat("resume",  "резюме",   resume_flds,  vacancy_state)>>
    #+END_SRC
 
    #+NAME: gen_automat

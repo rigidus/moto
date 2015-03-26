@@ -138,7 +138,7 @@
              (ps-html ((:span :class "clear")))))
           %RESPOND% %SAVE%))
       (ps-html ((:span :class "clear")))))
-  (:SAVE (ps-html ((:div :class "form-send-container")
+  (:save (ps-html ((:div :class "form-send-container")
                    (submit "Сохранить вакансию" :name "act" :value "SAVE")))
          (progn
            (id (upd-vacancy (car (find-vacancy :src-id src-id))
@@ -146,12 +146,24 @@
            (redirect (format nil "/hh/vac/~A" src-id))))
   (:respond (ps-html
              ((:div :class "form-send-container")
+              (eval
+               (macroexpand
+                (append '(select ("resume" "Выбрать резюме для отправки отклика:"))
+                        (list
+                         (mapcar #'(lambda (x) (cons (id x) (title x)))
+                                 (sort (all-resume) #'(lambda (a b) (< (id a) (id b)))))))))
+
               (submit "Отправить отклик" :name "act" :value "RESPOND")))
             (progn
               (id (upd-vacancy (car (find-vacancy :src-id src-id))
                                (list :notes (getf p :notes) :response (getf p :response))))
-              (dbg (send-respond src-id 7628220 (getf p :response)))
-              (dbg (takt (car (find-vacancy :src-id src-id)) :responded)))))
+              (dbg (send-respond
+                    src-id
+                    (res-id (get-resume (parse-integer (getf p :resume))))
+                    (getf p :response)))
+              (dbg (takt (car (find-vacancy :src-id src-id)) :responded))
+              )
+            ))
 
 ;; (state (car (find-vacancy :src-id "12689535")))
 
