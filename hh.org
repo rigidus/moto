@@ -9,7 +9,9 @@
 #+END_HTML
 
 Нужны аватарки и загрузка картинок
-Нужны резюме и отправка разных резюме
+Нужен анализ ошибок hh при send-respond (например: вакансия в архиве)
+Нужна привязка к роботу, который по таймеру вынимает данные из hh
+Нужны статусы после :INVITE
 Нужна привязка работы к юзеру
 Нужны действия по вакансии из страницы вакансии
 
@@ -1253,7 +1255,7 @@
 
    Пользователь, работая с этими интересными вакансиями, отслеживает их состояния, выполняя
    действия, переводящие вакансию из одного состояния в другое: когда пользователь
-   отправляет отзыв  вакансия становится =responded=.
+   отправляет отзыв - вакансия становится =responded=.
 
    #+CAPTION: Состояния конечного автомата вакансии
    #+NAME: vacancy_state
@@ -1268,15 +1270,18 @@
    | int-uni | interesting   | uninteresting |
    | int-res | interesting   | responded     |
    | int-int | interesting   | interesting   |
-   | res-res | responded     | responded     |
    | res-bee | responded     | beenviewed    |
-   | bee-bee | beenviewed    | beenviewed    |
-   | bee-uni | beenviewed    | uninteresting |
+   | res-uni | responded     | uninteresting |
    | res-rej | responded     | reject        |
-   | rej-rej | reject        | reject        |
-   | res-rej | beenviewed    | reject        |
    | res-inv | responded     | invite        |
+   | res-res | responded     | responded     |
+   | bee-uni | beenviewed    | uninteresting |
+   | bee-rej | beenviewed    | reject        |
    | bee-inv | beenviewed    | invite        |
+   | bee-bee | beenviewed    | beenviewed    |
+   | rej-res | reject        | responded     |
+   | rej-uni | reject        | uninteresting |
+   | rej-rej | reject        | reject        |
    | inv-inv | invite        | invite        |
 
    Теперь мы можем полностью описать поведение вакансии как конечный автомат:
@@ -1304,61 +1309,49 @@
      (in-package #:moto)
 
      (defun uns-uni ()
-       "unsort        | uninteresting")
-
+       " unsort        | uninteresting ")
      (defun uns-int ()
-       "unsort        | interesting  ")
-
+       " unsort        | interesting   ")
      (defun uns-res ()
-       "unsort        | responded    ")
-
+       " unsort        | responded     ")
      (defun uni-int ()
-       "uninteresting | interesting  ")
-
+       " uninteresting | interesting   ")
      (defun uni-res ()
-       "uninteresting | responded    ")
-
+       " uninteresting | responded     ")
      (defun uni-uni ()
-       "uninteresting | uninteresting")
-
+       " uninteresting | uninteresting ")
      (defun int-uni ()
-       "interesting   | uninteresting")
-
+       " interesting   | uninteresting ")
      (defun int-res ()
-       "interesting   | responded    ")
-
+       " interesting   | responded     ")
      (defun int-int ()
-       "interesting   | interesting  ")
-
-     (defun res-res ()
-       "responded     | responded    ")
-
+       " interesting   | interesting   ")
      (defun res-bee ()
-       "responded     | beenviewed   ")
-
-     (defun bee-bee ()
-       "beenviewed    | beenviewed   ")
-
-     (defun bee-uni ()
-       "beenviewed    | uninteresting   ")
-
+       " responded     | beenviewed    ")
+     (defun res-uni ()
+       " responded     | uninteresting ")
      (defun res-rej ()
-       "responded     | reject       ")
-
-     (defun rej-rej ()
-       "reject        | reject       ")
-
-     (defun res-rej ()
-       "beenviewed    | reject       ")
-
+       " responded     | reject        ")
      (defun res-inv ()
-       "responded     | invite       ")
-
+       " responded     | invite        ")
+     (defun res-res ()
+       " responded     | responded     ")
+     (defun bee-uni ()
+       " beenviewed    | uninteresting ")
+     (defun bee-rej ()
+       " beenviewed    | reject        ")
      (defun bee-inv ()
-       "beenviewed    | invite       ")
-
+       " beenviewed    | invite        ")
+     (defun bee-bee ()
+       " beenviewed    | beenviewed    ")
+     (defun rej-res ()
+       " reject        | responded     ")
+     (defun rej-uni ()
+       " reject        | uninteresting ")
+     (defun rej-rej ()
+       " reject        | reject        ")
      (defun inv-inv ()
-       "invite        | invite       ")
+       " invite        | invite        ")
    #+END_SRC
 
 ** Печать вакансий
@@ -1606,7 +1599,7 @@
 
    Внутри себя эта функция по мере необходимости загружает и разбирает отзывы.
 
-   #+NAME: responce_factory
+   #+NAME: run_response
    #+BEGIN_SRC lisp :exports code :padline no :comments link
      (in-package #:moto)
 
@@ -1652,26 +1645,29 @@
      ;; (print
      ;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))
 
+     (car (find-vacancy :src-id "12673969"))
+
      (defmethod process-respond (respond)
        ;; Найти src-id вакансии
        (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
-         ;; Найти вакансию в БД
-         ;; (dbg (getf respond :result))
-         (let (target (car (find-vacancy :src-id src-id)))
-           ;; Если такая вакансия есть в бд
-           (unless (null target)
-             ;; (dbg "~A : ~A" (state target) (getf respond :result))
-             ;; и у нее статус RESPONDED - установить статус
-             (when (equal ":RESPONDED" (state target))
-               (cond ((equal "Просмотрен" (getf respond :result))
-                      (takt target :beenviewed))
-                     ((equal "Отказ" (getf respond :result))
-                      (takt target :reject))
-                     ((equal "Приглашение" (getf respond :result))
-                      (takt target :invite))
-                     ((equal "Не просмотрен" (getf respond :result))
-                      nil)
-                     (t (err (format nil "unk respond state ~A" (state target)))))))))
+         ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
+         (unless (equal "Не просмотрен" (getf respond :result))
+           (unless (null src-id)
+             ;; Если такая вакансия есть в бд
+             (let ((target (car (find-vacancy :src-id src-id))))
+               (unless (null target)
+                 (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
+               ;; и у нее статус RESPONDED - установить статус
+               (when (equal ":RESPONDED" (state target))
+                 (cond ((equal "Просмотрен" (getf respond :result))
+                        (takt target :beenviewed))
+                       ((equal "Отказ" (getf respond :result))
+                        (takt target :reject))
+                       ((equal "Приглашение" (getf respond :result))
+                        (takt target :invite))
+                       ((equal "Не просмотрен" (getf respond :result))
+                        nil)
+                       (t (err (format nil "unk respond state ~A" (state target)))))))))))
        respond)
 
      (defmethod response-factory ((vac-src (eql 'hh)))
@@ -1701,13 +1697,13 @@
      (defun run-response ()
        (let ((archive-cnt 0))
          (let ((gen (response-factory 'hh)))
-           (loop :for i :from 1 :to 100 :do
+           (loop :for i :from 1 :to 700 :do
               (let ((target (funcall gen)))
                 (when (null target)
                   (return-from run-response 'FIN-NIL))
                 (when (getf target :archive)
                   (incf archive-cnt))
-                (when (> archive-cnt 40)
+                (when (> archive-cnt 140)
                   (return-from run-response 'ARCHIVE))
                 ;; (print target)
                 ))
@@ -1804,13 +1800,23 @@
              (content-box ()
                (heading ("Модуль HeadHunter")
                  "В правой колонке - интересные вакансии, в левой - неинтересные. "
+                 ((:br))((:br))
                  ((:span :class "unsort") "&nbsp;Желтым&nbsp;")
                  " выделены вакансии, которые появились в момент последнего сбора данных. "
                  "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
                  "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет. "
-                 ((:span :class "responded") "&nbsp;Зеленым&nbsp;") " выделены вакансии, на которые отправлен отзыв. "
+                 ((:br))
+                 ((:span :class "responded") "&nbsp;Голубым&nbsp;") " выделены вакансии, на которые отправлен отзыв. "
+                 ((:br))
+                 ((:span :class "beenviewed") "&nbsp;Фиолетовым&nbsp;") " выделены вакансии, отзыв на которые был просмотрен. "
+                 ((:br))
+                 ((:span :class "reject") "&nbsp;Красным&nbsp;") " - если работодатель отказал. "
+                 "Можно попробовать откликнуться другим резюме или забить на вакансию и перенести ее в 'неинтересные' "
+                 ((:br))
+                 ((:span :class "invite") "&nbsp;Зеленым&nbsp;") " - если работодатель пригласил на собеседование. "
+                 ((:br))((:br))
                  "Вакансии, к которым есть заметки, выделяются зарплатой на "
-                 ((:span :class "notes") "&nbsp;красном&nbsp;") " фоне. "
+                 ((:span :class "notes") "&nbsp;черном&nbsp;") " фоне. "
                  "При наведении на такую вакансию можно увидеть текст заметки."))
              (content-box ()
                %SAVE%
@@ -1835,7 +1841,8 @@
                         (split-sequence:split-sequence #\, (getf p :not)))
                 (mapcar #'(lambda (x)
                             (let ((vac (car (find-vacancy :src-id (parse-integer x)))))
-                              (unless (equal (state vac) ":RESPONDED")
+                              (when (or (equal (state vac) ":UNSORT")
+                                        (equal (state vac) ":UNINTERESTING"))
                                 (takt vac :interesting))))
                         (split-sequence:split-sequence #\, (getf p :yep)))
                 (error 'ajax :output "window.location.href='/hh/vacs'"))))
@@ -3035,6 +3042,8 @@
     (named-readtables:in-readtable :fare-quasiquote)
 
     <<run>>
+
+    <<run_response>>
 
     <<hh_fn_contents>>
 

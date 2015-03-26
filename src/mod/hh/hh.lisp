@@ -941,62 +941,160 @@
 
 (in-package #:moto)
 
+(defun hh-parse-responds (html)
+  "Получение списка откликов из html"
+  (mapcar #'(lambda (x) (reduce #'append x))
+          (mtm (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
+                 `(,@(remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
+               (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) `Z)
+                    (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) `Z)
+                         (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) `Z)
+                              (mtm (`("td" (("class" "prosper-table__cell"))) `Z)
+                                   (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
+                                                ("div" (("class" "responses-company")) ,emp-name))
+                                          `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
+                                        (mtm (`("td" (("class" "prosper-table__cell"))
+                                                     ("div" (("class" "responses-vacancy"))
+                                                            ("a"
+                                                             (("class" ,_)
+                                                              ("target" "_blank") ("href" ,vacancy-link))
+                                                             ,vacancy-name))
+                                                     ("div" (("class" "responses-company")) ,emp-name))
+                                               `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
+                                             (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t))
+                                                  (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен"))
+                                                       (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен"))
+                                                            (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                         ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение"))
+                                                                 (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                              ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ"))
+                                                                      (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                   ("span" (("class" "responses-date")) ,result-date))
+                                                                             `(:result-date, result-date))
+                                                                           (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                        ("span" (("class" "responses-date responses-date_dimmed")) ,result))
+                                                                                  `(:response-date ,result))
+                                                                                (block subtree-extract
+                                                                                  (mtm (`("tbody" NIL ,@rest)
+                                                                                         (return-from subtree-extract rest))
+                                                                                       (html5-parser:node-to-xmls
+                                                                                        (html5-parser:parse-html5-fragment html))))))))))))))))))))
+
+;; (print
+;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))
+
+(car (find-vacancy :src-id "12673969"))
+
+(defmethod process-respond (respond)
+  ;; Найти src-id вакансии
+  (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
+    ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
+    (unless (equal "Не просмотрен" (getf respond :result))
+      (unless (null src-id)
+        ;; Если такая вакансия есть в бд
+        (let ((target (car (find-vacancy :src-id src-id))))
+          (unless (null target)
+            (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
+          ;; и у нее статус RESPONDED - установить статус
+          (when (equal ":RESPONDED" (state target))
+            (cond ((equal "Просмотрен" (getf respond :result))
+                   (takt target :beenviewed))
+                  ((equal "Отказ" (getf respond :result))
+                   (takt target :reject))
+                  ((equal "Приглашение" (getf respond :result))
+                   (takt target :invite))
+                  ((equal "Не просмотрен" (getf respond :result))
+                   nil)
+                  (t (err (format nil "unk respond state ~A" (state target)))))))))))
+  respond)
+
+(defmethod response-factory ((vac-src (eql 'hh)))
+  (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
+        (page     0)
+        (responds nil))
+    (alexandria:named-lambda get-responds ()
+      (labels ((load-next-responds-page ()
+                 ;; (dbg "~~ LOAD (page=~A)" page)
+                 (setf responds (hh-parse-responds (hh-get-page (format nil url page))))
+                 (incf page)
+                 (when (equal 0 (length responds))
+                   (dbg "~~ FIN")
+                   (return-from get-responds 'nil)))
+               (get-respond ()
+                 (when (equal 0 (length responds))
+                   (load-next-responds-page))
+                 (let ((current-respond (car responds)))
+                   (setf responds (cdr responds))
+                   current-respond)))
+        (tagbody get-new-respond
+           (let ((current-respond (process-respond (get-respond))))
+             (if (null current-respond)
+                 (go get-new-respond)
+                 (return-from get-responds current-respond))))))))
+
+(defun run-response ()
+  (let ((archive-cnt 0))
+    (let ((gen (response-factory 'hh)))
+      (loop :for i :from 1 :to 700 :do
+         (let ((target (funcall gen)))
+           (when (null target)
+             (return-from run-response 'FIN-NIL))
+           (when (getf target :archive)
+             (incf archive-cnt))
+           (when (> archive-cnt 140)
+             (return-from run-response 'ARCHIVE))
+           ;; (print target)
+           ))
+      (return-from run-response 'loop))))
+
+;; (run-response)
+
+(in-package #:moto)
+
 (defun uns-uni ()
-  "unsort        | uninteresting")
-
+  " unsort        | uninteresting ")
 (defun uns-int ()
-  "unsort        | interesting  ")
-
+  " unsort        | interesting   ")
 (defun uns-res ()
-  "unsort        | responded    ")
-
+  " unsort        | responded     ")
 (defun uni-int ()
-  "uninteresting | interesting  ")
-
+  " uninteresting | interesting   ")
 (defun uni-res ()
-  "uninteresting | responded    ")
-
+  " uninteresting | responded     ")
 (defun uni-uni ()
-  "uninteresting | uninteresting")
-
+  " uninteresting | uninteresting ")
 (defun int-uni ()
-  "interesting   | uninteresting")
-
+  " interesting   | uninteresting ")
 (defun int-res ()
-  "interesting   | responded    ")
-
+  " interesting   | responded     ")
 (defun int-int ()
-  "interesting   | interesting  ")
-
-(defun res-res ()
-  "responded     | responded    ")
-
+  " interesting   | interesting   ")
 (defun res-bee ()
-  "responded     | beenviewed   ")
-
-(defun bee-bee ()
-  "beenviewed    | beenviewed   ")
-
-(defun bee-uni ()
-  "beenviewed    | uninteresting   ")
-
+  " responded     | beenviewed    ")
+(defun res-uni ()
+  " responded     | uninteresting ")
 (defun res-rej ()
-  "responded     | reject       ")
-
-(defun rej-rej ()
-  "reject        | reject       ")
-
-(defun res-rej ()
-  "beenviewed    | reject       ")
-
+  " responded     | reject        ")
 (defun res-inv ()
-  "responded     | invite       ")
-
+  " responded     | invite        ")
+(defun res-res ()
+  " responded     | responded     ")
+(defun bee-uni ()
+  " beenviewed    | uninteresting ")
+(defun bee-rej ()
+  " beenviewed    | reject        ")
 (defun bee-inv ()
-  "beenviewed    | invite       ")
-
+  " beenviewed    | invite        ")
+(defun bee-bee ()
+  " beenviewed    | beenviewed    ")
+(defun rej-res ()
+  " reject        | responded     ")
+(defun rej-uni ()
+  " reject        | uninteresting ")
+(defun rej-rej ()
+  " reject        | reject        ")
 (defun inv-inv ()
-  "invite        | invite       ")
+  " invite        | invite        ")
 (in-package #:moto)
 
 (defun rai ()

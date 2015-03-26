@@ -65,13 +65,23 @@
         (content-box ()
           (heading ("Модуль HeadHunter")
             "В правой колонке - интересные вакансии, в левой - неинтересные. "
+            ((:br))((:br))
             ((:span :class "unsort") "&nbsp;Желтым&nbsp;")
             " выделены вакансии, которые появились в момент последнего сбора данных. "
             "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
             "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет. "
-            ((:span :class "responded") "&nbsp;Зеленым&nbsp;") " выделены вакансии, на которые отправлен отзыв. "
+            ((:br))
+            ((:span :class "responded") "&nbsp;Голубым&nbsp;") " выделены вакансии, на которые отправлен отзыв. "
+            ((:br))
+            ((:span :class "beenviewed") "&nbsp;Фиолетовым&nbsp;") " выделены вакансии, отзыв на которые был просмотрен. "
+            ((:br))
+            ((:span :class "reject") "&nbsp;Красным&nbsp;") " - если работодатель отказал. "
+            "Можно попробовать откликнуться другим резюме или забить на вакансию и перенести ее в 'неинтересные' "
+            ((:br))
+            ((:span :class "invite") "&nbsp;Зеленым&nbsp;") " - если работодатель пригласил на собеседование. "
+            ((:br))((:br))
             "Вакансии, к которым есть заметки, выделяются зарплатой на "
-            ((:span :class "notes") "&nbsp;красном&nbsp;") " фоне. "
+            ((:span :class "notes") "&nbsp;черном&nbsp;") " фоне. "
             "При наведении на такую вакансию можно увидеть текст заметки."))
         (content-box ()
           %SAVE%
@@ -96,7 +106,8 @@
                    (split-sequence:split-sequence #\, (getf p :not)))
            (mapcar #'(lambda (x)
                        (let ((vac (car (find-vacancy :src-id (parse-integer x)))))
-                         (unless (equal (state vac) ":RESPONDED")
+                         (when (or (equal (state vac) ":UNSORT")
+                                   (equal (state vac) ":UNINTERESTING"))
                            (takt vac :interesting))))
                    (split-sequence:split-sequence #\, (getf p :yep)))
            (error 'ajax :output "window.location.href='/hh/vacs'"))))
