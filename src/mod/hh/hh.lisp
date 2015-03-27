@@ -221,7 +221,7 @@
 (defmacro define-drop-teaser-by-name-rule (str &body consequent)
   `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
                               (contains (getf vacancy :name) ,str))
-     (dbg "  - :name contains ~A" ,str)
+     (dbg "  - name contains ~A" ,str)
      ,@consequent))
 
 ;; expand
@@ -998,17 +998,18 @@
         (let ((target (car (find-vacancy :src-id src-id))))
           (unless (null target)
             (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
-          ;; и у нее статус RESPONDED - установить статус
-          (when (equal ":RESPONDED" (state target))
-            (cond ((equal "Просмотрен" (getf respond :result))
-                   (takt target :beenviewed))
-                  ((equal "Отказ" (getf respond :result))
-                   (takt target :reject))
-                  ((equal "Приглашение" (getf respond :result))
-                   (takt target :invite))
-                  ((equal "Не просмотрен" (getf respond :result))
-                   nil)
-                  (t (err (format nil "unk respond state ~A" (state target)))))))))))
+            ;; и у нее статус RESPONDED или BEENVIEWED  - установить статус
+            (when (or (equal ":RESPONDED" (state target))
+                      (equal ":BEENVIEWED" (state target)))
+              (cond ((equal "Просмотрен" (getf respond :result))
+                     (takt target :beenviewed))
+                    ((equal "Отказ" (getf respond :result))
+                     (takt target :reject))
+                    ((equal "Приглашение" (getf respond :result))
+                     (takt target :invite))
+                    ((equal "Не просмотрен" (getf respond :result))
+                     nil)
+                    (t (err (format nil "unk respond state ~A" (state target)))))))))))
   respond)
 
 (defmethod response-factory ((vac-src (eql 'hh)))

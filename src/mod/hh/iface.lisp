@@ -20,7 +20,9 @@
           ((:li)
            ((:a :href "/hh/vacs") "Отобранные вакансии") "")
           ((:li)
-           ((:a :href "/hh/rules") "Правила обработки") ""))))
+           ((:a :href "/hh/rules") "Правила обработки") "")
+          ((:li)
+           ((:a :href "/hh-doc") "Документация") ""))))
       (ps-html ((:span :class "clear")))))
   (:SAVE (ps-html
           ((:input :type "hidden" :name "act" :value "SAVE"))
@@ -246,12 +248,19 @@
            (error 'ajax :output "window.location.href='/hh/rules'"))))
 (in-package #:moto)
 
+(restas:define-route hh-doc ("/hh-doc")
+  (alexandria:read-file-into-string
+   (merge-pathnames
+    (pathname-parent-directory (pathname *base-path*))
+    #P"hh.html")))
+(in-package #:moto)
+
 (define-page search-vacancy "/hh/search"
   (let* ((breadcrumb (breadcrumb "Поиск" ("/hh" . "HeadHunter")))
          (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
     (base-page (:breadcrumb breadcrumb)
       (content-box ()
-        (heading ("Поиск по вакансиям в состоянии :RESPOND") ""))
+        (heading ("Поиск по вакансиям в состоянии выше :RESPOND") ""))
       (content-box ()
         (let ((q (get-parameter "q")))
           (if (null q)
@@ -277,7 +286,10 @@
                                                                (when (contains (string-downcase (descr x)) (string-downcase q))
                                                                  (incf rel))
                                                                (cons x rel)))
-                                                         (find-vacancy :state ":RESPONDED")))
+                                                         (remove-if #'(lambda (x)
+                                                                        (or (equal ":UNSORT" (state x)))
+                                                                        (or (equal ":UNINTERESTING" (state x))))
+                                                                    (all-vacancy))))
                                       #'(lambda (a b)
                                           (> (cdr a) (cdr b)))))))))))
       (ps-html ((:span :class "clear"))))))

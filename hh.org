@@ -3,24 +3,19 @@
 
 #+TITLE: Модуль HeadHunter
 
+#+INFOJS_OPT: view:overview toc:nil
+
 #+NAME:css
 #+BEGIN_HTML
-<link rel="stylesheet" type="text/css" href="css/css.css" />
+<link rel="stylesheet" type="text/css" href="/css/css.css" />
 #+END_HTML
-
-Нужны аватарки и загрузка картинок
-Нужен анализ ошибок hh при send-respond (например: вакансия в архиве)
-Нужна привязка к роботу, который по таймеру вынимает данные из hh
-Нужна привязка работы к юзеру
-Нужны действия по вакансии из страницы вакансии
-Поправить неправильное определение emp-name при анализе тизеров
-Подключать несколько hh-аккаунтов к одному профилю пользователя
 
 * Цель
 
   Мы все ищем работу на профильных сайтах время от времени. Иногда на это уходит
   значительное время, т.к. мы выполняем множество рутинных действий, которых могли бы
-  избежать. Попробуем автоматизировать этот процесс.
+  избежать. Попробуем автоматизировать этот процесс, так чтобы работа, по-возможности
+  искалась сама, без непосредственного участия соискателя.
 
 * Что это такое?
 
@@ -1038,7 +1033,7 @@
 
    #+NAME: hh_login
    #+BEGIN_SRC lisp
-.     (in-package #:moto)
+     (in-package #:moto)
 
      ;; (setf drakma:*header-stream* *standard-output*)
 
@@ -1874,17 +1869,18 @@
              (let ((target (car (find-vacancy :src-id src-id))))
                (unless (null target)
                  (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
-               ;; и у нее статус RESPONDED - установить статус
-               (when (equal ":RESPONDED" (state target))
-                 (cond ((equal "Просмотрен" (getf respond :result))
-                        (takt target :beenviewed))
-                       ((equal "Отказ" (getf respond :result))
-                        (takt target :reject))
-                       ((equal "Приглашение" (getf respond :result))
-                        (takt target :invite))
-                       ((equal "Не просмотрен" (getf respond :result))
-                        nil)
-                       (t (err (format nil "unk respond state ~A" (state target)))))))))))
+                 ;; и у нее статус RESPONDED или BEENVIEWED  - установить статус
+                 (when (or (equal ":RESPONDED" (state target))
+                           (equal ":BEENVIEWED" (state target)))
+                   (cond ((equal "Просмотрен" (getf respond :result))
+                          (takt target :beenviewed))
+                         ((equal "Отказ" (getf respond :result))
+                          (takt target :reject))
+                         ((equal "Приглашение" (getf respond :result))
+                          (takt target :invite))
+                         ((equal "Не просмотрен" (getf respond :result))
+                          nil)
+                         (t (err (format nil "unk respond state ~A" (state target)))))))))))
        respond)
 
      (defmethod response-factory ((vac-src (eql 'hh)))
@@ -1963,7 +1959,9 @@
                ((:li)
                 ((:a :href "/hh/vacs") "Отобранные вакансии") "")
                ((:li)
-                ((:a :href "/hh/rules") "Правила обработки") ""))))
+                ((:a :href "/hh/rules") "Правила обработки") "")
+               ((:li)
+                ((:a :href "/hh-doc") "Документация") ""))))
            (ps-html ((:span :class "clear")))))
        (:SAVE (ps-html
                ((:input :type "hidden" :name "act" :value "SAVE"))
@@ -2208,6 +2206,19 @@
                                 (takt vac :interesting))))
                         (split-sequence:split-sequence #\, (getf p :yep)))
                 (error 'ajax :output "window.location.href='/hh/rules'"))))
+   #+END_SRC
+
+** Страница документации модуля
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route hh-doc ("/hh-doc")
+       (alexandria:read-file-into-string
+        (merge-pathnames
+         (pathname-parent-directory (pathname *base-path*))
+         #P"hh.html")))
    #+END_SRC
 
 ** Страница поиска
@@ -3633,3 +3644,11 @@
        (push ")\n" result)
        (mapconcat 'identity (reverse result) ""))
    #+END_SRC
+* TODO TODO
+
+  - Нужен анализ ошибок hh при send-respond (например: вакансия в архиве)
+  - Нужна привязка к роботу, который по таймеру вынимает данные из hh
+  - Нужна привязка работы к юзеру
+  - Нужны действия по вакансии из страницы вакансии
+  - Поправить неправильное определение emp-name при анализе тизеров
+  - Подключать несколько hh-аккаунтов к одному профилю пользователя
