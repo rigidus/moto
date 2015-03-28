@@ -81,6 +81,8 @@
             "Можно попробовать откликнуться другим резюме или забить на вакансию и перенести ее в 'неинтересные' "
             ((:br))
             ((:span :class "invite") "&nbsp;Зеленым&nbsp;") " - если работодатель пригласил на собеседование. "
+            ((:br))
+            ((:span :class "interview") "&nbsp;Серым&nbsp;") " - если собеседование было пройдено. "
             ((:br))((:br))
             "Вакансии, к которым есть заметки, выделяются зарплатой на "
             ((:span :class "notes") "&nbsp;черном&nbsp;") " фоне. "
@@ -155,7 +157,7 @@
                (fieldset ""
                  (eval
                   (macroexpand
-                   (append '(select ("newstate" ""))
+                   (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
                            (list
                             (mapcar #'(lambda (x)
                                         (cons (symbol-name x) (symbol-name x)))

@@ -1499,11 +1499,6 @@
    | int-dis | interview     | discard       |
    | dis-uni | discard       | uninteresting |
    | dis-dis | discard       | discard       |
-   | int-wai | interview     | waitoffer     |
-   | wai-off | waitoffer     | offer         |
-   | wai-dis | waitoffer     | discard       |
-   | wai-ini | waitoffer     | uninteresting |
-   | wai-wai | waitoffer     | waitoffer     |
    | int-off | interview     | offer         |
    | off-uni | offer         | uninteresting |
    | off-off | offer         | offer         |
@@ -1536,49 +1531,73 @@
      (in-package #:moto)
 
      (defun uns-uni ()
-       " unsort        | uninteresting ")
+       "| unsort        | uninteresting |")
      (defun uns-int ()
-       " unsort        | interesting   ")
+       "| unsort        | interesting   |")
      (defun uns-res ()
-       " unsort        | responded     ")
+       "| unsort        | responded     |")
      (defun uni-int ()
-       " uninteresting | interesting   ")
+       "| uninteresting | interesting   |")
      (defun uni-res ()
-       " uninteresting | responded     ")
+       "| uninteresting | responded     |")
      (defun uni-uni ()
-       " uninteresting | uninteresting ")
+       "| uninteresting | uninteresting |")
      (defun int-uni ()
-       " interesting   | uninteresting ")
+       "| interesting   | uninteresting |")
      (defun int-res ()
-       " interesting   | responded     ")
+       "| interesting   | responded     |")
      (defun int-int ()
-       " interesting   | interesting   ")
+       "| interesting   | interesting   |")
      (defun res-bee ()
-       " responded     | beenviewed    ")
+       "| responded     | beenviewed    |")
      (defun res-uni ()
-       " responded     | uninteresting ")
+       "| responded     | uninteresting |")
      (defun res-rej ()
-       " responded     | reject        ")
+       "| responded     | reject        |")
      (defun res-inv ()
-       " responded     | invite        ")
+       "| responded     | invite        |")
      (defun res-res ()
-       " responded     | responded     ")
+       "| responded     | responded     |")
      (defun bee-uni ()
-       " beenviewed    | uninteresting ")
+       "| beenviewed    | uninteresting |")
      (defun bee-rej ()
-       " beenviewed    | reject        ")
+       "| beenviewed    | reject        |")
      (defun bee-inv ()
-       " beenviewed    | invite        ")
+       "| beenviewed    | invite        |")
      (defun bee-bee ()
-       " beenviewed    | beenviewed    ")
+       "| beenviewed    | beenviewed    |")
      (defun rej-res ()
-       " reject        | responded     ")
+       "| reject        | responded     |")
      (defun rej-uni ()
-       " reject        | uninteresting ")
+       "| reject        | uninteresting |")
      (defun rej-rej ()
-       " reject        | reject        ")
+       "| reject        | reject        |")
      (defun inv-inv ()
-       " invite        | invite        ")
+       "| invite        | invite        |")
+     (defun inv-uni ()
+       "| invite        | uninteresting |")
+     (defun inv-int ()
+       "| invite        | interview     |")
+     (defun int-uni ()
+       "| interview     | uninteresting |")
+     (defun int-int ()
+       "| interview     | interview     |")
+     (defun int-dis ()
+       "| interview     | discard       |")
+     (defun dis-uni ()
+       "| discard       | uninteresting |")
+     (defun dis-dis ()
+       "| discard       | discard       |")
+     (defun int-off ()
+       "| interview     | offer         |")
+     (defun off-uni ()
+       "| offer         | uninteresting |")
+     (defun off-off ()
+       "| offer         | offer         |")
+     (defun off-onj ()
+       "| offer         | accept        |")
+     (defun acc-acc ()
+       "| accept        | accept        |")
    #+END_SRC
 
 ** Печать вакансий
@@ -2042,6 +2061,8 @@
                  "Можно попробовать откликнуться другим резюме или забить на вакансию и перенести ее в 'неинтересные' "
                  ((:br))
                  ((:span :class "invite") "&nbsp;Зеленым&nbsp;") " - если работодатель пригласил на собеседование. "
+                 ((:br))
+                 ((:span :class "interview") "&nbsp;Серым&nbsp;") " - если собеседование было пройдено. "
                  ((:br))((:br))
                  "Вакансии, к которым есть заметки, выделяются зарплатой на "
                  ((:span :class "notes") "&nbsp;черном&nbsp;") " фоне. "
@@ -2122,7 +2143,7 @@
                     (fieldset ""
                       (eval
                        (macroexpand
-                        (append '(select ("newstate" ""))
+                        (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
                                 (list
                                  (mapcar #'(lambda (x)
                                              (cons (symbol-name x) (symbol-name x)))
