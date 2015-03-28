@@ -27,6 +27,10 @@
     <<entity_test>>
 
     <<automat_test>>
+
+    <<compute_outgoing_states>>
+
+    <<possible_trans>>
   #+END_SRC
 
 * Сущности
@@ -509,3 +513,41 @@
     #+END_SRC
 
     Теперь мы можем быть уверенными, что автоматы работают нормально.
+* Определение возможных исходящих состояний автомата
+
+  Чтобы определить, в какое состояние можно перевести автомат из текущего - необходимо
+  интроспективно проанализировать eql-спецификаторы метода trans и выбрать из них применимые
+  для текущего состояния.
+
+  Что и делает эта функция:
+
+  #+NAME: compute_outgoing_states
+  #+BEGIN_SRC lisp :exports code :padline no :comments link
+    (in-package #:moto)
+
+    (defun compute-outgoing-states (the-class source-state)
+      (let ((applicable-methods))
+        (loop :for trans-method :in (closer-mop:generic-function-methods #'trans) :do
+           (let ((specializers (closer-mop:method-specializers trans-method)))
+             (when (and (equal the-class (class-name (car specializers)))
+                        (equal source-state (closer-mop:eql-specializer-object (cadr specializers))))
+               (push (closer-mop:eql-specializer-object (nth 2 specializers)) applicable-methods))))
+        applicable-methods))
+
+    ;; (compute-outgoing-states 'vacancy :responded)
+  #+END_SRC
+
+  Для удобства использования можно вычислять возможные переходы для конкретного объекта
+  автомата:
+
+  #+NAME: possible_trans
+  #+BEGIN_SRC lisp :exports code :padline no :comments link
+    (in-package #:moto)
+
+    (defmethod possible-trans ((obj t))
+      (compute-outgoing-states
+       (class-name (class-of obj))
+       (intern (subseq (state obj) 1) :keyword)))
+
+    ;; (possible-trans (get-vacancy 1))
+  #+END_SRC

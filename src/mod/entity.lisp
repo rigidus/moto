@@ -262,3 +262,25 @@
     (query (:drop-table 'automat123)))
   (dbg "passed: automat-test~%"))
 (automat-test)
+
+(in-package #:moto)
+
+(defun compute-outgoing-states (the-class source-state)
+  (let ((applicable-methods))
+    (loop :for trans-method :in (closer-mop:generic-function-methods #'trans) :do
+       (let ((specializers (closer-mop:method-specializers trans-method)))
+         (when (and (equal the-class (class-name (car specializers)))
+                    (equal source-state (closer-mop:eql-specializer-object (cadr specializers))))
+           (push (closer-mop:eql-specializer-object (nth 2 specializers)) applicable-methods))))
+    applicable-methods))
+
+;; (compute-outgoing-states 'vacancy :responded)
+
+(in-package #:moto)
+
+(defmethod possible-trans ((obj t))
+  (compute-outgoing-states
+   (class-name (class-of obj))
+   (intern (subseq (state obj) 1) :keyword)))
+
+;; (possible-trans (get-vacancy 1))
