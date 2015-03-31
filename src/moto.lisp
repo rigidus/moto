@@ -10,7 +10,12 @@
   (restas:start '#:moto :port 9997)
   (restas:debug-mode-on)
   ;; (restas:debugg-mode-off)
-  (setf hunchentoot:*catch-errors-p* t))
+  (setf hunchentoot:*catch-errors-p* t)
+  (make-event :name "restart"
+              :tag "restart"
+              :msg (format nil "Сервер перезапущен")
+              :author-id 0
+              :ts-create (get-universal-time)))
 
 (main)
 ;; enter_point ends here

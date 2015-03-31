@@ -543,6 +543,11 @@
      <<send_respond>>
 
      (defun run ()
+       (make-event :name "run"
+                   :tag "parser-run"
+                   :msg (format nil "Сбор вакансий")
+                   :author-id 0
+                   :ts-create (get-universal-time))
        (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
                            "Программирование, Разработка")))
          (loop :for i :from 1 :to 100 :do
@@ -1964,6 +1969,11 @@
                       (return-from get-responds current-respond))))))))
 
      (defun run-response ()
+       (make-event :name "run-response"
+                   :tag "parser-run"
+                   :msg (format nil "Сбор откликов и приглашений")
+                   :author-id 0
+                   :ts-create (get-universal-time))
        (let ((archive-cnt 0))
          (let ((gen (response-factory 'hh)))
            (loop :for i :from 1 :to 700 :do
@@ -3730,7 +3740,7 @@
    #+END_SRC
 * TODO TODO
 
-  - Нужно логгировать (run) и (run-response) с диффами
+  - Было бы неплохо делать diff-ы между сборами вакансий и отзывов
   - Нужен анализ ошибок hh при send-respond (например: вакансия в архиве)
   - Нужна привязка к роботу, который по таймеру вынимает данные из hh
   - Нужна привязка работы к юзеру
