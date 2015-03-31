@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-03-28 Сб. 08:06 -->
+<!-- 2015-03-31 Вт. 05:54 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -2372,9 +2372,45 @@ for the JavaScript code in this tag.
 </tr>
 
 <tr>
+<td class="left">bee-tes</td>
+<td class="left">beenviewed</td>
+<td class="left">testjob</td>
+</tr>
+
+<tr>
 <td class="left">bee-bee</td>
 <td class="left">beenviewed</td>
 <td class="left">beenviewed</td>
+</tr>
+
+<tr>
+<td class="left">tes-inv</td>
+<td class="left">testjob</td>
+<td class="left">invite</td>
+</tr>
+
+<tr>
+<td class="left">tes-int</td>
+<td class="left">testjob</td>
+<td class="left">interview</td>
+</tr>
+
+<tr>
+<td class="left">tes-uni</td>
+<td class="left">testjob</td>
+<td class="left">uninteresting</td>
+</tr>
+
+<tr>
+<td class="left">tes-off</td>
+<td class="left">testjob</td>
+<td class="left">offer</td>
+</tr>
+
+<tr>
+<td class="left">tes-tes</td>
+<td class="left">testjob</td>
+<td class="left">testjob</td>
 </tr>
 
 <tr>
@@ -2408,6 +2444,12 @@ for the JavaScript code in this tag.
 </tr>
 
 <tr>
+<td class="left">inv-tes</td>
+<td class="left">invite</td>
+<td class="left">testjob</td>
+</tr>
+
+<tr>
 <td class="left">inv-int</td>
 <td class="left">invite</td>
 <td class="left">interview</td>
@@ -2420,15 +2462,21 @@ for the JavaScript code in this tag.
 </tr>
 
 <tr>
-<td class="left">int-int</td>
-<td class="left">interview</td>
-<td class="left">interview</td>
-</tr>
-
-<tr>
 <td class="left">int-dis</td>
 <td class="left">interview</td>
 <td class="left">discard</td>
+</tr>
+
+<tr>
+<td class="left">int-tes</td>
+<td class="left">interview</td>
+<td class="left">testjob</td>
+</tr>
+
+<tr>
+<td class="left">int-int</td>
+<td class="left">interview</td>
+<td class="left">interview</td>
 </tr>
 
 <tr>
@@ -2499,73 +2547,89 @@ for the JavaScript code in this tag.
 <pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
 
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">uns-uni</span> ()
-  <span style="color: #8b2252;">"| unsort        | uninteresting |"</span>)
+  <span style="color: #8b2252;">"unsort        | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">uns-int</span> ()
-  <span style="color: #8b2252;">"| unsort        | interesting   |"</span>)
+  <span style="color: #8b2252;">"unsort        | interesting   |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">uns-res</span> ()
-  <span style="color: #8b2252;">"| unsort        | responded     |"</span>)
+  <span style="color: #8b2252;">"unsort        | responded     |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">uni-int</span> ()
-  <span style="color: #8b2252;">"| uninteresting | interesting   |"</span>)
+  <span style="color: #8b2252;">"uninteresting | interesting   |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">uni-res</span> ()
-  <span style="color: #8b2252;">"| uninteresting | responded     |"</span>)
+  <span style="color: #8b2252;">"uninteresting | responded     |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">uni-uni</span> ()
-  <span style="color: #8b2252;">"| uninteresting | uninteresting |"</span>)
+  <span style="color: #8b2252;">"uninteresting | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-uni</span> ()
-  <span style="color: #8b2252;">"| interesting   | uninteresting |"</span>)
+  <span style="color: #8b2252;">"interesting   | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-res</span> ()
-  <span style="color: #8b2252;">"| interesting   | responded     |"</span>)
+  <span style="color: #8b2252;">"interesting   | responded     |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-int</span> ()
-  <span style="color: #8b2252;">"| interesting   | interesting   |"</span>)
+  <span style="color: #8b2252;">"interesting   | interesting   |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">res-bee</span> ()
-  <span style="color: #8b2252;">"| responded     | beenviewed    |"</span>)
+  <span style="color: #8b2252;">"responded     | beenviewed    |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">res-uni</span> ()
-  <span style="color: #8b2252;">"| responded     | uninteresting |"</span>)
+  <span style="color: #8b2252;">"responded     | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">res-rej</span> ()
-  <span style="color: #8b2252;">"| responded     | reject        |"</span>)
+  <span style="color: #8b2252;">"responded     | reject        |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">res-inv</span> ()
-  <span style="color: #8b2252;">"| responded     | invite        |"</span>)
+  <span style="color: #8b2252;">"responded     | invite        |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">res-res</span> ()
-  <span style="color: #8b2252;">"| responded     | responded     |"</span>)
+  <span style="color: #8b2252;">"responded     | responded     |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">bee-uni</span> ()
-  <span style="color: #8b2252;">"| beenviewed    | uninteresting |"</span>)
+  <span style="color: #8b2252;">"beenviewed    | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">bee-rej</span> ()
-  <span style="color: #8b2252;">"| beenviewed    | reject        |"</span>)
+  <span style="color: #8b2252;">"beenviewed    | reject        |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">bee-inv</span> ()
-  <span style="color: #8b2252;">"| beenviewed    | invite        |"</span>)
+  <span style="color: #8b2252;">"beenviewed    | invite        |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">bee-tes</span> ()
+  <span style="color: #8b2252;">"beenviewed    | testjob       |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">bee-bee</span> ()
-  <span style="color: #8b2252;">"| beenviewed    | beenviewed    |"</span>)
+  <span style="color: #8b2252;">"beenviewed    | beenviewed    |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">tes-inv</span> ()
+  <span style="color: #8b2252;">"testjob       | invite        |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">tes-int</span> ()
+  <span style="color: #8b2252;">"testjob       | interview     |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">tes-uni</span> ()
+  <span style="color: #8b2252;">"testjob       | uninteresting |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">tes-off</span> ()
+  <span style="color: #8b2252;">"testjob       | offer         |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">tes-tes</span> ()
+  <span style="color: #8b2252;">"testjob       | testjob       |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">rej-res</span> ()
-  <span style="color: #8b2252;">"| reject        | responded     |"</span>)
+  <span style="color: #8b2252;">"reject        | responded     |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">rej-uni</span> ()
-  <span style="color: #8b2252;">"| reject        | uninteresting |"</span>)
+  <span style="color: #8b2252;">"reject        | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">rej-rej</span> ()
-  <span style="color: #8b2252;">"| reject        | reject        |"</span>)
+  <span style="color: #8b2252;">"reject        | reject        |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">inv-inv</span> ()
-  <span style="color: #8b2252;">"| invite        | invite        |"</span>)
+  <span style="color: #8b2252;">"invite        | invite        |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">inv-uni</span> ()
-  <span style="color: #8b2252;">"| invite        | uninteresting |"</span>)
+  <span style="color: #8b2252;">"invite        | uninteresting |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">inv-tes</span> ()
+  <span style="color: #8b2252;">"invite        | testjob       |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">inv-int</span> ()
-  <span style="color: #8b2252;">"| invite        | interview     |"</span>)
+  <span style="color: #8b2252;">"invite        | interview     |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-uni</span> ()
-  <span style="color: #8b2252;">"| interview     | uninteresting |"</span>)
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-int</span> ()
-  <span style="color: #8b2252;">"| interview     | interview     |"</span>)
+  <span style="color: #8b2252;">"interview     | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-dis</span> ()
-  <span style="color: #8b2252;">"| interview     | discard       |"</span>)
+  <span style="color: #8b2252;">"interview     | discard       |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-tes</span> ()
+  <span style="color: #8b2252;">"interview     | testjob       |"</span>)
+(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-int</span> ()
+  <span style="color: #8b2252;">"interview     | interview     |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">dis-uni</span> ()
-  <span style="color: #8b2252;">"| discard       | uninteresting |"</span>)
+  <span style="color: #8b2252;">"discard       | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">dis-dis</span> ()
-  <span style="color: #8b2252;">"| discard       | discard       |"</span>)
+  <span style="color: #8b2252;">"discard       | discard       |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">int-off</span> ()
-  <span style="color: #8b2252;">"| interview     | offer         |"</span>)
+  <span style="color: #8b2252;">"interview     | offer         |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">off-uni</span> ()
-  <span style="color: #8b2252;">"| offer         | uninteresting |"</span>)
+  <span style="color: #8b2252;">"offer         | uninteresting |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">off-off</span> ()
-  <span style="color: #8b2252;">"| offer         | offer         |"</span>)
+  <span style="color: #8b2252;">"offer         | offer         |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">off-onj</span> ()
-  <span style="color: #8b2252;">"| offer         | accept        |"</span>)
+  <span style="color: #8b2252;">"offer         | accept        |"</span>)
 (<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">acc-acc</span> ()
-  <span style="color: #8b2252;">"| accept        | accept        |"</span>)
+  <span style="color: #8b2252;">"accept        | accept        |"</span>)
 </pre>
 </div>
 </div>
@@ -5193,7 +5257,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-03-28 Сб. 08:06</p>
+<p class="date">Created: 2015-03-31 Вт. 05:54</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

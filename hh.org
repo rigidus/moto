@@ -1487,16 +1487,24 @@
    | bee-uni | beenviewed    | uninteresting |
    | bee-rej | beenviewed    | reject        |
    | bee-inv | beenviewed    | invite        |
+   | bee-tes | beenviewed    | testjob       |
    | bee-bee | beenviewed    | beenviewed    |
+   | tes-inv | testjob       | invite        |
+   | tes-int | testjob       | interview     |
+   | tes-uni | testjob       | uninteresting |
+   | tes-off | testjob       | offer         |
+   | tes-tes | testjob       | testjob       |
    | rej-res | reject        | responded     |
    | rej-uni | reject        | uninteresting |
    | rej-rej | reject        | reject        |
    | inv-inv | invite        | invite        |
    | inv-uni | invite        | uninteresting |
+   | inv-tes | invite        | testjob       |
    | inv-int | invite        | interview     |
    | int-uni | interview     | uninteresting |
-   | int-int | interview     | interview     |
    | int-dis | interview     | discard       |
+   | int-tes | interview     | testjob       |
+   | int-int | interview     | interview     |
    | dis-uni | discard       | uninteresting |
    | dis-dis | discard       | discard       |
    | int-off | interview     | offer         |
@@ -1531,73 +1539,89 @@
      (in-package #:moto)
 
      (defun uns-uni ()
-       "| unsort        | uninteresting |")
+       "unsort        | uninteresting |")
      (defun uns-int ()
-       "| unsort        | interesting   |")
+       "unsort        | interesting   |")
      (defun uns-res ()
-       "| unsort        | responded     |")
+       "unsort        | responded     |")
      (defun uni-int ()
-       "| uninteresting | interesting   |")
+       "uninteresting | interesting   |")
      (defun uni-res ()
-       "| uninteresting | responded     |")
+       "uninteresting | responded     |")
      (defun uni-uni ()
-       "| uninteresting | uninteresting |")
+       "uninteresting | uninteresting |")
      (defun int-uni ()
-       "| interesting   | uninteresting |")
+       "interesting   | uninteresting |")
      (defun int-res ()
-       "| interesting   | responded     |")
+       "interesting   | responded     |")
      (defun int-int ()
-       "| interesting   | interesting   |")
+       "interesting   | interesting   |")
      (defun res-bee ()
-       "| responded     | beenviewed    |")
+       "responded     | beenviewed    |")
      (defun res-uni ()
-       "| responded     | uninteresting |")
+       "responded     | uninteresting |")
      (defun res-rej ()
-       "| responded     | reject        |")
+       "responded     | reject        |")
      (defun res-inv ()
-       "| responded     | invite        |")
+       "responded     | invite        |")
      (defun res-res ()
-       "| responded     | responded     |")
+       "responded     | responded     |")
      (defun bee-uni ()
-       "| beenviewed    | uninteresting |")
+       "beenviewed    | uninteresting |")
      (defun bee-rej ()
-       "| beenviewed    | reject        |")
+       "beenviewed    | reject        |")
      (defun bee-inv ()
-       "| beenviewed    | invite        |")
+       "beenviewed    | invite        |")
+     (defun bee-tes ()
+       "beenviewed    | testjob       |")
      (defun bee-bee ()
-       "| beenviewed    | beenviewed    |")
+       "beenviewed    | beenviewed    |")
+     (defun tes-inv ()
+       "testjob       | invite        |")
+     (defun tes-int ()
+       "testjob       | interview     |")
+     (defun tes-uni ()
+       "testjob       | uninteresting |")
+     (defun tes-off ()
+       "testjob       | offer         |")
+     (defun tes-tes ()
+       "testjob       | testjob       |")
      (defun rej-res ()
-       "| reject        | responded     |")
+       "reject        | responded     |")
      (defun rej-uni ()
-       "| reject        | uninteresting |")
+       "reject        | uninteresting |")
      (defun rej-rej ()
-       "| reject        | reject        |")
+       "reject        | reject        |")
      (defun inv-inv ()
-       "| invite        | invite        |")
+       "invite        | invite        |")
      (defun inv-uni ()
-       "| invite        | uninteresting |")
+       "invite        | uninteresting |")
+     (defun inv-tes ()
+       "invite        | testjob       |")
      (defun inv-int ()
-       "| invite        | interview     |")
+       "invite        | interview     |")
      (defun int-uni ()
-       "| interview     | uninteresting |")
-     (defun int-int ()
-       "| interview     | interview     |")
+       "interview     | uninteresting |")
      (defun int-dis ()
-       "| interview     | discard       |")
+       "interview     | discard       |")
+     (defun int-tes ()
+       "interview     | testjob       |")
+     (defun int-int ()
+       "interview     | interview     |")
      (defun dis-uni ()
-       "| discard       | uninteresting |")
+       "discard       | uninteresting |")
      (defun dis-dis ()
-       "| discard       | discard       |")
+       "discard       | discard       |")
      (defun int-off ()
-       "| interview     | offer         |")
+       "interview     | offer         |")
      (defun off-uni ()
-       "| offer         | uninteresting |")
+       "offer         | uninteresting |")
      (defun off-off ()
-       "| offer         | offer         |")
+       "offer         | offer         |")
      (defun off-onj ()
-       "| offer         | accept        |")
+       "offer         | accept        |")
      (defun acc-acc ()
-       "| accept        | accept        |")
+       "accept        | accept        |")
    #+END_SRC
 
 ** Печать вакансий

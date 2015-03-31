@@ -26,14 +26,18 @@
                                         (cond ((equal :rcv (car (last item)))
                                                (ps-html
                                                 ((:tr)
-                                                 ((:td) (get-avatar-img (nth 1 item) :small))
+                                                 ((:td)
+                                                  (get-avatar-img (nth 1 item) :small)
+                                                  (name (get-user (nth 1 item))))
                                                  ((:td)
                                                   ((:a :href (format nil "/dlg/~A" (nth 1 item)))
                                                    (nth 3 item))))))
                                               ((equal :snd (car (last item)))
                                                (ps-html
                                                 ((:tr)
-                                                 ((:td) (get-avatar-img (nth 1 item) :small))
+                                                 ((:td)
+                                                  (get-avatar-img (nth 1 item) :small)
+                                                  (name (get-user (nth 1 item))))
                                                  ((:td)
                                                   ((:a :href (format nil "/dlg/~A" (nth 1 item)))
                                                    (nth 3 item))))))
@@ -87,12 +91,16 @@
                                               (cond ((equal :rcv (car (last item)))
                                                      (ps-html
                                                       ((:tr)
-                                                       ((:td) (get-avatar-img (nth 3 item) :small))
+                                                       ((:td)
+                                                        (get-avatar-img (nth 3 item) :small)
+                                                        (name (get-user (nth 3 item))))
                                                        ((:td) (nth 4 item)))))
                                                     ((equal :snd (car (last item)))
                                                      (ps-html
                                                       ((:tr)
-                                                       ((:td) (get-avatar-img (nth 3 item) :small))
+                                                       ((:td)
+                                                        (get-avatar-img (nth 3 item) :small)
+                                                        (name (get-user (nth 3 item))))
                                                        ((:td) (nth 4 item)))))
                                                     (t (err "unknown dialog type"))))))))))))
             (ps-html ((:span :class "clear"))))))
@@ -133,6 +141,7 @@
         (progn
           (create-msg *current-user* (getf p :receiverid) (getf p :msg))
           (redirect (format nil "/im")))))
+(in-package #:moto)
 
 ;; Событие отправки сообщения
 (defun create-msg (snd-id rcv-id msg)
@@ -140,6 +149,16 @@
     (dbg "Создано сообщение: ~A" msg-id)
     ;; Делаем его недоставленным
     (upd-msg (get-msg msg-id) (list :state ":UNDELIVERED"))
+    ;; Создаем событие
+    (make-event :name "create-msg"
+                :tag "create"
+                :msg (format nil "Пользователь #~A : ~A послал сообщение пользователю #~A : ~A"
+                             snd-id
+                             (name (get-user snd-id))
+                             rcv-id
+                             (name (get-user rcv-id)))
+                :author-id *current-user*
+                :ts-create (get-universal-time))
     ;; Возвращаем msg-id
     msg-id))
 
