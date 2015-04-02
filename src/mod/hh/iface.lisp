@@ -232,7 +232,7 @@
                                                ((:a :href (format nil "/hh/rule/~A" ;; (src-id x)
                                                                   0
                                                                   ))
-                                                (symbol-name x)))))
+                                                (name x)))))
                                  param)))))
     (let* ((breadcrumb (breadcrumb "Правила" ("/hh" . "HeadHunter")))
            (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))

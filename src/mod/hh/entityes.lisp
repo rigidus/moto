@@ -113,4 +113,16 @@
    (:offer :offer :off-off)
    (:offer :accept :off-onj)
    (:accept :accept :acc-acc)))
+
+(define-automat rule "Автомат правила"
+  ((id serial)
+   (name varchar)
+   (user-id integer)
+   (rank integer)
+   (ruletype varchar)
+   (antecedent varchar)
+   (consequent varchar))
+  (:inactive :active)
+  ((:active :inactive :rule-activation)
+   (:inactive :active :rule-deactivation)))
 ;; entity_and_automates ends here

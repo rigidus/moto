@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-04-01 Ср. 08:48 -->
+<!-- 2015-04-02 Чт. 05:58 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -264,26 +264,27 @@ for the JavaScript code in this tag.
 <li><a href="#sec-4-9">4.9. Макросы для определения правил отсева тизеров</a></li>
 <li><a href="#sec-4-10">4.10. Правила анализа вакансий</a></li>
 <li><a href="#sec-4-11">4.11. Макросы для определения правил анализа вакансий</a></li>
-<li><a href="#sec-4-12">4.12. Построение URL-ов, для скачивания тизеров</a>
+<li><a href="#sec-4-12">4.12. Структура правил</a></li>
+<li><a href="#sec-4-13">4.13. Построение URL-ов, для скачивания тизеров</a>
 <ul>
-<li><a href="#sec-4-12-1">4.12.1. Построение специализаций</a></li>
+<li><a href="#sec-4-13-1">4.13.1. Построение специализаций</a></li>
 </ul>
 </li>
-<li><a href="#sec-4-13">4.13. Получение страниц</a></li>
-<li><a href="#sec-4-14">4.14. Логин на источник</a></li>
-<li><a href="#sec-4-15">4.15. Разбор тизеров вакансий</a>
+<li><a href="#sec-4-14">4.14. Получение страниц</a></li>
+<li><a href="#sec-4-15">4.15. Логин на источник</a></li>
+<li><a href="#sec-4-16">4.16. Разбор тизеров вакансий</a>
 <ul>
-<li><a href="#sec-4-15-1">4.15.1. Трансформация дерева</a></li>
-<li><a href="#sec-4-15-2">4.15.2. Определение минимальной и максимальной зарплаты</a></li>
+<li><a href="#sec-4-16-1">4.16.1. Трансформация дерева</a></li>
+<li><a href="#sec-4-16-2">4.16.2. Определение минимальной и максимальной зарплаты</a></li>
 </ul>
 </li>
-<li><a href="#sec-4-16">4.16. Разбор вакансий</a></li>
-<li><a href="#sec-4-17">4.17. Сохранение вакансии и ее структура данных</a></li>
-<li><a href="#sec-4-18">4.18. Состояния вакансий</a></li>
-<li><a href="#sec-4-19">4.19. Печать вакансий</a></li>
-<li><a href="#sec-4-20">4.20. Резюме соискателя</a></li>
-<li><a href="#sec-4-21">4.21. Отправка отклика</a></li>
-<li><a href="#sec-4-22">4.22. Фабрика генераторов отзывов</a></li>
+<li><a href="#sec-4-17">4.17. Разбор вакансий</a></li>
+<li><a href="#sec-4-18">4.18. Сохранение вакансии и ее структура данных</a></li>
+<li><a href="#sec-4-19">4.19. Состояния вакансий</a></li>
+<li><a href="#sec-4-20">4.20. Печать вакансий</a></li>
+<li><a href="#sec-4-21">4.21. Резюме соискателя</a></li>
+<li><a href="#sec-4-22">4.22. Отправка отклика</a></li>
+<li><a href="#sec-4-23">4.23. Фабрика генераторов отзывов</a></li>
 </ul>
 </li>
 <li><a href="#sec-5">5. Interface</a>
@@ -836,7 +837,7 @@ for the JavaScript code in this tag.
         (teasers nil))
     (alexandria:named-lambda get-vacancy ()
       (<span style="color: #00cdcd; font-weight: bold;">labels</span> ((load-next-teasers-page ()
-                 <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(dbg "~~ LOAD (page=~A)" page)</span>
+                 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(dbg "~~ LOAD (page=~A)" page)</span>
                  (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page))))
                  (incf page)
                  (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal 0 (length teasers))
@@ -907,6 +908,15 @@ for the JavaScript code in this tag.
 <pre class="src src-lisp" id="define_rule">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-rule</span> ((name antecedent) <span style="color: #00cd00;">&amp;body</span> consequent)
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(make-rule</span>
+  <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">:name (bprint name)</span>
+  <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">:user-id 1</span>
+  <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">:rank 1</span>
+  <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">:ruletype (if (contains (string-downcase name) "teaser")</span>
+  <span style="color: #cd0000;">;;                </span><span style="color: #cd0000;">":TEASER"</span>
+  <span style="color: #cd0000;">;;                </span><span style="color: #cd0000;">":VACANCY")</span>
+  <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">:antecedent (bprint antecedent)</span>
+  <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">:consequent (bprint consequent))</span>
   `(list
      (<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string (symbol-name name) <span style="color: #00cd00;">"-ANTECEDENT"</span>)) (vacancy)
        ,antecedent)
@@ -914,27 +924,28 @@ for the JavaScript code in this tag.
        (<span style="color: #00cdcd; font-weight: bold;">let</span> ((result (<span style="color: #00cdcd; font-weight: bold;">progn</span> ,@consequent)))
          (values vacancy result)))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">expand</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(macroexpand-1 '(define-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
-<span style="color: #cdcd00;">;;                                               </span><span style="color: #cdcd00;">(not (contains "Java" (getf vacancy :name)))))</span>
-<span style="color: #cdcd00;">;;                  </span><span style="color: #cdcd00;">(setf (getf vacancy :interesting) t)</span>
-<span style="color: #cdcd00;">;;                  </span><span style="color: #cdcd00;">:stop))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">expand</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">test</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1 '(define-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #cd0000;">;;                                               </span><span style="color: #cd0000;">(not (contains "Java" (getf vacancy :name)))))</span>
+<span style="color: #cd0000;">;;                  </span><span style="color: #cd0000;">(setf (getf vacancy :interesting) t)</span>
+<span style="color: #cd0000;">;;                  </span><span style="color: #cd0000;">:stop))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(define-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
-<span style="color: #cdcd00;">;;                                   </span><span style="color: #cdcd00;">(not (contains "Java" (getf vacancy :name)))))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(setf (getf vacancy :interesting) t)</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">:stop)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">test</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(let ((vacancy '(:name "Python" :salary 80000)))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(multiple-value-bind (vacancy-result rule-result)</span>
-<span style="color: #cdcd00;">;;       </span><span style="color: #cdcd00;">(if (hi-salary-java-antecedent vacancy)</span>
-<span style="color: #cdcd00;">;;           </span><span style="color: #cdcd00;">(hi-salary-java-consequent vacancy))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #cd0000;">;;                                   </span><span style="color: #cd0000;">(not (contains "Java" (getf vacancy :name)))))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(setf (getf vacancy :interesting) t)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">:stop)</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">-&gt;"vacancy: (:INTERESTING T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(let ((vacancy '(:name "Python" :salary 80000)))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(multiple-value-bind (vacancy-result rule-result)</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(if (hi-salary-java-antecedent vacancy)</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(hi-salary-java-consequent vacancy))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))</span>
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">-&gt;"vacancy: (:INTERESTING T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"</span>
 </pre>
 </div>
 </div>
@@ -986,17 +997,26 @@ for the JavaScript code in this tag.
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((vacancy vacancy))
     (<span style="color: #00cdcd; font-weight: bold;">tagbody</span>
      renew
-       (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> rule <span style="color: #0000ee; font-weight: bold;">:in</span> rules <span style="color: #0000ee; font-weight: bold;">:do</span>
-          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((antecedent (concatenate 'string (symbol-name rule) <span style="color: #00cd00;">"-ANTECEDENT"</span>))
-                (consequent (concatenate 'string (symbol-name rule) <span style="color: #00cd00;">"-CONSEQUENT"</span>)))
-            (<span style="color: #00cdcd; font-weight: bold;">if</span> (funcall (intern antecedent) vacancy)
-                (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (vacancy-result rule-result)
-                    (funcall (intern consequent) vacancy)
-                  (setf vacancy vacancy-result)
-                  (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal rule-result <span style="color: #0000ee; font-weight: bold;">:stop</span>)
-                    (<span style="color: #00cdcd; font-weight: bold;">return-from</span> process vacancy))
-                  (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal rule-result <span style="color: #0000ee; font-weight: bold;">:renew</span>)
-                    (<span style="color: #00cdcd; font-weight: bold;">go</span> renew)))))))
+       (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> rule <span style="color: #0000ee; font-weight: bold;">:in</span> rules
+
+          <span style="color: #0000ee; font-weight: bold;">:do</span>
+          (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+            (<span style="color: #00cdcd; font-weight: bold;">declaim</span> #+sbcl(sb-ext:muffle-conditions style-warning))
+            (<span style="color: #00cdcd; font-weight: bold;">if</span> (funcall (eval (read-from-string (format nil <span style="color: #00cd00;">"(lambda (vacancy) ~A)"</span> (antecedent rule))))
+                         vacancy)
+                (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+                  (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (vacancy-result rule-result)
+                      (funcall (eval `(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (vacancy)
+                                        (<span style="color: #00cdcd; font-weight: bold;">let</span> ((result (<span style="color: #00cdcd; font-weight: bold;">progn</span> ,@(read-from-string (consequent rule)))))
+                                          (values vacancy result))))
+                               vacancy)
+                    (setf vacancy vacancy-result)
+                    (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal rule-result <span style="color: #0000ee; font-weight: bold;">:stop</span>)
+                      (<span style="color: #00cdcd; font-weight: bold;">return-from</span> process vacancy))
+                    (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal rule-result <span style="color: #0000ee; font-weight: bold;">:renew</span>)
+                      (<span style="color: #00cdcd; font-weight: bold;">go</span> renew)))
+                  ))
+            (<span style="color: #00cdcd; font-weight: bold;">declaim</span> #+sbcl(sb-ext:unmuffle-conditions style-warning)))))
     vacancy))
 </pre>
 </div>
@@ -1076,12 +1096,12 @@ for the JavaScript code in this tag.
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((gen (factory 'hh <span style="color: #00cd00;">"spb"</span> <span style="color: #00cd00;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
                       <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>)))
     (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> i <span style="color: #0000ee; font-weight: bold;">:from</span> 1 <span style="color: #0000ee; font-weight: bold;">:to</span> 100 <span style="color: #0000ee; font-weight: bold;">:do</span>
-       <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(dbg "~A" i)</span>
+       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(dbg "~A" i)</span>
        (<span style="color: #00cdcd; font-weight: bold;">let</span> ((vacancy (funcall gen)))
          (<span style="color: #00cdcd; font-weight: bold;">when</span> (null vacancy)
            (<span style="color: #00cdcd; font-weight: bold;">return</span>))))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(run)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(run)</span>
 </pre>
 </div>
 </div>
@@ -1104,39 +1124,23 @@ for the JavaScript code in this tag.
 &lt;&lt;rules_for_teasers&gt;&gt;
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">get-all-rules</span> ()
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((result (make-hash-table <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
-    (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> var <span style="color: #0000ee; font-weight: bold;">:being</span> <span style="color: #0000ee; font-weight: bold;">:the</span> present-symbols <span style="color: #0000ee; font-weight: bold;">:in</span> (find-package <span style="color: #00cd00;">"MOTO"</span>)
-       <span style="color: #0000ee; font-weight: bold;">:when</span> (or
-              (and (search <span style="color: #00cd00;">"CONSEQUENT"</span> (symbol-name var))
-                   (fboundp var))
-              (and (search <span style="color: #00cd00;">"ANTECEDENT"</span> (symbol-name var))
-                   (fboundp var)))
-       <span style="color: #0000ee; font-weight: bold;">:collect</span> (<span style="color: #00cdcd; font-weight: bold;">let</span> ((key (ppcre:regex-replace <span style="color: #00cd00;">"-ANTECEDENT"</span> (symbol-name var) <span style="color: #00cd00;">""</span>)))
-                  (setf key (ppcre:regex-replace <span style="color: #00cd00;">"-CONSEQUENT"</span> key <span style="color: #00cd00;">""</span>))
-                  (setf (gethash key result) <span style="color: #00cd00;">""</span>)))
-    (mapcar #'intern
-            (sort
-             (alexandria:hash-table-keys result)
-             #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (a b)
-                 (string&lt; a b))))))
-
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">clear-all-rules</span> ()
-  (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> var <span style="color: #0000ee; font-weight: bold;">:being</span> <span style="color: #0000ee; font-weight: bold;">:the</span> present-symbols <span style="color: #0000ee; font-weight: bold;">:in</span> (find-package <span style="color: #00cd00;">"MOTO"</span>)
-     <span style="color: #0000ee; font-weight: bold;">:when</span> (or
-            (and (search <span style="color: #00cd00;">"CONSEQUENT"</span> (symbol-name var))
-                 (fboundp var))
-            (and (search <span style="color: #00cd00;">"ANTECEDENT"</span> (symbol-name var))
-                 (fboundp var)))
-     <span style="color: #0000ee; font-weight: bold;">:collect</span> (fmakunbound var)))
+  (sort
+   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+               (setf (name x)
+                     (replace-all (name x) <span style="color: #00cd00;">"|"</span> <span style="color: #00cd00;">""</span>))
+               x)
+           (find-rule <span style="color: #0000ee; font-weight: bold;">:user-id</span> 1))
+   #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (a b)
+       (string&lt; (name a) (name b)))))
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">rules-for-teaser</span> ()
   (remove-if-not #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
-                     (search <span style="color: #00cd00;">"DROP-TEASER-IF"</span> (symbol-name x)))
+                     (search <span style="color: #00cd00;">"DROP-TEASER-IF"</span> (name x)))
                  (get-all-rules)))
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">rules-for-vacancy</span> ()
   (remove-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
-                 (search <span style="color: #00cd00;">"DROP-TEASER-IF"</span> (symbol-name x)))
+                 (search <span style="color: #00cd00;">"DROP-TEASER-IF"</span> (name x)))
              (get-all-rules)))
 </pre>
 </div>
@@ -1150,7 +1154,7 @@ for the JavaScript code in this tag.
 Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
 вакансий? В основном те, которые не устраивают по зарплате и те, у которых в названиях
 упомянуты неинтересные технологии. К примеру, я не хочу даже смотреть на вакансии у
-которых не указана зарплата или она ниже минимально премлимой
+которых не указана зарплата или она ниже минимально приемлимой
 </p>
 
 <div class="org-src-container">
@@ -1159,24 +1163,24 @@ for the JavaScript code in this tag.
 
 &lt;&lt;sugar_for_teaser_rules&gt;&gt;
 
-(<span style="color: #00cdcd; font-weight: bold;">define-drop-teaser-rule</span> (salary-1-no (null (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary</span>)))
-  (dbg <span style="color: #00cd00;">"  - no salary"</span>))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "  - no salary"))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-drop-teaser-rule</span> (salary-2-low (or
-                                        (and (equal (getf vacancy <span style="color: #0000ee; font-weight: bold;">:currency</span>) <span style="color: #00cd00;">"RUR"</span>)
-                                             (&lt; (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary-max</span>) 90000))
-                                        (and (equal (getf vacancy <span style="color: #0000ee; font-weight: bold;">:currency</span>) <span style="color: #00cd00;">"USD"</span>)
-                                             (&lt; (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary-max</span>) (floor 90000 67)))
-                                        (and (equal (getf vacancy <span style="color: #0000ee; font-weight: bold;">:currency</span>) <span style="color: #00cd00;">"USD"</span>)
-                                             (&lt; (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary-max</span>) (floor 90000 77)))
-                                        ))
-  (dbg <span style="color: #00cd00;">"  - low salary"</span>))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-teaser-rule (salary-2-low (or</span>
+<span style="color: #cd0000;">;;                                         </span><span style="color: #cd0000;">(and (equal (getf vacancy :currency) "RUR")</span>
+<span style="color: #cd0000;">;;                                              </span><span style="color: #cd0000;">(&lt; (getf vacancy :salary-max) 90000))</span>
+<span style="color: #cd0000;">;;                                         </span><span style="color: #cd0000;">(and (equal (getf vacancy :currency) "USD")</span>
+<span style="color: #cd0000;">;;                                              </span><span style="color: #cd0000;">(&lt; (getf vacancy :salary-max) (floor 90000 67)))</span>
+<span style="color: #cd0000;">;;                                         </span><span style="color: #cd0000;">(and (equal (getf vacancy :currency) "USD")</span>
+<span style="color: #cd0000;">;;                                              </span><span style="color: #cd0000;">(&lt; (getf vacancy :salary-max) (floor 90000 77)))</span>
+<span style="color: #cd0000;">;;                                         </span><span style="color: #cd0000;">))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "  - low salary"))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-drop-all-teaser-when-name-contains-rule</span>
-    <span style="color: #00cd00;">"iOS"</span> <span style="color: #00cd00;">"Python"</span> <span style="color: #00cd00;">"Django"</span> <span style="color: #00cd00;">"IOS"</span> <span style="color: #00cd00;">"1C"</span> <span style="color: #00cd00;">"1&#1057;"</span> <span style="color: #00cd00;">"C++"</span> <span style="color: #00cd00;">"&#1057;++"</span> <span style="color: #00cd00;">"Ruby"</span> <span style="color: #00cd00;">"Ruby on Rails"</span>
-    <span style="color: #00cd00;">"Frontend"</span> <span style="color: #00cd00;">"Front End"</span> <span style="color: #00cd00;">"Front-end"</span> <span style="color: #00cd00;">"Go"</span> <span style="color: #00cd00;">"Q/A"</span> <span style="color: #00cd00;">"QA"</span> <span style="color: #00cd00;">"C#"</span> <span style="color: #00cd00;">".NET"</span> <span style="color: #00cd00;">".Net"</span>
-    <span style="color: #00cd00;">"Unity3D"</span> <span style="color: #00cd00;">"Flash"</span> <span style="color: #00cd00;">"Java"</span> <span style="color: #00cd00;">"Android"</span> <span style="color: #00cd00;">"ASP"</span> <span style="color: #00cd00;">"Objective-C"</span> <span style="color: #00cd00;">"Go"</span> <span style="color: #00cd00;">"Delphi"</span>
-    <span style="color: #00cd00;">"Sharepoint"</span> <span style="color: #00cd00;">"Flash"</span> <span style="color: #00cd00;">"PL/SQL"</span> <span style="color: #00cd00;">"Oracle"</span> <span style="color: #00cd00;">"designer"</span>)
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-all-teaser-when-name-contains-rule</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">"iOS" "Python" "Django" "IOS" "1C" "1&#1057;" "C++" "&#1057;++" "Ruby" "Ruby on Rails"</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">"Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">"Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">"Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")</span>
 </pre>
 </div>
 </div>
@@ -1197,27 +1201,27 @@ for the JavaScript code in this tag.
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-drop-teaser-rule</span> ((name antecedent) <span style="color: #00cd00;">&amp;body</span> consequent)
   `(<span style="color: #00cdcd; font-weight: bold;">define-rule</span> (,(intern (concatenate 'string <span style="color: #00cd00;">"DROP-TEASER-IF-"</span>(symbol-name name))) ,antecedent)
      (dbg <span style="color: #00cd00;">"drop teaser: ~A-~A (~A) ~A"</span> (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary-min</span>) (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary-max</span>) (getf vacancy <span style="color: #0000ee; font-weight: bold;">:currency</span>) (getf vacancy <span style="color: #0000ee; font-weight: bold;">:name</span>))
-     <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(dbg "~A" vacancy)</span>
+     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(dbg "~A" vacancy)</span>
      ,@consequent
      (setf vacancy nil)
      <span style="color: #0000ee; font-weight: bold;">:stop</span>))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">expand</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">expand</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(print</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(macroexpand-1</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">'(define-drop-teaser-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
-<span style="color: #cdcd00;">;;                                              </span><span style="color: #cdcd00;">(not (contains "Java" (getf vacancy :name)))))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(print (getf vacancy :name))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(print (getf vacancy :salary)))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(macroexpand-1</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">'(define-drop-teaser-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #cd0000;">;;                                              </span><span style="color: #cd0000;">(not (contains "Java" (getf vacancy :name)))))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(print (getf vacancy :name))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(print (getf vacancy :salary)))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA</span>
-<span style="color: #cdcd00;">;;               </span><span style="color: #cdcd00;">(AND (&gt; (GETF VACANCY :SALARY) 70000)</span>
-<span style="color: #cdcd00;">;;                    </span><span style="color: #cdcd00;">(NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(PRINT (GETF VACANCY :NAME))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(PRINT (GETF VACANCY :SALARY))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(SETF VACANCY NIL)</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">:STOP)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA</span>
+<span style="color: #cd0000;">;;               </span><span style="color: #cd0000;">(AND (&gt; (GETF VACANCY :SALARY) 70000)</span>
+<span style="color: #cd0000;">;;                    </span><span style="color: #cd0000;">(NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(PRINT (GETF VACANCY :NAME))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(PRINT (GETF VACANCY :SALARY))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(SETF VACANCY NIL)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">:STOP)</span>
 </pre>
 </div>
 
@@ -1236,23 +1240,23 @@ for the JavaScript code in this tag.
      (dbg <span style="color: #00cd00;">"  - name contains ~A"</span> ,str)
      ,@consequent))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">expand</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">expand</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(print</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(macroexpand-1</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">'(define-drop-teaser-by-name-rule "Android")))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(macroexpand-1</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">'(define-drop-teaser-by-name-rule "Android")))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID</span>
-<span style="color: #cdcd00;">;;                           </span><span style="color: #cdcd00;">(CONTAINS (GETF VACANCY :NAME) "Android"))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(DBG "drop:")</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(DBG "  name contains ~A" "Android"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID</span>
+<span style="color: #cd0000;">;;                           </span><span style="color: #cd0000;">(CONTAINS (GETF VACANCY :NAME) "Android"))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(DBG "drop:")</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(DBG "  name contains ~A" "Android"))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">test</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">test</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(define-drop-teaser-by-name-rule "Android")</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-teaser-by-name-rule "Android")</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">==&gt; (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT</span>
-<span style="color: #cdcd00;">;;      </span><span style="color: #cdcd00;">DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">==&gt; (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT</span>
+<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)</span>
 </pre>
 </div>
 
@@ -1269,24 +1273,24 @@ for the JavaScript code in this tag.
   `(list ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> name <span style="color: #0000ee; font-weight: bold;">:in</span> names <span style="color: #0000ee; font-weight: bold;">:collect</span>
               `(<span style="color: #00cdcd; font-weight: bold;">define-drop-teaser-by-name-rule</span> ,name))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">expand</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(macroexpand-1 '(define-drop-all-teaser-when-name-contains-rule "IOS" "1&#1057;" "C++"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">expand</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1 '(define-drop-all-teaser-when-name-contains-rule "IOS" "1&#1057;" "C++"))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(LIST (DEFINE-DROP-TEASER-BY-NAME-RULE "IOS")</span>
-<span style="color: #cdcd00;">;;       </span><span style="color: #cdcd00;">(DEFINE-DROP-TEASER-BY-NAME-RULE "1&#1057;")</span>
-<span style="color: #cdcd00;">;;       </span><span style="color: #cdcd00;">(DEFINE-DROP-TEASER-BY-NAME-RULE "C++"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(LIST (DEFINE-DROP-TEASER-BY-NAME-RULE "IOS")</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(DEFINE-DROP-TEASER-BY-NAME-RULE "1&#1057;")</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(DEFINE-DROP-TEASER-BY-NAME-RULE "C++"))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">test</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">test</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(define-drop-all-teaser-when-name-contains-rule "IOS" "1&#1057;" "C++"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-all-teaser-when-name-contains-rule "IOS" "1&#1057;" "C++"))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">=&gt;</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">((DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-ANTECEDENT</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-CONSEQUENT)</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(DROP-TEASER-IF-IF-NAME-CONTAINS-1&#1057;-ANTECEDENT</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">DROP-TEASER-IF-IF-NAME-CONTAINS-1&#1057;-CONSEQUENT)</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">((DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-ANTECEDENT</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-CONSEQUENT)</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(DROP-TEASER-IF-IF-NAME-CONTAINS-1&#1057;-ANTECEDENT</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">DROP-TEASER-IF-IF-NAME-CONTAINS-1&#1057;-CONSEQUENT)</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))</span>
 </pre>
 </div>
 </div>
@@ -1323,40 +1327,40 @@ for the JavaScript code in this tag.
 
 &lt;&lt;show_vacancy&gt;&gt;
 
-(<span style="color: #00cdcd; font-weight: bold;">define-drop-vacancy-rule</span> (already-worked (contains (getf vacancy <span style="color: #0000ee; font-weight: bold;">:emp-name</span>) <span style="color: #00cd00;">"Webdom"</span>))
-  (dbg <span style="color: #00cd00;">"   - already worked"</span>))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "   - already worked"))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-drop-vacancy-rule</span> (already-worked (contains (getf vacancy <span style="color: #0000ee; font-weight: bold;">:emp-name</span>) <span style="color: #00cd00;">"&#1055;&#1091;&#1083;&#1082;&#1086;&#1074;&#1086;-&#1057;&#1077;&#1088;&#1074;&#1080;&#1089;"</span>))
-  (dbg <span style="color: #00cd00;">"   - already worked"</span>))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "&#1055;&#1091;&#1083;&#1082;&#1086;&#1074;&#1086;-&#1057;&#1077;&#1088;&#1074;&#1080;&#1089;"))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "   - already worked"))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-drop-vacancy-rule</span> (already-worked (contains (getf vacancy <span style="color: #0000ee; font-weight: bold;">:emp-name</span>) <span style="color: #00cd00;">"FBS"</span>))
-  (dbg <span style="color: #00cd00;">"   - already worked"</span>))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "   - already worked"))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-drop-vacancy-rule</span> (already-exists-in-db (not (null (find-vacancy <span style="color: #0000ee; font-weight: bold;">:src-id</span> (getf vacancy <span style="color: #0000ee; font-weight: bold;">:id</span>)))))
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((exists (car (find-vacancy <span style="color: #0000ee; font-weight: bold;">:src-id</span> (getf vacancy <span style="color: #0000ee; font-weight: bold;">:id</span>)))))
-    (dbg <span style="color: #00cd00;">"   - already exists"</span>)))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(dbg "   - already exists")))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-rule</span> (set-rank t)
-  (setf (getf vacancy <span style="color: #0000ee; font-weight: bold;">:rank</span>) (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary</span>)))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-rule (set-rank t)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(setf (getf vacancy :rank) (getf vacancy :salary)))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-rule</span> (set-rank-up-by-lisp (contains (format nil <span style="color: #00cd00;">"~A"</span> (bprint (getf vacancy <span style="color: #0000ee; font-weight: bold;">:descr</span>))) <span style="color: #00cd00;">"Lisp"</span>))
-  (dbg <span style="color: #00cd00;">"up rank by Lisp"</span>)
-  (setf (getf vacancy <span style="color: #0000ee; font-weight: bold;">:rank</span>) (+ (getf vacancy <span style="color: #0000ee; font-weight: bold;">:rank</span>) 30000)))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "up rank by Lisp")</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-rule</span> (set-rank-up-by-erlang (contains (format nil <span style="color: #00cd00;">"~A"</span> (bprint (getf vacancy <span style="color: #0000ee; font-weight: bold;">:descr</span>))) <span style="color: #00cd00;">"Erlang"</span>))
-  (dbg <span style="color: #00cd00;">"up rank by Erlang"</span>)
-  (setf (getf vacancy <span style="color: #0000ee; font-weight: bold;">:rank</span>) (+ (getf vacancy <span style="color: #0000ee; font-weight: bold;">:rank</span>) 15000)))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "up rank by Erlang")</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-rule</span> (set-rank-up-by-haskell (contains (format nil <span style="color: #00cd00;">"~A"</span> (bprint (getf vacancy <span style="color: #0000ee; font-weight: bold;">:descr</span>))) <span style="color: #00cd00;">"Haskell"</span>))
-  (dbg <span style="color: #00cd00;">"up rank by Haskell"</span>)
-  (setf (getf vacancy <span style="color: #0000ee; font-weight: bold;">:rank</span>) (+ (getf vacancy <span style="color: #0000ee; font-weight: bold;">:rank</span>) 10000)))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(dbg "up rank by Haskell")</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-rule</span> (z-print t)
-  (show-vacancy vacancy))
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-rule (z-print t)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(show-vacancy vacancy))</span>
 
-(<span style="color: #00cdcd; font-weight: bold;">define-rule</span> (z-save t)
-  (save-vacancy vacancy)
-  <span style="color: #0000ee; font-weight: bold;">:stop</span>)
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(define-rule (z-save t)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(save-vacancy vacancy)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">:stop)</span>
 </pre>
 </div>
 </div>
@@ -1381,30 +1385,150 @@ for the JavaScript code in this tag.
      (setf vacancy nil)
      <span style="color: #0000ee; font-weight: bold;">:stop</span>))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">expand</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">expand</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(print</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(macroexpand-1</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">'(define-drop-vacancy-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
-<span style="color: #cdcd00;">;;                                              </span><span style="color: #cdcd00;">(not (contains "Java" (getf vacancy :name)))))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(print (getf vacancy :name))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(print (getf vacancy :salary)))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(macroexpand-1</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">'(define-drop-vacancy-rule (hi-salary-java (and (&gt; (getf vacancy :salary) 70000)</span>
+<span style="color: #cd0000;">;;                                              </span><span style="color: #cd0000;">(not (contains "Java" (getf vacancy :name)))))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(print (getf vacancy :name))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(print (getf vacancy :salary)))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(DEFINE-RULE (DROP-VACANCY-IF-HI-SALARY-JAVA</span>
-<span style="color: #cdcd00;">;;               </span><span style="color: #cdcd00;">(AND (&gt; (GETF VACANCY :SALARY) 70000)</span>
-<span style="color: #cdcd00;">;;                    </span><span style="color: #cdcd00;">(NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(PRINT (GETF VACANCY :NAME))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(PRINT (GETF VACANCY :SALARY))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(SETF VACANCY NIL)</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">:STOP)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(DEFINE-RULE (DROP-VACANCY-IF-HI-SALARY-JAVA</span>
+<span style="color: #cd0000;">;;               </span><span style="color: #cd0000;">(AND (&gt; (GETF VACANCY :SALARY) 70000)</span>
+<span style="color: #cd0000;">;;                    </span><span style="color: #cd0000;">(NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(PRINT (GETF VACANCY :NAME))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(PRINT (GETF VACANCY :SALARY))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(SETF VACANCY NIL)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">:STOP)</span>
 </pre>
 </div>
 </div>
 </div>
 
 <div id="outline-container-sec-4-12" class="outline-3">
-<h3 id="sec-4-12"><span class="section-number-3">4.12</span> Построение URL-ов, для скачивания тизеров</h3>
+<h3 id="sec-4-12"><span class="section-number-3">4.12</span> Структура правил</h3>
 <div class="outline-text-3" id="text-4-12">
+<p>
+У нас есть два вида правил - для работы с тизерами и для обработки вакансий. Каждое
+правило закреплено за пользователем, который им владеет и имеет ранг, в соответствии с
+котором сортируется при применении набора правил.
+</p>
+
+<table id="rule_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 1:</span> Данные правила</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">field name</th>
+<th scope="col" class="left">field type</th>
+<th scope="col" class="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">id</td>
+<td class="left">serial</td>
+<td class="left">идентификатор</td>
+</tr>
+
+<tr>
+<td class="left">name</td>
+<td class="left">varchar</td>
+<td class="left">имя</td>
+</tr>
+
+<tr>
+<td class="left">user-id</td>
+<td class="left">integer</td>
+<td class="left">владелец правила</td>
+</tr>
+
+<tr>
+<td class="left">rank</td>
+<td class="left">integer</td>
+<td class="left">приоритет правила</td>
+</tr>
+
+<tr>
+<td class="left">ruletype</td>
+<td class="left">varchar</td>
+<td class="left">:teaser - правило для тизеров, :vacancy - для вакансий</td>
+</tr>
+
+<tr>
+<td class="left">antecedent</td>
+<td class="left">varchar</td>
+<td class="left">условие срабатывания правила</td>
+</tr>
+
+<tr>
+<td class="left">consequent</td>
+<td class="left">varchar</td>
+<td class="left">код правила</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Правило может быть активным и неактивным
+</p>
+
+<table id="rule_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 2:</span> Состояния конечного автомата вакансии</caption>
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">action</th>
+<th scope="col" class="left">from</th>
+<th scope="col" class="left">to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">rule-activation</td>
+<td class="left">active</td>
+<td class="left">inactive</td>
+</tr>
+
+<tr>
+<td class="left">rule-deactivation</td>
+<td class="left">inactive</td>
+<td class="left">active</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="hh_fn_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">rule-activation</span> ()
+  <span style="color: #00cd00;">"| active   | inactive |"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">rule-deactivation</span> ()
+  <span style="color: #00cd00;">"| inactive | active   |"</span>)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-13" class="outline-3">
+<h3 id="sec-4-13"><span class="section-number-3">4.13</span> Построение URL-ов, для скачивания тизеров</h3>
+<div class="outline-text-3" id="text-4-13">
 <p>
 Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
 страницы, если будем получать страницу за страницей, пока не получим страницу, на которой
@@ -1426,16 +1550,16 @@ for the JavaScript code in this tag.
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">make-hh-url</span> (city prof-area <span style="color: #00cd00;">&amp;optional</span> specs)
   <span style="color: #00cd00;">"http://spb.hh.ru/search/vacancy?text=&amp;specialization=1.221&amp;area=2&amp;items_on_page=100&amp;no_magic=true&amp;page=~A"</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">test</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">test</span>
 
 (make-hh-url <span style="color: #00cd00;">"spb"</span> <span style="color: #00cd00;">"&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>)
 </pre>
 </div>
 </div>
 
-<div id="outline-container-sec-4-12-1" class="outline-4">
-<h4 id="sec-4-12-1"><span class="section-number-4">4.12.1</span> Построение специализаций</h4>
-<div class="outline-text-4" id="text-4-12-1">
+<div id="outline-container-sec-4-13-1" class="outline-4">
+<h4 id="sec-4-13-1"><span class="section-number-4">4.13.1</span> Построение специализаций</h4>
+<div class="outline-text-4" id="text-4-13-1">
 <p>
 Специализации задаются в формате "1.221", где цифра слева от точки представляет
 профессиональное направление, а справа - собственно специализацию. В интерфейсе
@@ -1472,18 +1596,18 @@ for the JavaScript code in this tag.
                        (err 'spec-not-found))
                      (concatenate 'string <span style="color: #00cd00;">"specialization="</span> (cadr specialization) <span style="color: #00cd00;">"."</span> spec)))))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">test</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">test</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;")</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;" '("&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"))</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;" "&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;")</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
-<span style="color: #cdcd00;">;;                                    </span><span style="color: #cdcd00;">'("&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>
-<span style="color: #cdcd00;">;;                                      </span><span style="color: #cdcd00;">"Web &#1080;&#1085;&#1078;&#1077;&#1085;&#1077;&#1088;"</span>
-<span style="color: #cdcd00;">;;                                      </span><span style="color: #cdcd00;">"Web &#1084;&#1072;&#1089;&#1090;&#1077;&#1088;"</span>
-<span style="color: #cdcd00;">;;                                      </span><span style="color: #cdcd00;">"&#1057;&#1090;&#1072;&#1088;&#1090;&#1072;&#1087;&#1099;"</span>
-<span style="color: #cdcd00;">;;                                      </span><span style="color: #cdcd00;">"&#1059;&#1087;&#1088;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1077; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;&#1084;&#1080;"</span>
-<span style="color: #cdcd00;">;;                                      </span><span style="color: #cdcd00;">"&#1069;&#1083;&#1077;&#1082;&#1090;&#1088;&#1086;&#1085;&#1085;&#1072;&#1103; &#1082;&#1086;&#1084;&#1084;&#1077;&#1088;&#1094;&#1080;&#1103;"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;")</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;" '("&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;" "&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;")</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(make-specialization-hh-url-string "&#1048;&#1085;&#1092;&#1086;&#1088;&#1084;&#1072;&#1094;&#1080;&#1086;&#1085;&#1085;&#1099;&#1077; &#1090;&#1077;&#1093;&#1085;&#1086;&#1083;&#1086;&#1075;&#1080;&#1080;, &#1080;&#1085;&#1090;&#1077;&#1088;&#1085;&#1077;&#1090;, &#1090;&#1077;&#1083;&#1077;&#1082;&#1086;&#1084;"</span>
+<span style="color: #cd0000;">;;                                    </span><span style="color: #cd0000;">'("&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;, &#1056;&#1072;&#1079;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1072;"</span>
+<span style="color: #cd0000;">;;                                      </span><span style="color: #cd0000;">"Web &#1080;&#1085;&#1078;&#1077;&#1085;&#1077;&#1088;"</span>
+<span style="color: #cd0000;">;;                                      </span><span style="color: #cd0000;">"Web &#1084;&#1072;&#1089;&#1090;&#1077;&#1088;"</span>
+<span style="color: #cd0000;">;;                                      </span><span style="color: #cd0000;">"&#1057;&#1090;&#1072;&#1088;&#1090;&#1072;&#1087;&#1099;"</span>
+<span style="color: #cd0000;">;;                                      </span><span style="color: #cd0000;">"&#1059;&#1087;&#1088;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1077; &#1087;&#1088;&#1086;&#1077;&#1082;&#1090;&#1072;&#1084;&#1080;"</span>
+<span style="color: #cd0000;">;;                                      </span><span style="color: #cd0000;">"&#1069;&#1083;&#1077;&#1082;&#1090;&#1088;&#1086;&#1085;&#1085;&#1072;&#1103; &#1082;&#1086;&#1084;&#1084;&#1077;&#1088;&#1094;&#1080;&#1103;"))</span>
 </pre>
 </div>
 
@@ -1569,9 +1693,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-13" class="outline-3">
-<h3 id="sec-4-13"><span class="section-number-3">4.13</span> Получение страниц</h3>
-<div class="outline-text-3" id="text-4-13">
+<div id="outline-container-sec-4-14" class="outline-3">
+<h3 id="sec-4-14"><span class="section-number-3">4.14</span> Получение страниц</h3>
+<div class="outline-text-3" id="text-4-14">
 <p>
 Так как мы хотим получать информацию, которая находится за авторизацией, нам нужно
 обеспечить прозрачность авторизации, если ее в данный момент нет. <code>hh_login</code> решает эту
@@ -1635,9 +1759,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-14" class="outline-3">
-<h3 id="sec-4-14"><span class="section-number-3">4.14</span> Логин на источник</h3>
-<div class="outline-text-3" id="text-4-14">
+<div id="outline-container-sec-4-15" class="outline-3">
+<h3 id="sec-4-15"><span class="section-number-3">4.15</span> Логин на источник</h3>
+<div class="outline-text-3" id="text-4-15">
 <p>
 Прежде чем мы получим возможность забирать авторизованную информацию с нашего источника,
 нам нужно иметь способ залогиниться на него. В дополнение к этому мы должны отслеживать
@@ -1653,7 +1777,7 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="hh_login">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(setf drakma:*header-stream* *standard-output*)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(setf drakma:*header-stream* *standard-output*)</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*user-agent*</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0"</span>)
 
@@ -1691,19 +1815,19 @@ for the JavaScript code in this tag.
           (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
                   alist-param)))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(defun get-password-forms (tree)</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1092;&#1086;&#1088;&#1084; &#1089;&#1086;&#1076;&#1077;&#1088;&#1078;&#1072;&#1097;&#1080;&#1093; input password"</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(let* ((forms (let ((forms))</span>
-<span style="color: #cdcd00;">;;                   </span><span style="color: #cdcd00;">(mtm (`("form" ,attrs ,@rest) (push `("form" ,attrs ,@rest) forms)) tree)</span>
-<span style="color: #cdcd00;">;;                   </span><span style="color: #cdcd00;">(labels ((is-contains-password (x)</span>
-<span style="color: #cdcd00;">;;                              </span><span style="color: #cdcd00;">(mtm (`("type" "password") (return-from is-contains-password t)) x)</span>
-<span style="color: #cdcd00;">;;                              </span><span style="color: #cdcd00;">(return-from is-contains-password nil)))</span>
-<span style="color: #cdcd00;">;;                     </span><span style="color: #cdcd00;">(remove-if-not #'is-contains-password forms)))))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(loop :for form :in forms :collect</span>
-<span style="color: #cdcd00;">;;        </span><span style="color: #cdcd00;">(let ((rs (list (cadr form))))</span>
-<span style="color: #cdcd00;">;;          </span><span style="color: #cdcd00;">(mtm (`("input" ,attrs) (setf rs (append rs (list (let ((tmp (loop :for (key val) :in attrs :append (list (intern (string-upcase key) :keyword) val))))</span>
-<span style="color: #cdcd00;">;;                                                              </span><span style="color: #cdcd00;">(list (getf tmp :name) (getf tmp :type) (getf tmp :value))))))) form)</span>
-<span style="color: #cdcd00;">;;          </span><span style="color: #cdcd00;">rs))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(defun get-password-forms (tree)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1092;&#1086;&#1088;&#1084; &#1089;&#1086;&#1076;&#1077;&#1088;&#1078;&#1072;&#1097;&#1080;&#1093; input password"</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(let* ((forms (let ((forms))</span>
+<span style="color: #cd0000;">;;                   </span><span style="color: #cd0000;">(mtm (`("form" ,attrs ,@rest) (push `("form" ,attrs ,@rest) forms)) tree)</span>
+<span style="color: #cd0000;">;;                   </span><span style="color: #cd0000;">(labels ((is-contains-password (x)</span>
+<span style="color: #cd0000;">;;                              </span><span style="color: #cd0000;">(mtm (`("type" "password") (return-from is-contains-password t)) x)</span>
+<span style="color: #cd0000;">;;                              </span><span style="color: #cd0000;">(return-from is-contains-password nil)))</span>
+<span style="color: #cd0000;">;;                     </span><span style="color: #cd0000;">(remove-if-not #'is-contains-password forms)))))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(loop :for form :in forms :collect</span>
+<span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">(let ((rs (list (cadr form))))</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">(mtm (`("input" ,attrs) (setf rs (append rs (list (let ((tmp (loop :for (key val) :in attrs :append (list (intern (string-upcase key) :keyword) val))))</span>
+<span style="color: #cd0000;">;;                                                              </span><span style="color: #cd0000;">(list (getf tmp :name) (getf tmp :type) (getf tmp :value))))))) form)</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">rs))))</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">remote-login</span> (xsrf cookies referer cookie-jar)
   (flexi-streams:octets-to-string
@@ -1741,9 +1865,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-15" class="outline-3">
-<h3 id="sec-4-15"><span class="section-number-3">4.15</span> Разбор тизеров вакансий</h3>
-<div class="outline-text-3" id="text-4-15">
+<div id="outline-container-sec-4-16" class="outline-3">
+<h3 id="sec-4-16"><span class="section-number-3">4.16</span> Разбор тизеров вакансий</h3>
+<div class="outline-text-3" id="text-4-16">
 <p>
 Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
 который переведет полученный html в более удобное лисп-дерево. Используя сопоставление с
@@ -1875,20 +1999,20 @@ for the JavaScript code in this tag.
                                                                                                                                (html5-parser:node-to-xmls
                                                                                                                                 (html5-parser:parse-html5-fragment html))))))))))))))))))))))))))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(hh-parse-vacancy-teasers</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(hh-get-page "http://spb.hh.ru/search/vacancy?text=&amp;specialization=1&amp;area=2&amp;salary=&amp;currency_code=RUR&amp;only_with_salary=true&amp;experience=doesNotMatter&amp;order_by=salary_desc&amp;search_period=30&amp;items_on_page=100&amp;no_magic=true"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(hh-parse-vacancy-teasers</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(hh-get-page "http://spb.hh.ru/search/vacancy?text=&amp;specialization=1&amp;area=2&amp;salary=&amp;currency_code=RUR&amp;only_with_salary=true&amp;experience=doesNotMatter&amp;order_by=salary_desc&amp;search_period=30&amp;items_on_page=100&amp;no_magic=true"))</span>
 </pre>
 </div>
 </div>
 
-<div id="outline-container-sec-4-15-1" class="outline-4">
-<h4 id="sec-4-15-1"><span class="section-number-4">4.15.1</span> Трансформация дерева</h4>
-<div class="outline-text-4" id="text-4-15-1">
+<div id="outline-container-sec-4-16-1" class="outline-4">
+<h4 id="sec-4-16-1"><span class="section-number-4">4.16.1</span> Трансформация дерева</h4>
+<div class="outline-text-4" id="text-4-16-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="maptree_transform">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1069;&#1090;&#1086; &#1072;&#1085;&#1072;&#1083;&#1086;&#1075; maptree-if, &#1085;&#1086; &#1079;&#1076;&#1077;&#1089;&#1100; &#1086;&#1076;&#1085;&#1072; &#1092;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1080; &#1080;&#1097;&#1077;&#1090; &#1080; &#1090;&#1088;&#1072;&#1085;&#1089;&#1092;&#1086;&#1088;&#1084;&#1080;&#1088;&#1091;&#1077;&#1090; &#1091;&#1079;&#1077;&#1083; &#1076;&#1077;&#1088;&#1077;&#1074;&#1072;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1069;&#1090;&#1086; &#1072;&#1085;&#1072;&#1083;&#1086;&#1075; maptree-if, &#1085;&#1086; &#1079;&#1076;&#1077;&#1089;&#1100; &#1086;&#1076;&#1085;&#1072; &#1092;&#1091;&#1085;&#1082;&#1094;&#1080;&#1103; &#1080; &#1080;&#1097;&#1077;&#1090; &#1080; &#1090;&#1088;&#1072;&#1085;&#1089;&#1092;&#1086;&#1088;&#1084;&#1080;&#1088;&#1091;&#1077;&#1090; &#1091;&#1079;&#1077;&#1083; &#1076;&#1077;&#1088;&#1077;&#1074;&#1072;</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">maptree</span> (predicate-transformer tree)
   (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (t-tree control)
       (aif (funcall predicate-transformer tree)
@@ -1902,7 +2026,7 @@ for the JavaScript code in this tag.
                  t-tree)
         t-tree)))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">maptree-transformer - &#1089;&#1080;&#1085;&#1090;&#1072;&#1082;&#1089;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1089;&#1072;&#1093;&#1072;&#1088; &#1076;&#1083;&#1103; maptree</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">maptree-transformer - &#1089;&#1080;&#1085;&#1090;&#1072;&#1082;&#1089;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1089;&#1072;&#1093;&#1072;&#1088; &#1076;&#1083;&#1103; maptree</span>
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">mtm</span> (transformer tree)
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((lambda-param (gensym)))
     `(maptree #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (,lambda-param)
@@ -1914,9 +2038,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-15-2" class="outline-4">
-<h4 id="sec-4-15-2"><span class="section-number-4">4.15.2</span> Определение минимальной и максимальной зарплаты</h4>
-<div class="outline-text-4" id="text-4-15-2">
+<div id="outline-container-sec-4-16-2" class="outline-4">
+<h4 id="sec-4-16-2"><span class="section-number-4">4.16.2</span> Определение минимальной и максимальной зарплаты</h4>
+<div class="outline-text-4" id="text-4-16-2">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="parse_salary">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
@@ -1957,17 +2081,17 @@ for the JavaScript code in this tag.
     (setf (getf vacancy <span style="color: #0000ee; font-weight: bold;">:salary-max</span>) salary-max)
     vacancy))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(hh-parse-vacancy-teasers</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(hh-get-page "http://spb.hh.ru/search/vacancy?text=&amp;specialization=1&amp;area=2&amp;salary=&amp;currency_code=RUR&amp;only_with_salary=true&amp;experience=doesNotMatter&amp;order_by=salary_desc&amp;search_period=30&amp;items_on_page=100&amp;no_magic=true"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(hh-parse-vacancy-teasers</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(hh-get-page "http://spb.hh.ru/search/vacancy?text=&amp;specialization=1&amp;area=2&amp;salary=&amp;currency_code=RUR&amp;only_with_salary=true&amp;experience=doesNotMatter&amp;order_by=salary_desc&amp;search_period=30&amp;items_on_page=100&amp;no_magic=true"))</span>
 </pre>
 </div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-4-16" class="outline-3">
-<h3 id="sec-4-16"><span class="section-number-3">4.16</span> Разбор вакансий</h3>
-<div class="outline-text-3" id="text-4-16">
+<div id="outline-container-sec-4-17" class="outline-3">
+<h3 id="sec-4-17"><span class="section-number-3">4.17</span> Разбор вакансий</h3>
+<div class="outline-text-3" id="text-4-17">
 <p>
 Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
 лишнего:
@@ -2042,25 +2166,25 @@ for the JavaScript code in this tag.
               (mtm (`(<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"b-vacancy-desc-wrapper"</span>) (<span style="color: #00cd00;">"itemprop"</span> <span style="color: #00cd00;">"description"</span>)) ,@descr)
                      (<span style="color: #00cdcd; font-weight: bold;">return-from</span> descr-extract (list <span style="color: #0000ee; font-weight: bold;">:descr</span> (transform-description descr)))) tree)))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(print</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(print</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-4-17" class="outline-3">
-<h3 id="sec-4-17"><span class="section-number-3">4.17</span> Сохранение вакансии и ее структура данных</h3>
-<div class="outline-text-3" id="text-4-17">
+<div id="outline-container-sec-4-18" class="outline-3">
+<h3 id="sec-4-18"><span class="section-number-3">4.18</span> Сохранение вакансии и ее структура данных</h3>
+<div class="outline-text-3" id="text-4-18">
 <p>
 Опишем структуру данных вакансии:
 </p>
 
 <table id="vacancy_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 1:</span> Данные вакансии</caption>
+<caption class="t-above"><span class="table-number">Table 3:</span> Данные вакансии</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2238,9 +2362,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-18" class="outline-3">
-<h3 id="sec-4-18"><span class="section-number-3">4.18</span> Состояния вакансий</h3>
-<div class="outline-text-3" id="text-4-18">
+<div id="outline-container-sec-4-19" class="outline-3">
+<h3 id="sec-4-19"><span class="section-number-3">4.19</span> Состояния вакансий</h3>
+<div class="outline-text-3" id="text-4-19">
 <p>
 После загрузки, вакансия получает статус <code>unsort</code>
 </p>
@@ -2257,7 +2381,7 @@ for the JavaScript code in this tag.
 </p>
 
 <table id="vacancy_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 2:</span> Состояния конечного автомата вакансии</caption>
+<caption class="t-above"><span class="table-number">Table 4:</span> Состояния конечного автомата вакансии</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2640,9 +2764,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-19" class="outline-3">
-<h3 id="sec-4-19"><span class="section-number-3">4.19</span> Печать вакансий</h3>
-<div class="outline-text-3" id="text-4-19">
+<div id="outline-container-sec-4-20" class="outline-3">
+<h3 id="sec-4-20"><span class="section-number-3">4.20</span> Печать вакансий</h3>
+<div class="outline-text-3" id="text-4-20">
 <p>
 Пока у нас нет веб-интерфейса мы будем выводить вакансии в консоль
 </p>
@@ -2690,15 +2814,15 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-20" class="outline-3">
-<h3 id="sec-4-20"><span class="section-number-3">4.20</span> Резюме соискателя</h3>
-<div class="outline-text-3" id="text-4-20">
+<div id="outline-container-sec-4-21" class="outline-3">
+<h3 id="sec-4-21"><span class="section-number-3">4.21</span> Резюме соискателя</h3>
+<div class="outline-text-3" id="text-4-21">
 <p>
 Иногда у одного соискателя может быть несколько резюме. Опишем структуру данных резюме:
 </p>
 
 <table id="resume_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 3:</span> Данные резюме</caption>
+<caption class="t-above"><span class="table-number">Table 5:</span> Данные резюме</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2746,7 +2870,7 @@ for the JavaScript code in this tag.
 </p>
 
 <table id="resume_state" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 4:</span> Состояния конечного автомата вакансии</caption>
+<caption class="t-above"><span class="table-number">Table 6:</span> Состояния конечного автомата вакансии</caption>
 
 <colgroup>
 <col  class="left" />
@@ -2838,9 +2962,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-sec-4-21" class="outline-3">
-<h3 id="sec-4-21"><span class="section-number-3">4.21</span> Отправка отклика</h3>
-<div class="outline-text-3" id="text-4-21">
+<div id="outline-container-sec-4-22" class="outline-3">
+<h3 id="sec-4-22"><span class="section-number-3">4.22</span> Отправка отклика</h3>
+<div class="outline-text-3" id="text-4-22">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="send_respond">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
@@ -2942,20 +3066,20 @@ for the JavaScript code in this tag.
           <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
          <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>)))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(respond 12644276 7628220 "&#1047;&#1076;&#1088;&#1072;&#1074;&#1089;&#1090;&#1074;&#1091;&#1081;&#1090;&#1077;, &#1103; &#1087;&#1086;&#1076;&#1093;&#1086;&#1078;&#1091; &#1087;&#1086;&#1076; &#1074;&#1072;&#1096;&#1080; &#1090;&#1088;&#1077;&#1073;&#1086;&#1074;&#1072;&#1085;&#1080;&#1103;. &#1050;&#1086;&#1075;&#1076;&#1072; &#1084;&#1086;&#1078;&#1085;&#1086; &#1076;&#1086;&#1075;&#1086;&#1074;&#1086;&#1088;&#1080;&#1090;&#1100;&#1089;&#1103; &#1086; &#1089;&#1086;&#1073;&#1077;&#1089;&#1077;&#1076;&#1086;&#1074;&#1072;&#1085;&#1080;&#1080;? &#1052;&#1080;&#1093;&#1072;&#1080;&#1083; 8(911)286-92-90")</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(respond 12644276 7628220 "&#1047;&#1076;&#1088;&#1072;&#1074;&#1089;&#1090;&#1074;&#1091;&#1081;&#1090;&#1077;, &#1103; &#1087;&#1086;&#1076;&#1093;&#1086;&#1078;&#1091; &#1087;&#1086;&#1076; &#1074;&#1072;&#1096;&#1080; &#1090;&#1088;&#1077;&#1073;&#1086;&#1074;&#1072;&#1085;&#1080;&#1103;. &#1050;&#1086;&#1075;&#1076;&#1072; &#1084;&#1086;&#1078;&#1085;&#1086; &#1076;&#1086;&#1075;&#1086;&#1074;&#1086;&#1088;&#1080;&#1090;&#1100;&#1089;&#1103; &#1086; &#1089;&#1086;&#1073;&#1077;&#1089;&#1077;&#1076;&#1086;&#1074;&#1072;&#1085;&#1080;&#1080;? &#1052;&#1080;&#1093;&#1072;&#1080;&#1083; 8(911)286-92-90")</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(let ((respond (respond 12646549 7628220 "&#1090;&#1077;&#1089;&#1090;")))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(print respond))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(let ((respond (respond 12646549 7628220 "&#1090;&#1077;&#1089;&#1090;")))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(print respond))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(setf drakma:*header-stream* *standard-output*)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(setf drakma:*header-stream* *standard-output*)</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-4-22" class="outline-3">
-<h3 id="sec-4-22"><span class="section-number-3">4.22</span> Фабрика генераторов отзывов</h3>
-<div class="outline-text-3" id="text-4-22">
+<div id="outline-container-sec-4-23" class="outline-3">
+<h3 id="sec-4-23"><span class="section-number-3">4.23</span> Фабрика генераторов отзывов</h3>
+<div class="outline-text-3" id="text-4-23">
 <p>
 Пусть у нас есть фабрика <code>генераторов функций</code> назовем его <code>factory</code>, которая принимает
 <code>источник вакансий</code> и параметры запроса (например: <code>профессиональную область</code>, <code>специализацию</code>,
@@ -3015,20 +3139,20 @@ for the JavaScript code in this tag.
                                                                                        (html5-parser:node-to-xmls
                                                                                         (html5-parser:parse-html5-fragment html))))))))))))))))))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(print</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">process-respond</span> (respond)
-  <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1053;&#1072;&#1081;&#1090;&#1080; src-id &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;</span>
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1053;&#1072;&#1081;&#1090;&#1080; src-id &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;</span>
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond <span style="color: #0000ee; font-weight: bold;">:vacancy-link</span>))))))
-    <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1044;&#1083;&#1103; &#1074;&#1089;&#1077;&#1093; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1085;&#1099;&#1093; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081;, &#1089;&#1090;&#1072;&#1090;&#1091;&#1089; &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1093; &#1086;&#1090;&#1083;&#1080;&#1095;&#1072;&#1077;&#1090;&#1089;&#1103; &#1086;&#1090; "&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"..</span>
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1083;&#1103; &#1074;&#1089;&#1077;&#1093; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1085;&#1099;&#1093; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081;, &#1089;&#1090;&#1072;&#1090;&#1091;&#1089; &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1093; &#1086;&#1090;&#1083;&#1080;&#1095;&#1072;&#1077;&#1090;&#1089;&#1103; &#1086;&#1090; "&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"..</span>
     (<span style="color: #00cdcd; font-weight: bold;">unless</span> (equal <span style="color: #00cd00;">"&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span> (getf respond <span style="color: #0000ee; font-weight: bold;">:result</span>))
       (<span style="color: #00cdcd; font-weight: bold;">unless</span> (null src-id)
-        <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1045;&#1089;&#1083;&#1080; &#1090;&#1072;&#1082;&#1072;&#1103; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1103; &#1077;&#1089;&#1090;&#1100; &#1074; &#1073;&#1076;</span>
+        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1090;&#1072;&#1082;&#1072;&#1103; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1103; &#1077;&#1089;&#1090;&#1100; &#1074; &#1073;&#1076;</span>
         (<span style="color: #00cdcd; font-weight: bold;">let</span> ((target (car (find-vacancy <span style="color: #0000ee; font-weight: bold;">:src-id</span> src-id))))
           (<span style="color: #00cdcd; font-weight: bold;">unless</span> (null target)
             (dbg (format nil <span style="color: #00cd00;">"~A : [~A] ~A "</span> src-id (getf respond <span style="color: #0000ee; font-weight: bold;">:result</span>) (getf respond <span style="color: #0000ee; font-weight: bold;">:vacancy-name</span>)))
-            <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1080; &#1091; &#1085;&#1077;&#1077; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089; RESPONDED &#1080;&#1083;&#1080; BEENVIEWED  - &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1100; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089;</span>
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1080; &#1091; &#1085;&#1077;&#1077; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089; RESPONDED &#1080;&#1083;&#1080; BEENVIEWED  - &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1100; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089;</span>
             (<span style="color: #00cdcd; font-weight: bold;">when</span> (or (equal <span style="color: #00cd00;">":RESPONDED"</span> (state target))
                       (equal <span style="color: #00cd00;">":BEENVIEWED"</span> (state target)))
               (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((equal <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span> (getf respond <span style="color: #0000ee; font-weight: bold;">:result</span>))
@@ -3048,7 +3172,7 @@ for the JavaScript code in this tag.
         (responds nil))
     (alexandria:named-lambda get-responds ()
       (<span style="color: #00cdcd; font-weight: bold;">labels</span> ((load-next-responds-page ()
-                 <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(dbg "~~ LOAD (page=~A)" page)</span>
+                 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(dbg "~~ LOAD (page=~A)" page)</span>
                  (setf responds (hh-parse-responds (hh-get-page (format nil url page))))
                  (incf page)
                  (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal 0 (length responds))
@@ -3082,11 +3206,11 @@ for the JavaScript code in this tag.
              (incf archive-cnt))
            (<span style="color: #00cdcd; font-weight: bold;">when</span> (&gt; archive-cnt 140)
              (<span style="color: #00cdcd; font-weight: bold;">return-from</span> run-response 'ARCHIVE))
-           <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(print target)</span>
+           <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print target)</span>
            ))
       (<span style="color: #00cdcd; font-weight: bold;">return-from</span> run-response 'loop))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(run-response)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(run-response)</span>
 </pre>
 </div>
 </div>
@@ -3102,11 +3226,11 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="iface"><span style="color: #cdcd00;">;;;; </span><span style="color: #cdcd00;">iface.lisp</span>
+<pre class="src src-lisp" id="iface"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">iface.lisp</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1099;</span>
 &lt;&lt;iface_contents&gt;&gt;
 </pre>
 </div>
@@ -3320,8 +3444,8 @@ for the JavaScript code in this tag.
   (<span style="color: #0000ee; font-weight: bold;">:chstate</span> (ps-html ((<span style="color: #0000ee; font-weight: bold;">:div</span> <span style="color: #0000ee; font-weight: bold;">:class</span> <span style="color: #00cd00;">"form-send-container"</span>)
                       (submit <span style="color: #00cd00;">"&#1048;&#1079;&#1084;&#1077;&#1085;&#1080;&#1090;&#1100;"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"act"</span> <span style="color: #0000ee; font-weight: bold;">:value</span> <span style="color: #00cd00;">"CHSTATE"</span>)))
             (<span style="color: #00cdcd; font-weight: bold;">progn</span>
-              <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(id (upd-vacancy (car (find-vacancy :src-id src-id))</span>
-              <span style="color: #cdcd00;">;;                  </span><span style="color: #cdcd00;">(list :notes (getf p :notes) :response (getf p :response))))</span>
+              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(id (upd-vacancy (car (find-vacancy :src-id src-id))</span>
+              <span style="color: #cd0000;">;;                  </span><span style="color: #cd0000;">(list :notes (getf p :notes) :response (getf p :response))))</span>
               (takt (car (find-vacancy <span style="color: #0000ee; font-weight: bold;">:src-id</span> src-id))
                     (intern (getf p <span style="color: #0000ee; font-weight: bold;">:newstate</span>) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
               (redirect (format nil <span style="color: #00cd00;">"/hh/vac/~A"</span> src-id))
@@ -3368,19 +3492,19 @@ for the JavaScript code in this tag.
                  (reduce #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x y)
                              (concatenate 'string x (string #\NewLine) y))
                          (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
-                                     (ps-html ((<span style="color: #0000ee; font-weight: bold;">:li</span> <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">:id (src-id x)</span>
-                                                    <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">:class (string-downcase (subseq (state x) 1))</span>
-                                                    <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">:title (notes x)</span>
+                                     (ps-html ((<span style="color: #0000ee; font-weight: bold;">:li</span> <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">:id (src-id x)</span>
+                                                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">:class (string-downcase (subseq (state x) 1))</span>
+                                                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">:title (notes x)</span>
                                                     )
-                                               <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">((:span :class (if (empty (notes x)) "emptynotes" "notes"))</span>
-                                               <span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(cond ((equal "USD" (currency x)) "$")</span>
-                                               <span style="color: #cdcd00;">;;        </span><span style="color: #cdcd00;">((equal "EUR" (currency x)) "&#8364;")</span>
-                                               <span style="color: #cdcd00;">;;        </span><span style="color: #cdcd00;">((equal "RUR" (currency x)) ""))</span>
-                                               <span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(salary-max x))</span>
-                                               ((<span style="color: #0000ee; font-weight: bold;">:a</span> <span style="color: #0000ee; font-weight: bold;">:href</span> (format nil <span style="color: #00cd00;">"/hh/rule/~A"</span> <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(src-id x)</span>
+                                               <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">((:span :class (if (empty (notes x)) "emptynotes" "notes"))</span>
+                                               <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(cond ((equal "USD" (currency x)) "$")</span>
+                                               <span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">((equal "EUR" (currency x)) "&#8364;")</span>
+                                               <span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">((equal "RUR" (currency x)) ""))</span>
+                                               <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(salary-max x))</span>
+                                               ((<span style="color: #0000ee; font-weight: bold;">:a</span> <span style="color: #0000ee; font-weight: bold;">:href</span> (format nil <span style="color: #00cd00;">"/hh/rule/~A"</span> <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(src-id x)</span>
                                                                   0
                                                                   ))
-                                                (symbol-name x)))))
+                                                (name x)))))
                                  param)))))
     (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((breadcrumb (breadcrumb <span style="color: #00cd00;">"&#1055;&#1088;&#1072;&#1074;&#1080;&#1083;&#1072;"</span> (<span style="color: #00cd00;">"/hh"</span> . <span style="color: #00cd00;">"HeadHunter"</span>)))
            (user       (<span style="color: #00cdcd; font-weight: bold;">if</span> (null *current-user*) <span style="color: #00cd00;">"&#1040;&#1085;&#1086;&#1085;&#1080;&#1084;&#1085;&#1099;&#1081; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;"</span> (name (get-user *current-user*)))))
@@ -3532,7 +3656,7 @@ for the JavaScript code in this tag.
     (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">next-image</span> ()
       (<span style="color: #00cdcd; font-weight: bold;">when</span> (&lt; *current-image-index* (1- (getprop *images* 'length)))
         (show-image-number (1+ *current-image-index*))))
-    <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">this gives bookmarkability using fragment identifiers</span>
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">this gives bookmarkability using fragment identifiers</span>
     (setf (getprop window 'onload)
           (<span style="color: #00cdcd; font-weight: bold;">lambda</span> ()
             (<span style="color: #00cdcd; font-weight: bold;">when</span> fragment-identifier
@@ -3788,23 +3912,23 @@ collect
            (sb-kernel::arg-count-error nil)
            (sb-kernel::defmacro-bogus-sublist-error nil)))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(macroexpand-1 '</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(with-predict (a ((b c)) d &amp;rest e)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(aif (and (string= a "div")</span>
-<span style="color: #cdcd00;">;;              </span><span style="color: #cdcd00;">(string= c "title b-vacancy-title"))</span>
-<span style="color: #cdcd00;">;;         </span><span style="color: #cdcd00;">(prog1 it</span>
-<span style="color: #cdcd00;">;;           </span><span style="color: #cdcd00;">(setf **a** a)</span>
-<span style="color: #cdcd00;">;;           </span><span style="color: #cdcd00;">(setf **b** b)))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1 '</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(with-predict (a ((b c)) d &amp;rest e)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(aif (and (string= a "div")</span>
+<span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(string= c "title b-vacancy-title"))</span>
+<span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">(prog1 it</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(setf **a** a)</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(setf **b** b)))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">=&gt; #'(LAMBDA (LAMBDA-PARAM)</span>
-<span style="color: #cdcd00;">;;        </span><span style="color: #cdcd00;">(HANDLER-CASE</span>
-<span style="color: #cdcd00;">;;            </span><span style="color: #cdcd00;">(DESTRUCTURING-BIND</span>
-<span style="color: #cdcd00;">;;                  </span><span style="color: #cdcd00;">(A ((B C)) D &amp;REST E)</span>
-<span style="color: #cdcd00;">;;                </span><span style="color: #cdcd00;">LAMBDA-PARAM</span>
-<span style="color: #cdcd00;">;;              </span><span style="color: #cdcd00;">(AIF (AND (STRING= A "div") (STRING= C "title b-vacancy-title"))</span>
-<span style="color: #cdcd00;">;;                   </span><span style="color: #cdcd00;">(PROG1 IT (SETF **A** A) (SETF **B** B))))</span>
-<span style="color: #cdcd00;">;;          </span><span style="color: #cdcd00;">(SB-KERNEL::ARG-COUNT-ERROR NIL)</span>
-<span style="color: #cdcd00;">;;          </span><span style="color: #cdcd00;">(SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; #'(LAMBDA (LAMBDA-PARAM)</span>
+<span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">(HANDLER-CASE</span>
+<span style="color: #cd0000;">;;            </span><span style="color: #cd0000;">(DESTRUCTURING-BIND</span>
+<span style="color: #cd0000;">;;                  </span><span style="color: #cd0000;">(A ((B C)) D &amp;REST E)</span>
+<span style="color: #cd0000;">;;                </span><span style="color: #cd0000;">LAMBDA-PARAM</span>
+<span style="color: #cd0000;">;;              </span><span style="color: #cd0000;">(AIF (AND (STRING= A "div") (STRING= C "title b-vacancy-title"))</span>
+<span style="color: #cd0000;">;;                   </span><span style="color: #cd0000;">(PROG1 IT (SETF **A** A) (SETF **B** B))))</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">(SB-KERNEL::ARG-COUNT-ERROR NIL)</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">(SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T</span>
 </pre>
 </div>
 
@@ -3865,17 +3989,17 @@ collect
                                          (equal x '<span style="color: #00cd00;">&amp;allow-other-keys</span>)))
                                  (alexandria:flatten pattern)))))))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(macroexpand-1 '</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(with-predict-if (a b &amp;rest c)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(and (stringp a)</span>
-<span style="color: #cdcd00;">;;         </span><span style="color: #cdcd00;">(string= a "class"))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1 '</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(with-predict-if (a b &amp;rest c)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(and (stringp a)</span>
+<span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">(string= a "class"))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">=&gt; (WITH-PREDICT (A B &amp;REST C)</span>
-<span style="color: #cdcd00;">;;      </span><span style="color: #cdcd00;">(AIF (AND (STRINGP A) (STRING= A "class"))</span>
-<span style="color: #cdcd00;">;;           </span><span style="color: #cdcd00;">(PROG1 IT</span>
-<span style="color: #cdcd00;">;;             </span><span style="color: #cdcd00;">(SETF **A** A)</span>
-<span style="color: #cdcd00;">;;             </span><span style="color: #cdcd00;">(SETF **B** B)</span>
-<span style="color: #cdcd00;">;;             </span><span style="color: #cdcd00;">(SETF **C** C))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; (WITH-PREDICT (A B &amp;REST C)</span>
+<span style="color: #cd0000;">;;      </span><span style="color: #cd0000;">(AIF (AND (STRINGP A) (STRING= A "class"))</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(PROG1 IT</span>
+<span style="color: #cd0000;">;;             </span><span style="color: #cd0000;">(SETF **A** A)</span>
+<span style="color: #cd0000;">;;             </span><span style="color: #cd0000;">(SETF **B** B)</span>
+<span style="color: #cd0000;">;;             </span><span style="color: #cd0000;">(SETF **C** C))))</span>
 </pre>
 </div>
 
@@ -3910,12 +4034,12 @@ collect
                     (string= a <span style="color: #00cd00;">"class"</span>)))
              <span style="color: #0000ee; font-weight: bold;">:return-all-match</span>))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">=&gt; (("class" "b-vacancy-custom g-round") ("class" "title b-vacancy-title")</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">("class" "l") ("class" "l-cell") ("class" "employer-marks g-clearfix")</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">("class" "companyname") ("class" "l-cell"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; (("class" "b-vacancy-custom g-round") ("class" "title b-vacancy-title")</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">("class" "l") ("class" "l-cell") ("class" "employer-marks g-clearfix")</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">("class" "companyname") ("class" "l-cell"))</span>
 
 (print **b**)
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">=&gt; "l-cell"</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; "l-cell"</span>
 </pre>
 </div>
 </div>
@@ -4003,16 +4127,16 @@ collect
 
 <pre class="src src-lisp">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1053;&#1077;&#1088;&#1077;&#1082;&#1091;&#1088;&#1089;&#1080;&#1074;&#1085;&#1072;&#1103; &#1079;&#1072;&#1084;&#1077;&#1085;&#1072;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1053;&#1077;&#1088;&#1077;&#1082;&#1091;&#1088;&#1089;&#1080;&#1074;&#1085;&#1072;&#1103; &#1079;&#1072;&#1084;&#1077;&#1085;&#1072;</span>
 (maptree-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
                 (and (consp x)
                      (eq (car x) 'ping)))
             #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
                 `(pong ,@(cdr x)))
             '(<span style="color: #00cdcd; font-weight: bold;">progn</span> (ping (ping (ping 1)))))
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">=&gt; (PROGN (PONG (PING (PING 1))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; (PROGN (PONG (PING (PING 1))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1056;&#1077;&#1082;&#1091;&#1088;&#1089;&#1080;&#1074;&#1085;&#1072;&#1103; &#1079;&#1072;&#1084;&#1077;&#1085;&#1072;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1056;&#1077;&#1082;&#1091;&#1088;&#1089;&#1080;&#1074;&#1085;&#1072;&#1103; &#1079;&#1072;&#1084;&#1077;&#1085;&#1072;</span>
 (maptree-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
                 (and (consp x)
                      (eq (car x) 'ping)))
@@ -4020,9 +4144,9 @@ collect
                 (values `(pong ,@(cdr x)) #'mapcar))
             '(<span style="color: #00cdcd; font-weight: bold;">progn</span> (ping (ping (ping 1)))
               ping))
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">=&gt; (PROGN (PONG (PONG (PONG 1))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">=&gt; (PROGN (PONG (PONG (PONG 1))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1055;&#1088;&#1080;&#1084;&#1077;&#1085;&#1077;&#1085;&#1080;&#1077; &#1089;&#1086;&#1074;&#1084;&#1077;&#1089;&#1090;&#1085;&#1086; &#1089; with-predict-if &#1080; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;&#1084; **&#1087;&#1077;&#1088;&#1077;&#1084;&#1077;&#1085;&#1085;&#1099;&#1093;**</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1080;&#1084;&#1077;&#1085;&#1077;&#1085;&#1080;&#1077; &#1089;&#1086;&#1074;&#1084;&#1077;&#1089;&#1090;&#1085;&#1086; &#1089; with-predict-if &#1080; &#1080;&#1089;&#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1085;&#1080;&#1077;&#1084; **&#1087;&#1077;&#1088;&#1077;&#1084;&#1077;&#1085;&#1085;&#1099;&#1093;**</span>
 (maptree-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
                 (and (consp x)
                      (funcall (<span style="color: #00cdcd; font-weight: bold;">with-predict-if</span> (a b <span style="color: #00cd00;">&amp;rest</span> c)
@@ -4053,18 +4177,18 @@ collect
                  ,replace
                  ,tree)))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(macroexpand-1</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">'(with-predict-maptree (a b &amp;rest c)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(and (equal b 'ping))</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">#'(lambda (x)</span>
-<span style="color: #cdcd00;">;;        </span><span style="color: #cdcd00;">(values `(,**a** pong ,@(cddr x)) #'mapcar))</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">'(progn (ping (ping ping (ping 1))) ping)))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(macroexpand-1</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">'(with-predict-maptree (a b &amp;rest c)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(and (equal b 'ping))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">#'(lambda (x)</span>
+<span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">(values `(,**a** pong ,@(cddr x)) #'mapcar))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">'(progn (ping (ping ping (ping 1))) ping)))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(with-predict-maptree (a b &amp;rest c)</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(and (equal b 'ping))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">#'(lambda (x)</span>
-<span style="color: #cdcd00;">;;       </span><span style="color: #cdcd00;">(values `(,**a** pong ,@(cddr x)) #'mapcar))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">'(progn (ping (ping ping (ping 1))) ping))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(with-predict-maptree (a b &amp;rest c)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(and (equal b 'ping))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">#'(lambda (x)</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(values `(,**a** pong ,@(cddr x)) #'mapcar))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">'(progn (ping (ping ping (ping 1))) ping))</span>
 </pre>
 </div>
 </div>
@@ -4464,7 +4588,7 @@ HR-специалист заинтересован в том, чтобы име�
 <div class="outline-text-2" id="text-8">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="hh_test"><span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; hh</span>
+<pre class="src src-lisp" id="hh_test"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; hh</span>
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-test</span> ()
   &lt;&lt;hh_test_contents&gt;&gt;
   (dbg <span style="color: #00cd00;">"passed: hh-test~%"</span>))
@@ -4487,7 +4611,7 @@ HR-специалист заинтересован в том, чтобы име�
 
 <div class="org-src-container">
 
-<pre class="src src-closure-template-html" id="hh_tpl"><span style="color: #cdcd00;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
+<pre class="src src-closure-template-html" id="hh_tpl"><span style="color: #cd0000;">// -*- mode: closure-template-html; fill-column: 140 -*-</span>
 {<span style="color: #00cd00; font-weight: bold;">namespace</span> <span style="color: #0000ee; font-weight: bold;">hhtpl</span>}
 
 &lt;&lt;<span style="color: #0000ee; font-weight: bold;">hhtpl_contents</span>&gt;&gt;
@@ -4502,7 +4626,7 @@ HR-специалист заинтересован в том, чтобы име�
 
 <pre class="src src-lisp" id="hh_prepare">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1082;&#1086;&#1084;&#1087;&#1080;&#1083;&#1080;&#1088;&#1091;&#1077;&#1084; &#1096;&#1072;&#1073;&#1083;&#1086;&#1085;</span>
 (closure-template:compile-template
  <span style="color: #0000ee; font-weight: bold;">:common-lisp-backend</span>
  (pathname
@@ -4520,7 +4644,7 @@ HR-специалист заинтересован в том, чтобы име�
 
 &lt;&lt;tree_match&gt;&gt;
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">special syntax for pattern-matching</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">special syntax for pattern-matching</span>
 (named-readtables:in-readtable <span style="color: #0000ee; font-weight: bold;">:fare-quasiquote</span>)
 
 &lt;&lt;run&gt;&gt;
@@ -4562,13 +4686,13 @@ HR-специалист заинтересован в том, чтобы име�
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define</span> (form* form)
   (<span style="color: #00cdcd; font-weight: bold;">etypecase</span> form*
     (symbol (<span style="color: #00cdcd; font-weight: bold;">etypecase</span> form
-              <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">alias for function or macro</span>
+              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">alias for function or macro</span>
               (symbol `(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> ,form* (<span style="color: #00cd00;">&amp;rest</span> args)
                          `(,',form ,@args)))
-              <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">alias for lambda</span>
+              <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">alias for lambda</span>
               (cons   `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,form* (<span style="color: #00cd00;">&amp;rest</span> args)
                          (apply ,form args)))))
-    (cons     <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">scheme-like function definition</span>
+    (cons     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">scheme-like function definition</span>
      ` (<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(first form*) ,(rest form*)
          ,form))))
 </pre>
@@ -4711,7 +4835,7 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">map &amp; filter</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">map &amp; filter</span>
 (define (my-map f list) (foldr (\\ (x y) (cons ($ f x) y)) '() list))
 (define (filter p list) (foldr (\\ (x y) (<span style="color: #00cdcd; font-weight: bold;">if</span> ($ p x) (cons x y) y)) '() list))
 </pre>
@@ -4726,7 +4850,7 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">functions for lists</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">functions for lists</span>
 (define (my-list <span style="color: #00cd00;">&amp;rest</span> objs)         objs)
 (define (my-length list)             (fold (\\ (x y) (1+ x)) 0 list))
 (define (my-reverse list)            (fold (flip 'cons) '() list))
@@ -4743,7 +4867,7 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">functions for numbers</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">functions for numbers</span>
 (define zero?                    (curry '= 0))
 (define positive?                (curry '&lt; 0))
 (define negative?                (curry '&gt; 0))
@@ -4765,7 +4889,7 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">functions for booleans</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">functions for booleans</span>
 (define (my-and <span style="color: #00cd00;">&amp;rest</span> list)   (fold 'and t list))
 (define (my-or <span style="color: #00cd00;">&amp;rest</span> list)    (fold 'or nil list))
 (define (any? p <span style="color: #00cd00;">&amp;rest</span> list)   (apply 'my-or (my-map p list)))
@@ -4782,7 +4906,7 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">member &amp; assoc</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">member &amp; assoc</span>
 (<span style="color: #00cdcd; font-weight: bold;">flet</span> ((helper (p op)
          (\\ (a next) (<span style="color: #00cdcd; font-weight: bold;">if</span> (and (not a) ($ p ($ op next))) next a))))
 
@@ -4809,7 +4933,7 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">for (1 . (2 . 3)) trees</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">for (1 . (2 . 3)) trees</span>
 
 (define (my-append a b)
     (append (<span style="color: #00cdcd; font-weight: bold;">if</span> (atom a) (list a) a)
@@ -4837,29 +4961,29 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="f_util_contents">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(defun my-range (n)</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(let ((i 0))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">#'(lambda ()</span>
-<span style="color: #cdcd00;">;;         </span><span style="color: #cdcd00;">(if (&lt; i n) (incf i) nil))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(defun my-range (n)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(let ((i 0))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">#'(lambda ()</span>
+<span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">(if (&lt; i n) (incf i) nil))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(let ((f (my-range 3)))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(list</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(funcall f)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(funcall f)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(funcall f)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(funcall f)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(funcall f)</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(let ((f (my-range 3)))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(list</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(funcall f)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(range 3)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(range 3)</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(defmacro do-closure ((i clos) &amp;body body)</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(let ((c (gensym)))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">`(let ((,c ,clos))</span>
-<span style="color: #cdcd00;">;;        </span><span style="color: #cdcd00;">(loop for ,i = (funcall ,c)</span>
-<span style="color: #cdcd00;">;;           </span><span style="color: #cdcd00;">while ,i do ,@body))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(defmacro do-closure ((i clos) &amp;body body)</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(let ((c (gensym)))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">`(let ((,c ,clos))</span>
+<span style="color: #cd0000;">;;        </span><span style="color: #cd0000;">(loop for ,i = (funcall ,c)</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">while ,i do ,@body))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(do-closure (i (my-range 100)) (print i))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(do-closure (i (my-range 100)) (print i))</span>
 
 
 (<span style="color: #00cdcd; font-weight: bold;">declaim</span> (<span style="color: #00cdcd; font-weight: bold;">inline</span> zip))
@@ -4947,7 +5071,7 @@ a, b, &#x2026; - их аргументы.
 
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">swap</span> (pl1 pl2)
   <span style="color: #00cd00;">"Macro to swap two places"</span>
-  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((temp1-name (gensym)) <span style="color: #cdcd00;">; </span><span style="color: #cdcd00;">don't clobber existing names</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((temp1-name (gensym)) <span style="color: #cd0000;">; </span><span style="color: #cd0000;">don't clobber existing names</span>
         (temp2-name (gensym)))
     `(<span style="color: #00cdcd; font-weight: bold;">let</span> ((,temp1-name ,pl1)
            (,temp2-name ,pl2))
@@ -5072,7 +5196,7 @@ a, b, &#x2026; - их аргументы.
     (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
     (<span style="color: #00cd00;">"Accept-Charset"</span> . <span style="color: #00cd00;">"utf-8"</span>)
     (<span style="color: #00cd00;">"Referer"</span> . ,referer)
-    <span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">("Cookie" . ,(format nil "~{~a; ~}" *cookies*))</span>
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Cookie" . ,(format nil "~{~a; ~}" *cookies*))</span>
     (<span style="color: #00cd00;">"Cookie"</span> . <span style="color: #00cd00;">"ad20c=2; ad17c=2; __utma=48706362.2093251633.1396569814.1413985658.1413990550.145; __utmz=48706362.1413926450.142.18.utmcsr=vk.com|utmccn=(referral)|utmcmd=referral|utmcct=/im; email=avenger-f%40yandex.ru; password=30e3465569cc7433b34d42baeadff18f; PHPSESSID=ms1rrsgjqvm3lhdl5af1aekvv0; __utmc=48706362; __utmb=48706362.5.10.1413990550"</span>)
     ))
 
@@ -5111,50 +5235,50 @@ a, b, &#x2026; - их аргументы.
       (setf (getf result prop) value)))
   result))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">eval-always</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">eval-always</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">eval-always</span> (<span style="color: #00cd00;">&amp;body</span> body)
   <span style="color: #00cd00;">"Wrap &lt;_:arg body /&gt; in &lt;_:fun eval-when /&gt; with all keys \(compile, load and execute) mentioned"</span>
   `(<span style="color: #00cdcd; font-weight: bold;">eval-when</span> (<span style="color: #0000ee; font-weight: bold;">:compile-toplevel</span> <span style="color: #0000ee; font-weight: bold;">:load-toplevel</span> <span style="color: #0000ee; font-weight: bold;">:execute</span>)
      ,@body))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">#` syntax</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">#` syntax</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(eval-always</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(defun |#`-reader| (stream char arg)</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">"Literal syntax for zero/one/two argument lambdas.</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">Use @ as the function's argument, % as the second.</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">Examples:</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">CL-USER&gt; #`(+ 2 @)</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">\(lambda (&amp;optional x y)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(+ 2 x))</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">CL-USER&gt;  #`((1+ @) (print @))</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">\(lambda (&amp;optional x y)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(1+ x)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(print x))</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">CL-USER&gt; #`(+ 1 2)</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">\(lambda (&amp;optional x y)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(+ 1 2))</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">CL-USER&gt;  #`(+ @ %)</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">\(lambda (&amp;optional x y)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">(+ x y))</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">"</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(declare (ignore char arg))</span>
-<span style="color: #cdcd00;">;;     </span><span style="color: #cdcd00;">(let ((sexp (read stream t nil t))</span>
-<span style="color: #cdcd00;">;;           </span><span style="color: #cdcd00;">(x (gensym "X"))</span>
-<span style="color: #cdcd00;">;;           </span><span style="color: #cdcd00;">(y (gensym "Y")))</span>
-<span style="color: #cdcd00;">;;       </span><span style="color: #cdcd00;">`(lambda (&amp;optional ,x ,y)</span>
-<span style="color: #cdcd00;">;;          </span><span style="color: #cdcd00;">(declare (ignorable ,x)</span>
-<span style="color: #cdcd00;">;;                   </span><span style="color: #cdcd00;">(ignorable ,y))</span>
-<span style="color: #cdcd00;">;;          </span><span style="color: #cdcd00;">,@(subst y '%</span>
-<span style="color: #cdcd00;">;;                   </span><span style="color: #cdcd00;">(subst x '@</span>
-<span style="color: #cdcd00;">;;                          </span><span style="color: #cdcd00;">(if (listp (car sexp))</span>
-<span style="color: #cdcd00;">;;                              </span><span style="color: #cdcd00;">sexp</span>
-<span style="color: #cdcd00;">;;                              </span><span style="color: #cdcd00;">(list sexp)))))))</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">;; set #`</span>
-<span style="color: #cdcd00;">;;   </span><span style="color: #cdcd00;">(set-dispatch-macro-character #\# #\` #'|#`-reader|))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(eval-always</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(defun |#`-reader| (stream char arg)</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">"Literal syntax for zero/one/two argument lambdas.</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">Use @ as the function's argument, % as the second.</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">Examples:</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">CL-USER&gt; #`(+ 2 @)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">\(lambda (&amp;optional x y)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(+ 2 x))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">CL-USER&gt;  #`((1+ @) (print @))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">\(lambda (&amp;optional x y)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(1+ x)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(print x))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">CL-USER&gt; #`(+ 1 2)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">\(lambda (&amp;optional x y)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(+ 1 2))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">CL-USER&gt;  #`(+ @ %)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">\(lambda (&amp;optional x y)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(+ x y))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">"</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(declare (ignore char arg))</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(let ((sexp (read stream t nil t))</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(x (gensym "X"))</span>
+<span style="color: #cd0000;">;;           </span><span style="color: #cd0000;">(y (gensym "Y")))</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">`(lambda (&amp;optional ,x ,y)</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">(declare (ignorable ,x)</span>
+<span style="color: #cd0000;">;;                   </span><span style="color: #cd0000;">(ignorable ,y))</span>
+<span style="color: #cd0000;">;;          </span><span style="color: #cd0000;">,@(subst y '%</span>
+<span style="color: #cd0000;">;;                   </span><span style="color: #cd0000;">(subst x '@</span>
+<span style="color: #cd0000;">;;                          </span><span style="color: #cd0000;">(if (listp (car sexp))</span>
+<span style="color: #cd0000;">;;                              </span><span style="color: #cd0000;">sexp</span>
+<span style="color: #cd0000;">;;                              </span><span style="color: #cd0000;">(list sexp)))))))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">;; set #`</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(set-dispatch-macro-character #\# #\` #'|#`-reader|))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">anaphoric</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">anaphoric</span>
 
 (eval-always
  (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">if-it</span> (test then <span style="color: #00cd00;">&amp;optional</span> else)
@@ -5183,16 +5307,16 @@ a, b, &#x2026; - их аргументы.
         ((not it))
       ,@body)))
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(eval-always</span>
-<span style="color: #cdcd00;">;;  </span><span style="color: #cdcd00;">(defmacro cond-it (&amp;body body)</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">"Like COND. IT is bound to the passed COND test."</span>
-<span style="color: #cdcd00;">;;    </span><span style="color: #cdcd00;">`(let (it)</span>
-<span style="color: #cdcd00;">;;       </span><span style="color: #cdcd00;">(cond</span>
-<span style="color: #cdcd00;">;;         </span><span style="color: #cdcd00;">,@(mapcar #``((setf it ,(car @)) ,(cadr @))</span>
-<span style="color: #cdcd00;">;;                   </span><span style="color: #cdcd00;">;; uses the fact, that SETF returns the value set</span>
-<span style="color: #cdcd00;">;;                   </span><span style="color: #cdcd00;">body)))))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(eval-always</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(defmacro cond-it (&amp;body body)</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">"Like COND. IT is bound to the passed COND test."</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">`(let (it)</span>
+<span style="color: #cd0000;">;;       </span><span style="color: #cd0000;">(cond</span>
+<span style="color: #cd0000;">;;         </span><span style="color: #cd0000;">,@(mapcar #``((setf it ,(car @)) ,(cadr @))</span>
+<span style="color: #cd0000;">;;                   </span><span style="color: #cd0000;">;; uses the fact, that SETF returns the value set</span>
+<span style="color: #cd0000;">;;                   </span><span style="color: #cd0000;">body)))))</span>
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">maybe</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">maybe</span>
 
 (<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">maybecall</span> (val <span style="color: #00cd00;">&amp;rest</span> funs)
   `(and-it ,val
@@ -5220,8 +5344,8 @@ a, b, &#x2026; - их аргументы.
 
 <pre class="src src-lisp" id="globals">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">clear db</span>
-<span style="color: #cdcd00;">;; </span><span style="color: #cdcd00;">(drop '("profile" "vacancy"))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">clear db</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(drop '("profile" "vacancy"))</span>
 </pre>
 </div>
 </div>
@@ -5239,6 +5363,7 @@ a, b, &#x2026; - их аргументы.
 <pre class="src src-lisp" id="entity_and_automates">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 &lt;&lt;gen_automat(<span style="color: #00cd00;">"vacancy"</span>, <span style="color: #00cd00;">"&#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;"</span>, vacancy_flds, vacancy_state)&gt;&gt;
 &lt;&lt;gen_automat(<span style="color: #00cd00;">"resume"</span>,  <span style="color: #00cd00;">"&#1088;&#1077;&#1079;&#1102;&#1084;&#1077;"</span>,   resume_flds,  vacancy_state)&gt;&gt;
+&lt;&lt;gen_automat(<span style="color: #00cd00;">"rule"</span>,    <span style="color: #00cd00;">"&#1087;&#1088;&#1072;&#1074;&#1080;&#1083;&#1072;"</span>,  rule_flds,    rule_state)&gt;&gt;
 </pre>
 </div>
 </div>
@@ -5267,7 +5392,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-04-01 Ср. 08:48</p>
+<p class="date">Created: 2015-04-02 Чт. 05:58</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

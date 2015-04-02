@@ -36,12 +36,22 @@
 (in-package #:moto)
 
 (defmacro define-rule ((name antecedent) &body consequent)
+  ;; (make-rule
+  ;;  :name (bprint name)
+  ;;  :user-id 1
+  ;;  :rank 1
+  ;;  :ruletype (if (contains (string-downcase name) "teaser")
+  ;;                ":TEASER"
+  ;;                ":VACANCY")
+  ;;  :antecedent (bprint antecedent)
+  ;;  :consequent (bprint consequent))
   `(list
      (defun ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
        ,antecedent)
      (defun ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
        (let ((result (progn ,@consequent)))
          (values vacancy result)))))
+
 
 ;; expand
 
@@ -71,17 +81,26 @@
   (let ((vacancy vacancy))
     (tagbody
      renew
-       (loop :for rule :in rules :do
-          (let ((antecedent (concatenate 'string (symbol-name rule) "-ANTECEDENT"))
-                (consequent (concatenate 'string (symbol-name rule) "-CONSEQUENT")))
-            (if (funcall (intern antecedent) vacancy)
-                (multiple-value-bind (vacancy-result rule-result)
-                    (funcall (intern consequent) vacancy)
-                  (setf vacancy vacancy-result)
-                  (when (equal rule-result :stop)
-                    (return-from process vacancy))
-                  (when (equal rule-result :renew)
-                    (go renew)))))))
+       (loop :for rule :in rules
+
+          :do
+          (progn
+            (declaim #+sbcl(sb-ext:muffle-conditions style-warning))
+            (if (funcall (eval (read-from-string (format nil "(lambda (vacancy) ~A)" (antecedent rule))))
+                         vacancy)
+                (progn
+                  (multiple-value-bind (vacancy-result rule-result)
+                      (funcall (eval `(lambda (vacancy)
+                                        (let ((result (progn ,@(read-from-string (consequent rule)))))
+                                          (values vacancy result))))
+                               vacancy)
+                    (setf vacancy vacancy-result)
+                    (when (equal rule-result :stop)
+                      (return-from process vacancy))
+                    (when (equal rule-result :renew)
+                      (go renew)))
+                  ))
+            (declaim #+sbcl(sb-ext:unmuffle-conditions style-warning)))))
     vacancy))
 
 (in-package #:moto)
@@ -153,40 +172,40 @@
       (rec tree))
     (get-output-stream-string output)))
 
-(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
-  (dbg "   - already worked"))
+;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
+;;   (dbg "   - already worked"))
 
-(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
-  (dbg "   - already worked"))
+;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
+;;   (dbg "   - already worked"))
 
-(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
-  (dbg "   - already worked"))
+;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
+;;   (dbg "   - already worked"))
 
-(define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
-  (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
-    (dbg "   - already exists")))
+;; (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
+;;   (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+;;     (dbg "   - already exists")))
 
-(define-rule (set-rank t)
-  (setf (getf vacancy :rank) (getf vacancy :salary)))
+;; (define-rule (set-rank t)
+;;   (setf (getf vacancy :rank) (getf vacancy :salary)))
 
-(define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
-  (dbg "up rank by Lisp")
-  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
+;; (define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
+;;   (dbg "up rank by Lisp")
+;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
 
-(define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
-  (dbg "up rank by Erlang")
-  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
+;; (define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
+;;   (dbg "up rank by Erlang")
+;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
 
-(define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
-  (dbg "up rank by Haskell")
-  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+;; (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
+;;   (dbg "up rank by Haskell")
+;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
 
-(define-rule (z-print t)
-  (show-vacancy vacancy))
+;; (define-rule (z-print t)
+;;   (show-vacancy vacancy))
 
-(define-rule (z-save t)
-  (save-vacancy vacancy)
-  :stop)
+;; (define-rule (z-save t)
+;;   (save-vacancy vacancy)
+;;   :stop)
 
 (in-package #:moto)
 
@@ -267,59 +286,43 @@
 ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT
 ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
 
-(define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
-  (dbg "  - no salary"))
+;; (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
+;;   (dbg "  - no salary"))
 
-(define-drop-teaser-rule (salary-2-low (or
-                                        (and (equal (getf vacancy :currency) "RUR")
-                                             (< (getf vacancy :salary-max) 90000))
-                                        (and (equal (getf vacancy :currency) "USD")
-                                             (< (getf vacancy :salary-max) (floor 90000 67)))
-                                        (and (equal (getf vacancy :currency) "USD")
-                                             (< (getf vacancy :salary-max) (floor 90000 77)))
-                                        ))
-  (dbg "  - low salary"))
+;; (define-drop-teaser-rule (salary-2-low (or
+;;                                         (and (equal (getf vacancy :currency) "RUR")
+;;                                              (< (getf vacancy :salary-max) 90000))
+;;                                         (and (equal (getf vacancy :currency) "USD")
+;;                                              (< (getf vacancy :salary-max) (floor 90000 67)))
+;;                                         (and (equal (getf vacancy :currency) "USD")
+;;                                              (< (getf vacancy :salary-max) (floor 90000 77)))
+;;                                         ))
+;;   (dbg "  - low salary"))
 
-(define-drop-all-teaser-when-name-contains-rule
-    "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
-    "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
-    "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
-    "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
+;; (define-drop-all-teaser-when-name-contains-rule
+;;     "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
+;;     "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
+;;     "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
+;;     "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
 
 (defun get-all-rules ()
-  (let ((result (make-hash-table :test #'equal)))
-    (loop :for var :being :the present-symbols :in (find-package "MOTO")
-       :when (or
-              (and (search "CONSEQUENT" (symbol-name var))
-                   (fboundp var))
-              (and (search "ANTECEDENT" (symbol-name var))
-                   (fboundp var)))
-       :collect (let ((key (ppcre:regex-replace "-ANTECEDENT" (symbol-name var) "")))
-                  (setf key (ppcre:regex-replace "-CONSEQUENT" key ""))
-                  (setf (gethash key result) "")))
-    (mapcar #'intern
-            (sort
-             (alexandria:hash-table-keys result)
-             #'(lambda (a b)
-                 (string< a b))))))
-
-(defun clear-all-rules ()
-  (loop :for var :being :the present-symbols :in (find-package "MOTO")
-     :when (or
-            (and (search "CONSEQUENT" (symbol-name var))
-                 (fboundp var))
-            (and (search "ANTECEDENT" (symbol-name var))
-                 (fboundp var)))
-     :collect (fmakunbound var)))
+  (sort
+   (mapcar #'(lambda (x)
+               (setf (name x)
+                     (replace-all (name x) "|" ""))
+               x)
+           (find-rule :user-id 1))
+   #'(lambda (a b)
+       (string< (name a) (name b)))))
 
 (defun rules-for-teaser ()
   (remove-if-not #'(lambda (x)
-                     (search "DROP-TEASER-IF" (symbol-name x)))
+                     (search "DROP-TEASER-IF" (name x)))
                  (get-all-rules)))
 
 (defun rules-for-vacancy ()
   (remove-if #'(lambda (x)
-                 (search "DROP-TEASER-IF" (symbol-name x)))
+                 (search "DROP-TEASER-IF" (name x)))
              (get-all-rules)))
 
 (defmethod process-teaser :around (current-teaser)
@@ -1063,6 +1066,12 @@
 
 ;; (run-response)
 
+(in-package #:moto)
+
+(defun rule-activation ()
+  "| active   | inactive |")
+(defun rule-deactivation ()
+  "| inactive | active   |")
 (in-package #:moto)
 
 (defun uns-uni ()
