@@ -843,15 +843,16 @@
 
    #+CAPTION: Данные правила
    #+NAME: rule_flds
-   | field name | field type  | note                                                   |
-   |------------+------------+--------------------------------------------------------|
-   | id         | serial     | идентификатор                                          |
-   | name       | varchar    | имя                                                    |
-   | user-id    | integer    | владелец правила                                       |
-   | rank       | integer    | приоритет правила                                      |
-   | ruletype   | varchar    | :teaser - правило для тизеров, :vacancy - для вакансий |
-   | antecedent | varchar    | условие срабатывания правила                           |
-   | consequent | varchar    | код правила                                            |
+   | field name | field type            | note                                                   |
+   |------------+-----------------------+--------------------------------------------------------|
+   | id         | serial                | идентификатор                                          |
+   | name       | varchar               | имя                                                    |
+   | user-id    | integer               | владелец правила                                       |
+   | rank       | integer               | приоритет правила                                      |
+   | ruletype   | varchar               | :teaser - правило для тизеров, :vacancy - для вакансий |
+   | antecedent | varchar               | условие срабатывания правила                           |
+   | consequent | varchar               | код правила                                            |
+   | notes      | (or :db-null varchar) | заметки к правилу                                      |
 
    Правило может быть активным и неактивным
 
@@ -2286,19 +2287,11 @@
                       (reduce #'(lambda (x y)
                                   (concatenate 'string x (string #\NewLine) y))
                               (mapcar #'(lambda (x)
-                                          (ps-html ((:li ;; :id (src-id x)
-                                                         ;; :class (string-downcase (subseq (state x) 1))
-                                                         ;; :title (notes x)
-                                                         )
-                                                    ;; ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
-                                                    ;;  (cond ((equal "USD" (currency x)) "$")
-                                                    ;;        ((equal "EUR" (currency x)) "€")
-                                                    ;;        ((equal "RUR" (currency x)) ""))
-                                                    ;;  (salary-max x))
-                                                    ((:a :href (format nil "/hh/rule/~A" ;; (src-id x)
-                                                                       0
-                                                                       ))
-                                                     (name x)))))
+                                          (ps-html ((:li :id (id x)
+                                                         :class "" ;; (if (null (state x)) "" (string-downcase (subseq (state x) 1)))
+                                                         :title "(notes x)")
+                                                    ((:span :class "emptynotes") " &nbsp; ")
+                                                    ((:a :href (format nil "/hh/rule/~A" (id x))) (name x)))))
                                       param)))))
          (let* ((breadcrumb (breadcrumb "Правила" ("/hh" . "HeadHunter")))
                 (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -2340,6 +2333,55 @@
                                 (takt vac :interesting))))
                         (split-sequence:split-sequence #\, (getf p :yep)))
                 (error 'ajax :output "window.location.href='/hh/rules'"))))
+   #+END_SRC
+
+** START Страница правила
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (define-page rule "/hh/rule/:id"
+       (let* ((item (get-rule (parse-integer id)))
+              (breadcrumb (if (null item)
+                              (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/rules" . "Правила"))
+                              (breadcrumb (name item) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/rules" . "Правила"))))
+              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (content-box ()
+             (heading ((format nil "~A" (ps-html "Страница редактирования правила"))))
+             (form ("ruleform" nil :class "form-section-container")
+               ((:div :class "form-section")
+                (fieldset (format nil "Правило ~A:" (name item))
+                  (input ("name" "Имя"  :value (name item)))
+                  (input ("rank" "Ранг" :value (rank item)))
+                  (fieldset ""
+                    (eval
+                     (macroexpand
+                      (append `(select ("ruletype" "Тип правила" :default ,(subseq (ruletype item) 1)))
+                              (list
+                               (mapcar #'(lambda (x)
+                                           (cons x x))
+                                       '("TEASER" "VACANCY")))))))
+                  (textarea ("antecedent" "Условие срабатывания") (antecedent item))
+                  (textarea ("consequent" "Действие") (consequent item))
+                  (textarea ("notes" "Заметки") (notes item))
+                  (ps-html ((:span :class "clear")))))
+               %SAVE%))
+           (ps-html ((:span :class "clear")))))
+       (:save (ps-html ((:div :class "form-send-container")
+                        (submit "Сохранить вакансию" :name "act" :value "SAVE")))
+              (progn
+                (id (upd-rule (get-rule (parse-integer id))
+                              (list
+                               :user-id *current-user*
+                               :name (getf p :name)
+                               :rank (getf p :rank)
+                               :ruletype (format nil ":~A" (getf p :ruletype))
+                               :antecedent (getf p :antecedent)
+                               :consequent (getf p :consequent)
+                               :notes (getf p :notes))))
+                (redirect (format nil "/hh/rule/~A" id)))))
    #+END_SRC
 
 ** Страница документации модуля
