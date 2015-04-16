@@ -269,33 +269,45 @@
 (in-package #:moto)
 
 (define-page rule "/hh/rule/:id"
-  (let* ((item (get-rule (parse-integer id)))
-         (breadcrumb (if (null item)
-                         (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/rules" . "Правила"))
-                         (breadcrumb (name item) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/rules" . "Правила"))))
-         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-      (content-box ()
-        (heading ((format nil "~A" (ps-html "Страница редактирования правила"))))
-        (form ("ruleform" nil :class "form-section-container")
-          ((:div :class "form-section")
-           (fieldset (format nil "Правило ~A:" (name item))
-             (input ("name" "Имя"  :value (name item)))
-             (input ("rank" "Ранг" :value (rank item)))
-             (fieldset ""
-               (eval
-                (macroexpand
-                 (append `(select ("ruletype" "Тип правила" :default ,(subseq (ruletype item) 1)))
-                         (list
-                          (mapcar #'(lambda (x)
-                                      (cons x x))
-                                  '("TEASER" "VACANCY")))))))
-             (textarea ("antecedent" "Условие срабатывания") (antecedent item))
-             (textarea ("consequent" "Действие") (consequent item))
-             (textarea ("notes" "Заметки") (notes item))
-             (ps-html ((:span :class "clear")))))
-          %SAVE%))
-      (ps-html ((:span :class "clear")))))
+  (let ((item (get-rule (parse-integer id))))
+    (if (null item)
+        (let ((breadcrumb (breadcrumb "Регистрация нового пользователя" ("/" . "Главная") ("/secondary" . "Второстепенная")))
+              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+          (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+            (content-box ()
+              (system-msg ("caution")
+                (let ((tmp ))
+                  (ps-html ((:p) (format nil "К сожалению, такого правила нет! Наверное, это правило было удалено"))
+                           (submit "Вернуться к списку правил"
+                                   :onclick (format nil "window.location.href='/hh/rules'; return false;"))))))
+            (ps-html ((:span :class "clear")))))
+        ;; else - rule found
+        (let* ((breadcrumb (if (null item)
+                               (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/rules" . "Правила"))
+                               (breadcrumb (name item) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/rules" . "Правила"))))
+               (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+          (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+            (content-box ()
+              (heading ((format nil "~A" (ps-html "Страница редактирования правила"))))
+              (form ("ruleform" nil :class "form-section-container")
+                ((:div :class "form-section")
+                 (fieldset (format nil "Правило ~A:" (name item))
+                   (input ("name" "Имя"  :value (name item)))
+                   (input ("rank" "Ранг" :value (rank item)))
+                   (fieldset ""
+                     (eval
+                      (macroexpand
+                       (append `(select ("ruletype" "Тип правила" :default ,(subseq (ruletype item) 1)))
+                               (list
+                                (mapcar #'(lambda (x)
+                                            (cons x x))
+                                        '("TEASER" "VACANCY")))))))
+                   (textarea ("antecedent" "Условие срабатывания") (antecedent item))
+                   (textarea ("consequent" "Действие") (consequent item))
+                   (textarea ("notes" "Заметки") (notes item))
+                   (ps-html ((:span :class "clear")))))
+                %SAVE%))
+            (ps-html ((:span :class "clear")))))))
   (:save (ps-html ((:div :class "form-send-container")
                    (submit "Сохранить вакансию" :name "act" :value "SAVE")))
          (progn
