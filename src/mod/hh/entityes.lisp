@@ -122,7 +122,7 @@
    (ruletype varchar)
    (antecedent varchar)
    (consequent varchar)
-   (notes (or :db-null varchar)))
+   (notes (or db-null varchar)))
   (:inactive :active)
   ((:active :inactive :rule-activation)
    (:inactive :active :rule-deactivation)))

@@ -173,14 +173,14 @@
 ;;   "<script type=\"text/javascript\" src=\"/js/frp.js\"></script>")
 
 
-;; (define-page frp "/frp"
-;;   ;; (let ((breadcrumb (breadcrumb "FRP"))
-;;   ;;       (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-;;   ;;   (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-;;   ;;     (content-box ()
-;;   ;;       (heading ("FRP")
-;;   ;;         "Тестируем FRP")
-;;         "<script type=\"text/javascript\" src=\"/js/frp.js\"></script>")
-;;       (ps-html ((:span :class "clear")))))
-;;   )
+(define-page frp "/frp"
+  (let ((breadcrumb (breadcrumb "FRP"))
+        (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+      (content-box ()
+        (heading ("FRP")
+          "Тестируем FRP")
+        (ps-html ((:div :id "frp")))
+      (ps-html ((:span :class "clear")))))
+  ))
 ;; iface ends here

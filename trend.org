@@ -458,94 +458,94 @@
      <<keyval>>
      <<xls>>
 
-     (defun clear-db-trend ()
-       (let ((tables '("cmpx" "plex" "crps" "flat")))
-         (flet ((rmtbl (tblname)
-                  (when (with-connection *db-spec*
-                          (query (:select 'table_name :from 'information_schema.tables :where
-                                          (:and (:= 'table_schema "public")
-                                                (:= 'table_name tblname)))))
-                    (with-connection *db-spec*
-                      (query (:delete-from (intern (string-upcase tblname))))))))
-           (loop :for tblname :in tables :collect
-              (rmtbl tblname)))))
+     ;; (defun clear-db-trend ()
+     ;;   (let ((tables '("cmpx" "plex" "crps" "flat")))
+     ;;     (flet ((rmtbl (tblname)
+     ;;              (when (with-connection *db-spec*
+     ;;                      (query (:select 'table_name :from 'information_schema.tables :where
+     ;;                                      (:and (:= 'table_schema "public")
+     ;;                                            (:= 'table_name tblname)))))
+     ;;                (with-connection *db-spec*
+     ;;                  (query (:delete-from (intern (string-upcase tblname))))))))
+     ;;       (loop :for tblname :in tables :collect
+     ;;          (rmtbl tblname)))))
 
-     (defun load-data ()
-       (clear-db-trend)
-       ;; Для каждой подпапке в папке данных..
-       (loop-dir cmpx ()
-          ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
-            (format t "~%-~A" cmpx)
-            (let ((cmpx-id (id (make-cmpx :name cmpx))))
-              ;; Если найден файл с данными ЖК - обновим созданную очередь ЖК
-              (awhen-file ("complex.txt" files)
-                ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
-                (let ((complex (keyval (format nil "~A~A/~A" *data-path* cmpx it))))
-                  (format t "~% ~A - ~A" it (bprint complex))
-                  (upd-cmpx (get-cmpx cmpx-id)
-                            (list
-                             :addr (assoc-key "Адрес" complex)
-                             :district-id (let ((obj (find-district :name (assoc-key "Район" complex))))
-                                            (if (null obj)
-                                                (warn (format nil "Район ~A не найден в таблице районов" (assoc-key "Район" complex)))
-                                                (id (car obj))))
-                             :metro-id    (let ((obj (find-metro :name (assoc-key "Метро" complex))))
-                                            (if (null obj)
-                                                (warn (format nil "Метро ~A не найдено в таблице метро" (assoc-key "Метро" complex)))
-                                                (id (car obj))))))))
-              ;; Для каждой подпапки в папке комплекса, кроме планировок, рендеров и хода строительства:
-              (loop-dir plex (cmpx)
-                   (unless (or (string= plex "Планировки")
-                               (string= plex "Рендеры")
-                               (string= plex "Ход строительства"))
-                     ;; Создаем очередь ЖК
-                     (format t "~%--~A" plex)
-                     (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
-                       ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
-                       (awhen-file ("data.txt" files)
-                         (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
-                           (format t "~%  ~A - ~A" it (bprint data))
-                           (upd-plex (get-plex plex-id)
-                                     ;; (assoc-key "Срок сдачи" '(("﻿Срок сдачи" . "2 квартал 2015") ("Субсидия" . "")
-                                     ;;                           ("Отделка" . "предчистовая") ("Ипотека" . "да") ("Рассрочка" . "да")
-                                     ;;                           ("Расстояние до метро" . "1.7 км (21 мин пешком)")))
-                                     (list :deadline-id (let ((dd (assoc-key "Срок сдачи" data)))
-                                                          (format t "~%   dd: ~A | ~A"
-                                                                  dd
-                                                                  (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
-                                                                    (id (car it))))
-                                                          (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
-                                                            (id (car it))))
-                                           :finishing   (assoc-key "Отделка" data)
-                                           :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
-                                           :installment (or (string= "да" (assoc-key "рассрочка" data)))
-                                           :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
-                                           :distance    (assoc-key "Расстояние до метро" data)))
-                           (format t "~%   rr: ~A" (deadline-id (get-plex plex-id)))
-                           ))
-                       ;; Для каждой подпапки в папке очереди ЖК, кроме планировок, рендеров и хода строительства:
-                       (loop-dir crps (cmpx plex)
-                            (unless (or (string= crps "Планировки")
-                                        (string= crps "Рендеры")
-                                        (string= crps "Ход строительства"))
-                              ;; Создаем корпус
-                              (format t "~%---~A" crps)
-                              (let ((crps-id (id (make-crps :name crps :plex-id plex-id))))
-                                ;; Если найден файл с планировками объекта
-                                (awhen-file ("квартиры.xls" files)
-                                  (loop :for item :in (cdr (xls-processor (format nil "~A~A/~A/~A/~A" *data-path* cmpx plex crps it))) :do
-                                     (format t "~%   ~A" (bprint item))
-                                     (make-flat :crps-id crps-id
-                                                :rooms (parse-integer (nth 0 item))
-                                                :area-sum (nth 1 item)
-                                                :area-living (nth 2 item)
-                                                :area-kitchen (nth 3 item)
-                                                :balcon (nth 4 item)
-                                                :sanuzel (if (string= "" (nth 5 item)) t nil)
-                                                :price (parse-integer (nth 6 item)))))))))))))
-       (format t "~%-=finish=-"))
+     ;; (defun load-data ()
+     ;;   (clear-db-trend)
+     ;;   ;; Для каждой подпапке в папке данных..
+     ;;   (loop-dir cmpx ()
+     ;;      ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
+     ;;        (format t "~%-~A" cmpx)
+     ;;        (let ((cmpx-id (id (make-cmpx :name cmpx))))
+     ;;          ;; Если найден файл с данными ЖК - обновим созданную очередь ЖК
+     ;;          (awhen-file ("complex.txt" files)
+     ;;            ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
+     ;;            (let ((complex (keyval (format nil "~A~A/~A" *data-path* cmpx it))))
+     ;;              (format t "~% ~A - ~A" it (bprint complex))
+     ;;              (upd-cmpx (get-cmpx cmpx-id)
+     ;;                        (list
+     ;;                         :addr (assoc-key "Адрес" complex)
+     ;;                         :district-id (let ((obj (find-district :name (assoc-key "Район" complex))))
+     ;;                                        (if (null obj)
+     ;;                                            (warn (format nil "Район ~A не найден в таблице районов" (assoc-key "Район" complex)))
+     ;;                                            (id (car obj))))
+     ;;                         :metro-id    (let ((obj (find-metro :name (assoc-key "Метро" complex))))
+     ;;                                        (if (null obj)
+     ;;                                            (warn (format nil "Метро ~A не найдено в таблице метро" (assoc-key "Метро" complex)))
+     ;;                                            (id (car obj))))))))
+     ;;          ;; Для каждой подпапки в папке комплекса, кроме планировок, рендеров и хода строительства:
+     ;;          (loop-dir plex (cmpx)
+     ;;               (unless (or (string= plex "Планировки")
+     ;;                           (string= plex "Рендеры")
+     ;;                           (string= plex "Ход строительства"))
+     ;;                 ;; Создаем очередь ЖК
+     ;;                 (format t "~%--~A" plex)
+     ;;                 (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
+     ;;                   ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
+     ;;                   (awhen-file ("data.txt" files)
+     ;;                     (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
+     ;;                       (format t "~%  ~A - ~A" it (bprint data))
+     ;;                       (upd-plex (get-plex plex-id)
+     ;;                                 ;; (assoc-key "Срок сдачи" '(("﻿Срок сдачи" . "2 квартал 2015") ("Субсидия" . "")
+     ;;                                 ;;                           ("Отделка" . "предчистовая") ("Ипотека" . "да") ("Рассрочка" . "да")
+     ;;                                 ;;                           ("Расстояние до метро" . "1.7 км (21 мин пешком)")))
+     ;;                                 (list :deadline-id (let ((dd (assoc-key "Срок сдачи" data)))
+     ;;                                                      (format t "~%   dd: ~A | ~A"
+     ;;                                                              dd
+     ;;                                                              (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
+     ;;                                                                (id (car it))))
+     ;;                                                      (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
+     ;;                                                        (id (car it))))
+     ;;                                       :finishing   (assoc-key "Отделка" data)
+     ;;                                       :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
+     ;;                                       :installment (or (string= "да" (assoc-key "рассрочка" data)))
+     ;;                                       :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
+     ;;                                       :distance    (assoc-key "Расстояние до метро" data)))
+     ;;                       (format t "~%   rr: ~A" (deadline-id (get-plex plex-id)))
+     ;;                       ))
+     ;;                   ;; Для каждой подпапки в папке очереди ЖК, кроме планировок, рендеров и хода строительства:
+     ;;                   (loop-dir crps (cmpx plex)
+     ;;                        (unless (or (string= crps "Планировки")
+     ;;                                    (string= crps "Рендеры")
+     ;;                                    (string= crps "Ход строительства"))
+     ;;                          ;; Создаем корпус
+     ;;                          (format t "~%---~A" crps)
+     ;;                          (let ((crps-id (id (make-crps :name crps :plex-id plex-id))))
+     ;;                            ;; Если найден файл с планировками объекта
+     ;;                            (awhen-file ("квартиры.xls" files)
+     ;;                              (loop :for item :in (cdr (xls-processor (format nil "~A~A/~A/~A/~A" *data-path* cmpx plex crps it))) :do
+     ;;                                 (format t "~%   ~A" (bprint item))
+     ;;                                 (make-flat :crps-id crps-id
+     ;;                                            :rooms (parse-integer (nth 0 item))
+     ;;                                            :area-sum (nth 1 item)
+     ;;                                            :area-living (nth 2 item)
+     ;;                                            :area-kitchen (nth 3 item)
+     ;;                                            :balcon (nth 4 item)
+     ;;                                            :sanuzel (if (string= "" (nth 5 item)) t nil)
+     ;;                                            :price (parse-integer (nth 6 item)))))))))))))
+     ;;   (format t "~%-=finish=-"))
 
-     (load-data)
+     ;; (load-data)
    #+END_SRC
 
 * Шаблоны
@@ -889,7 +889,7 @@
     (in-package #:moto)
 
     ;; Страницы
-    <<iface_contents>>
+    ;; <<iface_contents>>
   #+END_SRC
 
 ** Тестовая страница шаблонов
@@ -899,14 +899,203 @@
      (in-package #:moto)
 
      ;; Страница загрузки данных
-     (restas:define-route test-page ("/test")
-       (trendtpl:root (list :content
-     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-     <br /><br />
-     Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
-     <br /><br />
-     At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.
-     <br /><br />")))
+     ;; (restas:define-route test-page ("/trnd")
+     ;;   (trendtpl:root (list :content
+   #+END_SRC
+
+** Описание интерфейса поиска
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp :noweb tangle :exports none
+     (in-package #:moto)
+
+     ((количество-комнат
+       (radiobtn Студия 1 2 3 4+))
+      (стоимость)
+      (жилой-комплекс)
+      (срок-сдачи)
+      (расположение)
+      (застройщик)
+      (отделка))
+   #+END_SRC
+
+
+   #+NAME: newbldfrm
+   #+BEGIN_SRC closure-template-html :noweb tangle :exports none
+     <div class="filterbox" id='filter'>
+         <input type="hidden" name="bigfilterflag" id="bigfilterflag" value = "1">
+         <input type="hidden" name="orderflat" id="orderflat" value = "vaf.amountDisc">
+         <input type="hidden" name="ordercomplex" id="ordercomplex" value = "H.Id desc">
+         <div class="parametres_box">
+             <div class="box">
+                 <div class="title">Количество комнат</div>
+                 <ul class="choose_list">
+                     <li class="study" >
+                         <div id='rooms_bt_0' OnClick="RoomsCheck(0);">Студия</div>
+                     </li>
+                     <li>
+                         <div id='rooms_bt_1' OnClick="RoomsCheck(1);">1</div>
+                     </li>
+                     <li>
+                         <div id='rooms_bt_2' OnClick="RoomsCheck(2);">2</div>
+                     </li>
+                     <li>
+                         <div id='rooms_bt_3' OnClick="RoomsCheck(3);">3</div>
+                     </li>
+                     <li>
+                         <div id='rooms_bt_4' OnClick="RoomsCheck(4);">4+</div>
+                     </li>
+                 </ul>
+                 <input type='hidden' id='rooms0' name='rooms0' value='-1'>
+                 <input type='hidden' id='rooms1' name='rooms1' value='-1'>
+                 <input type='hidden' id='rooms2' name='rooms2' value='-1'>
+                 <input type='hidden' id='rooms3' name='rooms3' value='-1'>
+                 <input type='hidden' id='rooms4' name='rooms4' value='-1'>
+             </div>
+             <div class="box">
+                 <div class="title">Стоимость</div>
+                 <ul class="choose_list">
+                     <li class="w100"><a href="javascript:CostCheck('all');" id='cost_all_flat' >Квартира</a></li>
+                     <li class="w100"><a href="javascript:CostCheck('meter');" id='cost_per_meter' >Квадратный метр</a></li>
+                 </ul>
+                 <input type='hidden' id='costval' name='costval' value='all'>
+             </div>
+             <div class="box min">
+                 <div class="title">Жилой комплекс:</div>
+                 <asp:ListView ID="complexlist" runat="server"
+                               DataKeyNames="id" EnableModelValidation="True">
+                     <ItemTemplate>
+                         <option value="<%# Eval("id") %>" ><%# Eval("name") %></option>
+                     </ItemTemplate>
+                     <LayoutTemplate>
+                         <select name="complexlist" class="selectbox"><option value="0">Не важно</option><asp:PlaceHolder runat="server" ID="itemPlaceholder"></asp:PlaceHolder></select>
+                     </LayoutTemplate>
+                 </asp:ListView>
+             </div>
+             <%--<div class="box min">
+                      <div class="title">
+                          <a href="javascript: visib('ComplexModal_v2'); BodyScrol(0); GetGroupAllVal('filter', '/ajaxdata/get_complex_list.php', 'ComplexModal_v2_content', '', 0);">Жилой комплекс</a>
+                      </div>
+                      <div>
+                          <input type="text" name="complexlisttext" id="complexlisttext" class="filter_input" OnKeyUp="KeyUpKomplex();"  autocomplete="off"/>
+                          <span class="i_bem" id="complex_i_bem" style="display:none;"> </span>
+                      </div>
+                      <input type='hidden' id='complexlist' name='complexlist' value=''>
+             </div>--%>
+             <div class="box last">
+                 <div class="title">Срок сдачи до:</div>
+                 <asp:ListView ID="dateendselect" runat="server"
+                               DataKeyNames="yearEnd" EnableModelValidation="True">
+                     <ItemTemplate>
+                         <option value="<%# Eval("yearEnd") %>" ><%# Eval("yearEnd") %></option>
+                     </ItemTemplate>
+                     <LayoutTemplate>
+                         <select name="dateendselect" class="selectbox"><option value="0">Не важно</option><asp:PlaceHolder runat="server" ID="itemPlaceholder"></asp:PlaceHolder></select>
+                     </LayoutTemplate>
+                 </asp:ListView>
+             </div>
+             <div class="clear"></div>
+             <div class="box">
+                 <div class="title">Расположение</div>
+                 <ul class="choose_list">
+                     <li class="study"><a href="javascript: visib('RaionModal_v2'); BodyScrol(0); GetGroupAllVal('filter', '/ajaxdata/get_raion_list.php', 'RaionModal_v2_content', '', 0);">Район</a></li>
+                     <li class="metro"><a href="javascript: visib('MetroModal_v2'); BodyScrol(0); GetGroupAllVal('filter', '/ajaxdata/get_metro_list.php', 'MetroModal_v2_content', '', 0);">Метро</a></li>
+                     <input type='hidden' id='raionlist' name='raionlist' value=''> </span>
+                     <input type='hidden' id='metrolist' name='metrolist' value=''> </span>
+                     </ul>
+                     </div>
+                     <div class="box">
+                         <div class="title w100">От:</div>
+                         <div class="title w100">До:</div>
+                         <input type="text" name="costmin" class="filter_input w100" placeholder="Минимально"  id='costmin' OnKeyUp="OktetAdd(document.getElementById('costmin').value, 'costmin');" />
+                         <input type="text" name="costmax" class="filter_input w100" placeholder="Максимально" id='costmax' OnKeyUp="OktetAdd(document.getElementById('costmax').value, 'costmax');" />
+                     </div>
+                     <div class="box min">
+                         <div class="title">Застройщик:</div>
+                         <asp:ListView ID="devlisttext" runat="server"
+                                       DataKeyNames="id" EnableModelValidation="True">
+                             <ItemTemplate>
+                                 <option value="<%# Eval("id") %>" ><%# Eval("name") %></option>
+                             </ItemTemplate>
+                             <LayoutTemplate>
+                                 <select name="devlisttext" class="selectbox"><option value="0">Не важно</option><asp:PlaceHolder runat="server" ID="itemPlaceholder"></asp:PlaceHolder></select>
+                             </LayoutTemplate>
+                         </asp:ListView>
+                     </div><!--
+                               <div class="box min">
+                                   <div class="title">
+                                       <a href="javascript:visib('DeveloperModal_v2'); BodyScrol(0); GetGroupAllVal('filter', '/ajaxdata/get_developer_list.php', 'DeveloperModal_v2_content', '', 0);">Застройщик</a>
+                                   </div>
+                                   <div>
+                                       <input type="text" name="devlisttext" id="devlisttext" class="filter_input" OnKeyUp="KeyUpDev();"  autocomplete="off"/>
+                                       <span class="dev_i_bem" id="dev_i_bem" style="display:none;"> </span>
+                                   </div>
+                                   <input type='hidden' id='developerlist' name='developerlist' value=''>
+                               </div>-->
+                     <div class="box last">
+                         <div class="title">Отделка:</div>
+                         <asp:ListView ID="decorationsel" runat="server"
+                                       DataKeyNames="id" EnableModelValidation="True">
+                             <ItemTemplate>
+                                 <option value="<%# Eval("id") %>" ><%# Eval("name") %></option>
+                             </ItemTemplate>
+                             <LayoutTemplate>
+                                 <select name="decorationsel" class="selectbox"><option value="0">Не важно</option><asp:PlaceHolder runat="server" ID="itemPlaceholder"></asp:PlaceHolder></select>
+                             </LayoutTemplate>
+                         </asp:ListView>
+                     </div>
+                     <a href="javascript:visib('advancedfind'); KostilAdvPar();" class="show_param" id='advancedfind_href'>расширенный поиск <img src="/css/images/down.png"></a>
+                     </div>
+                     <div class="middle" id='advancedfind'>
+                         <input type='hidden' id='advanviz' name='advanviz' value='0'>
+                         <div class="box w150">
+                             <div class="title marg">Площадь общая (М&sup2;)</div>
+                             <label>От:</label><input type="text" name="sallmin" class="filter_input" id='sallmin' />
+                             <label>До:</label><input type="text" name="sallmax" class="filter_input" id='sallmax' />
+                         </div>
+                         <div class="box w150">
+                             <div class="title marg">Площадь кухни (М&sup2;)</div>
+                             <label>От:</label><input type="text" name="skitchenmin" class="filter_input" id='skitchenmin' />
+                             <label>До:</label><input type="text" name="skitchenmax" class="filter_input" id='skitchenmax' />
+                         </div>
+                         <div class="box w150">
+                             <div class="title marg">Этаж</div>
+                             <label>От:</label><input type="text" name="floormin" class="filter_input" id='floormin' />
+                             <label>До:</label><input type="text" name="floormax" class="filter_input" id='floormax' />
+                         </div>
+                         <div class="box min130">
+                             <div class="title">Тип дома</div>
+                             <asp:ListView ID="housetype" runat="server"
+                                           DataKeyNames="id" EnableModelValidation="True">
+                                 <ItemTemplate>
+                                     <option value="<%# Eval("id") %>" ><%# Eval("name") %></option>
+                                 </ItemTemplate>
+                                 <LayoutTemplate>
+                                     <select name="decorationsel" class="selectbox"><option value="all">Не важно</option><asp:PlaceHolder runat="server" ID="itemPlaceholder"></asp:PlaceHolder></select>
+                                 </LayoutTemplate>
+                             </asp:ListView>
+                         </div>
+                         <div class="box last min">
+                             <div class="title">Поиск по ID</div>
+                             <input type="text" class="filter_input" placeholder="Укажите ID объекта" name="findid" id='findid' />
+                         </div>
+                     </div>
+                     <div class="resultsbox"  id='tags' >
+                         <div id='raiontags' style='padding-left:10px;'name='raiontags'> </div>
+                         <div id='metrotags' style='padding-left:10px;'name='metrotags'> </div>
+                         <div id='complextags' style='padding-left:10px;'name='complextags'> </div>
+                         <div id='developertags' style='padding-left:10px;'name='developertags'> </div>
+                         <input type='hidden' id='pagenumber' name='pagenumber' value=1><input type='hidden' id='special' name='special' value=0>
+                     </div>
+                     <div class="resultsbox">
+                         <div class="inline">
+                             <div class="filter_button_wrap">
+                                 <asp:Button PostBackUrl="/NewBuildingSearchResults.aspx" type="submit" Text="Найти" CssClass="filter_button" runat="server" />
+                             </div>
+                             <div class="res" id='spanallfind'></div>
+                         </div>
+                     </div>
+                     </div>
   #+END_SRC
 
 ** Страничка загрузки данных
@@ -1963,141 +2152,141 @@
      <<asm_district()>>
 
      ;; Районы города
-     (make-district :name "Адмиралтейский")
-     (make-district :name "Василеостровский")
-     (make-district :name "Выборгский")
-     (make-district :name "Калининский")
-     (make-district :name "Кировский")
-     (make-district :name "Колпинский")
-     (make-district :name "Красногвардейский")
-     (make-district :name "Красносельский")
-     (make-district :name "Кронштадтский")
-     (make-district :name "Курортный")
-     (make-district :name "Московский")
-     (make-district :name "Невский")
-     (make-district :name "Петроградский")
-     (make-district :name "Петродворцовый")
-     (make-district :name "Приморский")
-     (make-district :name "Пушкинский")
-     (make-district :name "Фрунзенский")
-     (make-district :name "Центральный")
-     (make-district :name "Всеволожкси")
+     ;; (make-district :name "Адмиралтейский")
+     ;; (make-district :name "Василеостровский")
+     ;; (make-district :name "Выборгский")
+     ;; (make-district :name "Калининский")
+     ;; (make-district :name "Кировский")
+     ;; (make-district :name "Колпинский")
+     ;; (make-district :name "Красногвардейский")
+     ;; (make-district :name "Красносельский")
+     ;; (make-district :name "Кронштадтский")
+     ;; (make-district :name "Курортный")
+     ;; (make-district :name "Московский")
+     ;; (make-district :name "Невский")
+     ;; (make-district :name "Петроградский")
+     ;; (make-district :name "Петродворцовый")
+     ;; (make-district :name "Приморский")
+     ;; (make-district :name "Пушкинский")
+     ;; (make-district :name "Фрунзенский")
+     ;; (make-district :name "Центральный")
+     ;; (make-district :name "Всеволожкси")
 
      ;; Районы области
-     (make-district :name "Бокситогорский")
-     (make-district :name "Волосовский")
-     (make-district :name "Волховский")
-     (make-district :name "Всеволожский")
-     (make-district :name "Выборгский")
-     (make-district :name "Гатчинский")
-     (make-district :name "Кингисеппский")
-     (make-district :name "Киришский")
-     (make-district :name "Кировский")
-     (make-district :name "Лодейнопольский")
-     (make-district :name "Ломоносовский")
-     (make-district :name "Лужский")
-     (make-district :name "Подпорожский")
-     (make-district :name "Приозерский")
-     (make-district :name "Сланцевский")
-     (make-district :name "Тихвинский")
-     (make-district :name "Тосненский")
+     ;; (make-district :name "Бокситогорский")
+     ;; (make-district :name "Волосовский")
+     ;; (make-district :name "Волховский")
+     ;; (make-district :name "Всеволожский")
+     ;; (make-district :name "Выборгский")
+     ;; (make-district :name "Гатчинский")
+     ;; (make-district :name "Кингисеппский")
+     ;; (make-district :name "Киришский")
+     ;; (make-district :name "Кировский")
+     ;; (make-district :name "Лодейнопольский")
+     ;; (make-district :name "Ломоносовский")
+     ;; (make-district :name "Лужский")
+     ;; (make-district :name "Подпорожский")
+     ;; (make-district :name "Приозерский")
+     ;; (make-district :name "Сланцевский")
+     ;; (make-district :name "Тихвинский")
+     ;; (make-district :name "Тосненский")
 
      <<asm_metro()>>
 
-     (make-metro :name "Автово")
-     (make-metro :name "Адмиралтейская")
-     (make-metro :name "Академическая")
-     (make-metro :name "Балтийская")
-     (make-metro :name "Бухарестская")
-     (make-metro :name "Василеостровская")
-     (make-metro :name "Владимирская")
-     (make-metro :name "Волковская")
-     (make-metro :name "Выборгская")
-     (make-metro :name "Горьковская")
-     (make-metro :name "Гостиный двор")
-     (make-metro :name "Гражданский проспект")
-     (make-metro :name "Девяткино")
-     (make-metro :name "Достоевская")
-     (make-metro :name "Елизаровская")
-     (make-metro :name "Звёздная")
-     (make-metro :name "Звенигородская")
-     (make-metro :name "Кировский завод")
-     (make-metro :name "Комендантский проспект")
-     (make-metro :name "Крестовский остров")
-     (make-metro :name "Купчино")
-     (make-metro :name "Ладожская")
-     (make-metro :name "Ленинский проспект")
-     (make-metro :name "Лесная")
-     (make-metro :name "Лиговский проспект")
-     (make-metro :name "Ломоносовская")
-     (make-metro :name "Маяковская")
-     (make-metro :name "Международная")
-     (make-metro :name "Московская")
-     (make-metro :name "Московские ворота")
-     (make-metro :name "Нарвская")
-     (make-metro :name "Невский проспект")
-     (make-metro :name "Новочеркасская")
-     (make-metro :name "Обводный канал")
-     (make-metro :name "Обухово")
-     (make-metro :name "Озерки")
-     (make-metro :name "Парк Победы")
-     (make-metro :name "Парнас")
-     (make-metro :name "Петроградская")
-     (make-metro :name "Пионерская")
-     (make-metro :name "Площадь Александра Невского")
-     (make-metro :name "Площадь Александра Невского")
-     (make-metro :name "Площадь Восстания")
-     (make-metro :name "Площадь Ленина")
-     (make-metro :name "Площадь Мужества")
-     (make-metro :name "Политехническая")
-     (make-metro :name "Приморская")
-     (make-metro :name "Пролетарская")
-     (make-metro :name "Проспект Большевиков")
-     (make-metro :name "Проспект Ветеранов")
-     (make-metro :name "Проспект Просвещения")
-     (make-metro :name "Пушкинская")
-     (make-metro :name "Рыбацкое")
-     (make-metro :name "Садовая")
-     (make-metro :name "Сенная площадь")
-     (make-metro :name "Спасская")
-     (make-metro :name "Спортивная")
-     (make-metro :name "Старая Деревня")
-     (make-metro :name "Технологический институт")
-     (make-metro :name "Технологический институт")
-     (make-metro :name "Удельная")
-     (make-metro :name "Улица Дыбенко")
-     (make-metro :name "Фрунзенская")
-     (make-metro :name "Чёрная речка")
-     (make-metro :name "Чернышевская")
-     (make-metro :name "Чкаловская")
-     (make-metro :name "Электросила")
+     ;; (make-metro :name "Автово")
+     ;; (make-metro :name "Адмиралтейская")
+     ;; (make-metro :name "Академическая")
+     ;; (make-metro :name "Балтийская")
+     ;; (make-metro :name "Бухарестская")
+     ;; (make-metro :name "Василеостровская")
+     ;; (make-metro :name "Владимирская")
+     ;; (make-metro :name "Волковская")
+     ;; (make-metro :name "Выборгская")
+     ;; (make-metro :name "Горьковская")
+     ;; (make-metro :name "Гостиный двор")
+     ;; (make-metro :name "Гражданский проспект")
+     ;; (make-metro :name "Девяткино")
+     ;; (make-metro :name "Достоевская")
+     ;; (make-metro :name "Елизаровская")
+     ;; (make-metro :name "Звёздная")
+     ;; (make-metro :name "Звенигородская")
+     ;; (make-metro :name "Кировский завод")
+     ;; (make-metro :name "Комендантский проспект")
+     ;; (make-metro :name "Крестовский остров")
+     ;; (make-metro :name "Купчино")
+     ;; (make-metro :name "Ладожская")
+     ;; (make-metro :name "Ленинский проспект")
+     ;; (make-metro :name "Лесная")
+     ;; (make-metro :name "Лиговский проспект")
+     ;; (make-metro :name "Ломоносовская")
+     ;; (make-metro :name "Маяковская")
+     ;; (make-metro :name "Международная")
+     ;; (make-metro :name "Московская")
+     ;; (make-metro :name "Московские ворота")
+     ;; (make-metro :name "Нарвская")
+     ;; (make-metro :name "Невский проспект")
+     ;; (make-metro :name "Новочеркасская")
+     ;; (make-metro :name "Обводный канал")
+     ;; (make-metro :name "Обухово")
+     ;; (make-metro :name "Озерки")
+     ;; (make-metro :name "Парк Победы")
+     ;; (make-metro :name "Парнас")
+     ;; (make-metro :name "Петроградская")
+     ;; (make-metro :name "Пионерская")
+     ;; (make-metro :name "Площадь Александра Невского")
+     ;; (make-metro :name "Площадь Александра Невского")
+     ;; (make-metro :name "Площадь Восстания")
+     ;; (make-metro :name "Площадь Ленина")
+     ;; (make-metro :name "Площадь Мужества")
+     ;; (make-metro :name "Политехническая")
+     ;; (make-metro :name "Приморская")
+     ;; (make-metro :name "Пролетарская")
+     ;; (make-metro :name "Проспект Большевиков")
+     ;; (make-metro :name "Проспект Ветеранов")
+     ;; (make-metro :name "Проспект Просвещения")
+     ;; (make-metro :name "Пушкинская")
+     ;; (make-metro :name "Рыбацкое")
+     ;; (make-metro :name "Садовая")
+     ;; (make-metro :name "Сенная площадь")
+     ;; (make-metro :name "Спасская")
+     ;; (make-metro :name "Спортивная")
+     ;; (make-metro :name "Старая Деревня")
+     ;; (make-metro :name "Технологический институт")
+     ;; (make-metro :name "Технологический институт")
+     ;; (make-metro :name "Удельная")
+     ;; (make-metro :name "Улица Дыбенко")
+     ;; (make-metro :name "Фрунзенская")
+     ;; (make-metro :name "Чёрная речка")
+     ;; (make-metro :name "Чернышевская")
+     ;; (make-metro :name "Чкаловская")
+     ;; (make-metro :name "Электросила")
 
      <<asm_deadline()>>
 
-     (make-deadline :name "1 квартал 2015")
-     (make-deadline :name "2 квартал 2015")
-     (make-deadline :name "3 квартал 2015")
-     (make-deadline :name "4 квартал 2015")
+     ;; (make-deadline :name "1 квартал 2015")
+     ;; (make-deadline :name "2 квартал 2015")
+     ;; (make-deadline :name "3 квартал 2015")
+     ;; (make-deadline :name "4 квартал 2015")
 
-     (make-deadline :name "1 квартал 2016")
-     (make-deadline :name "2 квартал 2016")
-     (make-deadline :name "3 квартал 2016")
-     (make-deadline :name "4 квартал 2016")
+     ;; (make-deadline :name "1 квартал 2016")
+     ;; (make-deadline :name "2 квартал 2016")
+     ;; (make-deadline :name "3 квартал 2016")
+     ;; (make-deadline :name "4 квартал 2016")
 
-     (make-deadline :name "1 квартал 2017")
-     (make-deadline :name "2 квартал 2017")
-     (make-deadline :name "3 квартал 2017")
-     (make-deadline :name "4 квартал 2017")
+     ;; (make-deadline :name "1 квартал 2017")
+     ;; (make-deadline :name "2 квартал 2017")
+     ;; (make-deadline :name "3 квартал 2017")
+     ;; (make-deadline :name "4 квартал 2017")
 
-     (make-deadline :name "1 квартал 2018")
-     (make-deadline :name "2 квартал 2018")
-     (make-deadline :name "3 квартал 2018")
-     (make-deadline :name "4 квартал 2018")
+     ;; (make-deadline :name "1 квартал 2018")
+     ;; (make-deadline :name "2 квартал 2018")
+     ;; (make-deadline :name "3 квартал 2018")
+     ;; (make-deadline :name "4 квартал 2018")
 
-     (make-deadline :name "1 квартал 2019")
-     (make-deadline :name "2 квартал 2019")
-     (make-deadline :name "3 квартал 2019")
-     (make-deadline :name "4 квартал 2019")
+     ;; (make-deadline :name "1 квартал 2019")
+     ;; (make-deadline :name "2 квартал 2019")
+     ;; (make-deadline :name "3 квартал 2019")
+     ;; (make-deadline :name "4 квартал 2019")
 
    #+END_SRC
 
@@ -2105,56 +2294,56 @@
 
     #+NAME: asm_cmpx
     #+BEGIN_SRC emacs-lisp :var flds=cmpx_flds :exports none :session gen
-      (gen-entity "cmpx" "комплекса" flds)
+      ;; (gen-entity "cmpx" "комплекса" flds)
     #+END_SRC
 
 *** Очередь жилого комплекса
 
     #+NAME: asm_plex
     #+BEGIN_SRC emacs-lisp :var flds=plex_flds :exports none :session gen
-      (gen-entity "plex" "очереди жилого комплекса" flds)
+      ;; (gen-entity "plex" "очереди жилого комплекса" flds)
     #+END_SRC
 
 *** Корпус очереди жилого комплекса
 
     #+NAME: asm_crps
     #+BEGIN_SRC emacs-lisp :var flds=crps_flds :exports none :session gen
-      (gen-entity "crps" "корпуса очереди жилого комплекса" flds)
+      ;; (gen-entity "crps" "корпуса очереди жилого комплекса" flds)
     #+END_SRC
 
 *** Планировка
 
     #+NAME: asm_flat
     #+BEGIN_SRC emacs-lisp :var flds=flat_flds :exports none :session gen
-      (gen-entity "flat" "планировки" flds)
+      ;; (gen-entity "flat" "планировки" flds)
     #+END_SRC
 
 *** Город
 
     #+NAME: asm_city
     #+BEGIN_SRC emacs-lisp :var flds=city_flds :exports none :session gen
-      (gen-entity "city" "города" flds)
+      ;; (gen-entity "city" "города" flds)
     #+END_SRC
 
 *** Районы
 
     #+NAME: asm_district
     #+BEGIN_SRC emacs-lisp :var flds=district_flds :exports none :session gen
-      (gen-entity "district" "района" flds)
+      ;; (gen-entity "district" "района" flds)
     #+END_SRC
 
 *** Метро
 
     #+NAME: asm_metro
     #+BEGIN_SRC emacs-lisp :var flds=metro_flds :exports none :session gen
-      (gen-entity "metro" "метро" flds)
+      ;; (gen-entity "metro" "метро" flds)
     #+END_SRC
 
 *** Сроки сдачи
 
     #+NAME: asm_deadline
     #+BEGIN_SRC emacs-lisp :var flds=deadline_flds :exports none :session gen
-      (gen-entity "deadline" "метро" flds)
+      ;; (gen-entity "deadline" "метро" flds)
     #+END_SRC
 
 ** Загрузчик данных из файлов

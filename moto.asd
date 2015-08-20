@@ -58,15 +58,15 @@
                         :pathname "mod/msg"
                         :components ((:file "msg")))
                ;; Модуль trend
-               ;; ;; (:module "trend"
-               ;; ;;          :serial t
-               ;; ;;          :pathname "mod/trend"
-               ;; ;;          :components ((:static-file "trend-tpl.htm")
-               ;; ;;                       (:file "trend-prepare")
-               ;; ;;                       (:file "entityes")
-               ;; ;;                       (:file "loader")
-               ;; ;;                       (:file "trend")
-               ;; ;;                       (:file "iface")))
+               (:module "trend"
+                        :serial t
+                        :pathname "mod/trend"
+                        :components ((:static-file "trend-tpl.htm")
+                                     (:file "trend-prepare")
+                                     (:file "entityes")
+                                     (:file "loader")
+                                     (:file "trend")
+                                     (:file "iface")))
                ;; Модуль мотобратан
                ;; (:module "bratan"
                ;;          :serial t

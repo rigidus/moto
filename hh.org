@@ -843,16 +843,16 @@
 
    #+CAPTION: Данные правила
    #+NAME: rule_flds
-   | field name | field type            | note                                                   |
-   |------------+-----------------------+--------------------------------------------------------|
-   | id         | serial                | идентификатор                                          |
-   | name       | varchar               | имя                                                    |
-   | user-id    | integer               | владелец правила                                       |
-   | rank       | integer               | приоритет правила                                      |
-   | ruletype   | varchar               | :teaser - правило для тизеров, :vacancy - для вакансий |
-   | antecedent | varchar               | условие срабатывания правила                           |
-   | consequent | varchar               | код правила                                            |
-   | notes      | (or :db-null varchar) | заметки к правилу                                      |
+   | field name | field type           | note                                                   |
+   |------------+----------------------+--------------------------------------------------------|
+   | id         | serial               | идентификатор                                          |
+   | name       | varchar              | имя                                                    |
+   | user-id    | integer              | владелец правила                                       |
+   | rank       | integer              | приоритет правила                                      |
+   | ruletype   | varchar              | :teaser - правило для тизеров, :vacancy - для вакансий |
+   | antecedent | varchar              | условие срабатывания правила                           |
+   | consequent | varchar              | код правила                                            |
+   | notes      | (or db-null varchar) | заметки к правилу                                      |
 
    Правило может быть активным и неактивным
 

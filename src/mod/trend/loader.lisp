@@ -116,92 +116,92 @@
     ;; output
     (reverse result)))
 
-(defun clear-db-trend ()
-  (let ((tables '("cmpx" "plex" "crps" "flat")))
-    (flet ((rmtbl (tblname)
-             (when (with-connection *db-spec*
-                     (query (:select 'table_name :from 'information_schema.tables :where
-                                     (:and (:= 'table_schema "public")
-                                           (:= 'table_name tblname)))))
-               (with-connection *db-spec*
-                 (query (:delete-from (intern (string-upcase tblname))))))))
-      (loop :for tblname :in tables :collect
-         (rmtbl tblname)))))
+;; (defun clear-db-trend ()
+;;   (let ((tables '("cmpx" "plex" "crps" "flat")))
+;;     (flet ((rmtbl (tblname)
+;;              (when (with-connection *db-spec*
+;;                      (query (:select 'table_name :from 'information_schema.tables :where
+;;                                      (:and (:= 'table_schema "public")
+;;                                            (:= 'table_name tblname)))))
+;;                (with-connection *db-spec*
+;;                  (query (:delete-from (intern (string-upcase tblname))))))))
+;;       (loop :for tblname :in tables :collect
+;;          (rmtbl tblname)))))
 
-(defun load-data ()
-  (clear-db-trend)
-  ;; Для каждой подпапке в папке данных..
-  (loop-dir cmpx ()
-     ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
-       (format t "~%-~A" cmpx)
-       (let ((cmpx-id (id (make-cmpx :name cmpx))))
-         ;; Если найден файл с данными ЖК - обновим созданную очередь ЖК
-         (awhen-file ("complex.txt" files)
-           ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
-           (let ((complex (keyval (format nil "~A~A/~A" *data-path* cmpx it))))
-             (format t "~% ~A - ~A" it (bprint complex))
-             (upd-cmpx (get-cmpx cmpx-id)
-                       (list
-                        :addr (assoc-key "Адрес" complex)
-                        :district-id (let ((obj (find-district :name (assoc-key "Район" complex))))
-                                       (if (null obj)
-                                           (warn (format nil "Район ~A не найден в таблице районов" (assoc-key "Район" complex)))
-                                           (id (car obj))))
-                        :metro-id    (let ((obj (find-metro :name (assoc-key "Метро" complex))))
-                                       (if (null obj)
-                                           (warn (format nil "Метро ~A не найдено в таблице метро" (assoc-key "Метро" complex)))
-                                           (id (car obj))))))))
-         ;; Для каждой подпапки в папке комплекса, кроме планировок, рендеров и хода строительства:
-         (loop-dir plex (cmpx)
-              (unless (or (string= plex "Планировки")
-                          (string= plex "Рендеры")
-                          (string= plex "Ход строительства"))
-                ;; Создаем очередь ЖК
-                (format t "~%--~A" plex)
-                (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
-                  ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
-                  (awhen-file ("data.txt" files)
-                    (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
-                      (format t "~%  ~A - ~A" it (bprint data))
-                      (upd-plex (get-plex plex-id)
-                                ;; (assoc-key "Срок сдачи" '(("﻿Срок сдачи" . "2 квартал 2015") ("Субсидия" . "")
-                                ;;                           ("Отделка" . "предчистовая") ("Ипотека" . "да") ("Рассрочка" . "да")
-                                ;;                           ("Расстояние до метро" . "1.7 км (21 мин пешком)")))
-                                (list :deadline-id (let ((dd (assoc-key "Срок сдачи" data)))
-                                                     (format t "~%   dd: ~A | ~A"
-                                                             dd
-                                                             (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
-                                                               (id (car it))))
-                                                     (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
-                                                       (id (car it))))
-                                      :finishing   (assoc-key "Отделка" data)
-                                      :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
-                                      :installment (or (string= "да" (assoc-key "рассрочка" data)))
-                                      :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
-                                      :distance    (assoc-key "Расстояние до метро" data)))
-                      (format t "~%   rr: ~A" (deadline-id (get-plex plex-id)))
-                      ))
-                  ;; Для каждой подпапки в папке очереди ЖК, кроме планировок, рендеров и хода строительства:
-                  (loop-dir crps (cmpx plex)
-                       (unless (or (string= crps "Планировки")
-                                   (string= crps "Рендеры")
-                                   (string= crps "Ход строительства"))
-                         ;; Создаем корпус
-                         (format t "~%---~A" crps)
-                         (let ((crps-id (id (make-crps :name crps :plex-id plex-id))))
-                           ;; Если найден файл с планировками объекта
-                           (awhen-file ("квартиры.xls" files)
-                             (loop :for item :in (cdr (xls-processor (format nil "~A~A/~A/~A/~A" *data-path* cmpx plex crps it))) :do
-                                (format t "~%   ~A" (bprint item))
-                                (make-flat :crps-id crps-id
-                                           :rooms (parse-integer (nth 0 item))
-                                           :area-sum (nth 1 item)
-                                           :area-living (nth 2 item)
-                                           :area-kitchen (nth 3 item)
-                                           :balcon (nth 4 item)
-                                           :sanuzel (if (string= "" (nth 5 item)) t nil)
-                                           :price (parse-integer (nth 6 item)))))))))))))
-  (format t "~%-=finish=-"))
+;; (defun load-data ()
+;;   (clear-db-trend)
+;;   ;; Для каждой подпапке в папке данных..
+;;   (loop-dir cmpx ()
+;;      ;; Создаем комплекс и заполняем адрес, если удалось найти соответствующий файл
+;;        (format t "~%-~A" cmpx)
+;;        (let ((cmpx-id (id (make-cmpx :name cmpx))))
+;;          ;; Если найден файл с данными ЖК - обновим созданную очередь ЖК
+;;          (awhen-file ("complex.txt" files)
+;;            ;; Прочитать, разбить построчно, отделить ключи от значений, убрать ведущие, ведомые и повторяющиеся пробелы
+;;            (let ((complex (keyval (format nil "~A~A/~A" *data-path* cmpx it))))
+;;              (format t "~% ~A - ~A" it (bprint complex))
+;;              (upd-cmpx (get-cmpx cmpx-id)
+;;                        (list
+;;                         :addr (assoc-key "Адрес" complex)
+;;                         :district-id (let ((obj (find-district :name (assoc-key "Район" complex))))
+;;                                        (if (null obj)
+;;                                            (warn (format nil "Район ~A не найден в таблице районов" (assoc-key "Район" complex)))
+;;                                            (id (car obj))))
+;;                         :metro-id    (let ((obj (find-metro :name (assoc-key "Метро" complex))))
+;;                                        (if (null obj)
+;;                                            (warn (format nil "Метро ~A не найдено в таблице метро" (assoc-key "Метро" complex)))
+;;                                            (id (car obj))))))))
+;;          ;; Для каждой подпапки в папке комплекса, кроме планировок, рендеров и хода строительства:
+;;          (loop-dir plex (cmpx)
+;;               (unless (or (string= plex "Планировки")
+;;                           (string= plex "Рендеры")
+;;                           (string= plex "Ход строительства"))
+;;                 ;; Создаем очередь ЖК
+;;                 (format t "~%--~A" plex)
+;;                 (let ((plex-id (id (make-plex :name plex :cmpx-id cmpx-id))))
+;;                   ;; Если найден файл с данными очереди ЖК - обновим созданную очередь ЖК
+;;                   (awhen-file ("data.txt" files)
+;;                     (let ((data (keyval (format nil "~A~A/~A/~A" *data-path* cmpx plex it))))
+;;                       (format t "~%  ~A - ~A" it (bprint data))
+;;                       (upd-plex (get-plex plex-id)
+;;                                 ;; (assoc-key "Срок сдачи" '(("﻿Срок сдачи" . "2 квартал 2015") ("Субсидия" . "")
+;;                                 ;;                           ("Отделка" . "предчистовая") ("Ипотека" . "да") ("Рассрочка" . "да")
+;;                                 ;;                           ("Расстояние до метро" . "1.7 км (21 мин пешком)")))
+;;                                 (list :deadline-id (let ((dd (assoc-key "Срок сдачи" data)))
+;;                                                      (format t "~%   dd: ~A | ~A"
+;;                                                              dd
+;;                                                              (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
+;;                                                                (id (car it))))
+;;                                                      (awhen (find-deadline :name (assoc-key "Срок сдачи" data))
+;;                                                        (id (car it))))
+;;                                       :finishing   (assoc-key "Отделка" data)
+;;                                       :ipoteka     (or (string= "да" (assoc-key "ипотека" data)))
+;;                                       :installment (or (string= "да" (assoc-key "рассрочка" data)))
+;;                                       :subsidy     (or (string= "да" (assoc-key "субсидия" data)))
+;;                                       :distance    (assoc-key "Расстояние до метро" data)))
+;;                       (format t "~%   rr: ~A" (deadline-id (get-plex plex-id)))
+;;                       ))
+;;                   ;; Для каждой подпапки в папке очереди ЖК, кроме планировок, рендеров и хода строительства:
+;;                   (loop-dir crps (cmpx plex)
+;;                        (unless (or (string= crps "Планировки")
+;;                                    (string= crps "Рендеры")
+;;                                    (string= crps "Ход строительства"))
+;;                          ;; Создаем корпус
+;;                          (format t "~%---~A" crps)
+;;                          (let ((crps-id (id (make-crps :name crps :plex-id plex-id))))
+;;                            ;; Если найден файл с планировками объекта
+;;                            (awhen-file ("квартиры.xls" files)
+;;                              (loop :for item :in (cdr (xls-processor (format nil "~A~A/~A/~A/~A" *data-path* cmpx plex crps it))) :do
+;;                                 (format t "~%   ~A" (bprint item))
+;;                                 (make-flat :crps-id crps-id
+;;                                            :rooms (parse-integer (nth 0 item))
+;;                                            :area-sum (nth 1 item)
+;;                                            :area-living (nth 2 item)
+;;                                            :area-kitchen (nth 3 item)
+;;                                            :balcon (nth 4 item)
+;;                                            :sanuzel (if (string= "" (nth 5 item)) t nil)
+;;                                            :price (parse-integer (nth 6 item)))))))))))))
+;;   (format t "~%-=finish=-"))
 
-(load-data)
+;; (load-data)
 ;; asm_loader ends here
