@@ -27,6 +27,12 @@
 
     У каждого ЖК есть =регион=, =район= и несколько ближайших станций =метро=.
 
+    В каждом ЖК есть =корпуса=, т.е. построенные или строящиеся внутри проекта ЖК дома. Они
+    могут быть объединены в =очереди сдачи=. У каждого корпуса есть адрес дома.
+
+    Корпуса могут быть в разных состояниях готовности, для этого у них есть поле
+    =status_buildId=, указывающее на таблицу =status_build=, в которых эти состояния перечислены
+
 **** Застройщики
 
      #+CAPTION: Застройщики - схема данных
@@ -7901,7 +7907,7 @@ Parse error: syntax error, unexpected end of file, expecting variable (T_VARIABL
 **** Жилые комплексы
 
      #+CAPTION: Жилые комплексы - схема данных
-     #+NAME: developer_flds
+     #+NAME: conplex_flds
      | field         | field type          | note                                                                 |
      |---------------+---------------------+----------------------------------------------------------------------|
      | id            | binary(16)          | Идентификатор в виде GUID-а                                          |
@@ -17779,6 +17785,118 @@ Parse error: syntax error, unexpected end of file, expecting variable (T_VARIABL
      | 64 | Чернышевская                |    1 |         0 |       0 |
      | 65 | Чкаловская                  |    5 |         0 |       0 |
      | 66 | Электросила                 |    2 |         0 |       0 |
+**** Корпуса ЖК
+
+     #+CAPTION: Корпуса - схема данных
+     #+NAME: block_flds
+     | field          | field type           | note                                                  |
+     |----------------+----------------------+-------------------------------------------------------|
+     | id             | binary(16)           | Идентификатор в виде GUID-а                           |
+     | nb_sourceId    | tinyint(4) unsigned  | Идентификатор источника данных reftbl:nb_source       |
+     | nb_complexId   | binary(16)           | Идентификатор комплекса в виде GUID-а                 |
+     | statusId       | tinyint(4) unsigned  | Статус комплекса reftbl:status                        |
+     | status_buildId | tinyint(4) unsigned  | Статус в котором находится корпус reftbl:status_build |
+     | house          | varchar(15)          | Дом                                                   |
+     | block          | varchar(15)          | Корпус дома                                           |
+     | litera         | varchar(50)          | Литера                                                |
+     | floors         | varchar(20)          | Этажность                                             |
+     | quarter_end    | tinyint(4) unsigned  | Квартал окончания постройки                           |
+     | year_end       | smallint(6) unsigned | Год окончания постройки                               |
+     | house_typeId   | tinyint(4) unsigned  | Тип дома reftbl:? - Нет таблицы с типами домов        |
+     | bknId          | binary(16)           | Привязка к БКН-овскому корпусу                        |
+
+     Типы домов (=house_typeId=) могут быть:
+     - Блочный
+     - Индивидуальный
+     - Кирпично-монолитный
+     - Кирпичный
+     - Монолитный
+     - Панельно-монолитный
+     - Панельный
+
+**** Данные корпусов ЖК
+
+     Здесь мы соберем все данные которые у нас есть по всем жилым комплексам. Все активные комплексы
+     можно получить вот таким запросом:
+
+     #+name: query_get_blocks
+     #+header: :engine mysql
+     #+header: :dbhost bkn.ru
+     #+header: :dbport 3306
+     #+header: :dbuser root
+     #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
+     #+header: :database bkn_base
+     #+begin_src sql :results output table d
+       select toguid(id), nb_sourceId, toguid(nb_complexId), statusId, status_buildId, house, block, litera, floors, quarter_end, year_end, house_typeId, bknId from nb_block limit 200000;
+     #+end_src
+
+     #+NAME: blocks_data
+     #+BEGIN_SRC emacs-lisp :var table=query_get_blocks :results output :exports none
+       (mapcar #'(lambda (x)
+                   (princ (format "***** Корпус %s \n\n" (first x)))
+                   (princ (format "      #+CAPTION: Корпус %s\n" (first x)))
+                   (princ (format "      #+NAME: BLOCK-DATA-%s\n" (first x)))
+                   (princ (format "      | id             | %s | \n" (let ((tmp (nth 00 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | nb_sourceId    | %s | \n" (let ((tmp (nth 01 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | nb_complexId   | %s | \n" (let ((tmp (nth 02 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | statusId       | %s | \n" (let ((tmp (nth 03 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | status_buildId | %s | \n" (let ((tmp (nth 04 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | house          | %s | \n" (let ((tmp (nth 05 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | block          | %s | \n" (let ((tmp (nth 06 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | litera         | %s | \n" (let ((tmp (nth 07 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | floors         | %s | \n" (let ((tmp (nth 08 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | quarter_end    | %s | \n" (let ((tmp (nth 09 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | year_end       | %s | \n" (let ((tmp (nth 10 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | house_typeId   | %s | \n" (let ((tmp (nth 11 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | bknId          | %s | \n" (let ((tmp (nth 12 x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "\n")))
+               table)
+     #+END_SRC
+
+     #+results: blocks_data
+     #+begin_example
+     ***** Корпус BC594F00-300C-11E3-B13F-5404A6B20161
+
+           #+CAPTION: Корпус BC594F00-300C-11E3-B13F-5404A6B20161
+           #+NAME: BLOCK-DATA-BC594F00-300C-11E3-B13F-5404A6B20161
+           | id             | BC594F00-300C-11E3-B13F-5404A6B20161 |
+           | nb_sourceId    | 2 |
+           | nb_complexId   | 9DFF6CEF-D7EE-11E4-9FBB-448A5BD44C07 |
+           | statusId       | 1 |
+           | status_buildId |  |
+           | house          |  |
+           | block          |  |
+           | litera         | уч.1 |
+           | floors         | 9-17 |
+           | quarter_end    | 2 |
+           | year_end       | 2014 |
+           | house_typeId   | 2 |
+           | bknId          |  |
+
+     ***** Корпус 03DA6000-C403-11E4-9FBB-448A5BD44C07
+
+           #+CAPTION: Корпус 03DA6000-C403-11E4-9FBB-448A5BD44C07
+           #+NAME: BLOCK-DATA-03DA6000-C403-11E4-9FBB-448A5BD44C07
+           | id             | 03DA6000-C403-11E4-9FBB-448A5BD44C07 |
+           | nb_sourceId    | 2 |
+           | nb_complexId   | 9DFFDAC4-D7EE-11E4-9FBB-448A5BD44C07 |
+           | statusId       | 1 |
+           | status_buildId |  |
+           | house          | 23 |
+           | block          | 6 |
+           | litera         |  |
+           | floors         | 5-8,18-20 |
+           | quarter_end    | 3 |
+           | year_end       | 2015 |
+           | house_typeId   | 2 |
+           | bknId          |  |
+
+#+end_example
+
+
+
+**** TODO | status_build
+
 **** TODO Оставшиеся таблицы
 
      | Tables_in_bkn_base |
@@ -17788,8 +17906,6 @@ Parse error: syntax error, unexpected end of file, expecting variable (T_VARIABL
      | developer_banks    |
      | developer_customs  |
      | nb_appartment      |
-     | nb_block           |
-     | nb_complex         |
      | nb_contacts        |
      | nb_photos          |
      | obj_type_p         |
