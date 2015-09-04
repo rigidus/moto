@@ -1,0 +1,92 @@
+#+TITLE: frp
+#+HTML_HEAD: <!-- -*- fill-column: 86 -*- -->
+
+#+NAME: css
+#+BEGIN_HTML
+<link rel="stylesheet" type="text/css" href="css/css.css" />
+#+END_HTML
+
+* FRP
+
+  В качестве модельной задачи представим что у нас есть некоторая
+  форма регистрации:
+
+  #+BEGIN_SRC ditaa :file ./img/frp-form.png
+
+  +----------------------------------------+
+  | Registration form                      |
+  |                                        |
+  |                      +---------------+ |
+  | электронная почта    |               | |
+  |                      +---------------+ |
+  |                                        |
+  |                      +---------------+ |
+  | пароль               |               | |
+  |                      +---------------+ |
+  |                                        |
+  |                      +---------------+ |
+  | подтверждение пароля |               | |
+  |                      +---------------+ |
+  |                                        |
+  | /----------\                           |
+  | | Register |                           |
+  | \----------/                           |
+  +----------------------------------------+
+  #+END_SRC
+
+  #+results:
+  [[file:./img/frp-form.png]]
+  Мы можем прямо сразу попробовать ее описать декларативно:
+
+  #+NAME: iface_contents
+  #+BEGIN_SRC lisp
+    (define-form register ("Registration form")
+      ((define-field  email    () "Электронная почта")
+       (define-field  password (:type "password") "Пароль")
+       (define-field  confirm  (:type "password") "Подтверждение пароля")
+       (define-button register () "Зарегистроваться")))
+  #+END_SRC
+
+  Теперь мы хотим чтобы кнопка "Зарегистрироваться" была недоступна,
+  если поля формы не содержат корректное значение (чтобы это не
+  значило) Опишем, что статус кнопки зависит от полей:
+
+  #+NAME: register_button
+  #+BEGIN_SRC lisp
+    (define-button register
+        (:status (if (reduce #'(lambda (acc x)
+                                 (and (is-correct acc)
+                                      (is-correct x)))
+                             (list email password confirm))
+                     :enabled
+                     :disabled))
+      "Зарегистроваться")
+  #+END_SRC
+
+  Какие-же значения считать корректными? Ну, например, пароль никак не
+  может быть пустым, так и запишем:
+
+  #+NAME: register_button
+  #+BEGIN_SRC lisp
+    (defmethod is_correct ((field password))
+      (not (is_empty (get-value field))))
+  #+END_SRC
+
+  Подтверждение пароля помимо этого должно совпадать с паролем:
+
+  #+NAME: register_button
+  #+BEGIN_SRC lisp
+    (defmethod is_correct ((field confirm))
+      (and (not (is_empty (get-value field)))
+           (equal (get-value field)
+                  (get-value (get-field confirm)))))
+  #+END_SRC
+
+  Ну а email должен быть не зарегистрирован:
+
+  #+NAME: register_button
+  #+BEGIN_SRC lisp
+    (defmethod is_correct ((field email))
+      (and (not (is_empty (get-value field)))
+           (not (is-registered-email (get-value field)))))
+  #+END_SRC
