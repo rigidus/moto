@@ -14,83 +14,227 @@
 
 ** Продажа
 *** Квартиры в новостройках
+**** Застройщики
 
-    У нас есть некоторое количество =застройщиков=, которые строят =жилые
-    комплексы=. Квартиры в этих жилых комплексах продаются как самим застройщиком (его
-    отделом продаж) так =агенствами недвижимости= и =субагентами=.
+     У нас есть некоторое количество =застройщиков=, которые строят =жилые
+     комплексы=. Квартиры в этих жилых комплексах продаются как самим застройщиком (его
+     отделом продаж) так =агенствами недвижимости= и =субагентами=.
 
-    У каждого ЖК есть =статус= - например: активный или архивный (есть и другие)
+     #+CAPTION: Застройщики - схема данных
+     #+NAME: developer_flds
+    | field   | field type   | note                        |
+    |---------+--------------+-----------------------------|
+    | id      | binary(16)   | Идентификатор в виде GUID-а |
+    | name    | varchar(255) | Название компании           |
+    | address | varchar(255) | Адрес компании              |
+    | url     | varchar(50)  | Адрес сайта                 |
+    | phone   | varchar(50)  | Телефон                     |
+    | note    | text         | Описание застройщика        |
 
-    У каждого ЖК есть =источник данных= - обычно это агентсво, от которого
-    получена информация об этом ЖК.
+     Таким образом мы можем получать всех застройщиков, которые имеют активные комплексы
 
-    У каждого ЖК есть =регион=, =район= и несколько ближайших станций =метро=.
-
-    В каждом ЖК есть =корпуса=, т.е. построенные или строящиеся внутри проекта ЖК дома. Они
-    могут быть объединены в =очереди сдачи=. У каждого корпуса есть адрес дома.
-
-    Корпуса могут быть в разных состояниях готовности, для этого у них есть поле
-    =status_buildId=, указывающее на таблицу =status_build=, в которых эти состояния перечислены
-
-    #+name: query_get_developer
-    #+header: :engine mysql
-    #+header: :dbhost bkn.ru
-    #+header: :dbport 3306
-    #+header: :dbuser root
-    #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
-    #+header: :database bkn_base
-    #+begin_src sql :results output :var limit="2" :results table
-      SELECT toguid(id), name, address, url, phone, note FROM bkn_base.developer d limit $limit;
-    #+end_src
-
-    #+results: query_get_developer
-    | toguid(id)                           | name                     | address                             | url               | phone                            | note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-    |--------------------------------------+--------------------------+-------------------------------------+-------------------+----------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | 281D1E00-8C3E-11E4-9B12-448A5BD44C07 | Модуль                   | СПб, шос. Выборгское, д. 36         | www.modulgroup.ru | (812) 702-35-37, (812) 702-35-35 | <span style="font-family: Arial;">&nbsp;</span><font color="#000000" style="font-family: Arial; font-size: 10pt;">Группа компаний «Модуль» уже 15 лет находится в строительном бизнесе,&nbsp; специализируясь на комплексном строительстве качественного кирпично-монолитного жилья,&nbsp; организуя полную техническую эксплуатацию построенных объектов.</font><font color="#000000" style="font-family: Arial; font-size: 10pt;">&nbsp;На сегодняшний день группа компаний «Модуль» занимает одну из лидирующих позиций среди быстрорастущих инвестиционно-строительных компаний Санкт-Петербурга.Значительный опыт, накопленный за годы активного труда, наличие собственных производственных мощностей и применение современных строительных материалов позволяют&nbsp; группе компаний непрерывно развиваться, и стабильно занимать одно из ведущих мест в числе&nbsp; крупнейших застройщиков Санкт-Петербурга.&nbsp;</font><font color="#000000" style="font-family: Arial; font-size: 10pt;">С недавнего времени в группе компаний «Модуль» активно развивается&nbsp; департамент Зарубежной Недвижимости.&nbsp;</font> |
-    | 28275A00-8C3E-11E4-9B12-448A5BD44C07 | Renaissance Construction | СПб, ул. Шателена 26/A              | www.rencons.com   | (812) 740-63-70                  | <span style="font-family: Arial; text-align: justify;">Компания Ренейссанс Констракшн была основана в С.- Петербурге в 1993 году и является ведущей компанией турецкого Холдинга Ренейссанс. Компания выступает в роли генподрядчика при реализации крупнейших и&nbsp; сложных международных инвестиционных проектов с гарантиями высокого уровня качества. С момента ее образования было построено более 5 млн. квадратных метров жилых и производственных площадей и реализовано под ключ более 420 проектов. Некоторые из реализованных Ренейссанс Констракшн проектов были удостоены международных призов, присуждаемых независимыми организациями.</span>                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-    | 28285B00-8C3E-11E4-9B12-448A5BD44C07 | СоюзГенСтрой             | СПб, ул. Чайковского, д. 20, лит. B | www.st15.ru       | (812) 325-01-00                  | <span style="font-family: Arial; font-size: 11.9999990463257px; text-align: justify;">Компания СоюзГенСтрой один из крупнейших девелоперов в Санкт-Петербурге. Ключевой компетенцией компании стали девелопмент и управление отелями и бизнес-центрами, а основным конкурентным преимуществом - понимание высоких требований клиентов премиум-сегмента. Инвестирует в перспективные земельные участки, проводит оценку экономической состоятельности проектов и обеспечивает финансирование нового строительства. Специализированные подразделения компании разрабатывают архитектурную концепцию новых объектов, проектируют и строят многофункциональные деловые комплексы, офисные центры, складские терминалы и общественные здания. Продолжая активно развивать направление коммерческой недвижимости, «Союзгенстрой» успешно продвигается на рынке премиального жилья.</span>                                                                                                                                                                                                                                              |
-    | A554CE00-063B-11E5-BA3E-448A5BD44C07 | РегионСтрой              | NULL                                | NULL              | NULL                             | NULL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-    | 281F2702-8C3E-11E4-9B12-448A5BD44C07 | СК Рыбинская             | NULL                                | NULL              | NULL                             | NULL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-    | toguid(id)                           | name                     | address                             | url               | phone                            | note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-    |--------------------------------------+--------------------------+-------------------------------------+-------------------+----------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | 281D1E00-8C3E-11E4-9B12-448A5BD44C07 | Модуль                   | СПб, шос. Выборгское, д. 36         | www.modulgroup.ru | (812) 702-35-37, (812) 702-35-35 | <span style="font-family: Arial;">&nbsp;</span><font color="#000000" style="font-family: Arial; font-size: 10pt;">Группа компаний «Модуль» уже 15 лет находится в строительном бизнесе,&nbsp; специализируясь на комплексном строительстве качественного кирпично-монолитного жилья,&nbsp; организуя полную техническую эксплуатацию построенных объектов.</font><font color="#000000" style="font-family: Arial; font-size: 10pt;">&nbsp;На сегодняшний день группа компаний «Модуль» занимает одну из лидирующих позиций среди быстрорастущих инвестиционно-строительных компаний Санкт-Петербурга.Значительный опыт, накопленный за годы активного труда, наличие собственных производственных мощностей и применение современных строительных материалов позволяют&nbsp; группе компаний непрерывно развиваться, и стабильно занимать одно из ведущих мест в числе&nbsp; крупнейших застройщиков Санкт-Петербурга.&nbsp;</font><font color="#000000" style="font-family: Arial; font-size: 10pt;">С недавнего времени в группе компаний «Модуль» активно развивается&nbsp; департамент Зарубежной Недвижимости.&nbsp;</font> |
-    | 28275A00-8C3E-11E4-9B12-448A5BD44C07 | Renaissance Construction | СПб, ул. Шателена 26/A              | www.rencons.com   | (812) 740-63-70                  | <span style="font-family: Arial; text-align: justify;">Компания Ренейссанс Констракшн была основана в С.- Петербурге в 1993 году и является ведущей компанией турецкого Холдинга Ренейссанс. Компания выступает в роли генподрядчика при реализации крупнейших и&nbsp; сложных международных инвестиционных проектов с гарантиями высокого уровня качества. С момента ее образования было построено более 5 млн. квадратных метров жилых и производственных площадей и реализовано под ключ более 420 проектов. Некоторые из реализованных Ренейссанс Констракшн проектов были удостоены международных призов, присуждаемых независимыми организациями.</span>                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-    | 28285B00-8C3E-11E4-9B12-448A5BD44C07 | СоюзГенСтрой             | СПб, ул. Чайковского, д. 20, лит. B | www.st15.ru       | (812) 325-01-00                  | <span style="font-family: Arial; font-size: 11.9999990463257px; text-align: justify;">Компания СоюзГенСтрой один из крупнейших девелоперов в Санкт-Петербурге. Ключевой компетенцией компании стали девелопмент и управление отелями и бизнес-центрами, а основным конкурентным преимуществом - понимание высоких требований клиентов премиум-сегмента. Инвестирует в перспективные земельные участки, проводит оценку экономической состоятельности проектов и обеспечивает финансирование нового строительства. Специализированные подразделения компании разрабатывают архитектурную концепцию новых объектов, проектируют и строят многофункциональные деловые комплексы, офисные центры, складские терминалы и общественные здания. Продолжая активно развивать направление коммерческой недвижимости, «Союзгенстрой» успешно продвигается на рынке премиального жилья.</span>                                                                                                                                                                                                                                              |
-    | A554CE00-063B-11E5-BA3E-448A5BD44C07 | РегионСтрой              | NULL                                | NULL              | NULL                             | NULL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-    | 281F2702-8C3E-11E4-9B12-448A5BD44C07 | СК Рыбинская             | NULL                                | NULL              | NULL                             | NULL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-
-
-    #+NAME: developers_data_fwefewf
-    #+BEGIN_SRC emacs-lisp :results list :exports none
-      (save-excursion
-        (org-babel-goto-named-src-block "query_get_developer")
-        (let ((info (org-babel-get-src-block-info t)))
-          (setf (cdr (assoc :var (nth 2 info))) (cons "limit" "5"))
-          (princ (format "[%s] \n\n" (nth 2 info)))
-          (org-babel-execute-src-block nil info)
-          ))
-    #+END_SRC
-
-    #+results: developers_data_fwefewf
-    - ("toguid(id)" "name" "address" "url" "phone" "note")
-    - hline
-    - ("281D1E00-8C3E-11E4-9B12-448A5BD44C07" "Модуль" "СПб, шос. Выборгское, д. 36" "www.modulgroup.ru" "(812) 702-35-37, (812) 702-35-35" "<span style=\"font-family: Arial;\">&nbsp;</span><font color=\"#000000\" style=\"font-family: Arial; font-size: 10pt;\">Группа компаний «Модуль» уже 15 лет находится в строительном бизнесе,&nbsp; специализируясь на комплексном строительстве качественного кирпично-монолитного жилья,&nbsp; организуя полную техническую эксплуатацию построенных объектов.</font><font color=\"#000000\" style=\"font-family: Arial; font-size: 10pt;\">&nbsp;На сегодняшний день группа компаний «Модуль» занимает одну из лидирующих позиций среди быстрорастущих инвестиционно-строительных компаний Санкт-Петербурга.Значительный опыт, накопленный за годы активного труда, наличие собственных производственных мощностей и применение современных строительных материалов позволяют&nbsp; группе компаний непрерывно развиваться, и стабильно занимать одно из ведущих мест в числе&nbsp; крупнейших застройщиков Санкт-Петербурга.&nbsp;</font><font color=\"#000000\" style=\"font-family: Arial; font-size: 10pt;\">С недавнего времени в группе компаний «Модуль» активно развивается&nbsp; департамент Зарубежной Недвижимости.&nbsp;</font>")
-    - ("28275A00-8C3E-11E4-9B12-448A5BD44C07" "Renaissance Construction" "СПб, ул. Шателена 26/A" "www.rencons.com" "(812) 740-63-70" "<span style=\"font-family: Arial; text-align: justify;\">Компания Ренейссанс Констракшн была основана в С.- Петербурге в 1993 году и является ведущей компанией турецкого Холдинга Ренейссанс. Компания выступает в роли генподрядчика при реализации крупнейших и&nbsp; сложных международных инвестиционных проектов с гарантиями высокого уровня качества. С момента ее образования было построено более 5 млн. квадратных метров жилых и производственных площадей и реализовано под ключ более 420 проектов. Некоторые из реализованных Ренейссанс Констракшн проектов были удостоены международных призов, присуждаемых независимыми организациями.</span>")
-    - ("28285B00-8C3E-11E4-9B12-448A5BD44C07" "СоюзГенСтрой" "СПб, ул. Чайковского, д. 20, лит. B" "www.st15.ru" "(812) 325-01-00" "<span style=\"font-family: Arial; font-size: 11.9999990463257px; text-align: justify;\">Компания СоюзГенСтрой один из крупнейших девелоперов в Санкт-Петербурге. Ключевой компетенцией компании стали девелопмент и управление отелями и бизнес-центрами, а основным конкурентным преимуществом - понимание высоких требований клиентов премиум-сегмента. Инвестирует в перспективные земельные участки, проводит оценку экономической состоятельности проектов и обеспечивает финансирование нового строительства. Специализированные подразделения компании разрабатывают архитектурную концепцию новых объектов, проектируют и строят многофункциональные деловые комплексы, офисные центры, складские терминалы и общественные здания. Продолжая активно развивать направление коммерческой недвижимости, «Союзгенстрой» успешно продвигается на рынке премиального жилья.</span>")
-    - ("A554CE00-063B-11E5-BA3E-448A5BD44C07" "РегионСтрой" "NULL" "NULL" "NULL" "NULL")
-    - ("281F2702-8C3E-11E4-9B12-448A5BD44C07" "СК Рыбинская" "NULL" "NULL" "NULL" "NULL")
-
-
-
-
------ org-babel-current-src-block-location
-#<marker at 1454 in trend.org>
------ info
-(sql SELECT toguid(id), name, address, url, phone, note FROM bkn_base.developer d limit $limit; ((:var limit . 2) (:colname-names) (:rowname-names) (:result-params table replace output) (:result-type . output) (:comments . ) (:shebang . ) (:cache . no) (:padline . ) (:noweb . no) (:tangle . no) (:exports . code) (:results . table replace output) (:engine . mysql) (:dbport . 3306) (:dbpassword . YGAhBawd1j~SANlw"Y#l) (:hlines . no) (:session . none) (:database . bkn_base) (:dbuser . root) (:dbhost . bkn.ru))  query_get_developer 4 #<marker at 1454 in trend.org>)
------ merged-params
-((:comments . ) (:shebang . ) (:cache . no) (:padline . ) (:noweb . no) (:tangle . no) (:exports . code) (:results . output replace table) (:var limit . 2) (:dbhost . bkn.ru) (:dbuser . root) (:database . bkn_base) (:session . none) (:hlines . no) (:dbpassword . YGAhBawd1j~SANlw"Y#l) (:dbport . 3306) (:engine . mysql) (:result-type . output) (:result-params table replace output) (:rowname-names) (:colname-names))
+     #+name: query_get_developer
+     #+header: :engine mysql
+     #+header: :dbhost bkn.ru
+     #+header: :dbport 3306
+     #+header: :dbuser root
+     #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
+     #+header: :database bkn_base
+     #+begin_src sql :results output :var limit="5" :results table
+       SELECT
+           toguid(d.id) AS developerId,
+           REPLACE(REPLACE(d.name, '«', ''), '»', '') AS developer_name,
+           d.address,
+           d.url,
+           d.phone,
+           d.note
+       FROM
+           nb_complex cmpx
+       INNER JOIN
+           developer d
+         ON
+           d.id = cmpx.developerId
+       INNER JOIN
+           nb_complex ap FORCE INDEX (AP)
+         ON
+            cmpx.id = ap.bknid
+         AND
+            ap.nb_sourceId IN (1 , 3)
+         AND
+            ap.statusId = 1
+         AND
+            ap.isPrivate = 0
+       INNER JOIN
+            nb_block b
+         ON
+            b.nb_complexId = ap.id
+         AND
+            b.statusId = 1
+       INNER JOIN
+            nb_appartment a
+         ON
+           b.id = a.nb_blockId
+         AND
+           a.statusId = 1
+       WHERE
+           cmpx.nb_sourceId = 2
+         AND
+           cmpx.statusId = 1
+       GROUP BY d.id , d.name
+       ORDER BY d.name
+       LIMIT
+         $limit;
+     #+end_src
 
 
+     Застройщики имеют описание, в котором есть html-форматирование, которое хотелось бы
+     удалить. Я использую для этого php-функцию strip_tags:
+
+     #+NAME: strip_tags
+     #+BEGIN_SRC emacs-lisp :var param="<p>strip</p>" :results value :exports none
+       (defun strip-tags (param)
+         (let* ((alfa   param)
+                (bravo  (if (string= "NULL" alfa) "" alfa)))
+           (unless (string= "" bravo)
+             (let* ((charlie (replace-regexp-in-string "\"" "\\\\\"" bravo))
+                    (delta   (format "php -r '$a=\"%s\"; echo strip_tags($a);'" charlie))
+                    (echo    (shell-command-to-string delta))
+                    (foxtrot (replace-regexp-in-string "&nbsp;" "" echo)))
+               foxtrot))))
+     #+END_SRC
+
+**** Жилые комплексы
+
+     У каждого ЖК есть =статус= - например: активный или архивный (есть и другие)
+
+     У каждого ЖК есть =источник данных= - обычно это агентсво, от которого
+     получена информация об этом ЖК.
+
+     У каждого ЖК есть =регион=, =район= и несколько ближайших станций =метро=.
+
+     В каждом ЖК есть =корпуса=, т.е. построенные или строящиеся внутри проекта ЖК дома. Они
+     могут быть объединены в =очереди сдачи=. У каждого корпуса есть адрес дома.
+
+     Корпуса могут быть в разных состояниях готовности, для этого у них есть поле
+     =status_buildId=, указывающее на таблицу =status_build=, в которых эти состояния перечислены
+
+     #+CAPTION: Жилые комплексы - схема данных
+     #+NAME: complex_flds
+     | field         | field type          | note                                                                 |
+     |---------------+---------------------+----------------------------------------------------------------------|
+     | id            | binary(16)          | Идентификатор в виде GUID-а                                          |
+     | nb_sourceId   | tinyint(4) unsigned | Идентификатор источника данных reftbl:nb_source                      |
+     | statusId      | tinyint(4) unsigned | Статус объекта reftbl:status                                         |
+     | developerId   | binary(16)          | Идентификатор застройщика reftbl:developer                           |
+     | date_insert   | timestamp           | Дата вставки                                                         |
+     | date_update   | datetime            | Дата обновления                                                      |
+     | regionId      | int(11) unsigned    | Идентификтор региона reftbl:status                                   |
+     | districtId    | int(11) unsigned    | Идентификтор района reftbk:district                                  |
+     | district_name | varchar(255)        | Район (и город, или область) строкой                                 |
+     | city_name     | varchar(255)        | Город или населенный пункт строкой                                   |
+     | street_name   | varchar(255)        | Улица                                                                |
+     | subway1Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | subway2Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | subway3Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | name          | varchar(250)        | Наименование комплекса                                               |
+     | note          | text                | Описание комплекса                                                   |
+     | longitude     | decimal(18,10)      | Долгота                                                              |
+     | latitude      | decimal(18,10)      | Широта                                                               |
+     | dateUpdate    | datetime            | Дата обновления                                                      |
+     | isPrivate     | tinyint(1)          | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
+     | bknId         | binary(16)          | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
+
+     Таким образом мы можем получить все ЖК какого-нибудь застройщика:
+
+     #+name: query_get_developer_complex
+     #+header: :engine mysql
+     #+header: :dbhost bkn.ru
+     #+header: :dbport 3306
+     #+header: :dbuser root
+     #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
+     #+header: :database bkn_base
+     #+begin_src sql :results output :var developerId="6945cf04-8335-11e4-b6c0-448a5bd44c07" :results none
+       SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId)
+       FROM nb_complex
+       WHERE
+          nb_sourceId IN (2)
+       AND
+          developerId = guidtobinary('$developerId')
+     #+end_src
+
+     Теперь попробуем получить всех застройщиков и их комплексы
+
+     #+NAME: developers_data_fwefewf
+     #+BEGIN_SRC emacs-lisp :results output :exports none
+       (save-excursion
+         (org-babel-goto-named-src-block "query_get_developer")
+         (let ((info (org-babel-get-src-block-info t)))
+           (setf (cdr (assoc :var (nth 2 info))) (cons "limit" "400"))
+           (let* ((developers (cddr (org-babel-execute-src-block nil info)))
+                  (devs       (mapcar #'(lambda (dev)
+                                          (list :id (nth 0 dev)
+                                                :name (nth 1 dev)
+                                                :address (let ((tmp (strip-tags (nth 2 dev)))) (if (null tmp) "" tmp))
+                                                :url     (let ((tmp (strip-tags (nth 3 dev)))) (if (null tmp) "" tmp))
+                                                :phone   (let ((tmp (strip-tags (nth 4 dev)))) (if (null tmp) "" tmp))
+                                                :note    (let ((tmp (strip-tags (nth 5 dev)))) (if (null tmp) "" tmp))))
+                                      developers)))
+             (mapcar #'(lambda (dev)
+                         (princ (format "\n%s - %s\n" (getf dev :name) (getf dev :id)))
+                         (save-excursion
+                           (org-babel-goto-named-src-block "query_get_developer_complex")
+                           (let ((info (org-babel-get-src-block-info t)))
+                             (setf (cdr (assoc :var (nth 2 info))) (cons "developerId" (getf dev :id)))
+                             (let* ((complexes (cddr (org-babel-execute-src-block nil info)))
+                                    (cmpx      (mapcar #'(lambda (plex)
+                                                           (let ((plex (list :id   (nth 00 plex)
+                                                                             :name (nth 13 plex)
+                                                                             :nb_sourceId   (let ((tmp (strip-tags (nth 01 plex)))) (if (null tmp) "" tmp))
+                                                                             :statusId      (let ((tmp (strip-tags (nth 02 plex)))) (if (null tmp) "" tmp))
+                                                                             :date_insert   (let ((tmp (strip-tags (nth 03 plex)))) (if (null tmp) "" tmp))
+                                                                             :date_update   (let ((tmp (strip-tags (nth 04 plex)))) (if (null tmp) "" tmp))
+                                                                             :regionId      (let ((tmp (strip-tags (nth 05 plex)))) (if (null tmp) "" tmp))
+                                                                             :districtId    (let ((tmp (strip-tags (nth 06 plex)))) (if (null tmp) "" tmp))
+                                                                             :district_name (let ((tmp (strip-tags (nth 07 plex)))) (if (null tmp) "" tmp))
+                                                                             :city_name     (let ((tmp (strip-tags (nth 08 plex)))) (if (null tmp) "" tmp))
+                                                                             :street_name   (let ((tmp (strip-tags (nth 09 plex)))) (if (null tmp) "" tmp))
+                                                                             :subway1Id     (let ((tmp (strip-tags (nth 10 plex)))) (if (null tmp) "" tmp))
+                                                                             :subway2Id     (let ((tmp (strip-tags (nth 11 plex)))) (if (null tmp) "" tmp))
+                                                                             :subway3Id     (let ((tmp (strip-tags (nth 12 plex)))) (if (null tmp) "" tmp))
+                                                                             :note          (let ((tmp (strip-tags (nth 14 plex)))) (if (null tmp) "" tmp))
+                                                                             :longitude     (let ((tmp (strip-tags (nth 15 plex)))) (if (null tmp) "" tmp))
+                                                                             :latitude      (let ((tmp (strip-tags (nth 16 plex)))) (if (null tmp) "" tmp))
+                                                                             :dateUpdate    (let ((tmp (strip-tags (nth 17 plex)))) (if (null tmp) "" tmp))
+                                                                             :isPrivate     (let ((tmp (strip-tags (nth 18 plex)))) (if (null tmp) "" tmp))
+                                                                             :bknId         (let ((tmp (strip-tags (nth 19 plex)))) (if (null tmp) "" tmp))
+                                                                             )))
+                                                             (princ (format "  %s - %s - %s\n" (getf plex :name) (getf plex :id) (getf plex :statusId)))))
+                                                       complexes))
+                                    ))))
+                         )
+                     devs))))
+     #+END_SRC
+
+     #+results: developers_data_fwefewf
+     #+begin_example
+
+     AAG - 6945F8CB-8335-11E4-B6C0-448A5BD44C07
+       Дом на Фрунзенской - 43EE0530-40F9-11E5-A634-448A5BD44C07 - 1
+
+     Constanta Development Group (Константа Девелопмент) - 8C3DAAC6-BC5B-11E4-9FBB-448A5BD44C07
+       Азбука - 9E0071E1-D7EE-11E4-9FBB-448A5BD44C07 - 1
+       Традиция - 8117A2FB-FE0E-11E4-B252-448A5BD44C07 - 1
+
+     NordEst - 28696A77-458E-11E5-B8AF-448A5BD44C07
+       Васильевский о-в 24 линия - 9026CB13-458E-11E5-B8AF-448A5BD44C07 - 1
+
+     O2 Development - 6945E38C-8335-11E4-B6C0-448A5BD44C07
+       Самое сердце - 9DFFD000-D7EE-11E4-9FBB-448A5BD44C07 - 1
+       Невский проект - 9DFFD069-D7EE-11E4-9FBB-448A5BD44C07 - 1
+       Силы природы - 9DFFCF96-D7EE-11E4-9FBB-448A5BD44C07 - 1
+       Заповедный - D35098B1-0DDB-11E5-B8F0-448A5BD44C07 - 1
+       Моя стихия - 9E005BBF-D7EE-11E4-9FBB-448A5BD44C07 - 1
+#+end_example
 
 
 
@@ -185,23 +329,6 @@
       ;;         table)
     #+END_SRC
 
-
-
-
-
-**** Застройщики
-
-     #+CAPTION: Застройщики - схема данных
-     #+NAME: developer_flds
-     | field   | field type   | note                        |
-     |---------+--------------+-----------------------------|
-     | id      | binary(16)   | Идентификатор в виде GUID-а |
-     | name    | varchar(255) | Название компании           |
-     | address | varchar(255) | Адрес компании              |
-     | url     | varchar(50)  | Адрес сайта                 |
-     | phone   | varchar(50)  | Телефон                     |
-     | note    | text         | Описание застройщика        |
-
 **** Данные застройщиков
 
      Здесь мы соберем все данные которые у нас есть по всем известным застройщикам
@@ -234,33 +361,6 @@
                          (princ (format "      #+END\n\n"))))))
                table)
      #+END_SRC
-**** Жилые комплексы
-
-     #+CAPTION: Жилые комплексы - схема данных
-     #+NAME: conplex_flds
-     | field         | field type          | note                                                                 |
-     |---------------+---------------------+----------------------------------------------------------------------|
-     | id            | binary(16)          | Идентификатор в виде GUID-а                                          |
-     | nb_sourceId   | tinyint(4) unsigned | Идентификатор источника данных reftbl:nb_source                      |
-     | statusId      | tinyint(4) unsigned | Статус объекта reftbl:status                                         |
-     | developerId   | binary(16)          | Идентификатор застройщика reftbl:developer                           |
-     | date_insert   | timestamp           | Дата вставки                                                         |
-     | date_update   | datetime            | Дата обновления                                                      |
-     | regionId      | int(11) unsigned    | Идентификтор региона reftbl:status                                   |
-     | districtId    | int(11) unsigned    | Идентификтор района reftbk:district                                  |
-     | district_name | varchar(255)        | Район (и город, или область) строкой                                 |
-     | city_name     | varchar(255)        | Город или населенный пункт строкой                                   |
-     | street_name   | varchar(255)        | Улица                                                                |
-     | subway1Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | subway2Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | subway3Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | name          | varchar(250)        | Наименование комплекса                                               |
-     | note          | text                | Описание комплекса                                                   |
-     | longitude     | decimal(18,10)      | Долгота                                                              |
-     | latitude      | decimal(18,10)      | Широта                                                               |
-     | dateUpdate    | datetime            | Дата обновления                                                      |
-     | isPrivate     | tinyint(1)          | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
-     | bknId         | binary(16)          | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
 
 **** Данные комплексов
 
