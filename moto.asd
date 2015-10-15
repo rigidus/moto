@@ -8,6 +8,7 @@
   :pathname "src"
   :depends-on (#:closer-mop
                #:postmodern
+               #:cl-mysql
                #:anaphora
                #:cl-ppcre
                #:restas

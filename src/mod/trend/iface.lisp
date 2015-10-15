@@ -4,13 +4,63 @@
 (in-package #:moto)
 
 ;; Страницы
+
 ;; (in-package #:moto)
-;; 
-;; ;; Страница загрузки данных
-;; (restas:define-route test-page ("/trnd")
-;;   (trendtpl:root (list :content
+
+(defun trans-developer ()
+  "stub"
+  )
+
+;; (define-page all-cmpx-s "/cmpxs"
+;;   (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
+;;                "<br /><br />"
+;;                (tbl
+;;                 (with-collection (cmpx (funcall #'all-cmpx))
+;;                   (tr
+;;                    (td
+;;                     (format nil "<a href=\"/~a/~a\~a</a>" "cmpx"
+;;                     (id cmpx) (id cmpx)))
+;;                    (td (name cmpx))
+;;                    (td (addr cmpx))
+;;                    (td (aif (district-id cmpx)
+;;                             (name (get-district it))))
+;;                    (td (aif (metro-id cmpx)
+;;                             (name (get-metro it))))
+;;                    (td (frm %del%))))
+;;                 :border 1))
+;;   (:del (act-btn "DEL" (id cmpx) "Удалить")
+;;         (progn (del-cmpx (getf p :data)))))
+(in-package #:moto)
+
+(defparameter *trnd-pages*
+  '((:title "Застройщики" :link "bldr")
+    (:title "Жилые комплексы" :link "cmpx" )))
+
+;; Меню модуля
+(restas:define-route test-page ("/trnd")
+  (format nil "~{~A~}"
+          (mapcar #'(lambda (x)
+                      (format nil "<a href=\"/trnd/~A\">~A</a><br />"
+                              (getf x :link)
+                              (getf x :title)))
+                  *trnd-pages*)))
+
+;; Застройщики
+(restas:define-route test-page ("/trnd/bldr")
+  "Pf")
+
 ;; (in-package #:moto)
-;; 
+
+;; ((количество-комнат
+;;   (radiobtn Студия 1 2 3 4+))
+;;  (стоимость)
+;;  (жилой-комплекс)
+;;  (срок-сдачи)
+;;  (расположение)
+;;  (застройщик)
+;;  (отделка))
+;; (in-package #:moto)
+
 ;; ;; Страница загрузки данных
 ;; (restas:define-route load-data-page ("/load")
 ;;   (with-wrapper
@@ -27,7 +77,7 @@
 ;;                           (format nil "~{~A<br/>~}<br />" cmpx-s)))
 ;;                 (row "" (hid "load"))
 ;;                 (row "" (submit "Загрузить")))))))))
-;; 
+
 ;; ;; Контроллер страницы регистрации
 ;; (restas:define-route load-ctrl ("/load" :method :post)
 ;;   (with-wrapper
@@ -35,9 +85,9 @@
 ;;       (if (equal (getf p :load) "")
 ;;           (load-data)
 ;;           "err"))))
-;; 
+
 ;; (in-package #:moto)
-;; 
+
 ;; (define-page all-cmpx-s "/cmpxs"
 ;;   (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
 ;;                "<br /><br />"
@@ -45,7 +95,7 @@
 ;;                 (with-collection (cmpx (funcall #'all-cmpx))
 ;;                   (tr
 ;;                    (td
-;;                     (format nil "<a href=\"/~a/~a\">~a</a>" "cmpx"
+;;                     (format nil "<a href=\"/~a/~a\~a</a>" "cmpx"
 ;;                     (id cmpx) (id cmpx)))
 ;;                    (td (name cmpx))
 ;;                    (td (addr cmpx))
@@ -57,9 +107,9 @@
 ;;                 :border 1))
 ;;   (:del (act-btn "DEL" (id cmpx) "Удалить")
 ;;         (progn (del-cmpx (getf p :data)))))
-;; 
+
 ;; (in-package #:moto)
-;; 
+
 ;; (define-page cmpx "/cmpx/:cmpx-id"
 ;;   (let* ((i (parse-integer cmpx-id))
 ;;          (cmpx (get-cmpx i)))
@@ -84,15 +134,15 @@
 ;;                           (with-collection (i (find-plex :cmpx-id i))
 ;;                             (tr
 ;;                              (td
-;;                               (format nil "<a href=\"/~a/~a\">~a</a>" "plex"
+;;                               (format nil "<a href=\"/~a/~a\~a</a>" "plex"
 ;;                                       (id i) (id i)))
 ;;                              (td (name i)) (td (frm %del%))))
 ;;                           :border 1))))))
 ;;   (:del (act-btn "DEL" (id i) "Удалить")
 ;;         (progn (del-plex (getf p :data)))))
-;; 
+
 ;; (in-package #:moto)
-;; 
+
 ;; (define-page plex "/plex/:plex-id"
 ;;   (let* ((i (parse-integer plex-id))
 ;;          (plex (get-plex i)))
@@ -117,15 +167,15 @@
 ;;                           (with-collection (i (find-crps :plex-id i))
 ;;                             (tr
 ;;                              (td
-;;                               (format nil "<a href=\"/~a/~a\">~a</a>" "crps"
+;;                               (format nil "<a href=\"/~a/~a\~a</a>" "crps"
 ;;                                       (id i) (id i)))
 ;;                              (td (name i)) (td (frm %del%))))
 ;;                           :border 1))))))
 ;;   (:del (act-btn "del" (id i) "Удалить")
 ;;         (progn (del-plex (getf p :data)))))
-;; 
+
 ;; (in-package #:moto)
-;; 
+
 ;; (define-page crps "/crps/:crps-id"
 ;;   (let* ((i (parse-integer crps-id))
 ;;          (crps (get-crps i)))
@@ -144,7 +194,7 @@
 ;;                           (with-collection (i (find-flat :crps-id i))
 ;;                             (tr
 ;;                              (td
-;;                               (format nil "<a href=\"/~a/~a\">~a</a>" "flat"
+;;                               (format nil "<a href=\"/~a/~a\~a</a>" "flat"
 ;;                                       (id i) (id i)))
 ;;                              (td (format nil "~A к.кв." (rooms i)))
 ;;                              (td (format nil "~:d руб." (price i)))
@@ -152,9 +202,9 @@
 ;;                           :border 1))))))
 ;;   (:del (act-btn "DEL" (id i) "Удалить")
 ;;         (progn (del-flat (getf p :data)))))
-;; 
+
 ;; (in-package #:moto)
-;; 
+
 ;; (define-page flat "/flat/:flat-id"
 ;;   (let* ((i (parse-integer flat-id))
 ;;          (flat (get-flat i)))
@@ -177,9 +227,9 @@
 ;;                   :border 1)))))
 ;;   (:buy (act-btn "BUY" "BUY" "Купить")
 ;;         (progn 1)))
-;; 
+
 ;; (in-package #:moto)
-;; 
+
 ;; (define-page findpage "/find"
 ;;   (format nil "~{~A~}"
 ;;           (list
@@ -232,7 +282,7 @@
 ;;   (:find (act-btn "FIND" "FIND" "Искать")
 ;;          "Err: redirect to /results!"))
 ;; (in-package #:moto)
-;; 
+
 ;; (defmacro find-query (price-from price-to &optional &key district metro deadline cmpx studio one two three)
 ;;   `(with-connection *db-spec*
 ;;      (query
@@ -268,7 +318,7 @@
 ;;                                   `(:= 'cmpx_id ,cmpx)
 ;;                                   t)))
 ;;        2000))))
-;; 
+
 ;; (define-page results "/results"
 ;;   (format nil "~{~A~}"
 ;;           (list
@@ -311,5 +361,5 @@
 ;;                                             (loop :for item :in (eval form) :collect
 ;;                                                (format nil "~%<tr>~{~A~}</tr>"
 ;;                                                        (loop :for item :in item :collect
-;;                                                           (format nil "~%<td>&nbsp;~A&nbsp;</td>" item))))))))))))
+;;                                                           (format nil "~%<td>~A</td>" item))))))))))))
 ;; iface ends here

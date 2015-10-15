@@ -16,20 +16,79 @@
 *** Квартиры в новостройках
 **** Застройщики
 
-     У нас есть некоторое количество =застройщиков=, которые строят =жилые
+     У нас есть некоторое количество (423) =застройщиков=, которые строят =жилые
      комплексы=. Квартиры в этих жилых комплексах продаются как самим застройщиком (его
      отделом продаж) так =агенствами недвижимости= и =субагентами=.
 
+     В =исходной бд= застройщики определены так:
+
+     #+CAPTION: Застройщики в исходной БД - схема данных
+     #+NAME: source_developer_flds
+     | Field      | Type                | Null | Key | Default | Extra |
+     |------------+---------------------+------+-----+---------+-------|
+     | id         | binary(16)          | NO   | PRI | NULL    |       |
+     | name       | varchar(255)        | NO   |     | NULL    |       |
+     | sortIndex  | tinyint(4) unsigned | NO   |     | 0       |       |
+     | deleted    | tinyint(1)          | NO   |     | 0       |       |
+     | dateUpdate | datetime            | YES  |     | NULL    |       |
+     | address    | varchar(255)        | YES  |     | NULL    |       |
+     | url        | varchar(50)         | YES  |     | NULL    |       |
+     | phone      | varchar(50)         | YES  |     | NULL    |       |
+     | note       | text                | YES  |     | NULL    |       |
+
+     А в целевой мы определим застройщиков так:
+
      #+CAPTION: Застройщики - схема данных
      #+NAME: developer_flds
-    | field   | field type   | note                        |
-    |---------+--------------+-----------------------------|
-    | id      | binary(16)   | Идентификатор в виде GUID-а |
-    | name    | varchar(255) | Название компании           |
-    | address | varchar(255) | Адрес компании              |
-    | url     | varchar(50)  | Адрес сайта                 |
-    | phone   | varchar(50)  | Телефон                     |
-    | note    | text         | Описание застройщика        |
+     | field   | field type   | note                        |
+     |---------+--------------+-----------------------------|
+     | id      | binary(16)   | Идентификатор в виде GUID-а |
+     | name    | varchar(255) | Название компании           |
+     | address | varchar(255) | Адрес компании              |
+     | url     | varchar(50)  | Адрес сайта                 |
+     | phone   | varchar(50)  | Телефон                     |
+     | note    | text         | Описание застройщика        |
+
+
+     Теперь мы можем написать функцию, которая будет преобразовывать застройщика из исходной
+     БД и класть его в целевую:
+
+     (quicklisp-quickstart:install)
+     (ql:quickload "cl-mysql")
+     (cl-mysql:connect :host "localhost" :database "dbname" :user "root" :password "password")
+     (cl-mysql:query "select ip,mac from status where mac is not null limit 10")
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       ;; (in-package #:moto)
+
+       (defun trans-developer ()
+         "stub"
+         )
+
+       ;; (define-page all-cmpx-s "/cmpxs"
+       ;;   (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
+       ;;                "<br /><br />"
+       ;;                (tbl
+       ;;                 (with-collection (cmpx (funcall #'all-cmpx))
+       ;;                   (tr
+       ;;                    (td
+       ;;                     (format nil "<a href=\"/~a/~a\~a</a>" "cmpx"
+       ;;                     (id cmpx) (id cmpx)))
+       ;;                    (td (name cmpx))
+       ;;                    (td (addr cmpx))
+       ;;                    (td (aif (district-id cmpx)
+       ;;                             (name (get-district it))))
+       ;;                    (td (aif (metro-id cmpx)
+       ;;                             (name (get-metro it))))
+       ;;                    (td (frm %del%))))
+       ;;                 :border 1))
+       ;;   (:del (act-btn "DEL" (id cmpx) "Удалить")
+       ;;         (progn (del-cmpx (getf p :data)))))
+     #+END_SRC
+
+
 
      Таким образом мы можем получать всех застройщиков, которые имеют активные комплексы
 
@@ -421,12 +480,6 @@
        LIMIT 3
      #+end_src
 
-     #+results: query_get_complexes
-     | toguid(ap.id)                        | name          | nb_sourceId | developerId                          | developer_name       | statusId | regionId | districtId | district_name           | city_name          | street_name       | subway1Id | subway2Id | subway3Id | note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |     longitude |      latitude | dateUpdate          | isPrivate | toguid(ap.bknId)                     |
-     |--------------------------------------+---------------+-------------+--------------------------------------+----------------------+----------+----------+------------+-------------------------+--------------------+-------------------+-----------+-----------+-----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------+---------------+---------------------+-----------+--------------------------------------|
-     | 26A8EF4F-A162-11E4-8F6B-448A5BD44C07 | 5 звезд       |           1 | 8676B1AC-CF37-11E4-9FBB-448A5BD44C07 | УК Теорема           |        1 |        1 |          7 | СПб, Калининский р-н    | Санкт-Петербург г. | Жукова ул.        |        44 | NULL      | NULL      | Жилой комплекс «Пять звезд» с квартирами класса А имеет уникальную концепцию. Он органично займет территорию возле Полюстровского пруда, рядом с живописным сквером. На земельном участке размером около 2-х гектаров будут возведены 5 жилых домов в соответствии с авторским архитектурным проектом. Между домами разместятся детские игровые и спортивные площадки, места для отдыха и прогулок. Благодаря подземному паркингу территория комплекса будет свободна от автомобилей и безопасна для жителей.\n\nЛегкие и необычные красивые фасады домов будут облицованы цветными алюминиевыми панелями, стойкими к атмосферным воздействиям. На 1-х этажах разместятся коммерческие помещения, а со 2-го по 14-й этажи — квартиры с застекленными лоджиями. В том числе на последних этажах будут находиться 6 двухуровневых видовых пентхаусов с панорамным остеклением и просторными открытыми террасами.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | 30.4036928921 | 59.9628239076 | 2015-09-03 22:34:09 |         0 | 9E0072BF-D7EE-11E4-9FBB-448A5BD44C07 |
-     | A5CB5A6E-0AF2-11E5-B35D-448A5BD44C07 | CINEMA        |           1 | 6945CE85-8335-11E4-B6C0-448A5BD44C07 | ЛСР-Недвижимость-СЗ  |        1 |        1 |          7 | СПб, Калининский р-н    | Санкт-Петербург г. | Блюхера Марш. пр. |        45 | NULL      | NULL      | Жилой комплекс CINEMA включает 4 корпуса и 2 наземных паркинга, которые\nрасположены на пересечении Лабораторного проспекта и Бестужевской улицы.\n25-этажные корпуса CINEMA органично соседствуют с масштабным проектом\nгородской застройки – ЖК «Калина-парк», но заметно углублены внутрь квартала,\nблагодаря чему создается комфортная камерная обстановка. \n\nВ пешеходной доступности к комплексу находится большое количество объектов торговой\nи социальной инфраструктуры. Торгово-развлекательный комплекс Европолис,\nкрупные сетевые гипермаркеты (Карусель, Максидом, Метрика) и мебельные центры\n(Аквилон, Мебель Сити) обеспечат новоселов всем необходимым.\n\nОтлично налажено транспортное сообщение с городом и пригородами. Здесь пролегают основные автомагистрали Калининского района и проходят маршруты муниципального и частного наземного общественного транспорта. Ближайшая к комплексу станция метро – «Лесная». В 15 минутах ходьбы – железнодорожная станция «Пискаревка». Заезд на КАД расположен в 5 минутах езды.\n\nВ рамках благоустройства комплекса предусмотрено озеленение прилегающей территории, оснащение детских и спортивных площадок, организация зон для отдыха и открытых автостоянок. Многоуровневые паркинги рассчитаны на 516 машиномест. Всего в комплексе запланировано 1187 квартир. Первым возводится 4 корпус, включающий 223 одно- и двухкомнатные квартиры с полной чистовой отделкой. | 30.3850078583 | 59.9857222145 | 2015-09-03 22:34:09 |         0 | B378FD27-1034-11E5-B421-448A5BD44C07 |
-     | BA65A7E4-C2A7-11E4-9FBB-448A5BD44C07 | Duderhof Club |           1 | 6945EE2A-8335-11E4-B6C0-448A5BD44C07 | Балтийская жемчужина |        1 |        1 |          9 | СПб, Красносельский р-н | Санкт-Петербург г. | Петергофское шос. |        50 | NULL      | NULL      | Квартал «Duderhof Club» – это малоэтажный жилой комплекс «клубного» типа класса PREMIUM, расположившийся в тишине живописного зеленого уголка на побережье Финского залива Балтийского моря, в одном из самых экологически чистых районов Санкт-Петербурга.?Квартал удачно расположен вдоль новой набережной Дудергофского канала, напротив живописного Южно-Приморского парка.\n \nВесь комплекс будет выполнен в современном скандинавском архитектурном стиле. В состав квартала войдут комфортабельные малоэтажные малоквартирные секционные кирпично-монолитные дома с навесными вентилируемыми фасадами и коттеджи, рассчитанные на две семьи каждый. Для комфортной жизни предлагаются роскошные апартаменты от 75 до 360 кв. м. с удобными планировками, высокими потолками, просторными террасами с изумительными панорамными видами на канал и парк, предусмотрен вместительный подземный паркинг. \n\nНа территории квартала будут осуществлены ландшафтные работы по индивидуальному дизайн проекту. Централизованная охрана и профессиональная служба эксплуатации обеспечат полную безопасность и максимальный комфорт каждого жителя комплекса.                                                                                                                                                                                                                                                                                                          | 30.1570696866 | 59.8486080314 | 2015-09-03 22:34:09 |         0 | 9DFEF686-D7EE-11E4-9FBB-448A5BD44C07 |
 
      В процесе сбора данных будем забирать все корпуса этих комплексов
 
@@ -1229,7 +1282,6 @@
      #+END_SRC
 
 **** TODO | status_build
-
 **** TODO Оставшиеся таблицы
 
      | Tables_in_bkn_base |
@@ -1253,7 +1305,6 @@
 *** Загородные дома
 
 ** Аренда
-
 * Переделать
 
   Субсидии, ипотека и рассрочка должные отноститься не к очереди а к корпусу.
@@ -2136,7 +2187,7 @@
     (in-package #:moto)
 
     ;; Страницы
-    ;; <<iface_contents>>
+    <<iface_contents>>
   #+END_SRC
 
 ** Тестовая страница шаблонов
@@ -2145,25 +2196,39 @@
    #+BEGIN_SRC lisp :noweb tangle :exports none
      (in-package #:moto)
 
-     ;; Страница загрузки данных
-     ;; (restas:define-route test-page ("/trnd")
-     ;;   (trendtpl:root (list :content
+     (defparameter *trnd-pages*
+       '((:title "Застройщики" :link "bldr")
+         (:title "Жилые комплексы" :link "cmpx" )))
+
+     ;; Меню модуля
+     (restas:define-route test-page ("/trnd")
+       (format nil "~{~A~}"
+               (mapcar #'(lambda (x)
+                           (format nil "<a href=\"/trnd/~A\">~A</a><br />"
+                                   (getf x :link)
+                                   (getf x :title)))
+                       ,*trnd-pages*)))
+
+     ;; Застройщики
+     (restas:define-route test-page ("/trnd/bldr")
+       "Pf")
+
    #+END_SRC
 
 ** Описание интерфейса поиска
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp :noweb tangle :exports none
-     (in-package #:moto)
+     ;; (in-package #:moto)
 
-     ((количество-комнат
-       (radiobtn Студия 1 2 3 4+))
-      (стоимость)
-      (жилой-комплекс)
-      (срок-сдачи)
-      (расположение)
-      (застройщик)
-      (отделка))
+     ;; ((количество-комнат
+     ;;   (radiobtn Студия 1 2 3 4+))
+     ;;  (стоимость)
+     ;;  (жилой-комплекс)
+     ;;  (срок-сдачи)
+     ;;  (расположение)
+     ;;  (застройщик)
+     ;;  (отделка))
    #+END_SRC
 
 
@@ -2349,32 +2414,32 @@
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp :noweb tangle :exports none
-     (in-package #:moto)
+     ;; (in-package #:moto)
 
-     ;; Страница загрузки данных
-     (restas:define-route load-data-page ("/load")
-       (with-wrapper
-         (concatenate
-          'string
-          "<h1>Загрузка данных из файлов</h1>"
-          (if (null *current-user*)
-              "Error: Незалогиненные пользователи не имеют права загружать данные"
-              (frm (tbl
-                    (list
-                     (row "" (let ((cmpx-s))
-                               (loop-dir cmpx ()
-                                    (push cmpx cmpx-s))
-                               (format nil "~{~A<br/>~}<br />" cmpx-s)))
-                     (row "" (hid "load"))
-                     (row "" (submit "Загрузить")))))))))
+     ;; ;; Страница загрузки данных
+     ;; (restas:define-route load-data-page ("/load")
+     ;;   (with-wrapper
+     ;;     (concatenate
+     ;;      'string
+     ;;      "<h1>Загрузка данных из файлов</h1>"
+     ;;      (if (null *current-user*)
+     ;;          "Error: Незалогиненные пользователи не имеют права загружать данные"
+     ;;          (frm (tbl
+     ;;                (list
+     ;;                 (row "" (let ((cmpx-s))
+     ;;                           (loop-dir cmpx ()
+     ;;                                (push cmpx cmpx-s))
+     ;;                           (format nil "~{~A<br/>~}<br />" cmpx-s)))
+     ;;                 (row "" (hid "load"))
+     ;;                 (row "" (submit "Загрузить")))))))))
 
-     ;; Контроллер страницы регистрации
-     (restas:define-route load-ctrl ("/load" :method :post)
-       (with-wrapper
-         (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
-           (if (equal (getf p :load) "")
-               (load-data)
-               "err"))))
+     ;; ;; Контроллер страницы регистрации
+     ;; (restas:define-route load-ctrl ("/load" :method :post)
+     ;;   (with-wrapper
+     ;;     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+     ;;       (if (equal (getf p :load) "")
+     ;;           (load-data)
+     ;;           "err"))))
    #+END_SRC
 
 ** Список ЖК
@@ -2382,27 +2447,27 @@
  #+NAME: iface_contents
  #+BEGIN_SRC lisp :noweb tangle :exports none
 
-   (in-package #:moto)
+   ;; (in-package #:moto)
 
-   (define-page all-cmpx-s "/cmpxs"
-     (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
-                  "<br /><br />"
-                  (tbl
-                   (with-collection (cmpx (funcall #'all-cmpx))
-                     (tr
-                      (td
-                       (format nil "<a href=\"/~a/~a\~a</a>" "cmpx"
-                       (id cmpx) (id cmpx)))
-                      (td (name cmpx))
-                      (td (addr cmpx))
-                      (td (aif (district-id cmpx)
-                               (name (get-district it))))
-                      (td (aif (metro-id cmpx)
-                               (name (get-metro it))))
-                      (td (frm %del%))))
-                   :border 1))
-     (:del (act-btn "DEL" (id cmpx) "Удалить")
-           (progn (del-cmpx (getf p :data)))))
+   ;; (define-page all-cmpx-s "/cmpxs"
+   ;;   (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
+   ;;                "<br /><br />"
+   ;;                (tbl
+   ;;                 (with-collection (cmpx (funcall #'all-cmpx))
+   ;;                   (tr
+   ;;                    (td
+   ;;                     (format nil "<a href=\"/~a/~a\~a</a>" "cmpx"
+   ;;                     (id cmpx) (id cmpx)))
+   ;;                    (td (name cmpx))
+   ;;                    (td (addr cmpx))
+   ;;                    (td (aif (district-id cmpx)
+   ;;                             (name (get-district it))))
+   ;;                    (td (aif (metro-id cmpx)
+   ;;                             (name (get-metro it))))
+   ;;                    (td (frm %del%))))
+   ;;                 :border 1))
+   ;;   (:del (act-btn "DEL" (id cmpx) "Удалить")
+   ;;         (progn (del-cmpx (getf p :data)))))
  #+END_SRC
 
 ** Страница ЖК
@@ -2500,38 +2565,38 @@
  #+NAME: iface_contents
  #+BEGIN_SRC lisp :noweb tangle :exports none
 
-   (in-package #:moto)
+   ;; (in-package #:moto)
 
-   (define-page cmpx "/cmpx/:cmpx-id"
-     (let* ((i (parse-integer cmpx-id))
-            (cmpx (get-cmpx i)))
-       (if (null cmpx)
-           "Нет такого жилого комплекса"
-           (format nil "~{~A~}"
-                   (list
-                    (format nil "<h1>Страница жилого комплекса ~A</h1>" (id cmpx))
-                    (format nil "<h2>Данные комплекса ~A</h2>" (name cmpx))
-                    (tbl
-                     (with-element (cmpx cmpx)
-                       (row "Название" (name cmpx))
-                       (row "Адрес" (addr cmpx))
-                       (row "Район" (aif (district-id cmpx)
-                                         (name (get-district it))))
-                       (row "Метро" (aif (metro-id cmpx)
-                                         (name (get-metro it)))))
-                     :border 1)
-                    (format nil "<h2>Очереди комплекса ~A</h2>~%~A"
-                            (name cmpx)
-                            (tbl
-                             (with-collection (i (find-plex :cmpx-id i))
-                               (tr
-                                (td
-                                 (format nil "<a href=\"/~a/~a\~a</a>" "plex"
-                                         (id i) (id i)))
-                                (td (name i)) (td (frm %del%))))
-                             :border 1))))))
-     (:del (act-btn "DEL" (id i) "Удалить")
-           (progn (del-plex (getf p :data)))))
+   ;; (define-page cmpx "/cmpx/:cmpx-id"
+   ;;   (let* ((i (parse-integer cmpx-id))
+   ;;          (cmpx (get-cmpx i)))
+   ;;     (if (null cmpx)
+   ;;         "Нет такого жилого комплекса"
+   ;;         (format nil "~{~A~}"
+   ;;                 (list
+   ;;                  (format nil "<h1>Страница жилого комплекса ~A</h1>" (id cmpx))
+   ;;                  (format nil "<h2>Данные комплекса ~A</h2>" (name cmpx))
+   ;;                  (tbl
+   ;;                   (with-element (cmpx cmpx)
+   ;;                     (row "Название" (name cmpx))
+   ;;                     (row "Адрес" (addr cmpx))
+   ;;                     (row "Район" (aif (district-id cmpx)
+   ;;                                       (name (get-district it))))
+   ;;                     (row "Метро" (aif (metro-id cmpx)
+   ;;                                       (name (get-metro it)))))
+   ;;                   :border 1)
+   ;;                  (format nil "<h2>Очереди комплекса ~A</h2>~%~A"
+   ;;                          (name cmpx)
+   ;;                          (tbl
+   ;;                           (with-collection (i (find-plex :cmpx-id i))
+   ;;                             (tr
+   ;;                              (td
+   ;;                               (format nil "<a href=\"/~a/~a\~a</a>" "plex"
+   ;;                                       (id i) (id i)))
+   ;;                              (td (name i)) (td (frm %del%))))
+   ;;                           :border 1))))))
+   ;;   (:del (act-btn "DEL" (id i) "Удалить")
+   ;;         (progn (del-plex (getf p :data)))))
  #+END_SRC
 
 ** Страница очереди ЖК
@@ -2539,38 +2604,38 @@
  #+NAME: iface_contents
  #+BEGIN_SRC lisp :noweb tangle :exports none
 
-   (in-package #:moto)
+   ;; (in-package #:moto)
 
-   (define-page plex "/plex/:plex-id"
-     (let* ((i (parse-integer plex-id))
-            (plex (get-plex i)))
-       (if (null plex)
-           "Нет такой очереди у этого жилого комплекса"
-           (format nil "~{~A~}"
-                   (list
-                    (format nil "<h1>Страница очереди жилого комплекса</h1>")
-                    (format nil "<h2>Данные очереди комплекса</h2>")
-                    (tbl
-                     (with-element (plex plex)
-                       (row "Название" (name plex))
-                       (row "Срок сдачи" (name (get-deadline (deadline-id plex))))
-                       (row "Субсидия" (subsidy plex))
-                       (row "Отделка" (finishing plex))
-                       (row "Ипотека" (ipoteka plex))
-                       (row "Рассрочка" (installment plex))
-                       (row "Расстояние до метро" (distance plex)))
-                     :border 1)
-                     (format nil "<h2>Корпуса очереди жилого комплекса</h2>~%~A"
-                            (tbl
-                             (with-collection (i (find-crps :plex-id i))
-                               (tr
-                                (td
-                                 (format nil "<a href=\"/~a/~a\~a</a>" "crps"
-                                         (id i) (id i)))
-                                (td (name i)) (td (frm %del%))))
-                             :border 1))))))
-     (:del (act-btn "del" (id i) "Удалить")
-           (progn (del-plex (getf p :data)))))
+   ;; (define-page plex "/plex/:plex-id"
+   ;;   (let* ((i (parse-integer plex-id))
+   ;;          (plex (get-plex i)))
+   ;;     (if (null plex)
+   ;;         "Нет такой очереди у этого жилого комплекса"
+   ;;         (format nil "~{~A~}"
+   ;;                 (list
+   ;;                  (format nil "<h1>Страница очереди жилого комплекса</h1>")
+   ;;                  (format nil "<h2>Данные очереди комплекса</h2>")
+   ;;                  (tbl
+   ;;                   (with-element (plex plex)
+   ;;                     (row "Название" (name plex))
+   ;;                     (row "Срок сдачи" (name (get-deadline (deadline-id plex))))
+   ;;                     (row "Субсидия" (subsidy plex))
+   ;;                     (row "Отделка" (finishing plex))
+   ;;                     (row "Ипотека" (ipoteka plex))
+   ;;                     (row "Рассрочка" (installment plex))
+   ;;                     (row "Расстояние до метро" (distance plex)))
+   ;;                   :border 1)
+   ;;                   (format nil "<h2>Корпуса очереди жилого комплекса</h2>~%~A"
+   ;;                          (tbl
+   ;;                           (with-collection (i (find-crps :plex-id i))
+   ;;                             (tr
+   ;;                              (td
+   ;;                               (format nil "<a href=\"/~a/~a\~a</a>" "crps"
+   ;;                                       (id i) (id i)))
+   ;;                              (td (name i)) (td (frm %del%))))
+   ;;                           :border 1))))))
+   ;;   (:del (act-btn "del" (id i) "Удалить")
+   ;;         (progn (del-plex (getf p :data)))))
  #+END_SRC
 
 ** Страница корпуса очереди ЖК
@@ -2578,34 +2643,34 @@
  #+NAME: iface_contents
  #+BEGIN_SRC lisp :noweb tangle :exports none
 
-   (in-package #:moto)
+   ;; (in-package #:moto)
 
-   (define-page crps "/crps/:crps-id"
-     (let* ((i (parse-integer crps-id))
-            (crps (get-crps i)))
-       (if (null crps)
-           "Нет такой очереди у этого жилого комплекса"
-           (format nil "~{~A~}"
-                   (list
-                    (format nil "<h1>Страница корпуса очереди жилого комплекса</h1>")
-                    (format nil "<h2>Данные очереди комплекса</h2>")
-                    (tbl
-                     (with-element (crps crps)
-                       (row "Название" (name crps)))
-                     :border 1)
-                     (format nil "<h2>Планировки корпуса очереди жилого комплекса</h2>~%~A"
-                            (tbl
-                             (with-collection (i (find-flat :crps-id i))
-                               (tr
-                                (td
-                                 (format nil "<a href=\"/~a/~a\~a</a>" "flat"
-                                         (id i) (id i)))
-                                (td (format nil "~A к.кв." (rooms i)))
-                                (td (format nil "~:d руб." (price i)))
-                                (td (frm %del%))))
-                             :border 1))))))
-     (:del (act-btn "DEL" (id i) "Удалить")
-           (progn (del-flat (getf p :data)))))
+   ;; (define-page crps "/crps/:crps-id"
+   ;;   (let* ((i (parse-integer crps-id))
+   ;;          (crps (get-crps i)))
+   ;;     (if (null crps)
+   ;;         "Нет такой очереди у этого жилого комплекса"
+   ;;         (format nil "~{~A~}"
+   ;;                 (list
+   ;;                  (format nil "<h1>Страница корпуса очереди жилого комплекса</h1>")
+   ;;                  (format nil "<h2>Данные очереди комплекса</h2>")
+   ;;                  (tbl
+   ;;                   (with-element (crps crps)
+   ;;                     (row "Название" (name crps)))
+   ;;                   :border 1)
+   ;;                   (format nil "<h2>Планировки корпуса очереди жилого комплекса</h2>~%~A"
+   ;;                          (tbl
+   ;;                           (with-collection (i (find-flat :crps-id i))
+   ;;                             (tr
+   ;;                              (td
+   ;;                               (format nil "<a href=\"/~a/~a\~a</a>" "flat"
+   ;;                                       (id i) (id i)))
+   ;;                              (td (format nil "~A к.кв." (rooms i)))
+   ;;                              (td (format nil "~:d руб." (price i)))
+   ;;                              (td (frm %del%))))
+   ;;                           :border 1))))))
+   ;;   (:del (act-btn "DEL" (id i) "Удалить")
+   ;;         (progn (del-flat (getf p :data)))))
  #+END_SRC
 
 ** Страничка планировки
@@ -2685,30 +2750,30 @@
  #+NAME: iface_contents
  #+BEGIN_SRC lisp :noweb tangle :exports none
 
-   (in-package #:moto)
+   ;; (in-package #:moto)
 
-   (define-page flat "/flat/:flat-id"
-     (let* ((i (parse-integer flat-id))
-            (flat (get-flat i)))
-       (if (null flat)
-           "Нет такой квартиры"
-           (format nil "~{~A~}"
-                   (list
-                    (format nil "<h1>Страница квартиры</h1>")
-                    (format nil "<h2>Данные квартиры</h2>")
-                    (tbl
-                     (with-element (flat flat)
-                       (row "Кол-во комнат" (rooms flat))
-                       (row "Общая площадь" (area-living flat))
-                       (row "Площадь кухни" (area-kitchen flat))
-                       (row "цена" (format nil "~:d"(price flat)))
-                       (row "балкон/лоджия" (balcon flat))
-                       (row "Санузел" (sanuzel flat))
-                       (row "" (frm %buy%))
-                       )
-                     :border 1)))))
-     (:buy (act-btn "BUY" "BUY" "Купить")
-           (progn 1)))
+   ;; (define-page flat "/flat/:flat-id"
+   ;;   (let* ((i (parse-integer flat-id))
+   ;;          (flat (get-flat i)))
+   ;;     (if (null flat)
+   ;;         "Нет такой квартиры"
+   ;;         (format nil "~{~A~}"
+   ;;                 (list
+   ;;                  (format nil "<h1>Страница квартиры</h1>")
+   ;;                  (format nil "<h2>Данные квартиры</h2>")
+   ;;                  (tbl
+   ;;                   (with-element (flat flat)
+   ;;                     (row "Кол-во комнат" (rooms flat))
+   ;;                     (row "Общая площадь" (area-living flat))
+   ;;                     (row "Площадь кухни" (area-kitchen flat))
+   ;;                     (row "цена" (format nil "~:d"(price flat)))
+   ;;                     (row "балкон/лоджия" (balcon flat))
+   ;;                     (row "Санузел" (sanuzel flat))
+   ;;                     (row "" (frm %buy%))
+   ;;                     )
+   ;;                   :border 1)))))
+   ;;   (:buy (act-btn "BUY" "BUY" "Купить")
+   ;;         (progn 1)))
  #+END_SRC
 
 *** TODO Pop-up
@@ -2875,59 +2940,59 @@
     #+NAME: iface_contents
     #+BEGIN_SRC lisp :noweb tangle :exports none
 
-      (in-package #:moto)
+      ;; (in-package #:moto)
 
-      (define-page findpage "/find"
-        (format nil "~{~A~}"
-                (list
-                 (format nil "<h1>Страница поиска</h1>")
-                 (format nil "<h2>Простой поиск</h2>")
-                 (frm
-                  (tbl
-                   (list
-                    (row "Район"
-                      (select ("district")
-                        (list* (list "Не важен" "0")
-                               (with-collection (i (all-district))
-                                 (list (name i)
-                                       (id i))))))
-                    (row "Метро"
-                      (select ("metro")
-                        (list* (list "Любое" "0")
-                               (with-collection (i (all-metro))
-                                 (list (name i)
-                                       (id i))))))
-                    (row "Название ЖК"
-                      (select ("cmpx")
-                        (list* (list "Любой ЖК" "0")
-                               (with-collection (i (all-cmpx))
-                                 (list (name i)
-                                       (id i))))))
-                    (row "Кол-во комнат"
-                      (tbl
-                       (list
-                        (row "" "Выберите не менее одного варианта")
-                        (row (input "checkbox" :name "studio" :value t) "Студия")
-                        (row (input "checkbox" :name "one" :value t) "Однокомнатная")
-                        (row (input "checkbox" :name "two" :value t) "Двухкомнатная")
-                        (row (input "checkbox" :name "three" :value t) "Трехкомнатная"))))
-                    (row "Срок сдачи (не позднее)"
-                      (select ("deadline")
-                        (list* (list "Не важен" "0")
-                               (with-collection (i (all-deadline))
-                                 (list (name i)
-                                       (id i))))))
-                    (row "Стоимость квартиры"
-                      (tbl
-                       (list
-                        (row "" "Обязательные поля")
-                        (row "от" (fld "price-from"))
-                        (row "до" (fld "price-to")))))
-                    (row "" %find%))
-                   :border 1)
-                  :action "/results")))
-        (:find (act-btn "FIND" "FIND" "Искать")
-               "Err: redirect to /results!"))
+      ;; (define-page findpage "/find"
+      ;;   (format nil "~{~A~}"
+      ;;           (list
+      ;;            (format nil "<h1>Страница поиска</h1>")
+      ;;            (format nil "<h2>Простой поиск</h2>")
+      ;;            (frm
+      ;;             (tbl
+      ;;              (list
+      ;;               (row "Район"
+      ;;                 (select ("district")
+      ;;                   (list* (list "Не важен" "0")
+      ;;                          (with-collection (i (all-district))
+      ;;                            (list (name i)
+      ;;                                  (id i))))))
+      ;;               (row "Метро"
+      ;;                 (select ("metro")
+      ;;                   (list* (list "Любое" "0")
+      ;;                          (with-collection (i (all-metro))
+      ;;                            (list (name i)
+      ;;                                  (id i))))))
+      ;;               (row "Название ЖК"
+      ;;                 (select ("cmpx")
+      ;;                   (list* (list "Любой ЖК" "0")
+      ;;                          (with-collection (i (all-cmpx))
+      ;;                            (list (name i)
+      ;;                                  (id i))))))
+      ;;               (row "Кол-во комнат"
+      ;;                 (tbl
+      ;;                  (list
+      ;;                   (row "" "Выберите не менее одного варианта")
+      ;;                   (row (input "checkbox" :name "studio" :value t) "Студия")
+      ;;                   (row (input "checkbox" :name "one" :value t) "Однокомнатная")
+      ;;                   (row (input "checkbox" :name "two" :value t) "Двухкомнатная")
+      ;;                   (row (input "checkbox" :name "three" :value t) "Трехкомнатная"))))
+      ;;               (row "Срок сдачи (не позднее)"
+      ;;                 (select ("deadline")
+      ;;                   (list* (list "Не важен" "0")
+      ;;                          (with-collection (i (all-deadline))
+      ;;                            (list (name i)
+      ;;                                  (id i))))))
+      ;;               (row "Стоимость квартиры"
+      ;;                 (tbl
+      ;;                  (list
+      ;;                   (row "" "Обязательные поля")
+      ;;                   (row "от" (fld "price-from"))
+      ;;                   (row "до" (fld "price-to")))))
+      ;;               (row "" %find%))
+      ;;              :border 1)
+      ;;             :action "/results")))
+      ;;   (:find (act-btn "FIND" "FIND" "Искать")
+      ;;          "Err: redirect to /results!"))
    #+END_SRC
 
 *** Расширенный поиск
@@ -3024,87 +3089,87 @@
 
     #+NAME: iface_contents
     #+BEGIN_SRC lisp :noweb tangle :exports none
-      (in-package #:moto)
+      ;; (in-package #:moto)
 
-      (defmacro find-query (price-from price-to &optional &key district metro deadline cmpx studio one two three)
-        `(with-connection *db-spec*
-           (query
-            (:limit
-             (:select (:as 'district.name 'district)  (:as 'cmpx.name 'cmpx)
-                      (:as 'metro.name    'metro)     'distance
-                      (:as 'deadline.name 'deadline)  'finishing
-                      'ipoteka  'installment  'rooms  'area-sum  'price
-                      :from 'flat
-                      :inner-join 'crps :on (:= 'flat.crps_id 'crps.id)
-                      :inner-join 'plex :on (:= 'crps.plex_id 'plex.id)
-                      :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx.id)
-                      :inner-join 'district :on (:= 'cmpx.district_id 'district.id)
-                      :inner-join 'metro :on (:= 'cmpx.metro_id 'metro.id)
-                      :inner-join 'deadline :on (:= 'plex.deadline_id 'deadline.id)
-                      :where (:and ,(remove-if #'null
-                                               `(:or ,(when studio `(:= 'rooms 0))
-                                                     ,(when one    `(:= 'rooms 1))
-                                                     ,(when two    `(:= 'rooms 2))
-                                                     ,(when three  `(:= 'rooms 3))))
-                                   (:and (:> 'price ,price-from)
-                                         (:< 'price ,price-to))
-                                   ,(if district
-                                        `(:= 'district_id ,district)
-                                        t)
-                                   ,(if metro
-                                        `(:= 'metro_id ,metro)
-                                        t)
-                                   ,(if deadline
-                                        `(:<= 'deadline_id ,deadline)
-                                        t)
-                                   ,(if cmpx
-                                        `(:= 'cmpx_id ,cmpx)
-                                        t)))
-             2000))))
+      ;; (defmacro find-query (price-from price-to &optional &key district metro deadline cmpx studio one two three)
+      ;;   `(with-connection *db-spec*
+      ;;      (query
+      ;;       (:limit
+      ;;        (:select (:as 'district.name 'district)  (:as 'cmpx.name 'cmpx)
+      ;;                 (:as 'metro.name    'metro)     'distance
+      ;;                 (:as 'deadline.name 'deadline)  'finishing
+      ;;                 'ipoteka  'installment  'rooms  'area-sum  'price
+      ;;                 :from 'flat
+      ;;                 :inner-join 'crps :on (:= 'flat.crps_id 'crps.id)
+      ;;                 :inner-join 'plex :on (:= 'crps.plex_id 'plex.id)
+      ;;                 :inner-join 'cmpx :on (:= 'plex.cmpx_id 'cmpx.id)
+      ;;                 :inner-join 'district :on (:= 'cmpx.district_id 'district.id)
+      ;;                 :inner-join 'metro :on (:= 'cmpx.metro_id 'metro.id)
+      ;;                 :inner-join 'deadline :on (:= 'plex.deadline_id 'deadline.id)
+      ;;                 :where (:and ,(remove-if #'null
+      ;;                                          `(:or ,(when studio `(:= 'rooms 0))
+      ;;                                                ,(when one    `(:= 'rooms 1))
+      ;;                                                ,(when two    `(:= 'rooms 2))
+      ;;                                                ,(when three  `(:= 'rooms 3))))
+      ;;                              (:and (:> 'price ,price-from)
+      ;;                                    (:< 'price ,price-to))
+      ;;                              ,(if district
+      ;;                                   `(:= 'district_id ,district)
+      ;;                                   t)
+      ;;                              ,(if metro
+      ;;                                   `(:= 'metro_id ,metro)
+      ;;                                   t)
+      ;;                              ,(if deadline
+      ;;                                   `(:<= 'deadline_id ,deadline)
+      ;;                                   t)
+      ;;                              ,(if cmpx
+      ;;                                   `(:= 'cmpx_id ,cmpx)
+      ;;                                   t)))
+      ;;        2000))))
 
-      (define-page results "/results"
-        (format nil "~{~A~}"
-                (list
-                 (format nil "<h1>Страница поиска</h1>")
-                 (format nil "<h2>Простой поиск</h2>")
-                 "Пустой поисковый запрос"))
-        (:find (act-btn "FIND" "FIND" "Искать")
-               (format nil "~{~A~}"
-                       (list
-                        (format nil "~%<h1>Страница поиска</h1>")
-                        (format nil "~%<h2>Выборка</h2>")
-                        (format nil "~%<br /><br />Параметры поиска: ~A" (bprint p))
-                        (format nil "~%<br /><br />~A"
-                                (let* ((form `(find-query
-                                               ,(parse-integer (getf p :price-from))
-                                               ,(parse-integer (getf p :price-to))
-                                               )))
-                                  (unless (equal "0" (getf p :district))
-                                    (setf form (append form (list :district (parse-integer (getf p :district))))))
-                                  (unless (equal "0" (getf p :metro))
-                                    (setf form (append form (list :metro (parse-integer (getf p :metro))))))
-                                  (unless (equal "0" (getf p :deadline))
-                                    (setf form (append form (list :deadline (parse-integer (getf p :deadline))))))
-                                  (unless (equal "0" (getf p :cmpx))
-                                    (setf form (append form (list :cmpx (parse-integer (getf p :cmpx))))))
-                                  (when (getf p :studio)
-                                    (setf form (append form (list :studio t))))
-                                  (when (getf p :one)
-                                    (setf form (append form (list :one t))))
-                                  (when (getf p :two)
-                                    (setf form (append form (list :two t))))
-                                  (when (getf p :three)
-                                    (setf form (append form (list :three t))))
-                                  (format nil "~%<br /><br />Запрос: ~A~%<br /><br />Результат: <br/><br />~A"
-                                          (bprint form)
-                                          (format nil "<table border=1><tr>~{~A~}</tr>~{~A~}</table>"
-                                                  (loop :for item :in '("Район" "Комплекс" "Метро" "Расстояние" "Срок сдачи"
-                                                                        "Отделка" "Ипотека" "Рассрочка" "Кол-во комнат" "Общая площадь" "Цена") :collect
-                                                     (format nil "~%<th>~A</th>" item))
-                                                  (loop :for item :in (eval form) :collect
-                                                     (format nil "~%<tr>~{~A~}</tr>"
-                                                             (loop :for item :in item :collect
-                                                                (format nil "~%<td>~A</td>" item))))))))))))
+      ;; (define-page results "/results"
+      ;;   (format nil "~{~A~}"
+      ;;           (list
+      ;;            (format nil "<h1>Страница поиска</h1>")
+      ;;            (format nil "<h2>Простой поиск</h2>")
+      ;;            "Пустой поисковый запрос"))
+      ;;   (:find (act-btn "FIND" "FIND" "Искать")
+      ;;          (format nil "~{~A~}"
+      ;;                  (list
+      ;;                   (format nil "~%<h1>Страница поиска</h1>")
+      ;;                   (format nil "~%<h2>Выборка</h2>")
+      ;;                   (format nil "~%<br /><br />Параметры поиска: ~A" (bprint p))
+      ;;                   (format nil "~%<br /><br />~A"
+      ;;                           (let* ((form `(find-query
+      ;;                                          ,(parse-integer (getf p :price-from))
+      ;;                                          ,(parse-integer (getf p :price-to))
+      ;;                                          )))
+      ;;                             (unless (equal "0" (getf p :district))
+      ;;                               (setf form (append form (list :district (parse-integer (getf p :district))))))
+      ;;                             (unless (equal "0" (getf p :metro))
+      ;;                               (setf form (append form (list :metro (parse-integer (getf p :metro))))))
+      ;;                             (unless (equal "0" (getf p :deadline))
+      ;;                               (setf form (append form (list :deadline (parse-integer (getf p :deadline))))))
+      ;;                             (unless (equal "0" (getf p :cmpx))
+      ;;                               (setf form (append form (list :cmpx (parse-integer (getf p :cmpx))))))
+      ;;                             (when (getf p :studio)
+      ;;                               (setf form (append form (list :studio t))))
+      ;;                             (when (getf p :one)
+      ;;                               (setf form (append form (list :one t))))
+      ;;                             (when (getf p :two)
+      ;;                               (setf form (append form (list :two t))))
+      ;;                             (when (getf p :three)
+      ;;                               (setf form (append form (list :three t))))
+      ;;                             (format nil "~%<br /><br />Запрос: ~A~%<br /><br />Результат: <br/><br />~A"
+      ;;                                     (bprint form)
+      ;;                                     (format nil "<table border=1><tr>~{~A~}</tr>~{~A~}</table>"
+      ;;                                             (loop :for item :in '("Район" "Комплекс" "Метро" "Расстояние" "Срок сдачи"
+      ;;                                                                   "Отделка" "Ипотека" "Рассрочка" "Кол-во комнат" "Общая площадь" "Цена") :collect
+      ;;                                                (format nil "~%<th>~A</th>" item))
+      ;;                                             (loop :for item :in (eval form) :collect
+      ;;                                                (format nil "~%<tr>~{~A~}</tr>"
+      ;;                                                        (loop :for item :in item :collect
+      ;;                                                           (format nil "~%<td>~A</td>" item))))))))))))
    #+END_SRC
 
 * Проект CRM-системы для отдела продаж
