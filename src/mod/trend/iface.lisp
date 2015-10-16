@@ -5,31 +5,104 @@
 
 ;; Страницы
 
-;; (in-package #:moto)
+(in-package #:moto)
 
-(defun trans-developer ()
-  "stub"
-  )
+(ql:quickload "cl-mysql")
 
-;; (define-page all-cmpx-s "/cmpxs"
-;;   (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
-;;                "<br /><br />"
-;;                (tbl
-;;                 (with-collection (cmpx (funcall #'all-cmpx))
-;;                   (tr
-;;                    (td
-;;                     (format nil "<a href=\"/~a/~a\~a</a>" "cmpx"
-;;                     (id cmpx) (id cmpx)))
-;;                    (td (name cmpx))
-;;                    (td (addr cmpx))
-;;                    (td (aif (district-id cmpx)
-;;                             (name (get-district it))))
-;;                    (td (aif (metro-id cmpx)
-;;                             (name (get-metro it))))
-;;                    (td (frm %del%))))
-;;                 :border 1))
-;;   (:del (act-btn "DEL" (id cmpx) "Удалить")
-;;         (progn (del-cmpx (getf p :data)))))
+(defmacro with-mysql-conn (spec &body body)
+  `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
+     (unwind-protect (progn
+                       (cl-mysql:query  "SET NAMES 'utf8'")
+                       ,@body)
+       (cl-mysql:disconnect))))
+
+(defun get-active-developers ()
+  (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+    (let ((cnt (caaaar (cl-mysql:query "SELECT count(id) FROM developer"))))
+      (cl-mysql:query
+       (replace-all "
+                     SELECT
+                         toguid(d.id) AS developerId,
+                         REPLACE(REPLACE(d.name, '«', ''), '»', '') AS developer_name,
+                         d.address,
+                         d.url,
+                         d.phone,
+                         d.note
+                     FROM
+                         nb_complex cmpx
+                     INNER JOIN
+                         developer d
+                       ON
+                         d.id = cmpx.developerId
+                     INNER JOIN
+                         nb_complex ap FORCE INDEX (AP)
+                       ON
+                          cmpx.id = ap.bknid
+                       AND
+                          ap.nb_sourceId IN (1 , 3)
+                       AND
+                          ap.statusId = 1
+                       AND
+                          ap.isPrivate = 0
+                     INNER JOIN
+                          nb_block b
+                       ON
+                          b.nb_complexId = ap.id
+                       AND
+                          b.statusId = 1
+                     INNER JOIN
+                          nb_appartment a
+                       ON
+                         b.id = a.nb_blockId
+                       AND
+                         a.statusId = 1
+                     WHERE
+                         cmpx.nb_sourceId = 2
+                       AND
+                         cmpx.statusId = 1
+                     GROUP BY d.id , d.name
+                     ORDER BY d.name
+                     LIMIT
+                       $limit;
+                    "
+                    "$limit"
+                    (format nil "~A" cnt))))))
+
+(in-package #:moto)
+
+(defun sanitize-developer (x)
+  (list
+   :id (nth 0 x)
+   :name (nth 1 x)
+   :address (nth 2 x)
+   :url (nth 3 x)
+   :phone (nth 4 x)
+   :note (let ((note (nth 5 x)))
+           (if (null note)
+               ""
+               (let ((proc (sb-ext:run-program "/usr/bin/php" (list "-r" (format nil "echo(strip_tags(\"~A\"));" (replace-all note "\"" "\\\""))) :output :stream :wait nil)))
+                 (let ((in-string ""))
+                   (with-open-stream (stream (sb-ext:process-output proc))
+                     ;; (finish-output *stream*)
+                     (loop :for iter :from 1 :do
+                        (handler-case
+                            (tagbody start-decoding
+                               (setf in-string (concatenate 'string in-string (read-line stream)))
+                               (incf iter)
+                               (go start-decoding))
+                          (END-OF-FILE () (return))))
+                     (close stream))
+                   in-string))))))
+
+;; (mapcar
+;;  #'sanitize-developer
+;;  (caar (get-active-developers)))
+
+(in-package #:moto)
+
+(mapcar
+ #'sanitize-developer
+ (caar (get-active-developers)))
 (in-package #:moto)
 
 (defparameter *trnd-pages*

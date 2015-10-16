@@ -50,47 +50,9 @@
      | note    | text         | Описание застройщика        |
 
 
-     Теперь мы можем написать функцию, которая будет преобразовывать застройщика из исходной
-     БД и класть его в целевую:
-
-     (quicklisp-quickstart:install)
-     (ql:quickload "cl-mysql")
-     (cl-mysql:connect :host "localhost" :database "dbname" :user "root" :password "password")
-     (cl-mysql:query "select ip,mac from status where mac is not null limit 10")
-
-     #+NAME: iface_contents
-     #+BEGIN_SRC lisp :noweb tangle :exports none
-
-       ;; (in-package #:moto)
-
-       (defun trans-developer ()
-         "stub"
-         )
-
-       ;; (define-page all-cmpx-s "/cmpxs"
-       ;;   (concatenate 'string "<h1>" "Жилые комплексы" "</h1>" ""
-       ;;                "<br /><br />"
-       ;;                (tbl
-       ;;                 (with-collection (cmpx (funcall #'all-cmpx))
-       ;;                   (tr
-       ;;                    (td
-       ;;                     (format nil "<a href=\"/~a/~a\~a</a>" "cmpx"
-       ;;                     (id cmpx) (id cmpx)))
-       ;;                    (td (name cmpx))
-       ;;                    (td (addr cmpx))
-       ;;                    (td (aif (district-id cmpx)
-       ;;                             (name (get-district it))))
-       ;;                    (td (aif (metro-id cmpx)
-       ;;                             (name (get-metro it))))
-       ;;                    (td (frm %del%))))
-       ;;                 :border 1))
-       ;;   (:del (act-btn "DEL" (id cmpx) "Удалить")
-       ;;         (progn (del-cmpx (getf p :data)))))
-     #+END_SRC
-
-
-
-     Таким образом мы можем получать всех застройщиков, которые имеют активные комплексы
+     Это позволяет написать функцию, которая будет преобразовывать застройщика из исходной
+     БД и класть его в целевую. Вот запрос, которым мы можем получать всех застройщиков,
+     которые имеют активные комплексы:
 
      #+name: query_get_developer
      #+header: :engine mysql
@@ -145,9 +107,74 @@
          $limit;
      #+end_src
 
+     Обернув его в макрос, который осуществляет подключение к mysql и установку кодировки мы
+     можем получить всех застройщиков, имеющих активные комплексы:
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       (ql:quickload "cl-mysql")
+
+       (defmacro with-mysql-conn (spec &body body)
+         `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
+            (unwind-protect (progn
+                              (cl-mysql:query  "SET NAMES 'utf8'")
+                              ,@body)
+              (cl-mysql:disconnect))))
+
+       (defun get-active-developers ()
+         (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+           (let ((cnt (caaaar (cl-mysql:query "SELECT count(id) FROM developer"))))
+             (cl-mysql:query
+              (replace-all "
+                            <<query_get_developer>>
+                           "
+                           "$limit"
+                           (format nil "~A" cnt))))))
+     #+END_SRC
 
      Застройщики имеют описание, в котором есть html-форматирование, которое хотелось бы
-     удалить. Я использую для этого php-функцию strip_tags:
+     удалить. Я использую для этого php-функцию strip_tags
+
+     Вот так я вызывают PHP из Common Lisp:
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       (defun sanitize-developer (x)
+         (list
+          :id (nth 0 x)
+          :name (nth 1 x)
+          :address (nth 2 x)
+          :url (nth 3 x)
+          :phone (nth 4 x)
+          :note (let ((note (nth 5 x)))
+                  (if (null note)
+                      ""
+                      (let ((proc (sb-ext:run-program "/usr/bin/php" (list "-r" (format nil "echo(strip_tags(\"~A\"));" (replace-all note "\"" "\\\""))) :output :stream :wait nil)))
+                        (let ((in-string ""))
+                          (with-open-stream (stream (sb-ext:process-output proc))
+                            ;; (finish-output *stream*)
+                            (loop :for iter :from 1 :do
+                               (handler-case
+                                   (tagbody start-decoding
+                                      (setf in-string (concatenate 'string in-string (read-line stream)))
+                                      (incf iter)
+                                      (go start-decoding))
+                                 (END-OF-FILE () (return))))
+                            (close stream))
+                          in-string))))))
+
+       ;; (mapcar
+       ;;  #'sanitize-developer
+       ;;  (caar (get-active-developers)))
+     #+END_SRC
+
+     А вот так можно вызвать его из Emacs Lisp:
 
      #+NAME: strip_tags
      #+BEGIN_SRC emacs-lisp :var param="<p>strip</p>" :results value :exports none
@@ -161,6 +188,23 @@
                     (foxtrot (replace-regexp-in-string "&nbsp;" "" echo)))
                foxtrot))))
      #+END_SRC
+
+     Теперь всех полученных застройщиков можно сохранить в PostgreSQL:
+
+     ============TODO============
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       (mapcar
+        #'sanitize-developer
+        (caar (get-active-developers)))
+     #+END_SRC
+
+
+
 
 **** Жилые комплексы
 
@@ -391,8 +435,6 @@
 **** Данные застройщиков
 
      Здесь мы соберем все данные которые у нас есть по всем известным застройщикам
-
-
 
      #+NAME: developers_data
      #+BEGIN_SRC emacs-lisp :var table=query_get_developers :results output :exports none
