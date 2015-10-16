@@ -699,6 +699,25 @@
        "standby -> terminated")
    #+END_SRC
 
+** DONE Застройщики (developer)
+
+   #+CAPTION: Данные застройщиков
+   #+NAME: developer_flds
+     | field   | field type | note                        |
+     |---------+------------+-----------------------------|
+     | id      | serial     | Идентификатор               |
+     | guid    | varchar    | Идентификатор в виде GUID-а |
+     | name    | varchar    | Название компании           |
+     | address | varchar    | Адрес компании              |
+     | url     | varchar    | Адрес сайта                 |
+     | phone   | varchar    | Телефон                     |
+     | note    | text       | Описание застройщика        |
+
+   #+NAME: group_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("developer", "застройщика", developer_flds)>>
+   #+END_SRC
+
 ** Очереди (que, quelt)
 
    Очереди используются для фолловинга и прочей подписки на обновления.

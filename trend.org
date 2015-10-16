@@ -14,7 +14,7 @@
 
 ** Продажа
 *** Квартиры в новостройках
-**** Застройщики
+**** COMMENT Застройщики
 
      У нас есть некоторое количество (423) =застройщиков=, которые строят =жилые
      комплексы=. Квартиры в этих жилых комплексах продаются как самим застройщиком (его
@@ -36,19 +36,8 @@
      | phone      | varchar(50)         | YES  |     | NULL    |       |
      | note       | text                | YES  |     | NULL    |       |
 
-     А в целевой мы определим застройщиков так:
-
-     #+CAPTION: Застройщики - схема данных
-     #+NAME: developer_flds
-     | field   | field type   | note                        |
-     |---------+--------------+-----------------------------|
-     | id      | binary(16)   | Идентификатор в виде GUID-а |
-     | name    | varchar(255) | Название компании           |
-     | address | varchar(255) | Адрес компании              |
-     | url     | varchar(50)  | Адрес сайта                 |
-     | phone   | varchar(50)  | Телефон                     |
-     | note    | text         | Описание застройщика        |
-
+     А в целевой БД мы определили застройщиков в основном файле проекта, в разделе [[file:doc.org::Застройщики
+     (developer)][Застройщики]]
 
      Это позволяет написать функцию, которая будет преобразовывать застройщика из исходной
      БД и класть его в целевую. Вот запрос, которым мы можем получать всех застройщиков,
@@ -147,7 +136,7 @@
 
        (defun sanitize-developer (x)
          (list
-          :id (nth 0 x)
+          :guid (nth 0 x)
           :name (nth 1 x)
           :address (nth 2 x)
           :url (nth 3 x)
@@ -191,20 +180,70 @@
 
      Теперь всех полученных застройщиков можно сохранить в PostgreSQL:
 
-     ============TODO============
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       (defun developers-from-mysql-to-pgsql ()
+         (with-connection *db-spec*
+           (query "TRUNCATE developer"))
+         (mapcar #'(lambda (x)
+                     (apply #'make-developer (sanitize-developer x)))
+                 (caar (get-active-developers))))
+
+       (developers-from-mysql-to-pgsql)
+     #+END_SRC
+
+     Теперь, когда все застройщики у нас в базе - их можно отобразить в веб-интерфейсе
 
      #+NAME: iface_contents
      #+BEGIN_SRC lisp :noweb tangle :exports none
 
        (in-package #:moto)
 
-       (mapcar
-        #'sanitize-developer
-        (caar (get-active-developers)))
+       ;; Застройщики (все)
+       (restas:define-route trnd-devs ("/trnd/devs")
+         (ps-html
+          ((:form :method "POST")
+           ((:table :border 1)
+            (format nil "~{~A~}"
+                    (with-collection (i (sort (all-developer) #'(lambda (a b) (< (id a) (id b)))))
+                      (ps-html
+                       ((:tr)
+                        ((:td) (id i))
+                        ((:td) ((:a :href (format nil "/trnd/dev/~A" (guid i))) (name i)))))))
+            ))))
+
+
+       ;; Страничка застройщика
+       (restas:define-route trnd-dev-page ("/trnd/dev/:guid")
+         (let ((dev (find-developer :guid guid)))
+           (if (null dev)
+               ""
+               (let ((dev (car dev)))
+                 (ps-html
+                  ((:table :border 1)
+                   ((:tr)
+                    ((:td) "id")
+                    ((:td) (id dev)))
+                   ((:tr)
+                    ((:td) "guid")
+                    ((:td) (guid dev)))
+                   ((:tr)
+                    ((:td) "name")
+                    ((:td) (name dev)))
+                   ((:tr)
+                    ((:td) "address")
+                    ((:td) (address dev)))
+                   ((:tr)
+                    ((:td) "url")
+                    ((:td) (url dev)))
+                   ((:tr)
+                    ((:td) "phone")
+                    ((:td) (phone dev))))
+                  (note dev))))))
      #+END_SRC
-
-
-
 
 **** Жилые комплексы
 
@@ -2250,10 +2289,6 @@
                                    (getf x :link)
                                    (getf x :title)))
                        ,*trnd-pages*)))
-
-     ;; Застройщики
-     (restas:define-route test-page ("/trnd/bldr")
-       "Pf")
 
    #+END_SRC
 

@@ -72,7 +72,7 @@
 
 (defun sanitize-developer (x)
   (list
-   :id (nth 0 x)
+   :guid (nth 0 x)
    :name (nth 1 x)
    :address (nth 2 x)
    :url (nth 3 x)
@@ -100,9 +100,14 @@
 
 (in-package #:moto)
 
-(mapcar
- #'sanitize-developer
- (caar (get-active-developers)))
+(defun developers-from-mysql-to-pgsql ()
+  (with-connection *db-spec*
+    (query "TRUNCATE developer"))
+  (mapcar #'(lambda (x)
+              (apply #'make-developer (sanitize-developer x)))
+          (caar (get-active-developers))))
+
+(developers-from-mysql-to-pgsql)
 (in-package #:moto)
 
 (defparameter *trnd-pages*

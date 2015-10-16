@@ -144,6 +144,18 @@
 (defun delivery ()
   "undelivered -> delivered")
 ;; msg_automat ends here
+;; [[file:doc.org::*Застройщики (developer)][group_entity]]
+(define-entity developer "Сущность застройщика"
+  ((id serial)
+   (guid varchar)
+   (name varchar)
+   (address varchar)
+   (url varchar)
+   (phone varchar)
+   (note text)))
+
+(make-developer-table)
+;; group_entity ends here
 ;; [[file:doc.org::*Задачи (task)][task_automat]]
 (define-automat task "Автомат задачи"
   ((id serial)
