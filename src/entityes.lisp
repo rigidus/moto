@@ -144,18 +144,6 @@
 (defun delivery ()
   "undelivered -> delivered")
 ;; msg_automat ends here
-;; [[file:doc.org::*Застройщики (developer)][group_entity]]
-(define-entity developer "Сущность застройщика"
-  ((id serial)
-   (guid varchar)
-   (name varchar)
-   (address varchar)
-   (url varchar)
-   (phone varchar)
-   (note text)))
-
-(make-developer-table)
-;; group_entity ends here
 ;; [[file:doc.org::*Задачи (task)][task_automat]]
 (define-automat task "Автомат задачи"
   ((id serial)
@@ -199,6 +187,43 @@
 (defun terminatestandbytask ()
   "standby -> terminated")
 ;; task_automat ends here
+;; [[file:doc.org::*Застройщики (developer)][developer_entity]]
+(define-entity developer "Сущность застройщика"
+  ((id serial)
+   (guid varchar)
+   (name varchar)
+   (address varchar)
+   (url varchar)
+   (phone varchar)
+   (note text)))
+
+(make-developer-table)
+;; developer_entity ends here
+;; [[file:doc.org::*Жилые комплексы (cmpx)][developer_entity]]
+(define-entity cmpx "Сущность комплекса"
+  ((id serial)
+   (nb_sourceId integer)
+   (statusId integer)
+   (developerId varchar)
+   (date_insert (or db-null timestamp))
+   (regionId integer)
+   (districtId integer)
+   (district_name varchar)
+   (city_name varchar)
+   (street_name varchar)
+   (subway1Id (or db-null integer))
+   (subway2Id (or db-null integer))
+   (subway3Id (or db-null integer))
+   (name varchar)
+   (note text)
+   (longitude varchar)
+   (latitude varchar)
+   (dateUpdate timestamp)
+   (isPrivate integer)
+   (bknId varchar)))
+
+(make-cmpx-table)
+;; developer_entity ends here
 ;; [[file:doc.org::*Очереди (que, quelt)][que_entity]]
 (define-entity que "Сущность очереди"
   ((id serial)

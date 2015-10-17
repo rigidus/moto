@@ -108,6 +108,138 @@
           (caar (get-active-developers))))
 
 (developers-from-mysql-to-pgsql)
+
+(in-package #:moto)
+
+;; Застройщики (все)
+(restas:define-route trnd-devs ("/trnd/devs")
+  (ps-html
+   ((:form :method "POST")
+    ((:table :border 1)
+     (format nil "~{~A~}"
+             (with-collection (i (sort (all-developer) #'(lambda (a b) (< (id a) (id b)))))
+               (ps-html
+                ((:tr)
+                 ((:td) (id i))
+                 ((:td) ((:a :href (format nil "/trnd/dev/~A" (guid i))) (name i)))))))
+     ))))
+
+
+;; Страничка застройщика
+(restas:define-route trnd-dev-page ("/trnd/dev/:guid")
+  (let ((dev (find-developer :guid guid)))
+    (if (null dev)
+        ""
+        (let ((dev (car dev)))
+          (ps-html
+           ((:table :border 1)
+            ((:tr)
+             ((:td) "id")
+             ((:td) (id dev)))
+            ((:tr)
+             ((:td) "guid")
+             ((:td) (guid dev)))
+            ((:tr)
+             ((:td) "name")
+             ((:td) (name dev)))
+            ((:tr)
+             ((:td) "address")
+             ((:td) (address dev)))
+            ((:tr)
+             ((:td) "url")
+             ((:td) (url dev)))
+            ((:tr)
+             ((:td) "phone")
+             ((:td) (phone dev))))
+           (note dev))))))
+
+(in-package #:moto)
+
+(defun get-cmpx-by-developer (guid)
+  (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+    (cl-mysql:query
+     (replace-all "
+                   SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId)
+                   FROM nb_complex
+                   WHERE
+                      nb_sourceId IN (2)
+                   AND
+                      developerId = guidtobinary('$developerId')
+                  "
+                  "$developerId"
+                  (format nil "~A" guid)))))
+
+;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
+;; (when (null (string-to-date (subseq string 0 10)))
+;;   (return-from string-to-universal-time 2208988800))
+
+(get-cmpx-by-developer "6945D3A6-8335-11E4-B6C0-448A5BD44C07")
+
+(in-package #:moto)
+
+(defun sanitize-cmpx (x)
+  (list
+   :guid (nth 0 x)
+   :nb_sourceId (nth 1 x)
+   :statusId (nth 2 x)
+   :date_insert (nth 3 x)
+   ;; :date_update (let ((tmp (nth 4 x)))
+   ;;                (if (null tmp)
+   ;;                    "1970-01-01 00:00:00"
+   ;;                    "1970-01-01 00:00:00"
+   ;;                    ;; tmp
+   ;;                    ))
+   :regionId (nth 5 x)
+   :districtId (nth 6 x)
+   :district_name (nth 7 x)
+   :city_name (nth 8 x)
+   :street_name (nth 9 x)
+   :subway1Id (nth 10 x)
+   :subway2Id (nth 11 x)
+   :subway3Id (nth 12 x)
+   :name (nth 13 x)
+   :note (let ((note (nth 14 x)))
+           (if (null note)
+               ""
+               (let ((proc (sb-ext:run-program "/usr/bin/php" (list "-r" (format nil "echo(strip_tags(\"~A\"));" (replace-all note "\"" "\\\""))) :output :stream :wait nil)))
+                 (let ((in-string ""))
+                   (with-open-stream (stream (sb-ext:process-output proc))
+                     ;; (finish-output *stream*)
+                     (loop :for iter :from 1 :do
+                        (handler-case
+                            (tagbody start-decoding
+                               (setf in-string (concatenate 'string in-string (read-line stream)))
+                               (incf iter)
+                               (go start-decoding))
+                          (END-OF-FILE () (return))))
+                     (close stream))
+                   in-string))))
+   :longitude (nth 15 x)
+   :latitude (nth 16 x)
+   :dateUpdate (nth 17 x)
+   :isPrivate (nth 18 x)
+   :bknId (nth 19 x)))
+
+;; (print
+;;  (mapcar #'sanitize-cmpx
+;;          (caar
+;;           (get-cmpx-by-developer "6945DC73-8335-11E4-B6C0-448A5BD44C07"))))
+
+(in-package #:moto)
+
+;; (let ((all-cmpx-s))
+;;   (mapcar #'(lambda (guid)
+;;               (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
+;;                 (mapcar #'(lambda (cmpx)
+;;                             (push (sanitize-cmpx cmpx) all-cmpx-s))
+;;                        cmpx-s)))
+;;          (mapcar #'guid (all-developer)))
+;;   (mapcar #'(lambda (x)
+;;               (print x)
+;;               (apply #'make-cmpx x))
+;;           all-cmpx-s))
+
+;; (cl-mysql-system::string-to-universal-time "1970-01-01 00:00:00")
 (in-package #:moto)
 
 (defparameter *trnd-pages*
@@ -122,10 +254,6 @@
                               (getf x :link)
                               (getf x :title)))
                   *trnd-pages*)))
-
-;; Застройщики
-(restas:define-route test-page ("/trnd/bldr")
-  "Pf")
 
 ;; (in-package #:moto)
 

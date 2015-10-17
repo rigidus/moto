@@ -14,7 +14,7 @@
 
 ** Продажа
 *** Квартиры в новостройках
-**** COMMENT Застройщики
+**** Застройщики
 
      У нас есть некоторое количество (423) =застройщиков=, которые строят =жилые
      комплексы=. Квартиры в этих жилых комплексах продаются как самим застройщиком (его
@@ -24,17 +24,17 @@
 
      #+CAPTION: Застройщики в исходной БД - схема данных
      #+NAME: source_developer_flds
-     | Field      | Type                | Null | Key | Default | Extra |
-     |------------+---------------------+------+-----+---------+-------|
-     | id         | binary(16)          | NO   | PRI | NULL    |       |
-     | name       | varchar(255)        | NO   |     | NULL    |       |
-     | sortIndex  | tinyint(4) unsigned | NO   |     | 0       |       |
-     | deleted    | tinyint(1)          | NO   |     | 0       |       |
-     | dateUpdate | datetime            | YES  |     | NULL    |       |
-     | address    | varchar(255)        | YES  |     | NULL    |       |
-     | url        | varchar(50)         | YES  |     | NULL    |       |
-     | phone      | varchar(50)         | YES  |     | NULL    |       |
-     | note       | text                | YES  |     | NULL    |       |
+       | Field      | Type                | Null | Key | Default | Extra |
+       |------------+---------------------+------+-----+---------+-------|
+       | id         | binary(16)          | NO   | PRI | NULL    |       |
+       | name       | varchar(255)        | NO   |     | NULL    |       |
+       | sortIndex  | tinyint(4) unsigned | NO   |     | 0       |       |
+       | deleted    | tinyint(1)          | NO   |     | 0       |       |
+       | dateUpdate | datetime            | YES  |     | NULL    |       |
+       | address    | varchar(255)        | YES  |     | NULL    |       |
+       | url        | varchar(50)         | YES  |     | NULL    |       |
+       | phone      | varchar(50)         | YES  |     | NULL    |       |
+       | note       | text                | YES  |     | NULL    |       |
 
      А в целевой БД мы определили застройщиков в основном файле проекта, в разделе [[file:doc.org::Застройщики
      (developer)][Застройщики]]
@@ -245,12 +245,44 @@
                   (note dev))))))
      #+END_SRC
 
-**** Жилые комплексы
+**** COMMENT Жилые комплексы
+
+     В исходной БД жилые комплексы определены так:
+
+     #+CAPTION: Жилые комплексы в исходной БД
+     #+NAME: source_complex_flds
+       | Field         | Type                | Null | Key | Default           | Extra |
+       |---------------+---------------------+------+-----+-------------------+-------|
+       | id            | binary(16)          | NO   | PRI | NULL              |       |
+       | nb_sourceId   | tinyint(4) unsigned | NO   | MUL | 1                 |       |
+       | statusId      | tinyint(4) unsigned | NO   | MUL | 1                 |       |
+       | developerId   | binary(16)          | NO   | MUL | NULL              |       |
+       | date_insert   | timestamp           | NO   |     | CURRENT_TIMESTAMP |       |
+       | date_update   | datetime            | NO   |     | NULL              |       |
+       | regionId      | int(11) unsigned    | NO   | MUL | NULL              |       |
+       | districtId    | int(11) unsigned    | NO   | MUL | NULL              |       |
+       | district_name | varchar(255)        | YES  |     | NULL              |       |
+       | city_name     | varchar(255)        | YES  |     | NULL              |       |
+       | street_name   | varchar(255)        | YES  |     | NULL              |       |
+       | subway1Id     | int(11) unsigned    | YES  |     | NULL              |       |
+       | subway2Id     | int(11) unsigned    | YES  |     | NULL              |       |
+       | subway3Id     | int(11) unsigned    | YES  |     | NULL              |       |
+       | name          | varchar(250)        | NO   | MUL | NULL              |       |
+       | note          | text                | YES  |     | NULL              |       |
+       | longitude     | decimal(18,10)      | YES  |     | NULL              |       |
+       | latitude      | decimal(18,10)      | YES  |     | NULL              |       |
+       | dateUpdate    | datetime            | YES  |     | NULL              |       |
+       | isPrivate     | tinyint(1)          | NO   | MUL | 0                 |       |
+       | bknId         | binary(16)          | YES  | MUL | NULL              |       |
+
+
+     А в целевой БД мы определили жилые комплексы в основном файле проекта в разделе
+     [[file:doc.org::Жилые комплексы (complex)][Жилые комплексы]]
 
      У каждого ЖК есть =статус= - например: активный или архивный (есть и другие)
 
-     У каждого ЖК есть =источник данных= - обычно это агентсво, от которого
-     получена информация об этом ЖК.
+     У каждого ЖК есть =источник данных= - обычно это агентство, от которого получена
+     информация об этом ЖК.
 
      У каждого ЖК есть =регион=, =район= и несколько ближайших станций =метро=.
 
@@ -259,32 +291,6 @@
 
      Корпуса могут быть в разных состояниях готовности, для этого у них есть поле
      =status_buildId=, указывающее на таблицу =status_build=, в которых эти состояния перечислены
-
-     #+CAPTION: Жилые комплексы - схема данных
-     #+NAME: complex_flds
-     | field         | field type          | note                                                                 |
-     |---------------+---------------------+----------------------------------------------------------------------|
-     | id            | binary(16)          | Идентификатор в виде GUID-а                                          |
-     | nb_sourceId   | tinyint(4) unsigned | Идентификатор источника данных reftbl:nb_source                      |
-     | statusId      | tinyint(4) unsigned | Статус объекта reftbl:status                                         |
-     | developerId   | binary(16)          | Идентификатор застройщика reftbl:developer                           |
-     | date_insert   | timestamp           | Дата вставки                                                         |
-     | date_update   | datetime            | Дата обновления                                                      |
-     | regionId      | int(11) unsigned    | Идентификтор региона reftbl:status                                   |
-     | districtId    | int(11) unsigned    | Идентификтор района reftbk:district                                  |
-     | district_name | varchar(255)        | Район (и город, или область) строкой                                 |
-     | city_name     | varchar(255)        | Город или населенный пункт строкой                                   |
-     | street_name   | varchar(255)        | Улица                                                                |
-     | subway1Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | subway2Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | subway3Id     | int(11) unsigned    | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | name          | varchar(250)        | Наименование комплекса                                               |
-     | note          | text                | Описание комплекса                                                   |
-     | longitude     | decimal(18,10)      | Долгота                                                              |
-     | latitude      | decimal(18,10)      | Широта                                                               |
-     | dateUpdate    | datetime            | Дата обновления                                                      |
-     | isPrivate     | tinyint(1)          | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
-     | bknId         | binary(16)          | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
 
      Таким образом мы можем получить все ЖК какого-нибудь застройщика:
 
@@ -304,7 +310,109 @@
           developerId = guidtobinary('$developerId')
      #+end_src
 
-     Теперь попробуем получить всех застройщиков и их комплексы
+     Напишем функцию, которая возвращает все жилые комплексы конкретного застройщика
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       (defun get-cmpx-by-developer (guid)
+         (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+           (cl-mysql:query
+            (replace-all "
+                          <<query_get_developer_complex>>
+                         "
+                         "$developerId"
+                         (format nil "~A" guid)))))
+
+       ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
+       ;; (when (null (string-to-date (subseq string 0 10)))
+       ;;   (return-from string-to-universal-time 2208988800))
+
+       (get-cmpx-by-developer "6945D3A6-8335-11E4-B6C0-448A5BD44C07")
+     #+END_SRC
+
+     Теперь нужна функция, которая превращает комплекс в правильный plist, удаляя
+     форматирование, если оно есть:
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       (defun sanitize-cmpx (x)
+         (list
+          :guid (nth 0 x)
+          :nb_sourceId (nth 1 x)
+          :statusId (nth 2 x)
+          :date_insert (nth 3 x)
+          ;; :date_update (let ((tmp (nth 4 x)))
+          ;;                (if (null tmp)
+          ;;                    "1970-01-01 00:00:00"
+          ;;                    "1970-01-01 00:00:00"
+          ;;                    ;; tmp
+          ;;                    ))
+          :regionId (nth 5 x)
+          :districtId (nth 6 x)
+          :district_name (nth 7 x)
+          :city_name (nth 8 x)
+          :street_name (nth 9 x)
+          :subway1Id (nth 10 x)
+          :subway2Id (nth 11 x)
+          :subway3Id (nth 12 x)
+          :name (nth 13 x)
+          :note (let ((note (nth 14 x)))
+                  (if (null note)
+                      ""
+                      (let ((proc (sb-ext:run-program "/usr/bin/php" (list "-r" (format nil "echo(strip_tags(\"~A\"));" (replace-all note "\"" "\\\""))) :output :stream :wait nil)))
+                        (let ((in-string ""))
+                          (with-open-stream (stream (sb-ext:process-output proc))
+                            ;; (finish-output *stream*)
+                            (loop :for iter :from 1 :do
+                               (handler-case
+                                   (tagbody start-decoding
+                                      (setf in-string (concatenate 'string in-string (read-line stream)))
+                                      (incf iter)
+                                      (go start-decoding))
+                                 (END-OF-FILE () (return))))
+                            (close stream))
+                          in-string))))
+          :longitude (nth 15 x)
+          :latitude (nth 16 x)
+          :dateUpdate (nth 17 x)
+          :isPrivate (nth 18 x)
+          :bknId (nth 19 x)))
+
+       ;; (print
+       ;;  (mapcar #'sanitize-cmpx
+       ;;          (caar
+       ;;           (get-cmpx-by-developer "6945DC73-8335-11E4-B6C0-448A5BD44C07"))))
+     #+END_SRC
+
+     Теперь берем всех активных застройщиков из целевой БД, которых мы получили на
+     предыдущем шаге, получаем все их комплексы из исходной базы и сохраняем в целевую
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       ;; (let ((all-cmpx-s))
+       ;;   (mapcar #'(lambda (guid)
+       ;;               (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
+       ;;                 (mapcar #'(lambda (cmpx)
+       ;;                             (push (sanitize-cmpx cmpx) all-cmpx-s))
+       ;;                        cmpx-s)))
+       ;;          (mapcar #'guid (all-developer)))
+       ;;   (mapcar #'(lambda (x)
+       ;;               (print x)
+       ;;               (apply #'make-cmpx x))
+       ;;           all-cmpx-s))
+
+       ;; (cl-mysql-system::string-to-universal-time "1970-01-01 00:00:00")
+     #+END_SRC
+
 
      #+NAME: developers_data_fwefewf
      #+BEGIN_SRC emacs-lisp :results output :exports none

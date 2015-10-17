@@ -713,10 +713,44 @@
      | phone   | varchar    | Телефон                     |
      | note    | text       | Описание застройщика        |
 
-   #+NAME: group_entity
+   #+NAME: developer_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("developer", "застройщика", developer_flds)>>
    #+END_SRC
+
+** DONE Жилые комплексы (cmpx)
+
+   #+CAPTION: Жилые комплексы - схема данных
+   #+NAME: cmpx_flds
+     | field         | field type             | note                                                                 |
+     |---------------+------------------------+----------------------------------------------------------------------|
+     | id            | serial                 | Идентификатор в виде GUID-а                                          |
+     | nb_sourceId   | integer                | Идентификатор источника данных reftbl:nb_source                      |
+     | statusId      | integer                | Статус объекта reftbl:status                                         |
+     | developerId   | varchar                | Идентификатор застройщика reftbl:developer                           |
+     | date_insert   | (or db-null timestamp) | Дата вставки                                                         |
+     | regionId      | integer                | Идентификтор региона reftbl:status                                   |
+     | districtId    | integer                | Идентификтор района reftbk:district                                  |
+     | district_name | varchar                | Район (и город, или область) строкой                                 |
+     | city_name     | varchar                | Город или населенный пункт строкой                                   |
+     | street_name   | varchar                | Улица                                                                |
+     | subway1Id     | (or db-null integer)   | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | subway2Id     | (or db-null integer)   | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | subway3Id     | (or db-null integer)   | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | name          | varchar                | Наименование комплекса                                               |
+     | note          | text                   | Описание комплекса                                                   |
+     | longitude     | varchar                | Долгота                                                              |
+     | latitude      | varchar                | Широта                                                               |
+     | dateUpdate    | timestamp              | Дата обновления                                                      |
+     | isPrivate     | integer                | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
+     | bknId         | varchar                | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
+
+   #+NAME: developer_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("cmpx", "комплекса", cmpx_flds)>>
+   #+END_SRC
+
+
 
 ** Очереди (que, quelt)
 
