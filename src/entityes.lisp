@@ -226,25 +226,24 @@
 (make-cmpx-table)
 ;; cmpx_entity ends here
 ;; [[file:doc.org::*Корпуса жилых комплексов (blk)][blk_entity]]
-;; (define-entity blk "Сущность корпуса"
-;;   ((id serial)
-;;    (guid varchar)
-;;    (nb_sourceId integer)
-;;    (nb_cmpxId varchar)
-;;    (statusId integer)
-;;    (street varchar)
-;;    (house varchar)
-;;    (blk varchar)
-;;    (litera varchar)
-;;    (floors varchar)
-;;    (quarter_end integer)
-;;    (year_end integer)
-;;    (house_typeId integer)
-;;    (bknId varchar)
-;;    (dateUpdate (or db-null timestamp)))
-;; 
-;; (make-blk-table)
-;;
+(define-entity blk "Сущность корпуса"
+  ((id serial)
+   (guid varchar)
+   (nb_sourceId integer)
+   (nb_cmpxId varchar)
+   (statusId integer)
+   (street (or db-null varchar))
+   (house (or db-null varchar))
+   (corpus (or db-null varchar))
+   (litera (or db-null varchar))
+   (floors (or db-null varchar))
+   (quarter_end (or db-null integer))
+   (year_end (or db-null integer))
+   (house_typeId (or db-null integer))
+   (bknId (or db-null varchar))
+   (dateUpdate (or db-null timestamp))))
+
+(make-blk-table)
 ;; blk_entity ends here
 ;; [[file:doc.org::*Очереди (que, quelt)][que_entity]]
 (define-entity que "Сущность очереди"

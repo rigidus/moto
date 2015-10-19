@@ -765,27 +765,27 @@
 
    #+CAPTION: Корпуса жилых комплексов - схема данных
    #+NAME: blk_flds
-     | field        | field type            | note                                                             |
-     |--------------+-----------------------+------------------------------------------------------------------|
-     | id           | serial                | Идентификатор                                                    |
-     | guid         | varchar               | Идентификатор в виде GUID-а                                      |
-     | nb_sourceId  | integer               | Идентификатор источника данных reftbl:nb_source                  |
-     | nb_cmpxId    | varchar               | Идентификатор жилого комплекса, которому принадлежит этот корпус |
-     | statusId     | integer               | Статус корпуса reftbl:status                                     |
-     | street       | varchar               | Улица                                                            |
-     | house        | varchar               | Дом                                                              |
-     | blk          | varchar               | Корпус (в смысле адреса)                                         |
-     | litera       | varchar               | Литера                                                           |
-     | floors       | varchar               | Этаж                                                             |
-     | quarter_end  | integer               | Квартал завершения строительства                                 |
-     | year_end     | integer               | Год завершения строительства                                     |
-     | house_typeId | integer               | Тип дома reftbl:?                                                |
-     | bknId        | varchar               | Привязка к БКН-овскому корпусу                                   |
-     | dateUpdate   | (or db-null timestamp | Дата обновления                                                  |
+     | field        | field type             | note                                                             |
+     |--------------+------------------------+------------------------------------------------------------------|
+     | id           | serial                 | Идентификатор                                                    |
+     | guid         | varchar                | Идентификатор в виде GUID-а                                      |
+     | nb_sourceId  | integer                | Идентификатор источника данных reftbl:nb_source                  |
+     | nb_cmpxId    | varchar                | Идентификатор жилого комплекса, которому принадлежит этот корпус |
+     | statusId     | integer                | Статус корпуса reftbl:status                                     |
+     | street       | (or db-null varchar)   | Улица                                                            |
+     | house        | (or db-null varchar)   | Дом                                                              |
+     | corpus       | (or db-null varchar)   | Корпус (в смысле адреса)                                         |
+     | litera       | (or db-null varchar)   | Литера                                                           |
+     | floors       | (or db-null varchar)   | Этажность                                                        |
+     | quarter_end  | (or db-null integer)   | Квартал завершения строительства                                 |
+     | year_end     | (or db-null integer)   | Год завершения строительства                                     |
+     | house_typeId | (or db-null integer)   | Тип дома reftbl:?                                                |
+     | bknId        | (or db-null varchar)   | Привязка к БКН-овскому корпусу                                   |
+     | dateUpdate   | (or db-null timestamp) | Дата обновления                                                  |
 
    #+NAME: blk_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
-     ;; <<gen_entity("blk", "корпуса", blk_flds)>>
+     <<gen_entity("blk", "корпуса", blk_flds)>>
    #+END_SRC
 
 
@@ -1544,17 +1544,25 @@
      (defvar *mysql-db-password* "YGAhBawd1j~SANlw\"Y#l")
      (defvar *mysql-db-port* 3306)
 
-     ;; Макрос для подключения к mysql
-     (defmacro with-mysql-conn (spec &body body)
-       `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
-          (unwind-protect (progn
-                            (cl-mysql:query  "SET NAMES 'utf8'")
-                            ,@body)
-            (cl-mysql:disconnect))))
+     ;; ;; Макрос для подключения к mysql
+     ;; (defmacro with-mysql-conn (spec &body body)
+     ;;   `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
+     ;;      (unwind-protect (progn
+     ;;                        (cl-mysql:query  "SET NAMES 'utf8'")
+     ;;                        ,@body)
+     ;;        (cl-mysql:disconnect))))
+
+     ;; (defmacro with-mysql (&body body)
+     ;;   `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+     ;;      ,@body))
+
+     (defparameter *mysql-conn-pool*
+       (cl-mysql:connect :host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306))
+
+     (cl-mysql:query  "SET NAMES 'utf8'")
 
      (defmacro with-mysql (&body body)
-       `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
-          ,@body))
+       `(progn ,@body))
 
      ;; clear db
      (drop '("resume"))

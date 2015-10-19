@@ -236,7 +236,7 @@
                        cmpx-s)))
          (mapcar #'guid (all-developer)))
   (mapcar #'(lambda (x)
-              (print x)
+              ;; (print x)
               (apply #'make-cmpx x))
           all-cmpx-s))
 (in-package #:moto)
@@ -282,6 +282,73 @@
              ((:td) (bknId cmpx))))
            (note cmpx)
            )))))
+
+(in-package #:moto)
+
+(defun get-blks-by-cmpx (guid)
+  (with-mysql
+    (cl-mysql:query
+     (replace-all "
+                   SELECT toguid(id), nb_sourceId, toguid(nb_complexId), statusId, status_buildId, house, block, litera, floors, quarter_end, year_end, house_typeId, toguid(bknId), dateUpdate, toguid(nb_complexId)
+                   FROM nb_block
+                   WHERE
+                      nb_sourceId IN (2)
+                   AND
+                      nb_complexId = guidtobinary('$complexId')
+                  "
+                  "$complexId"
+                  (format nil "~A" guid)))))
+
+(get-blks-by-cmpx "9DFF6CEF-D7EE-11E4-9FBB-448A5BD44C07")
+
+(in-package #:moto)
+
+(defun sanitize-blk (x)
+  (list
+   :guid (nth 0 x)
+   :nb_sourceId (nth 1 x)
+   :nb_cmpxId (nth 2 x)
+   :statusId (nth 3 x)
+   :status_buildId (nth 4 x)
+   :street "stub"
+   :house (nth 5 x)
+   :corpus (nth 6 x)
+   :litera (nth 7 x)
+   :floors (nth 8 x)
+   :quarter_end (let ((tmp (nth 9 x)))
+                (if (null tmp)
+                    0
+                    tmp))
+   :year_end (let ((tmp (nth 10 x)))
+                (if (null tmp)
+                    0
+                    tmp))
+   :house_typeId (let ((tmp (nth 11 x)))
+                (if (null tmp)
+                    0
+                    tmp))
+   :bknId (nth 12 x)
+   :dateUpdate "1970-01-01 00:00:00"
+   ))
+
+;; (print
+;;  (mapcar #'sanitize-blk
+;;          (caar
+;;           (get-blks-by-cmpx "9DFF6CEF-D7EE-11E4-9FBB-448A5BD44C07"))))
+
+(in-package #:moto)
+
+(let ((all-blk-s))
+  (mapcar #'(lambda (guid)
+              (let ((blk-s (caar (get-blks-by-cmpx guid))))
+                (mapcar #'(lambda (blk)
+                            (push (sanitize-blk blk) all-blk-s))
+                       blk-s)))
+         (mapcar #'guid (all-cmpx)))
+  (mapcar #'(lambda (x)
+              (print x)
+              (apply #'make-blk x))
+          all-blk-s))
 (in-package #:moto)
 
 (defparameter *trnd-pages*

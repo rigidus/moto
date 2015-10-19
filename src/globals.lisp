@@ -26,17 +26,25 @@
 (defvar *mysql-db-password* "YGAhBawd1j~SANlw\"Y#l")
 (defvar *mysql-db-port* 3306)
 
-;; Макрос для подключения к mysql
-(defmacro with-mysql-conn (spec &body body)
-  `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
-     (unwind-protect (progn
-                       (cl-mysql:query  "SET NAMES 'utf8'")
-                       ,@body)
-       (cl-mysql:disconnect))))
+;; ;; Макрос для подключения к mysql
+;; (defmacro with-mysql-conn (spec &body body)
+;;   `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
+;;      (unwind-protect (progn
+;;                        (cl-mysql:query  "SET NAMES 'utf8'")
+;;                        ,@body)
+;;        (cl-mysql:disconnect))))
+
+;; (defmacro with-mysql (&body body)
+;;   `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+;;      ,@body))
+
+(defparameter *mysql-conn-pool*
+  (cl-mysql:connect :host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306))
+
+(cl-mysql:query  "SET NAMES 'utf8'")
 
 (defmacro with-mysql (&body body)
-  `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
-     ,@body))
+  `(progn ,@body))
 
 ;; clear db
 (drop '("resume"))
