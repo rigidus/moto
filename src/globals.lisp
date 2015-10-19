@@ -11,13 +11,32 @@
 ;; без этого происходит ошибка при компиляции в js
 (defparameter PARENSCRIPT::SUPPRESS-VALUES nil)
 
-;; Подключение к базе данных
+;; Подключение к базе данных PostgreSQL
 (defvar *db-name* "ylg_new")
 (defvar *db-user* "ylg")
 (defvar *db-pass* "6mEfBjyLrSzlE")
 (defvar *db-serv* "localhost")
 
 (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
+
+;; Подключение к базе данных Mysql
+(defvar *mysql-db-host* "bkn.ru")
+(defvar *mysql-db-database* "bkn_base")
+(defvar *mysql-db-user* "root")
+(defvar *mysql-db-password* "YGAhBawd1j~SANlw\"Y#l")
+(defvar *mysql-db-port* 3306)
+
+;; Макрос для подключения к mysql
+(defmacro with-mysql-conn (spec &body body)
+  `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
+     (unwind-protect (progn
+                       (cl-mysql:query  "SET NAMES 'utf8'")
+                       ,@body)
+       (cl-mysql:disconnect))))
+
+(defmacro with-mysql (&body body)
+  `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+     ,@body))
 
 ;; clear db
 (drop '("resume"))

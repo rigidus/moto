@@ -9,15 +9,9 @@
 
 (ql:quickload "cl-mysql")
 
-(defmacro with-mysql-conn (spec &body body)
-  `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
-     (unwind-protect (progn
-                       (cl-mysql:query  "SET NAMES 'utf8'")
-                       ,@body)
-       (cl-mysql:disconnect))))
 
 (defun get-active-developers ()
-  (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+  (with-mysql
     (let ((cnt (caaaar (cl-mysql:query "SELECT count(id) FROM developer"))))
       (cl-mysql:query
        (replace-all "
@@ -31,39 +25,18 @@
                      FROM
                          nb_complex cmpx
                      INNER JOIN
-                         developer d
-                       ON
-                         d.id = cmpx.developerId
+                         developer d  ON  d.id = cmpx.developerId
                      INNER JOIN
-                         nb_complex ap FORCE INDEX (AP)
-                       ON
-                          cmpx.id = ap.bknid
-                       AND
-                          ap.nb_sourceId IN (1 , 3)
-                       AND
-                          ap.statusId = 1
-                       AND
-                          ap.isPrivate = 0
+                         nb_complex ap FORCE INDEX (AP)  ON  cmpx.id = ap.bknid  AND  ap.nb_sourceId IN (1 , 3)  AND  ap.statusId = 1  AND  ap.isPrivate = 0
                      INNER JOIN
-                          nb_block b
-                       ON
-                          b.nb_complexId = ap.id
-                       AND
-                          b.statusId = 1
+                         nb_block b  ON  b.nb_complexId = ap.id  AND  b.statusId = 1
                      INNER JOIN
-                          nb_appartment a
-                       ON
-                         b.id = a.nb_blockId
-                       AND
-                         a.statusId = 1
+                         nb_appartment a  ON  b.id = a.nb_blockId  AND  a.statusId = 1
                      WHERE
-                         cmpx.nb_sourceId = 2
-                       AND
-                         cmpx.statusId = 1
+                         cmpx.nb_sourceId = 2  AND  cmpx.statusId = 1
                      GROUP BY d.id , d.name
                      ORDER BY d.name
-                     LIMIT
-                       $limit;
+                     LIMIT $limit;
                     "
                     "$limit"
                     (format nil "~A" cnt))))))
@@ -124,7 +97,6 @@
                  ((:td) ((:a :href (format nil "/trnd/dev/~A" (guid i))) (name i)))))))
      ))))
 
-
 ;; Страничка застройщика
 (restas:define-route trnd-dev-page ("/trnd/dev/:guid")
   (let ((dev (find-developer :guid guid)))
@@ -132,6 +104,9 @@
         ""
         (let ((dev (car dev)))
           (ps-html
+           ((:a :href "/trnd/devs") "Все застройщики")
+           ((:br))
+           ((:br))
            ((:table :border 1)
             ((:tr)
              ((:td) "id")
@@ -169,7 +144,7 @@
 (in-package #:moto)
 
 (defun get-cmpx-by-developer (guid)
-  (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+  (with-mysql
     (cl-mysql:query
      (replace-all "
                    SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId), toguid(developerId)
@@ -253,17 +228,60 @@
 
 (in-package #:moto)
 
-;; (let ((all-cmpx-s))
-;;   (mapcar #'(lambda (guid)
-;;               (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
-;;                 (mapcar #'(lambda (cmpx)
-;;                             (push (sanitize-cmpx cmpx) all-cmpx-s))
-;;                        cmpx-s)))
-;;          (mapcar #'guid (all-developer)))
-;;   (mapcar #'(lambda (x)
-;;               (print x)
-;;               (apply #'make-cmpx x))
-;;           all-cmpx-s))
+(let ((all-cmpx-s))
+  (mapcar #'(lambda (guid)
+              (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
+                (mapcar #'(lambda (cmpx)
+                            (push (sanitize-cmpx cmpx) all-cmpx-s))
+                       cmpx-s)))
+         (mapcar #'guid (all-developer)))
+  (mapcar #'(lambda (x)
+              (print x)
+              (apply #'make-cmpx x))
+          all-cmpx-s))
+(in-package #:moto)
+
+;; Страничка застройщика
+(restas:define-route trnd-cmpx-page ("/trnd/cmpx/:guid")
+  (let ((cmpx (find-cmpx :guid guid)))
+    (if (null cmpx)
+        ""
+        (let ((cmpx (car cmpx)))
+          (ps-html
+           ((:a :href "/trnd/devs") "Все застройщики")
+           ((:br))
+           ((:br))
+           ((:table :border 1)
+            ((:tr)
+             ((:td) "id")
+             ((:td) (id cmpx)))
+            ((:tr)
+             ((:td) "guid")
+             ((:td) (guid cmpx)))
+             ((:tr)
+             ((:td) "name")
+             ((:td) (name cmpx)))
+            ((:tr)
+             ((:td) "statusId")
+             ((:td) (statusId cmpx)))
+            ((:tr)
+             ((:td) "developer")
+             ((:td) ((:a :href (format nil "/trnd/dev/~A" (developerId cmpx)))
+                     (name (car (find-developer :guid (developerId cmpx)))))))
+            ((:tr)
+             ((:td) "longitude")
+             ((:td) (longitude cmpx)))
+            ((:tr)
+             ((:td) "latitude")
+             ((:td) (latitude cmpx)))
+            ((:tr)
+             ((:td) "latitude")
+             ((:td) (latitude cmpx)))
+            ((:tr)
+             ((:td) "bknId")
+             ((:td) (bknId cmpx))))
+           (note cmpx)
+           )))))
 (in-package #:moto)
 
 (defparameter *trnd-pages*

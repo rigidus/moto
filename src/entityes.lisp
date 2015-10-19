@@ -199,7 +199,7 @@
 
 (make-developer-table)
 ;; developer_entity ends here
-;; [[file:doc.org::*Жилые комплексы (cmpx)][developer_entity]]
+;; [[file:doc.org::*Жилые комплексы (cmpx)][cmpx_entity]]
 (define-entity cmpx "Сущность комплекса"
   ((id serial)
    (guid varchar)
@@ -224,7 +224,28 @@
    (bknId varchar)))
 
 (make-cmpx-table)
-;; developer_entity ends here
+;; cmpx_entity ends here
+;; [[file:doc.org::*Корпуса жилых комплексов (blk)][blk_entity]]
+;; (define-entity blk "Сущность корпуса"
+;;   ((id serial)
+;;    (guid varchar)
+;;    (nb_sourceId integer)
+;;    (nb_cmpxId varchar)
+;;    (statusId integer)
+;;    (street varchar)
+;;    (house varchar)
+;;    (blk varchar)
+;;    (litera varchar)
+;;    (floors varchar)
+;;    (quarter_end integer)
+;;    (year_end integer)
+;;    (house_typeId integer)
+;;    (bknId varchar)
+;;    (dateUpdate (or db-null timestamp)))
+;; 
+;; (make-blk-table)
+;;
+;; blk_entity ends here
 ;; [[file:doc.org::*Очереди (que, quelt)][que_entity]]
 (define-entity que "Сущность очереди"
   ((id serial)

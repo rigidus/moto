@@ -720,6 +720,16 @@
 
 ** DONE Жилые комплексы (cmpx)
 
+   С жилыми комплексами может быть связан один интересный казус -
+   некоторые жилые комплексы занимают целый квартал и состоят из
+   нескольких корпусов. В этом случае каждый из этих корпусов может
+   находиться на своей улице. Поэтому адрес следует привязывать к
+   корпусу, а не к комплексу.
+
+   С другой стороны, всегда будет существовать вопрос "на какой улице
+   находится такой-то комплекс?". Поэтому мы оставляем поле
+   street_name в таблице жилых комплексов.
+
    #+CAPTION: Жилые комплексы - схема данных
    #+NAME: cmpx_flds
      | field         | field type             | note                                                                 |
@@ -736,8 +746,8 @@
      | city_name     | varchar                | Город или населенный пункт строкой                                   |
      | street_name   | varchar                | Улица                                                                |
      | subway1Id     | (or db-null integer)   | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | subway2Id     | (or db-null integer)   | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | subway3Id     | (or db-null integer)   | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | subway2Id     | (or db-null integer)   | Идентификатор ближайшено метро №2 reftbl:subway                      |
+     | subway3Id     | (or db-null integer)   | Идентификатор ближайшено метро №3 reftbl:subway                      |
      | name          | varchar                | Наименование комплекса                                               |
      | note          | text                   | Описание комплекса                                                   |
      | longitude     | varchar                | Долгота                                                              |
@@ -746,10 +756,38 @@
      | isPrivate     | integer                | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
      | bknId         | varchar                | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
 
-   #+NAME: developer_entity
+   #+NAME: cmpx_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("cmpx", "комплекса", cmpx_flds)>>
    #+END_SRC
+
+** DONE Корпуса жилых комплексов (blk)
+
+   #+CAPTION: Корпуса жилых комплексов - схема данных
+   #+NAME: blk_flds
+     | field        | field type            | note                                                             |
+     |--------------+-----------------------+------------------------------------------------------------------|
+     | id           | serial                | Идентификатор                                                    |
+     | guid         | varchar               | Идентификатор в виде GUID-а                                      |
+     | nb_sourceId  | integer               | Идентификатор источника данных reftbl:nb_source                  |
+     | nb_cmpxId    | varchar               | Идентификатор жилого комплекса, которому принадлежит этот корпус |
+     | statusId     | integer               | Статус корпуса reftbl:status                                     |
+     | street       | varchar               | Улица                                                            |
+     | house        | varchar               | Дом                                                              |
+     | blk          | varchar               | Корпус (в смысле адреса)                                         |
+     | litera       | varchar               | Литера                                                           |
+     | floors       | varchar               | Этаж                                                             |
+     | quarter_end  | integer               | Квартал завершения строительства                                 |
+     | year_end     | integer               | Год завершения строительства                                     |
+     | house_typeId | integer               | Тип дома reftbl:?                                                |
+     | bknId        | varchar               | Привязка к БКН-овскому корпусу                                   |
+     | dateUpdate   | (or db-null timestamp | Дата обновления                                                  |
+
+   #+NAME: blk_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     ;; <<gen_entity("blk", "корпуса", blk_flds)>>
+   #+END_SRC
+
 
 ** Очереди (que, quelt)
 
@@ -1491,13 +1529,32 @@
      ;; без этого происходит ошибка при компиляции в js
      (defparameter PARENSCRIPT::SUPPRESS-VALUES nil)
 
-     ;; Подключение к базе данных
+     ;; Подключение к базе данных PostgreSQL
      (defvar *db-name* "ylg_new")
      (defvar *db-user* "ylg")
      (defvar *db-pass* "6mEfBjyLrSzlE")
      (defvar *db-serv* "localhost")
 
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
+
+     ;; Подключение к базе данных Mysql
+     (defvar *mysql-db-host* "bkn.ru")
+     (defvar *mysql-db-database* "bkn_base")
+     (defvar *mysql-db-user* "root")
+     (defvar *mysql-db-password* "YGAhBawd1j~SANlw\"Y#l")
+     (defvar *mysql-db-port* 3306)
+
+     ;; Макрос для подключения к mysql
+     (defmacro with-mysql-conn (spec &body body)
+       `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
+          (unwind-protect (progn
+                            (cl-mysql:query  "SET NAMES 'utf8'")
+                            ,@body)
+            (cl-mysql:disconnect))))
+
+     (defmacro with-mysql (&body body)
+       `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+          ,@body))
 
      ;; clear db
      (drop '("resume"))

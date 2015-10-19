@@ -41,7 +41,9 @@
 
      Это позволяет написать функцию, которая будет преобразовывать застройщика из исходной
      БД и класть его в целевую. Вот запрос, которым мы можем получать всех застройщиков,
-     которые имеют активные комплексы:
+     которые имеют активные корпуса в активных комплексах и isPrivate этих комплексах равно
+     нулю. IsPrivate - флаг приватности, говорит о том, что эти комплексы нельзя
+     рекламировать.
 
      #+name: query_get_developer
      #+header: :engine mysql
@@ -61,39 +63,18 @@
        FROM
            nb_complex cmpx
        INNER JOIN
-           developer d
-         ON
-           d.id = cmpx.developerId
+           developer d  ON  d.id = cmpx.developerId
        INNER JOIN
-           nb_complex ap FORCE INDEX (AP)
-         ON
-            cmpx.id = ap.bknid
-         AND
-            ap.nb_sourceId IN (1 , 3)
-         AND
-            ap.statusId = 1
-         AND
-            ap.isPrivate = 0
+           nb_complex ap FORCE INDEX (AP)  ON  cmpx.id = ap.bknid  AND  ap.nb_sourceId IN (1 , 3)  AND  ap.statusId = 1  AND  ap.isPrivate = 0
        INNER JOIN
-            nb_block b
-         ON
-            b.nb_complexId = ap.id
-         AND
-            b.statusId = 1
+           nb_block b  ON  b.nb_complexId = ap.id  AND  b.statusId = 1
        INNER JOIN
-            nb_appartment a
-         ON
-           b.id = a.nb_blockId
-         AND
-           a.statusId = 1
+           nb_appartment a  ON  b.id = a.nb_blockId  AND  a.statusId = 1
        WHERE
-           cmpx.nb_sourceId = 2
-         AND
-           cmpx.statusId = 1
+           cmpx.nb_sourceId = 2  AND  cmpx.statusId = 1
        GROUP BY d.id , d.name
        ORDER BY d.name
-       LIMIT
-         $limit;
+       LIMIT $limit;
      #+end_src
 
      Обернув его в макрос, который осуществляет подключение к mysql и установку кодировки мы
@@ -106,15 +87,9 @@
 
        (ql:quickload "cl-mysql")
 
-       (defmacro with-mysql-conn (spec &body body)
-         `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
-            (unwind-protect (progn
-                              (cl-mysql:query  "SET NAMES 'utf8'")
-                              ,@body)
-              (cl-mysql:disconnect))))
 
        (defun get-active-developers ()
-         (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+         (with-mysql
            (let ((cnt (caaaar (cl-mysql:query "SELECT count(id) FROM developer"))))
              (cl-mysql:query
               (replace-all "
@@ -253,6 +228,9 @@
                ""
                (let ((dev (car dev)))
                  (ps-html
+                  ((:a :href "/trnd/devs") "Все застройщики")
+                  ((:br))
+                  ((:br))
                   ((:table :border 1)
                    ((:tr)
                     ((:td) "id")
@@ -307,7 +285,6 @@
        | isPrivate     | tinyint(1)          | NO   | MUL | 0                 |       |
        | bknId         | binary(16)          | YES  | MUL | NULL              |       |
 
-
      А в целевой БД мы определили жилые комплексы в основном файле проекта в разделе
      [[file:doc.org::Жилые комплексы (complex)][Жилые комплексы]]
 
@@ -350,7 +327,7 @@
        (in-package #:moto)
 
        (defun get-cmpx-by-developer (guid)
-         (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+         (with-mysql
            (cl-mysql:query
             (replace-all "
                           <<query_get_developer_complex>>
@@ -443,17 +420,17 @@
 
        (in-package #:moto)
 
-       ;; (let ((all-cmpx-s))
-       ;;   (mapcar #'(lambda (guid)
-       ;;               (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
-       ;;                 (mapcar #'(lambda (cmpx)
-       ;;                             (push (sanitize-cmpx cmpx) all-cmpx-s))
-       ;;                        cmpx-s)))
-       ;;          (mapcar #'guid (all-developer)))
-       ;;   (mapcar #'(lambda (x)
-       ;;               (print x)
-       ;;               (apply #'make-cmpx x))
-       ;;           all-cmpx-s))
+       (let ((all-cmpx-s))
+         (mapcar #'(lambda (guid)
+                     (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
+                       (mapcar #'(lambda (cmpx)
+                                   (push (sanitize-cmpx cmpx) all-cmpx-s))
+                              cmpx-s)))
+                (mapcar #'guid (all-developer)))
+         (mapcar #'(lambda (x)
+                     (print x)
+                     (apply #'make-cmpx x))
+                 all-cmpx-s))
      #+END_SRC
 
      А вот так можно то же самое получить из EmacsLisp
@@ -589,6 +566,9 @@
                ""
                (let ((cmpx (car cmpx)))
                  (ps-html
+                  ((:a :href "/trnd/devs") "Все застройщики")
+                  ((:br))
+                  ((:br))
                   ((:table :border 1)
                    ((:tr)
                     ((:td) "id")
@@ -603,8 +583,9 @@
                     ((:td) "statusId")
                     ((:td) (statusId cmpx)))
                    ((:tr)
-                    ((:td) "developerId")
-                    ((:td) (developerId cmpx)))
+                    ((:td) "developer")
+                    ((:td) ((:a :href (format nil "/trnd/dev/~A" (developerId cmpx)))
+                            (name (car (find-developer :guid (developerId cmpx)))))))
                    ((:tr)
                     ((:td) "longitude")
                     ((:td) (longitude cmpx)))
@@ -620,6 +601,36 @@
                   (note cmpx)
                   )))))
      #+END_SRC
+
+**** Корпуса жилых комплексов
+
+     В исходной БД корпуса жилых комплексов определены так:
+
+     #+CAPTION: Корпуса жилых комплексов в исходной БД
+     #+NAME: source_block_flds
+       | Field          | Type                 | Null | Key | Default | Extra |
+       |----------------+----------------------+------+-----+---------+-------|
+       | id             | binary(16)           | NO   | PRI | NULL    |       |
+       | nb_sourceId    | tinyint(4) unsigned  | NO   | MUL | 2       |       |
+       | nb_complexId   | binary(16)           | NO   | MUL | NULL    |       |
+       | statusId       | tinyint(4) unsigned  | NO   | MUL | 1       |       |
+       | status_buildId | tinyint(4) unsigned  | YES  |     | NULL    |       |
+       | house          | varchar(15)          | YES  |     | NULL    |       |
+       | block          | varchar(15)          | YES  |     | NULL    |       |
+       | litera         | varchar(50)          | YES  |     | NULL    |       |
+       | floors         | varchar(20)          | YES  |     | NULL    |       |
+       | quarter_end    | tinyint(4) unsigned  | YES  |     | NULL    |       |
+       | year_end       | smallint(6) unsigned | YES  |     | NULL    |       |
+       | house_typeId   | tinyint(4) unsigned  | YES  |     | NULL    |       |
+       | bknId          | binary(16)           | YES  |     | NULL    |       |
+       | dateUpdate     | datetime             | YES  |     | NULL    |       |
+
+     А в целевой БД мы определили жилые комплексы в основном файле проекта в разделе
+     [[file:doc.org::Корпуса жилых комплексов (block)][Корпуса жилых комплексов]]
+
+
+     ===TODO===
+
 
 **** Данные комплексов
 
@@ -680,9 +691,7 @@
        LIMIT 3
      #+end_src
 
-
      В процесе сбора данных будем забирать все корпуса этих комплексов
-
 
      #+name: my_query
      #+header: :engine mysql
