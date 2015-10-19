@@ -151,7 +151,20 @@
             ((:tr)
              ((:td) "phone")
              ((:td) (phone dev))))
-           (note dev))))))
+           (note dev)
+           (let ((cmpx-s (find-cmpx :developerid guid)))
+             (if (null cmpx-s)
+                 "Нет комплексов"
+                 (ps-html
+                  ((:table :border 1)
+                   (format nil "~{~A~}"
+                           (mapcar #'(lambda (cmpx)
+                                       (ps-html
+                                        ((:tr)
+                                         ((:td) (id cmpx))
+                                         ((:td) ((:a :href (format nil "/cmpx/~A" (id cmpx))) (name cmpx))))))
+                                   cmpx-s))))))
+           )))))
 
 (in-package #:moto)
 
@@ -159,7 +172,7 @@
   (with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
     (cl-mysql:query
      (replace-all "
-                   SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId)
+                   SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId), toguid(developerId)
                    FROM nb_complex
                    WHERE
                       nb_sourceId IN (2)
@@ -182,7 +195,9 @@
    :guid (nth 0 x)
    :nb_sourceId (nth 1 x)
    :statusId (nth 2 x)
-   :date_insert (nth 3 x)
+   :date_insert "1970-01-01 00:00:00"
+   ;; :date_insert (nth 3 x)
+   :date_update "1970-01-01 00:00:00"
    ;; :date_update (let ((tmp (nth 4 x)))
    ;;                (if (null tmp)
    ;;                    "1970-01-01 00:00:00"
@@ -194,9 +209,18 @@
    :district_name (nth 7 x)
    :city_name (nth 8 x)
    :street_name (nth 9 x)
-   :subway1Id (nth 10 x)
-   :subway2Id (nth 11 x)
-   :subway3Id (nth 12 x)
+   :subway1Id (let ((tmp (nth 10 x)))
+                (if (null tmp)
+                    0
+                    tmp))
+   :subway2Id (let ((tmp (nth 11 x)))
+                (if (null tmp)
+                    0
+                    tmp))
+   :subway3Id (let ((tmp (nth 12 x)))
+                (if (null tmp)
+                    0
+                    tmp))
    :name (nth 13 x)
    :note (let ((note (nth 14 x)))
            (if (null note)
@@ -216,9 +240,11 @@
                    in-string))))
    :longitude (nth 15 x)
    :latitude (nth 16 x)
-   :dateUpdate (nth 17 x)
+   ;; :dateUpdate (nth 17 x)
+   :dateUpdate "1970-01-01 00:00:00"
    :isPrivate (nth 18 x)
-   :bknId (nth 19 x)))
+   :bknId (nth 19 x)
+   :developerId (nth 20 x)))
 
 ;; (print
 ;;  (mapcar #'sanitize-cmpx
@@ -238,8 +264,6 @@
 ;;               (print x)
 ;;               (apply #'make-cmpx x))
 ;;           all-cmpx-s))
-
-;; (cl-mysql-system::string-to-universal-time "1970-01-01 00:00:00")
 (in-package #:moto)
 
 (defparameter *trnd-pages*

@@ -195,7 +195,9 @@
        (developers-from-mysql-to-pgsql)
      #+END_SRC
 
-     Теперь, когда все застройщики у нас в базе - их можно отобразить в веб-интерфейсе
+     Теперь, когда все застройщики у нас в базе - их можно отобразить в веб-интерфейсе. На
+     странице застройщика оставим placeholder для того чтобы позже отобразить все жилые
+     комплексы этого застройщика.
 
      #+NAME: iface_contents
      #+BEGIN_SRC lisp :noweb tangle :exports none
@@ -242,7 +244,9 @@
                    ((:tr)
                     ((:td) "phone")
                     ((:td) (phone dev))))
-                  (note dev))))))
+                  (note dev)
+                  <<web-iface-dev-cmpx-s>>
+                  )))))
      #+END_SRC
 
 **** COMMENT Жилые комплексы
@@ -302,7 +306,7 @@
      #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
      #+header: :database bkn_base
      #+begin_src sql :results output :var developerId="6945cf04-8335-11e4-b6c0-448a5bd44c07" :results none
-       SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId)
+       SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId), toguid(developerId)
        FROM nb_complex
        WHERE
           nb_sourceId IN (2)
@@ -346,7 +350,9 @@
           :guid (nth 0 x)
           :nb_sourceId (nth 1 x)
           :statusId (nth 2 x)
-          :date_insert (nth 3 x)
+          :date_insert "1970-01-01 00:00:00"
+          ;; :date_insert (nth 3 x)
+          :date_update "1970-01-01 00:00:00"
           ;; :date_update (let ((tmp (nth 4 x)))
           ;;                (if (null tmp)
           ;;                    "1970-01-01 00:00:00"
@@ -358,9 +364,18 @@
           :district_name (nth 7 x)
           :city_name (nth 8 x)
           :street_name (nth 9 x)
-          :subway1Id (nth 10 x)
-          :subway2Id (nth 11 x)
-          :subway3Id (nth 12 x)
+          :subway1Id (let ((tmp (nth 10 x)))
+                       (if (null tmp)
+                           0
+                           tmp))
+          :subway2Id (let ((tmp (nth 11 x)))
+                       (if (null tmp)
+                           0
+                           tmp))
+          :subway3Id (let ((tmp (nth 12 x)))
+                       (if (null tmp)
+                           0
+                           tmp))
           :name (nth 13 x)
           :note (let ((note (nth 14 x)))
                   (if (null note)
@@ -380,9 +395,11 @@
                           in-string))))
           :longitude (nth 15 x)
           :latitude (nth 16 x)
-          :dateUpdate (nth 17 x)
+          ;; :dateUpdate (nth 17 x)
+          :dateUpdate "1970-01-01 00:00:00"
           :isPrivate (nth 18 x)
-          :bknId (nth 19 x)))
+          :bknId (nth 19 x)
+          :developerId (nth 20 x)))
 
        ;; (print
        ;;  (mapcar #'sanitize-cmpx
@@ -409,10 +426,9 @@
        ;;               (print x)
        ;;               (apply #'make-cmpx x))
        ;;           all-cmpx-s))
-
-       ;; (cl-mysql-system::string-to-universal-time "1970-01-01 00:00:00")
      #+END_SRC
 
+     А вот так можно то же самое получить из EmacsLisp
 
      #+NAME: developers_data_fwefewf
      #+BEGIN_SRC emacs-lisp :results output :exports none
@@ -465,119 +481,73 @@
                      devs))))
      #+END_SRC
 
-     #+results: developers_data_fwefewf
-     #+begin_example
+     #+NAME: web-iface-dev-cmpx-s
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+       (let ((cmpx-s (find-cmpx :developerid guid)))
+         (if (null cmpx-s)
+             "Нет комплексов"
+             (ps-html
+              ((:table :border 1)
+               (format nil "~{~A~}"
+                       (mapcar #'(lambda (cmpx)
+                                   (ps-html
+                                    ((:tr)
+                                     ((:td) (id cmpx))
+                                     ((:td) ((:a :href (format nil "/cmpx/~A" (id cmpx))) (name cmpx))))))
+                               cmpx-s))))))
+     #+END_SRC
 
-     AAG - 6945F8CB-8335-11E4-B6C0-448A5BD44C07
-       Дом на Фрунзенской - 43EE0530-40F9-11E5-A634-448A5BD44C07 - 1
+     Это запрос для получения всех комплексов (с необходимыми джойнами)
 
-     Constanta Development Group (Константа Девелопмент) - 8C3DAAC6-BC5B-11E4-9FBB-448A5BD44C07
-       Азбука - 9E0071E1-D7EE-11E4-9FBB-448A5BD44C07 - 1
-       Традиция - 8117A2FB-FE0E-11E4-B252-448A5BD44C07 - 1
+     #+name: query_get_complex
+     #+header: :engine mysql
+     #+header: :dbhost bkn.ru
+     #+header: :dbport 3306
+     #+header: :dbuser root
+     #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
+     #+header: :database bkn_base
+     #+begin_src sql :results output :var developerId="6945cf04-8335-11e4-b6c0-448a5bd44c07" :results table
+        SELECT
+            toguid(ap.id)
+          , REPLACE(REPLACE(bkn.name, '«', ''), '»', '') AS name
+          , ap.nb_sourceId
+          , ap.statusId
+          , ap.regionId
+          , ap.districtId
+          , ap.district_name
+          , ap.city_name
+          , ap.street_name
+          , ap.subway1Id
+          , ap.subway2Id
+          , ap.subway3Id
+          , ap.note
+          , ap.longitude
+          , ap.latitude
+          , ap.dateUpdate
+          , ap.isPrivate
+          , toguid(ap.bknId)
+        FROM
+            nb_complex bkn
+                INNER JOIN
+            developer d ON d.id = bkn.developerId
+                INNER JOIN
+            nb_complex ap FORCE INDEX (AP) ON bkn.id = ap.bknid
+                AND ap.nb_sourceId IN (1 , 3)
+                AND ap.statusId = 1
+                AND ap.isPrivate = 0
+                INNER JOIN
+            nb_block b ON b.nb_complexId = ap.id
+                AND b.statusId = 1
+                INNER JOIN
+            nb_appartment a ON b.id = a.nb_blockId AND a.statusId = 1
+        WHERE
+                bkn.nb_sourceId = 2
+            AND bkn.statusId = 1
+            AND d.id = guidtobinary('$developerId')
+        GROUP BY ap.id , bkn.name , ap.nb_sourceId , d.id , d.name
+        ORDER BY name
+     #+end_src
 
-     NordEst - 28696A77-458E-11E5-B8AF-448A5BD44C07
-       Васильевский о-в 24 линия - 9026CB13-458E-11E5-B8AF-448A5BD44C07 - 1
-
-     O2 Development - 6945E38C-8335-11E4-B6C0-448A5BD44C07
-       Самое сердце - 9DFFD000-D7EE-11E4-9FBB-448A5BD44C07 - 1
-       Невский проект - 9DFFD069-D7EE-11E4-9FBB-448A5BD44C07 - 1
-       Силы природы - 9DFFCF96-D7EE-11E4-9FBB-448A5BD44C07 - 1
-       Заповедный - D35098B1-0DDB-11E5-B8F0-448A5BD44C07 - 1
-       Моя стихия - 9E005BBF-D7EE-11E4-9FBB-448A5BD44C07 - 1
-#+end_example
-
-
-
-    #+name: query_get_complex
-    #+header: :engine mysql
-    #+header: :dbhost bkn.ru
-    #+header: :dbport 3306
-    #+header: :dbuser root
-    #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
-    #+header: :database bkn_base
-    #+begin_src sql :results output :var developerId="6945cf04-8335-11e4-b6c0-448a5bd44c07" :results table
-       SELECT
-           toguid(ap.id)
-         , REPLACE(REPLACE(bkn.name, '«', ''), '»', '') AS name
-         , ap.nb_sourceId
-         , ap.statusId
-         , ap.regionId
-         , ap.districtId
-         , ap.district_name
-         , ap.city_name
-         , ap.street_name
-         , ap.subway1Id
-         , ap.subway2Id
-         , ap.subway3Id
-         , ap.note
-         , ap.longitude
-         , ap.latitude
-         , ap.dateUpdate
-         , ap.isPrivate
-         , toguid(ap.bknId)
-       FROM
-           nb_complex bkn
-               INNER JOIN
-           developer d ON d.id = bkn.developerId
-               INNER JOIN
-           nb_complex ap FORCE INDEX (AP) ON bkn.id = ap.bknid
-               AND ap.nb_sourceId IN (1 , 3)
-               AND ap.statusId = 1
-               AND ap.isPrivate = 0
-               INNER JOIN
-           nb_block b ON b.nb_complexId = ap.id
-               AND b.statusId = 1
-               INNER JOIN
-           nb_appartment a ON b.id = a.nb_blockId AND a.statusId = 1
-       WHERE
-               bkn.nb_sourceId = 2
-           AND bkn.statusId = 1
-           AND d.id = guidtobinary('$developerId')
-       GROUP BY ap.id , bkn.name , ap.nb_sourceId , d.id , d.name
-       ORDER BY name
-    #+end_src
-
-    #+results: query_get_complex
-    | toguid(ap.id)                        | name           | nb_sourceId | statusId | regionId | districtId | district_name       | city_name      | street_name    | subway1Id | subway2Id | subway3Id | note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |     longitude |      latitude | dateUpdate          | isPrivate | toguid(ap.bknId)                     |
-    |--------------------------------------+----------------+-------------+----------+----------+------------+---------------------+----------------+----------------+-----------+-----------+-----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------+---------------+---------------------+-----------+--------------------------------------|
-    | 9617EDAE-1915-11E5-A4F3-448A5BD44C07 | Ленсоветовский |           1 |        1 |        1 |      13005 | СПб, Пушкинский р-н | Ленсоветовский | Ленсоветовский |        22 | NULL      | NULL      | Жилой комплекс «Ленсоветовский» находится в Пушкинском районе Санкт-Петербурга, в поселке Ленсоветовский, вблизи г. Пушкин.  Корпуса комплекса будут оснащены бесшумными лифтами, возле дома появится парковка для автотранспорта, на нижних этажах будут встроенные коммерческие помещения. Проектом предусмотрен внутренний благоустроенный двор с детской игровой площадкой.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | 30.4661260625 | 59.7585399045 | 2015-09-03 22:34:09 |         0 | 9DFF0DF3-D7EE-11E4-9FBB-448A5BD44C07 |
-    | 26A8E825-A162-11E4-8F6B-448A5BD44C07 | Шушары         |           1 |        1 |        1 |      13005 | СПб, Пушкинский р-н | Шушары пос.    | Пушкинская ул. |        22 | NULL      | NULL      | На юге Петербурга находится активно развивающийся микрорайон Шушары. На въезде жителей и гостей района Шушары встречает большой храмовый комплекс, выполненный в Византийском стиле. Комлекс составляют храм-часовня Ксении Петербургской, Церковный дом и храм Воскресенья Христова. Купол, установленный в августе 2008, уже стал неотъемлемой частью образа Шушар, он виден за несколько километров.\n\nДля образования детей в Шушарах есть школа №459 и 2 детских садика, в которых созданы необходимые условия для всестороннего развития и обучения детей дошкольного возраста. Это и игровые помещения, музыкальный и спортивный залы, уютные спальни, светлые комнаты и залы, полы с подогревом, кабинеты психолога, учителя-логопеда, изостудия и особенно впечатляет детский оздоровительный бассейн, для занятий плаваньем и водной физкультурой. Помимо этого есть частные дошкольные учреждения. Также в Шушарах находится детский досуговый центр Гармония, спортивный клуб имени Александра Невского.\n\nУникальное расположение этого места позволяет быстро попасть в любой район города. От железнодорожной станции Шушары на электричке можно за пять минут доехать до станций метро Купчино и за 20 минут до Витебского вокзала-метро Пушкинская. Также  до ближайших станций метро Купчино и Звездная можно за пять минут доехать на автобусе или маршрутке. Шушары находятся рядом с развязкой кольцевой автодороги, благодаря чему можно доехать до севера Петербурга за 20 минут, а по Витебскому проспекту можно попасть в центр города и в Пушкин. | 30.3825667742 | 59.8038681545 | 2015-09-03 22:34:09 |         0 | 9DFF0BE1-D7EE-11E4-9FBB-448A5BD44C07 |
-
-
-    #+NAME: developers_data
-    #+BEGIN_SRC emacs-lisp :var table=query_get_developer :results output :exports none
-
-      (
-      sql
-      "SELECT toguid(id), name, address, url, phone, note FROM bkn_base.developer d limit $limit;"
-      ((:var limit . 2) (:colname-names) (:rowname-names) (:result-params table replace output) (:result-type . output) (:comments . ) (:shebang . ) (:cache . no) (:padline . ) (:noweb . no) (:tangle . no) (:exports . code) (:results . table replace output) (:engine . mysql) (:dbport . 3306) (:dbpassword . YGAhBawd1j~SANl) (:hlines . no) (:session . none) (:database . bkn_base) (:dbuser . root) (:dbhost . bkn.ru))
-        query_get_developer 4 #<marker at 1454 in trend.org>)
-
-
-      ;; (mapcar #'(lambda (x)
-      ;;             (princ (format "***** %s \n\n" (second x)))
-      ;;             (princ (format "      #+CAPTION: Застройщик %s\n" (second x)))
-      ;;             (princ (format "      #+NAME: DEVELOPER-DATA-%s\n" (first x)))
-      ;;             (princ (format "      | id      | %s | \n" (first x)))
-      ;;             (princ (format "      | name    | %s | \n" (second x)))
-      ;;             (princ (format "      | address | %s | \n" (let ((tmp (third x))) (if (string= "NULL" tmp) "" tmp))))
-      ;;             (princ (format "      | url     | %s | \n" (let ((tmp (fourth x))) (if (string= "NULL" tmp) "" tmp))))
-      ;;             (princ (format "      | phone   | %s | \n\n" (let ((tmp (nth 4 x))) (if (string= "NULL" tmp) "" tmp))))
-      ;;             ;; (princ (format "      %s \n" (nth 5 x)))
-      ;;             (let* ((alfa   (nth 5 x))
-      ;;                    (bravo  (if (string= "NULL" alfa) "" alfa)))
-      ;;               (unless (string= "" bravo)
-      ;;                 (let* ((charlie (replace-regexp-in-string "\"" "\\\\\"" bravo))
-      ;;                        (delta   (format "php -r '$a=\"%s\"; echo strip_tags($a);'" charlie))
-      ;;                        (echo    (shell-command-to-string delta))
-      ;;                        (foxtrot (replace-regexp-in-string "&nbsp;" "" echo)))
-      ;;                   (princ (format "      #+CAPTION: Описание %s\n" (second x)))
-      ;;                   (princ (format "      #+NAME: DEVELOPER-NOTE-%s\n" (first x)))
-      ;;                   (princ (format "      #+BEGIN\n"))
-      ;;                   (princ (format "        %s \n" foxtrot))
-      ;;                   (princ (format "      #+END\n\n"))))))
-      ;;         table)
-    #+END_SRC
 
 **** Данные застройщиков
 

@@ -724,7 +724,8 @@
    #+NAME: cmpx_flds
      | field         | field type             | note                                                                 |
      |---------------+------------------------+----------------------------------------------------------------------|
-     | id            | serial                 | Идентификатор в виде GUID-а                                          |
+     | id            | serial                 | Идентификатор                                                        |
+     | guid          | varchar                | Идентификатор в виде GUID-а                                          |
      | nb_sourceId   | integer                | Идентификатор источника данных reftbl:nb_source                      |
      | statusId      | integer                | Статус объекта reftbl:status                                         |
      | developerId   | varchar                | Идентификатор застройщика reftbl:developer                           |
@@ -741,7 +742,7 @@
      | note          | text                   | Описание комплекса                                                   |
      | longitude     | varchar                | Долгота                                                              |
      | latitude      | varchar                | Широта                                                               |
-     | dateUpdate    | timestamp              | Дата обновления                                                      |
+     | dateUpdate    | (or db-null timestamp) | Дата обновления                                                      |
      | isPrivate     | integer                | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
      | bknId         | varchar                | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
 
@@ -749,8 +750,6 @@
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
      <<gen_entity("cmpx", "комплекса", cmpx_flds)>>
    #+END_SRC
-
-
 
 ** Очереди (que, quelt)
 

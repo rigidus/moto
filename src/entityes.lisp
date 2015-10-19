@@ -202,6 +202,7 @@
 ;; [[file:doc.org::*Жилые комплексы (cmpx)][developer_entity]]
 (define-entity cmpx "Сущность комплекса"
   ((id serial)
+   (guid varchar)
    (nb_sourceId integer)
    (statusId integer)
    (developerId varchar)
@@ -218,7 +219,7 @@
    (note text)
    (longitude varchar)
    (latitude varchar)
-   (dateUpdate timestamp)
+   (dateUpdate (or db-null timestamp))
    (isPrivate integer)
    (bknId varchar)))
 
