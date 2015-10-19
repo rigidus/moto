@@ -162,7 +162,7 @@
                                        (ps-html
                                         ((:tr)
                                          ((:td) (id cmpx))
-                                         ((:td) ((:a :href (format nil "/cmpx/~A" (id cmpx))) (name cmpx))))))
+                                         ((:td) ((:a :href (format nil "/trnd/cmpx/~A" (guid cmpx))) (name cmpx))))))
                                    cmpx-s))))))
            )))))
 

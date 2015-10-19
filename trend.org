@@ -124,6 +124,35 @@
                            (format nil "~A" cnt))))))
      #+END_SRC
 
+     То же в EmacsLisp
+
+     #+NAME: developers_data
+     #+BEGIN_SRC emacs-lisp :var table=query_get_developers :results output :exports none
+       (mapcar #'(lambda (x)
+                   (princ (format "***** %s \n\n" (second x)))
+                   (princ (format "      #+CAPTION: Застройщик %s\n" (second x)))
+                   (princ (format "      #+NAME: DEVELOPER-DATA-%s\n" (first x)))
+                   (princ (format "      | id      | %s | \n" (first x)))
+                   (princ (format "      | name    | %s | \n" (second x)))
+                   (princ (format "      | address | %s | \n" (let ((tmp (third x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | url     | %s | \n" (let ((tmp (fourth x))) (if (string= "NULL" tmp) "" tmp))))
+                   (princ (format "      | phone   | %s | \n\n" (let ((tmp (nth 4 x))) (if (string= "NULL" tmp) "" tmp))))
+                   ;; (princ (format "      %s \n" (nth 5 x)))
+                   (let* ((alfa   (nth 5 x))
+                          (bravo  (if (string= "NULL" alfa) "" alfa)))
+                     (unless (string= "" bravo)
+                       (let* ((charlie (replace-regexp-in-string "\"" "\\\\\"" bravo))
+                              (delta   (format "php -r '$a=\"%s\"; echo strip_tags($a);'" charlie))
+                              (echo    (shell-command-to-string delta))
+                              (foxtrot (replace-regexp-in-string "&nbsp;" "" echo)))
+                         (princ (format "      #+CAPTION: Описание %s\n" (second x)))
+                         (princ (format "      #+NAME: DEVELOPER-NOTE-%s\n" (first x)))
+                         (princ (format "      #+BEGIN\n"))
+                         (princ (format "        %s \n" foxtrot))
+                         (princ (format "      #+END\n\n"))))))
+               table)
+     #+END_SRC
+
      Застройщики имеют описание, в котором есть html-форматирование, которое хотелось бы
      удалить. Я использую для этого php-функцию strip_tags
 
@@ -217,7 +246,6 @@
                         ((:td) ((:a :href (format nil "/trnd/dev/~A" (guid i))) (name i)))))))
             ))))
 
-
        ;; Страничка застройщика
        (restas:define-route trnd-dev-page ("/trnd/dev/:guid")
          (let ((dev (find-developer :guid guid)))
@@ -249,7 +277,7 @@
                   )))))
      #+END_SRC
 
-**** COMMENT Жилые комплексы
+**** Жилые комплексы
 
      В исходной БД жилые комплексы определены так:
 
@@ -493,7 +521,7 @@
                                    (ps-html
                                     ((:tr)
                                      ((:td) (id cmpx))
-                                     ((:td) ((:a :href (format nil "/cmpx/~A" (id cmpx))) (name cmpx))))))
+                                     ((:td) ((:a :href (format nil "/trnd/cmpx/~A" (guid cmpx))) (name cmpx))))))
                                cmpx-s))))))
      #+END_SRC
 
@@ -548,36 +576,49 @@
         ORDER BY name
      #+end_src
 
+     Теперь можно сделать страничку комплекса
 
-**** Данные застройщиков
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+       (in-package #:moto)
 
-     Здесь мы соберем все данные которые у нас есть по всем известным застройщикам
-
-     #+NAME: developers_data
-     #+BEGIN_SRC emacs-lisp :var table=query_get_developers :results output :exports none
-       (mapcar #'(lambda (x)
-                   (princ (format "***** %s \n\n" (second x)))
-                   (princ (format "      #+CAPTION: Застройщик %s\n" (second x)))
-                   (princ (format "      #+NAME: DEVELOPER-DATA-%s\n" (first x)))
-                   (princ (format "      | id      | %s | \n" (first x)))
-                   (princ (format "      | name    | %s | \n" (second x)))
-                   (princ (format "      | address | %s | \n" (let ((tmp (third x))) (if (string= "NULL" tmp) "" tmp))))
-                   (princ (format "      | url     | %s | \n" (let ((tmp (fourth x))) (if (string= "NULL" tmp) "" tmp))))
-                   (princ (format "      | phone   | %s | \n\n" (let ((tmp (nth 4 x))) (if (string= "NULL" tmp) "" tmp))))
-                   ;; (princ (format "      %s \n" (nth 5 x)))
-                   (let* ((alfa   (nth 5 x))
-                          (bravo  (if (string= "NULL" alfa) "" alfa)))
-                     (unless (string= "" bravo)
-                       (let* ((charlie (replace-regexp-in-string "\"" "\\\\\"" bravo))
-                              (delta   (format "php -r '$a=\"%s\"; echo strip_tags($a);'" charlie))
-                              (echo    (shell-command-to-string delta))
-                              (foxtrot (replace-regexp-in-string "&nbsp;" "" echo)))
-                         (princ (format "      #+CAPTION: Описание %s\n" (second x)))
-                         (princ (format "      #+NAME: DEVELOPER-NOTE-%s\n" (first x)))
-                         (princ (format "      #+BEGIN\n"))
-                         (princ (format "        %s \n" foxtrot))
-                         (princ (format "      #+END\n\n"))))))
-               table)
+       ;; Страничка застройщика
+       (restas:define-route trnd-cmpx-page ("/trnd/cmpx/:guid")
+         (let ((cmpx (find-cmpx :guid guid)))
+           (if (null cmpx)
+               ""
+               (let ((cmpx (car cmpx)))
+                 (ps-html
+                  ((:table :border 1)
+                   ((:tr)
+                    ((:td) "id")
+                    ((:td) (id cmpx)))
+                   ((:tr)
+                    ((:td) "guid")
+                    ((:td) (guid cmpx)))
+                    ((:tr)
+                    ((:td) "name")
+                    ((:td) (name cmpx)))
+                   ((:tr)
+                    ((:td) "statusId")
+                    ((:td) (statusId cmpx)))
+                   ((:tr)
+                    ((:td) "developerId")
+                    ((:td) (developerId cmpx)))
+                   ((:tr)
+                    ((:td) "longitude")
+                    ((:td) (longitude cmpx)))
+                   ((:tr)
+                    ((:td) "latitude")
+                    ((:td) (latitude cmpx)))
+                   ((:tr)
+                    ((:td) "latitude")
+                    ((:td) (latitude cmpx)))
+                   ((:tr)
+                    ((:td) "bknId")
+                    ((:td) (bknId cmpx))))
+                  (note cmpx)
+                  )))))
      #+END_SRC
 
 **** Данные комплексов
