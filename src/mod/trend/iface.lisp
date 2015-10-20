@@ -7,8 +7,278 @@
 
 (in-package #:moto)
 
-(ql:quickload "cl-mysql")
+(defun get-cmpx ()
+  (cl-mysql:query "
+   SELECT DISTINCT
+       REPLACE(REPLACE(bkn.name, '«', ''),
+           '»',
+           '') AS name,
+       u.unidecode AS unidecode,
+       du.unidecode AS developer_unidecode,
+       toguid(ap.id) AS complexId,
+       ap.regionId AS regionId,
+       REPLACE(REPLACE(d.name, '«', ''),
+           '»',
+           '') AS developer,
+       toguid(d.id) AS developerId,
+       CONCAT('/BuildingComplexes/complex/', u.unidecode) AS complexLink,
+       CONCAT('/BuildingComplexes/developers/', du.unidecode) AS developerLink,
+       ap.city_name AS city_name,
+       ap.street_name AS street_name,
+       sbw.name AS subway,
+       ap.subway1Id AS subwayId,
+       ap.district_name AS district,
+       ap.districtId AS districtId,
+       ap.latitude,
+       ap.longitude,
+       ap.nb_sourceId AS sourceId,
+       (SELECT
+               CONCAT('http://alexander.pro.bkn.ru/images/b_preview/',
+                           filename)
+           FROM
+               bkn_base.nb_photos ph
+           WHERE
+               ph.objectId = ap.id
+           LIMIT 1) AS photo,
+       (SELECT
+               COUNT(*)
+           FROM
+               bkn_base.nb_photos ph
+           WHERE
+               ph.objectId = ap.id) AS pcount,
+       (SELECT
+               status_buildId
+           FROM
+               bkn_base.nb_block bl
+           WHERE
+               bl.nb_complexId = ap.id
+                   AND bl.statusId = 1
+           ORDER BY bl.status_buildId
+           LIMIT 1) AS status_buildId,
+       (SELECT
+               CONCAT(bl.quarter_end, '-', bl.year_end)
+           FROM
+               bkn_base.nb_block bl
+           WHERE
+               bl.nb_complexId = ap.id
+                   AND bl.statusId = 1
+                   AND bl.quarter_end IS NOT NULL
+                   AND bl.year_end IS NOT NULL
+           ORDER BY bl.year_end
+           LIMIT 1) AS year_end_min_string,
+       (SELECT
+               CONCAT(bl.quarter_end, '-', bl.year_end)
+           FROM
+               bkn_base.nb_block bl
+           WHERE
+               bl.nb_complexId = ap.id
+                   AND bl.statusId = 1
+                   AND bl.quarter_end IS NOT NULL
+                   AND bl.year_end IS NOT NULL
+           ORDER BY bl.year_end DESC
+           LIMIT 1) AS year_end_max_string,
+       (SELECT
+               COUNT(*)
+           FROM
+               bkn_base.nb_block bl
+           WHERE
+               bl.nb_complexId = ap.id
+                   AND bl.statusId = 1
+           ORDER BY bl.year_end DESC
+           LIMIT 1) AS bcount,
+       (SELECT
+               MIN(amount)
+           FROM
+               bkn_base.nb_appartment apa
+                   INNER JOIN
+               bkn_base.nb_block bl ON apa.nb_blockId = bl.id
+                   AND bl.statusId = 1
+           WHERE
+               bl.nb_complexId = ap.id
+                   AND apa.statusId = 1
+                   AND apa.obj_typeId IN (1 , 3, 6)) AS minamount,
+       (SELECT
+               MIN(amount_metr)
+           FROM
+               bkn_base.nb_appartment apa
+                   INNER JOIN
+               bkn_base.nb_block bl ON apa.nb_blockId = bl.id
+                   AND bl.statusId = 1
+           WHERE
+               bl.nb_complexId = ap.id
+                   AND apa.statusId = 1
+                   AND apa.obj_typeId IN (1 , 3, 6)) AS minamount_metr
+   FROM
+       bkn_base.nb_complex bkn
+           INNER JOIN
+       bkn_base.nb_complex ap FORCE INDEX (AP) ON bkn.id = ap.bknid
+           AND ap.nb_sourceId IN (1 , 3)
+           AND ap.statusId = 1
+           AND ap.isPrivate = 0
+           LEFT JOIN
+       bkn_base.subway sbw ON sbw.id = ap.subway1Id
+           INNER JOIN
+       bkn_base.developer d ON d.id = ap.developerId
+           INNER JOIN
+       bkn_base.unidecode u ON u.guid = ap.id AND u.type = 0
+           INNER JOIN
+       bkn_base.unidecode du ON du.guid = d.id AND du.type = 1
+           INNER JOIN
+       bkn_base.nb_block b ON b.nb_complexId = ap.id
+           AND b.statusId = 1
+           INNER JOIN
+       bkn_base.nb_appartment a ON b.id = a.nb_blockId AND a.statusId = 1
+           AND a.obj_typeId IN (1 , 3, 6)
+   WHERE
+       bkn.nb_sourceId = 2 AND bkn.statusId = 1
+   ORDER BY ap.name
+   "
+                  ))
 
+;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
+;; (when (null (string-to-date (subseq string 0 10)))
+;;   (return-from string-to-universal-time 2208988800))
+
+(get-cmpx)
+
+;; (in-package #:moto)
+
+;; (defun get-cmpx-by-developer (guid)
+;;   (with-mysql
+;;     (cl-mysql:query
+;;      (replace-all "
+;;
+;;                   "
+;;                   "$developerId"
+;;                   (format nil "~A" guid)))))
+
+;; ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
+;; ;; (when (null (string-to-date (subseq string 0 10)))
+;; ;;   (return-from string-to-universal-time 2208988800))
+
+;; (get-cmpx-by-developer "6945D3A6-8335-11E4-B6C0-448A5BD44C07")
+
+;; (in-package #:moto)
+
+;; (defun sanitize-cmpx (x)
+;;   (list
+;;    :guid (nth 0 x)
+;;    :nb_sourceId (nth 1 x)
+;;    :statusId (nth 2 x)
+;;    :date_insert "1970-01-01 00:00:00"
+;;    ;; :date_insert (nth 3 x)
+;;    :date_update "1970-01-01 00:00:00"
+;;    ;; :date_update (let ((tmp (nth 4 x)))
+;;    ;;                (if (null tmp)
+;;    ;;                    "1970-01-01 00:00:00"
+;;    ;;                    "1970-01-01 00:00:00"
+;;    ;;                    ;; tmp
+;;    ;;                    ))
+;;    :regionId (nth 5 x)
+;;    :districtId (nth 6 x)
+;;    :district_name (nth 7 x)
+;;    :city_name (nth 8 x)
+;;    :street_name (nth 9 x)
+;;    :subway1Id (let ((tmp (nth 10 x)))
+;;                 (if (null tmp)
+;;                     0
+;;                     tmp))
+;;    :subway2Id (let ((tmp (nth 11 x)))
+;;                 (if (null tmp)
+;;                     0
+;;                     tmp))
+;;    :subway3Id (let ((tmp (nth 12 x)))
+;;                 (if (null tmp)
+;;                     0
+;;                     tmp))
+;;    :name (nth 13 x)
+;;    :note (let ((note (nth 14 x)))
+;;            (if (null note)
+;;                ""
+;;                (let ((proc (sb-ext:run-program "/usr/bin/php" (list "-r" (format nil "echo(strip_tags(\"~A\"));" (replace-all note "\"" "\\\""))) :output :stream :wait nil)))
+;;                  (let ((in-string ""))
+;;                    (with-open-stream (stream (sb-ext:process-output proc))
+;;                      ;; (finish-output *stream*)
+;;                      (loop :for iter :from 1 :do
+;;                         (handler-case
+;;                             (tagbody start-decoding
+;;                                (setf in-string (concatenate 'string in-string (read-line stream)))
+;;                                (incf iter)
+;;                                (go start-decoding))
+;;                           (END-OF-FILE () (return))))
+;;                      (close stream))
+;;                    in-string))))
+;;    :longitude (nth 15 x)
+;;    :latitude (nth 16 x)
+;;    ;; :dateUpdate (nth 17 x)
+;;    :dateUpdate "1970-01-01 00:00:00"
+;;    :isPrivate (nth 18 x)
+;;    :bknId (nth 19 x)
+;;    :developerId (nth 20 x)))
+
+;; ;; (print
+;; ;;  (mapcar #'sanitize-cmpx
+;; ;;          (caar
+;; ;;           (get-cmpx-by-developer "6945DC73-8335-11E4-B6C0-448A5BD44C07"))))
+
+;; (in-package #:moto)
+
+;; (let ((all-cmpx-s))
+;;   (mapcar #'(lambda (guid)
+;;               (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
+;;                 (mapcar #'(lambda (cmpx)
+;;                             (push (sanitize-cmpx cmpx) all-cmpx-s))
+;;                        cmpx-s)))
+;;          (mapcar #'guid (all-developer)))
+;;   (mapcar #'(lambda (x)
+;;               ;; (print x)
+;;               (apply #'make-cmpx x))
+;;           all-cmpx-s))
+(in-package #:moto)
+
+;; Страничка застройщика
+(restas:define-route trnd-cmpx-page ("/trnd/cmpx/:guid")
+  (let ((cmpx (find-cmpx :guid guid)))
+    (if (null cmpx)
+        ""
+        (let ((cmpx (car cmpx)))
+          (ps-html
+           ((:a :href "/trnd/devs") "Все застройщики")
+           ((:br))
+           ((:br))
+           ((:table :border 1)
+            ((:tr)
+             ((:td) "id")
+             ((:td) (id cmpx)))
+            ((:tr)
+             ((:td) "guid")
+             ((:td) (guid cmpx)))
+             ((:tr)
+             ((:td) "name")
+             ((:td) (name cmpx)))
+            ((:tr)
+             ((:td) "statusId")
+             ((:td) (statusId cmpx)))
+            ((:tr)
+             ((:td) "developer")
+             ((:td) ((:a :href (format nil "/trnd/dev/~A" (developerId cmpx)))
+                     (name (car (find-developer :guid (developerId cmpx)))))))
+            ((:tr)
+             ((:td) "longitude")
+             ((:td) (longitude cmpx)))
+            ((:tr)
+             ((:td) "latitude")
+             ((:td) (latitude cmpx)))
+            ((:tr)
+             ((:td) "latitude")
+             ((:td) (latitude cmpx)))
+            ((:tr)
+             ((:td) "bknId")
+             ((:td) (bknId cmpx))))
+           (note cmpx)
+           )))))
+
+(in-package #:moto)
 
 (defun get-active-developers ()
   (with-mysql
@@ -80,7 +350,7 @@
               (apply #'make-developer (sanitize-developer x)))
           (caar (get-active-developers))))
 
-(developers-from-mysql-to-pgsql)
+;; (developers-from-mysql-to-pgsql)
 
 (in-package #:moto)
 
@@ -143,148 +413,6 @@
 
 (in-package #:moto)
 
-(defun get-cmpx-by-developer (guid)
-  (with-mysql
-    (cl-mysql:query
-     (replace-all "
-                   SELECT toguid(id), nb_sourceId, statusId, date_insert, date_update, regionId, districtId, district_name, city_name, street_name, subway1Id, subway2Id, subway3Id, name, note, longitude, latitude, dateUpdate, isPrivate, toguid(bknId), toguid(developerId)
-                   FROM nb_complex
-                   WHERE
-                      nb_sourceId IN (2)
-                   AND
-                      developerId = guidtobinary('$developerId')
-                  "
-                  "$developerId"
-                  (format nil "~A" guid)))))
-
-;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
-;; (when (null (string-to-date (subseq string 0 10)))
-;;   (return-from string-to-universal-time 2208988800))
-
-(get-cmpx-by-developer "6945D3A6-8335-11E4-B6C0-448A5BD44C07")
-
-(in-package #:moto)
-
-(defun sanitize-cmpx (x)
-  (list
-   :guid (nth 0 x)
-   :nb_sourceId (nth 1 x)
-   :statusId (nth 2 x)
-   :date_insert "1970-01-01 00:00:00"
-   ;; :date_insert (nth 3 x)
-   :date_update "1970-01-01 00:00:00"
-   ;; :date_update (let ((tmp (nth 4 x)))
-   ;;                (if (null tmp)
-   ;;                    "1970-01-01 00:00:00"
-   ;;                    "1970-01-01 00:00:00"
-   ;;                    ;; tmp
-   ;;                    ))
-   :regionId (nth 5 x)
-   :districtId (nth 6 x)
-   :district_name (nth 7 x)
-   :city_name (nth 8 x)
-   :street_name (nth 9 x)
-   :subway1Id (let ((tmp (nth 10 x)))
-                (if (null tmp)
-                    0
-                    tmp))
-   :subway2Id (let ((tmp (nth 11 x)))
-                (if (null tmp)
-                    0
-                    tmp))
-   :subway3Id (let ((tmp (nth 12 x)))
-                (if (null tmp)
-                    0
-                    tmp))
-   :name (nth 13 x)
-   :note (let ((note (nth 14 x)))
-           (if (null note)
-               ""
-               (let ((proc (sb-ext:run-program "/usr/bin/php" (list "-r" (format nil "echo(strip_tags(\"~A\"));" (replace-all note "\"" "\\\""))) :output :stream :wait nil)))
-                 (let ((in-string ""))
-                   (with-open-stream (stream (sb-ext:process-output proc))
-                     ;; (finish-output *stream*)
-                     (loop :for iter :from 1 :do
-                        (handler-case
-                            (tagbody start-decoding
-                               (setf in-string (concatenate 'string in-string (read-line stream)))
-                               (incf iter)
-                               (go start-decoding))
-                          (END-OF-FILE () (return))))
-                     (close stream))
-                   in-string))))
-   :longitude (nth 15 x)
-   :latitude (nth 16 x)
-   ;; :dateUpdate (nth 17 x)
-   :dateUpdate "1970-01-01 00:00:00"
-   :isPrivate (nth 18 x)
-   :bknId (nth 19 x)
-   :developerId (nth 20 x)))
-
-;; (print
-;;  (mapcar #'sanitize-cmpx
-;;          (caar
-;;           (get-cmpx-by-developer "6945DC73-8335-11E4-B6C0-448A5BD44C07"))))
-
-(in-package #:moto)
-
-(let ((all-cmpx-s))
-  (mapcar #'(lambda (guid)
-              (let ((cmpx-s (caar (get-cmpx-by-developer guid))))
-                (mapcar #'(lambda (cmpx)
-                            (push (sanitize-cmpx cmpx) all-cmpx-s))
-                       cmpx-s)))
-         (mapcar #'guid (all-developer)))
-  (mapcar #'(lambda (x)
-              ;; (print x)
-              (apply #'make-cmpx x))
-          all-cmpx-s))
-(in-package #:moto)
-
-;; Страничка застройщика
-(restas:define-route trnd-cmpx-page ("/trnd/cmpx/:guid")
-  (let ((cmpx (find-cmpx :guid guid)))
-    (if (null cmpx)
-        ""
-        (let ((cmpx (car cmpx)))
-          (ps-html
-           ((:a :href "/trnd/devs") "Все застройщики")
-           ((:br))
-           ((:br))
-           ((:table :border 1)
-            ((:tr)
-             ((:td) "id")
-             ((:td) (id cmpx)))
-            ((:tr)
-             ((:td) "guid")
-             ((:td) (guid cmpx)))
-             ((:tr)
-             ((:td) "name")
-             ((:td) (name cmpx)))
-            ((:tr)
-             ((:td) "statusId")
-             ((:td) (statusId cmpx)))
-            ((:tr)
-             ((:td) "developer")
-             ((:td) ((:a :href (format nil "/trnd/dev/~A" (developerId cmpx)))
-                     (name (car (find-developer :guid (developerId cmpx)))))))
-            ((:tr)
-             ((:td) "longitude")
-             ((:td) (longitude cmpx)))
-            ((:tr)
-             ((:td) "latitude")
-             ((:td) (latitude cmpx)))
-            ((:tr)
-             ((:td) "latitude")
-             ((:td) (latitude cmpx)))
-            ((:tr)
-             ((:td) "bknId")
-             ((:td) (bknId cmpx))))
-           (note cmpx)
-           )))))
-
-(in-package #:moto)
-
 (defun get-blks-by-cmpx (guid)
   (with-mysql
     (cl-mysql:query
@@ -336,19 +464,19 @@
 ;;          (caar
 ;;           (get-blks-by-cmpx "9DFF6CEF-D7EE-11E4-9FBB-448A5BD44C07"))))
 
-(in-package #:moto)
+;; (in-package #:moto)
 
-(let ((all-blk-s))
-  (mapcar #'(lambda (guid)
-              (let ((blk-s (caar (get-blks-by-cmpx guid))))
-                (mapcar #'(lambda (blk)
-                            (push (sanitize-blk blk) all-blk-s))
-                       blk-s)))
-         (mapcar #'guid (all-cmpx)))
-  (mapcar #'(lambda (x)
-              (print x)
-              (apply #'make-blk x))
-          all-blk-s))
+;; (let ((all-blk-s))
+;;   (mapcar #'(lambda (guid)
+;;               (let ((blk-s (caar (get-blks-by-cmpx guid))))
+;;                 (mapcar #'(lambda (blk)
+;;                             (push (sanitize-blk blk) all-blk-s))
+;;                        blk-s)))
+;;          (mapcar #'guid (all-cmpx)))
+;;   (mapcar #'(lambda (x)
+;;               (print x)
+;;               (apply #'make-blk x))
+;;           all-blk-s))
 (in-package #:moto)
 
 (defparameter *trnd-pages*
