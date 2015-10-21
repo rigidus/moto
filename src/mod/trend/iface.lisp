@@ -7,7 +7,7 @@
 
 (in-package #:moto)
 
-(defun get-cmpx-from-srcbd (from cnt)
+(defun get-cmpx-from-src-bd (from cnt)
   (let* ((raw-query "
                     SELECT DISTINCT
                         REPLACE(REPLACE(bkn.name, '«', ''), '»', '') AS name,
@@ -144,7 +144,7 @@
                    (list (nth idx fields) in)))
             data)))
 
-(get-cmpx-from-srcbd 0 1)
+;; (get-cmpx-from-src-bd 0 1)
 
 ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
 ;; (when (null (string-to-date (subseq string 0 10)))
@@ -152,21 +152,30 @@
 
 (in-package #:moto)
 
-(mapcar #'(lambda (cmpx)
-            (let ((flag-match nil))
-              (block try-match
-                (mapcar #'(lambda (candidat)
-                            (if (cmpx-match cmpx candidat)
-                                (progn
-                                  (check-and-update-cmpx cmpx candidat)
-                                  (setf flag-match t)
-                                  (return-from try-match))))
-                        (find-sumular-cmpx cmpx))
-                (unless flag-match
-                  (check-and-import cmpx)))))
-        (get-cmpx-from-srcbd 0 999))
+(defun import-cmpx ()
+  (dbg "trend: import-cmpx started~%")
+  (mapcar #'(lambda (cmpx)
+              (dbg "trend: -try import ~A:~A~%" (getf cmpx :complexId) (getf cmpx :name))
+              (let ((flag-match nil))
+                (block try-match
+                  (mapcar #'(lambda (candidat)
+                              (when (is-match-cmpx cmpx candidat)
+                                (dbg "trend: --match: ~A:~A~%" (guid candidat) (name candidat))
+                                (check-and-update-cmpx cmpx candidat)
+                                (setf flag-match t)
+                                (return-from try-match)))
+                          (find-simular-cmpx cmpx))
+                  (unless flag-match
+                    (dbg "trend: --new cmpx~%")
+                    (check-and-import cmpx)))))
+          (get-cmpx-from-src-bd 0 1)))
+
+;; (import-cmpx)
 
 (defun check-and-import (cmpx)
+  ;; (let ((developer-guid (getf cmpx :developerId)))
+  ;;   (unless (car (find-developer :guid developer-guid))
+  ;;     (import-developer developer-guid))
   (make-cmpx
    :guid (getf cmpx :complexId)
    :nb_sourceId (getf cmpx :sourceId)
@@ -188,6 +197,16 @@
    :dateUpdate "1970-10-10 23:00"
    :isPrivate 0
    :bknId nil))
+
+
+(mapcar #'(lambda (x)
+            (print
+             (list
+              (name x)
+              (developerId x)
+
+              )))
+        (all-cmpx))
 
    ;; :NAME "Триумф Парк"
    ;; :UNIDECODE "triumf_park"
@@ -213,7 +232,7 @@
                            :date_insert "1970-10-10 23:00"
                            :dateupdate "1970-10-10 23:00")))
 
-(defun find-sumular-cmpx (cmpx)
+(defun find-simular-cmpx (cmpx)
   (let ((result))
     (block check-name
       (setf result
@@ -221,10 +240,14 @@
                      (find-cmpx :name (getf cmpx :name)))))
     (remove-duplicates result)))
 
-;; (find-sumular-cmpx (car (get-cmpx-from-srcbd 0 1)))
+;; (find-sumular-cmpx (car (get-cmpx-from-src-bd 0 1)))
 
-(defun cmpx-match (cmpx candidat)
-  (equal (name candidat) (getf cmpx :name)))
+(in-package #:moto)
+
+(defun is-match-cmpx (cmpx candidat)
+  (and
+   (equal (name candidat) (getf cmpx :name))
+   (equal (developerId candidat) (getf cmpx :developerId))))
 
 ;; (in-package #:moto)
 

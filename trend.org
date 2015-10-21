@@ -200,7 +200,7 @@
 
        (in-package #:moto)
 
-       (defun get-cmpx-from-srcbd (from cnt)
+       (defun get-cmpx-from-src-bd (from cnt)
          (let* ((raw-query "
                            <<query_get_complex>>
                            ")
@@ -218,7 +218,7 @@
                           (list (nth idx fields) in)))
                    data)))
 
-       (get-cmpx-from-srcbd 0 1)
+       ;; (get-cmpx-from-src-bd 0 1)
 
        ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
        ;; (when (null (string-to-date (subseq string 0 10)))
@@ -235,21 +235,33 @@
 
        (in-package #:moto)
 
-       (mapcar #'(lambda (cmpx)
-                   (let ((flag-match nil))
-                     (block try-match
-                       (mapcar #'(lambda (candidat)
-                                   (if (cmpx-match cmpx candidat)
-                                       (progn
-                                         (check-and-update-cmpx cmpx candidat)
-                                         (setf flag-match t)
-                                         (return-from try-match))))
-                               (find-sumular-cmpx cmpx))
-                       (unless flag-match
-                         (check-and-import cmpx)))))
-               (get-cmpx-from-srcbd 0 999))
+       (defun import-cmpx ()
+         (dbg "trend: import-cmpx started~%")
+         (mapcar #'(lambda (cmpx)
+                     (let ((flag-match nil))
+                       (block try-match
+                         (mapcar #'(lambda (candidat)
+                                     (when (is-match-cmpx cmpx candidat)
+                                       (dbg " :match cmpx ~A:~A" (getf cmpx :complexId) (getf cmpx :name))
+                                       (check-and-update-cmpx cmpx candidat)
+                                       (setf flag-match t)
+                                       (return-from try-match))
+                                     )
+                                 (find-simular-cmpx cmpx))
+                         (unless flag-match
+                           (dbg " :NEW cmpx ~A:~A" (getf cmpx :complexId) (getf cmpx :name))
+                           (check-and-import cmpx)))))
+                 (get-cmpx-from-src-bd 0 999)))
+
+       ;; (import-cmpx)
+
+       (defun import-developer (developer-guid)
+         (dbg " :NEW developer ~A" developer-guid))
 
        (defun check-and-import (cmpx)
+         (let ((developer-guid (getf cmpx :developerId)))
+           (unless (car (find-developer :guid developer-guid))
+             (import-developer developer-guid)))
          (make-cmpx
           :guid (getf cmpx :complexId)
           :nb_sourceId (getf cmpx :sourceId)
@@ -296,7 +308,7 @@
                                   :date_insert "1970-10-10 23:00"
                                   :dateupdate "1970-10-10 23:00")))
 
-       (defun find-sumular-cmpx (cmpx)
+       (defun find-simular-cmpx (cmpx)
          (let ((result))
            (block check-name
              (setf result
@@ -304,11 +316,75 @@
                             (find-cmpx :name (getf cmpx :name)))))
            (remove-duplicates result)))
 
-       ;; (find-sumular-cmpx (car (get-cmpx-from-srcbd 0 1)))
-
-       (defun cmpx-match (cmpx candidat)
-         (equal (name candidat) (getf cmpx :name)))
+       ;; (find-sumular-cmpx (car (get-cmpx-from-src-bd 0 1)))
      #+END_SRC
+
+     Функция проверки на совпадение переданного комплекса =cmpx= с кандидатом =candidat= на
+     совпадение из нашей целевой базы данных. Мы считаем, что если у комплекса совпадает
+     название и guid застройщика - то это однозначное совпадение.
+
+     #+NAME: iface_contents
+     #+BEGIN_SRC lisp :noweb tangle :exports none
+
+       (in-package #:moto)
+
+       (defun is-match-cmpx (cmpx candidat)
+         (and
+          (equal (name candidat) (getf cmpx :name))
+          (equal (developerId candidat) (getf cmpx :developerId))))
+     #+END_SRC
+
+
+     Запрос для получения застройщиков
+
+     #+name: query_get_developer
+     #+header: :engine mysql
+     #+header: :dbhost bkn.ru
+     #+header: :dbport 3306
+     #+header: :dbuser root
+     #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
+     #+header: :database bkn_base
+     #+begin_src sql :var from=0 cnt=1 :results table
+       SELECT
+           toguid(d.id) AS guid,
+           REPLACE(REPLACE(d.name, '«', ''), '»', '') AS name,
+           d.deleted,
+           d.address,
+           d.url,
+           d.phone,
+           d.note,
+           c.phone,
+           c.logo,
+           c.url,
+           c.email,
+           CONVERT (c.enabled, SIGNED),
+           c.name
+       FROM
+           bkn_base.developer d
+               INNER JOIN
+           bkn_base.developer_customs c ON c.developerId = d.id
+       WHERE
+           d.id = guidtobinary('6945CE85-8335-11E4-B6C0-448A5BD44C07')
+       LIMIT $from, $cnt;
+     #+end_src
+
+     #+results: query_get_developer
+     | guid                                 | name                | deleted | address               | url               | phone           | note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | phone          | logo         | url                | email | CONVERT (c.enabled, SIGNED) | name                |
+     |--------------------------------------+---------------------+---------+-----------------------+-------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------+--------------+--------------------+-------+-----------------------------+---------------------|
+     | 6945CE85-8335-11E4-B6C0-448A5BD44C07 | ЛСР-Недвижимость-СЗ |       0 | СПб, Кирочная ул., 39 | [[http://www.lsr.ru]] | (812) 325-01-01 | <span style="color: rgb(102, 102, 102); font-family: Verdana, Arial, Geneva, Helvetica, sans-serif; font-size: 13px; text-align: justify;">Компания «</span><strong style="color: rgb(102, 102, 102); font-family: Verdana, Arial, Geneva, Helvetica, sans-serif; font-size: 13px; text-align: justify;">ЛСР. Недвижимость&nbsp;— Северо-Запад</strong><span style="color: rgb(102, 102, 102); font-family: Verdana, Arial, Geneva, Helvetica, sans-serif; font-size: 13px; text-align: justify;">», до&nbsp;2013 года известная как ГДСК («Городская ДомоСтроительная Компания»), занимается строительством объектов недвижимости более 10&nbsp;лет. На&nbsp;сегодняшний день это один из&nbsp;ведущих застройщиков Санкт-Петербурга. Основное направление «ЛСР. Недвижимость&nbsp;— Северо-Запад» - строительство жилых комплексов сегмента масс-маркет в&nbsp;Санкт-Петербурге. В&nbsp;основе позиционирования объектов компании - комфортное жилье по&nbsp;доступной цене.&nbsp; Квартиры от&nbsp;застройщика «ЛСР. Недвижимость&nbsp;— Северо-Запад», построенные с&nbsp;использованием передовых технологий, соответствуют европейским стандар-там качества. Продажа квартир в&nbsp;строящихся домах осуществляется путем заключения договоров долевого участия в&nbsp;рамках Федерального Закона №&nbsp;214. Соблюдение сроков строительства позволяет компании поддерживать репутацию одного из&nbsp;самых надежных застройщиков Петербурга, предлагающих качественное и&nbsp;в&nbsp;то&nbsp;же время доступное жилье.&nbsp;</span> | (812)325-01-01 | logo_lsr.png | [[http://www.lsr.ru/]] | NULL  |                           1 | ЛСР-Недвижимость-СЗ |
+
+     #+results: query_get_complex
+
+
+
+
+
+
+
+
+
+
+
 
      Теперь нужна функция, которая превращает комплекс в правильный plist, удаляя
      форматирование, если оно есть:
