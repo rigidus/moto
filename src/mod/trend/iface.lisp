@@ -7,156 +7,224 @@
 
 (in-package #:moto)
 
-(defun get-cmpx ()
-  (cl-mysql:query "
-   SELECT DISTINCT
-       REPLACE(REPLACE(bkn.name, '«', ''),
-           '»',
-           '') AS name,
-       u.unidecode AS unidecode,
-       du.unidecode AS developer_unidecode,
-       toguid(ap.id) AS complexId,
-       ap.regionId AS regionId,
-       REPLACE(REPLACE(d.name, '«', ''),
-           '»',
-           '') AS developer,
-       toguid(d.id) AS developerId,
-       CONCAT('/BuildingComplexes/complex/', u.unidecode) AS complexLink,
-       CONCAT('/BuildingComplexes/developers/', du.unidecode) AS developerLink,
-       ap.city_name AS city_name,
-       ap.street_name AS street_name,
-       sbw.name AS subway,
-       ap.subway1Id AS subwayId,
-       ap.district_name AS district,
-       ap.districtId AS districtId,
-       ap.latitude,
-       ap.longitude,
-       ap.nb_sourceId AS sourceId,
-       (SELECT
-               CONCAT('http://alexander.pro.bkn.ru/images/b_preview/',
-                           filename)
-           FROM
-               bkn_base.nb_photos ph
-           WHERE
-               ph.objectId = ap.id
-           LIMIT 1) AS photo,
-       (SELECT
-               COUNT(*)
-           FROM
-               bkn_base.nb_photos ph
-           WHERE
-               ph.objectId = ap.id) AS pcount,
-       (SELECT
-               status_buildId
-           FROM
-               bkn_base.nb_block bl
-           WHERE
-               bl.nb_complexId = ap.id
-                   AND bl.statusId = 1
-           ORDER BY bl.status_buildId
-           LIMIT 1) AS status_buildId,
-       (SELECT
-               CONCAT(bl.quarter_end, '-', bl.year_end)
-           FROM
-               bkn_base.nb_block bl
-           WHERE
-               bl.nb_complexId = ap.id
-                   AND bl.statusId = 1
-                   AND bl.quarter_end IS NOT NULL
-                   AND bl.year_end IS NOT NULL
-           ORDER BY bl.year_end
-           LIMIT 1) AS year_end_min_string,
-       (SELECT
-               CONCAT(bl.quarter_end, '-', bl.year_end)
-           FROM
-               bkn_base.nb_block bl
-           WHERE
-               bl.nb_complexId = ap.id
-                   AND bl.statusId = 1
-                   AND bl.quarter_end IS NOT NULL
-                   AND bl.year_end IS NOT NULL
-           ORDER BY bl.year_end DESC
-           LIMIT 1) AS year_end_max_string,
-       (SELECT
-               COUNT(*)
-           FROM
-               bkn_base.nb_block bl
-           WHERE
-               bl.nb_complexId = ap.id
-                   AND bl.statusId = 1
-           ORDER BY bl.year_end DESC
-           LIMIT 1) AS bcount,
-       (SELECT
-               MIN(amount)
-           FROM
-               bkn_base.nb_appartment apa
-                   INNER JOIN
-               bkn_base.nb_block bl ON apa.nb_blockId = bl.id
-                   AND bl.statusId = 1
-           WHERE
-               bl.nb_complexId = ap.id
-                   AND apa.statusId = 1
-                   AND apa.obj_typeId IN (1 , 3, 6)) AS minamount,
-       (SELECT
-               MIN(amount_metr)
-           FROM
-               bkn_base.nb_appartment apa
-                   INNER JOIN
-               bkn_base.nb_block bl ON apa.nb_blockId = bl.id
-                   AND bl.statusId = 1
-           WHERE
-               bl.nb_complexId = ap.id
-                   AND apa.statusId = 1
-                   AND apa.obj_typeId IN (1 , 3, 6)) AS minamount_metr
-   FROM
-       bkn_base.nb_complex bkn
-           INNER JOIN
-       bkn_base.nb_complex ap FORCE INDEX (AP) ON bkn.id = ap.bknid
-           AND ap.nb_sourceId IN (1 , 3)
-           AND ap.statusId = 1
-           AND ap.isPrivate = 0
-           LEFT JOIN
-       bkn_base.subway sbw ON sbw.id = ap.subway1Id
-           INNER JOIN
-       bkn_base.developer d ON d.id = ap.developerId
-           INNER JOIN
-       bkn_base.unidecode u ON u.guid = ap.id AND u.type = 0
-           INNER JOIN
-       bkn_base.unidecode du ON du.guid = d.id AND du.type = 1
-           INNER JOIN
-       bkn_base.nb_block b ON b.nb_complexId = ap.id
-           AND b.statusId = 1
-           INNER JOIN
-       bkn_base.nb_appartment a ON b.id = a.nb_blockId AND a.statusId = 1
-           AND a.obj_typeId IN (1 , 3, 6)
-   WHERE
-       bkn.nb_sourceId = 2 AND bkn.statusId = 1
-   ORDER BY ap.name
-   "
-                  ))
+(defun get-cmpx-from-srcbd (from cnt)
+  (let* ((raw-query "
+                    SELECT DISTINCT
+                        REPLACE(REPLACE(bkn.name, '«', ''), '»', '') AS name,
+                        u.unidecode AS unidecode,
+                        du.unidecode AS developer_unidecode,
+                        toguid(ap.id) AS complexId,
+                        ap.regionId AS regionId,
+                        REPLACE(REPLACE(d.name, '«', ''), '»', '') AS developer,
+                        toguid(d.id) AS developerId,
+                        CONCAT('/BuildingComplexes/complex/', u.unidecode) AS complexLink,
+                        CONCAT('/BuildingComplexes/developers/', du.unidecode) AS developerLink,
+                        ap.city_name AS city_name,
+                        ap.street_name AS street_name,
+                        sbw.name AS subway,
+                        ap.subway1Id AS subwayId,
+                        ap.district_name AS district,
+                        ap.districtId AS districtId,
+                        ap.latitude,
+                        ap.longitude,
+                        ap.nb_sourceId AS sourceId,
+                        (SELECT
+                                CONCAT('http://alexander.pro.bkn.ru/images/b_preview/',
+                                            filename)
+                            FROM
+                                bkn_base.nb_photos ph
+                            WHERE
+                                ph.objectId = ap.id
+                            LIMIT 1) AS photo,
+                        (SELECT
+                                COUNT(*)
+                            FROM
+                                bkn_base.nb_photos ph
+                            WHERE
+                                ph.objectId = ap.id) AS pcount,
+                        (SELECT
+                                status_buildId
+                            FROM
+                                bkn_base.nb_block bl
+                            WHERE
+                                bl.nb_complexId = ap.id
+                                    AND bl.statusId = 1
+                            ORDER BY bl.status_buildId
+                            LIMIT 1) AS status_buildId,
+                        (SELECT
+                                CONCAT(bl.quarter_end, '-', bl.year_end)
+                            FROM
+                                bkn_base.nb_block bl
+                            WHERE
+                                bl.nb_complexId = ap.id
+                                    AND bl.statusId = 1
+                                    AND bl.quarter_end IS NOT NULL
+                                    AND bl.year_end IS NOT NULL
+                            ORDER BY bl.year_end
+                            LIMIT 1) AS year_end_min_string,
+                        (SELECT
+                                CONCAT(bl.quarter_end, '-', bl.year_end)
+                            FROM
+                                bkn_base.nb_block bl
+                            WHERE
+                                bl.nb_complexId = ap.id
+                                    AND bl.statusId = 1
+                                    AND bl.quarter_end IS NOT NULL
+                                    AND bl.year_end IS NOT NULL
+                            ORDER BY bl.year_end DESC
+                            LIMIT 1) AS year_end_max_string,
+                        (SELECT
+                                COUNT(*)
+                            FROM
+                                bkn_base.nb_block bl
+                            WHERE
+                                bl.nb_complexId = ap.id
+                                    AND bl.statusId = 1
+                            ORDER BY bl.year_end DESC
+                            LIMIT 1) AS bcount,
+                        (SELECT
+                                MIN(amount)
+                            FROM
+                                bkn_base.nb_appartment apa
+                                    INNER JOIN
+                                bkn_base.nb_block bl ON apa.nb_blockId = bl.id
+                                    AND bl.statusId = 1
+                            WHERE
+                                bl.nb_complexId = ap.id
+                                    AND apa.statusId = 1
+                                    AND apa.obj_typeId IN (1 , 3, 6)) AS minamount,
+                        (SELECT
+                                MIN(amount_metr)
+                            FROM
+                                bkn_base.nb_appartment apa
+                                    INNER JOIN
+                                bkn_base.nb_block bl ON apa.nb_blockId = bl.id
+                                    AND bl.statusId = 1
+                            WHERE
+                                bl.nb_complexId = ap.id
+                                    AND apa.statusId = 1
+                                    AND apa.obj_typeId IN (1 , 3, 6)) AS minamount_metr
+                    FROM
+                        bkn_base.nb_complex bkn
+                            INNER JOIN
+                        bkn_base.nb_complex ap FORCE INDEX (AP) ON bkn.id = ap.bknid
+                            AND ap.nb_sourceId IN (1 , 3)
+                            AND ap.statusId = 1
+                            AND ap.isPrivate = 0
+                            LEFT JOIN
+                        bkn_base.subway sbw ON sbw.id = ap.subway1Id
+                            INNER JOIN
+                        bkn_base.developer d ON d.id = ap.developerId
+                            INNER JOIN
+                        bkn_base.unidecode u ON u.guid = ap.id AND u.type = 0
+                            INNER JOIN
+                        bkn_base.unidecode du ON du.guid = d.id AND du.type = 1
+                            INNER JOIN
+                        bkn_base.nb_block b ON b.nb_complexId = ap.id
+                            AND b.statusId = 1
+                            INNER JOIN
+                        bkn_base.nb_appartment a ON b.id = a.nb_blockId AND a.statusId = 1
+                            AND a.obj_typeId IN (1 , 3, 6)
+                    WHERE
+                        bkn.nb_sourceId = 2 AND bkn.statusId = 1
+                    ORDER BY ap.name
+                    LIMIT $from, $cnt;
+                    ")
+         (query-1 (replace-all raw-query "$from" (format nil "~A" from)))
+         (query-2 (replace-all query-1 "$cnt" (format nil "~A" cnt)))
+         (result (cl-mysql:query query-2))
+         (fields (mapcar #'(lambda (x)
+                             (intern (string-upcase (car x)) :keyword))
+                         (cadar result)))
+         (data   (caar  result)))
+    (mapcar #'(lambda (elt)
+                (loop
+                   :for idx :from 0
+                   :for in :in elt :append
+                   (list (nth idx fields) in)))
+            data)))
+
+(get-cmpx-from-srcbd 0 1)
 
 ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
 ;; (when (null (string-to-date (subseq string 0 10)))
 ;;   (return-from string-to-universal-time 2208988800))
 
-(get-cmpx)
+(in-package #:moto)
 
-;; (in-package #:moto)
+(mapcar #'(lambda (cmpx)
+            (let ((flag-match nil))
+              (block try-match
+                (mapcar #'(lambda (candidat)
+                            (if (cmpx-match cmpx candidat)
+                                (progn
+                                  (check-and-update-cmpx cmpx candidat)
+                                  (setf flag-match t)
+                                  (return-from try-match))))
+                        (find-sumular-cmpx cmpx))
+                (unless flag-match
+                  (check-and-import cmpx)))))
+        (get-cmpx-from-srcbd 0 999))
 
-;; (defun get-cmpx-by-developer (guid)
-;;   (with-mysql
-;;     (cl-mysql:query
-;;      (replace-all "
-;;
-;;                   "
-;;                   "$developerId"
-;;                   (format nil "~A" guid)))))
+(defun check-and-import (cmpx)
+  (make-cmpx
+   :guid (getf cmpx :complexId)
+   :nb_sourceId (getf cmpx :sourceId)
+   :statusId 1;;(getf cmpx :status_buildid)
+   :developerId (getf cmpx :developerId)
+   :date_insert "1970-10-10 23:00"
+   :regionId (getf cmpx :regionId)
+   :districtId (getf cmpx :districtId)
+   :district_name (getf cmpx :district)
+   :city_name (getf cmpx :city_name)
+   :street_name (getf cmpx :street_name)
+   :subway1Id 0
+   :subway2Id 0
+   :subway3Id 0
+   :name (getf cmpx :name)
+   :note ""
+   :longitude (getf cmpx :longitude)
+   :latitude (getf cmpx :latitude)
+   :dateUpdate "1970-10-10 23:00"
+   :isPrivate 0
+   :bknId nil))
 
-;; ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
-;; ;; (when (null (string-to-date (subseq string 0 10)))
-;; ;;   (return-from string-to-universal-time 2208988800))
+   ;; :NAME "Триумф Парк"
+   ;; :UNIDECODE "triumf_park"
+   ;; :DEVELOPER_UNIDECODE        "pietra-8_ooo"
+   ;; :DEVELOPER "Петра-8 ООО"
+   ;; :COMPLEXLINK "/BuildingComplexes/complex/triumf_park"
+   ;; :DEVELOPERLINK "/BuildingComplexes/developers/pietra-8_ooo"
+   ;; :SUBWAY "Звездная"
+   ;; :SUBWAYID 16
+   ;; :LATITUDE 299133397139/5000000000
+   ;; :LONGITUDE 151666688919/5000000000
+   ;; :PHOTO         "http://alexander.pro.bkn.ru/images/b_preview/ae16995aa94afab0a"
+   ;; :PCOUNT 1
+   ;; :YEAR_END_MIN_STRING "2-2016"
+   ;; :YEAR_END_MAX_STRING "3-2017"
+   ;; :BCOUNT 4
+   ;; :MINAMOUNT 86034/25
+   ;; :MINAMOUNT_METR 0
 
-;; (get-cmpx-by-developer "6945D3A6-8335-11E4-B6C0-448A5BD44C07")
+
+(defun check-and-update-cmpx (cmpx candidat)
+  (upd-cmpx candidat (list :name (getf cmpx :name)
+                           :date_insert "1970-10-10 23:00"
+                           :dateupdate "1970-10-10 23:00")))
+
+(defun find-sumular-cmpx (cmpx)
+  (let ((result))
+    (block check-name
+      (setf result
+            (append result
+                     (find-cmpx :name (getf cmpx :name)))))
+    (remove-duplicates result)))
+
+;; (find-sumular-cmpx (car (get-cmpx-from-srcbd 0 1)))
+
+(defun cmpx-match (cmpx candidat)
+  (equal (name candidat) (getf cmpx :name)))
 
 ;; (in-package #:moto)
 

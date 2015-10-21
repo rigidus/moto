@@ -61,8 +61,6 @@
      Корпуса могут быть в разных состояниях готовности, для этого у них есть поле
      =status_buildId=, указывающее на таблицу =status_build=, в которых эти состояния перечислены
 
-     Таким образом мы можем получить все ЖК которые нам нужны и связанные с ними данные
-
      #+name: query_get_complex
      #+header: :engine mysql
      #+header: :dbhost bkn.ru
@@ -70,18 +68,14 @@
      #+header: :dbuser root
      #+header: :dbpassword YGAhBawd1j~SANlw"Y#l
      #+header: :database bkn_base
-     #+begin_src sql :results table
+     #+begin_src sql :var from=0 cnt=1 :results table
        SELECT DISTINCT
-           REPLACE(REPLACE(bkn.name, '«', ''),
-               '»',
-               '') AS name,
+           REPLACE(REPLACE(bkn.name, '«', ''), '»', '') AS name,
            u.unidecode AS unidecode,
            du.unidecode AS developer_unidecode,
            toguid(ap.id) AS complexId,
            ap.regionId AS regionId,
-           REPLACE(REPLACE(d.name, '«', ''),
-               '»',
-               '') AS developer,
+           REPLACE(REPLACE(d.name, '«', ''), '»', '') AS developer,
            toguid(d.id) AS developerId,
            CONCAT('/BuildingComplexes/complex/', u.unidecode) AS complexLink,
            CONCAT('/BuildingComplexes/developers/', du.unidecode) AS developerLink,
@@ -194,52 +188,126 @@
        WHERE
            bkn.nb_sourceId = 2 AND bkn.statusId = 1
        ORDER BY ap.name
-       LIMIT 5;
+       LIMIT $from, $cnt;
      #+end_src
 
-     Напишем функцию, которая возвращает все жилые комплексы конкретного застройщика
+     Таким образом мы можем получить все ЖК которые нам нужны и связанные с ними данные
+
+     Напишем функцию, которая возвращает все жилые комплексы.
 
      #+NAME: iface_contents
      #+BEGIN_SRC lisp :noweb tangle :exports none
 
        (in-package #:moto)
 
-       (defun get-cmpx ()
-         (cl-mysql:query "
-          <<query_get_complex>>
-          "
-                         ))
+       (defun get-cmpx-from-srcbd (from cnt)
+         (let* ((raw-query "
+                           <<query_get_complex>>
+                           ")
+                (query-1 (replace-all raw-query "$from" (format nil "~A" from)))
+                (query-2 (replace-all query-1 "$cnt" (format nil "~A" cnt)))
+                (result (cl-mysql:query query-2))
+                (fields (mapcar #'(lambda (x)
+                                    (intern (string-upcase (car x)) :keyword))
+                                (cadar result)))
+                (data   (caar  result)))
+           (mapcar #'(lambda (elt)
+                       (loop
+                          :for idx :from 0
+                          :for in :in elt :append
+                          (list (nth idx fields) in)))
+                   data)))
+
+       (get-cmpx-from-srcbd 0 1)
 
        ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
        ;; (when (null (string-to-date (subseq string 0 10)))
        ;;   (return-from string-to-universal-time 2208988800))
-
-       (length
-        (caar
-         (get-cmpx)))
      #+END_SRC
 
-
+     Теперь будем обрабатывать получаемые из исходной базы данных комплексы, пытаясь найти
+     соответствия в целевой БД. Если ничего похожего не нашли - добавляем комплекс в целевую
+     БД. Добавляя, мы переносим также все связанные с комплексом данные - его застройщика,
+     корпуса и квартиры.
 
      #+NAME: iface_contents
      #+BEGIN_SRC lisp :noweb tangle :exports none
 
-       ;; (in-package #:moto)
+       (in-package #:moto)
 
-       ;; (defun get-cmpx-by-developer (guid)
-       ;;   (with-mysql
-       ;;     (cl-mysql:query
-       ;;      (replace-all "
-       ;;                    <<query_get_developer_complex>>
-       ;;                   "
-       ;;                   "$developerId"
-       ;;                   (format nil "~A" guid)))))
+       (mapcar #'(lambda (cmpx)
+                   (let ((flag-match nil))
+                     (block try-match
+                       (mapcar #'(lambda (candidat)
+                                   (if (cmpx-match cmpx candidat)
+                                       (progn
+                                         (check-and-update-cmpx cmpx candidat)
+                                         (setf flag-match t)
+                                         (return-from try-match))))
+                               (find-sumular-cmpx cmpx))
+                       (unless flag-match
+                         (check-and-import cmpx)))))
+               (get-cmpx-from-srcbd 0 999))
 
-       ;; ;; ~/quicklisp/dists/quicklisp/software/cl-mysql-20120208-git/
-       ;; ;; (when (null (string-to-date (subseq string 0 10)))
-       ;; ;;   (return-from string-to-universal-time 2208988800))
+       (defun check-and-import (cmpx)
+         (make-cmpx
+          :guid (getf cmpx :complexId)
+          :nb_sourceId (getf cmpx :sourceId)
+          :statusId 1;;(getf cmpx :status_buildid)
+          :developerId (getf cmpx :developerId)
+          :date_insert "1970-10-10 23:00"
+          :regionId (getf cmpx :regionId)
+          :districtId (getf cmpx :districtId)
+          :district_name (getf cmpx :district)
+          :city_name (getf cmpx :city_name)
+          :street_name (getf cmpx :street_name)
+          :subway1Id 0
+          :subway2Id 0
+          :subway3Id 0
+          :name (getf cmpx :name)
+          :note ""
+          :longitude (getf cmpx :longitude)
+          :latitude (getf cmpx :latitude)
+          :dateUpdate "1970-10-10 23:00"
+          :isPrivate 0
+          :bknId nil))
 
-       ;; (get-cmpx-by-developer "6945D3A6-8335-11E4-B6C0-448A5BD44C07")
+          ;; :NAME "Триумф Парк"
+          ;; :UNIDECODE "triumf_park"
+          ;; :DEVELOPER_UNIDECODE        "pietra-8_ooo"
+          ;; :DEVELOPER "Петра-8 ООО"
+          ;; :COMPLEXLINK "/BuildingComplexes/complex/triumf_park"
+          ;; :DEVELOPERLINK "/BuildingComplexes/developers/pietra-8_ooo"
+          ;; :SUBWAY "Звездная"
+          ;; :SUBWAYID 16
+          ;; :LATITUDE 299133397139/5000000000
+          ;; :LONGITUDE 151666688919/5000000000
+          ;; :PHOTO         "http://alexander.pro.bkn.ru/images/b_preview/ae16995aa94afab0a"
+          ;; :PCOUNT 1
+          ;; :YEAR_END_MIN_STRING "2-2016"
+          ;; :YEAR_END_MAX_STRING "3-2017"
+          ;; :BCOUNT 4
+          ;; :MINAMOUNT 86034/25
+          ;; :MINAMOUNT_METR 0
+
+
+       (defun check-and-update-cmpx (cmpx candidat)
+         (upd-cmpx candidat (list :name (getf cmpx :name)
+                                  :date_insert "1970-10-10 23:00"
+                                  :dateupdate "1970-10-10 23:00")))
+
+       (defun find-sumular-cmpx (cmpx)
+         (let ((result))
+           (block check-name
+             (setf result
+                   (append result
+                            (find-cmpx :name (getf cmpx :name)))))
+           (remove-duplicates result)))
+
+       ;; (find-sumular-cmpx (car (get-cmpx-from-srcbd 0 1)))
+
+       (defun cmpx-match (cmpx candidat)
+         (equal (name candidat) (getf cmpx :name)))
      #+END_SRC
 
      Теперь нужна функция, которая превращает комплекс в правильный plist, удаляя
