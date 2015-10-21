@@ -155,27 +155,27 @@
 (defun import-cmpx ()
   (dbg "trend: import-cmpx started~%")
   (mapcar #'(lambda (cmpx)
-              (dbg "trend: -try import ~A:~A~%" (getf cmpx :complexId) (getf cmpx :name))
               (let ((flag-match nil))
                 (block try-match
                   (mapcar #'(lambda (candidat)
                               (when (is-match-cmpx cmpx candidat)
-                                (dbg "trend: --match: ~A:~A~%" (guid candidat) (name candidat))
+                                (dbg " :match cmpx ~A:~A" (getf cmpx :complexId) (getf cmpx :name))
                                 (check-and-update-cmpx cmpx candidat)
                                 (setf flag-match t)
-                                (return-from try-match)))
+                                (return-from try-match))
+                              )
                           (find-simular-cmpx cmpx))
                   (unless flag-match
-                    (dbg "trend: --new cmpx~%")
+                    (dbg " :NEW cmpx ~A:~A" (getf cmpx :complexId) (getf cmpx :name))
                     (check-and-import cmpx)))))
-          (get-cmpx-from-src-bd 0 1)))
+          (get-cmpx-from-src-bd 0 999)))
 
 ;; (import-cmpx)
 
 (defun check-and-import (cmpx)
-  ;; (let ((developer-guid (getf cmpx :developerId)))
-  ;;   (unless (car (find-developer :guid developer-guid))
-  ;;     (import-developer developer-guid))
+  (let ((developer-guid (getf cmpx :developerId)))
+    (unless (car (find-developer :guid developer-guid))
+      (import-developer developer-guid)))
   (make-cmpx
    :guid (getf cmpx :complexId)
    :nb_sourceId (getf cmpx :sourceId)
@@ -197,16 +197,6 @@
    :dateUpdate "1970-10-10 23:00"
    :isPrivate 0
    :bknId nil))
-
-
-(mapcar #'(lambda (x)
-            (print
-             (list
-              (name x)
-              (developerId x)
-
-              )))
-        (all-cmpx))
 
    ;; :NAME "Триумф Парк"
    ;; :UNIDECODE "triumf_park"
@@ -248,6 +238,47 @@
   (and
    (equal (name candidat) (getf cmpx :name))
    (equal (developerId candidat) (getf cmpx :developerId))))
+
+(in-package #:moto)
+
+(defun import-developer (developer-guid)
+  (dbg " :NEW developer ~A" developer-guid)
+  (let* ((raw-query "
+                     SELECT
+                         toguid(d.id) AS guid,
+                         REPLACE(REPLACE(d.name, '«', ''), '»', '') AS name,
+                         d.deleted,
+                         d.address,
+                         d.url,
+                         d.phone,
+                         d.note,
+                         c.phone,
+                         c.logo,
+                         c.url,
+                         c.email,
+                         CONVERT (c.enabled, SIGNED) AS enabled,
+                         c.name
+                     FROM
+                         bkn_base.developer d
+                             INNER JOIN
+                         bkn_base.developer_customs c ON c.developerId = d.id
+                     WHERE
+                         d.id = guidtobinary('$developerId')
+                    ")
+         (query-1 (replace-all raw-query "$developerId" (format nil "~A" developer-guid)))
+         (result (cl-mysql:query query-1))
+         (fields (mapcar #'(lambda (x)
+                             (intern (string-upcase (car x)) :keyword))
+                         (cadar result)))
+         (data   (caar  result)))
+    (mapcar #'(lambda (elt)
+                (loop
+                   :for idx :from 0
+                   :for in :in elt :append
+                   (list (nth idx fields) in)))
+            data)))
+
+(import-developer "6945CE85-8335-11E4-B6C0-448A5BD44C07")
 
 ;; (in-package #:moto)
 
