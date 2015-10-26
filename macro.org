@@ -11,6 +11,8 @@
      Макроопределения и макровызовы (с параметрами):
 
      #+BEGIN_EXAMPLE
+       define(name [, expansion])
+
        define('exch', '$2, $1')
        ⇒
        exch('arg1', 'arg2')
@@ -18,14 +20,17 @@
      #+END_EXAMPLE
 
 **** Что может m4?
-     - Назначение/удаление переменных (define/undefile)
-     - B в стеке тоже (pushdef/popdef)
-     - Подстановка в зависимости от переменной (ifdef)
+     - Назначение/удаление переменных/макросов (define/undefile)
+     - И в стеке тоже (pushdef/popdef)
+     - Условное раскрытие (ifdef)
+     - Цикл и рекурсия (shift, forloop)
      - Управление 10 виртуальными потоками вывода
      - Вычисление выражений (eval)
-     - Операции со строками (substr)
+     - Операции со строками (substr, len, regexp, patsubst)
      - Подстановка содержимого файлов (include)
      - Выполнение shell-команд (syscmd)
+     - Коссвенные вызовы макросов (indir), в т.ч. встроенных (buildin)
+     - Трассировка раскрытия (traceon/traceoff)
 **** Что им можно сделать?
      - Генерация кода из декларативной спецификации
      - Генерация SQL во время компиляции
@@ -33,6 +38,15 @@
      - Администрирование (конфиги)
 
 *** TODO Макроподстановки в С/С++
+
+    Макросы аналогичны директивам препроцессора #define в C и в то же
+    время аналогичны eval. Отличие от #define состоит в том, что для
+    #define доступны 3-4 операции (арифметические действия над
+    константами, вызов других макросов и две конкатенации). Макрос на
+    лиспе может проводить любой анализ входных данных (своих
+    аргументов), вызывать любые уже присутствующие в образе функции и
+    строить подставляемый код из результата их вызова.
+
     Закат солнца вручную. Короче, такой хоккей нам не нужен, надо не
     токенами жонглировать, а выходить на уровень AST. Oh, shi...,
     s-expessions - это же AST в текстовой форме!!!
@@ -73,10 +87,50 @@
 *** TODO Преобразование AST макросами
 
     Здесь надо добавить какой-нибудь элегантный макрос, который
-    выполняет преобразования над AST
+    выполняет преобразования над AST: Как нам прохавать AST - патчим
+    граф выполнения - типичные примеры - профайлинг, логгинг, аспекты.
 
-    Как нам прохавать AST - патчим граф выполнения - типичные примеры -
-    профайлинг, логгинг, аспекты
+    Если вы облицовываете пол плиткой, размер которой с ноготь, вы не
+    тратите излишних усилий – Пол Грэм
+
+    В то время, как в других языках у вас есть небольшие квадратные
+    плиточки, в Lisp вы можете выбрать плитку любого размера и любой
+    формы.
+
+*** Макроc пишет код - раскрываем факториал
+
+    #+BEGIN_SRC lisp
+      (defmacro !1 (x)
+        (if (= x 1)
+            1
+            `(* ,x (!1 ,(1- x)))))
+
+      (macroexpand-all '(!1 5))
+
+      (SB-CLTL2:MACROEXPAND-ALL '(!1 5))
+
+      => (* 5 (* 4 (* 3 (* 2 1))))
+    #+END_SRC
+
+*** Макросы, которые определяют макросы
+
+    #+BEGIN_SRC lisp
+      (defmacro defsynonym (old-name new-name)
+        "Define OLD-NAME to be equivalent to NEW-NAME when used in the first position of a Lisp form."
+        `(defmacro, new-name (&rest args)
+           `(,',old-name ,@args)))
+      => DEFSYNONYM
+
+      (macroexpand-1 '
+       (defsynonym cons make-pair))
+      =>(DEFMACRO MAKE-PAIR (&REST ARGS) `(CONS ,@ARGS)), T
+
+      (defsynonym cons make-pair)
+      =>MAKE-PAIR
+
+      (make-pair 'a 'b)
+      => (A . B)
+    #+END_SRC
 
 * TODO Что если делать то же самое, но не обязательно до компиляции.
 
@@ -88,7 +142,7 @@
 * TODO Практичекская применимость - Оптимизация кода на лету
   (по swizard-у - http://swizard.info/articles/solitaire/article.html)
 * В продолжение предыдущего - создание DSL на макросах
-* Немного о гигиене и анаформических макросах
+* Немного о гигиене и анафорических макросах
 
   Идея гигиены - отделить окружение макроса от окружения его
   продукции, и таким образом избежать возможных пересечений
@@ -96,7 +150,16 @@
 
   В Scheme эта идея прижиалась, но она мешает анафорическим макросам
 
-** TODO Анаформические макросы и цитирование
+  Самый простой пример анафорического макроса: АIF (или IF-IT),
+  который тестирует первый аргумент на истинность и одновременно
+  привязывает его значение к переменной IT, которую, соответственно,
+  можно использовать в THEN-clause:
+
+  #+BEGIN_SRC lisp
+    (defmacro aif (var then &optional else)
+      `(let ((it ,var))
+        (if it ,then ,else)))
+  #+END_SRC
 
 * Программа, которая меняет саму себя - mutation engine на макросах
   (не уверен осилю ли я это и осилит ли это кто-нибудь понять)
@@ -108,6 +171,7 @@
 *** Racket
 *** Nemerle
 *** Scala
+*** Dylan
 
 * Нетрадиционно ориентированное программирование:
 
@@ -115,3 +179,13 @@
 *** Jптимизация черного ящика,
 *** исполняемые спецификации
 *** Динамическое программирование на макросах (swizard)
+* Ссылки
+  http://swizard.info/articles/functional-data-structures.html
+  http://swizard.livejournal.com/157521.html
+  http://habrahabr.ru/post/143490/
+  http://fprog.ru/2010/issue5/vsevolod-dyomkin-lisp-philosophy/
+  http://rus-linux.net/MyLDP/algol/LISP/lisp09.html
+  http://lisp2d.net/rus/teach/q.php
+  http://cyberleninka.ru/article/n/analiz-vozmozhnostey-sistemy-makroopredeleniy-yazyka-common-lisp-dlya-sozdaniya-novyh-upravlyayuschih-konstruktsiy
+  https://books.google.ru/books?id=jaoDX9-e_McC&pg=PA738&lpg=PA738&dq=%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80+%D0%BC%D0%B0%D0%BA%D1%80%D0%BE%D1%81+%D0%BB%D0%B8%D1%81%D0%BF&source=bl&ots=lHfSI5iKbj&sig=sLvsICw1e7p9ehee3zMpKHqT6Kk&hl=ru&sa=X&ved=0CFkQ6AEwCTgUahUKEwidzOn12eDIAhXK_3IKHdliDm8#v=onepage&q=%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BC%D0%B0%D0%BA%D1%80%D0%BE%D1%81%20%D0%BB%D0%B8%D1%81%D0%BF&f=false
+  http://linux.yaroslavl.ru/docs/prog/m4.html
