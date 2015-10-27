@@ -36,6 +36,7 @@
 ** Примеры макросистем позднего голоцена
 
 Note(Mary): Ты же в курсе, что поздний голоцен - это сейчас?
+R:Ато! :)
 
 *** Директива #define (C/C++)
 
@@ -128,6 +129,9 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
 
   Q(Mary): Что в этом макросе такого, что нельзя сделать
   просто функцией?
+  R: Если в compile-time *dbg-enable* = 0 - то отладочного вывода
+  вообще нет в результирующем коде. Это эквивалент отладочных
+  макросов в си и макроассемблерах.
 
   Результат раскрытия макроса выполняется в лексической среде места
   раскрытия — это важно, чтобы макрос мог изменить значение
@@ -292,6 +296,8 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
    категорически нельзя показывать, только если ты не
    скажешь, что 20 строк могут развернуться в 2200, но без
    подробностей.
+   R: Хм, а как показать? Или может рассказать, как я рассказал тебе в
+   слаке - про то как это работает? А код оставить для иллюстрации?
 
 ** Макроc пишет код - раскрываем факториал
 
@@ -363,12 +369,6 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
   компилировать функции определённые с помощью defun, даже в режиме
   «интерпретации».)
 
-  Для правильного раскрытия макросы должны быть написаны такб чтобы
-  иметь наименьшие зависимости от выполняемого окруженияю Лучше всего
-  удостоверитьсяб что все определения макросов доступны перед темб как
-  компилятор или интерпретатор будет обрабатывает кодб содержащий
-  макровызовы к нимю
-
   Для правильного раскрытия макросы должны быть написаны так, чтобы
   иметь наименьшие зависимости от выполняемого окружения. Лучше всего
   удостовериться, что все определения макросов доступны перед тем, как
@@ -383,6 +383,10 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
 
   Note(Mary): Злостная копипаста :) Надо как-то из этого
   извлечь главное.
+  R:Вообще, там есть зайчатки интересных технологий. Например мы
+  можем злобно залезть и заменить функцию раскрытия прямо таки
+  похачив уже определенные макросы. И мы можем даже хачить таким
+  образом тот макрос, который в данный момент раскрывается )))
 
 * TODO Macroexpand-1 и другие способы отладки макросов
 
@@ -843,6 +847,9 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
   только тогда, когда ты очень хочешь разобраться в
   деталях. Если ты просто пришёл послушать, что это за штука
   такая - тебе эти тонкости ни к чему, только отпугнут.
+  R: Да, это тонкости, но их нужно знать мне, чтобы ответить на
+  каверзные вопросы о том, как и когда происходит раскрытие, как этим
+  управлять и что может произойти
 
 * TODO Специальные макросы чтения
 * TODO Практичекская применимость - Оптимизация кода на лету
@@ -866,6 +873,7 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
   A(Rigidus): А тут пока [TODO]
 * TODO Практичесая применимость - троичный IF и виртуальная Сетунь
 * TODO В продолжение предыдущего - создание DSL на макросах
+
   Note(Mary): Если ты хочешь на базе статьи рассказывать про
   DSL, то не рекомендую, там слишком долго объяснять
   придётся, либо никто ничего не поймёт.
@@ -874,6 +882,8 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
 
   Note(Mary): Тут уместно вспомнить про -> и ->> из
   кложуры. Вполне себе DSL.
+
+  R:А где это посмотреть? Расскажи мне!
 
 * Немного о гигиене и анафорических макросах
 
@@ -908,6 +918,10 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
   Note(Mary): Зато в других макросах всё не сломается
   внезапно от того, что где в скоупе оказалась переменная с
   неверным именем.
+
+  R:Ну не так то сложно использовать gensym и не засорять чужую
+  область видимости. И дальше там будет о макросах которые это делают
+  еще проще
 
 ** Как сделать гигиену в Lisp (Использование gensym)
 
@@ -944,9 +958,9 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
      =>123
    #+END_SRC
 
-      Если необходимо, чтобы сгенерированные символы были интернированными и
-   отличными от существующих символов, тогда удобно использовать функцию
-   gentemp.
+   Если необходимо, чтобы сгенерированные символы были
+   интернированными и отличными от существующих символов, тогда удобно
+   использовать функцию gentemp.
 
    Gentemp, как и gensym, создаёт и возвращает новый символ. gentemp
    отличается от gensym в том, что возвращает интернированный символ в
@@ -957,6 +971,118 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
    существующего символа. Сбросить счётчик невозможно. Кроме того,
    префикс для gentemp не сохраняется между вызовами. Если аргумент
    preﬁx опущен, то используется значение по-умолчанию T.
+
+   Macro-Writing Macros (http://www.gigamonkeys.com/book/macros-defining-your-own.html)
+
+   Of course, there's no reason you should be able to take advantage of
+   macros only when writing functions. The job of macros is to abstract
+   away common syntactic patterns, and certain patterns come up again
+   and again in writing macros that can also benefit from being
+   abstracted away.
+
+   In fact, you've already seen one such pattern--many macros will, like
+   the last version of do-primes, start with a LET that introduces a few
+   variables holding gensymed symbols to be used in the macro's
+   expansion. Since this is such a common pattern, why not abstract it
+   away with its own macro?
+
+   In this section you'll write a macro, with-gensyms, that does just
+   that. In other words, you'll write a macro-writing macro: a macro
+   that generates code that generates code. While complex macro-writing
+   macros can be a bit confusing until you get used to keeping the
+   various levels of code clear in your mind, with-gensyms is fairly
+   straightforward and will serve as a useful but not too strenuous
+   mental limbering exercise.
+
+   You want to be able to write something like this:
+
+   #+BEGIN_SRC lisp
+     (defmacro do-primes ((var start end) &body body)
+       (with-gensyms (ending-value-name)
+         `(do ((,var (next-prime ,start) (next-prime (1+ ,var)))
+               (,ending-value-name ,end))
+              ((> ,var ,ending-value-name))
+            ,@body)))
+   #+END_SRC
+
+   and have it be equivalent to the previous version of do-primes. In
+   other words, the with-gensyms needs to expand into a LET that binds
+   each named variable, ending-value-name in this case, to a gensymed
+   symbol. That's easy enough to write with a simple backquote template.
+
+   #+BEGIN_SRC lisp
+     (defmacro with-gensyms ((&rest names) &body body)
+       `(let ,(loop for n in names collect `(,n (gensym)))
+          ,@body))
+   #+END_SRC
+
+   Note how you can use a comma to interpolate the value of the LOOP
+   expression. The loop generates a list of binding forms where each
+   binding form consists of a list containing one of the names given to
+   with-gensyms and the literal code (gensym). You can test what code
+   the LOOP expression would generate at the REPL by replacing names
+   with a list of symbols.
+
+   #+BEGIN_SRC lisp
+     CL-USER> (loop for n in '(a b c) collect `(,n (gensym)))
+     ((A (GENSYM)) (B (GENSYM)) (C (GENSYM)))
+   #+END_SRC
+
+   After the list of binding forms, the body argument to with-gensyms is
+   spliced in as the body of the LET. Thus, in the code you wrap in a
+   with-gensyms you can refer to any of the variables named in the list
+   of variables passed to with-gensyms.
+
+   If you macro-expand the with-gensyms form in the new definition of
+   do-primes, you should see something like this:
+
+   #+BEGIN_SRC lisp
+     (let ((ending-value-name (gensym)))
+       `(do ((,var (next-prime ,start) (next-prime (1+ ,var)))
+             (,ending-value-name ,end))
+            ((> ,var ,ending-value-name))
+          ,@body))
+   #+END_SRC
+
+   Looks good. While this macro is fairly trivial, it's important to
+   keep clear about when the different macros are expanded: when you
+   compile the DEFMACRO of do-primes, the with-gensyms form is expanded
+   into the code just shown and compiled. Thus, the compiled version of
+   do-primes is just the same as if you had written the outer LET by
+   hand. When you compile a function that uses do-primes, the code
+   generated by with-gensyms runs generating the do-primes expansion,
+   but with-gensyms itself isn't needed to compile a do-primes form
+   since it has already been expanded, back when do-primes was compiled.
+   Another classic macro-writing MACRO: ONCE-ONLY
+
+   Another classic macro-writing macro is once-only, which is used to
+   generate code that evaluates certain macro arguments once only and in
+   a particular order. Using once-only, you could write do-primes almost
+   as simply as the original leaky version, like this:
+
+   #+BEGIN_SRC lisp
+     (defmacro do-primes ((var start end) &body body)
+       (once-only (start end)
+         `(do ((,var (next-prime ,start) (next-prime (1+ ,var))))
+              ((> ,var ,end))
+            ,@body)))
+   #+END_SRC
+
+   However, the implementation of once-only is a bit too involved for a
+   blow-by-blow explanation, as it relies on multiple levels of
+   backquoting and unquoting. If you really want to sharpen your macro
+   chops, you can try to figure out how it works. It looks like this:
+
+   #+BEGIN_SRC lisp
+     (defmacro once-only ((&rest names) &body body)
+       (let ((gensyms (loop for n in names collect (gensym))))
+         `(let (,@(loop for g in gensyms collect `(,g (gensym))))
+           `(let (,,@(loop for g in gensyms for n in names collect ``(,,g
+           ,,n)))
+             ,(let (,@(loop for n in names for g in gensyms collect `(,n
+             ,g)))
+                ,@body)))))
+   #+END_SRC
 
 * TODO Как нам вооружившись макросами исправить мир?
   Или немного о том, как плохие люди, собрались вместе и испортили
@@ -1004,3 +1130,11 @@ Note(Mary): Ты же в курсе, что поздний голоцен - эт
   http://cyberleninka.ru/article/n/analiz-vozmozhnostey-sistemy-makroopredeleniy-yazyka-common-lisp-dlya-sozdaniya-novyh-upravlyayuschih-konstruktsiy
   https://books.google.ru/books?id=jaoDX9-e_McC&pg=PA738&lpg=PA738&dq=%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80+%D0%BC%D0%B0%D0%BA%D1%80%D0%BE%D1%81+%D0%BB%D0%B8%D1%81%D0%BF&source=bl&ots=lHfSI5iKbj&sig=sLvsICw1e7p9ehee3zMpKHqT6Kk&hl=ru&sa=X&ved=0CFkQ6AEwCTgUahUKEwidzOn12eDIAhXK_3IKHdliDm8#v=onepage&q=%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BC%D0%B0%D0%BA%D1%80%D0%BE%D1%81%20%D0%BB%D0%B8%D1%81%D0%BF&f=false
   http://linux.yaroslavl.ru/docs/prog/m4.html
+
+  http://cl-cookbook.sourceforge.net/macros.html
+  http://www.linux.org.ru/forum/development/9708251
+  https://psg.com/~dlamkins/sl/chapter20.html
+  http://community.schemewiki.org/?hygiene-versus-gensym
+  http://letoverlambda.com/index.cl/toc
+  http://www.aaronsw.com/weblog/pgwrong
+  http://www.randomhacks.net/2002/09/13/hygienic-macros/
