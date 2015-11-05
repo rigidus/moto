@@ -857,6 +857,72 @@
   Note(Mary): А, хорошо.
 
 * TODO Специальные макросы чтения
+* Кложурные макры
+
+  #+BEGIN_SRC lisp
+
+    (defmacro ->
+        "Threads the expr through the forms. Inserts x as the
+      second item in the first form, making a list of it if it is not a
+      list already. If there are more forms, inserts the first form as the
+      second item in second form, etc."
+      {:added "1.0"}
+      [x & forms]
+      (loop [x x, forms forms]
+         (if forms
+             (let [form (first forms)
+                  threaded (if (seq? form)
+                               (with-meta `(~(first form) ~x ~@(next form)) (meta form))
+                               (list form x))]
+                               (recur threaded (next forms)))
+             x)))
+
+    (-> (handler/site app-routes)
+        (wrap-resource "web")
+        (wrap-file-info)
+        (wrap-params)
+        (wrap-keyword-params))
+
+    (wrap-keyword-params
+     (wrap-params
+      (wrap-file-info
+       (wrap-resourse
+        (handler/site app-routes)
+        "web"))))
+
+
+    (defmacro -> (forms)
+      (let ((forms (reverse forms)))
+        (if (null (cdr forms))
+            (car forms)
+            (let ((base (car forms)))
+              (unless (listp base)
+                (setf base (list base)))
+              (list* (car base)
+                     (test (reverse (cdr forms)))
+                     (cdr base))))))
+
+    (macroexpand-1 '(-> ((handler/site app-routes)
+                         (wrap-resource "web")
+                         (wrap-file-info)
+                         (wrap-params)
+                         (wrap-keyword-params))))
+
+    => (WRAP-KEYWORD-PARAMS
+        (WRAP-PARAMS
+         (WRAP-FILE-INFO
+          (WRAP-RESOURCE
+           (HANDLER/SITE APP-ROUTES)
+           "web")))), T
+
+    (macroexpand-1 '(->> ((handler/site app-routes)
+                         (wrap-resource "web")
+                         (wrap-file-info)
+                         (wrap-params)
+                         (wrap-keyword-params))))
+
+  #+END_SRC
+
 * TODO Практичекская применимость - Оптимизация кода на лету
   (по swizard-у - http://swizard.info/articles/solitaire/article.html)
 
