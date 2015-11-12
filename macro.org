@@ -961,33 +961,64 @@
     другие
     другие")
 
-    ;; хелпер для обеспечения рекурсивности макроса =>
+    ;; Пример раз: тот, который в презентации. Там есть несколько функций, которые принимают нечто типа A первым аргументом, плюс несколько других аргументов (>= 0), и возвращают снова нечто типа А.
+    ;; (-> (a) (b c)) == (b a c)
+    ;; (-> (a) (b c) (d e)) == (d (b a c) e)
+
+    (defun ->helper (forms)
+      (if (null (cdr forms))
+          (car forms)
+          (list* (caar forms)
+                 (->helper (cdr forms))
+                 (cdar forms))))
+
+    ;; собственно макрос ->
+    (defmacro -> (&body forms)
+      (let ((forms (reverse forms)))
+        (->helper forms)))
+
+    ;; Пример применения
+    (->
+      (split-sequence:split-sequence #\LineFeed *test*)
+      (remove-duplicates :test #'string=))
+
+
+    ;; Пример два: несколько функций, которые принимают нечто типа А последним аргументом и возвращают снова нечто типа А. Это как раз то, что принято в Лиспе (и в Хаскеле тоже) со списками (в Хаскеле на этом удобно каррирование строить).
+    ;; (-» (a) (b c)) == (b c a)
+    ;; (-» (a) (b c) (d e)) == (d e (b c a))
+
+    ;; хелпер для обеспечения рекурсивности макроса ->>
     ;; который выполняет всю работу
-    (defun =>helper (forms)
+    (defun ->>helper (forms)
       (if (null (cdr forms))
           (car forms)
           (append (car forms)
-                  (list (=>helper (cdr forms))))))
+                  (list (->>helper (cdr forms))))))
 
-    ;; собственно макрос =>
-    (defmacro => (&body forms)
-      (=>helper forms))
+    ;; собственно макрос ->>
+    (defmacro ->> (&body forms)
+      (let ((forms (reverse forms)))
+        (->>helper forms)))
 
-    ;; Тествовый пример краткой записи с макросом =>
+    ;; Тестовый пример краткой записи с макросом ->>
+    ;; (print (sb-cltl2:macroexpand-all '
     (let ((garant 0) (other 0))
-      (=> (mapcar #'(lambda (str)
+      (->> *test*
+          (split-sequence:split-sequence #\LineFeed)
+          (mapcar #'(lambda (str)
+                      (->>
+                        (concatenate 'list str)
+                        (remove #\Return)
+                        (remove #\ZERO_WIDTH_NO-BREAK_SPACE)
+                        (concatenate 'string)
+                        )))
+          (mapcar #'(lambda (str)
                       (if (string= "гарант" str)
                           (incf garant)
                           (incf other))))
-          (mapcar #'(lambda (str)
-                      (=>
-                        (concatenate 'string)
-                        (remove #\ZERO_WIDTH_NO-BREAK_SPACE)
-                        (remove #\Return)
-                        (concatenate 'list str))))
-          (split-sequence:split-sequence #\LineFeed)
-          ,*test*)
+          )
       (cons garant other))
+    ;; ))
 
     ;; Его раскрытие в каскад фильтров
     (let ((garant 0) (other 0))
@@ -1003,7 +1034,6 @@
                (split-sequence:split-sequence #\newline *test*)))
       (cons garant other))
   #+END_SRC
-
 
 * TODO Практичекская применимость - Оптимизация кода на лету
   (по swizard-у - http://swizard.info/articles/solitaire/article.html)
