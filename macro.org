@@ -935,6 +935,84 @@ http://www.b-list.org/weblog/2015/oct/19/destroy-all-hiring-processes/
 
   #+END_SRC
 
+  Во время случайного рабочего скриптинга созрел интересный и
+  наглядный пример применения этих кложурных макросов.
+
+  Задача была простая - посчитать в файле кол-во строк, совпадающих с
+  шаблоном, но перед этим пришлось профильтровать от всяких непечатных
+  символов.
+
+  И действительно, разворачивая каскад фильтров в последовательность
+  можно их сколько угодно написать не беспокоясь о читабельности.
+
+  Вопрос только в том, правильно ли я поименовал этот макрос - в кложе
+  макрос => подставляет свой следующий аргумент в конец формы
+  предыдущего или как-то иначе? Если так, то как в кложе называется
+  макрос, который работает как этот?
+
+  #+BEGIN_SRC lisp
+    (ql:quickload "alexandria")
+    (ql:quickload "split-sequence")
+
+    ;; тестовые данные
+    (defparameter *test*
+      "гарант
+    другие
+    другие
+    гарант
+    гарант
+    гарант
+    гарант
+    гарант
+    другие
+    гарант
+    другие
+    другие")
+
+    ;; хелпер для обеспечения рекурсивности макроса =>
+    ;; который выполняет всю работу
+    (defun =>helper (forms)
+      (if (null (cdr forms))
+          (car forms)
+          (append (car forms)
+                  (list (=>helper (cdr forms))))))
+
+    ;; собственно макрос =>
+    (defmacro => (&body forms)
+      (=>helper forms))
+
+    ;; Тествовый пример краткой записи с макросом =>
+    (let ((garant 0) (other 0))
+      (=> (mapcar #'(lambda (str)
+                      (if (string= "гарант" str)
+                          (incf garant)
+                          (incf other))))
+          (mapcar #'(lambda (str)
+                      (=>
+                        (concatenate 'string)
+                        (remove #\ZERO_WIDTH_NO-BREAK_SPACE)
+                        (remove #\Return)
+                        (concatenate 'list str))))
+          (split-sequence:split-sequence #\LineFeed)
+          ,*test*)
+      (cons garant other))
+
+    ;; Его раскрытие в каскад фильтров
+    (let ((garant 0) (other 0))
+      (mapcar #'(lambda (str)
+                  (if (string= "гарант" str)
+                      (incf garant)
+                      (incf other)))
+              (mapcar
+               #'(lambda (str)
+                   (concatenate 'string
+                                (remove #\zero_width_no-break_space
+                                        (remove #\return (concatenate 'list str)))))
+               (split-sequence:split-sequence #\newline *test*)))
+      (cons garant other))
+  #+END_SRC
+
+
 * TODO Практичекская применимость - Оптимизация кода на лету
   (по swizard-у - http://swizard.info/articles/solitaire/article.html)
 
