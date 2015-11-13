@@ -871,70 +871,6 @@ http://www.b-list.org/weblog/2015/oct/19/destroy-all-hiring-processes/
 * TODO Специальные макросы чтения
 * Кложурные макры
 
-  #+BEGIN_SRC lisp
-
-    (defmacro ->
-        "Threads the expr through the forms. Inserts x as the
-      second item in the first form, making a list of it if it is not a
-      list already. If there are more forms, inserts the first form as the
-      second item in second form, etc."
-      {:added "1.0"}
-      [x & forms]
-      (loop [x x, forms forms]
-         (if forms
-             (let [form (first forms)
-                  threaded (if (seq? form)
-                               (with-meta `(~(first form) ~x ~@(next form)) (meta form))
-                               (list form x))]
-                               (recur threaded (next forms)))
-             x)))
-
-    (-> (handler/site app-routes)
-        (wrap-resource "web")
-        (wrap-file-info)
-        (wrap-params)
-        (wrap-keyword-params))
-
-    (wrap-keyword-params
-     (wrap-params
-      (wrap-file-info
-       (wrap-resourse
-        (handler/site app-routes)
-        "web"))))
-
-
-    (defmacro -> (forms)
-      (let ((forms (reverse forms)))
-        (if (null (cdr forms))
-            (car forms)
-            (let ((base (car forms)))
-              (unless (listp base)
-                (setf base (list base)))
-              (list* (car base)
-                     (reverse (cdr forms))
-                     (cdr base))))))
-
-    (macroexpand-1 '(-> ((handler/site app-routes)
-                         (wrap-resource "web")
-                         (wrap-file-info)
-                         (wrap-params)
-                         (wrap-keyword-params))))
-
-    => (WRAP-KEYWORD-PARAMS
-        (WRAP-PARAMS
-         (WRAP-FILE-INFO
-          (WRAP-RESOURCE
-           (HANDLER/SITE APP-ROUTES)
-           "web")))), T
-
-    (macroexpand-1 '(->> ((handler/site app-routes)
-                         (wrap-resource "web")
-                         (wrap-file-info)
-                         (wrap-params)
-                         (wrap-keyword-params))))
-
-  #+END_SRC
-
   Во время случайного рабочего скриптинга созрел интересный и
   наглядный пример применения этих кложурных макросов.
 
@@ -953,6 +889,8 @@ http://www.b-list.org/weblog/2015/oct/19/destroy-all-hiring-processes/
   #+BEGIN_SRC lisp
     (ql:quickload "alexandria")
     (ql:quickload "split-sequence")
+    (ql:quickload "cells")
+
 
     ;; тестовые данные
     (defparameter *test*
@@ -1042,6 +980,31 @@ http://www.b-list.org/weblog/2015/oct/19/destroy-all-hiring-processes/
                (split-sequence:split-sequence #\newline *test*)))
       (cons garant other))
   #+END_SRC
+
+  Развиваем тему... Теперь мне бы хотелось сделать макрос, который
+  реализует такие подстановки не в строго определенное место, а куда
+  захочет пользователь. Например заменяя :~ на вставляемое выражение.
+
+  #+BEGIN_SRC lisp
+    (~> (get-source-list param)
+        (first-filter some-param-1 :~ some-param-3)
+        (second-filter some-param-1 some-param-2 :~ some-param-4))
+  #+END_SRC
+
+  Следующий шаг, как я полагаю - вспомнить о том, что вызов может
+  возвращать несколько значений. Мы могли бы эти значения как-то
+  аккумулировать, чтобы потом организовывать на базе них граф
+  вычислений
+
+  #+BEGIN_SRC lisp
+    (~> :retval-1 :retval-2 (get-source-list param)
+        :retval-3 (first-filter some-param-1 :retval-1 some-param-3 :retval-3)
+        (second-filter some-param-1 some-param-2 :retval-1 :retval-3 some-param-4))
+  #+END_SRC
+
+  Тут макрос мог бы строить на базе этого AST. Если добавить к этому
+  ленивость и вычисления по запросу - то мы уже получаем реализацию
+  чего-то похожего на CELLS https://common-lisp.net/project/cells/
 
 * TODO Практичекская применимость - Оптимизация кода на лету
   (по swizard-у - http://swizard.info/articles/solitaire/article.html)
