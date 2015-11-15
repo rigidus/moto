@@ -1006,6 +1006,7 @@ http://www.b-list.org/weblog/2015/oct/19/destroy-all-hiring-processes/
   ленивость и вычисления по запросу - то мы уже получаем реализацию
   чего-то похожего на CELLS https://common-lisp.net/project/cells/
 
+
 * TODO Практичекская применимость - Оптимизация кода на лету
   (по swizard-у - http://swizard.info/articles/solitaire/article.html)
 
@@ -1025,6 +1026,47 @@ http://www.b-list.org/weblog/2015/oct/19/destroy-all-hiring-processes/
   Q(Mary): А где именно там пример оптимизации кода на лету?
 
   A(Rigidus): А тут пока [TODO]
+
+* START Может суперкомпилировать карринг?
+
+  Что я собственно имею ввиду?
+
+  Ну вот допустим у нас есть некий метод
+
+  #+BEGIN_SRC lisp
+    (defmethod some-test (alfa beta gamma)
+      (* (+ alfa beta) gamma))
+  #+END_SRC
+
+  Если мы попытаемся его каррировать, то получим что-то вроде:
+
+  #+BEGIN_SRC lisp
+    (defun curry (function &rest initial-args)
+      "Returns a function which will call FUNCTION passing it INITIAL-ARGS and then any other args.
+     (funcall (curry #'list 1) 2) ==> (list 1 2)"
+      (lambda (&rest args)
+        (apply function (append initial-args args))))
+
+    (funcall (curry #'some-test 3) 4 5)
+    => 35
+  #+END_SRC
+
+  Но это просто обертка над =some-test=, и даже не макрос. Попробуем
+  сделать макросом, так, чтобы:
+
+  #+BEGIN_SRC lisp
+    (macroexpand-1 '(curry-macro #'some-test 3))
+
+    =>
+
+    (defmethod some-test (beta gamma)
+      (* (+ 3 beta) gamma))
+  #+END_SRC
+
+  Когда мы это сдели - остается применить правила оптимизации к
+  выходному AST чтобы постараться все что возможно вычислить в
+  macroexpand-time.
+
 * TODO Практичесая применимость - троичный IF и виртуальная Сетунь
 * TODO В продолжение предыдущего - создание DSL на макросах
 
