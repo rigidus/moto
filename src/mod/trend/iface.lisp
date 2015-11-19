@@ -278,7 +278,7 @@
                    (list (nth idx fields) in)))
             data)))
 
-(import-developer "6945CE85-8335-11E4-B6C0-448A5BD44C07")
+;; (import-developer "6945CE85-8335-11E4-B6C0-448A5BD44C07")
 
 ;; (in-package #:moto)
 
@@ -549,7 +549,7 @@
                   "$complexId"
                   (format nil "~A" guid)))))
 
-(get-blks-by-cmpx "9DFF6CEF-D7EE-11E4-9FBB-448A5BD44C07")
+;; (get-blks-by-cmpx "9DFF6CEF-D7EE-11E4-9FBB-448A5BD44C07")
 
 (in-package #:moto)
 

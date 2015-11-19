@@ -1537,11 +1537,11 @@
      (defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
 
      ;; Подключение к базе данных Mysql
-     (defvar *mysql-db-host* "bkn.ru")
-     (defvar *mysql-db-database* "bkn_base")
-     (defvar *mysql-db-user* "root")
-     (defvar *mysql-db-password* "YGAhBawd1j~SANlw\"Y#l")
-     (defvar *mysql-db-port* 3306)
+     ;; (defvar *mysql-db-host* "bkn.ru")
+     ;; (defvar *mysql-db-database* "bkn_base")
+     ;; (defvar *mysql-db-user* "root")
+     ;; (defvar *mysql-db-password* "YGAhBawd1j~SANlw\"Y#l")
+     ;; (defvar *mysql-db-port* 3306)
 
      ;; ;; Макрос для подключения к mysql
      ;; (defmacro with-mysql-conn (spec &body body)
@@ -1555,16 +1555,16 @@
      ;;   `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
      ;;      ,@body))
 
-     (defparameter *mysql-conn-pool*
-       (cl-mysql:connect :host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306))
+     ;; (defparameter *mysql-conn-pool*
+     ;;   (cl-mysql:connect :host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306))
 
-     (cl-mysql:query  "SET NAMES 'utf8'")
+     ;; (cl-mysql:query  "SET NAMES 'utf8'")
 
-     (defmacro with-mysql (&body body)
-       `(progn ,@body))
+     ;; (defmacro with-mysql (&body body)
+     ;;   `(progn ,@body))
 
      ;; clear db
-     (drop '("resume"))
+     ;; (drop '("resume"))
      ;; (drop '("user" "role" "group" "user2group" "msg"
      ;;         "que" "quelt" "bratan" "cmpx" "plex" "crps" "flat"
      ;;         "city" "district" "metro" "deadline"))
