@@ -2547,6 +2547,17 @@
        (slideshow-handler "img"))
    #+END_SRC
 
+** Тестовая страница
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route mob ("mob")
+       (progn
+         "mob"))
+   #+END_SRC
+
 * Отдельные технические вещи
 *** WAIT Обход дерева и извлечение узлов
 
