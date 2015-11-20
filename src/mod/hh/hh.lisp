@@ -36,15 +36,6 @@
 (in-package #:moto)
 
 (defmacro define-rule ((name antecedent) &body consequent)
-  ;; (make-rule
-  ;;  :name (bprint name)
-  ;;  :user-id 1
-  ;;  :rank 1
-  ;;  :ruletype (if (contains (string-downcase name) "teaser")
-  ;;                ":TEASER"
-  ;;                ":VACANCY")
-  ;;  :antecedent (bprint antecedent)
-  ;;  :consequent (bprint consequent))
   `(list
      (defun ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
        ,antecedent)
@@ -535,7 +526,7 @@
   (when *need-start*
     (setf *need-start* nil)
     (set-start))
-  (labels ((get-html-data (uri)
+  (labels ((get-html-data (url)
              (flexi-streams:octets-to-string
               (drakma:http-request url
                                    :user-agent *user-agent*
@@ -544,12 +535,23 @@
                                    :force-binary t
                                    :cookie-jar *cookie-jar*)
               :external-format :utf-8)))
-    (let ((html (get-html-data url)))
-      (when (is-logged html)
-        (setf *referer* url)
-        (return-from hh-get-page html))
-      (setf *cookies* (recovery-login))
-      (hh-get-page url))))
+    (let ((repeat-cnt 0)
+          (html))
+      (tagbody
+       repeat
+         (dbg "::-> ~A" repeat-cnt)
+         (when (> repeat-cnt 3)
+           (err "max hh-login try"))
+         (setf html (get-html-data url))
+         (when (is-logged html)
+           (setf *referer* url)
+           (return-from hh-get-page html))
+         (setf *cookies* (recovery-login))
+         (incf repeat-cnt)
+         (go repeat))
+      html)))
+
+;; (hh-get-page "http://spb.hh.ru")
 
 (in-package #:moto)
 

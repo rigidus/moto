@@ -448,4 +448,9 @@
 
 (restas:define-route z ("/z")
   (slideshow-handler "img"))
+(in-package #:moto)
+
+(restas:define-route mob ("mob")
+  (progn
+    "mob"))
 ;; iface ends here
