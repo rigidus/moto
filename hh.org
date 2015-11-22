@@ -1044,7 +1044,7 @@
           ("Рабочий персонал" . ("29"))))
     #+END_SRC
 
-** COMMENT Получение страниц
+** Получение страниц
 
    Так как мы хотим получать информацию, которая находится за авторизацией, нам нужно
    обеспечить прозрачность авторизации, если ее в данный момент нет. =hh_login= решает эту
@@ -1069,6 +1069,7 @@
 
      (defun hh-get-page (url)
        "Получение страницы"
+       (dbg ":: hh-get-page")
        (when *need-start*
          (setf *need-start* nil)
          (set-start))
@@ -1129,14 +1130,9 @@
 
      (defparameter *referer* "")
 
-     (defparameter *login-post* `(("username" . "avenger-f%40yandex.ru")
-                                  ("password" . "jGwPswRAfU6sKEhVXX")
-                                  ("backUrl" . "http%3A%2F%2Fspb.hh.ru%2F")
-                                  ("remember" . "yes")
-                                  ("action" . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")))
-
      (defun is-logged (html)
        "Проверям наличие в html блока 'Войти'"
+       (dbg ":: is-logged")
        (not (contains html "data-qa=\"mainmenu_loginForm\">Войти</div>")))
 
      (defun get-cookies-alist (cookie-jar)
@@ -1167,37 +1163,360 @@
      ;;                                                              (list (getf tmp :name) (getf tmp :type) (getf tmp :value))))))) form)
      ;;          rs))))
 
-     (defun remote-login (xsrf cookies referer cookie-jar)
-       (flexi-streams:octets-to-string
-        (drakma:http-request "https://spb.hh.ru/account/login"
-                             :user-agent *user-agent*
-                             :method :post
-                             :content (make-post-string (append *login-post*  `(("_xsrf" . ,xsrf))))
-                             :additional-headers (append *additional-headers* `(("Cookie"  . ,(make-cookies-string cookies)) ("Referer" . ,*referer*)))
-                             :cookie-jar cookie-jar
-                             :force-binary t)
-        :external-format :utf-8))
-
      (defun recovery-login ()
+       ;; Сначала заходим на главную как будто первый раз, без печенек
+       (setf drakma:*header-stream* nil)
        (let* ((start-uri "http://spb.hh.ru/")
               (cookie-jar (make-instance 'drakma:cookie-jar))
               (additional-headers *additional-headers*)
+              (response (drakma:http-request start-uri :user-agent *user-agent* :additional-headers additional-headers :force-binary t :cookie-jar cookie-jar))
               (tree (html5-parser:node-to-xmls
                      (html5-parser:parse-html5-fragment
-                      (flexi-streams:octets-to-string
-                       (drakma:http-request start-uri :user-agent *user-agent* :additional-headers additional-headers :force-binary t :cookie-jar cookie-jar)
-                       :external-format :utf-8))))
-              (cookies (get-cookies-alist cookie-jar))
-              (xsrf (cdr (assoc "_xsrf" cookies :test #'equal)))
-              (html (remote-login xsrf cookies start-uri cookie-jar)))
-         (get-cookies-alist cookie-jar)))
+                      (flexi-streams:octets-to-string response :external-format :utf-8)))))
+         ;; Теперь попробуем использовать печеньки для логина
+         ;; GMT=3
+         ;; _xsrf=
+         ;; hhrole=anonymous
+         ;; hhtoken=
+         ;; hhuid=
+         ;; regions=2
+         ;; unique_banner_user=
+         ;; И заходим с вот-таким гет-запросом:
+         ;; username=avenger-f@ya.ru
+         ;; password=jGwPswRAfU6sKEhVXX
+         ;; backurl=http://spb.hh.ru/
+         ;; remember=yes
+         ;; action="Войти"
+         ;; _xsrf=
+         (setf drakma:*header-stream* *standard-output*)
+         (let* ((response-2 (drakma:http-request "https://spb.hh.ru/account/login"
+                                                 :user-agent *user-agent*
+                                                 :method :post
+                                                 ;; :content (make-post-string login-post)
+                                                 :parameters `(("username" . "avenger-f%40yandex.ru")
+                                                               ("password" . "jGwPswRAfU6sKEhVXX")
+                                                               ("backUrl"  . "http%3A%2F%2Fspb.hh.ru%2F")
+                                                               ("remember" . "yes")
+                                                               ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
+                                                               ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal))))
+                                                 :additional-headers (append *additional-headers* `(("Referer" . ,start-uri)))
+                                                 :cookie-jar (make-instance
+                                                              'drakma:cookie-jar
+                                                              :cookies (append (list (make-instance 'drakma:cookie :name "GMT" :value "3" :domain "spb.hh.ru")
+                                                                                     (make-instance
+                                                                                      'drakma:cookie
+                                                                                      :name "_xsrf"
+                                                                                      :value (cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal))
+                                                                                      :domain "spb.hh.ru"))
+                                                                               (remove-if #'(lambda (x)
+                                                                                              (equal "crypted_id" (drakma:cookie-name x)))
+                                                                                          (drakma:cookie-jar-cookies cookie-jar))))
+                                                 :force-binary t))
+                (html (html5-parser:node-to-xmls
+                       (html5-parser:parse-html5-fragment
+                        (flexi-streams:octets-to-string response-2 :external-format :utf-8)))))
+           html)))
 
      (defparameter *need-start* t)
 
      (defun set-start ()
+       (dbg ":: set-start")
        (html5-parser:node-to-xmls
         (html5-parser:parse-html5-fragment
          (hh-get-page "http://spb.hh.ru"))))
+   #+END_SRC
+
+** Запрос кук
+
+   #+BEGIN_SRC org
+     GET / HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+
+     Если мы пришли без кук - нас перебрасывают на http://hhid.ru/validate/
+     и устанавливают пустые hhtoken и hhuid принадлежащие spb.hh.ru
+
+     HTTP/1.1 302 Moved Temporarily
+     Server: nginx/1.8.0
+     Date: Sat, 21 Nov 2015 23:35:49 GMT
+     Content-Type: text/html
+     Content-Length: 160
+     Connection: close
+     Location: http://hhid.ru/validate/;http;spb.hh.ru;80;/
+     Expires: Sat, 21 Nov 2015 23:35:48 GMT
+     Cache-Control: no-cache
+     Set-Cookie: hhtoken=; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/
+     Set-Cookie: hhuid=; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/
+
+
+     Мы послушно идем на http://hhid.ru/validate/
+
+     GET /validate/;http;spb.hh.ru;80;/ HTTP/1.1
+     Host: hhid.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+
+     Нам дают hhtoken и hhuid принадлежащие hhid.ru
+     hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at
+     hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--
+     И посылают на ревалидацию stage-2 c GET-овым token=6Zaa2xqT5pQzYDQ_XABN3htD50
+     http://hhid.ru/hhid/revalidate?primaryhost=http://spb.hh.ru&backurl=http%3A%2F%2Fspb.hh.ru%2F&stage=2&token=6Zaa2xqT5pQzYDQ_XABN3htD50
+
+     HTTP/1.1 302 Found
+     Server: nginx/1.8.0
+     Date: Sat, 21 Nov 2015 23:35:49 GMT
+     Content-Type: text/plain
+     Content-Length: 1
+     Connection: close
+     P3P: CP="NOI NID"
+     P3P: CP="NOI NID"
+     Set-Cookie: hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at;Version=1;Path=/;HTTPOnly
+     Set-Cookie: hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--;Version=1;expires=Mon, 20 Nov 2017 23:35:49 GMT;Path=/
+     Location: http://hhid.ru/hhid/revalidate?primaryhost=http://spb.hh.ru&backurl=http%3A%2F%2Fspb.hh.ru%2F&stage=2&token=6Zaa2xqT5pQzYDQ_XABN3htD50
+     Expires: Sat, 21 Nov 2015 23:35:48 GMT
+     Cache-Control: no-cache
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+
+     Мы запрашиваем ревалидацию, как нам и сказали
+
+     GET /hhid/revalidate?primaryhost=http://spb.hh.ru&backurl=http%3A%2F%2Fspb.hh.ru%2F&stage=2&token=6Zaa2xqT5pQzYDQ_XABN3htD50 HTTP/1.1
+     Host: hhid.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Cookie: hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at; hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+
+     И нас посылают биндиться на spb.hh.ru со старым GET-овым token=6Zaa2xqT5pQzYDQ_XABN3htD50at
+     и uid=WQeyLxAwIA1Vo1ZQ!9UYtg--
+       expires=1448148954512
+       hash=oHTEfq!D9TK_1Lf593ERQ60Z_ts-&
+
+     HTTP/1.1 302 Found
+     Server: nginx/1.8.0
+     Date: Sat, 21 Nov 2015 23:35:49 GMT
+     Content-Type: text/plain
+     Content-Length: 1
+     Connection: close
+     P3P: CP="NOI NID"
+     Location: http://spb.hh.ru/hhid/bind?token=6Zaa2xqT5pQzYDQ_XABN3htD50at&uid=WQeyLxAwIA1Vo1ZQ!9UYtg--&backurl=http%3A%2F%2Fspb.hh.ru%2F&expires=1448148954512&hash=oHTEfq!D9TK_1Lf593ERQ60Z_ts-&primaryhost=http://spb.hh.ru
+     Expires: Sat, 21 Nov 2015 23:35:48 GMT
+     Cache-Control: no-cache
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+
+     Мы идем биндиться
+
+     GET /hhid/bind?token=6Zaa2xqT5pQzYDQ_XABN3htD50at&uid=WQeyLxAwIA1Vo1ZQ!9UYtg--&backurl=http%3A%2F%2Fspb.hh.ru%2F&expires=1448148954512&hash=oHTEfq!D9TK_1Lf593ERQ60Z_ts-&primaryhost=http://spb.hh.ru HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+
+     И получаем GET-овый токен в кукисы на spb.hh.ru вместе с уже и так
+     известным нам uid-ом
+     Set-Cookie: hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at;Version=1;Path=/;HTTPOnly
+     Set-Cookie: hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--;Version=1;Path=/
+     А потом нас перебрасывают на верификацию с обрезанным почему-то GET-токеном
+
+     HTTP/1.1 302 Found
+     Server: nginx/1.8.0
+     Date: Sat, 21 Nov 2015 23:35:49 GMT
+     Content-Type: text/plain
+     Content-Length: 1
+     Connection: close
+     P3P: CP="NOI NID"
+     Set-Cookie: hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at;Version=1;Path=/;HTTPOnly
+     Set-Cookie: hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--;Version=1;Path=/
+     Location: http://spb.hh.ru/hhid/verify?token=6Zaa2xqT&backurl=http%3A%2F%2Fspb.hh.ru%2F
+     Expires: Sat, 21 Nov 2015 23:35:48 GMT
+     Cache-Control: no-cache
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+
+     Мы идем верифицироваться с обрезанным токеном в гет-запросе, полным
+     токеном в кукисах, и уидом в кукисах
+
+     GET /hhid/verify?token=6Zaa2xqT&backurl=http%3A%2F%2Fspb.hh.ru%2F HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Cookie: hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at; hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+
+     И получаем редирект на backurl
+
+     HTTP/1.1 302 Found
+     Server: nginx/1.8.0
+     Date: Sat, 21 Nov 2015 23:35:49 GMT
+     Content-Type: text/plain
+     Content-Length: 1
+     Connection: close
+     Location: http://spb.hh.ru/
+     Expires: Sat, 21 Nov 2015 23:35:48 GMT
+     Cache-Control: no-cache
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+
+     Теперь мы идем на backurl с нужными кукисами
+     hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--
+     hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at
+
+     GET / HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Cookie: hhuid=WQeyLxAwIA1Vo1ZQ!9UYtg--; hhtoken=6Zaa2xqT5pQzYDQ_XABN3htD50at
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+
+     И нам тут же закидывают пачку дополнительных
+
+     HTTP/1.1 200 OK
+     Server: nginx/1.8.0
+     Date: Sat, 21 Nov 2015 23:35:49 GMT
+     Content-Type: text/html; charset=utf-8
+     Content-Length: 94758
+     Connection: close
+     Set-Cookie: _xsrf=62e84ef3b8e2fb682614c79c7316a2b5; Domain=.hh.ru; Path=/
+     Set-Cookie: _xsrf=62e84ef3b8e2fb682614c79c7316a2b5; Path=/
+     Set-Cookie: crypted_id=; Domain=.hh.ru; expires=Fri, 21 Nov 2014 23:35:49 GMT; Path=/
+     Set-Cookie: crypted_id=; expires=Fri, 21 Nov 2014 23:35:49 GMT; Path=/
+     Set-Cookie: regions=2; expires=Sun, 20 Nov 2016 23:35:49 GMT; Path=/
+     Set-Cookie: hhrole=anonymous; Path=/
+     Set-Cookie: unique_banner_user=1448148949.625895284242153; expires=Sun, 22 Nov 2015 23:35:49 GMT; Path=/
+     Expires: Sat, 21 Nov 2015 23:35:48 GMT
+     Cache-Control: no-cache
+     X-Request-ID: 1448148949578e30d09f62a26b9d54a4
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+   #+END_SRC
+
+** Странный баг
+
+   #+BEGIN_SRC org
+     POST /account/login HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+     Cookie: GMT=3; _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac; hhrole=anonymous; hhtoken=N2RmxE5K1f1G1044uyaAYZLq8c!M; hhuid=WQj23azACNSd6FZRD0w!zg--; regions=2; unique_banner_user=1448152908.412642346929159
+             GMT=3; _xsrf=50523ba1f5103fbffca91eb92b631330; hhrole=anonymous; hhtoken=5xOpmKW3vyLf!syytqNQcfjxw8u!; hhuid=WQhQgZlL_dPwKVZRBzYoJQ--; regions=2; unique_banner_user=1448150838.726874489753087;
+
+     Referer: http://spb.hh.ru/
+     Content-Type: application/x-www-form-urlencoded
+     Content-Length: 182
+
+     HTTP/1.1 302 Found
+     Server: nginx/1.8.0
+     Date: Sun, 22 Nov 2015 00:41:48 GMT
+     Content-Length: 0
+     Connection: close
+     Location: https://spb.hh.ru/hhid/auth/memorise?backurl=https%3A%2F%2Fspb.hh.ru%2Fpostlogon.do%3FbackUrl%3Dhttp%253A%252F%252Fspb.hh.ru%252F
+     Set-Cookie: _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac; Domain=.hh.ru; Path=/
+     Set-Cookie: _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac; Path=/
+     Set-Cookie: display=desktop; Path=/
+     Expires: Sun, 22 Nov 2015 00:41:47 GMT
+     Cache-Control: no-cache
+     X-Request-ID: 14481529086644a59fc4354b7b96723f
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+     GET /hhid/auth/memorise?backurl=https%3A%2F%2Fspb.hh.ru%2Fpostlogon.do%3FbackUrl%3Dhttp%253A%252F%252Fspb.hh.ru%252F HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Cookie: display=desktop; _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+     Cookie: GMT=3; _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac; hhrole=anonymous; hhtoken=N2RmxE5K1f1G1044uyaAYZLq8c!M; hhuid=WQj23azACNSd6FZRD0w!zg--; regions=2; unique_banner_user=1448152908.412642346929159
+     Referer: http://spb.hh.ru/
+     Content-Type: application/x-www-form-urlencoded
+     Content-Length: 182
+
+     HTTP/1.1 302 Found
+     Server: nginx/1.8.0
+     Date: Sun, 22 Nov 2015 00:41:48 GMT
+     Content-Type: text/plain
+     Content-Length: 1
+     Connection: close
+     Set-Cookie: hhtoken=; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/
+     Set-Cookie: hhuid=; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/
+     Location: https://spb.hh.ru/postlogon.do?backUrl=http%3A%2F%2Fspb.hh.ru%2F
+     Expires: Sun, 22 Nov 2015 00:41:47 GMT
+     Cache-Control: no-cache
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+     GET /postlogon.do?backUrl=http%3A%2F%2Fspb.hh.ru%2F HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Cookie: _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac; display=desktop
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+     Cookie: GMT=3; _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac; hhrole=anonymous; hhtoken=N2RmxE5K1f1G1044uyaAYZLq8c!M; hhuid=WQj23azACNSd6FZRD0w!zg--; regions=2; unique_banner_user=1448152908.412642346929159
+     Referer: http://spb.hh.ru/
+     Content-Type: application/x-www-form-urlencoded
+     Content-Length: 182
+
+     HTTP/1.1 302 Moved Temporarily
+     Server: nginx/1.8.0
+     Date: Sun, 22 Nov 2015 00:41:48 GMT
+     Content-Type: text/html
+     Content-Length: 160
+     Connection: close
+     Location: http://spb.hh.ru/postlogon.do?backUrl=http%3A%2F%2Fspb.hh.ru%2F
+     X-Frame-Options: SAMEORIGIN
+     X-Content-Type-Options: nosniff
+
+     GET /postlogon.do?backUrl=http%3A%2F%2Fspb.hh.ru%2F HTTP/1.1
+     Host: spb.hh.ru
+     User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0
+     Accept: */*
+     Cookie: display=desktop; _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac
+     Connection: close
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+     Accept-Charset: utf-8
+     Cookie: GMT=3; _xsrf=2ecddd08f29bbd2e099a7e4eddbf71ac; hhrole=anonymous; hhtoken=N2RmxE5K1f1G1044uyaAYZLq8c!M; hhuid=WQj23azACNSd6FZRD0w!zg--; regions=2; unique_banner_user=1448152908.412642346929159
+     Referer: http://spb.hh.ru/
+     Content-Type: application/x-www-form-urlencoded
+     Content-Length: 182
+
+
    #+END_SRC
 
 ** Разбор тизеров вакансий
