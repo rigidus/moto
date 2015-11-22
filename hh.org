@@ -1169,53 +1169,47 @@
        (let* ((start-uri "http://spb.hh.ru/")
               (cookie-jar (make-instance 'drakma:cookie-jar))
               (additional-headers *additional-headers*)
-              (response (drakma:http-request start-uri :user-agent *user-agent* :additional-headers additional-headers :force-binary t :cookie-jar cookie-jar))
+              (response (drakma:http-request start-uri
+                                             :user-agent *user-agent*
+                                             :additional-headers additional-headers
+                                             :force-binary t
+                                             :cookie-jar cookie-jar))
               (tree (html5-parser:node-to-xmls
                      (html5-parser:parse-html5-fragment
                       (flexi-streams:octets-to-string response :external-format :utf-8)))))
          ;; Теперь попробуем использовать печеньки для логина
-         ;; GMT=3
-         ;; _xsrf=
-         ;; hhrole=anonymous
-         ;; hhtoken=
-         ;; hhuid=
-         ;; regions=2
-         ;; unique_banner_user=
+         ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
          ;; И заходим с вот-таким гет-запросом:
-         ;; username=avenger-f@ya.ru
-         ;; password=jGwPswRAfU6sKEhVXX
-         ;; backurl=http://spb.hh.ru/
-         ;; remember=yes
-         ;; action="Войти"
-         ;; _xsrf=
-         (setf drakma:*header-stream* *standard-output*)
-         (let* ((response-2 (drakma:http-request "https://spb.hh.ru/account/login"
+         ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
+         ;; (setf drakma:*header-stream* *standard-output*)
+         (let* ((post-parameters `(("username" . "avenger-f@yandex.ru")
+                                   ("password" . "jGwPswRAfU6sKEhVXX")
+                                   ("backUrl"  . "http://spb.hh.ru/")
+                                   ("remember" . "yes")
+                                   ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
+                                   ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))))
+                (xsrf (cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))
+                (cookie-jar-2 (make-instance 'drakma:cookie-jar
+                                             :cookies (append (list (make-instance 'drakma:cookie :name "GMT"   :value "3" :domain "spb.hh.ru")
+                                                                    (make-instance 'drakma:cookie :name "_xsrf" :value xsrf :domain "spb.hh.ru"))
+                                                              (remove-if #'(lambda (x)
+                                                                             (equal "crypted_id" (drakma:cookie-name x)))
+                                                                         (drakma:cookie-jar-cookies cookie-jar)))))
+                (response-2 (drakma:http-request "https://spb.hh.ru/account/login"
                                                  :user-agent *user-agent*
                                                  :method :post
-                                                 ;; :content (make-post-string login-post)
-                                                 :parameters `(("username" . "avenger-f%40yandex.ru")
-                                                               ("password" . "jGwPswRAfU6sKEhVXX")
-                                                               ("backUrl"  . "http%3A%2F%2Fspb.hh.ru%2F")
-                                                               ("remember" . "yes")
-                                                               ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
-                                                               ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal))))
+                                                 :parameters post-parameters
                                                  :additional-headers (append *additional-headers* `(("Referer" . ,start-uri)))
-                                                 :cookie-jar (make-instance
-                                                              'drakma:cookie-jar
-                                                              :cookies (append (list (make-instance 'drakma:cookie :name "GMT" :value "3" :domain "spb.hh.ru")
-                                                                                     (make-instance
-                                                                                      'drakma:cookie
-                                                                                      :name "_xsrf"
-                                                                                      :value (cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal))
-                                                                                      :domain "spb.hh.ru"))
-                                                                               (remove-if #'(lambda (x)
-                                                                                              (equal "crypted_id" (drakma:cookie-name x)))
-                                                                                          (drakma:cookie-jar-cookies cookie-jar))))
+                                                 :cookie-jar cookie-jar-2
                                                  :force-binary t))
-                (html (html5-parser:node-to-xmls
-                       (html5-parser:parse-html5-fragment
-                        (flexi-streams:octets-to-string response-2 :external-format :utf-8)))))
-           html)))
+                (html (flexi-streams:octets-to-string response-2 :external-format :utf-8)))
+           (when (contains html "Неправильные имя и/или пароль - попробуйте, пожалуйста, снова.")
+             (err "login failed"))
+           (when (contains html "Что-то пошло не так")
+             (err "login error"))
+           (when (contains html "Михаил Михайлович Глухов")
+             (return-from recovery-login (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+           (err "login exception"))))
 
      (defparameter *need-start* t)
 
