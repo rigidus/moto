@@ -567,8 +567,7 @@
   
   (in-package #:moto)
   
-  ;; Это аналог maptree-if, но здесь одна функция и ищет и трансформирует узел дерева
-  (defun maptree (predicate-transformer tree)
+  (defun maptree-transform (predicate-transformer tree)
     (multiple-value-bind (t-tree control)
         (aif (funcall predicate-transformer tree)
              it
@@ -577,11 +576,11 @@
                control)
           (funcall control
                    #'(lambda (x)
-                       (maptree predicate-transformer x))
+                       (maptree-transform predicate-transformer x))
                    t-tree)
           t-tree)))
   
-  ;; maptree-transformer - синтаксический сахар для maptree
+  ;; mtm - синтаксический сахар для maptree-transform
   (defmacro mtm (transformer tree)
     (let ((lambda-param (gensym)))
       `(maptree #'(lambda (,lambda-param)

@@ -17,30 +17,6 @@
         t-tree)))
 (in-package #:moto)
 
-(defmacro with-predict-maptree (pattern condition replace tree)
-  (let ((lambda-param (gensym)))
-    `(maptree-if #'(lambda (,lambda-param)
-                     (and (consp ,lambda-param)
-                        (funcall (with-predict-if ,pattern
-                                   ,condition)
-                                 ,lambda-param)))
-                 ,replace
-                 ,tree)))
-
-;; (macroexpand-1
-;;  '(with-predict-maptree (a b &rest c)
-;;    (and (equal b 'ping))
-;;    #'(lambda (x)
-;;        (values `(,**a** pong ,@(cddr x)) #'mapcar))
-;;    '(progn (ping (ping ping (ping 1))) ping)))
-
-;; (with-predict-maptree (a b &rest c)
-;;   (and (equal b 'ping))
-;;   #'(lambda (x)
-;;       (values `(,**a** pong ,@(cddr x)) #'mapcar))
-;;   '(progn (ping (ping ping (ping 1))) ping))
-(in-package #:moto)
-
 (defmacro define (form* form)
   (etypecase form*
     (symbol (etypecase form
