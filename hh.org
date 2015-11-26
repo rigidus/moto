@@ -320,32 +320,34 @@
                 nil))
        ;; -------
        (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
-           (let ((url     (make-hh-url city prof-area spec))
-                 (page    0)
-                 (teasers nil))
-             (alexandria:named-lambda get-vacancy ()
-               (dbg "get-vacancy-named-lambda")
-               (labels ((load-next-teasers-page ()
-                          (dbg "~~ LOAD (page=~A)" page)
-                          (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page)
-                                                                               temp-cookie-jar
-                                                                               "http://spb.hh.ru")))
-                          (incf page)
-                          (when (equal 0 (length teasers))
-                            (dbg "~~ FIN")
-                            (return-from get-vacancy 'nil)))
-                        (get-teaser ()
-                          (when (equal 0 (length teasers))
-                            (load-next-teasers-page))
-                          (let ((current-teaser (car teasers)))
-                            (setf teasers (cdr teasers))
-                            current-teaser)))
-                 (tagbody get-new-teaser
-                    (let ((current-teaser (get-teaser)))
-                      (let ((current-vacancy (process-teaser current-teaser)))
-                        (if (null current-vacancy)
-                            (go get-new-teaser)
-                            (return-from get-vacancy current-vacancy)))))))))
+         ;; closure
+         (let ((url     (make-hh-url city prof-area spec))
+               (page    0)
+               (teasers nil))
+           ;; returned function-generator in closure
+           (alexandria:named-lambda get-vacancy ()
+             (dbg "get-vacancy-named-lambda")
+             (labels ((load-next-teasers-page ()
+                        (dbg "~~ LOAD (page=~A)" page)
+                        (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page)
+                                                                             temp-cookie-jar
+                                                                             "http://spb.hh.ru")))
+                        (incf page)
+                        (when (equal 0 (length teasers))
+                          (dbg "~~ FIN")
+                          (return-from get-vacancy 'nil)))
+                      (get-teaser ()
+                        (when (equal 0 (length teasers))
+                          (load-next-teasers-page))
+                        (let ((current-teaser (car teasers)))
+                          (setf teasers (cdr teasers))
+                          current-teaser)))
+               (tagbody get-new-teaser
+                  (let ((current-teaser (get-teaser)))
+                    (let ((current-vacancy (process-teaser current-teaser)))
+                      (if (null current-vacancy)
+                          (go get-new-teaser)
+                          (return-from get-vacancy current-vacancy)))))))))
        ;; -------
        )
 
@@ -541,6 +543,8 @@
 
       <<hh_login>>
 
+      (defparameter *need-start* t)
+
       (defun hh-get-page (url cookie-jar referer)
         "Получение страницы"
         ;; Если ни одного запроса еще не было - сделаем запрос к главной и снимем флаг
@@ -594,10 +598,15 @@
      нам нужно иметь способ залогиниться на него. В дополнение к этому мы должны отслеживать
      момент потери авторизованной сесии и в каждый конкретный момент определять, залогинены ли
      мы. Обычно это можно определить по наличию формы для логина на любой загружаемой
-     странице. Мы хотим в случае обрыва сессии перелогиниваться прозрачно для всего остального
-     кода, поэтому процедура логина должна вызвываться по необходимости из процедуры загрузки
-     любой страницы. Также важно обрабатывать ошибки, которые могут произойти при логине,
-     например, если неверен пароль, но это пока не делается.
+     странице.
+
+     Мы хотим в случае обрыва сессии перелогиниваться прозрачно для всего остального
+     кода, поэтому процедура логина должна вызвываться по необходимости из процедуры
+     загрузки любой страницы. Также важно обрабатывать ошибки, которые могут произойти
+     при логине, например, если неверен пароль.
+
+     [TODO] - Логин и парол надо брать из таблицы, связанной с пользователем, сейчас
+     захардкожено в =hh-login=
 
      #+NAME: hh_login
      #+BEGIN_SRC lisp
@@ -609,13 +618,7 @@
                                             ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
                                             ("Accept-Charset" . "utf-8")))
 
-       (defparameter *cookies* nil)
-
-       (defparameter *cookie-jar* (make-instance 'drakma:cookie-jar))
-
-       (defparameter *referer* "")
-
-       (defparameter *need-start* t)
+       (defparameter *cookies* nil)  ;; deprecated, use cookie-jar in closure
 
        (defun is-logged (html)
          "Проверяем наличие в html блока 'Войти'"
@@ -680,12 +683,13 @@
              (err "login exception"))))
      #+END_SRC
 
-*** Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
+*** COMMENT Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
 
     Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
-    который переведет полученный html в более удобное лисп-дерево.
+    который переведет полученный html в более удобное лисп-дерево (=html-to-tree=)
 
-    Используя сопоставление с образцом мы раз за разом преобразуем его до тех пор, пока там
+    Используя сопоставление с образцом, которое мы определим ниже, внутри подраздела
+    [[*Maptree-transform][Maptree-transform]], мы раз за разом преобразуем это дерево до тех пор, пока там
     не остануться только интересующие нас данные:
     - название вакансии
     - идентификатор (ссылку)
@@ -693,7 +697,8 @@
     - название работодателя
     - идентификатор работодателя
 
-    Технические подробности о трансформации дерева в этом разделе [[*Трансформация дерева][Трансформация дерева]]
+    Технические подробности о трансформации дерева - далее в этом разделе:
+    [[*Трансформация дерева][Трансформация дерева]]
 
     Если в вакансии указана зарплата, мы также получаем
     - Валюту зарплаты (3х-буквенный идентификатор)
@@ -709,7 +714,7 @@
 
       <<maptree_transform>>
 
-      <<parse_salary>>
+      <<parse_salary
 
       (defun html-to-tree (html)
         (html5-parser:node-to-xmls
@@ -759,21 +764,18 @@
                (loop :for item :in rest :when (consp item) :append item))
              tree))
 
-      (defun detect-emp (tree)
-        (mtm (`("div" (("class" "search-result-item__company"))
-                      ("a" (("href" ,emp-id)
-                            ("class" "search-result-item__company-link")
-                            ("data-qa" "vacancy-serp__vacancy-employer"))
-                           ,emp-name))
-               (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id)))
-                                            :junk-allowed t)
-                     :emp-name emp-name))
-             tree))
 
-      (defun detect-company (tree)
-        (mtm (`("div" (("class" "search-result-item__company")) ,emp-name)
-               (list :emp-name emp-name))
-             tree))
+      (defun detect-emp (tree)
+        (mtm
+         (`("div" (("class" "search-result-item__company"))
+                  ("a" (("href" ,emp-id)
+                        ("class" "link-secondary")
+                        ("data-qa" "vacancy-serp__vacancy-employer"))
+                       ,emp-name))
+           (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id)))
+                                        :junk-allowed t)
+                 :emp-name (string-trim '(#\Space #\Tab #\Newline) emp-name)))
+         tree))
 
       (defun detect-salary (tree)
         (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
@@ -804,24 +806,123 @@
                (loop :for item :in rest :when (consp item) :append item))
              tree))
 
+      (defun detect-snippet (tree)
+        (mtm (`("div"
+                (("class" "search-result-item__snippet")
+                 ("data-qa" "vacancy-serp__vacancy_snippet_requirement"))
+                ,text)
+               (list :snippet text))
+             tree))
+
+      (defun detect-premium (tree)
+        (mtm (`(("data-qa" "vacancy-serp__vacancy vacancy-serp__vacancy_premium")
+                ("class"
+                 "search-result-item search-result-item_premium  search-result-item_premium"))
+               "premium")
+             tree))
+
+      (defun detect-response-trigger (tree)
+        (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) "response-trigger")
+             tree))
+
+      (defun detect-vacancy-responded (tree)
+        (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
+                     ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") "vacancy-responded")
+             tree))
+
+      (defun detect-search-result-description (tree)
+        (mtm (`(("class" "search-result-description")) "search-result-description")
+             tree))
+
+      (defun detect-search-result-description-empty (tree)
+        (mtm (`(("class" "search-result-description")) "search-result-description-empty")
+             tree))
+
+      (("class" "search-result-description"))
+
+      (defun detect-star (tree)
+        (mtm (`("div" (("class" "search-result-description__item"))
+                      ("div" (("class" "search-result-item__star"))
+                             ,@_)) "star")
+             tree))
+
+      (defun detect-trigger-button (tree)
+        (mtm (`(("class" "search-result-item__button HH-VacancyResponseTrigger-Button")) "trigger-button")
+             tree))
+
+      (defun detect-response-popup-link (tree)
+        (mtm (`("div" (("class" "search-result-item__response"))
+                      ("a" (("href" ,_)
+                            ("class" "bloko-button HH-VacancyResponsePopup-Link")
+                            ("data-qa" "vacancy-serp__vacancy_response"))
+                           "Откликнуться")) "response-popup-link")
+             tree))
+
+      (defun detect-response-popup-script (tree)
+        (mtm (`("script"
+                (("data-name" "HH/VacancyResponsePopup")
+                 ("data-params" ,_))) "vacancy-response-popup-script")
+             tree))
+
+      (defun detect-emp-logo (tree)
+        (mtm (`("div" (("class" "search-result-description__item"))
+                      ("a" (("href" ,emp-id)
+                            ("data-qa" "vacancy-serp__vacancy-employer-logo")
+                            ("class" "search-result-item__company-image-link"))
+                           ("img"
+                            (("src" ,emp-img) ("alt" ,emp-alt)
+                             ("class" "search-result-item__logo")))))
+               "emp-logo")
+             tree))
+
+      (defun detect-search-result-description (tree)
+        (mtm (`("div" (("class" "search-result-description__item"))) "search-result-description")
+             tree))
+
+      (defun detect-search-result-description-primary (tree)
+        (mtm (`(("class" "search-result-description__item search-result-description__item_primary")) "search-result-description-primary")
+             tree))
+
+      (defun detect-hrbrand (tree)
+        (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
+                     ("class" ,_)
+                     ("data-qa" ,_)) " ") "hrbrand")
+             tree))
+
+      (defun detect-vacancy_snippet_responsibility (tree)
+        (mtm (`(("class" "search-result-item__snippet")
+                ("data-qa" "vacancy-serp__vacancy_snippet_responsibility")) "vacancy_snippet_responsibility")
+             tree))
+
+      (defun detect-noindex (tree)
+        (mtm (`("div" (("class" "search-result-description__item")) "noindex" HRBRAND
+                      "/noindex")
+               "noindex")
+             tree))
+
+      (defun detect-script (tree)
+        (mtm (`("script" ,@rest) "script")
+             tree))
+
+      (defun detect-bloko-icon-phone (tree)
+        (mtm (`("span" (("class" "bloko-icon bloko-icon_phone"))) "bloko-icon-phone")
+             tree))
+
       (defun detect-garbage-elts (tree)
-        (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
-                    "Посмотреть интервью о жизни в компании") 'Z)
-             (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_invited")
-                          ("data-qa" "vacancy-serp__vacancy_invited")) "Вы приглашены!") 'Z)
-                  (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
-                               ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'Z)
+        (mtm (`("div"
+                (("class" "search-result-item__snippet")
+                 ("data-qa" "vacancy-serp__vacancy_snippet_responsibility"))
+                ("resp" NIL)) 'SNIPPET)
+             (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+                         "Посмотреть интервью о жизни в компании") 'INTERVIEW)
+                  (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_invited")
+                               ("data-qa" "vacancy-serp__vacancy_invited")) "Вы приглашены!") 'INVITED)
                        (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
-                                    ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'Z)
-                            (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
-                                         ("class" ,_)
-                                         ("data-qa" ,_)) " ") 'Z)
-                                 (mtm (`("div" (("class" "search-result-item__image")) ,_) 'Z)
-                                      (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) 'Z)
-                                           (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
-                                                        ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") 'Z)
-                                                (mtm (`("div" (("class" "search-result-item__star")) ,@_) 'Z)
-                                                     tree))))))))))
+                                    ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'DECINE)
+                            (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
+                                         ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'REJECTED)
+                                      (mtm (`("div" (("class" "search-result-item__image")) ,_) 'ITEM-IMAGE)
+                                           tree))))))))
 
       (defparameter *last-parse-data* nil)
 
@@ -829,49 +930,55 @@
         "Получение списка вакансий из html"
         (dbg "hh-parse-vacancy-teasers")
         (setf *last-parse-data* html)
-        (mapcar #'parse-salary
-                (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) rest)
-                     (mtm (`("div" (("data-qa" ,_) ("class" ,(or "search-result-item search-result-item_premium  search-result-item_premium"
-                                                                 "search-result-item search-result-item_standard "
-                                                                 "search-result-item search-result-item_standard_plus "))) ,@rest)
-                            (let ((in (remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
-                              (if (not (equal 1 (length in)))
-                                  (progn (print in)
-                                         (err "parsing failed, data printed"))
-                                  (car in))))
-                          (-> (html-to-tree html)
-                              (extract-search-results)
-                              (detect-platform)
-                              (detect-date)
-                              (detect-metro)
-                              (detect-address)
-                              (detect-info)
-                              (detect-emp)
-                              (detect-company)
-                              (detect-salary)
-                              (detect-interview)
-                              (detect-name)
-                              (detect-description)
-                              (detect-garbage-elts))))))
+        ;; (mapcar #'parse-salary
+                ;; (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) rest)
+                     ;; (mtm (`("div" (("data-qa" ,_) ("class" ,(or "search-result-item search-result-item_premium  search-result-item_premium"
+                     ;;                                             "search-result-item search-result-item_standard "
+                     ;;                                             "search-result-item search-result-item_standard_plus "))) ,@rest)
+                     ;;        (let ((in (remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
+                     ;;          (if (not (equal 1 (length in)))
+                     ;;              (progn (print in)
+                     ;;                     (err "parsing failed, data printed"))
+                     ;;              (car in))))
+             (let ((transform  (-> (html-to-tree html)
+                                   (extract-search-results)
+                                   (detect-platform)
+                                   (detect-date)
+                                   (detect-metro)
+                                   (detect-address)
+                                   (detect-info)
+                                   (detect-emp)
+                                   (detect-salary)
+                                   ;; (detect-interview)
+                                   (detect-name)
+                                   ;; (detect-description)
+                                   (detect-snippet)
+                                   (detect-premium)
+                                   (detect-response-trigger)
+                                   (detect-garbage-elts)
+                                   (detect-vacancy-responded)
+                                   (detect-search-result-description)
+                                   (detect-star)
+                                   (detect-trigger-button)
+                                   (detect-response-popup-link)
+                                   (detect-response-popup-script)
+                                   (detect-emp-logo)
+                                   (detect-search-result-description)
+                                   (detect-search-result-description-primary)
+                                   (detect-search-result-description-empty)
+                                   (detect-hrbrand)
+                                   (detect-vacancy_snippet_responsibility)
+                                   (detect-noindex)
+                                   (detect-script)
+                                   (detect-bloko-icon-phone)
+                                   )))
+               transform
+               ))
 
-      ;; (run)
+      ;; )))
 
       ;; (print
-      ;;  (let ((html *last-parse-data*))
-      ;;    (-> (html-to-tree html)
-      ;;        (extract-search-results)
-      ;;        (detect-platform)
-      ;;        (detect-date)
-      ;;        (detect-metro)
-      ;;        (detect-address)
-      ;;        (detect-info)
-      ;;        (detect-emp)
-      ;;        (detect-company)
-      ;;        (detect-salary)
-      ;;        (detect-interview)
-      ;;        (detect-name)
-      ;;        (detect-description)
-      ;;        (detect-garbage-elts))))
+      ;;  (hh-parse-vacancy-teasers *last-parse-data*))
 
       ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (hh-parse-vacancy-teasers
