@@ -683,7 +683,7 @@
              (err "login exception"))))
      #+END_SRC
 
-*** COMMENT Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
+*** Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
 
     Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
     который переведет полученный html в более удобное лисп-дерево (=html-to-tree=)
@@ -714,7 +714,7 @@
 
       <<maptree_transform>>
 
-      <<parse_salary
+      <<parse_salary>>
 
       (defun html-to-tree (html)
         (html5-parser:node-to-xmls
@@ -729,184 +729,165 @@
                  (return-from subtree-extract rest))
                tree)))
 
-      (defun detect-platform (tree)
-        (mtm (`("span"
+      (defparameter *detect-garbage* nil)
+
+      (defmacro make-detect ((name) &body body)
+        (let ((param   (gensym))
+              (carlast (car (last (car body)))))
+          (awhen (stringp carlast)
+            (setf *detect-garbage*
+                  (remove-duplicates (append *detect-garbage*
+                                             (list carlast)) :test #'string=)))
+          `(defun ,(intern (format nil "DETECT-~A" (string-upcase (symbol-name name)))) (,param)
+             (mtm ,@body
+                  ,param))))
+
+      (make-detect (date)
+        (`("span" (("class" "b-vacancy-list-date")
+                   ("data-qa" "vacancy-serp__vacancy-date")) ,date)
+          (list :date date)))
+
+      (make-detect (platform)
+        (`("span"
                 (("class" "vacancy-list-platform")
                  ("data-qa" "vacancy-serp__vacancy_career"))
                 "  •  " ("span" (("class" "vacancy-list-platform__name"))
                                 "CAREER.RU"))
-               (list :platform 'career.ru))
-             tree))
+               (list :platform 'career.ru)))
 
-      (defun detect-date (tree)
-        (mtm (`("span" (("class" "b-vacancy-list-date")
-                        ("data-qa" "vacancy-serp__vacancy-date")) ,date)
-               (list :date date))
-             tree))
-
-      (defun detect-metro (tree)
-        (mtm (`("span" (("class" "metro-station"))
+      (make-detect (metro)
+        (`("span" (("class" "metro-station"))
                        ("span" (("class" "metro-point") ("style" ,_))) ,metro)
-               (list :metro metro))
-             tree))
+               (list :metro metro)))
 
-      (defun detect-address (tree)
-        (mtm (`("span" (("class" "searchresult__address")
-                        ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
-               (let ((metro (loop :for item in rest :do
-                               (when (and (consp item) (equal :metro (car item)))
-                                 (return (cadr item))))))
-                 (list :city city :metro metro)))
-             tree))
+      (make-detect (address)
+        (`("span" (("class" "searchresult__address")
+                   ("data-qa" "vacancy-serp__vacancy-address")) ,city ,@rest)
+          (let ((metro (loop :for item in rest :do
+                          (when (and (consp item) (equal :metro (car item)))
+                            (return (cadr item))))))
+            (list :city city :metro metro))))
 
-      (defun detect-info (tree)
-        (mtm (`("div" (("class" "search-result-item__info")) ,@rest)
-               (loop :for item :in rest :when (consp item) :append item))
-             tree))
+      (make-detect (info)
+        (`("div" (("class" "search-result-item__info")) ,@rest)
+          (loop :for item :in rest :when (consp item) :append item)))
 
+      (make-detect (emp)
+        (`("div" (("class" "search-result-item__company"))
+                 ("a" (("href" ,emp-id)
+                       ("class" "link-secondary")
+                       ("data-qa" "vacancy-serp__vacancy-employer"))
+                      ,emp-name))
+          (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id)))
+                                       :junk-allowed t)
+                :emp-name (string-trim '(#\Space #\Tab #\Newline) emp-name))))
 
-      (defun detect-emp (tree)
-        (mtm
-         (`("div" (("class" "search-result-item__company"))
-                  ("a" (("href" ,emp-id)
-                        ("class" "link-secondary")
-                        ("data-qa" "vacancy-serp__vacancy-employer"))
-                       ,emp-name))
-           (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id)))
-                                        :junk-allowed t)
-                 :emp-name (string-trim '(#\Space #\Tab #\Newline) emp-name)))
-         tree))
+      (make-detect (salary)
+        (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
+                 ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                 ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
+          (list :currency currency :salary (parse-integer salary) :salary-text salary-text)))
 
-      (defun detect-salary (tree)
-        (mtm (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
-                      ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                      ("meta" (("itemprop" "baseSalary") ("content" ,salary))) ,salary-text)
-               (list :currency currency :salary (parse-integer salary) :salary-text salary-text))
-             tree))
+      (make-detect (interview)
+        (`("a" (("class" "interview-insider__link                   m-interview-insider__link-searchresult")
+                ("href" ,href)
+                ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+               "Посмотреть интервью о жизни в компании")
+          (list :interview href)))
 
-      (defun detect-interview (tree)
-        (mtm (`("a" (("class" "interview-insider__link                   m-interview-insider__link-searchresult")
-                     ("href" ,href)
-                     ("data-qa" "vacancy-serp__vacancy-interview-insider"))
-                    "Посмотреть интервью о жизни в компании")
-               (list :interview href))
-             tree))
+      (make-detect (name)
+        (`("div" (("class" "search-result-item__head"))
+                 ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
+                                     "search-result-item__name search-result-item__name_standard_plus"
+                                     "search-result-item__name search-result-item__name_premium"))
+                       ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
+          (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name)))
 
-      (defun detect-name (tree)
-        (mtm (`("div" (("class" "search-result-item__head"))
-                      ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
-                                          "search-result-item__name search-result-item__name_standard_plus"
-                                          "search-result-item__name search-result-item__name_premium"))
-                            ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
-               (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name))
-             tree))
+      (make-detect (description)
+        (`("div" (("class" "search-result-item__description")) ,@rest)
+          (loop :for item :in rest :when (consp item) :append item)))
 
-      (defun detect-description (tree)
-        (mtm (`("div" (("class" "search-result-item__description")) ,@rest)
-               (loop :for item :in rest :when (consp item) :append item))
-             tree))
+      (make-detect (snippet)
+        (`("div"
+           (("class" "search-result-item__snippet")
+            ("data-qa" "vacancy-serp__vacancy_snippet_requirement"))
+           ,text)
+          (list :snippet text)))
 
-      (defun detect-snippet (tree)
-        (mtm (`("div"
-                (("class" "search-result-item__snippet")
-                 ("data-qa" "vacancy-serp__vacancy_snippet_requirement"))
-                ,text)
-               (list :snippet text))
-             tree))
+      (make-detect (premium)
+        (`(("data-qa" "vacancy-serp__vacancy vacancy-serp__vacancy_premium")
+           ("class"
+            "search-result-item search-result-item_premium  search-result-item_premium"))
+          "premium"))
 
-      (defun detect-premium (tree)
-        (mtm (`(("data-qa" "vacancy-serp__vacancy vacancy-serp__vacancy_premium")
-                ("class"
-                 "search-result-item search-result-item_premium  search-result-item_premium"))
-               "premium")
-             tree))
+      (make-detect (response-trigger)
+        (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) "response-trigger"))
 
-      (defun detect-response-trigger (tree)
-        (mtm (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) "response-trigger")
-             tree))
+      (make-detect (vacancy-responded)
+        (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
+                ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") "vacancy-responded"))
 
-      (defun detect-vacancy-responded (tree)
-        (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
-                     ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") "vacancy-responded")
-             tree))
+      (make-detect (search-result-description)
+        (`(("class" "search-result-description")) "search-result-description"))
 
-      (defun detect-search-result-description (tree)
-        (mtm (`(("class" "search-result-description")) "search-result-description")
-             tree))
+      (make-detect (search-result-description-empty)
+        (`(("class" "search-result-description")) "search-result-description-empty"))
 
-      (defun detect-search-result-description-empty (tree)
-        (mtm (`(("class" "search-result-description")) "search-result-description-empty")
-             tree))
+      (make-detect (star)
+        (`("div" (("class" "search-result-description__item"))
+                 ("div" (("class" "search-result-item__star"))
+                        ,@_)) "star"))
 
-      (("class" "search-result-description"))
+      (make-detect (trigger-button)
+        (`(("class" "search-result-item__button HH-VacancyResponseTrigger-Button")) "trigger-button"))
 
-      (defun detect-star (tree)
-        (mtm (`("div" (("class" "search-result-description__item"))
-                      ("div" (("class" "search-result-item__star"))
-                             ,@_)) "star")
-             tree))
+      (make-detect (response-popup-link)
+        (`("div" (("class" "search-result-item__response"))
+                 ("a" (("href" ,_)
+                       ("class" "bloko-button HH-VacancyResponsePopup-Link")
+                       ("data-qa" "vacancy-serp__vacancy_response"))
+                      "Откликнуться")) "response-popup-link"))
 
-      (defun detect-trigger-button (tree)
-        (mtm (`(("class" "search-result-item__button HH-VacancyResponseTrigger-Button")) "trigger-button")
-             tree))
+      (make-detect (response-popup-script )
+        (`("script"
+           (("data-name" "HH/VacancyResponsePopup")
+            ("data-params" ,_))) "vacancy-response-popup-script"))
 
-      (defun detect-response-popup-link (tree)
-        (mtm (`("div" (("class" "search-result-item__response"))
-                      ("a" (("href" ,_)
-                            ("class" "bloko-button HH-VacancyResponsePopup-Link")
-                            ("data-qa" "vacancy-serp__vacancy_response"))
-                           "Откликнуться")) "response-popup-link")
-             tree))
+      (make-detect (emp-logo)
+        (`("div" (("class" "search-result-description__item"))
+                 ("a" (("href" ,emp-id)
+                       ("data-qa" "vacancy-serp__vacancy-employer-logo")
+                       ("class" "search-result-item__company-image-link"))
+                      ("img"
+                       (("src" ,emp-img) ("alt" ,emp-alt)
+                        ("class" "search-result-item__logo")))))
+          "emp-logo"))
 
-      (defun detect-response-popup-script (tree)
-        (mtm (`("script"
-                (("data-name" "HH/VacancyResponsePopup")
-                 ("data-params" ,_))) "vacancy-response-popup-script")
-             tree))
+      (make-detect (search-result-description)
+        (`("div" (("class" "search-result-description__item"))) "search-result-description"))
 
-      (defun detect-emp-logo (tree)
-        (mtm (`("div" (("class" "search-result-description__item"))
-                      ("a" (("href" ,emp-id)
-                            ("data-qa" "vacancy-serp__vacancy-employer-logo")
-                            ("class" "search-result-item__company-image-link"))
-                           ("img"
-                            (("src" ,emp-img) ("alt" ,emp-alt)
-                             ("class" "search-result-item__logo")))))
-               "emp-logo")
-             tree))
+      (make-detect (search-result-description-primary)
+        (`(("class" "search-result-description__item search-result-description__item_primary")) "search-result-description-primary"))
 
-      (defun detect-search-result-description (tree)
-        (mtm (`("div" (("class" "search-result-description__item"))) "search-result-description")
-             tree))
+      (make-detect (hrbrand)
+        (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
+                ("class" ,_)
+                ("data-qa" ,_)) " ") "hrbrand"))
 
-      (defun detect-search-result-description-primary (tree)
-        (mtm (`(("class" "search-result-description__item search-result-description__item_primary")) "search-result-description-primary")
-             tree))
+      (make-detect (vacancy_snippet_responsibility)
+        (`(("class" "search-result-item__snippet")
+           ("data-qa" "vacancy-serp__vacancy_snippet_responsibility")) "vacancy_snippet_responsibility"))
 
-      (defun detect-hrbrand (tree)
-        (mtm (`("a" (("title" "Премия HRBrand") ("href" ,_) ("rel" "nofollow")
-                     ("class" ,_)
-                     ("data-qa" ,_)) " ") "hrbrand")
-             tree))
+      (make-detect (noindex)
+        (`("div" (("class" "search-result-description__item")) "noindex" HRBRAND
+                 "/noindex")
+          "noindex"))
 
-      (defun detect-vacancy_snippet_responsibility (tree)
-        (mtm (`(("class" "search-result-item__snippet")
-                ("data-qa" "vacancy-serp__vacancy_snippet_responsibility")) "vacancy_snippet_responsibility")
-             tree))
+      (make-detect (script)
+        (`("script" ,@rest) "script"))
 
-      (defun detect-noindex (tree)
-        (mtm (`("div" (("class" "search-result-description__item")) "noindex" HRBRAND
-                      "/noindex")
-               "noindex")
-             tree))
-
-      (defun detect-script (tree)
-        (mtm (`("script" ,@rest) "script")
-             tree))
-
-      (defun detect-bloko-icon-phone (tree)
-        (mtm (`("span" (("class" "bloko-icon bloko-icon_phone"))) "bloko-icon-phone")
-             tree))
+      (make-detect (bloko-icon-phone)
+        (`("span" (("class" "bloko-icon bloko-icon_phone"))) "bloko-icon-phone"))
 
       (defun detect-garbage-elts (tree)
         (mtm (`("div"
@@ -921,8 +902,8 @@
                                     ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'DECINE)
                             (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
                                          ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'REJECTED)
-                                      (mtm (`("div" (("class" "search-result-item__image")) ,_) 'ITEM-IMAGE)
-                                           tree))))))))
+                                 (mtm (`("div" (("class" "search-result-item__image")) ,_) 'ITEM-IMAGE)
+                                      tree)))))))
 
       (defparameter *last-parse-data* nil)
 
@@ -930,52 +911,56 @@
         "Получение списка вакансий из html"
         (dbg "hh-parse-vacancy-teasers")
         (setf *last-parse-data* html)
-        ;; (mapcar #'parse-salary
-                ;; (mtm (`("div" (("class" "search-result") ("data-qa" "vacancy-serp__results")) ,@rest) rest)
-                     ;; (mtm (`("div" (("data-qa" ,_) ("class" ,(or "search-result-item search-result-item_premium  search-result-item_premium"
-                     ;;                                             "search-result-item search-result-item_standard "
-                     ;;                                             "search-result-item search-result-item_standard_plus "))) ,@rest)
-                     ;;        (let ((in (remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
-                     ;;          (if (not (equal 1 (length in)))
-                     ;;              (progn (print in)
-                     ;;                     (err "parsing failed, data printed"))
-                     ;;              (car in))))
-             (let ((transform  (-> (html-to-tree html)
-                                   (extract-search-results)
-                                   (detect-platform)
-                                   (detect-date)
-                                   (detect-metro)
-                                   (detect-address)
-                                   (detect-info)
-                                   (detect-emp)
-                                   (detect-salary)
-                                   ;; (detect-interview)
-                                   (detect-name)
-                                   ;; (detect-description)
-                                   (detect-snippet)
-                                   (detect-premium)
-                                   (detect-response-trigger)
-                                   (detect-garbage-elts)
-                                   (detect-vacancy-responded)
-                                   (detect-search-result-description)
-                                   (detect-star)
-                                   (detect-trigger-button)
-                                   (detect-response-popup-link)
-                                   (detect-response-popup-script)
-                                   (detect-emp-logo)
-                                   (detect-search-result-description)
-                                   (detect-search-result-description-primary)
-                                   (detect-search-result-description-empty)
-                                   (detect-hrbrand)
-                                   (detect-vacancy_snippet_responsibility)
-                                   (detect-noindex)
-                                   (detect-script)
-                                   (detect-bloko-icon-phone)
-                                   )))
-               transform
-               ))
+        (let ((transform (-> (html-to-tree html)
+                             (extract-search-results)
+                             (detect-platform)
+                             (detect-date)
+                             (detect-metro)
+                             (detect-address)
+                             (detect-info)
+                             (detect-emp)
+                             (detect-salary)
+                             ;; (detect-interview)
+                             (detect-name)
+                             ;; (detect-description)
+                             (detect-snippet)
+                             (detect-premium)
+                             (detect-response-trigger)
+                             (detect-garbage-elts)
+                             (detect-vacancy-responded)
+                             (detect-search-result-description)
+                             (detect-star)
+                             (detect-trigger-button)
+                             (detect-response-popup-link)
+                             (detect-response-popup-script)
+                             (detect-emp-logo)
+                             (detect-search-result-description)
+                             (detect-search-result-description-primary)
+                             (detect-search-result-description-empty)
+                             (detect-hrbrand)
+                             (detect-vacancy_snippet_responsibility)
+                             (detect-noindex)
+                             (detect-script)
+                             (detect-bloko-icon-phone)
+                             )))
+          (mapcar #'parse-salary
+                  (maptree-if #'consp
+                              #'(lambda (x)
+                                  (values
+                                   (remove-if #'(lambda (x)
+                                                  (print x)
+                                                  (when (stringp x)
+                                                    (or
+                                                     (string= x "div")
+                                                     (find x *detect-garbage* :test #'string=)
+                                                    )))
+                                              x)
+                                   #'mapcar))
+                              transform)
+                  )))
 
       ;; )))
+
 
       ;; (print
       ;;  (hh-parse-vacancy-teasers *last-parse-data*))
