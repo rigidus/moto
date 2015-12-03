@@ -506,7 +506,7 @@
 (make-detect (metro)
   (`("span" (("class" "metro-station"))
                  ("span" (("class" "metro-point") ("style" ,_))) ,metro)
-         (list :metro metro)))
+         (list :metro (aif metro it ""))))
 
 (make-detect (address)
   (`("span" (("class" "searchresult__address")
@@ -514,7 +514,7 @@
     (let ((metro (loop :for item in rest :do
                     (when (and (consp item) (equal :metro (car item)))
                       (return (cadr item))))))
-      (list :city city :metro metro))))
+      (list :city city :metro (aif metro it "")))))
 
 (make-detect (info)
   (`("div" (("class" "search-result-item__info")) ,@rest)
@@ -529,6 +529,10 @@
     (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id)))
                                  :junk-allowed t)
           :emp-name (string-trim '(#\Space #\Tab #\Newline) emp-name))))
+
+(make-detect (emp-anon)
+  (`("div" (("class" "search-result-item__company")) ,@text)
+    (list :emp-anon text)))
 
 (make-detect (salary)
   (`("div" (("class" "b-vacancy-list-salary") ("data-qa" "vacancy-serp__vacancy-compensation"))
@@ -568,6 +572,21 @@
       "search-result-item search-result-item_premium  search-result-item_premium"))
     "premium"))
 
+;; --->>
+(make-detect (standart)
+  (`("div"
+     (("data-qa" "vacancy-serp__vacancy")
+      ("class" "search-result-item search-result-item_standard "))
+     ,@rest)
+    rest))
+
+(make-detect (standart-plus)
+  (`("div"
+     (("data-qa" "vacancy-serp__vacancy")
+      ("class" "search-result-item search-result-item_standard_plus "))
+     ,@rest)
+    rest))
+
 (make-detect (response-trigger)
   (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) "response-trigger"))
 
@@ -580,6 +599,9 @@
 
 (make-detect (search-result-description-empty)
   (`(("class" "search-result-description")) "search-result-description-empty"))
+
+(make-detect (search-result-description-non-empty)
+  (`("div" (("class" "search-result-description")) ,@rest) rest))
 
 (make-detect (star)
   (`("div" (("class" "search-result-description__item"))
@@ -614,6 +636,11 @@
 (make-detect (search-result-description)
   (`("div" (("class" "search-result-description__item"))) "search-result-description"))
 
+
+(make-detect (search-result-description-empty)
+  (`("div" (("class" "search-result-description__item")) ,_) "search-result-description-empty"))
+
+
 (make-detect (search-result-description-primary)
   (`(("class" "search-result-description__item search-result-description__item_primary")) "search-result-description-primary"))
 
@@ -623,11 +650,16 @@
           ("data-qa" ,_)) " ") "hrbrand"))
 
 (make-detect (vacancy_snippet_responsibility)
-  (`(("class" "search-result-item__snippet")
-     ("data-qa" "vacancy-serp__vacancy_snippet_responsibility")) "vacancy_snippet_responsibility"))
+  (`("div" (("class" "search-result-item__snippet")
+            ("data-qa" "vacancy-serp__vacancy_snippet_responsibility"))
+         ,text)
+    (list :snippet_responsibility text)))
+
+  ;; (`(("class" "search-result-item__snippet")
+  ;;    ("data-qa" "vacancy-serp__vacancy_snippet_responsibility")) "vacancy_snippet_responsibility"))
 
 (make-detect (noindex)
-  (`("div" (("class" "search-result-description__item")) "noindex" HRBRAND
+  (`("div" (("class" "search-result-description__item")) "noindex" "hrbrand"
            "/noindex")
     "noindex"))
 
@@ -637,21 +669,27 @@
 (make-detect (bloko-icon-phone)
   (`("span" (("class" "bloko-icon bloko-icon_phone"))) "bloko-icon-phone"))
 
+(make-detect (bloko-contact)
+  (`("div" (("class" "search-result-item__phone"))
+           ("button"
+            (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
+            "script" "bloko-icon-phone" "script"
+            ("div"
+             (("class" "g-hidden HH-VacancyContactsLoader-Content")
+              ("data-attach" "dropdown-content-placeholder")))))
+    "bloko-contact"))
+
 (defun detect-garbage-elts (tree)
-  (mtm (`("div"
-          (("class" "search-result-item__snippet")
-           ("data-qa" "vacancy-serp__vacancy_snippet_responsibility"))
-          ("resp" NIL)) 'SNIPPET)
-       (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
-                   "Посмотреть интервью о жизни в компании") 'INTERVIEW)
-            (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_invited")
-                         ("data-qa" "vacancy-serp__vacancy_invited")) "Вы приглашены!") 'INVITED)
+  (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+              "Посмотреть интервью о жизни в компании") 'INTERVIEW)
+       (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_invited")
+                    ("data-qa" "vacancy-serp__vacancy_invited")) "Вы приглашены!") 'INVITED)
+            (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
+                         ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'DECINE)
                  (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
-                              ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'DECINE)
-                      (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
-                                   ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'REJECTED)
-                           (mtm (`("div" (("class" "search-result-item__image")) ,_) 'ITEM-IMAGE)
-                                tree)))))))
+                              ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'REJECTED)
+                      (mtm (`("div" (("class" "search-result-item__image")) ,_) 'ITEM-IMAGE)
+                           tree))))))
 
 (defparameter *last-parse-data* nil)
 
@@ -667,12 +705,15 @@
                         (detect-address)
                         (detect-info)
                         (detect-emp)
+                        (detect-emp-anon)
                         (detect-salary)
                         ;; (detect-interview)
                         (detect-name)
                         ;; (detect-description)
                         (detect-snippet)
                         (detect-premium)
+                        (detect-standart)
+                        (detect-standart-plus)
                         (detect-response-trigger)
                         (detect-garbage-elts)
                         (detect-vacancy-responded)
@@ -690,11 +731,13 @@
                         (detect-noindex)
                         (detect-script)
                         (detect-bloko-icon-phone)
+                        (detect-bloko-contact)
+                        (detect-search-result-description-non-empty)
+                        ;; filter garbage data
                         (maptree-if #'consp
                                     #'(lambda (x)
                                         (values
                                          (remove-if #'(lambda (x)
-                                                        (print x)
                                                         (when (stringp x)
                                                           (or
                                                            (string= x "div")
@@ -702,14 +745,23 @@
                                                            )))
                                                     x)
                                          #'mapcar)))
+                        ;; linearize for each elt
+                        (mapcar #'(lambda (tree)
+                                    (let ((linearize))
+                                      (maptree #'(lambda (x)
+                                                   (setf linearize
+                                                         (append linearize (list x))))
+                                               tree)
+                                      linearize)))
+                        ;; parse-salary
+                        (mapcar #'parse-salary)
                         )))
-    ;; (mapcar #'parse-salary
     transform
-    ;; )
     ))
 
 ;; (print
 ;;  (hh-parse-vacancy-teasers *last-parse-data*))
+
 
 ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (hh-parse-vacancy-teasers
