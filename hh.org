@@ -308,27 +308,28 @@
 
      <<hh_parse_vacancy_teasers>>
 
-     <<!hh_parse_vacancy>>
+     <<hh_parse_vacancy>>
 
      (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
        ;; -------
        (defmethod process-teaser (current-teaser)
-           (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))
-                                               temp-cookie-jar
-                                               "http://spb.hh.ru"))
-                (merge-plists current-teaser it)
-                nil))
+         (dbg "process-teaser")
+         (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))
+                                             temp-cookie-jar
+                                             "http://spb.hh.ru"))
+              (merge-plists current-teaser it)
+              nil))
        ;; -------
        (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
+         (dbg "factory")
          ;; closure
          (let ((url     (make-hh-url city prof-area spec))
                (page    0)
                (teasers nil))
            ;; returned function-generator in closure
            (alexandria:named-lambda get-vacancy ()
-             (dbg "get-vacancy-named-lambda")
              (labels ((load-next-teasers-page ()
-                        (dbg "~~ LOAD (page=~A)" page)
+                        (dbg "load-next-teasers-page (page=~A)" page)
                         (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page)
                                                                              temp-cookie-jar
                                                                              "http://spb.hh.ru")))
@@ -337,6 +338,7 @@
                           (dbg "~~ FIN")
                           (return-from get-vacancy 'nil)))
                       (get-teaser ()
+                        (dbg "get-teaser")
                         (when (equal 0 (length teasers))
                           (load-next-teasers-page))
                         (let ((current-teaser (car teasers)))
@@ -729,15 +731,19 @@
                  (return-from subtree-extract rest))
                tree)))
 
-      (defparameter *detect-garbage* nil)
+      (defparameter *detect-garbage* '("premium" "response-trigger" "vacancy-responded" "star" "trigger-button"
+                                       "response-popup-link" "vacancy-response-popup-script" "emp-logo"
+                                       "search-result-description" "search-result-description-empty"
+                                       "search-result-description-primary" "hrbrand" "noindex" "script"
+                                       "bloko-icon-phone" "bloko-contact"))
 
       (defmacro make-detect ((name) &body body)
         (let ((param   (gensym))
               (carlast (car (last (car body)))))
-          (awhen (stringp carlast)
-            (setf *detect-garbage*
-                  (remove-duplicates (append *detect-garbage*
-                                             (list carlast)) :test #'string=)))
+          ;; (awhen (stringp carlast)
+          ;;   (setf *detect-garbage*
+          ;;         (remove-duplicates (append *detect-garbage*
+          ;;                                    (list carlast)) :test #'string=)))
           `(defun ,(intern (format nil "DETECT-~A" (string-upcase (symbol-name name)))) (,param)
              (mtm ,@body
                   ,param))))
@@ -949,71 +955,68 @@
         "Получение списка вакансий из html"
         (dbg "hh-parse-vacancy-teasers")
         (setf *last-parse-data* html)
-        (let ((transform (->> (html-to-tree html)
-                              (extract-search-results)
-                              (detect-platform)
-                              (detect-date)
-                              (detect-metro)
-                              (detect-address)
-                              (detect-info)
-                              (detect-emp)
-                              (detect-emp-anon)
-                              (detect-salary)
-                              ;; (detect-interview)
-                              (detect-name)
-                              ;; (detect-description)
-                              (detect-snippet)
-                              (detect-premium)
-                              (detect-standart)
-                              (detect-standart-plus)
-                              (detect-response-trigger)
-                              (detect-garbage-elts)
-                              (detect-vacancy-responded)
-                              (detect-search-result-description)
-                              (detect-star)
-                              (detect-trigger-button)
-                              (detect-response-popup-link)
-                              (detect-response-popup-script)
-                              (detect-emp-logo)
-                              (detect-search-result-description)
-                              (detect-search-result-description-primary)
-                              (detect-search-result-description-empty)
-                              (detect-hrbrand)
-                              (detect-vacancy_snippet_responsibility)
-                              (detect-noindex)
-                              (detect-script)
-                              (detect-bloko-icon-phone)
-                              (detect-bloko-contact)
-                              (detect-search-result-description-non-empty)
-                              ;; filter garbage data
-                              (maptree-if #'consp
-                                          #'(lambda (x)
-                                              (values
-                                               (remove-if #'(lambda (x)
-                                                              (when (stringp x)
-                                                                (or
-                                                                 (string= x "div")
-                                                                 (find x *detect-garbage* :test #'string=)
-                                                                 )))
-                                                          x)
-                                               #'mapcar)))
-                              ;; linearize for each elt
-                              (mapcar #'(lambda (tree)
-                                          (let ((linearize))
-                                            (maptree #'(lambda (x)
-                                                         (setf linearize
-                                                               (append linearize (list x))))
-                                                     tree)
-                                            linearize)))
-                              ;; parse-salary
-                              (mapcar #'parse-salary)
-                              )))
-          transform
-          ))
+        (->> (html-to-tree html)
+             (extract-search-results)
+             (detect-platform)
+             (detect-date)
+             (detect-metro)
+             (detect-address)
+             (detect-info)
+             (detect-emp)
+             (detect-emp-anon)
+             (detect-salary)
+             ;; (detect-interview)
+             (detect-name)
+             ;; (detect-description)
+             (detect-snippet)
+             (detect-premium)
+             (detect-standart)
+             (detect-standart-plus)
+             (detect-response-trigger)
+             (detect-garbage-elts)
+             (detect-vacancy-responded)
+             (detect-search-result-description)
+             (detect-star)
+             (detect-trigger-button)
+             (detect-response-popup-link)
+             (detect-response-popup-script)
+             (detect-emp-logo)
+             (detect-search-result-description)
+             (detect-search-result-description-primary)
+             (detect-search-result-description-empty)
+             (detect-hrbrand)
+             (detect-vacancy_snippet_responsibility)
+             (detect-noindex)
+             (detect-script)
+             (detect-bloko-icon-phone)
+             (detect-bloko-contact)
+             (detect-search-result-description-non-empty)
+             ;; filter garbage data
+             (maptree-if #'consp
+                         #'(lambda (x)
+                             (values
+                              (remove-if #'(lambda (x)
+                                             (when (stringp x)
+                                               (or
+                                                (string= x "div")
+                                                (find x *detect-garbage* :test #'string=)
+                                                )))
+                                         x)
+                              #'mapcar)))
+             ;; linearize for each elt
+             (mapcar #'(lambda (tree)
+                         (let ((linearize))
+                           (maptree #'(lambda (x)
+                                        (setf linearize
+                                              (append linearize (list x))))
+                                    tree)
+                           linearize)))
+             ;; parse-salary
+             (mapcar #'parse-salary)
+             ))
 
       ;; (print
       ;;  (hh-parse-vacancy-teasers *last-parse-data*))
-
 
       ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (hh-parse-vacancy-teasers
@@ -1510,6 +1513,7 @@
       <<transform_description>>
 
       (defun hh-parse-vacancy (html)
+        (dbg "hh-parse-vacancy")
         (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
           (append (block header-extract
                     (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
@@ -1548,25 +1552,327 @@
                            (return-from descr-extract (list :descr (transform-description descr)))) tree)))))
 
       ;; (print
-      ;;  (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525")))
+      ;;  (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+      ;;    (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525" temp-cookie-jar "http://spb.hh.ru/"))))
 
       ;; (print
       ;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
     #+END_SRC
 
-** Определение правила обработки
+** Правила обработки тизеров и вакансий
 
    Пусть у нас есть возможность создавать именованные =правила=, которые получают на вход
    список, представляющий собой тизер или вакансию, анализируют его, и выполняют какие-то
    действия. В качестве примера, мы могли бы создать правило, которое добавляет к вакансии
    поле =interesting= если зарплата и язык разработки нас устраивает.
 
-   Правило принимает на вход условие срабатывания и код, который будет выполнен, в случае
-   если условие выполняется на обрабатываемой вакансии.
+   Правило принимает на вход условие срабатывания (=antecedent=) и код, который будет
+   выполнен, в случае если условие выполняется на обрабатываемой вакансии (=consequent=).
 
    Примем соглашение, что правило возвращает два значения:
    - первое - вакансию (возможно измененную)
    - второе - указание процессору правил (например, прекратить обработку)
+
+   Мы реализуем правило, как сущность, чтобы воспользоваться всеми возможностями по
+   сохранению, извлечению и другим операциям с сущностями.
+
+*** Сущность правила
+
+    У нас есть два вида правил - для работы с тизерами и для обработки вакансий. Каждое
+    правило закреплено за пользователем, который им владеет и имеет ранг, в соответствии с
+    котором сортируется при применении набора правил.
+
+    #+CAPTION: Данные правила
+    #+NAME: rule_flds
+      | field name | field type           | note                                                   |
+      |------------+----------------------+--------------------------------------------------------|
+      | id         | serial               | идентификатор                                          |
+      | name       | varchar              | имя                                                    |
+      | user-id    | integer              | владелец правила                                       |
+      | rank       | integer              | приоритет правила                                      |
+      | ruletype   | varchar              | :teaser - правило для тизеров, :vacancy - для вакансий |
+      | antecedent | varchar              | условие срабатывания правила                           |
+      | consequent | varchar              | код правила                                            |
+      | notes      | (or db-null varchar) | заметки к правилу                                      |
+
+    Правило может быть активным и неактивным
+
+    #+CAPTION: Состояния конечного автомата вакансии
+    #+NAME: rule_state
+      | action            | from     | to       |
+      |-------------------+----------+----------|
+      | rule-activation   | active   | inactive |
+      | rule-deactivation | inactive | active   |
+
+    #+NAME: hh_fn_contents
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defun rule-activation ()
+        "| active   | inactive |")
+      (defun rule-deactivation ()
+        "| inactive | active   |")
+    #+END_SRC
+
+*** Правила отсева тизеров
+
+    Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
+    вакансий? В основном те, которые не устраивают по зарплате и те, у которых в названиях
+    упомянуты неинтересные технологии. К примеру, я не хочу даже смотреть на вакансии у
+    которых не указана зарплата или она ниже минимально приемлимой
+
+    #+NAME: rules_for_teasers
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      <<sugar_for_teaser_rules>>
+
+      (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
+        (dbg "  - no salary"))
+
+      (define-drop-teaser-rule (salary-2-low (or
+                                              (and (equal (getf vacancy :currency) "RUR")
+                                                   (< (getf vacancy :salary-max) 90000))
+                                              (and (equal (getf vacancy :currency) "USD")
+                                                   (< (getf vacancy :salary-max) (floor 90000 67)))
+                                              (and (equal (getf vacancy :currency) "USD")
+                                                   (< (getf vacancy :salary-max) (floor 90000 77)))
+                                              ))
+        (dbg "  - low salary"))
+
+      (define-drop-all-teaser-when-name-contains-rule
+          "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
+          "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
+          "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
+          "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
+    #+END_SRC
+
+**** Макросы для определения правил отсева тизеров
+
+     Для начала определим макрос, который создает правила отсева тизеров - эти правила
+     отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
+
+     #+NAME: sugar_for_teaser_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
+         `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
+            (dbg "drop teaser: ~A-~A (~A) ~A" (getf vacancy :salary-min) (getf vacancy :salary-max) (getf vacancy :currency) (getf vacancy :name))
+            ;; (dbg "~A" vacancy)
+            ,@consequent
+            (setf vacancy nil)
+            :stop))
+
+       ;; expand
+
+       ;; (print
+       ;;  (macroexpand-1
+       ;;   '(define-drop-teaser-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+       ;;                                              (not (contains "Java" (getf vacancy :name)))))
+       ;;     (print (getf vacancy :name))
+       ;;     (print (getf vacancy :salary)))))
+
+       ;; (DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA
+       ;;               (AND (> (GETF VACANCY :SALARY) 70000)
+       ;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
+       ;;   (PRINT (GETF VACANCY :NAME))
+       ;;   (PRINT (GETF VACANCY :SALARY))
+       ;;   (SETF VACANCY NIL)
+       ;;   :STOP)
+     #+END_SRC
+
+     Теперь определим расширение предыдущего макроса, которое создает правило, отсеивающее
+     тизер, в случае, если в поле =:name= есть вхождение переданной строки
+
+     #+NAME: sugar_for_teaser_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-teaser-by-name-rule (str &body consequent)
+         `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
+                                     (contains (getf vacancy :name) ,str))
+            (dbg "  - name contains ~A" ,str)
+            ,@consequent))
+
+       ;; expand
+
+       ;; (print
+       ;;  (macroexpand-1
+       ;;   '(define-drop-teaser-by-name-rule "Android")))
+
+       ;; (DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID
+       ;;                           (CONTAINS (GETF VACANCY :NAME) "Android"))
+       ;;   (DBG "drop:")
+       ;;   (DBG "  name contains ~A" "Android"))
+
+       ;; test
+
+       ;; (define-drop-teaser-by-name-rule "Android")
+
+       ;; ==> (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT
+       ;;      DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)
+
+     #+END_SRC
+
+     Теперь в соответствии с принципом DRY определем макрос, который создаст список правил,
+     отсеивающих тизеры по вхождению первой строки в поле =:name=
+
+     #+NAME: sugar_for_teaser_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-all-teaser-when-name-contains-rule (&rest names)
+         `(list ,@(loop :for name :in names :collect
+                     `(define-drop-teaser-by-name-rule ,name))))
+
+       ;; expand
+       ;; (macroexpand-1 '(define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
+
+       ;; (LIST (DEFINE-DROP-TEASER-BY-NAME-RULE "IOS")
+       ;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "1С")
+       ;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "C++"))
+
+       ;; test
+
+       ;; (define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
+
+       ;; =>
+       ;; ((DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-ANTECEDENT
+       ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-CONSEQUENT)
+       ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-1С-ANTECEDENT
+       ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-1С-CONSEQUENT)
+       ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT
+       ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
+     #+END_SRC
+
+*** Правила анализа вакансий
+
+    - Я не хочу смотреть на вакансии, в компаниях где я уже работал.
+    - Если это уже существующая в базе вакансия и ничего не изменилось - игнорируем и
+      останавливаем ее обработку
+    - Я хочу присвоить вакансии определенный ранг, в зависимости от з\п
+    - Я хочу увеличивать этот ранг за упоминание в тексте описания вакансии моих любимых
+      слов: Lisp, Erlang, Closure, Prolog, Haskell, Smalltalk
+    - Я хочу особо отметить вакансии, у которых ранг выше [порогового ранга], чтобы
+      [отправить отклик]
+    - Я хочу занести вакансию в базу.
+    - Я хочу вывести вакансию в консоль.
+
+    #+NAME: rules_for_vacancy
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      <<sugar_for_vacancy_rules>>
+
+      <<show_vacancy>>
+
+      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
+        (dbg "   - already worked"))
+
+      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
+        (dbg "   - already worked"))
+
+      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
+        (dbg "   - already worked"))
+
+      (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
+        (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+          (dbg "   - already exists")))
+
+      (define-rule (set-rank t)
+        (setf (getf vacancy :rank) (getf vacancy :salary)))
+
+      (define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
+        (dbg "up rank by Lisp")
+        (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
+
+      (define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
+        (dbg "up rank by Erlang")
+        (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
+
+      (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
+        (dbg "up rank by Haskell")
+        (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+
+      (define-rule (z-print t)
+        (show-vacancy vacancy))
+
+      (define-rule (z-save t)
+        (save-vacancy vacancy)
+        :stop)
+    #+END_SRC
+
+**** Макросы для определения правил анализа вакансий
+
+     Для начала определим макрос, который создает правила отсева вакансий - эти правила
+     отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
+
+     #+NAME: sugar_for_vacancy_rules
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro define-drop-vacancy-rule ((name antecedent) &body consequent)
+         `(define-rule (,(intern (concatenate 'string "DROP-VACANCY-IF-"(symbol-name name))) ,antecedent)
+            (dbg "drop vacancy: ~A : ~A" (getf vacancy :name) (getf vacancy :emp-name))
+            ,@consequent
+            (setf vacancy nil)
+            :stop))
+
+       ;; expand
+
+       ;; (print
+       ;;  (macroexpand-1
+       ;;   '(define-drop-vacancy-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+       ;;                                              (not (contains "Java" (getf vacancy :name)))))
+       ;;     (print (getf vacancy :name))
+       ;;     (print (getf vacancy :salary)))))
+
+       ;; (DEFINE-RULE (DROP-VACANCY-IF-HI-SALARY-JAVA
+       ;;               (AND (> (GETF VACANCY :SALARY) 70000)
+       ;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
+       ;;   (PRINT (GETF VACANCY :NAME))
+       ;;   (PRINT (GETF VACANCY :SALARY))
+       ;;   (SETF VACANCY NIL)
+       ;;   :STOP)
+    #+END_SRC
+
+*** Извлечение правил
+
+    Теперь можно удобным и компактным способом добавить все необходимые правила и
+    обеспечить методы их обработки. Начнем с получения всех правил, правил для тизеров и
+    правил для вакансий.
+
+    #+NAME: rules
+    #+BEGIN_SRC lisp :exports code :padline no :comments link
+      (in-package #:moto)
+
+      <<rules_for_vacancy>>
+
+      <<rules_for_teasers>>
+
+      (defun get-all-rules ()
+        (sort
+         (mapcar #'(lambda (x)
+                     (setf (name x)
+                           (replace-all (name x) "|" ""))
+                     x)
+                 (find-rule :user-id 1))
+         #'(lambda (a b)
+             (string< (name a) (name b)))))
+
+      (defun rules-for-teaser ()
+        (remove-if-not #'(lambda (x)
+                           (search "DROP-TEASER-IF" (name x)))
+                       (get-all-rules)))
+
+      (defun rules-for-vacancy ()
+        (remove-if #'(lambda (x)
+                       (search "DROP-TEASER-IF" (name x)))
+                   (get-all-rules)))
+    #+END_SRC
+
+** Еццуауца
 
    #+NAME: define_rule
    #+BEGIN_SRC lisp :exports code :padline no :comments link
@@ -1615,8 +1921,8 @@
    [[./img/production_system.gif]]
 
    Процессор правил обрабатывает следущие особые случаи:
-   - Если какое-то из правил возвращает во втором параметре =:stop= - обработка прекращается
-     и возвращается текущий обработанный результат
+   - Если какое-то из правил возвращает во втором возвращаемом значении =:stop= -
+     обработка прекращается и возвращается текущий обработанный результат
    - Если какое-то из правил возвращает во втором параметре =:renew= - то обработка текущего
      входного результата начинается с самого первого правила.
    По окончании обработки возвращается результирующая вакансия, которая может быть
@@ -1659,16 +1965,18 @@
    #+results:
    [[file:./img/process.png]]
 
+   [TODO] - Проверить, можно ли обойтись без =eval= и =read-from-string=.
+
    #+NAME: process
    #+BEGIN_SRC lisp :exports code :padline no :comments link
      (in-package #:moto)
 
      (defun process (vacancy rules)
+       (dbg "process (count rules: ~A)" (length rules))
        (let ((vacancy vacancy))
          (tagbody
           renew
             (loop :for rule :in rules
-
                :do
                (progn
                  (declaim #+sbcl(sb-ext:muffle-conditions style-warning))
@@ -1765,6 +2073,7 @@
      <<rules>>
 
      (defmethod process-teaser :around (current-teaser)
+       (dbg "process-teaser :around")
        (aif (process current-teaser (rules-for-teaser))
             (process (call-next-method it) (rules-for-vacancy))
             nil))
@@ -1780,17 +2089,17 @@
    #+BEGIN_SRC lisp :exports code :padline no :comments link
      (in-package #:moto)
 
-     <<!define_rule>>
+     <<define_rule>>
 
-     <<!process>>
+     <<process>>
 
      <<process_teaser_around>>
 
      <<factory>>
 
-     <<!save_vacancy>>
+     <<save_vacancy>>
 
-     <<!send_respond>>
+     <<send_respond>>
 
      (defun run ()
        (make-event :name "run"
@@ -1811,298 +2120,6 @@
 
 ** Составление правил и работа с ними
 
-   Теперь можно удобным и компактным способом добавить все необходимые правила и обеспечить
-   методы их обработки
-
-   #+NAME: rules
-   #+BEGIN_SRC lisp :exports code :padline no :comments link
-     (in-package #:moto)
-
-     <<rules_for_vacancy>>
-
-     <<rules_for_teasers>>
-
-     (defun get-all-rules ()
-       (sort
-        (mapcar #'(lambda (x)
-                    (setf (name x)
-                          (replace-all (name x) "|" ""))
-                    x)
-                (find-rule :user-id 1))
-        #'(lambda (a b)
-            (string< (name a) (name b)))))
-
-     (defun rules-for-teaser ()
-       (remove-if-not #'(lambda (x)
-                          (search "DROP-TEASER-IF" (name x)))
-                      (get-all-rules)))
-
-     (defun rules-for-vacancy ()
-       (remove-if #'(lambda (x)
-                      (search "DROP-TEASER-IF" (name x)))
-                  (get-all-rules)))
-   #+END_SRC
-
-** Правила отсева тизеров
-
-   Какие же правила и действия можно составить для того чтобы отсеять неинтересные тизеры
-   вакансий? В основном те, которые не устраивают по зарплате и те, у которых в названиях
-   упомянуты неинтересные технологии. К примеру, я не хочу даже смотреть на вакансии у
-   которых не указана зарплата или она ниже минимально приемлимой
-
-   #+NAME: rules_for_teasers
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     <<sugar_for_teaser_rules>>
-
-     ;; (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
-     ;;   (dbg "  - no salary"))
-
-     ;; (define-drop-teaser-rule (salary-2-low (or
-     ;;                                         (and (equal (getf vacancy :currency) "RUR")
-     ;;                                              (< (getf vacancy :salary-max) 90000))
-     ;;                                         (and (equal (getf vacancy :currency) "USD")
-     ;;                                              (< (getf vacancy :salary-max) (floor 90000 67)))
-     ;;                                         (and (equal (getf vacancy :currency) "USD")
-     ;;                                              (< (getf vacancy :salary-max) (floor 90000 77)))
-     ;;                                         ))
-     ;;   (dbg "  - low salary"))
-
-     ;; (define-drop-all-teaser-when-name-contains-rule
-     ;;     "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
-     ;;     "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
-     ;;     "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
-     ;;     "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
-   #+END_SRC
-
-** Макросы для определения правил отсева тизеров
-
-   Для начала определим макрос, который создает правила отсева тизеров - эти правила
-   отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
-
-   #+NAME: sugar_for_teaser_rules
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
-       `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
-          (dbg "drop teaser: ~A-~A (~A) ~A" (getf vacancy :salary-min) (getf vacancy :salary-max) (getf vacancy :currency) (getf vacancy :name))
-          ;; (dbg "~A" vacancy)
-          ,@consequent
-          (setf vacancy nil)
-          :stop))
-
-     ;; expand
-
-     ;; (print
-     ;;  (macroexpand-1
-     ;;   '(define-drop-teaser-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
-     ;;                                              (not (contains "Java" (getf vacancy :name)))))
-     ;;     (print (getf vacancy :name))
-     ;;     (print (getf vacancy :salary)))))
-
-     ;; (DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA
-     ;;               (AND (> (GETF VACANCY :SALARY) 70000)
-     ;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
-     ;;   (PRINT (GETF VACANCY :NAME))
-     ;;   (PRINT (GETF VACANCY :SALARY))
-     ;;   (SETF VACANCY NIL)
-     ;;   :STOP)
-   #+END_SRC
-
-   Теперь определим расширение предыдущего макроса, которое создает правило, отсеивающее
-   тизер, в случае, если в поле =:name= есть вхождение переданной строки
-
-   #+NAME: sugar_for_teaser_rules
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defmacro define-drop-teaser-by-name-rule (str &body consequent)
-       `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
-                                   (contains (getf vacancy :name) ,str))
-          (dbg "  - name contains ~A" ,str)
-          ,@consequent))
-
-     ;; expand
-
-     ;; (print
-     ;;  (macroexpand-1
-     ;;   '(define-drop-teaser-by-name-rule "Android")))
-
-     ;; (DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID
-     ;;                           (CONTAINS (GETF VACANCY :NAME) "Android"))
-     ;;   (DBG "drop:")
-     ;;   (DBG "  name contains ~A" "Android"))
-
-     ;; test
-
-     ;; (define-drop-teaser-by-name-rule "Android")
-
-     ;; ==> (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT
-     ;;      DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)
-
-   #+END_SRC
-
-   Теперь в соответствии с принципом DRY определем макрос, который создаст список правил,
-   отсеивающих тизеры по вхождению первой строки в поле =:name=
-
-   #+NAME: sugar_for_teaser_rules
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defmacro define-drop-all-teaser-when-name-contains-rule (&rest names)
-       `(list ,@(loop :for name :in names :collect
-                   `(define-drop-teaser-by-name-rule ,name))))
-
-     ;; expand
-     ;; (macroexpand-1 '(define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
-
-     ;; (LIST (DEFINE-DROP-TEASER-BY-NAME-RULE "IOS")
-     ;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "1С")
-     ;;       (DEFINE-DROP-TEASER-BY-NAME-RULE "C++"))
-
-     ;; test
-
-     ;; (define-drop-all-teaser-when-name-contains-rule "IOS" "1С" "C++"))
-
-     ;; =>
-     ;; ((DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-ANTECEDENT
-     ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-IOS-CONSEQUENT)
-     ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-1С-ANTECEDENT
-     ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-1С-CONSEQUENT)
-     ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT
-     ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
-   #+END_SRC
-
-** Правила анализа вакансий
-
-   - Я не хочу смотреть на вакансии, в компаниях где я уже работал.
-   - Если это уже существующая в базе вакансия и ничего не изменилось - игнорируем и
-     останавливаем ее обработку
-   - Я хочу присвоить вакансии определенный ранг, в зависимости от з\п
-   - Я хочу увеличивать этот ранг за упоминание в тексте описания вакансии моих любимых
-     слов: Lisp, Erlang, Closure, Prolog, Haskell, Smalltalk
-   - Я хочу особо отметить вакансии, у которых ранг выше [порогового ранга], чтобы
-     [отправить отклик]
-   - Я хочу занести вакансию в базу.
-   - Я хочу вывести вакансию в консоль.
-
-   #+NAME: rules_for_vacancy
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     <<sugar_for_vacancy_rules>>
-
-     <<show_vacancy>>
-
-     ;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
-     ;;   (dbg "   - already worked"))
-
-     ;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
-     ;;   (dbg "   - already worked"))
-
-     ;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
-     ;;   (dbg "   - already worked"))
-
-     ;; (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
-     ;;   (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
-     ;;     (dbg "   - already exists")))
-
-     ;; (define-rule (set-rank t)
-     ;;   (setf (getf vacancy :rank) (getf vacancy :salary)))
-
-     ;; (define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
-     ;;   (dbg "up rank by Lisp")
-     ;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
-
-     ;; (define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
-     ;;   (dbg "up rank by Erlang")
-     ;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
-
-     ;; (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
-     ;;   (dbg "up rank by Haskell")
-     ;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
-
-     ;; (define-rule (z-print t)
-     ;;   (show-vacancy vacancy))
-
-     ;; (define-rule (z-save t)
-     ;;   (save-vacancy vacancy)
-     ;;   :stop)
-   #+END_SRC
-
-** Макросы для определения правил анализа вакансий
-
-   Для начала определим макрос, который создает правила отсева вакансий - эти правила
-   отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
-
-   #+NAME: sugar_for_vacancy_rules
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defmacro define-drop-vacancy-rule ((name antecedent) &body consequent)
-       `(define-rule (,(intern (concatenate 'string "DROP-VACANCY-IF-"(symbol-name name))) ,antecedent)
-          (dbg "drop vacancy: ~A : ~A" (getf vacancy :name) (getf vacancy :emp-name))
-          ,@consequent
-          (setf vacancy nil)
-          :stop))
-
-     ;; expand
-
-     ;; (print
-     ;;  (macroexpand-1
-     ;;   '(define-drop-vacancy-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
-     ;;                                              (not (contains "Java" (getf vacancy :name)))))
-     ;;     (print (getf vacancy :name))
-     ;;     (print (getf vacancy :salary)))))
-
-     ;; (DEFINE-RULE (DROP-VACANCY-IF-HI-SALARY-JAVA
-     ;;               (AND (> (GETF VACANCY :SALARY) 70000)
-     ;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
-     ;;   (PRINT (GETF VACANCY :NAME))
-     ;;   (PRINT (GETF VACANCY :SALARY))
-     ;;   (SETF VACANCY NIL)
-     ;;   :STOP)
-  #+END_SRC
-
-** Структура правил
-
-   У нас есть два вида правил - для работы с тизерами и для обработки вакансий. Каждое
-   правило закреплено за пользователем, который им владеет и имеет ранг, в соответствии с
-   котором сортируется при применении набора правил.
-
-   #+CAPTION: Данные правила
-   #+NAME: rule_flds
-   | field name | field type           | note                                                   |
-   |------------+----------------------+--------------------------------------------------------|
-   | id         | serial               | идентификатор                                          |
-   | name       | varchar              | имя                                                    |
-   | user-id    | integer              | владелец правила                                       |
-   | rank       | integer              | приоритет правила                                      |
-   | ruletype   | varchar              | :teaser - правило для тизеров, :vacancy - для вакансий |
-   | antecedent | varchar              | условие срабатывания правила                           |
-   | consequent | varchar              | код правила                                            |
-   | notes      | (or db-null varchar) | заметки к правилу                                      |
-
-   Правило может быть активным и неактивным
-
-   #+CAPTION: Состояния конечного автомата вакансии
-   #+NAME: rule_state
-   | action            | from     | to       |
-   |-------------------+----------+----------|
-   | rule-activation   | active   | inactive |
-   | rule-deactivation | inactive | active   |
-
-   #+NAME: hh_fn_contents
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defun rule-activation ()
-       "| active   | inactive |")
-     (defun rule-deactivation ()
-       "| inactive | active   |")
-   #+END_SRC
 
 ** Сохранение вакансии и ее структура данных
 
@@ -3486,13 +3503,13 @@
 
     <<run>>
 
-    <<!run_response>>
+    <<run_response>>
 
-    <<!hh_fn_contents>>
+    <<hh_fn_contents>>
 
-    <<!_hh_parse>>
+    <<_hh_parse>>
 
-    <<!_hh_test>>
+    <<_hh_test>>
 
     ;; Pattern matching test
     (dbg "match_1: ~A" (match 1 (1 2)))

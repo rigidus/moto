@@ -33,9 +33,66 @@
 
 (in-package #:moto)
 
+(in-package #:moto)
+
+(defmacro define-rule ((name antecedent) &body consequent)
+  `(list
+     (defun ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
+       ,antecedent)
+     (defun ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
+       (let ((result (progn ,@consequent)))
+         (values vacancy result)))))
 
 
+;; expand
 
+;; (macroexpand-1 '(define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+;;                                               (not (contains "Java" (getf vacancy :name)))))
+;;                  (setf (getf vacancy :interesting) t)
+;;                  :stop))
+
+;; test
+
+;; (define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+;;                                   (not (contains "Java" (getf vacancy :name)))))
+;;   (setf (getf vacancy :interesting) t)
+;;   :stop)
+
+;; (let ((vacancy '(:name "Python" :salary 80000)))
+;;   (multiple-value-bind (vacancy-result rule-result)
+;;       (if (hi-salary-java-antecedent vacancy)
+;;           (hi-salary-java-consequent vacancy))
+;;     (print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))
+
+;; ->"vacancy: (:INTERESTING T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
+
+(in-package #:moto)
+
+(defun process (vacancy rules)
+  (dbg "process (count rules: ~A)" (length rules))
+  (let ((vacancy vacancy))
+    (tagbody
+     renew
+       (loop :for rule :in rules
+          :do
+          (progn
+            (declaim #+sbcl(sb-ext:muffle-conditions style-warning))
+            (if (funcall (eval (read-from-string (format nil "(lambda (vacancy) ~A)" (antecedent rule))))
+                         vacancy)
+                (progn
+                  (multiple-value-bind (vacancy-result rule-result)
+                      (funcall (eval `(lambda (vacancy)
+                                        (let ((result (progn ,@(read-from-string (consequent rule)))))
+                                          (values vacancy result))))
+                               vacancy)
+                    (setf vacancy vacancy-result)
+                    (when (equal rule-result :stop)
+                      (return-from process vacancy))
+                    (when (equal rule-result :renew)
+                      (go renew)))
+                  ))
+            (declaim #+sbcl(sb-ext:unmuffle-conditions style-warning)))))
+    vacancy))
 
 (in-package #:moto)
 
@@ -106,40 +163,40 @@
   (format t "~%~A" (getf vacancy :emp-name))
   (format t "~A" (show-descr (getf vacancy :descr))))
 
-;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
-;;   (dbg "   - already worked"))
+(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
+  (dbg "   - already worked"))
 
-;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
-;;   (dbg "   - already worked"))
+(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
+  (dbg "   - already worked"))
 
-;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
-;;   (dbg "   - already worked"))
+(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
+  (dbg "   - already worked"))
 
-;; (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
-;;   (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
-;;     (dbg "   - already exists")))
+(define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
+  (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+    (dbg "   - already exists")))
 
-;; (define-rule (set-rank t)
-;;   (setf (getf vacancy :rank) (getf vacancy :salary)))
+(define-rule (set-rank t)
+  (setf (getf vacancy :rank) (getf vacancy :salary)))
 
-;; (define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
-;;   (dbg "up rank by Lisp")
-;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
+(define-rule (set-rank-up-by-lisp (contains (format nil "~A" (bprint (getf vacancy :descr))) "Lisp"))
+  (dbg "up rank by Lisp")
+  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 30000)))
 
-;; (define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
-;;   (dbg "up rank by Erlang")
-;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
+(define-rule (set-rank-up-by-erlang (contains (format nil "~A" (bprint (getf vacancy :descr))) "Erlang"))
+  (dbg "up rank by Erlang")
+  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 15000)))
 
-;; (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
-;;   (dbg "up rank by Haskell")
-;;   (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+(define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
+  (dbg "up rank by Haskell")
+  (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
 
-;; (define-rule (z-print t)
-;;   (show-vacancy vacancy))
+(define-rule (z-print t)
+  (show-vacancy vacancy))
 
-;; (define-rule (z-save t)
-;;   (save-vacancy vacancy)
-;;   :stop)
+(define-rule (z-save t)
+  (save-vacancy vacancy)
+  :stop)
 
 (in-package #:moto)
 
@@ -220,24 +277,24 @@
 ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT
 ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
 
-;; (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
-;;   (dbg "  - no salary"))
+(define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
+  (dbg "  - no salary"))
 
-;; (define-drop-teaser-rule (salary-2-low (or
-;;                                         (and (equal (getf vacancy :currency) "RUR")
-;;                                              (< (getf vacancy :salary-max) 90000))
-;;                                         (and (equal (getf vacancy :currency) "USD")
-;;                                              (< (getf vacancy :salary-max) (floor 90000 67)))
-;;                                         (and (equal (getf vacancy :currency) "USD")
-;;                                              (< (getf vacancy :salary-max) (floor 90000 77)))
-;;                                         ))
-;;   (dbg "  - low salary"))
+(define-drop-teaser-rule (salary-2-low (or
+                                        (and (equal (getf vacancy :currency) "RUR")
+                                             (< (getf vacancy :salary-max) 90000))
+                                        (and (equal (getf vacancy :currency) "USD")
+                                             (< (getf vacancy :salary-max) (floor 90000 67)))
+                                        (and (equal (getf vacancy :currency) "USD")
+                                             (< (getf vacancy :salary-max) (floor 90000 77)))
+                                        ))
+  (dbg "  - low salary"))
 
-;; (define-drop-all-teaser-when-name-contains-rule
-;;     "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
-;;     "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
-;;     "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
-;;     "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
+(define-drop-all-teaser-when-name-contains-rule
+    "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
+    "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
+    "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
+    "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
 
 (defun get-all-rules ()
   (sort
@@ -260,6 +317,7 @@
              (get-all-rules)))
 
 (defmethod process-teaser :around (current-teaser)
+  (dbg "process-teaser :around")
   (aif (process current-teaser (rules-for-teaser))
        (process (call-next-method it) (rules-for-vacancy))
        nil))
@@ -477,15 +535,19 @@
            (return-from subtree-extract rest))
          tree)))
 
-(defparameter *detect-garbage* nil)
+(defparameter *detect-garbage* '("premium" "response-trigger" "vacancy-responded" "star" "trigger-button"
+                                 "response-popup-link" "vacancy-response-popup-script" "emp-logo"
+                                 "search-result-description" "search-result-description-empty"
+                                 "search-result-description-primary" "hrbrand" "noindex" "script"
+                                 "bloko-icon-phone" "bloko-contact"))
 
 (defmacro make-detect ((name) &body body)
   (let ((param   (gensym))
         (carlast (car (last (car body)))))
-    (awhen (stringp carlast)
-      (setf *detect-garbage*
-            (remove-duplicates (append *detect-garbage*
-                                       (list carlast)) :test #'string=)))
+    ;; (awhen (stringp carlast)
+    ;;   (setf *detect-garbage*
+    ;;         (remove-duplicates (append *detect-garbage*
+    ;;                                    (list carlast)) :test #'string=)))
     `(defun ,(intern (format nil "DETECT-~A" (string-upcase (symbol-name name)))) (,param)
        (mtm ,@body
             ,param))))
@@ -697,98 +759,159 @@
   "Получение списка вакансий из html"
   (dbg "hh-parse-vacancy-teasers")
   (setf *last-parse-data* html)
-  (let ((transform (->> (html-to-tree html)
-                        (extract-search-results)
-                        (detect-platform)
-                        (detect-date)
-                        (detect-metro)
-                        (detect-address)
-                        (detect-info)
-                        (detect-emp)
-                        (detect-emp-anon)
-                        (detect-salary)
-                        ;; (detect-interview)
-                        (detect-name)
-                        ;; (detect-description)
-                        (detect-snippet)
-                        (detect-premium)
-                        (detect-standart)
-                        (detect-standart-plus)
-                        (detect-response-trigger)
-                        (detect-garbage-elts)
-                        (detect-vacancy-responded)
-                        (detect-search-result-description)
-                        (detect-star)
-                        (detect-trigger-button)
-                        (detect-response-popup-link)
-                        (detect-response-popup-script)
-                        (detect-emp-logo)
-                        (detect-search-result-description)
-                        (detect-search-result-description-primary)
-                        (detect-search-result-description-empty)
-                        (detect-hrbrand)
-                        (detect-vacancy_snippet_responsibility)
-                        (detect-noindex)
-                        (detect-script)
-                        (detect-bloko-icon-phone)
-                        (detect-bloko-contact)
-                        (detect-search-result-description-non-empty)
-                        ;; filter garbage data
-                        (maptree-if #'consp
-                                    #'(lambda (x)
-                                        (values
-                                         (remove-if #'(lambda (x)
-                                                        (when (stringp x)
-                                                          (or
-                                                           (string= x "div")
-                                                           (find x *detect-garbage* :test #'string=)
-                                                           )))
-                                                    x)
-                                         #'mapcar)))
-                        ;; linearize for each elt
-                        (mapcar #'(lambda (tree)
-                                    (let ((linearize))
-                                      (maptree #'(lambda (x)
-                                                   (setf linearize
-                                                         (append linearize (list x))))
-                                               tree)
-                                      linearize)))
-                        ;; parse-salary
-                        (mapcar #'parse-salary)
-                        )))
-    transform
-    ))
+  (->> (html-to-tree html)
+       (extract-search-results)
+       (detect-platform)
+       (detect-date)
+       (detect-metro)
+       (detect-address)
+       (detect-info)
+       (detect-emp)
+       (detect-emp-anon)
+       (detect-salary)
+       ;; (detect-interview)
+       (detect-name)
+       ;; (detect-description)
+       (detect-snippet)
+       (detect-premium)
+       (detect-standart)
+       (detect-standart-plus)
+       (detect-response-trigger)
+       (detect-garbage-elts)
+       (detect-vacancy-responded)
+       (detect-search-result-description)
+       (detect-star)
+       (detect-trigger-button)
+       (detect-response-popup-link)
+       (detect-response-popup-script)
+       (detect-emp-logo)
+       (detect-search-result-description)
+       (detect-search-result-description-primary)
+       (detect-search-result-description-empty)
+       (detect-hrbrand)
+       (detect-vacancy_snippet_responsibility)
+       (detect-noindex)
+       (detect-script)
+       (detect-bloko-icon-phone)
+       (detect-bloko-contact)
+       (detect-search-result-description-non-empty)
+       ;; filter garbage data
+       (maptree-if #'consp
+                   #'(lambda (x)
+                       (values
+                        (remove-if #'(lambda (x)
+                                       (when (stringp x)
+                                         (or
+                                          (string= x "div")
+                                          (find x *detect-garbage* :test #'string=)
+                                          )))
+                                   x)
+                        #'mapcar)))
+       ;; linearize for each elt
+       (mapcar #'(lambda (tree)
+                   (let ((linearize))
+                     (maptree #'(lambda (x)
+                                  (setf linearize
+                                        (append linearize (list x))))
+                              tree)
+                     linearize)))
+       ;; parse-salary
+       (mapcar #'parse-salary)
+       ))
 
 ;; (print
 ;;  (hh-parse-vacancy-teasers *last-parse-data*))
-
 
 ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (hh-parse-vacancy-teasers
 ;;    (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true" temp-cookie-jar "http://spb.hh.ru/")))
 
 
+(in-package #:moto)
 
+(in-package #:moto)
+
+(defun transform-description (tree-descr)
+  (labels ((rem-space (tree)
+             (cond ((consp tree) (cons (rem-space (car tree))
+                                       (rem-space (remove-if #'(lambda (x) (equal x " "))
+                                                             (cdr tree)))))
+                   (t tree))))
+    (append `((:p))
+            (mtm (`("p" nil ,@in) `((:p) ,@in))
+                 (mtm (`("ul" nil ,@in) `((:ul) ,@in))
+                      (mtm (`("li" nil ,@in) `((:li) ,@in))
+                           (mtm (`("em" nil ,@in) `((:b) ,@in))
+                                (mtm (`("strong" nil ,@in) `((:b) ,@in))
+                                     (mtm (`("br") `((:br)))
+                                          (rem-space tree-descr))))))))))
+
+(defun hh-parse-vacancy (html)
+  (dbg "hh-parse-vacancy")
+  (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+    (append (block header-extract
+              (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
+                            ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
+                     (return-from header-extract
+                       (append (list :name name :archive (if archive t nil))
+                               (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
+                                                       (return-from emp-block
+                                                         (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
+                                                               :emp-name emp-name))) rest)))))
+                   tree))
+            (let ((salary-result (block salary-extract
+                                   (mtm (`("div" (("class" "l-paddings"))
+                                                 ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                                 ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
+                                                 ,salary-text)
+                                          (return-from salary-extract (list :currency currency :base-salary (parse-integer base-salary) :salary-text salary-text)))
+                                        tree))))
+              (if (equal 6 (length salary-result))
+                  salary-result
+                  (list :currency nil :base-salary nil :salary-text nil)))
+            (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
+                                                          (return-from city-extract (list :city city))) tree))))
+              (if (equal 2 (length city-result)) city-result (list :city nil)))
+            (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
+                                                              ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
+                                                        (return-from exp-extract (list :exp exp))) tree))))
+              (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
+            (let ((respond-result (block respond-extract (mtm (`("div" (("class" "g-attention m-attention_good b-vacancy-message"))
+                                                                       "Вы уже откликались на эту вакансию. "
+                                                                       ("a" (("href" ,resp)) "Посмотреть отклики."))
+                                                                (return-from respond-extract (list :respond resp))) tree))))
+              (if (equal 2 (length respond-result)) respond-result (list :respond nil)))
+            (block descr-extract
+              (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
+                     (return-from descr-extract (list :descr (transform-description descr)))) tree)))))
+
+;; (print
+;;  (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+;;    (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525" temp-cookie-jar "http://spb.hh.ru/"))))
+
+;; (print
+;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
 
 (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
   ;; -------
   (defmethod process-teaser (current-teaser)
-      (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))
-                                          temp-cookie-jar
-                                          "http://spb.hh.ru"))
-           (merge-plists current-teaser it)
-           nil))
+    (dbg "process-teaser")
+    (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))
+                                        temp-cookie-jar
+                                        "http://spb.hh.ru"))
+         (merge-plists current-teaser it)
+         nil))
   ;; -------
   (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
+    (dbg "factory")
     ;; closure
     (let ((url     (make-hh-url city prof-area spec))
           (page    0)
           (teasers nil))
       ;; returned function-generator in closure
       (alexandria:named-lambda get-vacancy ()
-        (dbg "get-vacancy-named-lambda")
         (labels ((load-next-teasers-page ()
-                   (dbg "~~ LOAD (page=~A)" page)
+                   (dbg "load-next-teasers-page (page=~A)" page)
                    (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page)
                                                                         temp-cookie-jar
                                                                         "http://spb.hh.ru")))
@@ -797,6 +920,7 @@
                      (dbg "~~ FIN")
                      (return-from get-vacancy 'nil)))
                  (get-teaser ()
+                   (dbg "get-teaser")
                    (when (equal 0 (length teasers))
                      (load-next-teasers-page))
                    (let ((current-teaser (car teasers)))
@@ -825,9 +949,140 @@
 ;;                temp-cookie-jar
 ;;                "http://spb.hh.ru")))
 
+(in-package #:moto)
 
+(defparameter *saved-vacancy* nil)
 
+(defmethod save-vacancy (vacancy)
+  (setf *saved-vacancy*
+        (append *saved-vacancy*
+                (list (make-vacancy
+                       :src-id (getf vacancy :id)
+                       :name (getf vacancy :name)
+                       :currency (getf vacancy :currency)
+                       :salary (aif (getf vacancy :salary) it 0)
+                       :base-salary (aif (getf vacancy :base-salary) it 0)
+                       :salary-text (getf vacancy :salary-text)
+                       :salary-max (getf vacancy :salary-max)
+                       :salary-min (getf vacancy :salary-min)
+                       :emp-id (aif (getf vacancy :emp-id) it 0)
+                       :emp-name (getf vacancy :emp-name)
+                       :city (getf vacancy :city)
+                       :metro (getf vacancy :metro)
+                       :experience (getf vacancy :exp)
+                       :archive (getf vacancy :archive)
+                       :date (getf vacancy :date)
+                       :respond (aif (getf vacancy :respond) it "")
+                       :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+                       :descr (bprint (getf vacancy :descr))
+                       :notes ""
+                       :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
 
+(in-package #:moto)
+
+(defun make-additional-headers (referer cookies)
+    `(("Accept"           . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+      ("Accept-Language"  . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+      ("Accept-Charset"   . "utf-8")
+      ("Referer"          . ,referer)
+      ("Cache-Control"    . "no-cache")
+      ("Cookie"           . ,(format nil "~{~{~A=~A~}~^; ~}" cookies))))
+
+(defun send-respond (vacancy-id resume-id letter)
+  (let* ((hhtoken     (cdr (assoc "hhtoken" *cookies* :test #'equal)))
+         (hhuid       (cdr (assoc "hhuid" *cookies* :test #'equal)))
+         (xsrf        (cdr (assoc "_xsrf" *cookies* :test #'equal)))
+         (hhrole      "applicant")
+         (crypted-id  "2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8")
+         (cookie-jar (make-instance 'drakma:cookie-jar))
+         (html (flexi-streams:octets-to-string
+                (drakma:http-request
+                 (format nil "http://spb.hh.ru/vacancy/~A" vacancy-id)
+                 :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+                 :additional-headers (make-additional-headers "http://spb.hh.ru/"
+                                                              `(("redirect_host"       "spb.hh.ru")  ("regions"             "2")        ("_xsrf"               ,xsrf)
+                                                                ("hhtoken"             ,hhtoken)     ("hhuid"               ,hhuid)     ("hhrole"              ,hhrole)
+                                                                ("GMT"                 "3")          ("display"             "desktop")))
+                 :cookie-jar cookie-jar :force-binary t)
+                :external-format :utf-8))
+         (cookie-data (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
+                         (list (intern (string-upcase (drakma:cookie-name cookie)) :keyword) (drakma:cookie-value cookie))))
+         (unique-banner-user (getf cookie-data :unique_banner_user)))
+    (assert (equal crypted-id (getf cookie-data :crypted_id)))
+    (assert (equal "applicant" (getf cookie-data :hhrole)))
+    (assert (equal xsrf (getf cookie-data :_xsrf)))
+    (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
+           (name (block namer (mtm (`("div" (("class" "navi-item__switcher HH-Navi-MenuItems-Switcher") ("data-qa" "mainmenu_normalUserName"))
+                                            ,name ("span" (("class" "navi-item__post"))))
+                                     (return-from namer name))
+                                   tree))))
+      (assert (equal "Михаил Михайлович Глухов" name))
+      (sleep 1)
+      (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+        (flexi-streams:octets-to-string
+         (drakma:http-request
+          "http://spb.hh.ru/applicant/vacancy_response/popup"
+          :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
+          :method :post
+          :content (format nil "~{~A~^&~}"
+                           (mapcar #'(lambda (x)
+                                       (format nil "~A=~A" (car x) (cdr x)))
+                                   `(("vacancy_id" . ,(format nil "~A" vacancy-id))
+                                     ("resume_id" . ,(format nil "~A" resume-id))
+                                     ("letter" . ,(drakma:url-encode letter :utf-8))
+                                     ("_xsrf" . ,xsrf)
+                                     ("ignore_postponed" . "true"))))
+          :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+          :additional-headers `(("Accept"           . "*/*")
+                                ("Accept-Language"  . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                ("Accept-Encoding"  . "gzip, deflate")
+                                ("X-Xsrftoken"      . ,xsrf)
+                                ("X-Requested-With" . "XMLHttpRequest")
+                                ("Referer"          . ,(format nil "http://spb.hh.ru/vacancy/~A" vacancy-id))
+                                ("Cookie"           . ,(format nil "~{~A~^;~}"
+                                                               (mapcar #'(lambda (x)
+                                                                           (format nil "~A=~A" (car x) (cdr x)))
+                                                                       `(("redirect_host" . "vladivostok.hh.ru")
+                                                                         ("regions" . "2")
+                                                                         ("__utma" . "192485224.1206865564.1390484616.1421799450.1421859024.49")
+                                                                         ("__utmz" . "192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)")
+                                                                         ("hipsterShown" . "true")
+                                                                         ("hhref" . "")
+                                                                         ("vishnu1.userid" . "2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8")
+                                                                         ("lt-vc" . "11")
+                                                                         ("hhtoken" . ,hhtoken)
+                                                                         ("hhuid" . ,hhuid)
+                                                                         ("hhrole" . ,hhrole)
+                                                                         ("GMT" . "3")
+                                                                         ("display" . "desktop")
+                                                                         ("_xsrf" . ,xsrf)
+                                                                         ("JSESSIONID" . "1i5cpqbtgjgh7ztfwncgixv8c")
+                                                                         ("lrp" . "\"http://spb.hh.ru/\"")
+                                                                         ("lrr" . "true")
+                                                                         ("crypted_id" . ,crypted-id)
+                                                                         ("lt-tl" . "8xmy,rn2r,21i1,6gix")
+                                                                         ("lt-on-site-time" . "1421859023")
+                                                                         ("_xsrf" . "ed689ea1ff02a3074c848b69225e3c78")
+                                                                         ("crypted_id" . ,crypted-id)
+                                                                         ("unique_banner_user" . ,unique-banner-user)
+                                                                         ("__utmb" . "192485224.39.10.1421859024")
+                                                                         ("__utmc" . "192485224")
+                                                                         ("lt-8xmy" . "46005334")
+                                                                         ("lt-rn2r" . "46005334")
+                                                                         ("lt-21i1" . "46005334")
+                                                                         ("__utmt_vishnu1" . "1")
+                                                                         ("lt-6gix" . "46005334")))))
+                                ("Cache-Control" . "no-cache"))
+          :cookie-jar cookie-jar
+          :force-binary t)
+         :external-format :utf-8)))))
+
+;; (respond 12644276 7628220 "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")
+
+;; (let ((respond (respond 12646549 7628220 "тест")))
+;;   (print respond))
+
+;; (setf drakma:*header-stream* *standard-output*)
 
 (defun run ()
   (make-event :name "run"
@@ -845,9 +1100,243 @@
 
 ;; (run)
 
+(in-package #:moto)
 
+(let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 
+  (defun hh-parse-responds (html)
+    "Получение списка откликов из html"
+    (mapcar #'(lambda (x) (reduce #'append x))
+            (mtm (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
+                   `(,@(remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
+                 (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) `Z)
+                      (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) `Z)
+                           (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) `Z)
+                                (mtm (`("td" (("class" "prosper-table__cell"))) `Z)
+                                     (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
+                                                  ("div" (("class" "responses-company")) ,emp-name))
+                                            `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
+                                          (mtm (`("td" (("class" "prosper-table__cell"))
+                                                       ("div" (("class" "responses-vacancy"))
+                                                              ("a"
+                                                               (("class" ,_)
+                                                                ("target" "_blank") ("href" ,vacancy-link))
+                                                               ,vacancy-name))
+                                                       ("div" (("class" "responses-company")) ,emp-name))
+                                                 `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
+                                               (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t))
+                                                    (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен"))
+                                                         (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен"))
+                                                              (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                           ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение"))
+                                                                   (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ"))
+                                                                        (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                     ("span" (("class" "responses-date")) ,result-date))
+                                                                               `(:result-date, result-date))
+                                                                             (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                          ("span" (("class" "responses-date responses-date_dimmed")) ,result))
+                                                                                    `(:response-date ,result))
+                                                                                  (block subtree-extract
+                                                                                    (mtm (`("tbody" NIL ,@rest)
+                                                                                           (return-from subtree-extract rest))
+                                                                                         (html5-parser:node-to-xmls
+                                                                                          (html5-parser:parse-html5-fragment html))))))))))))))))))))
 
+  ;; (print
+  ;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))
+
+  (defmethod process-respond (respond)
+    ;; Найти src-id вакансии
+    (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
+      ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
+      (unless (equal "Не просмотрен" (getf respond :result))
+        (unless (null src-id)
+          ;; Если такая вакансия есть в бд
+          (let ((target (car (find-vacancy :src-id src-id))))
+            (unless (null target)
+              (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
+              ;; и у нее статус RESPONDED или BEENVIEWED  - установить статус
+              (when (or (equal ":RESPONDED" (state target))
+                        (equal ":BEENVIEWED" (state target)))
+                (cond ((equal "Просмотрен" (getf respond :result))
+                       (takt target :beenviewed))
+                      ((equal "Отказ" (getf respond :result))
+                       (takt target :reject))
+                      ((equal "Приглашение" (getf respond :result))
+                       (takt target :invite))
+                      ((equal "Не просмотрен" (getf respond :result))
+                       nil)
+                      (t (err (format nil "unk respond state ~A" (state target)))))))))))
+    respond)
+
+  (defmethod response-factory ((vac-src (eql 'hh)))
+    (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
+          (page     0)
+          (responds nil))
+      (alexandria:named-lambda get-responds ()
+        (labels ((load-next-responds-page ()
+                   ;; (dbg "~~ LOAD (page=~A)" page)
+                   (setf responds (hh-parse-responds (hh-get-page (format nil url page)
+                                                                  temp-cookie-jar
+                                                                  "http://spb.hh.ru")))
+                   (incf page)
+                   (when (equal 0 (length responds))
+                     (dbg "~~ FIN")
+                     (return-from get-responds 'nil)))
+                 (get-respond ()
+                   (when (equal 0 (length responds))
+                     (load-next-responds-page))
+                   (let ((current-respond (car responds)))
+                     (setf responds (cdr responds))
+                     current-respond)))
+          (tagbody get-new-respond
+             (let ((current-respond (process-respond (get-respond))))
+               (if (null current-respond)
+                   (go get-new-respond)
+                   (return-from get-responds current-respond))))))))
+
+  (defun run-response ()
+    (make-event :name "run-response"
+                :tag "parser-run"
+                :msg (format nil "Сбор откликов и приглашений")
+                :author-id 0
+                :ts-create (get-universal-time))
+    (let ((archive-cnt 0))
+      (let ((gen (response-factory 'hh)))
+        (loop :for i :from 1 :to 700 :do
+           (let ((target (funcall gen)))
+             (when (null target)
+               (return-from run-response 'FIN-NIL))
+             (when (getf target :archive)
+               (incf archive-cnt))
+             (when (> archive-cnt 140)
+               (return-from run-response 'ARCHIVE))
+             ;; (print target)
+             ))
+        (return-from run-response 'loop))))
+
+  )
+;; (run-response)
+
+(in-package #:moto)
+
+(defun rule-activation ()
+  "| active   | inactive |")
+(defun rule-deactivation ()
+  "| inactive | active   |")
+(in-package #:moto)
+
+(defun uns-uni ()
+  "unsort        | uninteresting |")
+(defun uns-int ()
+  "unsort        | interesting   |")
+(defun uns-res ()
+  "unsort        | responded     |")
+(defun uni-int ()
+  "uninteresting | interesting   |")
+(defun uni-res ()
+  "uninteresting | responded     |")
+(defun uni-uni ()
+  "uninteresting | uninteresting |")
+(defun int-uni ()
+  "interesting   | uninteresting |")
+(defun int-res ()
+  "interesting   | responded     |")
+(defun int-int ()
+  "interesting   | interesting   |")
+(defun res-bee ()
+  "responded     | beenviewed    |")
+(defun res-uni ()
+  "responded     | uninteresting |")
+(defun res-rej ()
+  "responded     | reject        |")
+(defun res-inv ()
+  "responded     | invite        |")
+(defun res-res ()
+  "responded     | responded     |")
+(defun bee-uni ()
+  "beenviewed    | uninteresting |")
+(defun bee-rej ()
+  "beenviewed    | reject        |")
+(defun bee-inv ()
+  "beenviewed    | invite        |")
+(defun bee-tes ()
+  "beenviewed    | testjob       |")
+(defun bee-bee ()
+  "beenviewed    | beenviewed    |")
+(defun tes-inv ()
+  "testjob       | invite        |")
+(defun tes-int ()
+  "testjob       | interview     |")
+(defun tes-uni ()
+  "testjob       | uninteresting |")
+(defun tes-off ()
+  "testjob       | offer         |")
+(defun tes-tes ()
+  "testjob       | testjob       |")
+(defun rej-res ()
+  "reject        | responded     |")
+(defun rej-uni ()
+  "reject        | uninteresting |")
+(defun rej-rej ()
+  "reject        | reject        |")
+(defun inv-inv ()
+  "invite        | invite        |")
+(defun inv-uni ()
+  "invite        | uninteresting |")
+(defun inv-tes ()
+  "invite        | testjob       |")
+(defun inv-int ()
+  "invite        | interview     |")
+(defun int-uni ()
+  "interview     | uninteresting |")
+(defun int-dis ()
+  "interview     | discard       |")
+(defun int-tes ()
+  "interview     | testjob       |")
+(defun int-int ()
+  "interview     | interview     |")
+(defun dis-uni ()
+  "discard       | uninteresting |")
+(defun dis-dis ()
+  "discard       | discard       |")
+(defun int-off ()
+  "interview     | offer         |")
+(defun off-uni ()
+  "offer         | uninteresting |")
+(defun off-off ()
+  "offer         | offer         |")
+(defun off-onj ()
+  "offer         | accept        |")
+(defun acc-acc ()
+  "accept        | accept        |")
+(in-package #:moto)
+
+(defun rai ()
+  "active-inactive")
+
+(defun ria ()
+  "inactive-active")
+(in-package #:moto)
+
+(make-resume
+ :src-id "1036680cff007465bc0039ed1f736563726574"
+ :title "Ведущий программист (web) / Руководитель проекта"
+ :res-id "7628220"
+ :state ":ACTIVE")
+
+ (make-resume
+  :src-id "9555a7ecff02588d3c0039ed1f454162305732"
+  :title "Senior Developer"
+  :res-id "39357756"
+  :state ":ACTIVE")
+
+(make-resume
+ :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
+ :title "Lisp-разработчик"
+ :res-id "33273224"
+ :state ":ACTIVE")
 
 
 
