@@ -126,4 +126,15 @@
   (:inactive :active)
   ((:active :inactive :rule-activation)
    (:inactive :active :rule-deactivation)))
+
+(define-automat hhaccount "Автомат аккаунта"
+  ((id serial)
+   (user_id integer)
+   (hh_source varchar)
+   (hh_login varchar)
+   (hh_password varchar)
+   (hh_fio varchar))
+  (:inactive :active)
+  ((:active :inactive :account-activation)
+   (:inactive :active :account-deactivation)))
 ;; entity_and_automates ends here

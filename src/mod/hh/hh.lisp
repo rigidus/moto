@@ -366,6 +366,14 @@
 
 (in-package #:moto)
 
+(in-package #:moto)
+
+(make-hhaccount :user_id 1
+                 :hh_source "hh"
+                 :hh_login "avenger-f@yandex.ru"
+                 :hh_password "jGwPswRAfU6sKEhVXX"
+                 :hh_fio "Михаил Михайлович Глухов")
+
 (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0")
 
 (defparameter *additional-headers* `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
@@ -463,7 +471,7 @@
          ;; Проверяем, не превышено ли кол-во попыток восстановления
          (when (> repeat-cnt 3)
            ;; Если их больше трех - сигнализируем ошибку
-           (err "max hh-login try"))
+           (err "max recovery-login try"))
          ;; Пытаемся восстановить сессию
          (multiple-value-bind (recovery-html recovery-cookie-jar)
              (recovery-login)
@@ -1367,12 +1375,16 @@
  :state ":ACTIVE")
 
 
-
-
+;; Тестируем hh
+(defun hh-test ()
+  
+  
+  (dbg "passed: hh-test~%"))
+(hh-test)
 
 ;; Pattern matching test
-(dbg "match_1: ~A" (match 1 (1 2)))
-(dbg "match_2: ~A" (match '(1 2 3 4) (`(1 ,x ,@y) (list x y))))
+;; (dbg "match_1: ~A" (match 1 (1 2)))
+;; (dbg "match_2: ~A" (match '(1 2 3 4) (`(1 ,x ,@y) (list x y))))
 
 ;; special syntax for pattern-matching - OFF
 ;; (named-readtables:in-readtable :standard)
