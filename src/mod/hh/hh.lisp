@@ -36,20 +36,42 @@
 (in-package #:moto)
 
 (defmacro define-rule ((name antecedent) &body consequent)
-  `(list
-     (defun ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
-       ,antecedent)
-     (defun ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
-       (let ((result (progn ,@consequent)))
-         (values vacancy result)))))
-
+  ;; `(list
+  ;;   (defun ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
+  ;;     ,antecedent)
+  ;;   (defun ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
+  ;;     (let ((result (progn ,@consequent)))
+  ;;       (values vacancy result)))))
+  `(progn
+     (mapcar #'(lambda (rule)
+                 ;; (when (string= "acitve" (state rule))
+                   (del-rule (id rule)))
+                 ;; )
+             (find-rule :name ,(symbol-name name)))
+     (list
+      (alexandria:named-lambda
+          ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
+        ,antecedent)
+      (alexandria:named-lambda
+          ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
+        (let ((result (progn ,@consequent)))
+          (values vacancy result)))
+      (make-rule :name ,(symbol-name name)
+                 :user-id 1
+                 :rank 100
+                 :ruletype ":TEASER"
+                 :antecedent ,(bprint antecedent)
+                 :consequent ,(bprint consequent)
+                 :notes ""
+                 :state ":ACTIVE"))))
 
 ;; expand
 
-;; (macroexpand-1 '(define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
-;;                                               (not (contains "Java" (getf vacancy :name)))))
-;;                  (setf (getf vacancy :interesting) t)
-;;                  :stop))
+;; (macroexpand-1
+;;  '(define-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
+;;                                 (not (contains "Java" (getf vacancy :name)))))
+;;    (setf (getf vacancy :interesting) t)
+;;    :stop))
 
 ;; test
 
@@ -58,13 +80,19 @@
 ;;   (setf (getf vacancy :interesting) t)
 ;;   :stop)
 
-;; (let ((vacancy '(:name "Python" :salary 80000)))
-;;   (multiple-value-bind (vacancy-result rule-result)
-;;       (if (hi-salary-java-antecedent vacancy)
-;;           (hi-salary-java-consequent vacancy))
-;;     (print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))))
-
-;; ->"vacancy: (:INTERESTING T :NAME \"Python\" :SALARY 80000) ||| rule-result: :STOP"
+;; (let ((rule (car (find-rule :name "HI-SALARY-JAVA")))
+;;       (vacancy '(:name "Python" :salary 80000)))
+;;   (if (funcall (eval (read-from-string (format nil "(lambda (vacancy) ~A)" (antecedent rule))))
+;;                vacancy)
+;;       (progn
+;;         (multiple-value-bind (vacancy-result rule-result)
+;;             (funcall (eval `(lambda (vacancy)
+;;                               (let ((result (progn ,@(read-from-string (consequent rule)))))
+;;                                 (values vacancy result))))
+;;                      vacancy)
+;;         (setf vacancy vacancy-result)
+;;         (print (format nil "vacancy: ~A ||| rule-result: ~A" (bprint vacancy-result) (bprint rule-result)))
+;;         ))))
 
 (in-package #:moto)
 
