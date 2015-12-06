@@ -793,7 +793,7 @@
                  (err "max recovery-login try"))
                ;; Пытаемся восстановить сессию
                (multiple-value-bind (recovery-html recovery-cookie-jar)
-                   (recovery-login)
+                   (recovery-login *hh_account*)
                  (setf response recovery-html)
                  (setf cookie-jar recovery-cookie-jar)
                  (setf referer "https://spb.hh.ru/account/login"))
@@ -852,7 +852,7 @@
          (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
             (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
-       (defun recovery-login ()
+       (defun recovery-login (hhaccount)
          ;; Сначала заходим на главную как будто первый раз, без печенек
          (setf drakma:*header-stream* nil)
          (let* ((start-uri "http://spb.hh.ru/")
@@ -872,8 +872,8 @@
            ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
            ;; [TODO] - Позже сделаем так, чтобы гет-запрос брался из таблички, связанной с пользователем
            ;; (setf drakma:*header-stream* *standard-output*)
-           (let* ((post-parameters `(("username" . "avenger-f@yandex.ru")
-                                     ("password" . "jGwPswRAfU6sKEhVXX")
+           (let* ((post-parameters `(("username" . ,(hh_login hhaccount))
+                                     ("password" . ,(hh_password hhaccount))
                                      ("backUrl"  . "http://spb.hh.ru/")
                                      ("remember" . "yes")
                                      ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
@@ -897,7 +897,7 @@
                (err "login failed"))
              (when (contains html "Что-то пошло не так")
                (err "login error"))
-             (when (contains html "Михаил Михайлович Глухов")
+             (when (contains html (hh_fio hhaccount))
                (return-from recovery-login
                  (values ;; (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))
                          html
@@ -905,7 +905,7 @@
              (err "login exception"))))
      #+END_SRC
 
-***** START Аккаунты на источнике вакансий
+***** Аккаунты на источнике вакансий
 
       #+CAPTION: Данные таблицы аккаунтов
       #+NAME: hhaccount_flds
@@ -935,11 +935,11 @@
       #+BEGIN_SRC lisp
         (in-package #:moto)
 
-        (make-hhaccount :user_id 1
-                         :hh_source "hh"
-                         :hh_login "avenger-f@yandex.ru"
-                         :hh_password "jGwPswRAfU6sKEhVXX"
-                         :hh_fio "Михаил Михайлович Глухов")
+        (defparameter *hh_account* (make-hhaccount :user_id 1
+                                                   :hh_source "hh"
+                                                   :hh_login "avenger-f@yandex.ru"
+                                                   :hh_password "jGwPswRAfU6sKEhVXX"
+                                                   :hh_fio "Михаил Михайлович Глухов"))
       #+END_SRC
 
 *** Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)

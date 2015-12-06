@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-12-06 Вс. 00:29 -->
+<!-- 2015-12-06 Вс. 22:48 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -1594,7 +1594,7 @@ HR-специалист заинтересован в том, чтобы име�
            (err <span style="color: #00cd00;">"max recovery-login try"</span>))
          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1099;&#1090;&#1072;&#1077;&#1084;&#1089;&#1103; &#1074;&#1086;&#1089;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1100; &#1089;&#1077;&#1089;&#1089;&#1080;&#1102;</span>
          (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (recovery-html recovery-cookie-jar)
-             (recovery-login)
+             (recovery-login *hh_account*)
            (setf response recovery-html)
            (setf cookie-jar recovery-cookie-jar)
            (setf referer <span style="color: #00cd00;">"https://spb.hh.ru/account/login"</span>))
@@ -1660,7 +1660,7 @@ HR-специалист заинтересован в том, чтобы име�
   (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> cookie <span style="color: #0000ee; font-weight: bold;">:in</span> (drakma:cookie-jar-cookies cookie-jar) <span style="color: #0000ee; font-weight: bold;">:append</span>
      (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">recovery-login</span> ()
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">recovery-login</span> (hhaccount)
   <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1093;&#1086;&#1076;&#1080;&#1084; &#1085;&#1072; &#1075;&#1083;&#1072;&#1074;&#1085;&#1091;&#1102; &#1082;&#1072;&#1082; &#1073;&#1091;&#1076;&#1090;&#1086; &#1087;&#1077;&#1088;&#1074;&#1099;&#1081; &#1088;&#1072;&#1079;, &#1073;&#1077;&#1079; &#1087;&#1077;&#1095;&#1077;&#1085;&#1077;&#1082;</span>
   (setf drakma:*header-stream* nil)
   (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((start-uri <span style="color: #00cd00;">"http://spb.hh.ru/"</span>)
@@ -1680,8 +1680,8 @@ HR-специалист заинтересован в том, чтобы име�
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="&#1042;&#1086;&#1081;&#1090;&#1080;" ;; _xsrf=</span>
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">[TODO] - &#1055;&#1086;&#1079;&#1078;&#1077; &#1089;&#1076;&#1077;&#1083;&#1072;&#1077;&#1084; &#1090;&#1072;&#1082;, &#1095;&#1090;&#1086;&#1073;&#1099; &#1075;&#1077;&#1090;-&#1079;&#1072;&#1087;&#1088;&#1086;&#1089; &#1073;&#1088;&#1072;&#1083;&#1089;&#1103; &#1080;&#1079; &#1090;&#1072;&#1073;&#1083;&#1080;&#1095;&#1082;&#1080;, &#1089;&#1074;&#1103;&#1079;&#1072;&#1085;&#1085;&#1086;&#1081; &#1089; &#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1077;&#1084;</span>
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(setf drakma:*header-stream* *standard-output*)</span>
-    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((post-parameters `((<span style="color: #00cd00;">"username"</span> . <span style="color: #00cd00;">"avenger-f@yandex.ru"</span>)
-                              (<span style="color: #00cd00;">"password"</span> . <span style="color: #00cd00;">"jGwPswRAfU6sKEhVXX"</span>)
+    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((post-parameters `((<span style="color: #00cd00;">"username"</span> . ,(hh_login hhaccount))
+                              (<span style="color: #00cd00;">"password"</span> . ,(hh_password hhaccount))
                               (<span style="color: #00cd00;">"backUrl"</span>  . <span style="color: #00cd00;">"http://spb.hh.ru/"</span>)
                               (<span style="color: #00cd00;">"remember"</span> . <span style="color: #00cd00;">"yes"</span>)
                               (<span style="color: #00cd00;">"action"</span>   . <span style="color: #00cd00;">"%D0%92%D0%BE%D0%B9%D1%82%D0%B8"</span>)
@@ -1705,7 +1705,7 @@ HR-специалист заинтересован в том, чтобы име�
         (err <span style="color: #00cd00;">"login failed"</span>))
       (<span style="color: #00cdcd; font-weight: bold;">when</span> (contains html <span style="color: #00cd00;">"&#1063;&#1090;&#1086;-&#1090;&#1086; &#1087;&#1086;&#1096;&#1083;&#1086; &#1085;&#1077; &#1090;&#1072;&#1082;"</span>)
         (err <span style="color: #00cd00;">"login error"</span>))
-      (<span style="color: #00cdcd; font-weight: bold;">when</span> (contains html <span style="color: #00cd00;">"&#1052;&#1080;&#1093;&#1072;&#1080;&#1083; &#1052;&#1080;&#1093;&#1072;&#1081;&#1083;&#1086;&#1074;&#1080;&#1095; &#1043;&#1083;&#1091;&#1093;&#1086;&#1074;"</span>)
+      (<span style="color: #00cdcd; font-weight: bold;">when</span> (contains html (hh_fio hhaccount))
         (<span style="color: #00cdcd; font-weight: bold;">return-from</span> recovery-login
           (values <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))</span>
                   html
@@ -1715,7 +1715,7 @@ HR-специалист заинтересован в том, чтобы име�
 </div>
 </div>
 
-<ol class="org-ol"><li><a id="sec-4-2-2-1-1"></a><span class="todo START">START</span> Аккаунты на источнике вакансий<br  /><div class="outline-text-6" id="text-4-2-2-1-1">
+<ol class="org-ol"><li><a id="sec-4-2-2-1-1"></a>Аккаунты на источнике вакансий<br  /><div class="outline-text-6" id="text-4-2-2-1-1">
 <table id="hhaccount_flds" border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 <caption class="t-above"><span class="table-number">Table 1:</span> Данные таблицы аккаунтов</caption>
 
@@ -1818,11 +1818,11 @@ HR-специалист заинтересован в том, чтобы име�
 
 <pre class="src src-lisp" id="data_for_account">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(make-hhaccount <span style="color: #0000ee; font-weight: bold;">:user_id</span> 1
-                 <span style="color: #0000ee; font-weight: bold;">:hh_source</span> <span style="color: #00cd00;">"hh"</span>
-                 <span style="color: #0000ee; font-weight: bold;">:hh_login</span> <span style="color: #00cd00;">"avenger-f@yandex.ru"</span>
-                 <span style="color: #0000ee; font-weight: bold;">:hh_password</span> <span style="color: #00cd00;">"jGwPswRAfU6sKEhVXX"</span>
-                 <span style="color: #0000ee; font-weight: bold;">:hh_fio</span> <span style="color: #00cd00;">"&#1052;&#1080;&#1093;&#1072;&#1080;&#1083; &#1052;&#1080;&#1093;&#1072;&#1081;&#1083;&#1086;&#1074;&#1080;&#1095; &#1043;&#1083;&#1091;&#1093;&#1086;&#1074;"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*hh_account*</span> (make-hhaccount <span style="color: #0000ee; font-weight: bold;">:user_id</span> 1
+                                           <span style="color: #0000ee; font-weight: bold;">:hh_source</span> <span style="color: #00cd00;">"hh"</span>
+                                           <span style="color: #0000ee; font-weight: bold;">:hh_login</span> <span style="color: #00cd00;">"avenger-f@yandex.ru"</span>
+                                           <span style="color: #0000ee; font-weight: bold;">:hh_password</span> <span style="color: #00cd00;">"jGwPswRAfU6sKEhVXX"</span>
+                                           <span style="color: #0000ee; font-weight: bold;">:hh_fio</span> <span style="color: #00cd00;">"&#1052;&#1080;&#1093;&#1072;&#1080;&#1083; &#1052;&#1080;&#1093;&#1072;&#1081;&#1083;&#1086;&#1074;&#1080;&#1095; &#1043;&#1083;&#1091;&#1093;&#1086;&#1074;"</span>))
 </pre>
 </div>
 </div>
@@ -8467,7 +8467,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-12-06 Вс. 00:29</p>
+<p class="date">Created: 2015-12-06 Вс. 22:48</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
