@@ -926,7 +926,7 @@
 ;; (print
 ;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
 
-(let ((cookie-jar    (make-instance 'drakma:cookie-jar)))
+(let ((cookie-jar (make-instance 'drakma:cookie-jar)))
   ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
   (defmethod process-teaser (current-teaser src-account referer)
     (dbg "process-teaser")
@@ -957,7 +957,7 @@
                        (incf page)
                        (when (equal 0 (length teasers))
                          (dbg "~~ FIN")
-                         (return-from get-vacancy nil)))))
+                         (return-from get-vacancy 'nil)))))
                  (get-teaser ()
                    (dbg "get-teaser")
                    (when (equal 0 (length teasers))
@@ -1179,35 +1179,35 @@
 
 
 
-(let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-
-  (defmethod response-factory ((vac-src (eql 'hh)))
+(let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+  (defmethod response-factory ((vac-src (eql 'hh)) src-account)
     (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
           (page     0)
           (responds nil))
       (alexandria:named-lambda get-responds ()
         (labels ((load-next-responds-page ()
-                   ;; (dbg "~~ LOAD (page=~A)" page)
-                   (setf responds (hh-parse-responds (hh-get-page (format nil url page)
-                                                                  temp-cookie-jar
-                                                                  "http://spb.hh.ru")))
-                   (incf page)
-                   (when (equal 0 (length responds))
-                     (dbg "~~ FIN")
-                     (return-from get-responds 'nil)))
+                   (dbg "load-next-responds-page (page=~A)" page)
+                   (let ((next-responds-page-url (format nil url page))
+                         (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
+                     (multiple-value-bind (next-responds-page new-cookies ref-url)
+                         (hh-get-page next-responds-page-url cookie-jar src-account referer)
+                       (setf cookie-jar new-cookies)
+                       (setf responds (hh-parse-responds next-responds-page))
+                       (incf page)
+                       (when (equal 0 (length responds))
+                         (dbg "~~ FIN")
+                         (return-from get-responds 'nil)))))
                  (get-respond ()
+                   (dbg "get-respond")
                    (when (equal 0 (length responds))
                      (load-next-responds-page))
-                   (let ((current-respond (car responds)))
-                     (setf responds (cdr responds))
-                     current-respond)))
+                   (prog1 (car responds)
+                     (setf responds (cdr responds))))))
           (tagbody get-new-respond
              (let ((current-respond (process-respond (get-respond))))
                (if (null current-respond)
                    (go get-new-respond)
                    (return-from get-responds current-respond))))))))
-
-  )
 
 (defun run-response ()
   (make-event :name "run-response"

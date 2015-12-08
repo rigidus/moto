@@ -528,7 +528,7 @@
 
      <<hh_parse_vacancy>>
 
-     (let ((cookie-jar    (make-instance 'drakma:cookie-jar)))
+     (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
        ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
        (defmethod process-teaser (current-teaser src-account referer)
          (dbg "process-teaser")
@@ -559,7 +559,7 @@
                             (incf page)
                             (when (equal 0 (length teasers))
                               (dbg "~~ FIN")
-                              (return-from get-vacancy nil)))))
+                              (return-from get-vacancy 'nil)))))
                       (get-teaser ()
                         (dbg "get-teaser")
                         (when (equal 0 (length teasers))
@@ -820,6 +820,13 @@
      загрузки любой страницы. Также важно обрабатывать ошибки, которые могут произойти
      при логине, например, если неверен пароль.
 
+     Для всех этих целей мы передаем в =recovery-login= объект =src-account=, который
+     содержит все необходимое, чтобы восстановить сессию: логин, пароль и ФИО
+     пользователя, по которому мы определяем, что успешно залогинились.
+
+     =recovery-login= вторым возвращаемым значением возвращает новый cookie-jar,
+     который нужно использовать для работы внутри сессии.
+
      #+NAME: hh_recovery_login
      #+BEGIN_SRC lisp
        (in-package #:moto)
@@ -896,13 +903,24 @@
              (err "login exception"))))
      #+END_SRC
 
-***** TODO Аккаунты на источнике вакансий
+***** Аккаунты на источнике вакансий
 
-      [TODO] - Надо записывать куки и проверять состяние аккаунта при =login-recovery=
+      Для того чтобы иметь возможность работать в нескольких одновременных сессиях
+      внутри одного потока выполнения мы осуществляем поддержку сессий следующим
+      образом: Все вызовы получения страниц (=hh-get-page=) работают таким образом, как
+      будто считают себя по умолчанию залогиненными в сессию, для этого им передается
+      параметр cookie-jar. В случае, если по каким-то причинам это оказалось не так -
+      сессия восстанавливается вызовом =recovery-login=, который получает
+      авторизационную информацияю из объекта =src-account=, который также протягивается
+      через всю цепочку: =factory= -> =get-vacancy::closure= -> =hh-get-page= ->
+      =recovery-login=. Возвращаемые из =recovery-login= куки попадают в замыкание и в
+      дальнейшем используются для работы в сессии.
 
-      [TODO] - Надо вместо замыкания =cookie-jar= протягивать =srcaccount= или его id
-
-      [TODO] - Аналогичным образом надо протягивать =referer=
+      Таким образом можно внутри одного потока выполения иметь несколько замыканий,
+      каждое из которых работает в своей сессии. Они могут выполнять разнообразные
+      задачи - сбор вакансий, отзывыв, опубликование резюме и.т.п. Для источника
+      вакансий это будет выглядеть как несколько пользователей, работающих с одного
+      адреса.
 
       #+CAPTION: Данные таблицы аккаунтов
       #+NAME: srcaccount_flds
@@ -3187,9 +3205,6 @@
    фунция =process-respond= не нуждается в замкнутых переменных (кукисах), т.к. не
    загружает страницу отзыва. Поэтому мы можем вынести ее из замыкания.
 
-   [TODO] - Эта функция нуждается в серьезном рефакторинге (линеаризация, использование
-   общих сессионных кук)
-
    #+NAME: response_factory
    #+BEGIN_SRC lisp :exports code :padline no :comments link
      (in-package #:moto)
@@ -3198,35 +3213,35 @@
 
      <<hh_process_respond>>
 
-     (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-
-       (defmethod response-factory ((vac-src (eql 'hh)))
+     (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+       (defmethod response-factory ((vac-src (eql 'hh)) src-account)
          (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
                (page     0)
                (responds nil))
            (alexandria:named-lambda get-responds ()
              (labels ((load-next-responds-page ()
-                        ;; (dbg "~~ LOAD (page=~A)" page)
-                        (setf responds (hh-parse-responds (hh-get-page (format nil url page)
-                                                                       temp-cookie-jar
-                                                                       "http://spb.hh.ru")))
-                        (incf page)
-                        (when (equal 0 (length responds))
-                          (dbg "~~ FIN")
-                          (return-from get-responds 'nil)))
+                        (dbg "load-next-responds-page (page=~A)" page)
+                        (let ((next-responds-page-url (format nil url page))
+                              (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
+                          (multiple-value-bind (next-responds-page new-cookies ref-url)
+                              (hh-get-page next-responds-page-url cookie-jar src-account referer)
+                            (setf cookie-jar new-cookies)
+                            (setf responds (hh-parse-responds next-responds-page))
+                            (incf page)
+                            (when (equal 0 (length responds))
+                              (dbg "~~ FIN")
+                              (return-from get-responds 'nil)))))
                       (get-respond ()
+                        (dbg "get-respond")
                         (when (equal 0 (length responds))
                           (load-next-responds-page))
-                        (let ((current-respond (car responds)))
-                          (setf responds (cdr responds))
-                          current-respond)))
+                        (prog1 (car responds)
+                          (setf responds (cdr responds))))))
                (tagbody get-new-respond
                   (let ((current-respond (process-respond (get-respond))))
                     (if (null current-respond)
                         (go get-new-respond)
                         (return-from get-responds current-respond))))))))
-
-       )
    #+END_SRC
 
 *** Разбор отзыва (=process-respond=)
@@ -3260,7 +3275,9 @@
        respond)
    #+END_SRC
 
-*** Разбор откликов (=hh_parse_responds=)
+*** TODO Разбор откликов (=hh_parse_responds=)
+
+   [TODO] - Эта функция нуждается в серьезном рефакторинге (линеаризация)
 
    #+NAME: hh_parse_responds
    #+BEGIN_SRC lisp :exports code :padline no :comments link
