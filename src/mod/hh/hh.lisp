@@ -1135,49 +1135,149 @@
 
 (in-package #:moto)
 
+
+(defun extract-responds-results (tree)
+  (block subtree-extract
+    (mtm (`("tbody" NIL ,@rest)
+           (return-from subtree-extract rest))
+         tree)))
+
+(make-detect (response-date)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+          ("span" (("class" "responses-date responses-date_dimmed")) ,result))
+    `(:response-date ,result)))
+
+(make-detect (result-date)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+          ("span" (("class" "responses-date")) ,result-date))
+    `(:result-date, result-date)))
+
+(make-detect (result-deny)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+          ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ")))
+
+(make-detect (result-invite)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+          ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение")))
+
+(make-detect (result-no-view)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен")))
+
+(make-detect (result-view)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен")))
+
+(make-detect (result-archive)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t)))
+
+(make-detect (responses-vacancy)
+  (`("td" (("class" "prosper-table__cell"))
+          ("div" (("class" "responses-vacancy"))
+                 ("a"
+                  (("class" ,_)
+                   ("target" "_blank") ("href" ,vacancy-link))
+                  ,vacancy-name))
+          ("div" (("class" "responses-company")) ,emp-name))
+    `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name)))
+
+(make-detect (responses-vacancy-disabled)
+  (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
+          ("div" (("class" "responses-company")) ,emp-name))
+    `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t)))
+
+(make-detect (topic)
+  (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
+    `((:topic-id ,topic-id) ,rest)))
+
+
+(defparameter *detect-trash* '("responses-trash" "cell_nowrap" "responses-bubble" "prosper-table__cell"))
+
+
+(make-detect (responses-trash)
+  (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) "responses-trash"))
+
+(make-detect (cell_nowrap)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) "cell_nowrap"))
+(make-detect (responses-bubble)
+  (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) "responses-bubble"))
+
+(make-detect (prosper-table__cell)
+  (`("td" (("class" "prosper-table__cell"))) "prosper-table__cell"))
+
+
 (defun hh-parse-responds (html)
-  "Получение списка откликов из html"
-  (mapcar #'(lambda (x) (reduce #'append x))
-          (mtm (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
-                 `(,@(remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
-               (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) `Z)
-                    (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) `Z)
-                         (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) `Z)
-                              (mtm (`("td" (("class" "prosper-table__cell"))) `Z)
-                                   (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
-                                                ("div" (("class" "responses-company")) ,emp-name))
-                                          `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
-                                        (mtm (`("td" (("class" "prosper-table__cell"))
-                                                     ("div" (("class" "responses-vacancy"))
-                                                            ("a"
-                                                             (("class" ,_)
-                                                              ("target" "_blank") ("href" ,vacancy-link))
-                                                             ,vacancy-name))
-                                                     ("div" (("class" "responses-company")) ,emp-name))
-                                               `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
-                                             (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t))
-                                                  (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен"))
-                                                       (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен"))
-                                                            (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                         ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение"))
-                                                                 (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                              ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ"))
-                                                                      (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                                   ("span" (("class" "responses-date")) ,result-date))
-                                                                             `(:result-date, result-date))
-                                                                           (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                                        ("span" (("class" "responses-date responses-date_dimmed")) ,result))
-                                                                                  `(:response-date ,result))
-                                                                                (block subtree-extract
-                                                                                  (mtm (`("tbody" NIL ,@rest)
-                                                                                         (return-from subtree-extract rest))
-                                                                                       (html5-parser:node-to-xmls
-                                                                                        (html5-parser:parse-html5-fragment html))))))))))))))))))))
+  "Получение списка вакансий из html"
+  (dbg "hh-parse-responds")
+  ;; (setf *last-parse-data* html)
+  (->> (html-to-tree html)
+       (extract-responds-results)
+       (detect-response-date)
+       (detect-response-date)
+       (detect-result-date)
+       (detect-result-deny)
+       (detect-result-invite)
+       (detect-result-no-view)
+       (detect-result-view)
+       (detect-result-archive)
+       (detect-responses-vacancy)
+       (detect-responses-vacancy-disabled)
+       (detect-topic)
+       ;; trash
+       (detect-responses-trash)
+       (detect-cell_nowrap)
+       (detect-responses-bubble)
+       (detect-prosper-table__cell)
+       ;; filter trash data
+       (maptree-if #'consp
+                   #'(lambda (x)
+                       (values
+                        (remove-if #'(lambda (x)
+                                       (when (stringp x)
+                                         (or
+                                          (string= x "div")
+                                          (find x *detect-trash* :test #'string=)
+                                          )))
+                                   x)
+                        #'mapcar)))
+       ;; linearize for each elt
+       (mapcar #'(lambda (tree)
+                   (let ((linearize))
+                     (maptree #'(lambda (x)
+                                  (setf linearize
+                                        (append linearize (list x))))
+                              tree)
+                     linearize)))
+       ))
 
-;; (print
-;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))
+;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+;;   (print
+;;    (hh-parse-responds
+;;     (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1" cookie-jar *hh_account* "http://spb.hh.ru" ))))
 
+(in-package :moto)
 
+(defmethod process-respond (respond)
+  ;; Найти src-id вакансии
+  (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
+    ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
+    (unless (equal "Не просмотрен" (getf respond :result))
+      (unless (null src-id)
+        ;; Если такая вакансия есть в бд
+        (let ((target (car (find-vacancy :src-id src-id))))
+          (unless (null target)
+            (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
+            ;; и у нее статус RESPONDED или BEENVIEWED  - установить статус
+            (when (or (equal ":RESPONDED" (state target))
+                      (equal ":BEENVIEWED" (state target)))
+              (cond ((equal "Просмотрен" (getf respond :result))
+                     (takt target :beenviewed))
+                    ((equal "Отказ" (getf respond :result))
+                     (takt target :reject))
+                    ((equal "Приглашение" (getf respond :result))
+                     (takt target :invite))
+                    ((equal "Не просмотрен" (getf respond :result))
+                     nil)
+                    (t (err (format nil "unk respond state ~A" (state target)))))))))))
+  respond)
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
   (defmethod response-factory ((vac-src (eql 'hh)) src-account)
@@ -1202,12 +1302,12 @@
                    (when (equal 0 (length responds))
                      (load-next-responds-page))
                    (prog1 (car responds)
-                     (setf responds (cdr responds))))))
+                     (setf responds (cdr responds)))))
           (tagbody get-new-respond
              (let ((current-respond (process-respond (get-respond))))
                (if (null current-respond)
                    (go get-new-respond)
-                   (return-from get-responds current-respond))))))))
+                   (return-from get-responds current-respond)))))))))
 
 (defun run-response ()
   (make-event :name "run-response"
@@ -1216,7 +1316,7 @@
               :author-id 0
               :ts-create (get-universal-time))
   (let ((archive-cnt 0))
-    (let ((gen (response-factory 'hh)))
+    (let ((gen (response-factory 'hh *hh_account*)))
       (loop :for i :from 1 :to 700 :do
          (let ((target (funcall gen)))
            (when (null target)
