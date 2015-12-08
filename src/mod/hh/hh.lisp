@@ -344,7 +344,7 @@
                  (search "DROP-TEASER-IF" (name x)))
              (get-all-rules)))
 
-(defmethod process-teaser :around (current-teaser)
+(defmethod process-teaser :around (current-teaser src-account referer)
   (dbg "process-teaser :around")
   (aif (process current-teaser (rules-for-teaser))
        (process (call-next-method it) (rules-for-vacancy))
@@ -368,11 +368,12 @@
 
 (in-package #:moto)
 
-(defparameter *hh_account* (make-hhaccount :user_id 1
-                                           :hh_source "hh"
-                                           :hh_login "avenger-f@yandex.ru"
-                                           :hh_password "jGwPswRAfU6sKEhVXX"
-                                           :hh_fio "Михаил Михайлович Глухов"))
+(defparameter *hh_account* (make-srcaccount :user_id 1
+                                            :src_source "hh"
+                                            :src_login "avenger-f@yandex.ru"
+                                            :src_password "jGwPswRAfU6sKEhVXX"
+                                            :src_fio "Михаил Михайлович Глухов"
+                                            :state ":ACTIVE"))
 
 (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0")
 
@@ -392,7 +393,7 @@
   (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
      (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
-(defun recovery-login (hhaccount)
+(defun recovery-login (src-account)
   ;; Сначала заходим на главную как будто первый раз, без печенек
   (setf drakma:*header-stream* nil)
   (let* ((start-uri "http://spb.hh.ru/")
@@ -410,10 +411,9 @@
     ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
     ;; И заходим с вот-таким гет-запросом:
     ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
-    ;; [TODO] - Позже сделаем так, чтобы гет-запрос брался из таблички, связанной с пользователем
     ;; (setf drakma:*header-stream* *standard-output*)
-    (let* ((post-parameters `(("username" . ,(hh_login hhaccount))
-                              ("password" . ,(hh_password hhaccount))
+    (let* ((post-parameters `(("username" . ,(src_login src-account))
+                              ("password" . ,(src_password src-account))
                               ("backUrl"  . "http://spb.hh.ru/")
                               ("remember" . "yes")
                               ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
@@ -437,7 +437,7 @@
         (err "login failed"))
       (when (contains html "Что-то пошло не так")
         (err "login error"))
-      (when (contains html (hh_fio hhaccount))
+      (when (contains html (src_fio src-account))
         (return-from recovery-login
           (values ;; (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))
                   html
@@ -446,7 +446,7 @@
 
 (defparameter *need-start* t)
 
-(defun hh-get-page (url cookie-jar referer)
+(defun hh-get-page (url cookie-jar src-account referer)
   "Получение страницы"
   ;; Если ни одного запроса еще не было - сделаем запрос к главной и снимем флаг
   (when *need-start*
@@ -474,7 +474,7 @@
            (err "max recovery-login try"))
          ;; Пытаемся восстановить сессию
          (multiple-value-bind (recovery-html recovery-cookie-jar)
-             (recovery-login *hh_account*)
+             (recovery-login src-account)
            (setf response recovery-html)
            (setf cookie-jar recovery-cookie-jar)
            (setf referer "https://spb.hh.ru/account/login"))
@@ -805,9 +805,7 @@
        (detect-emp)
        (detect-emp-anon)
        (detect-salary)
-       ;; (detect-interview)
        (detect-name)
-       ;; (detect-description)
        (detect-snippet)
        (detect-premium)
        (detect-standart)
@@ -928,48 +926,49 @@
 ;; (print
 ;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
 
-(let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;; -------
-  (defmethod process-teaser (current-teaser)
+(let ((cookie-jar    (make-instance 'drakma:cookie-jar)))
+  ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
+  (defmethod process-teaser (current-teaser src-account referer)
     (dbg "process-teaser")
-    (aif (hh-parse-vacancy (hh-get-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))
-                                        temp-cookie-jar
-                                        "http://spb.hh.ru"))
-         (merge-plists current-teaser it)
-         nil))
-  ;; -------
-  (defmethod factory ((vac-src (eql 'hh)) city prof-area &optional spec)
+    (let ((vacancy-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
+      (multiple-value-bind (vacancy new-cookies ref-url)
+          (hh-get-page vacancy-page cookie-jar src-account referer)
+        (setf cookie-jar new-cookies)
+        (aif (hh-parse-vacancy vacancy)
+             (merge-plists current-teaser it)
+             nil))))
+  ;; ------- эта функция возвращает get-vacancy, которая является генератором вакансий
+  (defmethod factory ((vac-src (eql 'hh)) src-account city prof-area &optional spec)
     (dbg "factory")
     ;; closure
-    (let ((url     (make-hh-url city prof-area spec))
-          (page    0)
-          (teasers nil))
+    (let ((url        (make-hh-url city prof-area spec))
+          (page       0)
+          (teasers    nil))
       ;; returned function-generator in closure
       (alexandria:named-lambda get-vacancy ()
         (labels ((load-next-teasers-page ()
                    (dbg "load-next-teasers-page (page=~A)" page)
-                   (setf teasers (hh-parse-vacancy-teasers (hh-get-page (format nil url page)
-                                                                        temp-cookie-jar
-                                                                        "http://spb.hh.ru")))
-                   (incf page)
-                   (when (equal 0 (length teasers))
-                     (dbg "~~ FIN")
-                     (return-from get-vacancy 'nil)))
+                   (let* ((next-teasers-page-url (format nil url page))
+                          (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
+                     (multiple-value-bind (next-teasers-page new-cookies ref-url)
+                         (hh-get-page next-teasers-page-url cookie-jar src-account referer)
+                       (setf cookie-jar new-cookies)
+                       (setf teasers (hh-parse-vacancy-teasers next-teasers-page))
+                       (incf page)
+                       (when (equal 0 (length teasers))
+                         (dbg "~~ FIN")
+                         (return-from get-vacancy nil)))))
                  (get-teaser ()
                    (dbg "get-teaser")
                    (when (equal 0 (length teasers))
                      (load-next-teasers-page))
-                   (let ((current-teaser (car teasers)))
-                     (setf teasers (cdr teasers))
-                     current-teaser)))
+                   (prog1 (car teasers)
+                     (setf teasers (cdr teasers)))))
           (tagbody get-new-teaser
-             (let ((current-teaser (get-teaser)))
-               (let ((current-vacancy (process-teaser current-teaser)))
-                 (if (null current-vacancy)
-                     (go get-new-teaser)
-                     (return-from get-vacancy current-vacancy)))))))))
-  ;; -------
-  )
+             (let ((current-vacancy (process-teaser (get-teaser) src-account (format nil url page))))
+               (if (null current-vacancy)
+                   (go get-new-teaser)
+                   (return-from get-vacancy current-vacancy)))))))))
 
 ;; (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
 ;;                     "Программирование, Разработка")))
@@ -978,12 +977,6 @@
 ;;      (let ((vacancy (funcall gen)))
 ;;        (when (null vacancy)
 ;;          (return))))))
-
-;; (print
-;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;   (hh-get-page (format nil (make-hh-url "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка") 0)
-;;                temp-cookie-jar
-;;                "http://spb.hh.ru")))
 
 (in-package #:moto)
 
@@ -1126,7 +1119,7 @@
               :msg (format nil "Сбор вакансий")
               :author-id 0
               :ts-create (get-universal-time))
-  (let ((gen (factory 'hh "spb" "Информационные технологии, интернет, телеком"
+  (let ((gen (factory 'hh *hh_account* "spb" "Информационные технологии, интернет, телеком"
                       "Программирование, Разработка")))
     (loop :for i :from 1 :to 100 :do
        (dbg "~A" i)
@@ -1138,73 +1131,55 @@
 
 (in-package #:moto)
 
+(in-package #:moto)
+
+(in-package #:moto)
+
+(defun hh-parse-responds (html)
+  "Получение списка откликов из html"
+  (mapcar #'(lambda (x) (reduce #'append x))
+          (mtm (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
+                 `(,@(remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
+               (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) `Z)
+                    (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) `Z)
+                         (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) `Z)
+                              (mtm (`("td" (("class" "prosper-table__cell"))) `Z)
+                                   (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
+                                                ("div" (("class" "responses-company")) ,emp-name))
+                                          `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
+                                        (mtm (`("td" (("class" "prosper-table__cell"))
+                                                     ("div" (("class" "responses-vacancy"))
+                                                            ("a"
+                                                             (("class" ,_)
+                                                              ("target" "_blank") ("href" ,vacancy-link))
+                                                             ,vacancy-name))
+                                                     ("div" (("class" "responses-company")) ,emp-name))
+                                               `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
+                                             (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t))
+                                                  (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен"))
+                                                       (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен"))
+                                                            (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                         ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение"))
+                                                                 (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                              ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ"))
+                                                                      (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                   ("span" (("class" "responses-date")) ,result-date))
+                                                                             `(:result-date, result-date))
+                                                                           (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+                                                                                        ("span" (("class" "responses-date responses-date_dimmed")) ,result))
+                                                                                  `(:response-date ,result))
+                                                                                (block subtree-extract
+                                                                                  (mtm (`("tbody" NIL ,@rest)
+                                                                                         (return-from subtree-extract rest))
+                                                                                       (html5-parser:node-to-xmls
+                                                                                        (html5-parser:parse-html5-fragment html))))))))))))))))))))
+
+;; (print
+;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))
+
+
+
 (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-
-  (defun hh-parse-responds (html)
-    "Получение списка откликов из html"
-    (mapcar #'(lambda (x) (reduce #'append x))
-            (mtm (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
-                   `(,@(remove-if #'(lambda (x) (or (equal x 'z) (equal x "noindex") (equal x "/noindex"))) rest)))
-                 (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) `Z)
-                      (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) `Z)
-                           (mtm (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) `Z)
-                                (mtm (`("td" (("class" "prosper-table__cell"))) `Z)
-                                     (mtm (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
-                                                  ("div" (("class" "responses-company")) ,emp-name))
-                                            `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t))
-                                          (mtm (`("td" (("class" "prosper-table__cell"))
-                                                       ("div" (("class" "responses-vacancy"))
-                                                              ("a"
-                                                               (("class" ,_)
-                                                                ("target" "_blank") ("href" ,vacancy-link))
-                                                               ,vacancy-name))
-                                                       ("div" (("class" "responses-company")) ,emp-name))
-                                                 `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name))
-                                               (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t))
-                                                    (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен"))
-                                                         (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен"))
-                                                              (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                           ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение"))
-                                                                   (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                                ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ"))
-                                                                        (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                                     ("span" (("class" "responses-date")) ,result-date))
-                                                                               `(:result-date, result-date))
-                                                                             (mtm (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-                                                                                          ("span" (("class" "responses-date responses-date_dimmed")) ,result))
-                                                                                    `(:response-date ,result))
-                                                                                  (block subtree-extract
-                                                                                    (mtm (`("tbody" NIL ,@rest)
-                                                                                           (return-from subtree-extract rest))
-                                                                                         (html5-parser:node-to-xmls
-                                                                                          (html5-parser:parse-html5-fragment html))))))))))))))))))))
-
-  ;; (print
-  ;;  (hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))
-
-  (defmethod process-respond (respond)
-    ;; Найти src-id вакансии
-    (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
-      ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
-      (unless (equal "Не просмотрен" (getf respond :result))
-        (unless (null src-id)
-          ;; Если такая вакансия есть в бд
-          (let ((target (car (find-vacancy :src-id src-id))))
-            (unless (null target)
-              (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
-              ;; и у нее статус RESPONDED или BEENVIEWED  - установить статус
-              (when (or (equal ":RESPONDED" (state target))
-                        (equal ":BEENVIEWED" (state target)))
-                (cond ((equal "Просмотрен" (getf respond :result))
-                       (takt target :beenviewed))
-                      ((equal "Отказ" (getf respond :result))
-                       (takt target :reject))
-                      ((equal "Приглашение" (getf respond :result))
-                       (takt target :invite))
-                      ((equal "Не просмотрен" (getf respond :result))
-                       nil)
-                      (t (err (format nil "unk respond state ~A" (state target)))))))))))
-    respond)
 
   (defmethod response-factory ((vac-src (eql 'hh)))
     (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
@@ -1232,27 +1207,28 @@
                    (go get-new-respond)
                    (return-from get-responds current-respond))))))))
 
-  (defun run-response ()
-    (make-event :name "run-response"
-                :tag "parser-run"
-                :msg (format nil "Сбор откликов и приглашений")
-                :author-id 0
-                :ts-create (get-universal-time))
-    (let ((archive-cnt 0))
-      (let ((gen (response-factory 'hh)))
-        (loop :for i :from 1 :to 700 :do
-           (let ((target (funcall gen)))
-             (when (null target)
-               (return-from run-response 'FIN-NIL))
-             (when (getf target :archive)
-               (incf archive-cnt))
-             (when (> archive-cnt 140)
-               (return-from run-response 'ARCHIVE))
-             ;; (print target)
-             ))
-        (return-from run-response 'loop))))
-
   )
+
+(defun run-response ()
+  (make-event :name "run-response"
+              :tag "parser-run"
+              :msg (format nil "Сбор откликов и приглашений")
+              :author-id 0
+              :ts-create (get-universal-time))
+  (let ((archive-cnt 0))
+    (let ((gen (response-factory 'hh)))
+      (loop :for i :from 1 :to 700 :do
+         (let ((target (funcall gen)))
+           (when (null target)
+             (return-from run-response 'FIN-NIL))
+           (when (getf target :archive)
+             (incf archive-cnt))
+           (when (> archive-cnt 140)
+             (return-from run-response 'ARCHIVE))
+           ;; (print target)
+           ))
+      (return-from run-response 'loop))))
+
 ;; (run-response)
 
 (in-package #:moto)

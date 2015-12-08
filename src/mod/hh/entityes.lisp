@@ -127,14 +127,17 @@
   ((:active :inactive :rule-activation)
    (:inactive :active :rule-deactivation)))
 
-(define-automat hhaccount "Автомат аккаунта"
+(define-automat srcaccount "Автомат аккаунта"
   ((id serial)
    (user_id integer)
-   (hh_source varchar)
-   (hh_login varchar)
-   (hh_password varchar)
-   (hh_fio varchar))
-  (:inactive :active)
+   (src_source varchar)
+   (src_login varchar)
+   (src_password varchar)
+   (src_fio varchar))
+  (:wrong :logged :inactive :active)
   ((:active :inactive :account-activation)
-   (:inactive :active :account-deactivation)))
+   (:inactive :active :account-deactivation)
+   (:active :logged :account-login)
+   (:logged :active :account-logout)
+   (:active :wrong :account-wrong)))
 ;; entity_and_automates ends here
