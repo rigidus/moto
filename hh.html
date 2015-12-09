@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-12-08 Вт. 06:13 -->
+<!-- 2015-12-09 Ср. 06:04 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -295,11 +295,11 @@ for the JavaScript code in this tag.
 </ul>
 </li>
 <li><a href="#sec-4-11">4.11. <span class="todo nilTODO">TODO</span> Сущность резюме соискателя (<code>entity:resume</code>)</a></li>
-<li><a href="#sec-4-12">4.12. <span class="todo nilTODO">TODO</span> Отправка отклика (<code>send-respond</code>)</a></li>
+<li><a href="#sec-4-12">4.12. Отправка отклика (<code>send-respond</code>)</a></li>
 <li><a href="#sec-4-13">4.13. Фабрика генераторов отзывов (<code>response-factory</code>)</a>
 <ul>
 <li><a href="#sec-4-13-1">4.13.1. Разбор отзыва (<code>process-respond</code>)</a></li>
-<li><a href="#sec-4-13-2">4.13.2. <span class="todo nilTODO">TODO</span> Разбор откликов (<code>hh_parse_responds</code>)</a></li>
+<li><a href="#sec-4-13-2">4.13.2. Разбор откликов (<code>hh_parse_responds</code>)</a></li>
 </ul>
 </li>
 <li><a href="#sec-4-14">4.14. Получение и обработка отзывов (<code>run-response</code>)</a></li>
@@ -4768,119 +4768,57 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
 </div>
 
 <div id="outline-container-sec-4-12" class="outline-3">
-<h3 id="sec-4-12"><span class="section-number-3">4.12</span> <span class="todo TODO">TODO</span> Отправка отклика (<code>send-respond</code>)</h3>
+<h3 id="sec-4-12"><span class="section-number-3">4.12</span> Отправка отклика (<code>send-respond</code>)</h3>
 <div class="outline-text-3" id="text-4-12">
-<p>
-[TODO] - Эта часть нуждается в рефакторинге, чтобы использовать общие сессионые куки
-</p>
-
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="send_respond">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">make-additional-headers</span> (referer cookies)
-    `((<span style="color: #00cd00;">"Accept"</span>           . <span style="color: #00cd00;">"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"</span>)
-      (<span style="color: #00cd00;">"Accept-Language"</span>  . <span style="color: #00cd00;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
-      (<span style="color: #00cd00;">"Accept-Charset"</span>   . <span style="color: #00cd00;">"utf-8"</span>)
-      (<span style="color: #00cd00;">"Referer"</span>          . ,referer)
-      (<span style="color: #00cd00;">"Cache-Control"</span>    . <span style="color: #00cd00;">"no-cache"</span>)
-      (<span style="color: #00cd00;">"Cookie"</span>           . ,(format nil <span style="color: #00cd00;">"~{~{~A=~A~}~^; ~}"</span> cookies))))
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">send-respond</span> (vacancy-id cookie-jar resume-id letter)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((url (format nil <span style="color: #00cd00;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id)))
+    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1091;</span>
+    (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+        (hh-get-page url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1090;&#1086;&#1084; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; &#1074;&#1089;&#1087;&#1083;&#1099;&#1074;&#1072;&#1102;&#1097;&#1077;&#1077; &#1086;&#1082;&#1085;&#1086; (X-Requested-With: XMLHttpRequest, Referer)</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((url-popup (format nil <span style="color: #00cd00;">"http://spb.hh.ru/applicant/vacancy_response/popup?vacancyId=~A&amp;autoOpen=no&amp;isTest=no&amp;withoutTest=no"</span> vacancy-id)))
+        (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+            (hh-get-page url-popup cookie-jar *hh_account* url)
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1091;&#1090; &#1084;&#1086;&#1078;&#1085;&#1086; &#1073;&#1099;&#1083;&#1086; &#1073;&#1099; &#1087;&#1088;&#1086;&#1072;&#1085;&#1072;&#1083;&#1080;&#1079;&#1080;&#1088;&#1086;&#1074;&#1072;&#1090;&#1100; &#1092;&#1086;&#1088;&#1084;&#1091; &#1085;&#1072; &#1087;&#1088;&#1077;&#1076;&#1084;&#1077;&#1090; &#1089;&#1086;&#1086;&#1090;&#1074;&#1077;&#1090;&#1089;&#1090;&#1074;&#1080;&#1103; &#1074;&#1099;&#1073;&#1080;&#1088;&#1072;&#1077;&#1084;&#1099;&#1093; &#1088;&#1077;&#1079;&#1102;&#1084;&#1077;</span>
+          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-alist (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (cookie)
+                                          (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+                                      (drakma:cookie-jar-cookies cookie-jar))))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1087;&#1077;&#1088;&#1100; &#1086;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; POST-&#1079;&#1072;&#1087;&#1088;&#1086;&#1089;</span>
+            (<span style="color: #00cdcd; font-weight: bold;">let</span> ((resp (drakma:http-request
+                         <span style="color: #00cd00;">"http://spb.hh.ru/applicant/vacancy_response/popup"</span>
+                         <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"</span>
+                         <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
+                         <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
+                                          (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                                      (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
+                                                  `((<span style="color: #00cd00;">"vacancy_id"</span> . ,(format nil <span style="color: #00cd00;">"~A"</span> vacancy-id))
+                                                    (<span style="color: #00cd00;">"resume_id"</span> . ,(format nil <span style="color: #00cd00;">"~A"</span> resume-id))
+                                                    (<span style="color: #00cd00;">"letter"</span> . ,(drakma:url-encode letter <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
+                                                    (<span style="color: #00cd00;">"_xsrf"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                                                    (<span style="color: #00cd00;">"ignore_postponed"</span> . <span style="color: #00cd00;">"true"</span>))))
+                         <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+                         <span style="color: #0000ee; font-weight: bold;">:additional-headers</span>
+                         `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"*/*"</span>)
+                           (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"en-US,en;q=0.5"</span>)
+                           (<span style="color: #00cd00;">"Accept-Encoding"</span> . <span style="color: #00cd00;">"gzip, deflate"</span>)
+                           (<span style="color: #00cd00;">"X-Xsrftoken"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                           (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
+                           (<span style="color: #00cd00;">"Referer"</span> . ,(format nil <span style="color: #00cd00;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id))
+                           (<span style="color: #00cd00;">"Connection"</span> . <span style="color: #00cd00;">"keep-alive"</span>)
+                           (<span style="color: #00cd00;">"Pragma"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                           (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                           )
+                         <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+                         <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)))
+              (flexi-streams:octets-to-string resp <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))))))))
 
-(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">send-respond</span> (vacancy-id resume-id letter)
-  (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((hhtoken     (cdr (assoc <span style="color: #00cd00;">"hhtoken"</span> *cookies* <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
-         (hhuid       (cdr (assoc <span style="color: #00cd00;">"hhuid"</span> *cookies* <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
-         (xsrf        (cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> *cookies* <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
-         (hhrole      <span style="color: #00cd00;">"applicant"</span>)
-         (crypted-id  <span style="color: #00cd00;">"2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8"</span>)
-         (cookie-jar (make-instance 'drakma:cookie-jar))
-         (html (flexi-streams:octets-to-string
-                (drakma:http-request
-                 (format nil <span style="color: #00cd00;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id)
-                 <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"</span>
-                 <span style="color: #0000ee; font-weight: bold;">:additional-headers</span> (make-additional-headers <span style="color: #00cd00;">"http://spb.hh.ru/"</span>
-                                                              `((<span style="color: #00cd00;">"redirect_host"</span>       <span style="color: #00cd00;">"spb.hh.ru"</span>)  (<span style="color: #00cd00;">"regions"</span>             <span style="color: #00cd00;">"2"</span>)        (<span style="color: #00cd00;">"_xsrf"</span>               ,xsrf)
-                                                                (<span style="color: #00cd00;">"hhtoken"</span>             ,hhtoken)     (<span style="color: #00cd00;">"hhuid"</span>               ,hhuid)     (<span style="color: #00cd00;">"hhrole"</span>              ,hhrole)
-                                                                (<span style="color: #00cd00;">"GMT"</span>                 <span style="color: #00cd00;">"3"</span>)          (<span style="color: #00cd00;">"display"</span>             <span style="color: #00cd00;">"desktop"</span>)))
-                 <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
-                <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
-         (cookie-data (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> cookie <span style="color: #0000ee; font-weight: bold;">:in</span> (drakma:cookie-jar-cookies cookie-jar) <span style="color: #0000ee; font-weight: bold;">:append</span>
-                         (list (intern (string-upcase (drakma:cookie-name cookie)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>) (drakma:cookie-value cookie))))
-         (unique-banner-user (getf cookie-data <span style="color: #0000ee; font-weight: bold;">:unique_banner_user</span>)))
-    (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal crypted-id (getf cookie-data <span style="color: #0000ee; font-weight: bold;">:crypted_id</span>)))
-    (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"applicant"</span> (getf cookie-data <span style="color: #0000ee; font-weight: bold;">:hhrole</span>)))
-    (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal xsrf (getf cookie-data <span style="color: #0000ee; font-weight: bold;">:_xsrf</span>)))
-    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html)))
-           (name (<span style="color: #00cdcd; font-weight: bold;">block</span> namer (mtm (`(<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"navi-item__switcher HH-Navi-MenuItems-Switcher"</span>) (<span style="color: #00cd00;">"data-qa"</span> <span style="color: #00cd00;">"mainmenu_normalUserName"</span>))
-                                            ,name (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"navi-item__post"</span>))))
-                                     (<span style="color: #00cdcd; font-weight: bold;">return-from</span> namer name))
-                                   tree))))
-      (<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"&#1052;&#1080;&#1093;&#1072;&#1080;&#1083; &#1052;&#1080;&#1093;&#1072;&#1081;&#1083;&#1086;&#1074;&#1080;&#1095; &#1043;&#1083;&#1091;&#1093;&#1086;&#1074;"</span> name))
-      (sleep 1)
-      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-jar (make-instance 'drakma:cookie-jar)))
-        (flexi-streams:octets-to-string
-         (drakma:http-request
-          <span style="color: #00cd00;">"http://spb.hh.ru/applicant/vacancy_response/popup"</span>
-          <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"</span>
-          <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
-          <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
-                           (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
-                                       (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
-                                   `((<span style="color: #00cd00;">"vacancy_id"</span> . ,(format nil <span style="color: #00cd00;">"~A"</span> vacancy-id))
-                                     (<span style="color: #00cd00;">"resume_id"</span> . ,(format nil <span style="color: #00cd00;">"~A"</span> resume-id))
-                                     (<span style="color: #00cd00;">"letter"</span> . ,(drakma:url-encode letter <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
-                                     (<span style="color: #00cd00;">"_xsrf"</span> . ,xsrf)
-                                     (<span style="color: #00cd00;">"ignore_postponed"</span> . <span style="color: #00cd00;">"true"</span>))))
-          <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
-          <span style="color: #0000ee; font-weight: bold;">:additional-headers</span> `((<span style="color: #00cd00;">"Accept"</span>           . <span style="color: #00cd00;">"*/*"</span>)
-                                (<span style="color: #00cd00;">"Accept-Language"</span>  . <span style="color: #00cd00;">"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3"</span>)
-                                (<span style="color: #00cd00;">"Accept-Encoding"</span>  . <span style="color: #00cd00;">"gzip, deflate"</span>)
-                                (<span style="color: #00cd00;">"X-Xsrftoken"</span>      . ,xsrf)
-                                (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
-                                (<span style="color: #00cd00;">"Referer"</span>          . ,(format nil <span style="color: #00cd00;">"http://spb.hh.ru/vacancy/~A"</span> vacancy-id))
-                                (<span style="color: #00cd00;">"Cookie"</span>           . ,(format nil <span style="color: #00cd00;">"~{~A~^;~}"</span>
-                                                               (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
-                                                                           (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
-                                                                       `((<span style="color: #00cd00;">"redirect_host"</span> . <span style="color: #00cd00;">"vladivostok.hh.ru"</span>)
-                                                                         (<span style="color: #00cd00;">"regions"</span> . <span style="color: #00cd00;">"2"</span>)
-                                                                         (<span style="color: #00cd00;">"__utma"</span> . <span style="color: #00cd00;">"192485224.1206865564.1390484616.1421799450.1421859024.49"</span>)
-                                                                         (<span style="color: #00cd00;">"__utmz"</span> . <span style="color: #00cd00;">"192485224.1390484616.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)"</span>)
-                                                                         (<span style="color: #00cd00;">"hipsterShown"</span> . <span style="color: #00cd00;">"true"</span>)
-                                                                         (<span style="color: #00cd00;">"hhref"</span> . <span style="color: #00cd00;">""</span>)
-                                                                         (<span style="color: #00cd00;">"vishnu1.userid"</span> . <span style="color: #00cd00;">"2B9E046016B13C9E701CAC5A276D51C8A5471C6F722104504734B32F0D03E9F8"</span>)
-                                                                         (<span style="color: #00cd00;">"lt-vc"</span> . <span style="color: #00cd00;">"11"</span>)
-                                                                         (<span style="color: #00cd00;">"hhtoken"</span> . ,hhtoken)
-                                                                         (<span style="color: #00cd00;">"hhuid"</span> . ,hhuid)
-                                                                         (<span style="color: #00cd00;">"hhrole"</span> . ,hhrole)
-                                                                         (<span style="color: #00cd00;">"GMT"</span> . <span style="color: #00cd00;">"3"</span>)
-                                                                         (<span style="color: #00cd00;">"display"</span> . <span style="color: #00cd00;">"desktop"</span>)
-                                                                         (<span style="color: #00cd00;">"_xsrf"</span> . ,xsrf)
-                                                                         (<span style="color: #00cd00;">"JSESSIONID"</span> . <span style="color: #00cd00;">"1i5cpqbtgjgh7ztfwncgixv8c"</span>)
-                                                                         (<span style="color: #00cd00;">"lrp"</span> . <span style="color: #00cd00;">"\"http://spb.hh.ru/\""</span>)
-                                                                         (<span style="color: #00cd00;">"lrr"</span> . <span style="color: #00cd00;">"true"</span>)
-                                                                         (<span style="color: #00cd00;">"crypted_id"</span> . ,crypted-id)
-                                                                         (<span style="color: #00cd00;">"lt-tl"</span> . <span style="color: #00cd00;">"8xmy,rn2r,21i1,6gix"</span>)
-                                                                         (<span style="color: #00cd00;">"lt-on-site-time"</span> . <span style="color: #00cd00;">"1421859023"</span>)
-                                                                         (<span style="color: #00cd00;">"_xsrf"</span> . <span style="color: #00cd00;">"ed689ea1ff02a3074c848b69225e3c78"</span>)
-                                                                         (<span style="color: #00cd00;">"crypted_id"</span> . ,crypted-id)
-                                                                         (<span style="color: #00cd00;">"unique_banner_user"</span> . ,unique-banner-user)
-                                                                         (<span style="color: #00cd00;">"__utmb"</span> . <span style="color: #00cd00;">"192485224.39.10.1421859024"</span>)
-                                                                         (<span style="color: #00cd00;">"__utmc"</span> . <span style="color: #00cd00;">"192485224"</span>)
-                                                                         (<span style="color: #00cd00;">"lt-8xmy"</span> . <span style="color: #00cd00;">"46005334"</span>)
-                                                                         (<span style="color: #00cd00;">"lt-rn2r"</span> . <span style="color: #00cd00;">"46005334"</span>)
-                                                                         (<span style="color: #00cd00;">"lt-21i1"</span> . <span style="color: #00cd00;">"46005334"</span>)
-                                                                         (<span style="color: #00cd00;">"__utmt_vishnu1"</span> . <span style="color: #00cd00;">"1"</span>)
-                                                                         (<span style="color: #00cd00;">"lt-6gix"</span> . <span style="color: #00cd00;">"46005334"</span>)))))
-                                (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>))
-          <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
-          <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
-         <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>)))))
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(respond 12644276 7628220 "&#1047;&#1076;&#1088;&#1072;&#1074;&#1089;&#1090;&#1074;&#1091;&#1081;&#1090;&#1077;, &#1103; &#1087;&#1086;&#1076;&#1093;&#1086;&#1078;&#1091; &#1087;&#1086;&#1076; &#1074;&#1072;&#1096;&#1080; &#1090;&#1088;&#1077;&#1073;&#1086;&#1074;&#1072;&#1085;&#1080;&#1103;. &#1050;&#1086;&#1075;&#1076;&#1072; &#1084;&#1086;&#1078;&#1085;&#1086; &#1076;&#1086;&#1075;&#1086;&#1074;&#1086;&#1088;&#1080;&#1090;&#1100;&#1089;&#1103; &#1086; &#1089;&#1086;&#1073;&#1077;&#1089;&#1077;&#1076;&#1086;&#1074;&#1072;&#1085;&#1080;&#1080;? &#1052;&#1080;&#1093;&#1072;&#1080;&#1083; 8(911)286-92-90")</span>
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(let ((respond (respond 12646549 7628220 "&#1090;&#1077;&#1089;&#1090;")))</span>
-<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(print respond))</span>
-
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(setf drakma:*header-stream* *standard-output*)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(send-respond "15382394" cookie-jar "39357756" "letter")))</span>
 </pre>
 </div>
 </div>
@@ -4920,9 +4858,9 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
 
 <pre class="src src-lisp" id="response_factory">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-&lt;&lt;hh_parse_responds&gt;&gt;
+&lt;&lt;parse_responds&gt;&gt;
 
-&lt;&lt;hh_process_respond&gt;&gt;
+&lt;&lt;process_respond&gt;&gt;
 
 (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-jar (make-instance 'drakma:cookie-jar)))
   (<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">response-factory</span> ((vac-src (eql 'hh)) src-account)
@@ -4947,12 +4885,12 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
                    (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal 0 (length responds))
                      (load-next-responds-page))
                    (<span style="color: #00cdcd; font-weight: bold;">prog1</span> (car responds)
-                     (setf responds (cdr responds))))))
+                     (setf responds (cdr responds)))))
           (<span style="color: #00cdcd; font-weight: bold;">tagbody</span> get-new-respond
              (<span style="color: #00cdcd; font-weight: bold;">let</span> ((current-respond (process-respond (get-respond))))
                (<span style="color: #00cdcd; font-weight: bold;">if</span> (null current-respond)
                    (<span style="color: #00cdcd; font-weight: bold;">go</span> get-new-respond)
-                   (<span style="color: #00cdcd; font-weight: bold;">return-from</span> get-responds current-respond))))))))
+                   (<span style="color: #00cdcd; font-weight: bold;">return-from</span> get-responds current-respond)))))))))
 </pre>
 </div>
 </div>
@@ -4993,57 +4931,129 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
 </div>
 
 <div id="outline-container-sec-4-13-2" class="outline-4">
-<h4 id="sec-4-13-2"><span class="section-number-4">4.13.2</span> <span class="todo TODO">TODO</span> Разбор откликов (<code>hh_parse_responds</code>)</h4>
+<h4 id="sec-4-13-2"><span class="section-number-4">4.13.2</span> Разбор откликов (<code>hh_parse_responds</code>)</h4>
 <div class="outline-text-4" id="text-4-13-2">
-<p>
-[TODO] - Эта функция нуждается в серьезном рефакторинге (линеаризация)
-</p>
-
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="hh_parse_responds">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+<pre class="src src-lisp" id="parse_responds">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">extract-responds-results</span> (tree)
+  (<span style="color: #00cdcd; font-weight: bold;">block</span> subtree-extract
+    (mtm (`(<span style="color: #00cd00;">"tbody"</span> NIL ,@rest)
+           (<span style="color: #00cdcd; font-weight: bold;">return-from</span> subtree-extract rest))
+         tree)))
+
+(make-detect (response-date)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
+          (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-date responses-date_dimmed"</span>)) ,result))
+    `(<span style="color: #0000ee; font-weight: bold;">:response-date</span> ,result)))
+
+(make-detect (result-date)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
+          (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-date"</span>)) ,result-date))
+    `(<span style="color: #0000ee; font-weight: bold;">:result-date</span>, result-date)))
+
+(make-detect (result-deny)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
+          (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"negotiations__denial"</span>)) <span style="color: #00cd00;">"&#1054;&#1090;&#1082;&#1072;&#1079;"</span>)) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1054;&#1090;&#1082;&#1072;&#1079;"</span>)))
+
+(make-detect (result-invite)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
+          (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"negotiations__invitation"</span>)) <span style="color: #00cd00;">"&#1055;&#1088;&#1080;&#1075;&#1083;&#1072;&#1096;&#1077;&#1085;&#1080;&#1077;"</span>)) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1080;&#1075;&#1083;&#1072;&#1096;&#1077;&#1085;&#1080;&#1077;"</span>)))
+
+(make-detect (result-no-view)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>)) <span style="color: #00cd00;">"&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>)))
+
+(make-detect (result-view)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>)) <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>)))
+
+(make-detect (result-archive)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>)) <span style="color: #00cd00;">"&#1042; &#1072;&#1088;&#1093;&#1080;&#1074;&#1077;"</span>) `(<span style="color: #0000ee; font-weight: bold;">:archive</span> t)))
+
+(make-detect (responses-vacancy)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>))
+          (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-vacancy"</span>))
+                 (<span style="color: #00cd00;">"a"</span>
+                  ((<span style="color: #00cd00;">"class"</span> ,_)
+                   (<span style="color: #00cd00;">"target"</span> <span style="color: #00cd00;">"_blank"</span>) (<span style="color: #00cd00;">"href"</span> ,vacancy-link))
+                  ,vacancy-name))
+          (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-company"</span>)) ,emp-name))
+    `(<span style="color: #0000ee; font-weight: bold;">:vacancy-link</span> ,vacancy-link <span style="color: #0000ee; font-weight: bold;">:vacancy-name</span> ,vacancy-name <span style="color: #0000ee; font-weight: bold;">:emp-name</span> ,emp-name)))
+
+(make-detect (responses-vacancy-disabled)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>)) (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-vacancy responses-vacancy_disabled"</span>)) ,vacancy-name)
+          (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-company"</span>)) ,emp-name))
+    `(<span style="color: #0000ee; font-weight: bold;">:vacancy-name</span> ,vacancy-name <span style="color: #0000ee; font-weight: bold;">:emp-name</span> ,emp-name <span style="color: #0000ee; font-weight: bold;">:disabled</span> t)))
+
+(make-detect (topic)
+  (`(<span style="color: #00cd00;">"tr"</span> ((<span style="color: #00cd00;">"data-hh-negotiations-responses-topic-id"</span> ,topic-id) (<span style="color: #00cd00;">"class"</span> ,_)) ,@rest)
+    `((<span style="color: #0000ee; font-weight: bold;">:topic-id</span> ,topic-id) ,rest)))
+
+
+(<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*detect-trash*</span> '(<span style="color: #00cd00;">"responses-trash"</span> <span style="color: #00cd00;">"cell_nowrap"</span> <span style="color: #00cd00;">"responses-bubble"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>))
+
+
+(make-detect (responses-trash)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>)) (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-trash"</span>)) ,@rest)) <span style="color: #00cd00;">"responses-trash"</span>))
+
+(make-detect (cell_nowrap)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))) <span style="color: #00cd00;">"cell_nowrap"</span>))
+(make-detect (responses-bubble)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>)) (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-bubble HH-Responses-NotificationIcon"</span>)))) <span style="color: #00cd00;">"responses-bubble"</span>))
+
+(make-detect (prosper-table__cell)
+  (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>))) <span style="color: #00cd00;">"prosper-table__cell"</span>))
+
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-parse-responds</span> (html)
-  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1086;&#1090;&#1082;&#1083;&#1080;&#1082;&#1086;&#1074; &#1080;&#1079; html"</span>
-  (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (reduce #'append x))
-          (mtm (`(<span style="color: #00cd00;">"tr"</span> ((<span style="color: #00cd00;">"data-hh-negotiations-responses-topic-id"</span> ,topic-id) (<span style="color: #00cd00;">"class"</span> ,_)) ,@rest)
-                 `(,@(remove-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x) (or (equal x 'z) (equal x <span style="color: #00cd00;">"noindex"</span>) (equal x <span style="color: #00cd00;">"/noindex"</span>))) rest)))
-               (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>)) (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-trash"</span>)) ,@rest)) `Z)
-                    (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))) `Z)
-                         (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>)) (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-bubble HH-Responses-NotificationIcon"</span>)))) `Z)
-                              (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>))) `Z)
-                                   (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>)) (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-vacancy responses-vacancy_disabled"</span>)) ,vacancy-name)
-                                                (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-company"</span>)) ,emp-name))
-                                          `(<span style="color: #0000ee; font-weight: bold;">:vacancy-name</span> ,vacancy-name <span style="color: #0000ee; font-weight: bold;">:emp-name</span> ,emp-name <span style="color: #0000ee; font-weight: bold;">:disabled</span> t))
-                                        (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>))
-                                                     (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-vacancy"</span>))
-                                                            (<span style="color: #00cd00;">"a"</span>
-                                                             ((<span style="color: #00cd00;">"class"</span> ,_)
-                                                              (<span style="color: #00cd00;">"target"</span> <span style="color: #00cd00;">"_blank"</span>) (<span style="color: #00cd00;">"href"</span> ,vacancy-link))
-                                                             ,vacancy-name))
-                                                     (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-company"</span>)) ,emp-name))
-                                               `(<span style="color: #0000ee; font-weight: bold;">:vacancy-link</span> ,vacancy-link <span style="color: #0000ee; font-weight: bold;">:vacancy-name</span> ,vacancy-name <span style="color: #0000ee; font-weight: bold;">:emp-name</span> ,emp-name))
-                                             (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>)) <span style="color: #00cd00;">"&#1042; &#1072;&#1088;&#1093;&#1080;&#1074;&#1077;"</span>) `(<span style="color: #0000ee; font-weight: bold;">:archive</span> t))
-                                                  (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>)) <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>))
-                                                       (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>)) <span style="color: #00cd00;">"&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span>))
-                                                            (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
-                                                                         (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"negotiations__invitation"</span>)) <span style="color: #00cd00;">"&#1055;&#1088;&#1080;&#1075;&#1083;&#1072;&#1096;&#1077;&#1085;&#1080;&#1077;"</span>)) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1055;&#1088;&#1080;&#1075;&#1083;&#1072;&#1096;&#1077;&#1085;&#1080;&#1077;"</span>))
-                                                                 (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
-                                                                              (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"negotiations__denial"</span>)) <span style="color: #00cd00;">"&#1054;&#1090;&#1082;&#1072;&#1079;"</span>)) `(<span style="color: #0000ee; font-weight: bold;">:result</span> <span style="color: #00cd00;">"&#1054;&#1090;&#1082;&#1072;&#1079;"</span>))
-                                                                      (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
-                                                                                   (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-date"</span>)) ,result-date))
-                                                                             `(<span style="color: #0000ee; font-weight: bold;">:result-date</span>, result-date))
-                                                                           (mtm (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell prosper-table__cell_nowrap"</span>))
-                                                                                        (<span style="color: #00cd00;">"span"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-date responses-date_dimmed"</span>)) ,result))
-                                                                                  `(<span style="color: #0000ee; font-weight: bold;">:response-date</span> ,result))
-                                                                                (<span style="color: #00cdcd; font-weight: bold;">block</span> subtree-extract
-                                                                                  (mtm (`(<span style="color: #00cd00;">"tbody"</span> NIL ,@rest)
-                                                                                         (<span style="color: #00cdcd; font-weight: bold;">return-from</span> subtree-extract rest))
-                                                                                       (html5-parser:node-to-xmls
-                                                                                        (html5-parser:parse-html5-fragment html))))))))))))))))))))
+  <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1080;&#1079; html"</span>
+  (dbg <span style="color: #00cd00;">"hh-parse-responds"</span>)
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(setf *last-parse-data* html)</span>
+  (-&gt;&gt; (html-to-tree html)
+       (extract-responds-results)
+       (detect-response-date)
+       (detect-response-date)
+       (detect-result-date)
+       (detect-result-deny)
+       (detect-result-invite)
+       (detect-result-no-view)
+       (detect-result-view)
+       (detect-result-archive)
+       (detect-responses-vacancy)
+       (detect-responses-vacancy-disabled)
+       (detect-topic)
+       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">trash</span>
+       (detect-responses-trash)
+       (detect-cell_nowrap)
+       (detect-responses-bubble)
+       (detect-prosper-table__cell)
+       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">filter trash data</span>
+       (maptree-if #'consp
+                   #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                       (values
+                        (remove-if #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                       (<span style="color: #00cdcd; font-weight: bold;">when</span> (stringp x)
+                                         (or
+                                          (string= x <span style="color: #00cd00;">"div"</span>)
+                                          (find x *detect-trash* <span style="color: #0000ee; font-weight: bold;">:test</span> #'string=)
+                                          )))
+                                   x)
+                        #'mapcar)))
+       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">linearize for each elt</span>
+       (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (tree)
+                   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((linearize))
+                     (maptree #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                  (setf linearize
+                                        (append linearize (list x))))
+                              tree)
+                     linearize)))
+       ))
 
-<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
-<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(hh-parse-responds (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1")))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;   </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(hh-parse-responds</span>
+<span style="color: #cd0000;">;;     </span><span style="color: #cd0000;">(hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1" cookie-jar *hh_account* "http://spb.hh.ru" ))))</span>
 </pre>
 </div>
 </div>
@@ -5066,7 +5076,7 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
               <span style="color: #0000ee; font-weight: bold;">:author-id</span> 0
               <span style="color: #0000ee; font-weight: bold;">:ts-create</span> (get-universal-time))
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((archive-cnt 0))
-    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((gen (response-factory 'hh)))
+    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((gen (response-factory 'hh *hh_account*)))
       (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> i <span style="color: #0000ee; font-weight: bold;">:from</span> 1 <span style="color: #0000ee; font-weight: bold;">:to</span> 700 <span style="color: #0000ee; font-weight: bold;">:do</span>
          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((target (funcall gen)))
            (<span style="color: #00cdcd; font-weight: bold;">when</span> (null target)
@@ -9968,7 +9978,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-12-08 Вт. 06:13</p>
+<p class="date">Created: 2015-12-09 Ср. 06:04</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
