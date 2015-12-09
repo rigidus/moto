@@ -2423,7 +2423,7 @@
      ;; (run)
    #+END_SRC
 
-** TODO Сохранение вакансии и ее структура данных (=save-vacancy=)
+** Сохранение вакансии и ее структура данных (=save-vacancy=)
 
    Опишем структуру данных вакансии:
 
@@ -2486,7 +2486,7 @@
                             :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
    #+END_SRC
 
-** TODO Состояния вакансий
+** Состояния вакансий
 
    После загрузки, вакансия получает статус =unsort=
 
@@ -2655,7 +2655,7 @@
        "accept        | accept        |")
    #+END_SRC
 
-** TODO Печать вакансий (=show-vacancy=)
+** Печать вакансий (=show-vacancy=)
 
    Пока у нас нет веб-интерфейса мы будем выводить вакансии в консоль
 
@@ -2718,7 +2718,7 @@
    отправляют POST-запросы, формируя секции резюме. Рассмотрим эти POST-запросы
    подробнее в следующих подразделах.
 
-   После отправки POST-запроса сервер запиминает данные формы в сессии и возвращает
+   После отправки POST-запроса сервер запоминает данные формы в сессии и возвращает
    заголовок LOCATION на основную страницу резюме, но теперь присваивает резюме
    идентификатор. Таким образом адрес становится таким:
    http://spb.hh.ru/applicant/resumes/view?resume=341309a0ff02d634530039ed1f543763556562
@@ -2814,22 +2814,80 @@
 
 *** Имя, возраст, город (=personal=)
 
-    lastName.string=%D0%93%D0%BB%D1%83%D1%85%D0%BE%D0%B2
-    firstName.string=%D0%9C%D0%B8%D1%85%D0%B0%D0%B8%D0%BB
-    middleName.string=%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87
-    birthday.date=
-    gender.string=male
-    area.string=2
-    metro.string=
-    relocation.string=no_relocation
-    relocationArea.string=
-    businessTripReadiness.string=never
-    citizenship=113
-    citizenship.string=113
-    workTicket=113
-    workTicket.string=113
-    travelTime.string=any
-    _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
+   #+NAME: personal
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun personal (cookie-jar &optional (resume-id ""))
+       ;; Сначала запросим основную страницу резюме
+       ;; TODO...
+       ;; Потом запрашиваем страницу personal
+       (let ((url (format nil "http://spb.hh.ru/applicant/resumes/edit/{SECTION}?resume=~A" "personal" resume-id)))
+         ;; Сначала запрашиваем страницу
+         (multiple-value-bind (response cookie-jar url)
+             (hh-get-page url cookie-jar *hh_account* "http://spb.hh.ru")
+           ;; Отправляем POST
+           lastName.string=%D0%93%D0%BB%D1%83%D1%85%D0%BE%D0%B2
+           firstName.string=%D0%9C%D0%B8%D1%85%D0%B0%D0%B8%D0%BB
+           middleName.string=%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87
+           birthday.date=
+           gender.string=male
+           area.string=2
+           metro.string=
+           relocation.string=no_relocation
+           relocationArea.string=
+           businessTripReadiness.string=never
+           citizenship=113
+           citizenship.string=113
+           workTicket=113
+           workTicket.string=113
+           travelTime.string=any
+           _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
+
+           ;; Возвращаем resume-id
+           (return resume-id))))
+           ;; ;; Потом запрашиваем всплывающее окно (X-Requested-With: XMLHttpRequest, Referer)
+           ;; (let ((url-popup (format nil "http://spb.hh.ru/applicant/vacancy_response/popup?vacancyId=~A&autoOpen=no&isTest=no&withoutTest=no" vacancy-id)))
+           ;;   (multiple-value-bind (response cookie-jar url)
+           ;;       (hh-get-page url-popup cookie-jar *hh_account* url)
+           ;;     ;; Тут можно было бы проанализировать форму на предмет соответствия выбираемых резюме
+           ;;     (let ((cookie-alist (mapcar #'(lambda (cookie)
+           ;;                                     (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+           ;;                                 (drakma:cookie-jar-cookies cookie-jar))))
+           ;;       ;; Теперь отправляем POST-запрос
+           ;;       (let ((resp (drakma:http-request
+           ;;                    "http://spb.hh.ru/applicant/vacancy_response/popup"
+           ;;                    :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
+           ;;                    :method :post
+           ;;                    :content (format nil "~{~A~^&~}"
+           ;;                                     (mapcar #'(lambda (x)
+           ;;                                                 (format nil "~A=~A" (car x) (cdr x)))
+           ;;                                             `(("vacancy_id" . ,(format nil "~A" vacancy-id))
+           ;;                                               ("resume_id" . ,(format nil "~A" resume-id))
+           ;;                                               ("letter" . ,(drakma:url-encode letter :utf-8))
+           ;;                                               ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
+           ;;                                               ("ignore_postponed" . "true"))))
+           ;;                    :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+           ;;                    :additional-headers
+           ;;                    `(("Accept" . "*/*")
+           ;;                      ("Accept-Language" . "en-US,en;q=0.5")
+           ;;                      ("Accept-Encoding" . "gzip, deflate")
+           ;;                      ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
+           ;;                      ("X-Requested-With" . "XMLHttpRequest")
+           ;;                      ("Referer" . ,(format nil "http://spb.hh.ru/vacancy/~A" vacancy-id))
+           ;;                      ("Connection" . "keep-alive")
+           ;;                      ("Pragma" . "no-cache")
+           ;;                      ("Cache-Control" . "no-cache")
+           ;;                      )
+           ;;                    :cookie-jar cookie-jar
+           ;;                    :force-binary t)))
+           ;;         (flexi-streams:octets-to-string resp :external-format :utf-8))))))))
+
+     (print
+      (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+        (personal)))
+   #+END_SRC
+
 
 *** Контакты (=contacts=)
 
