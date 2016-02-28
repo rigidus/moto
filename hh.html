@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2015-12-09 Ср. 06:04 -->
+<!-- 2016-02-28 Вс. 04:16 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -279,9 +279,9 @@ for the JavaScript code in this tag.
 <li><a href="#sec-4-4">4.4. Процессор правил (<code>process</code>)</a></li>
 <li><a href="#sec-4-5">4.5. Декоратор для process-teaser (<code>process-teaser :around</code>)</a></li>
 <li><a href="#sec-4-6">4.6. Получение и обработка вакансий правилами (<code>run</code>)</a></li>
-<li><a href="#sec-4-7">4.7. <span class="todo nilTODO">TODO</span> Сохранение вакансии и ее структура данных (<code>save-vacancy</code>)</a></li>
-<li><a href="#sec-4-8">4.8. <span class="todo nilTODO">TODO</span> Состояния вакансий</a></li>
-<li><a href="#sec-4-9">4.9. <span class="todo nilTODO">TODO</span> Печать вакансий (<code>show-vacancy</code>)</a></li>
+<li><a href="#sec-4-7">4.7. Сохранение вакансии и ее структура данных (<code>save-vacancy</code>)</a></li>
+<li><a href="#sec-4-8">4.8. Состояния вакансий</a></li>
+<li><a href="#sec-4-9">4.9. Печать вакансий (<code>show-vacancy</code>)</a></li>
 <li><a href="#sec-4-10">4.10. <span class="todo nilSTART">START</span> Жизненный цикл резюме</a>
 <ul>
 <li><a href="#sec-4-10-1">4.10.1. Фото (<code>photo</code>)</a></li>
@@ -1274,7 +1274,7 @@ HR-специалист заинтересован в том, чтобы име�
 
 <p>
 Эта функция-генератор при каждом своем вызове вернет одну вакансию или <code>ложь</code> если все
-вакансии кончились.
+вакансии кончились или сервер вернул 404-ую ошибку.
 </p>
 
 
@@ -1326,16 +1326,22 @@ HR-специалист заинтересован в том, чтобы име�
                    (dbg <span style="color: #00cd00;">"load-next-teasers-page (page=~A)"</span> page)
                    (<span style="color: #00cdcd; font-weight: bold;">let*</span> ((next-teasers-page-url (format nil url page))
                           (referer (<span style="color: #00cdcd; font-weight: bold;">if</span> (= page 0) <span style="color: #00cd00;">"http://spb.hh.ru"</span>(format nil url (- page 1)))))
-                     (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (next-teasers-page new-cookies ref-url)
-                         (hh-get-page next-teasers-page-url cookie-jar src-account referer)
-                       (setf cookie-jar new-cookies)
-                       (setf teasers (hh-parse-vacancy-teasers next-teasers-page))
-                       (incf page)
-                       (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal 0 (length teasers))
-                         (dbg <span style="color: #00cd00;">"~~ FIN"</span>)
-                         (<span style="color: #00cdcd; font-weight: bold;">return-from</span> get-vacancy 'nil)))))
+                     (<span style="color: #00cdcd; font-weight: bold;">handler-case</span>
+                         (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (next-teasers-page new-cookies ref-url)
+                             (hh-get-page next-teasers-page-url cookie-jar src-account referer)
+                           (setf cookie-jar new-cookies)
+                           (setf teasers (hh-parse-vacancy-teasers next-teasers-page))
+                           (incf page)
+                           (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal 0 (length teasers))
+                             (dbg <span style="color: #00cd00;">"~~ FIN(0)"</span>)
+                             (<span style="color: #00cdcd; font-weight: bold;">return-from</span> get-vacancy 'nil)))
+                       (hh-404-error (err)
+                         (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+                           (dbg <span style="color: #00cd00;">"~~ FIN(404)"</span>)
+                           (<span style="color: #00cdcd; font-weight: bold;">return-from</span> get-vacancy 'nil))))
+                     ))
                  (get-teaser ()
-                   (dbg <span style="color: #00cd00;">"get-teaser"</span>)
+                   <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(dbg "get-teaser")</span>
                    (<span style="color: #00cdcd; font-weight: bold;">when</span> (equal 0 (length teasers))
                      (load-next-teasers-page))
                    (<span style="color: #00cdcd; font-weight: bold;">prog1</span> (car teasers)
@@ -1568,7 +1574,12 @@ HR-специалист заинтересован в том, чтобы име�
 <p>
 Есть также одна особенность (типа баг) в результате которой drakma неправильно
 воспринимает сформированные в get-запросе параметры и говорит что URI malformed. Мы
-обходим это с помощью глобального флага <code>*need-start*</code>, что является временным решением.
+обходим это с помощью глобального флага <code>*need-start*</code>, что является временным
+решением.
+</p>
+
+<p>
+Если сервер возвращает 404 ошибку, функция сигнализирует condition <code>hh-404-error</code>.
 </p>
 
 <div class="org-src-container">
@@ -1576,6 +1587,10 @@ HR-специалист заинтересован в том, чтобы име�
 <pre class="src src-lisp" id="hh_get_page">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
 &lt;&lt;hh_recovery_login&gt;&gt;
+
+(<span style="color: #00cdcd; font-weight: bold;">define-condition</span> <span style="color: #0000ee; font-weight: bold;">hh-404-error</span> (<span style="color: #cd0000; font-weight: bold;">error</span>)
+  ((url  <span style="color: #0000ee; font-weight: bold;">:initarg</span> <span style="color: #0000ee; font-weight: bold;">:text</span> <span style="color: #0000ee; font-weight: bold;">:reader</span> url)
+   (text <span style="color: #0000ee; font-weight: bold;">:initarg</span> <span style="color: #0000ee; font-weight: bold;">:text</span> <span style="color: #0000ee; font-weight: bold;">:reader</span> text)))
 
 (<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*need-start*</span> t)
 
@@ -1592,13 +1607,15 @@ HR-специалист заинтересован в том, чтобы име�
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((response   <span style="color: #00cd00;">""</span>)
         (repeat-cnt 0))
     (<span style="color: #00cdcd; font-weight: bold;">tagbody</span> repeat
-       (setf response
-             (flexi-streams:octets-to-string
-              (drakma:http-request
-               url <span style="color: #0000ee; font-weight: bold;">:user-agent</span> *user-agent* <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
-               <span style="color: #0000ee; font-weight: bold;">:additional-headers</span> (append *additional-headers*
-                                           `((<span style="color: #00cd00;">"Referer"</span> . ,referer))))
-              <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
+       (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (body-or-stream status-code headers uri stream must-close reason-phrase)
+           (drakma:http-request
+            url <span style="color: #0000ee; font-weight: bold;">:user-agent</span> *user-agent* <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+            <span style="color: #0000ee; font-weight: bold;">:additional-headers</span> (append *additional-headers*
+                                        `((<span style="color: #00cd00;">"Referer"</span> . ,referer))))
+         (dbg <span style="color: #00cd00;">"-- ~A : ~A"</span> status-code url)
+         (<span style="color: #00cdcd; font-weight: bold;">unless</span> (equal 404 status-code)
+           (<span style="color: #cd0000; font-weight: bold;">error</span> 'hh-404-error <span style="color: #0000ee; font-weight: bold;">:url</span>  url <span style="color: #0000ee; font-weight: bold;">:text</span> body-or-stream))
+         (setf response (flexi-streams:octets-to-string body-or-stream <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>)))
        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1045;&#1089;&#1083;&#1080; &#1084;&#1099; &#1085;&#1077; &#1079;&#1072;&#1083;&#1086;&#1075;&#1080;&#1085;&#1077;&#1085;&#1099;:</span>
        (<span style="color: #00cdcd; font-weight: bold;">unless</span> (is-logged response)
          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1088;&#1086;&#1074;&#1077;&#1088;&#1103;&#1077;&#1084;, &#1085;&#1077; &#1087;&#1088;&#1077;&#1074;&#1099;&#1096;&#1077;&#1085;&#1086; &#1083;&#1080; &#1082;&#1086;&#1083;-&#1074;&#1086; &#1087;&#1086;&#1087;&#1099;&#1090;&#1086;&#1082; &#1074;&#1086;&#1089;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1080;&#1103;</span>
@@ -2181,6 +2198,21 @@ HR-специалист заинтересован в том, чтобы име�
 
 (<span style="color: #00cdcd; font-weight: bold;">defparameter</span> <span style="color: #cdcd00;">*last-parse-data*</span> nil)
 
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">tree-plist-p</span> (l)
+  <span style="color: #00cd00;">"Returns T if L is a plist (list with alternating keyword elements). "</span>
+  (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((null l) t)
+        ((not (listp l)) nil)
+        ((and (cdr l)
+              (keywordp (car l))) (plist-p (cddr l)))
+        (t (<span style="color: #00cdcd; font-weight: bold;">when</span> (listp (car l))
+             (plist-p (car l))))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(tree-plist-p '(:a 1 :b 2 (:c 4))) ;; =&gt; T</span>
+
+(<span style="color: #00cdcd; font-weight: bold;">define-condition</span> <span style="color: #0000ee; font-weight: bold;">malformed-vacancy</span> (<span style="color: #cd0000; font-weight: bold;">error</span>)
+  ((text <span style="color: #0000ee; font-weight: bold;">:initarg</span> <span style="color: #0000ee; font-weight: bold;">:text</span> <span style="color: #0000ee; font-weight: bold;">:reader</span> text)))
+
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">hh-parse-vacancy-teasers</span> (html)
   <span style="color: #00cd00;">"&#1055;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1080;&#1077; &#1089;&#1087;&#1080;&#1089;&#1082;&#1072; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081; &#1080;&#1079; html"</span>
   (dbg <span style="color: #00cd00;">"hh-parse-vacancy-teasers"</span>)
@@ -2231,6 +2263,12 @@ HR-специалист заинтересован в том, чтобы име�
                                           )))
                                    x)
                         #'mapcar)))
+       <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">error if malformed plist</span>
+       (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                   (<span style="color: #00cdcd; font-weight: bold;">unless</span> (tree-plist-p x)
+                     (dbg x)
+                     (<span style="color: #cd0000; font-weight: bold;">error</span> 'malformed-vacancy <span style="color: #0000ee; font-weight: bold;">:text</span>)
+                     )))
        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">linearize for each elt</span>
        (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (tree)
                    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((linearize))
@@ -2242,6 +2280,7 @@ HR-специалист заинтересован в том, чтобы име�
        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">parse-salary</span>
        (mapcar #'parse-salary)
        ))
+
 
 <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
 <span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(hh-parse-vacancy-teasers *last-parse-data*))</span>
@@ -3153,7 +3192,8 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
     <span style="color: #00cd00;">"iOS"</span> <span style="color: #00cd00;">"Python"</span> <span style="color: #00cd00;">"Django"</span> <span style="color: #00cd00;">"IOS"</span> <span style="color: #00cd00;">"1C"</span> <span style="color: #00cd00;">"1&#1057;"</span> <span style="color: #00cd00;">"C++"</span> <span style="color: #00cd00;">"&#1057;++"</span> <span style="color: #00cd00;">"Ruby"</span> <span style="color: #00cd00;">"Ruby on Rails"</span>
     <span style="color: #00cd00;">"Frontend"</span> <span style="color: #00cd00;">"Front End"</span> <span style="color: #00cd00;">"Front-end"</span> <span style="color: #00cd00;">"Go"</span> <span style="color: #00cd00;">"Q/A"</span> <span style="color: #00cd00;">"QA"</span> <span style="color: #00cd00;">"C#"</span> <span style="color: #00cd00;">".NET"</span> <span style="color: #00cd00;">".Net"</span>
     <span style="color: #00cd00;">"Unity3D"</span> <span style="color: #00cd00;">"Flash"</span> <span style="color: #00cd00;">"Java"</span> <span style="color: #00cd00;">"Android"</span> <span style="color: #00cd00;">"ASP"</span> <span style="color: #00cd00;">"Objective-C"</span> <span style="color: #00cd00;">"Go"</span> <span style="color: #00cd00;">"Delphi"</span>
-    <span style="color: #00cd00;">"Sharepoint"</span> <span style="color: #00cd00;">"Flash"</span> <span style="color: #00cd00;">"PL/SQL"</span> <span style="color: #00cd00;">"Oracle"</span> <span style="color: #00cd00;">"designer"</span>)
+    <span style="color: #00cd00;">"Sharepoint"</span> <span style="color: #00cd00;">"Flash"</span> <span style="color: #00cd00;">"PL/SQL"</span> <span style="color: #00cd00;">"Oracle"</span> <span style="color: #00cd00;">"designer"</span> <span style="color: #00cd00;">"SharePoint"</span> <span style="color: #00cd00;">"NodeJS"</span>
+    <span style="color: #00cd00;">"&#1090;&#1077;&#1089;&#1090;&#1080;&#1088;&#1086;&#1074;&#1097;&#1080;&#1082;"</span> <span style="color: #00cd00;">"&#1057;&#1080;&#1089;&#1090;&#1077;&#1084;&#1085;&#1099;&#1081; &#1072;&#1076;&#1084;&#1080;&#1085;&#1080;&#1089;&#1090;&#1088;&#1072;&#1090;&#1086;&#1088;"</span> <span style="color: #00cd00;">"&#1058;&#1088;&#1072;&#1092;&#1080;&#1082;-&#1084;&#1077;&#1085;&#1077;&#1076;&#1078;&#1077;&#1088;"</span>)
 </pre>
 </div>
 </div>
@@ -3465,7 +3505,7 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
 <pre class="src src-lisp" id="process">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">process</span> (vacancy rules)
-  (dbg <span style="color: #00cd00;">"process (count rules: ~A)"</span> (length rules))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(dbg "process (count rules: ~A)" (length rules))</span>
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((vacancy vacancy))
     (<span style="color: #00cdcd; font-weight: bold;">tagbody</span>
      renew
@@ -3525,7 +3565,7 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
 &lt;&lt;rules&gt;&gt;
 
 (<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">process-teaser</span> <span style="color: #0000ee; font-weight: bold;">:around</span> (current-teaser src-account referer)
-  (dbg <span style="color: #00cd00;">"process-teaser :around"</span>)
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(dbg "process-teaser :around")</span>
   (aif (process current-teaser (rules-for-teaser))
        (process (call-next-method it) (rules-for-vacancy))
        nil))
@@ -3580,7 +3620,7 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
 </div>
 
 <div id="outline-container-sec-4-7" class="outline-3">
-<h3 id="sec-4-7"><span class="section-number-3">4.7</span> <span class="todo TODO">TODO</span> Сохранение вакансии и ее структура данных (<code>save-vacancy</code>)</h3>
+<h3 id="sec-4-7"><span class="section-number-3">4.7</span> Сохранение вакансии и ее структура данных (<code>save-vacancy</code>)</h3>
 <div class="outline-text-3" id="text-4-7">
 <p>
 Опишем структуру данных вакансии:
@@ -3766,7 +3806,7 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
 </div>
 
 <div id="outline-container-sec-4-8" class="outline-3">
-<h3 id="sec-4-8"><span class="section-number-3">4.8</span> <span class="todo TODO">TODO</span> Состояния вакансий</h3>
+<h3 id="sec-4-8"><span class="section-number-3">4.8</span> Состояния вакансий</h3>
 <div class="outline-text-3" id="text-4-8">
 <p>
 После загрузки, вакансия получает статус <code>unsort</code>
@@ -4168,7 +4208,7 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
 </div>
 
 <div id="outline-container-sec-4-9" class="outline-3">
-<h3 id="sec-4-9"><span class="section-number-3">4.9</span> <span class="todo TODO">TODO</span> Печать вакансий (<code>show-vacancy</code>)</h3>
+<h3 id="sec-4-9"><span class="section-number-3">4.9</span> Печать вакансий (<code>show-vacancy</code>)</h3>
 <div class="outline-text-3" id="text-4-9">
 <p>
 Пока у нас нет веб-интерфейса мы будем выводить вакансии в консоль
@@ -4250,7 +4290,7 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
 </p>
 
 <p>
-После отправки POST-запроса сервер запиминает данные формы в сессии и возвращает
+После отправки POST-запроса сервер запоминает данные формы в сессии и возвращает
 заголовок LOCATION на основную страницу резюме, но теперь присваивает резюме
 идентификатор. Таким образом адрес становится таким:
 <a href="http://spb.hh.ru/applicant/resumes/view?resume=341309a0ff02d634530039ed1f543763556562">http://spb.hh.ru/applicant/resumes/view?resume=341309a0ff02d634530039ed1f543763556562</a>
@@ -4401,206 +4441,502 @@ user=3681852
 <div id="outline-container-sec-4-10-2" class="outline-4">
 <h4 id="sec-4-10-2"><span class="section-number-4">4.10.2</span> Имя, возраст, город (<code>personal</code>)</h4>
 <div class="outline-text-4" id="text-4-10-2">
-<p>
-lastName.string=%D0%93%D0%BB%D1%83%D1%85%D0%BE%D0%B2
-firstName.string=%D0%9C%D0%B8%D1%85%D0%B0%D0%B8%D0%BB
-middleName.string=%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87
-birthday.date=
-gender.string=male
-area.string=2
-metro.string=
-relocation.string=no<sub>relocation</sub>
-relocationArea.string=
-businessTripReadiness.string=never
-citizenship=113
-citizenship.string=113
-workTicket=113
-workTicket.string=113
-travelTime.string=any
-_xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
-</p>
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="personal">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">personal</span> (cookie-jar <span style="color: #00cd00;">&amp;optional</span> (resume-id <span style="color: #00cd00;">""</span>))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1084; &#1086;&#1089;&#1085;&#1086;&#1074;&#1085;&#1091;&#1102; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1091; &#1088;&#1077;&#1079;&#1102;&#1084;&#1077;</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((main-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/view?resume="</span>))
+    (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+        (hh-get-page main-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1087;&#1077;&#1088;&#1100; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; personal</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((personal-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/edit/personal?resume="</span>))
+        (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+            (hh-get-page personal-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1072;&#1077;&#1084; &#1082;&#1083;&#1102;&#1095;-&#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1103; cookies</span>
+          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-alist (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (cookie)
+                                          (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+                                      (drakma:cookie-jar-cookies cookie-jar))))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; POST</span>
+             (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (body-or-stream status-code headers uri stream must-close reason-phrase)
+                 (drakma:http-request
+                  personal-url
+                  <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
+                  <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
+                                   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                               (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
+
+                                           `((<span style="color: #00cd00;">"lastName.string"</span> . ,(drakma:url-encode <span style="color: #00cd00;">"&#1043;&#1083;&#1091;&#1093;&#1086;&#1074;"</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
+                                             (<span style="color: #00cd00;">"firstName.string"</span> . ,(drakma:url-encode <span style="color: #00cd00;">"&#1052;&#1080;&#1093;&#1072;&#1080;&#1083;"</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
+                                             (<span style="color: #00cd00;">"middleName.string"</span> . ,(drakma:url-encode <span style="color: #00cd00;">"&#1052;&#1080;&#1093;&#1072;&#1081;&#1083;&#1086;&#1074;&#1080;&#1095;"</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))
+                                             (<span style="color: #00cd00;">"birthday.date"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"gender.string"</span> . <span style="color: #00cd00;">"male"</span>)
+                                             (<span style="color: #00cd00;">"area.string"</span> . <span style="color: #00cd00;">"2"</span>)
+                                             (<span style="color: #00cd00;">"metro.string"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"relocation.string"</span> . <span style="color: #00cd00;">"no_relocation"</span>)
+                                             (<span style="color: #00cd00;">"relocationArea.string"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"businessTripReadiness.string"</span> . <span style="color: #00cd00;">"never"</span>)
+                                             (<span style="color: #00cd00;">"citizenship"</span> . <span style="color: #00cd00;">"113"</span>)
+                                             (<span style="color: #00cd00;">"citizenship.string"</span> . <span style="color: #00cd00;">"113"</span>)
+                                             (<span style="color: #00cd00;">"workTicket"</span> . <span style="color: #00cd00;">"113"</span>)
+                                             (<span style="color: #00cd00;">"workTicket.string"</span> . <span style="color: #00cd00;">"113"</span>)
+                                             (<span style="color: #00cd00;">"travelTime.string"</span> . <span style="color: #00cd00;">"any"</span>)
+                                             (<span style="color: #00cd00;">"_xsrf"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal))))
+                                           ))
+                  <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:additional-headers</span>
+                  `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"*/*"</span>)
+                    (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"en-US,en;q=0.5"</span>)
+                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Accept-Encoding" . "gzip, deflate")</span>
+                    (<span style="color: #00cd00;">"X-Xsrftoken"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                    (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
+                    (<span style="color: #00cd00;">"Referer"</span> . ,personal-url)
+                    (<span style="color: #00cd00;">"Connection"</span> . <span style="color: #00cd00;">"keep-alive"</span>)
+                    (<span style="color: #00cd00;">"Pragma"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    )
+                  <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+                  <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+               (<span style="color: #00cdcd; font-weight: bold;">return-from</span> personal
+                 (values
+                  headers
+                  (flexi-streams:octets-to-string body-or-stream <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))))))))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(personal cookie-jar)))</span>
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-4-10-3" class="outline-4">
 <h4 id="sec-4-10-3"><span class="section-number-4">4.10.3</span> Контакты (<code>contacts</code>)</h4>
 <div class="outline-text-4" id="text-4-10-3">
-<p>
-phone.type=cell
-phone.country=7
-phone.city=911
-phone.number=2869290
-phone.comment=%D0%9D%D0%B5+%D0%B7%D0%B2%D0%BE%D0%BD%D0%B8%D1%82%D0%B5+%D1%81%D0%BB%D0%B8%D1%88%D0%BA%D0%BE%D0%BC+%D1%80%D0%B0%D0%BD%D0%BE
-phone.type=home
-phone.country=7
-phone.city=
-phone.number=
-phone.comment=
-phone.type=work
-phone.country=7
-phone.city=
-phone.number=
-phone.comment=
-email.string=avenger-f%40yandex.ru
-preferredContact.string=email
-personalSite.type=icq
-personalSite.url=
-personalSite.type=skype
-personalSite.url=i.am.rigidus
-personalSite.type=freelance
-personalSite.url=
-personalSite.type=moi<sub>krug</sub>
-personalSite.url=
-personalSite.type=linkedin
-personalSite.url=
-personalSite.type=facebook
-personalSite.url=
-personalSite.type=livejournal
-personalSite.url=
-personalSite.type=personal
-personalSite.url=
-_xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
-</p>
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="contacts">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">contacts</span> (cookie-jar <span style="color: #00cd00;">&amp;optional</span> (resume-id <span style="color: #00cd00;">""</span>))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1084; &#1086;&#1089;&#1085;&#1086;&#1074;&#1085;&#1091;&#1102; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1091; &#1088;&#1077;&#1079;&#1102;&#1084;&#1077;</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((main-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/view?resume="</span>))
+    (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+        (hh-get-page main-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1087;&#1077;&#1088;&#1100; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; contacts</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((contacts-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/edit/contacts?resume="</span>))
+        (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+            (hh-get-page contacts-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1072;&#1077;&#1084; &#1082;&#1083;&#1102;&#1095;-&#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1103; cookies</span>
+          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-alist (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (cookie)
+                                          (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+                                      (drakma:cookie-jar-cookies cookie-jar))))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; POST</span>
+             (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (body-or-stream status-code headers uri stream must-close reason-phrase)
+                 (drakma:http-request
+                  contacts-url
+                  <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
+                  <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
+                                   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                               (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
+                                           `((<span style="color: #00cd00;">"phone.type"</span> . <span style="color: #00cd00;">"cell"</span>)
+                                             (<span style="color: #00cd00;">"phone.country"</span> . <span style="color: #00cd00;">"7"</span>)
+                                             (<span style="color: #00cd00;">"phone.city"</span> . <span style="color: #00cd00;">"911"</span>)
+                                             (<span style="color: #00cd00;">"phone.number"</span> . <span style="color: #00cd00;">"2869290"</span>)
+                                             (<span style="color: #00cd00;">"phone.comment"</span> . <span style="color: #00cd00;">"%D0%9D%D0%B5+%D0%B7%D0%B2%D0%BE%D0%BD%D0%B8%D1%82%D0%B5+%D1%81%D0%BB%D0%B8%D1%88%D0%BA%D0%BE%D0%BC+%D1%80%D0%B0%D0%BD%D0%BE"</span>)
+                                             (<span style="color: #00cd00;">"phone.type"</span> . <span style="color: #00cd00;">"home"</span>)
+                                             (<span style="color: #00cd00;">"phone.country"</span> . <span style="color: #00cd00;">"7"</span>)
+                                             (<span style="color: #00cd00;">"phone.city"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"phone.number"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"phone.comment"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"phone.type"</span> . <span style="color: #00cd00;">"work"</span>)
+                                             (<span style="color: #00cd00;">"phone.country"</span> . <span style="color: #00cd00;">"7"</span>)
+                                             (<span style="color: #00cd00;">"phone.city"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"phone.number"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"phone.comment"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"email.string"</span> . <span style="color: #00cd00;">"avenger-f%40yandex.ru"</span>)
+                                             (<span style="color: #00cd00;">"preferredContact.string"</span> . <span style="color: #00cd00;">"email"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"icq"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"skype"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">"i.am.rigidus"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"freelance"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"moi_krug"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"linkedin"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"facebook"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"livejournal"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"personalSite.type"</span> . <span style="color: #00cd00;">"personal"</span>)
+                                             (<span style="color: #00cd00;">"personalSite.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"_xsrf"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal))))
+                                           ))
+                  <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:additional-headers</span>
+                  `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"*/*"</span>)
+                    (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"en-US,en;q=0.5"</span>)
+                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Accept-Encoding" . "gzip, deflate")</span>
+                    (<span style="color: #00cd00;">"X-Xsrftoken"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                    (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
+                    (<span style="color: #00cd00;">"Referer"</span> . ,contacts-url)
+                    (<span style="color: #00cd00;">"Connection"</span> . <span style="color: #00cd00;">"keep-alive"</span>)
+                    (<span style="color: #00cd00;">"Pragma"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    )
+                  <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+                  <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+               (<span style="color: #00cdcd; font-weight: bold;">return-from</span> contacts
+                 (values
+                  headers
+                  (flexi-streams:octets-to-string body-or-stream <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))))))))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(contacts cookie-jar)))</span>
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-4-10-4" class="outline-4">
 <h4 id="sec-4-10-4"><span class="section-number-4">4.10.4</span> Желаемая должность и зарплата (<code>position</code>)</h4>
 <div class="outline-text-4" id="text-4-10-4">
-<p>
-title.string=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82
-profArea=1
-specialization.string=82
-specialization.string=221
-profarea=
-profarea=1
-profarea=2
-profarea=3
-profarea=4
-profarea=5
-profarea=6
-profarea=7
-profarea=8
-profarea=9
-profarea=10
-profarea=11
-profarea=12
-profarea=13
-profarea=14
-profarea=16
-profarea=17
-profarea=18
-profarea=19
-profarea=20
-profarea=21
-profarea=22
-profarea=23
-profarea=24
-profarea=25
-profarea=26
-profarea=15
-profarea=27
-profarea=29
-salary.amount=100000
-salary.currency=RUR
-employment.string=full
-workSchedule.string=full<sub>day</sub>
-_xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
-</p>
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="position">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">position</span> (cookie-jar <span style="color: #00cd00;">&amp;optional</span> (resume-id <span style="color: #00cd00;">""</span>))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1084; &#1086;&#1089;&#1085;&#1086;&#1074;&#1085;&#1091;&#1102; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1091; &#1088;&#1077;&#1079;&#1102;&#1084;&#1077;</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((main-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/view?resume="</span>))
+    (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+        (hh-get-page main-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1087;&#1077;&#1088;&#1100; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; position</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((position-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/edit/position?resume="</span>))
+        (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+            (hh-get-page position-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1072;&#1077;&#1084; &#1082;&#1083;&#1102;&#1095;-&#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1103; cookies</span>
+          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-alist (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (cookie)
+                                          (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+                                      (drakma:cookie-jar-cookies cookie-jar))))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; POST</span>
+             (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (body-or-stream status-code headers uri stream must-close reason-phrase)
+                 (drakma:http-request
+                  position-url
+                  <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
+                  <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
+                                   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                               (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
+                                           `((<span style="color: #00cd00;">"title.string"</span> . <span style="color: #00cd00;">"%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82"</span>)
+                                             (<span style="color: #00cd00;">"profArea"</span> . <span style="color: #00cd00;">"1"</span>)
+                                             (<span style="color: #00cd00;">"specialization.string"</span> . <span style="color: #00cd00;">"82"</span>)
+                                             (<span style="color: #00cd00;">"specialization.string"</span> . <span style="color: #00cd00;">"221"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"1"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"2"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"3"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"4"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"5"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"6"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"7"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"8"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"9"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"10"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"11"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"12"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"13"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"14"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"16"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"17"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"18"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"19"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"20"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"21"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"22"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"23"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"24"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"25"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"26"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"15"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"27"</span>)
+                                             (<span style="color: #00cd00;">"profarea"</span> . <span style="color: #00cd00;">"29"</span>)
+                                             (<span style="color: #00cd00;">"salary.amount"</span> . <span style="color: #00cd00;">"100000"</span>)
+                                             (<span style="color: #00cd00;">"salary.currency"</span> . <span style="color: #00cd00;">"RUR"</span>)
+                                             (<span style="color: #00cd00;">"employment.string"</span> . <span style="color: #00cd00;">"full"</span>)
+                                             (<span style="color: #00cd00;">"workSchedule.string"</span> . <span style="color: #00cd00;">"full_day"</span>)
+                                             (<span style="color: #00cd00;">"_xsrf"</span> . <span style="color: #00cd00;">"b2dccfd0ce2ff68b2c4f795ac6d549fb"</span>)
+                                             (<span style="color: #00cd00;">"_xsrf"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal))))
+                                           ))
+                  <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:additional-headers</span>
+                  `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"*/*"</span>)
+                    (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"en-US,en;q=0.5"</span>)
+                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Accept-Encoding" . "gzip, deflate")</span>
+                    (<span style="color: #00cd00;">"X-Xsrftoken"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                    (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
+                    (<span style="color: #00cd00;">"Referer"</span> . ,position-url)
+                    (<span style="color: #00cd00;">"Connection"</span> . <span style="color: #00cd00;">"keep-alive"</span>)
+                    (<span style="color: #00cd00;">"Pragma"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    )
+                  <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+                  <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+               (<span style="color: #00cdcd; font-weight: bold;">return-from</span> position
+                 (values
+                  headers
+                  (flexi-streams:octets-to-string body-or-stream <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))))))))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(position cookie-jar)))</span>
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-4-10-5" class="outline-4">
 <h4 id="sec-4-10-5"><span class="section-number-4">4.10.5</span> Образование (<code>education</code>)</h4>
 <div class="outline-text-4" id="text-4-10-5">
-<p>
-educationLevel.string=higher
-primaryEducation.id=
-primaryEducation.name=%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3%D1%81%D0%BA%D0%B8%D0%B9+%D0%B3%D0%BE%D1%81%D1%83%D0%B4%D0%B0%D1%80%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9+%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82+%D0%BA%D1%83%D0%BB%D1%8C%D1%82%D1%83%D1%80%D1%8B+%D0%B8+%D0%B8%D1%81%D0%BA%D1%83%D1%81%D1%81%D1%82%D0%B2%2C+%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3
-primaryEducation.universityId=39864
-primaryEducation.facultyId=
-primaryEducation.organization=%D0%A0%D0%B5%D0%B6%D0%B8%D1%81%D1%81%D1%83%D1%80%D1%8B
-primaryEducation.result=%D0%A0%D0%B5%D0%B6%D0%B8%D1%81%D1%81%D1%83%D1%80%D0%B0+%D0%BC%D1%83%D0%BB%D1%8C%D1%82%D0%B8%D0%BC%D0%B5%D0%B4%D0%B8%D0%B0+%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC
-primaryEducation.specialtyId=224
-primaryEducation.year=2005
-primaryEducation.id=
-primaryEducation.name=
-primaryEducation.universityId=
-primaryEducation.facultyId=
-primaryEducation.organization=
-primaryEducation.result=
-primaryEducation.specialtyId=
-primaryEducation.year=
-additionalEducation.id=
-additionalEducation.name=
-additionalEducation.organization=
-additionalEducation.result=
-additionalEducation.year=
-certificate.id=
-certificate.type=
-certificate.selected=
-certificate.ownerName=
-certificate.transcriptionId=
-certificate.password=
-certificate.title=
-certificate.achievementDate=
-certificate.url=
-attestationEducation.id=
-attestationEducation.name=
-attestationEducation.organization=
-attestationEducation.result=
-attestationEducation.year=
-language.id=34
-language.degree=native
-language.id=57
-language.degree=can<sub>read</sub>
-language.id=58
-language.degree=basic
-language.id=59
-language.degree=none
-_xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
-</p>
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="education">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">eductation</span> (cookie-jar <span style="color: #00cd00;">&amp;optional</span> (resume-id <span style="color: #00cd00;">""</span>))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1084; &#1086;&#1089;&#1085;&#1086;&#1074;&#1085;&#1091;&#1102; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1091; &#1088;&#1077;&#1079;&#1102;&#1084;&#1077;</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((main-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/view?resume="</span>))
+    (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+        (hh-get-page main-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1087;&#1077;&#1088;&#1100; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; eductation</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((eductation-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/edit/eductation?resume="</span>))
+        (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+            (hh-get-page eductation-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1072;&#1077;&#1084; &#1082;&#1083;&#1102;&#1095;-&#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1103; cookies</span>
+          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-alist (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (cookie)
+                                          (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+                                      (drakma:cookie-jar-cookies cookie-jar))))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; POST</span>
+             (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (body-or-stream status-code headers uri stream must-close reason-phrase)
+                 (drakma:http-request
+                  eductation-url
+                  <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
+                  <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
+                                   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                               (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
+                                           `((<span style="color: #00cd00;">"educationLevel.string"</span> . <span style="color: #00cd00;">"higher"</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.id"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.name"</span> . <span style="color: #00cd00;">"%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3%D1%81%D0%BA%D0%B8%D0%B9+%D0%B3%D0%BE%D1%81%D1%83%D0%B4%D0%B0%D1%80%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9+%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82+%D0%BA%D1%83%D0%BB%D1%8C%D1%82%D1%83%D1%80%D1%8B+%D0%B8+%D0%B8%D1%81%D0%BA%D1%83%D1%81%D1%81%D1%82%D0%B2%2C+%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3"</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.universityId"</span> . <span style="color: #00cd00;">"39864"</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.facultyId"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.organization"</span> . <span style="color: #00cd00;">"%D0%A0%D0%B5%D0%B6%D0%B8%D1%81%D1%81%D1%83%D1%80%D1%8B"</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.result"</span> . <span style="color: #00cd00;">"%D0%A0%D0%B5%D0%B6%D0%B8%D1%81%D1%81%D1%83%D1%80%D0%B0+%D0%BC%D1%83%D0%BB%D1%8C%D1%82%D0%B8%D0%BC%D0%B5%D0%B4%D0%B8%D0%B0+%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC"</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.specialtyId"</span> . <span style="color: #00cd00;">"224"</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.year"</span> . <span style="color: #00cd00;">"2005"</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.id"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.name"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.universityId"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.facultyId"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.organization"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.result"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.specialtyId"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"primaryEducation.year"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"additionalEducation.id"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"additionalEducation.name"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"additionalEducation.organization"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"additionalEducation.result"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"additionalEducation.year"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.id"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.type"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.selected"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.ownerName"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.transcriptionId"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.password"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.title"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.achievementDate"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"certificate.url"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"attestationEducation.id"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"attestationEducation.name"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"attestationEducation.organization"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"attestationEducation.result"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"attestationEducation.year"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"language.id"</span> . <span style="color: #00cd00;">"34"</span>)
+                                             (<span style="color: #00cd00;">"language.degree"</span> . <span style="color: #00cd00;">"native"</span>)
+                                             (<span style="color: #00cd00;">"language.id"</span> . <span style="color: #00cd00;">"57"</span>)
+                                             (<span style="color: #00cd00;">"language.degree"</span> . <span style="color: #00cd00;">"can_read"</span>)
+                                             (<span style="color: #00cd00;">"language.id"</span> . <span style="color: #00cd00;">"58"</span>)
+                                             (<span style="color: #00cd00;">"language.degree"</span> . <span style="color: #00cd00;">"basic"</span>)
+                                             (<span style="color: #00cd00;">"language.id"</span> . <span style="color: #00cd00;">"59"</span>)
+                                             (<span style="color: #00cd00;">"language.degree"</span> . <span style="color: #00cd00;">"none"</span>)
+                                             (<span style="color: #00cd00;">"_xsrf"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal))))
+                                           ))
+                  <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:additional-headers</span>
+                  `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"*/*"</span>)
+                    (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"en-US,en;q=0.5"</span>)
+                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Accept-Encoding" . "gzip, deflate")</span>
+                    (<span style="color: #00cd00;">"X-Xsrftoken"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                    (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
+                    (<span style="color: #00cd00;">"Referer"</span> . ,eductation-url)
+                    (<span style="color: #00cd00;">"Connection"</span> . <span style="color: #00cd00;">"keep-alive"</span>)
+                    (<span style="color: #00cd00;">"Pragma"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    )
+                  <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+                  <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+               (<span style="color: #00cdcd; font-weight: bold;">return-from</span> eductation
+                 (values
+                  headers
+                  (flexi-streams:octets-to-string body-or-stream <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))))))))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(eductation cookie-jar)))</span>
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-4-10-6" class="outline-4">
 <h4 id="sec-4-10-6"><span class="section-number-4">4.10.6</span> Опыт работы (<code>experience</code>)</h4>
 <div class="outline-text-4" id="text-4-10-6">
-<p>
-experience.companyName=Lamba+Inc
-experience.companyId=
-experience.companyAreaId=2
-experience.companyUrl=http%3A%2F%2F
-experience.companyIndustryId=
-experience.companyIndustries=
-experience.id=
-experience.position=%D0%93%D0%BB%D0%B0%D0%B2%D0%BD%D1%8B%D0%B9+%D0%B8%D0%BD%D0%B6%D0%B5%D0%BD%D0%B5%D1%80
-experience.startDate=1995-01-01
-experience.endDate=2015-01-01
-experience.description=%D0%94%D0%B5%D0%BB%D0%B0%D0%BB+%D0%B2%D1%81%D0%B5
-keySkills.string=%D0%9C%D0%B0%D0%BD%D1%83%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F+%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D0%B8%D1%8F
-keySkills.string=%D0%90%D0%B2%D0%B0%D1%80%D0%B8%D0%B9%D0%BD%D0%BE-%D0%B2%D0%BE%D1%81%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B
-skills.string=%D0%A5%D0%BE%D0%B1%D0%B1%D0%B8
-recommendation.id=
-recommendation.name=
-recommendation.position=
-recommendation.organization=
-recommendation.contactInfo=
-type=PORTFOLIO
-portfolio.string=
-file=&amp;title=&amp;<sub>xsrf</sub>=b2dccfd0ce2ff68b2c4f795ac6d549fb
-</p>
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="expirience">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">expirience</span> (cookie-jar <span style="color: #00cd00;">&amp;optional</span> (resume-id <span style="color: #00cd00;">""</span>))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1084; &#1086;&#1089;&#1085;&#1086;&#1074;&#1085;&#1091;&#1102; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1091; &#1088;&#1077;&#1079;&#1102;&#1084;&#1077;</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((main-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/view?resume="</span>))
+    (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+        (hh-get-page main-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1087;&#1077;&#1088;&#1100; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; expirience</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((expirience-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/edit/expirience?resume="</span>))
+        (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+            (hh-get-page expirience-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1072;&#1077;&#1084; &#1082;&#1083;&#1102;&#1095;-&#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1103; cookies</span>
+          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-alist (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (cookie)
+                                          (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+                                      (drakma:cookie-jar-cookies cookie-jar))))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; POST</span>
+             (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (body-or-stream status-code headers uri stream must-close reason-phrase)
+                 (drakma:http-request
+                  expirience-url
+                  <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
+                  <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
+                                   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                               (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
+                                           `((<span style="color: #00cd00;">"experience.companyName"</span> . <span style="color: #00cd00;">"Lamba+Inc"</span>)
+                                             (<span style="color: #00cd00;">"experience.companyId"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"experience.companyAreaId"</span> . <span style="color: #00cd00;">"2"</span>)
+                                             (<span style="color: #00cd00;">"experience.companyUrl"</span> . <span style="color: #00cd00;">"http%3A%2F%2F"</span>)
+                                             (<span style="color: #00cd00;">"experience.companyIndustryId"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"experience.companyIndustries"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"experience.id"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"experience.position"</span> . <span style="color: #00cd00;">"%D0%93%D0%BB%D0%B0%D0%B2%D0%BD%D1%8B%D0%B9+%D0%B8%D0%BD%D0%B6%D0%B5%D0%BD%D0%B5%D1%80"</span>)
+                                             (<span style="color: #00cd00;">"experience.startDate"</span> . <span style="color: #00cd00;">"1995-01-01"</span>)
+                                             (<span style="color: #00cd00;">"experience.endDate"</span> . <span style="color: #00cd00;">"2015-01-01"</span>)
+                                             (<span style="color: #00cd00;">"experience.description"</span> . <span style="color: #00cd00;">"%D0%94%D0%B5%D0%BB%D0%B0%D0%BB+%D0%B2%D1%81%D0%B5"</span>)
+                                             (<span style="color: #00cd00;">"keySkills.string"</span> . <span style="color: #00cd00;">"%D0%9C%D0%B0%D0%BD%D1%83%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F+%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D0%B8%D1%8F"</span>)
+                                             (<span style="color: #00cd00;">"keySkills.string"</span> . <span style="color: #00cd00;">"%D0%90%D0%B2%D0%B0%D1%80%D0%B8%D0%B9%D0%BD%D0%BE-%D0%B2%D0%BE%D1%81%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B"</span>)
+                                             (<span style="color: #00cd00;">"skills.string"</span> . <span style="color: #00cd00;">"%D0%A5%D0%BE%D0%B1%D0%B1%D0%B8"</span>)
+                                             (<span style="color: #00cd00;">"recommendation.id"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"recommendation.name"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"recommendation.position"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"recommendation.organization"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"recommendation.contactInfo"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"type"</span> . <span style="color: #00cd00;">"PORTFOLIO"</span>)
+                                             (<span style="color: #00cd00;">"portfolio.string"</span> . <span style="color: #00cd00;">""</span>)
+                                             (<span style="color: #00cd00;">"file"</span> . <span style="color: #00cd00;">"&amp;title=&amp;_xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb"</span>))
+                                           ))
+                  <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:additional-headers</span>
+                  `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"*/*"</span>)
+                    (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"en-US,en;q=0.5"</span>)
+                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Accept-Encoding" . "gzip, deflate")</span>
+                    (<span style="color: #00cd00;">"X-Xsrftoken"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                    (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
+                    (<span style="color: #00cd00;">"Referer"</span> . ,expirience-url)
+                    (<span style="color: #00cd00;">"Connection"</span> . <span style="color: #00cd00;">"keep-alive"</span>)
+                    (<span style="color: #00cd00;">"Pragma"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    )
+                  <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+                  <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+               (<span style="color: #00cdcd; font-weight: bold;">return-from</span> expirience
+                 (values
+                  headers
+                  (flexi-streams:octets-to-string body-or-stream <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))))))))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(expirience cookie-jar)))</span>
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-4-10-7" class="outline-4">
 <h4 id="sec-4-10-7"><span class="section-number-4">4.10.7</span> Публикация (<code>touch</code>)</h4>
 <div class="outline-text-4" id="text-4-10-7">
-<p>
-resume=341309a0ff02d634530039ed1f543763556562
-publish=next
-createVisibleResume=true&amp;<sub>xsrf</sub>=b2dccfd0ce2ff68b2c4f795ac6d549fb
-</p>
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="touch">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
+
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">touch</span> (cookie-jar <span style="color: #00cd00;">&amp;optional</span> (resume-id <span style="color: #00cd00;">""</span>))
+  <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1057;&#1085;&#1072;&#1095;&#1072;&#1083;&#1072; &#1079;&#1072;&#1087;&#1088;&#1086;&#1089;&#1080;&#1084; &#1086;&#1089;&#1085;&#1086;&#1074;&#1085;&#1091;&#1102; &#1089;&#1090;&#1088;&#1072;&#1085;&#1080;&#1094;&#1091; &#1088;&#1077;&#1079;&#1102;&#1084;&#1077;</span>
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((main-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/view?resume="</span>))
+    (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+        (hh-get-page main-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+      <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1087;&#1077;&#1088;&#1100; &#1079;&#1072;&#1087;&#1088;&#1072;&#1096;&#1080;&#1074;&#1072;&#1077;&#1084; touch</span>
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((touch-url <span style="color: #00cd00;">"http://spb.hh.ru/applicant/resumes/edit/touch?resume="</span>))
+        (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (response cookie-jar url)
+            (hh-get-page touch-url cookie-jar *hh_account* <span style="color: #00cd00;">"http://spb.hh.ru"</span>)
+          <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1055;&#1086;&#1083;&#1091;&#1095;&#1072;&#1077;&#1084; &#1082;&#1083;&#1102;&#1095;-&#1079;&#1085;&#1072;&#1095;&#1077;&#1085;&#1080;&#1103; cookies</span>
+          (<span style="color: #00cdcd; font-weight: bold;">let</span> ((cookie-alist (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (cookie)
+                                          (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
+                                      (drakma:cookie-jar-cookies cookie-jar))))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; POST</span>
+             (<span style="color: #00cdcd; font-weight: bold;">multiple-value-bind</span> (body-or-stream status-code headers uri stream must-close reason-phrase)
+                 (drakma:http-request
+                  touch-url
+                  <span style="color: #0000ee; font-weight: bold;">:user-agent</span> <span style="color: #00cd00;">"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:method</span> <span style="color: #0000ee; font-weight: bold;">:post</span>
+                  <span style="color: #0000ee; font-weight: bold;">:content</span> (format nil <span style="color: #00cd00;">"~{~A~^&amp;~}"</span>
+                                   (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
+                                               (format nil <span style="color: #00cd00;">"~A=~A"</span> (car x) (cdr x)))
+                                           `((<span style="color: #00cd00;">"resume"</span> . <span style="color: #00cd00;">"341309a0ff02d634530039ed1f543763556562"</span>)
+                                             (<span style="color: #00cd00;">"publish"</span> . <span style="color: #00cd00;">"next"</span>)
+                                             (<span style="color: #00cd00;">"createVisibleResume"</span> . <span style="color: #00cd00;">"true&amp;_xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb"</span>))
+                                           ))
+                  <span style="color: #0000ee; font-weight: bold;">:content-type</span> <span style="color: #00cd00;">"application/x-www-form-urlencoded; charset=UTF-8"</span>
+                  <span style="color: #0000ee; font-weight: bold;">:additional-headers</span>
+                  `((<span style="color: #00cd00;">"Accept"</span> . <span style="color: #00cd00;">"*/*"</span>)
+                    (<span style="color: #00cd00;">"Accept-Language"</span> . <span style="color: #00cd00;">"en-US,en;q=0.5"</span>)
+                    <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">("Accept-Encoding" . "gzip, deflate")</span>
+                    (<span style="color: #00cd00;">"X-Xsrftoken"</span> . ,(cdr (assoc <span style="color: #00cd00;">"_xsrf"</span> cookie-alist <span style="color: #0000ee; font-weight: bold;">:test</span> #'equal)))
+                    (<span style="color: #00cd00;">"X-Requested-With"</span> . <span style="color: #00cd00;">"XMLHttpRequest"</span>)
+                    (<span style="color: #00cd00;">"Referer"</span> . ,touch-url)
+                    (<span style="color: #00cd00;">"Connection"</span> . <span style="color: #00cd00;">"keep-alive"</span>)
+                    (<span style="color: #00cd00;">"Pragma"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    (<span style="color: #00cd00;">"Cache-Control"</span> . <span style="color: #00cd00;">"no-cache"</span>)
+                    )
+                  <span style="color: #0000ee; font-weight: bold;">:cookie-jar</span> cookie-jar
+                  <span style="color: #0000ee; font-weight: bold;">:force-binary</span> t)
+               (<span style="color: #00cdcd; font-weight: bold;">return-from</span> touch
+                 (values
+                  headers
+                  (flexi-streams:octets-to-string body-or-stream <span style="color: #0000ee; font-weight: bold;">:external-format</span> <span style="color: #0000ee; font-weight: bold;">:utf-8</span>))))))))))
+
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(print</span>
+<span style="color: #cd0000;">;;  </span><span style="color: #cd0000;">(let ((cookie-jar (make-instance 'drakma:cookie-jar)))</span>
+<span style="color: #cd0000;">;;    </span><span style="color: #cd0000;">(touch cookie-jar)))</span>
+</pre>
+</div>
 </div>
 </div>
 
@@ -9978,7 +10314,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-12-09 Ср. 06:04</p>
+<p class="date">Created: 2016-02-28 Вс. 04:16</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

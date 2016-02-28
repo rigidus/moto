@@ -97,7 +97,7 @@
 (in-package #:moto)
 
 (defun process (vacancy rules)
-  (dbg "process (count rules: ~A)" (length rules))
+  ;; (dbg "process (count rules: ~A)" (length rules))
   (let ((vacancy vacancy))
     (tagbody
      renew
@@ -322,7 +322,8 @@
     "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
     "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
     "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
-    "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer")
+    "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "NodeJS"
+    "тестировщик" "Системный администратор" "Трафик-менеджер")
 
 (defun get-all-rules ()
   (sort
@@ -345,7 +346,7 @@
              (get-all-rules)))
 
 (defmethod process-teaser :around (current-teaser src-account referer)
-  (dbg "process-teaser :around")
+  ;; (dbg "process-teaser :around")
   (aif (process current-teaser (rules-for-teaser))
        (process (call-next-method it) (rules-for-vacancy))
        nil))
@@ -444,6 +445,10 @@
                   cookie-jar-2)))
       (err "login exception"))))
 
+(define-condition hh-404-error (error)
+  ((url  :initarg :url :reader url)
+   (text :initarg :text :reader text)))
+
 (defparameter *need-start* t)
 
 (defun hh-get-page (url cookie-jar src-account referer)
@@ -459,13 +464,15 @@
   (let ((response   "")
         (repeat-cnt 0))
     (tagbody repeat
-       (setf response
-             (flexi-streams:octets-to-string
-              (drakma:http-request
-               url :user-agent *user-agent* :force-binary t :cookie-jar cookie-jar
-               :additional-headers (append *additional-headers*
-                                           `(("Referer" . ,referer))))
-              :external-format :utf-8))
+       (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
+           (drakma:http-request
+            url :user-agent *user-agent* :force-binary t :cookie-jar cookie-jar
+            :additional-headers (append *additional-headers*
+                                        `(("Referer" . ,referer))))
+         (dbg "-- ~A : ~A" status-code url)
+         (when (equal 404 status-code)
+           (error 'hh-404-error :url url :text (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
+         (setf response (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
        ;; Если мы не залогинены:
        (unless (is-logged response)
          ;; Проверяем, не превышено ли кол-во попыток восстановления
@@ -791,6 +798,21 @@
 
 (defparameter *last-parse-data* nil)
 
+
+(defun tree-plist-p (l)
+  "Returns T if L is a plist (list with alternating keyword elements). "
+  (cond ((null l) t)
+        ((not (listp l)) nil)
+        ((and (cdr l)
+              (keywordp (car l))) (tree-plist-p (cddr l)))
+        (t (when (listp (car l))
+             (tree-plist-p (car l))))))
+
+;; (tree-plist-p '(:a 1 :b 2 (:c 4))) ;; => T
+
+(define-condition malformed-vacancy (error)
+  ((text :initarg :text :reader text)))
+
 (defun hh-parse-vacancy-teasers (html)
   "Получение списка вакансий из html"
   (dbg "hh-parse-vacancy-teasers")
@@ -841,6 +863,12 @@
                                           )))
                                    x)
                         #'mapcar)))
+       ;; error if malformed plist
+       (mapcar #'(lambda (x)
+                   (unless (tree-plist-p x)
+                     (dbg x)
+                     (error 'malformed-vacancy :text)
+                     )))
        ;; linearize for each elt
        (mapcar #'(lambda (tree)
                    (let ((linearize))
@@ -853,13 +881,13 @@
        (mapcar #'parse-salary)
        ))
 
+
 ;; (print
 ;;  (hh-parse-vacancy-teasers *last-parse-data*))
 
 ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (hh-parse-vacancy-teasers
 ;;    (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true" temp-cookie-jar "http://spb.hh.ru/")))
-
 
 (in-package #:moto)
 
@@ -950,16 +978,22 @@
                    (dbg "load-next-teasers-page (page=~A)" page)
                    (let* ((next-teasers-page-url (format nil url page))
                           (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
-                     (multiple-value-bind (next-teasers-page new-cookies ref-url)
-                         (hh-get-page next-teasers-page-url cookie-jar src-account referer)
-                       (setf cookie-jar new-cookies)
-                       (setf teasers (hh-parse-vacancy-teasers next-teasers-page))
-                       (incf page)
-                       (when (equal 0 (length teasers))
-                         (dbg "~~ FIN")
-                         (return-from get-vacancy 'nil)))))
+                     (handler-case
+                         (multiple-value-bind (next-teasers-page new-cookies ref-url)
+                             (hh-get-page next-teasers-page-url cookie-jar src-account referer)
+                           (setf cookie-jar new-cookies)
+                           (setf teasers (hh-parse-vacancy-teasers next-teasers-page))
+                           (incf page)
+                           (when (equal 0 (length teasers))
+                             (dbg "~~ FIN(0)")
+                             (return-from get-vacancy 'nil)))
+                       (hh-404-error (err)
+                         (progn
+                           (dbg "~~ FIN(404) : ~A" (url err))
+                           (return-from get-vacancy 'nil))))
+                     ))
                  (get-teaser ()
-                   (dbg "get-teaser")
+                   ;; (dbg "get-teaser")
                    (when (equal 0 (length teasers))
                      (load-next-teasers-page))
                    (prog1 (car teasers)

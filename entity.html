@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль сущностей, автоматов и их тесты</title>
-<!-- 2015-03-28 Сб. 06:27 -->
+<!-- 2016-01-07 Чт. 17:59 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -169,9 +169,9 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_file"><span style="color: #b22222;">;;;; </span><span style="color: #b22222;">entity.lisp</span>
+<pre class="src src-lisp" id="entity_file"><span style="color: #cd0000;">;;;; </span><span style="color: #cd0000;">entity.lisp</span>
 
-(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
 &lt;&lt;entity&gt;&gt;
 
@@ -243,9 +243,9 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity">(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-entity</span> (name desc <span style="color: #228b22;">&amp;rest</span> tail)
-  (<span style="color: #a020f0;">let</span> ((*package* (symbol-package name)))
-    `(<span style="color: #a020f0;">progn</span>
+<pre class="src src-lisp" id="entity">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-entity</span> (name desc <span style="color: #00cd00;">&amp;rest</span> tail)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((*package* (symbol-package name)))
+    `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
        &lt;&lt;entity_class&gt;&gt;
        &lt;&lt;make_entity_table&gt;&gt;
        &lt;&lt;make_entity&gt;&gt;
@@ -265,19 +265,19 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_class"><span style="color: #b22222;">;; </span><span style="color: #b22222;">entity-class</span>
-,(<span style="color: #a020f0;">let</span> ((table (intern (symbol-name name))))
-  `(<span style="color: #a020f0;">defclass</span> ,name ()
-    ,(mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
+<pre class="src src-lisp" id="entity_class"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">entity-class</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defclass</span> ,name ()
+    ,(mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
                  (list
                   (car x)
-                  <span style="color: #483d8b;">:col-type</span> (cadr x)
-                  <span style="color: #483d8b;">:initarg</span>  (intern (symbol-name (car x)) <span style="color: #483d8b;">:keyword</span>)
-                  <span style="color: #483d8b;">:accessor</span> (car x)))
+                  <span style="color: #0000ee; font-weight: bold;">:col-type</span> (cadr x)
+                  <span style="color: #0000ee; font-weight: bold;">:initarg</span>  (intern (symbol-name (car x)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>)
+                  <span style="color: #0000ee; font-weight: bold;">:accessor</span> (car x)))
              (car tail))
-    (<span style="color: #483d8b;">:metaclass</span> dao-class)
-    (<span style="color: #483d8b;">:table-name</span> ,table)
-    (<span style="color: #483d8b;">:keys</span> ,(caaar tail))))
+    (<span style="color: #0000ee; font-weight: bold;">:metaclass</span> dao-class)
+    (<span style="color: #0000ee; font-weight: bold;">:table-name</span> ,table)
+    (<span style="color: #0000ee; font-weight: bold;">:keys</span> ,(caaar tail))))
 </pre>
 </div>
 
@@ -287,11 +287,11 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="make_entity_table"><span style="color: #b22222;">;; </span><span style="color: #b22222;">make-entity-table</span>
-,(<span style="color: #a020f0;">let</span> ((table (intern (symbol-name name))))
-  `(<span style="color: #a020f0;">defun</span> ,(intern (concatenate 'string <span style="color: #8b2252;">"MAKE-"</span> (symbol-name name) <span style="color: #8b2252;">"-TABLE"</span>)) ()
-    (<span style="color: #a020f0;">with-connection</span> *db-spec*
-      (<span style="color: #a020f0;">unless</span> (table-exists-p (string-downcase (symbol-name ',table)))
+<pre class="src src-lisp" id="make_entity_table"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">make-entity-table</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"MAKE-"</span> (symbol-name name) <span style="color: #00cd00;">"-TABLE"</span>)) ()
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (<span style="color: #00cdcd; font-weight: bold;">unless</span> (table-exists-p (string-downcase (symbol-name ',table)))
         (execute (dao-table-definition ',table))))))
 </pre>
 </div>
@@ -302,10 +302,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="make_entity"><span style="color: #b22222;">;; </span><span style="color: #b22222;">make-entity</span>
-,(<span style="color: #a020f0;">let</span> ((table (intern (symbol-name name))))
-  `(<span style="color: #a020f0;">defun</span> ,(intern (concatenate 'string <span style="color: #8b2252;">"MAKE-"</span> (symbol-name name))) (<span style="color: #228b22;">&amp;rest</span> initargs)
-    (<span style="color: #a020f0;">with-connection</span> *db-spec*
+<pre class="src src-lisp" id="make_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">make-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"MAKE-"</span> (symbol-name name))) (<span style="color: #00cd00;">&amp;rest</span> initargs)
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
       (apply #'make-dao (list* ',table initargs)))))
 </pre>
 </div>
@@ -316,14 +316,14 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="upd_entity"><span style="color: #b22222;">;; </span><span style="color: #b22222;">upd-entity</span>
-(<span style="color: #a020f0;">defmethod</span> ,(intern (concatenate 'string <span style="color: #8b2252;">"UPD-"</span> (symbol-name name))) ((obj ,name) <span style="color: #228b22;">&amp;optional</span> args)
-  (<span style="color: #a020f0;">progn</span>
-    ,@(<span style="color: #a020f0;">loop</span> for accessor in (car tail) <span style="color: #483d8b;">:collect</span>
+<pre class="src src-lisp" id="upd_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">upd-entity</span>
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"UPD-"</span> (symbol-name name))) ((obj ,name) <span style="color: #00cd00;">&amp;optional</span> args)
+  (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+    ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> for accessor in (car tail) <span style="color: #0000ee; font-weight: bold;">:collect</span>
            `(setf (,(car accessor) obj)
-                  (or (getf args ,(intern (symbol-name (car accessor)) <span style="color: #483d8b;">:keyword</span>))
+                  (or (getf args ,(intern (symbol-name (car accessor)) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
                       (,(car accessor) obj))))
-    (<span style="color: #a020f0;">with-connection</span> *db-spec*
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
       (update-dao obj))))
 </pre>
 </div>
@@ -334,10 +334,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="del_entity"><span style="color: #b22222;">;; </span><span style="color: #b22222;">del-entity</span>
-,(<span style="color: #a020f0;">let</span> ((table (intern (symbol-name name))))
-  `(<span style="color: #a020f0;">defun</span> ,(intern (concatenate 'string <span style="color: #8b2252;">"DEL-"</span> (symbol-name name))) (id)
-    (<span style="color: #a020f0;">with-connection</span> *db-spec*
+<pre class="src src-lisp" id="del_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">del-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"DEL-"</span> (symbol-name name))) (id)
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
       (delete-dao (get-dao ',table id)))))
 </pre>
 </div>
@@ -348,10 +348,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="all_entity"><span style="color: #b22222;">;; </span><span style="color: #b22222;">all-entity</span>
-,(<span style="color: #a020f0;">let</span> ((table (intern (symbol-name name))))
-  `(<span style="color: #a020f0;">defun</span> ,(intern (concatenate 'string <span style="color: #8b2252;">"ALL-"</span> (symbol-name name))) ()
-    (<span style="color: #a020f0;">with-connection</span> *db-spec*
+<pre class="src src-lisp" id="all_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">all-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"ALL-"</span> (symbol-name name))) ()
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
       (select-dao ',table))))
 </pre>
 </div>
@@ -362,24 +362,24 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="get_entity"><span style="color: #b22222;">;; </span><span style="color: #b22222;">get-entity (by id)</span>
-,(<span style="color: #a020f0;">let</span> ((table      (intern (symbol-name name)))
-       (get-entity (intern (concatenate 'string <span style="color: #8b2252;">"GET-"</span> (symbol-name name)))))
-  `(<span style="color: #a020f0;">defun</span> ,get-entity (id <span style="color: #228b22;">&amp;rest</span> flds)
-    (<span style="color: #a020f0;">when</span> (not (typep id 'integer))
+<pre class="src src-lisp" id="get_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">get-entity (by id)</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table      (intern (symbol-name name)))
+       (get-entity (intern (concatenate 'string <span style="color: #00cd00;">"GET-"</span> (symbol-name name)))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,get-entity (id <span style="color: #00cd00;">&amp;rest</span> flds)
+    (<span style="color: #00cdcd; font-weight: bold;">when</span> (not (typep id 'integer))
       (err 'param-get-entity-is-not-integer))
-    (<span style="color: #a020f0;">with-connection</span> *db-spec*
-      (<span style="color: #a020f0;">let</span> ((obj (select-dao ',table (<span style="color: #483d8b;">:=</span> <span style="color: #483d8b;">:id</span> id)))
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+      (<span style="color: #00cdcd; font-weight: bold;">let</span> ((obj (select-dao ',table (<span style="color: #0000ee; font-weight: bold;">:=</span> <span style="color: #0000ee; font-weight: bold;">:id</span> id)))
             (rs))
-        (<span style="color: #a020f0;">when</span> (null obj)
-          (<span style="color: #a020f0;">return-from</span> ,get-entity nil))
+        (<span style="color: #00cdcd; font-weight: bold;">when</span> (null obj)
+          (<span style="color: #00cdcd; font-weight: bold;">return-from</span> ,get-entity nil))
         (setf obj (car obj))
-        (<span style="color: #a020f0;">when</span> (null obj)
-          (<span style="color: #a020f0;">return-from</span> ,get-entity nil))
-        (<span style="color: #a020f0;">when</span> (null flds)
-          (<span style="color: #a020f0;">return-from</span> ,get-entity obj))
-        (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> fld <span style="color: #483d8b;">:in</span> flds <span style="color: #483d8b;">:collect</span>
-           (setf (getf rs (intern (symbol-name fld) <span style="color: #483d8b;">:keyword</span>))
+        (<span style="color: #00cdcd; font-weight: bold;">when</span> (null obj)
+          (<span style="color: #00cdcd; font-weight: bold;">return-from</span> ,get-entity nil))
+        (<span style="color: #00cdcd; font-weight: bold;">when</span> (null flds)
+          (<span style="color: #00cdcd; font-weight: bold;">return-from</span> ,get-entity obj))
+        (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> fld <span style="color: #0000ee; font-weight: bold;">:in</span> flds <span style="color: #0000ee; font-weight: bold;">:collect</span>
+           (setf (getf rs (intern (symbol-name fld) <span style="color: #0000ee; font-weight: bold;">:keyword</span>))
                  (funcall (intern (symbol-name fld) (find-package ,(symbol-name name)))
                           obj)))
         rs))))
@@ -392,14 +392,14 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="find_entity"><span style="color: #b22222;">;; </span><span style="color: #b22222;">find-entity</span>
-,(<span style="color: #a020f0;">let</span> ((table (intern (symbol-name name))))
-  `(<span style="color: #a020f0;">defun</span> ,(intern (concatenate 'string <span style="color: #8b2252;">"FIND-"</span> (symbol-name name))) (<span style="color: #228b22;">&amp;rest</span> args)
-    (<span style="color: #a020f0;">with-connection</span> *db-spec*
+<pre class="src src-lisp" id="find_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">find-entity</span>
+,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((table (intern (symbol-name name))))
+  `(<span style="color: #00cdcd; font-weight: bold;">defun</span> ,(intern (concatenate 'string <span style="color: #00cd00;">"FIND-"</span> (symbol-name name))) (<span style="color: #00cd00;">&amp;rest</span> args)
+    (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
       (query-dao ',table
                  (sql-compile
-                  (list <span style="color: #483d8b;">:select</span> <span style="color: #483d8b;">:*</span> <span style="color: #483d8b;">:from</span> ',table
-                        <span style="color: #483d8b;">:where</span> (make-clause-list '<span style="color: #483d8b;">:and</span> '<span style="color: #483d8b;">:=</span> args)))))))
+                  (list <span style="color: #0000ee; font-weight: bold;">:select</span> <span style="color: #0000ee; font-weight: bold;">:*</span> <span style="color: #0000ee; font-weight: bold;">:from</span> ',table
+                        <span style="color: #0000ee; font-weight: bold;">:where</span> (make-clause-list '<span style="color: #0000ee; font-weight: bold;">:and</span> '<span style="color: #0000ee; font-weight: bold;">:=</span> args)))))))
 </pre>
 </div>
 
@@ -409,25 +409,25 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="show_entity"><span style="color: #b22222;">;; </span><span style="color: #b22222;">show-entity</span>
-(<span style="color: #a020f0;">defmethod</span> ,(intern <span style="color: #8b2252;">"TO-HTML"</span>) ((obj ,name) <span style="color: #228b22;">&amp;optional</span> <span style="color: #228b22;">&amp;key</span> filter)
-  (<span style="color: #a020f0;">with-connection</span> *db-spec*
+<pre class="src src-lisp" id="show_entity"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">show-entity</span>
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,(intern <span style="color: #00cd00;">"TO-HTML"</span>) ((obj ,name) <span style="color: #00cd00;">&amp;optional</span> <span style="color: #00cd00;">&amp;key</span> filter)
+  (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
     (concatenate 'string
-                 <span style="color: #8b2252;">"&lt;form id='"</span>
+                 <span style="color: #00cd00;">"&lt;form id='"</span>
                  ,(string-downcase (symbol-name name))
-                 <span style="color: #8b2252;">"-form'&gt;"</span>
-                 ,@(<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> (fld-name fld-type) <span style="color: #483d8b;">:in</span> (car tail) <span style="color: #483d8b;">:collect</span>
+                 <span style="color: #00cd00;">"-form'&gt;"</span>
+                 ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> (fld-name fld-type) <span style="color: #0000ee; font-weight: bold;">:in</span> (car tail) <span style="color: #0000ee; font-weight: bold;">:collect</span>
                       (list
                        (intern (concatenate 'string
-                                            <span style="color: #8b2252;">"SHOW-FLD-"</span>
-                                            (<span style="color: #a020f0;">if</span> (symbolp fld-type)
+                                            <span style="color: #00cd00;">"SHOW-FLD-"</span>
+                                            (<span style="color: #00cdcd; font-weight: bold;">if</span> (symbolp fld-type)
                                                 (symbol-name fld-type)
-                                                (format nil <span style="color: #8b2252;">"~{~A~^-~}"</span>
-                                                        (mapcar #'(<span style="color: #a020f0;">lambda</span> (x)
+                                                (format nil <span style="color: #00cd00;">"~{~A~^-~}"</span>
+                                                        (mapcar #'(<span style="color: #00cdcd; font-weight: bold;">lambda</span> (x)
                                                                     (symbol-name x))
                                                                 fld-type)))))
                        (list fld-name 'obj)))
-                 <span style="color: #8b2252;">"&lt;/form&gt;"</span>)))
+                 <span style="color: #00cd00;">"&lt;/form&gt;"</span>)))
 </pre>
 </div>
 </div>
@@ -443,10 +443,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1080;</span>
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">entity-test</span> ()
+<pre class="src src-lisp" id="entity_test"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1080;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">entity-test</span> ()
   &lt;&lt;entity_test_contents&gt;&gt;
-  (dbg <span style="color: #8b2252;">"passed: entity-test~%"</span>))
+  (dbg <span style="color: #00cd00;">"passed: entity-test~%"</span>))
 (entity-test)
 </pre>
 </div>
@@ -462,12 +462,12 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #a020f0;">when</span> (<span style="color: #a020f0;">with-connection</span> *db-spec*
-          (query (<span style="color: #483d8b;">:select</span> 'table_name <span style="color: #483d8b;">:from</span> 'information_schema.tables <span style="color: #483d8b;">:where</span>
-                          (<span style="color: #483d8b;">:and</span> (<span style="color: #483d8b;">:=</span> 'table_schema <span style="color: #8b2252;">"public"</span>)
-                                (<span style="color: #483d8b;">:=</span> 'table_name <span style="color: #8b2252;">"entity123"</span>)))))
-  (<span style="color: #a020f0;">with-connection</span> *db-spec*
-    (query (<span style="color: #483d8b;">:drop-table</span> 'entity123))))
+<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #00cdcd; font-weight: bold;">when</span> (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+          (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                          (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"entity123"</span>)))))
+  (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+    (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'entity123))))
 </pre>
 </div>
 
@@ -478,17 +478,17 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #a020f0;">define-entity</span> entity123 <span style="color: #8b2252;">"&#1058;&#1077;&#1089;&#1090;&#1086;&#1074;&#1072;&#1103; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100;"</span>
+<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #00cdcd; font-weight: bold;">define-entity</span> entity123 <span style="color: #00cd00;">"&#1058;&#1077;&#1089;&#1090;&#1086;&#1074;&#1072;&#1103; &#1089;&#1091;&#1097;&#1085;&#1086;&#1089;&#1090;&#1100;"</span>
   ((id serial)
    (email varchar)
    (name (or db-null varchar))))
 
 (make-entity123-table)
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (not (null (<span style="color: #a020f0;">with-connection</span> *db-spec*
-                     (query (<span style="color: #483d8b;">:select</span> 'table_name <span style="color: #483d8b;">:from</span> 'information_schema.tables <span style="color: #483d8b;">:where</span>
-                                     (<span style="color: #483d8b;">:and</span> (<span style="color: #483d8b;">:=</span> 'table_schema <span style="color: #8b2252;">"public"</span>)
-                                           (<span style="color: #483d8b;">:=</span> 'table_name <span style="color: #8b2252;">"entity123"</span>))))))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                     (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                     (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                           (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"entity123"</span>))))))))
 </pre>
 </div>
 
@@ -499,10 +499,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test_contents">(make-entity123 <span style="color: #483d8b;">:email</span> <span style="color: #8b2252;">"test-email-1"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"test-name-1"</span>)
+<pre class="src src-lisp" id="entity_test_contents">(make-entity123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-1"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-1"</span>)
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (not (null (<span style="color: #a020f0;">with-connection</span> *db-spec*
-                     (query (<span style="color: #483d8b;">:select</span> '* <span style="color: #483d8b;">:from</span> 'entity123))))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                     (query (<span style="color: #0000ee; font-weight: bold;">:select</span> '* <span style="color: #0000ee; font-weight: bold;">:from</span> 'entity123))))))
 </pre>
 </div>
 
@@ -512,7 +512,7 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #ff0000; font-weight: bold;">assert</span> (not (null (get-entity123 1))))
+<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (get-entity123 1))))
 </pre>
 </div>
 
@@ -523,14 +523,14 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test_contents">(upd-entity123 (get-entity123 1) (list <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"new-name"</span>))
+<pre class="src src-lisp" id="entity_test_contents">(upd-entity123 (get-entity123 1) (list <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"new-name"</span>))
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">"new-name"</span> (name (get-entity123 1))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"new-name"</span> (name (get-entity123 1))))
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">"new-name"</span>
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"new-name"</span>
                (caar
-                (<span style="color: #a020f0;">with-connection</span> *db-spec*
-                  (query (<span style="color: #483d8b;">:select</span> 'name <span style="color: #483d8b;">:from</span> 'entity123 <span style="color: #483d8b;">:where</span> (<span style="color: #483d8b;">:=</span> 'id 1)))))))
+                (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                  (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'name <span style="color: #0000ee; font-weight: bold;">:from</span> 'entity123 <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'id 1)))))))
 </pre>
 </div>
 
@@ -542,8 +542,8 @@ for the JavaScript code in this tag.
 
 <pre class="src src-lisp" id="entity_test_contents">(del-entity123 1)
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (null (<span style="color: #a020f0;">with-connection</span> *db-spec*
-                (query (<span style="color: #483d8b;">:select</span> '* <span style="color: #483d8b;">:from</span> 'entity123 <span style="color: #483d8b;">:where</span> (<span style="color: #483d8b;">:=</span> 'id 1))))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                (query (<span style="color: #0000ee; font-weight: bold;">:select</span> '* <span style="color: #0000ee; font-weight: bold;">:from</span> 'entity123 <span style="color: #0000ee; font-weight: bold;">:where</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'id 1))))))
 </pre>
 </div>
 
@@ -554,13 +554,13 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test_contents">(make-entity123 <span style="color: #483d8b;">:email</span> <span style="color: #8b2252;">"test-email-2"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"test-name-2"</span>)
-(make-entity123 <span style="color: #483d8b;">:email</span> <span style="color: #8b2252;">"test-email-3"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"test-name-3"</span>)
+<pre class="src src-lisp" id="entity_test_contents">(make-entity123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-2"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-2"</span>)
+(make-entity123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-3"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-3"</span>)
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (equal 2 (length (all-entity123))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal 2 (length (all-entity123))))
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (equal <span style="color: #8b2252;">"test-email-3"</span>
-               (email (car (find-entity123 <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"test-name-3"</span>)))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal <span style="color: #00cd00;">"test-email-3"</span>
+               (email (car (find-entity123 <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-3"</span>)))))
 </pre>
 </div>
 
@@ -570,8 +570,8 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #a020f0;">with-connection</span> *db-spec*
-  (query (<span style="color: #483d8b;">:drop-table</span> 'entity123)))
+<pre class="src src-lisp" id="entity_test_contents">(<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+  (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'entity123)))
 </pre>
 </div>
 
@@ -599,29 +599,29 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="automat">(<span style="color: #a020f0;">defmacro</span> <span style="color: #0000ff;">define-automat</span> (name desc <span style="color: #228b22;">&amp;rest</span> tail)
-  (<span style="color: #a020f0;">let</span> ((package (symbol-package name)))
-    (<span style="color: #a020f0;">let</span> ((upd-entity (intern (concatenate 'string <span style="color: #8b2252;">"UPD-"</span> (symbol-name name))))
+<pre class="src src-lisp" id="automat">(<span style="color: #00cdcd; font-weight: bold;">defmacro</span> <span style="color: #0000ee; font-weight: bold;">define-automat</span> (name desc <span style="color: #00cd00;">&amp;rest</span> tail)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((package (symbol-package name)))
+    (<span style="color: #00cdcd; font-weight: bold;">let</span> ((upd-entity (intern (concatenate 'string <span style="color: #00cd00;">"UPD-"</span> (symbol-name name))))
           (fields (append (car tail) '((state (or db-null varchar)))))
-          (state  (intern <span style="color: #8b2252;">"STATE"</span> package))
-          (trans  (intern <span style="color: #8b2252;">"TRANS"</span> package))
-          (takt   (intern <span style="color: #8b2252;">"TAKT"</span> package))
-          (make-table (intern (concatenate 'string <span style="color: #8b2252;">"MAKE-"</span>  (symbol-name name) <span style="color: #8b2252;">"-TABLE"</span>))))
-      `(<span style="color: #a020f0;">progn</span>
-         (<span style="color: #a020f0;">define-entity</span> ,name ,desc ,fields)
+          (state  (intern <span style="color: #00cd00;">"STATE"</span> package))
+          (trans  (intern <span style="color: #00cd00;">"TRANS"</span> package))
+          (takt   (intern <span style="color: #00cd00;">"TAKT"</span> package))
+          (make-table (intern (concatenate 'string <span style="color: #00cd00;">"MAKE-"</span>  (symbol-name name) <span style="color: #00cd00;">"-TABLE"</span>))))
+      `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
+         (<span style="color: #00cdcd; font-weight: bold;">define-entity</span> ,name ,desc ,fields)
          (,make-table)
-         ,(<span style="color: #a020f0;">let</span> ((all-states (cadr tail)))
-               `(<span style="color: #a020f0;">progn</span>
-                  ,@(<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> (from-state to-state event) <span style="color: #483d8b;">:in</span> (caddr tail) <span style="color: #483d8b;">:collect</span>
-                       (<span style="color: #a020f0;">if</span> (or (null (find from-state all-states))
+         ,(<span style="color: #00cdcd; font-weight: bold;">let</span> ((all-states (cadr tail)))
+               `(<span style="color: #00cdcd; font-weight: bold;">progn</span>
+                  ,@(<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> (from-state to-state event) <span style="color: #0000ee; font-weight: bold;">:in</span> (caddr tail) <span style="color: #0000ee; font-weight: bold;">:collect</span>
+                       (<span style="color: #00cdcd; font-weight: bold;">if</span> (or (null (find from-state all-states))
                                (null (find to-state all-states)))
-                           (err (format nil <span style="color: #8b2252;">"unknown state: ~A -&gt; ~A"</span> from-state to-state))
-                           `(<span style="color: #a020f0;">defmethod</span> ,trans ((obj ,name)
+                           (err (format nil <span style="color: #00cd00;">"unknown state: ~A -&gt; ~A"</span> from-state to-state))
+                           `(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,trans ((obj ,name)
                                                (from-state (eql ,from-state))
                                                (to-state (eql ,to-state)))
-                              (<span style="color: #a020f0;">prog1</span> (,(intern (symbol-name event) *package*))
-                                (,upd-entity obj (list <span style="color: #483d8b;">:state</span> ,(bprint to-state)))))))
-                  (<span style="color: #a020f0;">defmethod</span> ,takt ((obj ,name) new-state)
+                              (<span style="color: #00cdcd; font-weight: bold;">prog1</span> (,(intern (symbol-name event) *package*))
+                                (,upd-entity obj (list <span style="color: #0000ee; font-weight: bold;">:state</span> ,(bprint to-state)))))))
+                  (<span style="color: #00cdcd; font-weight: bold;">defmethod</span> ,takt ((obj ,name) new-state)
                     (,trans obj (read-from-string (,state obj)) new-state))))))))
 </pre>
 </div>
@@ -637,10 +637,10 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="automat_test"><span style="color: #b22222;">;; </span><span style="color: #b22222;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1099;</span>
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">automat-test</span> ()
+<pre class="src src-lisp" id="automat_test"><span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1058;&#1077;&#1089;&#1090;&#1080;&#1088;&#1091;&#1077;&#1084; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;&#1099;</span>
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">automat-test</span> ()
   &lt;&lt;automat_test_contents&gt;&gt;
-  (dbg <span style="color: #8b2252;">"passed: automat-test~%"</span>))
+  (dbg <span style="color: #00cd00;">"passed: automat-test~%"</span>))
 (automat-test)
 </pre>
 </div>
@@ -656,12 +656,12 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #a020f0;">when</span> (<span style="color: #a020f0;">with-connection</span> *db-spec*
-          (query (<span style="color: #483d8b;">:select</span> 'table_name <span style="color: #483d8b;">:from</span> 'information_schema.tables <span style="color: #483d8b;">:where</span>
-                          (<span style="color: #483d8b;">:and</span> (<span style="color: #483d8b;">:=</span> 'table_schema <span style="color: #8b2252;">"public"</span>)
-                                (<span style="color: #483d8b;">:=</span> 'table_name <span style="color: #8b2252;">"automat123"</span>)))))
-  (<span style="color: #a020f0;">with-connection</span> *db-spec*
-    (query (<span style="color: #483d8b;">:drop-table</span> 'automat123))))
+<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #00cdcd; font-weight: bold;">when</span> (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+          (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                          (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"automat123"</span>)))))
+  (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+    (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'automat123))))
 </pre>
 </div>
 
@@ -672,27 +672,27 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #a020f0;">define-automat</span> automat123 <span style="color: #8b2252;">"&#1058;&#1077;&#1089;&#1090;&#1086;&#1074;&#1099;&#1081; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;"</span>
+<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #00cdcd; font-weight: bold;">define-automat</span> automat123 <span style="color: #00cd00;">"&#1058;&#1077;&#1089;&#1090;&#1086;&#1074;&#1099;&#1081; &#1072;&#1074;&#1090;&#1086;&#1084;&#1072;&#1090;"</span>
   ((id serial)
    (email varchar)
    (name (or db-null varchar)))
-  (<span style="color: #483d8b;">:on</span> <span style="color: #483d8b;">:off</span> <span style="color: #483d8b;">:broken</span>)
-  ((<span style="color: #483d8b;">:on</span>      <span style="color: #483d8b;">:off</span>     <span style="color: #483d8b;">:switch-off</span>)
-   (<span style="color: #483d8b;">:off</span>     <span style="color: #483d8b;">:on</span>      <span style="color: #483d8b;">:switch-on</span>)
-   (<span style="color: #483d8b;">:on</span>      <span style="color: #483d8b;">:broken</span>  <span style="color: #483d8b;">:fault</span>)
-   (<span style="color: #483d8b;">:broken</span>  <span style="color: #483d8b;">:off</span>     <span style="color: #483d8b;">:stop</span>)))
+  (<span style="color: #0000ee; font-weight: bold;">:on</span> <span style="color: #0000ee; font-weight: bold;">:off</span> <span style="color: #0000ee; font-weight: bold;">:broken</span>)
+  ((<span style="color: #0000ee; font-weight: bold;">:on</span>      <span style="color: #0000ee; font-weight: bold;">:off</span>     <span style="color: #0000ee; font-weight: bold;">:switch-off</span>)
+   (<span style="color: #0000ee; font-weight: bold;">:off</span>     <span style="color: #0000ee; font-weight: bold;">:on</span>      <span style="color: #0000ee; font-weight: bold;">:switch-on</span>)
+   (<span style="color: #0000ee; font-weight: bold;">:on</span>      <span style="color: #0000ee; font-weight: bold;">:broken</span>  <span style="color: #0000ee; font-weight: bold;">:fault</span>)
+   (<span style="color: #0000ee; font-weight: bold;">:broken</span>  <span style="color: #0000ee; font-weight: bold;">:off</span>     <span style="color: #0000ee; font-weight: bold;">:stop</span>)))
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (not (null (<span style="color: #a020f0;">with-connection</span> *db-spec*
-                     (query (<span style="color: #483d8b;">:select</span> 'table_name <span style="color: #483d8b;">:from</span> 'information_schema.tables <span style="color: #483d8b;">:where</span>
-                                     (<span style="color: #483d8b;">:and</span> (<span style="color: #483d8b;">:=</span> 'table_schema <span style="color: #8b2252;">"public"</span>)
-                                           (<span style="color: #483d8b;">:=</span> 'table_name <span style="color: #8b2252;">"automat123"</span>))))))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                     (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'table_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.tables <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                     (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema <span style="color: #00cd00;">"public"</span>)
+                                           (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name <span style="color: #00cd00;">"automat123"</span>))))))))
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (not (null
-              (<span style="color: #a020f0;">with-connection</span> *db-spec*
-                (query (<span style="color: #483d8b;">:select</span> 'column_name <span style="color: #483d8b;">:from</span> 'information_schema.columns <span style="color: #483d8b;">:where</span>
-                                (<span style="color: #483d8b;">:and</span> (<span style="color: #483d8b;">:=</span> 'table_schema  <span style="color: #8b2252;">"public"</span>)
-                                      (<span style="color: #483d8b;">:=</span> 'table_name    <span style="color: #8b2252;">"automat123"</span>)
-                                      (<span style="color: #483d8b;">:=</span> 'column_name   <span style="color: #8b2252;">"state"</span>))))))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null
+              (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'column_name <span style="color: #0000ee; font-weight: bold;">:from</span> 'information_schema.columns <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                (<span style="color: #0000ee; font-weight: bold;">:and</span> (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_schema  <span style="color: #00cd00;">"public"</span>)
+                                      (<span style="color: #0000ee; font-weight: bold;">:=</span> 'table_name    <span style="color: #00cd00;">"automat123"</span>)
+                                      (<span style="color: #0000ee; font-weight: bold;">:=</span> 'column_name   <span style="color: #00cd00;">"state"</span>))))))))
 </pre>
 </div>
 
@@ -704,33 +704,33 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="automat_test_contents">(make-automat123 <span style="color: #483d8b;">:email</span> <span style="color: #8b2252;">"test-email-1"</span> <span style="color: #483d8b;">:name</span> <span style="color: #8b2252;">"test-name-1"</span>)
+<pre class="src src-lisp" id="automat_test_contents">(make-automat123 <span style="color: #0000ee; font-weight: bold;">:email</span> <span style="color: #00cd00;">"test-email-1"</span> <span style="color: #0000ee; font-weight: bold;">:name</span> <span style="color: #00cd00;">"test-name-1"</span>)
 
-(upd-automat123 (get-automat123 1) (list <span style="color: #483d8b;">:state</span> <span style="color: #8b2252;">":off"</span>))
+(upd-automat123 (get-automat123 1) (list <span style="color: #0000ee; font-weight: bold;">:state</span> <span style="color: #00cd00;">":off"</span>))
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">switch-off</span> ()
-  <span style="color: #483d8b;">:switch-off</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">switch-off</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:switch-off</span>)
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">switch-on</span> ()
-  <span style="color: #483d8b;">:switch-on</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">switch-on</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:switch-on</span>)
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">fault</span> ()
-  <span style="color: #483d8b;">:fault</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">fault</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:fault</span>)
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">stop</span> ()
-  <span style="color: #483d8b;">:stop</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">stop</span> ()
+  <span style="color: #0000ee; font-weight: bold;">:stop</span>)
 
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (equal '((<span style="color: #483d8b;">:SWITCH-ON</span> <span style="color: #8b2252;">":ON"</span>) (<span style="color: #483d8b;">:SWITCH-OFF</span> <span style="color: #8b2252;">":OFF"</span>) (<span style="color: #483d8b;">:SWITCH-ON</span> <span style="color: #8b2252;">":ON"</span>)
-                 (<span style="color: #483d8b;">:FAULT</span> <span style="color: #8b2252;">":BROKEN"</span>) (<span style="color: #483d8b;">:STOP</span> <span style="color: #8b2252;">":OFF"</span>))
-               (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> new-state <span style="color: #483d8b;">:in</span> '(<span style="color: #483d8b;">:on</span> <span style="color: #483d8b;">:off</span> <span style="color: #483d8b;">:on</span> <span style="color: #483d8b;">:broken</span> <span style="color: #483d8b;">:off</span>) <span style="color: #483d8b;">:collect</span>
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (equal '((<span style="color: #0000ee; font-weight: bold;">:SWITCH-ON</span> <span style="color: #00cd00;">":ON"</span>) (<span style="color: #0000ee; font-weight: bold;">:SWITCH-OFF</span> <span style="color: #00cd00;">":OFF"</span>) (<span style="color: #0000ee; font-weight: bold;">:SWITCH-ON</span> <span style="color: #00cd00;">":ON"</span>)
+                 (<span style="color: #0000ee; font-weight: bold;">:FAULT</span> <span style="color: #00cd00;">":BROKEN"</span>) (<span style="color: #0000ee; font-weight: bold;">:STOP</span> <span style="color: #00cd00;">":OFF"</span>))
+               (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> new-state <span style="color: #0000ee; font-weight: bold;">:in</span> '(<span style="color: #0000ee; font-weight: bold;">:on</span> <span style="color: #0000ee; font-weight: bold;">:off</span> <span style="color: #0000ee; font-weight: bold;">:on</span> <span style="color: #0000ee; font-weight: bold;">:broken</span> <span style="color: #0000ee; font-weight: bold;">:off</span>) <span style="color: #0000ee; font-weight: bold;">:collect</span>
                   (list (takt (get-automat123 1) new-state)
                         (state (get-automat123 1))))))
-(<span style="color: #ff0000; font-weight: bold;">assert</span> (not (null
-              (<span style="color: #a020f0;">with-connection</span> *db-spec*
-                (query (<span style="color: #483d8b;">:select</span> 'state <span style="color: #483d8b;">:from</span> 'automat123 <span style="color: #483d8b;">:where</span>
-                                (<span style="color: #483d8b;">:and</span>
-                                 (<span style="color: #483d8b;">:=</span> 'id 1)
-                                 (<span style="color: #483d8b;">:=</span> 'state <span style="color: #8b2252;">":OFF"</span>))))))))
+(<span style="color: #cd0000; font-weight: bold;">assert</span> (not (null
+              (<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+                (query (<span style="color: #0000ee; font-weight: bold;">:select</span> 'state <span style="color: #0000ee; font-weight: bold;">:from</span> 'automat123 <span style="color: #0000ee; font-weight: bold;">:where</span>
+                                (<span style="color: #0000ee; font-weight: bold;">:and</span>
+                                 (<span style="color: #0000ee; font-weight: bold;">:=</span> 'id 1)
+                                 (<span style="color: #0000ee; font-weight: bold;">:=</span> 'state <span style="color: #00cd00;">":OFF"</span>))))))))
 </pre>
 </div>
 
@@ -740,14 +740,14 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #a020f0;">let</span> ((test t) (err nil))
-  (<span style="color: #a020f0;">handler-case</span>
-      (<span style="color: #a020f0;">progn</span>
-        (takt (get-automat123 1) <span style="color: #483d8b;">:broken</span>)
+<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #00cdcd; font-weight: bold;">let</span> ((test t) (err nil))
+  (<span style="color: #00cdcd; font-weight: bold;">handler-case</span>
+      (<span style="color: #00cdcd; font-weight: bold;">progn</span>
+        (takt (get-automat123 1) <span style="color: #0000ee; font-weight: bold;">:broken</span>)
         (setf test nil))
     (simple-error ()
       (setf err t))
-    (<span style="color: #ff0000; font-weight: bold;">assert</span> (and test err))))
+    (<span style="color: #cd0000; font-weight: bold;">assert</span> (and test err))))
 </pre>
 </div>
 
@@ -757,8 +757,8 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #a020f0;">with-connection</span> *db-spec*
-  (query (<span style="color: #483d8b;">:drop-table</span> 'automat123)))
+<pre class="src src-lisp" id="automat_test_contents">(<span style="color: #00cdcd; font-weight: bold;">with-connection</span> *db-spec*
+  (query (<span style="color: #0000ee; font-weight: bold;">:drop-table</span> 'automat123)))
 </pre>
 </div>
 
@@ -767,6 +767,7 @@ for the JavaScript code in this tag.
 </p>
 </div>
 </div>
+
 <div id="outline-container-sec-6" class="outline-2">
 <h2 id="sec-6"><span class="section-number-2">6</span> Определение возможных исходящих состояний автомата</h2>
 <div class="outline-text-2" id="text-6">
@@ -782,18 +783,18 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="compute_outgoing_states">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="compute_outgoing_states">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">compute-outgoing-states</span> (the-class source-state)
-  (<span style="color: #a020f0;">let</span> ((applicable-methods))
-    (<span style="color: #a020f0;">loop</span> <span style="color: #483d8b;">:for</span> trans-method <span style="color: #483d8b;">:in</span> (closer-mop:generic-function-methods #'trans) <span style="color: #483d8b;">:do</span>
-       (<span style="color: #a020f0;">let</span> ((specializers (closer-mop:method-specializers trans-method)))
-         (<span style="color: #a020f0;">when</span> (and (equal the-class (class-name (car specializers)))
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">compute-outgoing-states</span> (the-class source-state)
+  (<span style="color: #00cdcd; font-weight: bold;">let</span> ((applicable-methods))
+    (<span style="color: #00cdcd; font-weight: bold;">loop</span> <span style="color: #0000ee; font-weight: bold;">:for</span> trans-method <span style="color: #0000ee; font-weight: bold;">:in</span> (closer-mop:generic-function-methods #'trans) <span style="color: #0000ee; font-weight: bold;">:do</span>
+       (<span style="color: #00cdcd; font-weight: bold;">let</span> ((specializers (closer-mop:method-specializers trans-method)))
+         (<span style="color: #00cdcd; font-weight: bold;">when</span> (and (equal the-class (class-name (car specializers)))
                     (equal source-state (closer-mop:eql-specializer-object (cadr specializers))))
            (push (closer-mop:eql-specializer-object (nth 2 specializers)) applicable-methods))))
     applicable-methods))
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(compute-outgoing-states 'vacancy :responded)</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(compute-outgoing-states 'vacancy :responded)</span>
 </pre>
 </div>
 
@@ -804,14 +805,14 @@ for the JavaScript code in this tag.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="possible_trans">(<span style="color: #a020f0;">in-package</span> #<span style="color: #483d8b;">:moto</span>)
+<pre class="src src-lisp" id="possible_trans">(<span style="color: #00cdcd; font-weight: bold;">in-package</span> #<span style="color: #0000ee; font-weight: bold;">:moto</span>)
 
-(<span style="color: #a020f0;">defmethod</span> <span style="color: #0000ff;">possible-trans</span> ((obj t))
+(<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">possible-trans</span> ((obj t))
   (compute-outgoing-states
    (class-name (class-of obj))
-   (intern (subseq (state obj) 1) <span style="color: #483d8b;">:keyword</span>)))
+   (intern (subseq (state obj) 1) <span style="color: #0000ee; font-weight: bold;">:keyword</span>)))
 
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">(possible-trans (get-vacancy 1))</span>
+<span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(possible-trans (get-vacancy 1))</span>
 </pre>
 </div>
 </div>
@@ -819,7 +820,7 @@ for the JavaScript code in this tag.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2015-03-28 Сб. 06:27</p>
+<p class="date">Created: 2016-01-07 Чт. 17:59</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
