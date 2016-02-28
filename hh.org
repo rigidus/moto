@@ -2760,9 +2760,12 @@
    идентификатор. Таким образом адрес становится таким:
    http://spb.hh.ru/applicant/resumes/view?resume=341309a0ff02d634530039ed1f543763556562
 
+   Drakma автоматически переходит по location, так что реальное значение resume нужно
+   извлекать из возвращаемого значения uri.
+
    После того, как все разделы заполнены резюме можно опубликовать.
 
-   Резюме также можно удалить по айдишнику.
+   Резюме также можно удалить по идентификатору.
 
    Резюме сопровождается артефактами (фотографиями), которые привязываются к
    нему. Артефакты можно загружать, выбирать и удалять.
@@ -2855,13 +2858,13 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defun personal (cookie-jar &optional (resume-id ""))
+     (defun personal (cookie-jar resume &optional (resume-id ""))
        ;; Сначала запросим основную страницу резюме
-       (let ((main-url "http://spb.hh.ru/applicant/resumes/view?resume="))
+       (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
          (multiple-value-bind (response cookie-jar url)
              (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
            ;; Теперь запрашиваем personal
-           (let ((personal-url "http://spb.hh.ru/applicant/resumes/edit/personal?resume="))
+           (let ((personal-url (format nil "http://spb.hh.ru/applicant/resumes/edit/personal?resume=~A" resume-id)))
              (multiple-value-bind (response cookie-jar url)
                  (hh-get-page personal-url cookie-jar *hh_account* "http://spb.hh.ru")
                ;; Получаем ключ-значения cookies
@@ -2877,22 +2880,21 @@
                        :content (format nil "~{~A~^&~}"
                                         (mapcar #'(lambda (x)
                                                     (format nil "~A=~A" (car x) (cdr x)))
-
-                                                `(("lastName.string" . ,(drakma:url-encode "Глухов" :utf-8))
-                                                  ("firstName.string" . ,(drakma:url-encode "Михаил" :utf-8))
-                                                  ("middleName.string" . ,(drakma:url-encode "Михайлович" :utf-8))
-                                                  ("birthday.date" . "")
-                                                  ("gender.string" . "male")
-                                                  ("area.string" . "2")
-                                                  ("metro.string" . "")
-                                                  ("relocation.string" . "no_relocation")
-                                                  ("relocationArea.string" . "")
-                                                  ("businessTripReadiness.string" . "never")
-                                                  ("citizenship" . "113")
-                                                  ("citizenship.string" . "113")
-                                                  ("workTicket" . "113")
-                                                  ("workTicket.string" . "113")
-                                                  ("travelTime.string" . "any")
+                                                `(("lastName.string"                         . ,(drakma:url-encode (last-name resume) :utf-8))
+                                                  ("firstName.string"                        . ,(drakma:url-encode (first-name resume) :utf-8))
+                                                  ("middleName.string"                       . ,(drakma:url-encode (middle-name resume) :utf-8))
+                                                  ("birthday.date"                           . "")
+                                                  ("gender.string"                           . ,(drakma:url-encode (gender resume) :utf-8))
+                                                  ("area.string"                             . ,(drakma:url-encode (area resume) :utf-8))
+                                                  ("metro.string"                            . ,(drakma:url-encode (metro resume) :utf-8))
+                                                  ("relocation.string"                       . ,(drakma:url-encode (relocation resume) :utf-8))
+                                                  ("relocationArea.string"                   . ,(drakma:url-encode (relocationArea resume) :utf-8))
+                                                  ("businessTripReadiness.string"            . ,(drakma:url-encode (businessTripReadiness resume) :utf-8))
+                                                  ("citizenship"                             . ,(drakma:url-encode (citizenship resume) :utf-8))
+                                                  ("citizenship.string"                      . ,(drakma:url-encode (citizenship resume) :utf-8))
+                                                  ("workTicket"                              . ,(drakma:url-encode (workTicket resume) :utf-8))
+                                                  ("workTicket.string"                       . ,(drakma:url-encode (workTicket resume) :utf-8))
+                                                  ("travelTime.string"                       . ,(drakma:url-encode (travelTime resume) :utf-8))
                                                   ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
                                                 ))
                        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
@@ -2911,12 +2913,27 @@
                        :force-binary t)
                     (return-from personal
                       (values
+                       uri
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     ;; (print
-     ;;  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-     ;;    (personal cookie-jar)))
+     ;; (let ((resume (make-resume
+     ;;                :title "Неопубликованное резюме"
+     ;;                :last-name "Глухов"
+     ;;                :first-name "Михаил"
+     ;;                :middle-name "Михайлович"
+     ;;                :gender "male"
+     ;;                :area "2"
+     ;;                :metro ""
+     ;;                :relocation "relocation_possible"
+     ;;                :relocationArea "1"
+     ;;                :businessTripReadiness "ready"
+     ;;                :citizenship "113"
+     ;;                :workTicket "113"
+     ;;                :travelTime "any")))
+     ;;    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;      (print
+     ;;       (personal cookie-jar resume))))
    #+END_SRC
 
 *** Контакты (=contacts=)
@@ -2927,7 +2944,7 @@
 
      (defun contacts (cookie-jar &optional (resume-id ""))
        ;; Сначала запросим основную страницу резюме
-       (let ((main-url "http://spb.hh.ru/applicant/resumes/view?resume="))
+       (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
          (multiple-value-bind (response cookie-jar url)
              (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
            ;; Теперь запрашиваем contacts
@@ -3340,12 +3357,23 @@
 
    #+CAPTION: Данные резюме
    #+NAME: resume_flds
-   | field name | field type           | note                                   |
-   |------------+----------------------+----------------------------------------|
-   | id         | serial               | идентификатор                          |
-   | src-id     | (or db-null varchar) | идентификатор страницы резюме на hh.ru |
-   | res-id     | (or db-null varchar) | идентификатор резюме на hh.ru          |
-   | title      | varchar              | заголовок резюме                       |
+   | field name            | field type           | note                                                                                |
+   |-----------------------+----------------------+-------------------------------------------------------------------------------------|
+   | id                    | serial               | идентификатор                                                                       |
+   | hh-id                 | (or db-null varchar) | идентификатор резюме на hh.ru                                                       |
+   | title                 | (or db-null varchar) | заголовок резюме                                                                    |
+   | last-name             | (or db-null varchar) | фамилия                                                                             |
+   | first-name            | (or db-null varchar) | имя                                                                                 |
+   | middle-name           | (or db-null varchar) | отчество                                                                            |
+   | gender                | (or db-null varchar) | пол (по умолчанию: "male")                                                          |
+   | area                  | (or db-null varchar) | город проживания (спб: "2", москва: "1")                                            |
+   | metro                 | (or db-null varchar) | метро                                                                               |
+   | relocation            | (or db-null varchar) | отношение к переезду ("no_relocation"/"relocation_possible"/"relocation_desirable") |
+   | relocationArea        | (or db-null varchar) | куда переезжать (отправляется несколько полей с одним именем но разными значениями) |
+   | businessTripReadiness | (or db-null varchar) | командировки ("never"/"ready"/"sometimes")                                          |
+   | citizenship           | (or db-null varchar) | гражданство (Россия: 113)                                                           |
+   | workTicket            | (or db-null varchar) | разрешение на работу (Россия: 113)                                                  |
+   | travelTime            | (or db-null varchar) | время в пути ("any"/"from_hour_to_one_and_half"/"less_than_hour")                   |
 
    Резюме может быть активным или неактивным:
 
@@ -3393,23 +3421,24 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (make-resume
-      :src-id "1036680cff007465bc0039ed1f736563726574"
-      :title "Ведущий программист (web) / Руководитель проекта"
-      :res-id "7628220"
-      :state ":ACTIVE")
+     ;; (make-resume
+     ;;  :src-id "1036680cff007465bc0039ed1f736563726574"
+     ;;  :title "Ведущий программист (web) / Руководитель проекта"
+     ;;  :res-id "7628220"
+     ;;  :state ":ACTIVE")
 
-      (make-resume
-       :src-id "9555a7ecff02588d3c0039ed1f454162305732"
-       :title "Senior Developer"
-       :res-id "39357756"
-       :state ":ACTIVE")
+     ;;  (make-resume
+     ;;   :src-id "9555a7ecff02588d3c0039ed1f454162305732"
+     ;;   :title "Senior Developer"
+     ;;   :res-id "39357756"
+     ;;   :state ":ACTIVE")
 
-     (make-resume
-      :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
-      :title "Lisp-разработчик"
-      :res-id "33273224"
-      :state ":ACTIVE")
+     ;; (make-resume
+     ;;  :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
+     ;;  :title "Lisp-разработчик"
+     ;;  :res-id "33273224"
+     ;;  :state ":ACTIVE")
+
    #+END_SRC
 
 ** Отправка отклика (=send-respond=)

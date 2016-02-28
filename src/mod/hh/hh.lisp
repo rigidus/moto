@@ -1408,23 +1408,24 @@
   "inactive-active")
 (in-package #:moto)
 
-(make-resume
- :src-id "1036680cff007465bc0039ed1f736563726574"
- :title "Ведущий программист (web) / Руководитель проекта"
- :res-id "7628220"
- :state ":ACTIVE")
+;; (make-resume
+;;  :src-id "1036680cff007465bc0039ed1f736563726574"
+;;  :title "Ведущий программист (web) / Руководитель проекта"
+;;  :res-id "7628220"
+;;  :state ":ACTIVE")
 
- (make-resume
-  :src-id "9555a7ecff02588d3c0039ed1f454162305732"
-  :title "Senior Developer"
-  :res-id "39357756"
-  :state ":ACTIVE")
+;;  (make-resume
+;;   :src-id "9555a7ecff02588d3c0039ed1f454162305732"
+;;   :title "Senior Developer"
+;;   :res-id "39357756"
+;;   :state ":ACTIVE")
 
-(make-resume
- :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
- :title "Lisp-разработчик"
- :res-id "33273224"
- :state ":ACTIVE")
+;; (make-resume
+;;  :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
+;;  :title "Lisp-разработчик"
+;;  :res-id "33273224"
+;;  :state ":ACTIVE")
+
 
 
 ;; Тестируем hh
