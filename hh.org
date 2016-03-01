@@ -2811,7 +2811,7 @@
    [TODO] - Выполнить весь жизненный цикл резюме
    [TODO] - Осущестлять редактирование резюме и изменять его видимость
 
-*** Фото (=photo=)
+*** TODO Фото (=photo=)
 **** При выборе уже загруженных фото
 
      photo.string=94187420
@@ -3183,15 +3183,15 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defun eductation (cookie-jar &optional (resume-id ""))
+     (defun education (cookie-jar resume &optional (resume-id ""))
        ;; Сначала запросим основную страницу резюме
-       (let ((main-url "http://spb.hh.ru/applicant/resumes/view?resume="))
+       (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
          (multiple-value-bind (response cookie-jar url)
              (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
-           ;; Теперь запрашиваем eductation
-           (let ((eductation-url "http://spb.hh.ru/applicant/resumes/edit/eductation?resume="))
+           ;; Теперь запрашиваем education
+           (let ((education-url (format nil "http://spb.hh.ru/applicant/resumes/edit/education?resume=~A" resume-id)))
              (multiple-value-bind (response cookie-jar url)
-                 (hh-get-page eductation-url cookie-jar *hh_account* "http://spb.hh.ru")
+                 (hh-get-page education-url cookie-jar *hh_account* "http://spb.hh.ru")
                ;; Получаем ключ-значения cookies
                (let ((cookie-alist (mapcar #'(lambda (cookie)
                                                (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
@@ -3199,48 +3199,56 @@
                  ;; Отправляем POST
                   (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
                       (drakma:http-request
-                       eductation-url
+                       education-url
                        :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
                        :method :post
                        :content (format nil "~{~A~^&~}"
                                         (mapcar #'(lambda (x)
                                                     (format nil "~A=~A" (car x) (cdr x)))
-                                                `(("educationLevel.string" . "higher")
-                                                  ("primaryEducation.id" . "")
-                                                  ("primaryEducation.name" . "%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3%D1%81%D0%BA%D0%B8%D0%B9+%D0%B3%D0%BE%D1%81%D1%83%D0%B4%D0%B0%D1%80%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9+%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82+%D0%BA%D1%83%D0%BB%D1%8C%D1%82%D1%83%D1%80%D1%8B+%D0%B8+%D0%B8%D1%81%D0%BA%D1%83%D1%81%D1%81%D1%82%D0%B2%2C+%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3")
-                                                  ("primaryEducation.universityId" . "39864")
-                                                  ("primaryEducation.facultyId" . "")
-                                                  ("primaryEducation.organization" . "%D0%A0%D0%B5%D0%B6%D0%B8%D1%81%D1%81%D1%83%D1%80%D1%8B")
-                                                  ("primaryEducation.result" . "%D0%A0%D0%B5%D0%B6%D0%B8%D1%81%D1%81%D1%83%D1%80%D0%B0+%D0%BC%D1%83%D0%BB%D1%8C%D1%82%D0%B8%D0%BC%D0%B5%D0%B4%D0%B8%D0%B0+%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC")
-                                                  ("primaryEducation.specialtyId" . "224")
-                                                  ("primaryEducation.year" . "2005")
-                                                  ("primaryEducation.id" . "")
-                                                  ("primaryEducation.name" . "")
-                                                  ("primaryEducation.universityId" . "")
-                                                  ("primaryEducation.facultyId" . "")
-                                                  ("primaryEducation.organization" . "")
-                                                  ("primaryEducation.result" . "")
-                                                  ("primaryEducation.specialtyId" . "")
-                                                  ("primaryEducation.year" . "")
-                                                  ("additionalEducation.id" . "")
-                                                  ("additionalEducation.name" . "")
-                                                  ("additionalEducation.organization" . "")
-                                                  ("additionalEducation.result" . "")
-                                                  ("additionalEducation.year" . "")
-                                                  ("certificate.id" . "")
-                                                  ("certificate.type" . "")
-                                                  ("certificate.selected" . "")
-                                                  ("certificate.ownerName" . "")
-                                                  ("certificate.transcriptionId" . "")
-                                                  ("certificate.password" . "")
-                                                  ("certificate.title" . "")
-                                                  ("certificate.achievementDate" . "")
-                                                  ("certificate.url" . "")
-                                                  ("attestationEducation.id" . "")
-                                                  ("attestationEducation.name" . "")
-                                                  ("attestationEducation.organization" . "")
-                                                  ("attestationEducation.result" . "")
-                                                  ("attestationEducation.year" . "")
+                                                `(("educationLevel.string"          . ,(drakma:url-encode (education-level-string resume) :utf-8))
+                                                  ("primaryEducation.id"            . ,(drakma:url-encode (primary-education-id resume) :utf-8))
+                                                  ("primaryEducation.name"          . ,(drakma:url-encode (primary-education-name resume) :utf-8))
+                                                  ("primaryEducation.universityId"  . ,(drakma:url-encode (primary-education-university-id resume) :utf-8))
+                                                  ("primaryEducation.facultyId"     . ,(drakma:url-encode (primary-education-faculty-id resume) :utf-8))
+                                                  ("primaryEducation.organization"  . ,(drakma:url-encode (primary-education-organization resume) :utf-8))
+                                                  ("primaryEducation.result"        . ,(drakma:url-encode (primary-education-result resume) :utf-8))
+                                                  ("primaryEducation.specialtyId"   . ,(drakma:url-encode (primary-education-specialty-id resume) :utf-8))
+                                                  ("primaryEducation.year"          . ,(drakma:url-encode (primary-education-year resume) :utf-8))
+                                                  ("primaryEducation.id"            . ,(drakma:url-encode "" :utf-8))
+                                                  ("primaryEducation.name"          . ,(drakma:url-encode "" :utf-8))
+                                                  ("primaryEducation.universityId"  . ,(drakma:url-encode "" :utf-8))
+                                                  ("primaryEducation.facultyId"     . ,(drakma:url-encode "" :utf-8))
+                                                  ("primaryEducation.organization"  . ,(drakma:url-encode "" :utf-8))
+                                                  ("primaryEducation.result"        . ,(drakma:url-encode "" :utf-8))
+                                                  ("primaryEducation.specialtyId"   . ,(drakma:url-encode "" :utf-8))
+                                                  ("primaryEducation.year"          . ,(drakma:url-encode "" :utf-8))
+                                                  ("additionalEducation.id"         . ,(drakma:url-encode (additional-education-id resume) :utf-8))
+                                                  ("additionalEducation.name"       . ,(drakma:url-encode (additional-education-name resume) :utf-8))
+                                                  ("additionalEducation.organization" . ,(drakma:url-encode (additional-education-organization resume) :utf-8))
+                                                  ("additionalEducation.result"     . ,(drakma:url-encode (additional-education-result resume) :utf-8))
+                                                  ("additionalEducation.year"       . ,(drakma:url-encode (additional-education-year resume) :utf-8))
+                                                  ("certificate.id"                 . ,(drakma:url-encode (certificate-id resume) :utf-8))
+                                                  ("certificate.type"               . ,(drakma:url-encode (certificate-type resume) :utf-8))
+                                                  ("certificate.selected"           . ,(drakma:url-encode (certificate-selected resume) :utf-8))
+                                                  ("certificate.ownerName"          . ,(drakma:url-encode (certificate-ownerName resume) :utf-8))
+                                                  ("certificate.transcriptionId"    . ,(drakma:url-encode (certificate-transcription-id resume) :utf-8))
+                                                  ("certificate.password"           . ,(drakma:url-encode (certificate-password resume) :utf-8))
+                                                  ("certificate.title"              . ,(drakma:url-encode (certificate-title resume) :utf-8))
+                                                  ("certificate.achievementDate"    . ,(drakma:url-encode (certificate-achievementDate resume) :utf-8))
+                                                  ("certificate.url"                . ,(drakma:url-encode (certificate-url resume) :utf-8))
+                                                  ("attestationEducation.id"        . ,(drakma:url-encode (attestation-education-id resume) :utf-8))
+                                                  ("attestationEducation.name"      . ,(drakma:url-encode (attestation-education-name resume) :utf-8))
+                                                  ("attestationEducation.organization" . ,(drakma:url-encode (attestation-education-organization resume) :utf-8))
+                                                  ("attestationEducation.result"    . ,(drakma:url-encode (attestation-education-result resume) :utf-8))
+                                                  ("attestationEducation.year"      . ,(drakma:url-encode (attestation-education-year resume) :utf-8))
+                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
+                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
+                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
+                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
+                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
+                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
+                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
+                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
                                                   ("language.id" . "34")
                                                   ("language.degree" . "native")
                                                   ("language.id" . "57")
@@ -3249,7 +3257,7 @@
                                                   ("language.degree" . "basic")
                                                   ("language.id" . "59")
                                                   ("language.degree" . "none")
-                                                  ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
+                                                  ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
                                                 ))
                        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
                        :additional-headers
@@ -3258,24 +3266,71 @@
                          ;; ("Accept-Encoding" . "gzip, deflate")
                          ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
                          ("X-Requested-With" . "XMLHttpRequest")
-                         ("Referer" . ,eductation-url)
+                         ("Referer" . ,education-url)
                          ("Connection" . "keep-alive")
                          ("Pragma" . "no-cache")
                          ("Cache-Control" . "no-cache")
                          )
                        :cookie-jar cookie-jar
                        :force-binary t)
-                    (return-from eductation
+                    (return-from education
                       (values
+                       uri
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     ;; (print
-     ;;  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-     ;;    (eductation cookie-jar)))
+     (let ((resume (make-resume
+                    :education-level-string "higher"
+                    :primary-education-id ""
+                    :primary-education-name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+                    :primary-education-university-id "39864"
+                    :primary-education-faculty-id ""
+                    :primary-education-organization "Режиссуры"
+                    :primary-education-result "Режиссура мультимедиа программ"
+                    :primary-education-specialty-id "224"
+                    :primary-education-year "2005"
+                    ;; :primary-education-id ""
+                    ;; :primary-education-name ""
+                    ;; :primary-education-university-id ""
+                    ;; :primary-education-faculty-id ""
+                    ;; :primary-education-organization ""
+                    ;; :primary-education-result ""
+                    ;; :primary-education-specialty-id ""
+                    ;; :primary-education-year ""
+                    :additional-education-id ""
+                    :additional-education-name ""
+                    :additional-education-organization ""
+                    :additional-education-result ""
+                    :additional-education-year ""
+                    :certificate-id ""
+                    :certificate-type ""
+                    :certificate-selected ""
+                    :certificate-ownerName ""
+                    :certificate-transcription-id ""
+                    :certificate-password ""
+                    :certificate-title ""
+                    :certificate-achievementDate ""
+                    :certificate-url ""
+                    :attestation-education-id ""
+                    :attestation-education-name ""
+                    :attestation-education-organization ""
+                    :attestation-education-result ""
+                    :attestation-education-year ""
+                    ;; :language-id "34"
+                    ;; :language-degree "native"
+                    ;; :language-id "57"
+                    ;; :language-degree "can_read"
+                    ;; :language-id "58"
+                    ;; :language-degree "basic"
+                    ;; :language-id "59"
+                    ;; :language-degree "none"
+                    )))
+       (print
+        (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+          (education cookie-jar resume))))
    #+END_SRC
 
-*** Опыт работы (=experience=)
+*** TODO Опыт работы (=experience=)
 
    #+NAME: expirience
    #+BEGIN_SRC lisp
@@ -3350,7 +3405,7 @@
      ;;    (expirience cookie-jar)))
    #+END_SRC
 
-*** Публикация (=touch=)
+*** TODO Публикация (=touch=)
 
    #+NAME: touch
    #+BEGIN_SRC lisp
@@ -3406,7 +3461,7 @@
      ;;    (touch cookie-jar)))
    #+END_SRC
 
-*** Удаление резюме
+*** TODO Удаление резюме
 
     http://spb.hh.ru/applicant/deleteresume/
 
@@ -3419,52 +3474,81 @@
 
    #+CAPTION: Данные резюме
    #+NAME: resume_flds
-   | field name              | field type           | note                                                                                                                        |
-   |-------------------------+----------------------+-----------------------------------------------------------------------------------------------------------------------------|
-   | id                      | serial               | идентификатор                                                                                                               |
-   | hh-id                   | (or db-null varchar) | идентификатор резюме на hh.ru                                                                                               |
-   | title                   | (or db-null varchar) | заголовок резюме                                                                                                            |
-   | last-name               | (or db-null varchar) | фамилия                                                                                                                     |
-   | first-name              | (or db-null varchar) | имя                                                                                                                         |
-   | middle-name             | (or db-null varchar) | отчество                                                                                                                    |
-   | birthday                | (or db-null varchar) | Дата рождения (по умолчанию: "")                                                                                            |
-   | gender                  | (or db-null varchar) | пол (по умолчанию: "male")                                                                                                  |
-   | area                    | (or db-null varchar) | город проживания (спб: "2", москва: "1")                                                                                    |
-   | metro                   | (or db-null varchar) | метро                                                                                                                       |
-   | relocation              | (or db-null varchar) | отношение к переезду ("no_relocation"/"relocation_possible"/"relocation_desirable")                                         |
-   | relocation-area         | (or db-null varchar) | куда переезжать (отправляется несколько полей с одним именем но разными значениями)                                         |
-   | business-trip-readiness | (or db-null varchar) | командировки ("never"/"ready"/"sometimes")                                                                                  |
-   | citizen-ship            | (or db-null varchar) | гражданство (Россия: 113)                                                                                                   |
-   | work-ticket             | (or db-null varchar) | разрешение на работу (Россия: 113)                                                                                          |
-   | travel-time             | (or db-null varchar) | время в пути ("any"/"from_hour_to_one_and_half"/"less_than_hour")                                                           |
-   | cell-phone-country      | (or db-null varchar) | 7                                                                                                                           |
-   | cell-phone-city         | (or db-null varchar) | 911                                                                                                                         |
-   | cell-phone-number       | (or db-null varchar) | 2869290                                                                                                                     |
-   | cell-phone-comment      | (or db-null varchar) | %D0%9D%D0%B5+%D0%B7%D0%B2%D0%BE%D0%BD%D0%B8%D1%82%D0%B5+%D1%81%D0%BB%D0%B8%D1%88%D0%BA%D0%BE%D0%BC+%D1%80%D0%B0%D0%BD%D0%BE |
-   | home-phone-country      | (or db-null varchar) | 7                                                                                                                           |
-   | home-phone-city         | (or db-null varchar) |                                                                                                                             |
-   | home-phone-number       | (or db-null varchar) |                                                                                                                             |
-   | home-phone-comment      | (or db-null varchar) |                                                                                                                             |
-   | work-phone-country      | (or db-null varchar) | 7                                                                                                                           |
-   | work-phone-city         | (or db-null varchar) |                                                                                                                             |
-   | work-phone-number       | (or db-null varchar) |                                                                                                                             |
-   | work-phone-comment      | (or db-null varchar) |                                                                                                                             |
-   | email-string            | (or db-null varchar) | avenger-f%40yandex-ru                                                                                                       |
-   | preferred-contact       | (or db-null varchar) | email                                                                                                                       |
-   | icq                     | (or db-null varchar) | icq                                                                                                                         |
-   | skype                   | (or db-null varchar) | skype                                                                                                                       |
-   | freelance               | (or db-null varchar) | freelance                                                                                                                   |
-   | moi_krug                | (or db-null varchar) | moi_krug                                                                                                                    |
-   | linkedin                | (or db-null varchar) | linkedin                                                                                                                    |
-   | facebook                | (or db-null varchar) | facebook                                                                                                                    |
-   | livejournal             | (or db-null varchar) | livejournal                                                                                                                 |
-   | personal                | (or db-null varchar) | personal                                                                                                                    |
-   | prof-area               | (or db-null varchar) | 1                                                                                                                           |
-   | specializations         | (or db-null varchar) | 82 221                                                                                                                      |
-   | salary-amount           | (or db-null varchar) | 100000                                                                                                                      |
-   | salary-currency         | (or db-null varchar) | RUR                                                                                                                         |
-   | employment              | (or db-null varchar) | full                                                                                                                        |
-   | work-schedule           | (or db-null varchar) | full_day                                                                                                                    |
+   | field name                         | field type           | note                                                                                |
+   |------------------------------------+----------------------+-------------------------------------------------------------------------------------|
+   | id                                 | serial               | идентификатор                                                                       |
+   | hh-id                              | (or db-null varchar) | идентификатор резюме на hh.ru                                                       |
+   | title                              | (or db-null varchar) | заголовок резюме                                                                    |
+   | last-name                          | (or db-null varchar) | фамилия                                                                             |
+   | first-name                         | (or db-null varchar) | имя                                                                                 |
+   | middle-name                        | (or db-null varchar) | отчество                                                                            |
+   | birthday                           | (or db-null varchar) | Дата рождения (по умолчанию: "")                                                    |
+   | gender                             | (or db-null varchar) | пол (по умолчанию: "male")                                                          |
+   | area                               | (or db-null varchar) | город проживания (спб: "2", москва: "1")                                            |
+   | metro                              | (or db-null varchar) | метро                                                                               |
+   | relocation                         | (or db-null varchar) | отношение к переезду ("no_relocation"/"relocation_possible"/"relocation_desirable") |
+   | relocation-area                    | (or db-null varchar) | куда переезжать (отправляется несколько полей с одним именем но разными значениями) |
+   | business-trip-readiness            | (or db-null varchar) | командировки ("never"/"ready"/"sometimes")                                          |
+   | citizen-ship                       | (or db-null varchar) | гражданство (Россия: 113)                                                           |
+   | work-ticket                        | (or db-null varchar) | разрешение на работу (Россия: 113)                                                  |
+   | travel-time                        | (or db-null varchar) | время в пути ("any"/"from_hour_to_one_and_half"/"less_than_hour")                   |
+   | cell-phone-country                 | (or db-null varchar) | 7                                                                                   |
+   | cell-phone-city                    | (or db-null varchar) | 911                                                                                 |
+   | cell-phone-number                  | (or db-null varchar) | 2869290                                                                             |
+   | cell-phone-comment                 | (or db-null varchar) |                                                                                     |
+   | home-phone-country                 | (or db-null varchar) | 7                                                                                   |
+   | home-phone-city                    | (or db-null varchar) |                                                                                     |
+   | home-phone-number                  | (or db-null varchar) |                                                                                     |
+   | home-phone-comment                 | (or db-null varchar) |                                                                                     |
+   | work-phone-country                 | (or db-null varchar) | 7                                                                                   |
+   | work-phone-city                    | (or db-null varchar) |                                                                                     |
+   | work-phone-number                  | (or db-null varchar) |                                                                                     |
+   | work-phone-comment                 | (or db-null varchar) |                                                                                     |
+   | email-string                       | (or db-null varchar) | avenger-f%40yandex-ru                                                               |
+   | preferred-contact                  | (or db-null varchar) | email                                                                               |
+   | icq                                | (or db-null varchar) | icq                                                                                 |
+   | skype                              | (or db-null varchar) | skype                                                                               |
+   | freelance                          | (or db-null varchar) | freelance                                                                           |
+   | moi_krug                           | (or db-null varchar) | moi_krug                                                                            |
+   | linkedin                           | (or db-null varchar) | linkedin                                                                            |
+   | facebook                           | (or db-null varchar) | facebook                                                                            |
+   | livejournal                        | (or db-null varchar) | livejournal                                                                         |
+   | personal                           | (or db-null varchar) | personal                                                                            |
+   | prof-area                          | (or db-null varchar) | 1                                                                                   |
+   | specializations                    | (or db-null varchar) | 82 221                                                                              |
+   | salary-amount                      | (or db-null varchar) | 100000                                                                              |
+   | salary-currency                    | (or db-null varchar) | RUR                                                                                 |
+   | employment                         | (or db-null varchar) | full                                                                                |
+   | work-schedule                      | (or db-null varchar) | full_day                                                                            |
+   | education-level-string             | (or db-null varchar) | higher                                                                              |
+   | primary-education-id               | (or db-null varchar) |                                                                                     |
+   | primary-education-name             | (or db-null varchar) |                                                                                     |
+   | primary-education-university-id    | (or db-null varchar) | 39864                                                                               |
+   | primary-education-faculty-id       | (or db-null varchar) |                                                                                     |
+   | primary-education-organization     | (or db-null varchar) |                                                                                     |
+   | primary-education-result           | (or db-null varchar) |                                                                                     |
+   | primary-education-specialty-id     | (or db-null varchar) | 224                                                                                 |
+   | primary-education-year             | (or db-null varchar) | 2005                                                                                |
+   | additional-education-id            | (or db-null varchar) |                                                                                     |
+   | additional-education-name          | (or db-null varchar) |                                                                                     |
+   | additional-education-organization  | (or db-null varchar) |                                                                                     |
+   | additional-education-result        | (or db-null varchar) |                                                                                     |
+   | additional-education-year          | (or db-null varchar) |                                                                                     |
+   | certificate-id                     | (or db-null varchar) |                                                                                     |
+   | certificate-type                   | (or db-null varchar) |                                                                                     |
+   | certificate-selected               | (or db-null varchar) |                                                                                     |
+   | certificate-ownerName              | (or db-null varchar) |                                                                                     |
+   | certificate-transcription-id       | (or db-null varchar) |                                                                                     |
+   | certificate-password               | (or db-null varchar) |                                                                                     |
+   | certificate-title                  | (or db-null varchar) |                                                                                     |
+   | certificate-achievementDate        | (or db-null varchar) |                                                                                     |
+   | certificate-url                    | (or db-null varchar) |                                                                                     |
+   | attestation-education-id           | (or db-null varchar) |                                                                                     |
+   | attestation-education-name         | (or db-null varchar) |                                                                                     |
+   | attestation-education-organization | (or db-null varchar) |                                                                                     |
+   | attestation-education-result       | (or db-null varchar) |                                                                                     |
+   | attestation-education-year         | (or db-null varchar) |                                                                                     |
+   | languages                          | (or db-null varchar) |                                                                                     |
 
    Резюме может быть активным или неактивным:
 
