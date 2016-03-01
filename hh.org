@@ -1230,57 +1230,11 @@
                     ("data-attach" "dropdown-content-placeholder")))))
           "bloko-contact"))
 
-      (make-detect (bloko-contact-two)
-        (`((("class" "search-result-item__phone"))
-                 ("button"
-                  (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-                  "script" "bloko-icon-phone" "script"
-                  ("div"
-                   (("class" "g-hidden HH-VacancyContactsLoader-Content")
-                    ("data-attach" "dropdown-content-placeholder")))))
-          "bloko-contact-two"))
-
-      (make-detect (bloko-contact-three)
-        (`((("class" "search-result-item__phone"))
-           ("button"
-            (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-            ((("class" "g-hidden HH-VacancyContactsLoader-Content")
-              ("data-attach" "dropdown-content-placeholder")))))
-          "bloko-contact-three"))
-
-      (make-detect (bloko-contact-fourth)
-        (`((("class" "search-result-item__phone"))
-           ("button"
-            (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-            ((("class" "g-hidden HH-VacancyContactsLoader-Content")
-              ("data-attach" "dropdown-content-placeholder")))))
-          "bloko-contact-fourth"))
-
-      ;; (`("div" (("class" "search-result-item__phone"))
-      ;;          ("button"
-      ;;           (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-      ;;           "script" "bloko-icon-phone" "script"
-      ;;           ("div"
-      ;;            (("class" "g-hidden HH-VacancyContactsLoader-Content")
-      ;;             ("data-attach" "dropdown-content-placeholder")))))
-      ;;   "bloko-contact"))
-
-
-      ;; (detect-bloko-contact-fourth
-      ;;  '((((:ID 16150962 :NAME "Менеджер по продажам")
-      ;;      (:CURRENCY "RUR" :SALARY 25000 :SALARY-TEXT "25 000-50 000 руб.")
-      ;;      (:SNIPPET_RESPONSIBILITY
-      ;;       "Продавать телекоммуникационное оборудование (оптический кабель‚ витая пара‚ роутеры и т.п.). Заниматься активным поиском клиентов проводя «холодные» звонки и встречи. ")
-      ;;      (:SNIPPET
-      ;;       "Требуются сотрудники: Высшее/ неоконченное высшее образование. Готовые к высокой активности при достойной оплате. Опытные пользователи ПК‚ знающие офисные приложений (Word...")
-      ;;      (:EMP-ID 823009 :EMP-NAME "ОптикСтройКомплект")
-      ;;      (:CITY "Санкт-Петербург, " :METRO "Академическая" :DATE "29 февраля"
-      ;;             :PLATFORM CAREER.RU
-      ;;             ((("class" "search-result-item__phone"))
-      ;;              ("button"
-      ;;               (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-      ;;               ((("class" "g-hidden HH-VacancyContactsLoader-Content")
-      ;;                 ("data-attach" "dropdown-content-placeholder"))))))))))
+      (make-detect (bloko-button-rest)
+        (`(:CITY ,city ,@rest)
+          (if (listp (last rest))
+              (append `(:CITY ,city) (nbutlast rest))
+              (append `(:CITY ,city) rest))))
 
       (defun detect-garbage-elts (tree)
         (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
@@ -1362,10 +1316,7 @@
              (detect-bloko-icon-phone)
              (detect-bloko-contact)
              (detect-search-result-description-non-empty)
-             (detect-bloko-contact-two)
-             (detect-bloko-contact-three)
-             (detect-bloko-contact-fourth)
-             (detect-bloko-contact-five)
+             (detect-bloko-button-rest)
              ;; filter garbage data
              (maptree-if #'consp
                          #'(lambda (x)
@@ -1397,9 +1348,8 @@
              (mapcar #'parse-salary)
              ))
 
-
-      ;; (print
-      ;;  (hh-parse-vacancy-teasers *last-parse-data*))
+      (print
+       (hh-parse-vacancy-teasers *last-parse-data*))
 
       ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (hh-parse-vacancy-teasers
