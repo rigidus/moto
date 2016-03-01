@@ -2917,26 +2917,26 @@
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     (let ((resume (make-resume
-                    :title "Неопубликованное резюме"
-                    :last-name "Глухов"
-                    :first-name "Михаил"
-                    :middle-name "Михайлович"
-                    :birthday ""
-                    :gender "male"
-                    :area "2"
-                    :metro ""
-                    :relocation "relocation_possible"
-                    :relocation-area "1"
-                    :business-trip-readiness "ready"
-                    :citizen-ship "113"
-                    :work-ticket "113"
-                    :travel-time "any")))
-        (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-          (print
-           (personal cookie-jar resume
-                     ;; "759ee897ff02f6bb1c0039ed1f584f45523361"
-                     ))))
+     ;; (let ((resume (make-resume
+     ;;                :title "Неопубликованное резюме"
+     ;;                :last-name "Глухов"
+     ;;                :first-name "Михаил"
+     ;;                :middle-name "Михайлович"
+     ;;                :birthday ""
+     ;;                :gender "male"
+     ;;                :area "2"
+     ;;                :metro ""
+     ;;                :relocation "relocation_possible"
+     ;;                :relocation-area "1"
+     ;;                :business-trip-readiness "ready"
+     ;;                :citizen-ship "113"
+     ;;                :work-ticket "113"
+     ;;                :travel-time "any")))
+     ;;    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;      (print
+     ;;       (personal cookie-jar resume
+     ;;                 ;; "759ee897ff02f6bb1c0039ed1f584f45523361"
+     ;;                 ))))
    #+END_SRC
 
 *** Контакты (=contacts=)
@@ -3022,72 +3022,72 @@
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     (let ((resume (make-resume
-                    :title "Неопубликованное резюме"
-                    :last-name "Глухов"
-                    :first-name "Михаил"
-                    :middle-name "Михайлович"
-                    :birthday ""
-                    :gender "male"
-                    :area "2"
-                    :metro ""
-                    :relocation "relocation_possible"
-                    :relocation-area "1"
-                    :business-trip-readiness "ready"
-                    :citizen-ship "113"
-                    :work-ticket "113"
-                    :travel-time "any"
+     ;; (let ((resume (make-resume
+     ;;                :title "Неопубликованное резюме"
+     ;;                :last-name "Глухов"
+     ;;                :first-name "Михаил"
+     ;;                :middle-name "Михайлович"
+     ;;                :birthday ""
+     ;;                :gender "male"
+     ;;                :area "2"
+     ;;                :metro ""
+     ;;                :relocation "relocation_possible"
+     ;;                :relocation-area "1"
+     ;;                :business-trip-readiness "ready"
+     ;;                :citizen-ship "113"
+     ;;                :work-ticket "113"
+     ;;                :travel-time "any"
 
-                    :cell-phone-country      "7"
-                    :cell-phone-city         "911"
-                    :cell-phone-number       "2869290"
-                    :cell-phone-comment      "Рано не звоните"
+     ;;                :cell-phone-country      "7"
+     ;;                :cell-phone-city         "911"
+     ;;                :cell-phone-number       "2869290"
+     ;;                :cell-phone-comment      "Рано не звоните"
 
-                    :home-phone-country      "7"
-                    :home-phone-city         ""
-                    :home-phone-number       ""
-                    :home-phone-comment      ""
+     ;;                :home-phone-country      "7"
+     ;;                :home-phone-city         ""
+     ;;                :home-phone-number       ""
+     ;;                :home-phone-comment      ""
 
-                    :work-phone-country      "7"
-                    :work-phone-city         ""
-                    :work-phone-number       ""
-                    :work-phone-comment      ""
+     ;;                :work-phone-country      "7"
+     ;;                :work-phone-city         ""
+     ;;                :work-phone-number       ""
+     ;;                :work-phone-comment      ""
 
-                    :email-string            "avenger-f@yandex.ru"
-                    :preferred-contact       "email"
-                    :icq                     "icq"
-                    :skype                   "skype"
-                    :freelance               "freelance"
-                    :moi_krug                "moi_krug"
-                    :linkedin                "linkedin"
-                    :facebook                "facebook"
-                    :livejournal             "livejournal"
-                    :personal                "personal"
+     ;;                :email-string            "avenger-f@yandex.ru"
+     ;;                :preferred-contact       "email"
+     ;;                :icq                     "icq"
+     ;;                :skype                   "skype"
+     ;;                :freelance               "freelance"
+     ;;                :moi_krug                "moi_krug"
+     ;;                :linkedin                "linkedin"
+     ;;                :facebook                "facebook"
+     ;;                :livejournal             "livejournal"
+     ;;                :personal                "personal"
 
-                    )))
-       (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-         (print
-          (contacts cookie-jar resume
-                    ;; "759ee897ff02f6bb1c0039ed1f584f45523361"
-                    ))))
+     ;;                )))
+     ;;   (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;     (print
+     ;;      (contacts cookie-jar resume
+     ;;                ;; "759ee897ff02f6bb1c0039ed1f584f45523361"
+     ;;                ))))
 
    #+END_SRC
 
-*** Желаемая должность и зарплата (=position=)
+*** Желаемая должность и зарплата (=resume-position=)
 
-   Важно чтобы названия у разных резюме отличались, иначе возращается ошибка
+   Важно чтобы названия у разных резюме отличались, иначе возращается ошибка.
 
    #+NAME: resumeposition
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defun resume-position (cookie-jar &optional (resume-id ""))
+     (defun resume-position (cookie-jar resume &optional (resume-id ""))
        ;; Сначала запросим основную страницу резюме
-       (let ((main-url "http://spb.hh.ru/applicant/resumes/view?resume="))
+       (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
          (multiple-value-bind (response cookie-jar url)
              (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
            ;; Теперь запрашиваем position
-           (let ((position-url "http://spb.hh.ru/applicant/resumes/edit/position?resume="))
+           (let ((position-url (format nil "http://spb.hh.ru/applicant/resumes/edit/position?resume=~A" resume-id)))
              (multiple-value-bind (response cookie-jar url)
                  (hh-get-page position-url cookie-jar *hh_account* "http://spb.hh.ru")
                ;; Получаем ключ-значения cookies
@@ -3095,77 +3095,86 @@
                                                (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
                                            (drakma:cookie-jar-cookies cookie-jar))))
                  ;; Отправляем POST
-                  (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
-                      (drakma:http-request
-                       position-url
-                       :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
-                       :method :post
-                       :content (format nil "~{~A~^&~}"
-                                        (mapcar #'(lambda (x)
-                                                    (format nil "~A=~A" (car x) (cdr x)))
-                                                `(("title.string" . "%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82")
-                                                  ("profArea" . "1")
-                                                  ("specialization.string" . "82")
-                                                  ("specialization.string" . "221")
-                                                  ("profarea" . "")
-                                                  ("profarea" . "1")
-                                                  ("profarea" . "2")
-                                                  ("profarea" . "3")
-                                                  ("profarea" . "4")
-                                                  ("profarea" . "5")
-                                                  ("profarea" . "6")
-                                                  ("profarea" . "7")
-                                                  ("profarea" . "8")
-                                                  ("profarea" . "9")
-                                                  ("profarea" . "10")
-                                                  ("profarea" . "11")
-                                                  ("profarea" . "12")
-                                                  ("profarea" . "13")
-                                                  ("profarea" . "14")
-                                                  ("profarea" . "16")
-                                                  ("profarea" . "17")
-                                                  ("profarea" . "18")
-                                                  ("profarea" . "19")
-                                                  ("profarea" . "20")
-                                                  ("profarea" . "21")
-                                                  ("profarea" . "22")
-                                                  ("profarea" . "23")
-                                                  ("profarea" . "24")
-                                                  ("profarea" . "25")
-                                                  ("profarea" . "26")
-                                                  ("profarea" . "15")
-                                                  ("profarea" . "27")
-                                                  ("profarea" . "29")
-                                                  ("salary.amount" . "100000")
-                                                  ("salary.currency" . "RUR")
-                                                  ("employment.string" . "full")
-                                                  ("workSchedule.string" . "full_day")
-                                                  ("_xsrf" . "b2dccfd0ce2ff68b2c4f795ac6d549fb")
-                                                  ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
-                                                ))
-                       :content-type "application/x-www-form-urlencoded; charset=UTF-8"
-                       :additional-headers
-                       `(("Accept" . "*/*")
-                         ("Accept-Language" . "en-US,en;q=0.5")
-                         ;; ("Accept-Encoding" . "gzip, deflate")
-                         ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
-                         ("X-Requested-With" . "XMLHttpRequest")
-                         ("Referer" . ,position-url)
-                         ("Connection" . "keep-alive")
-                         ("Pragma" . "no-cache")
-                         ("Cache-Control" . "no-cache")
-                         )
-                       :cookie-jar cookie-jar
-                       :force-binary t)
-                    (return-from resume-position
-                      (values
-                       uri
-                       headers
-                       (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
+                 (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
+                     (drakma:http-request
+                      position-url
+                      :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
+                      :method :post
+                      :content (let ((post-list (append
+                                                 `(("title.string" . ,(drakma:url-encode "Программист" :utf-8))
+                                                   ("profArea"     . ,(drakma:url-encode (prof-area resume) :utf-8)))
+                                                 (mapcar #'(lambda (x)
+                                                             `("specialization.string" . ,(drakma:url-encode x :utf-8)))
+                                                         (split-sequence:split-sequence #\Space (specializations resume)))
+                                                 `(("profarea" . "")
+                                                   ("profarea" . "1")
+                                                   ("profarea" . "2")
+                                                   ("profarea" . "3")
+                                                   ("profarea" . "4")
+                                                   ("profarea" . "5")
+                                                   ("profarea" . "6")
+                                                   ("profarea" . "7")
+                                                   ("profarea" . "8")
+                                                   ("profarea" . "9")
+                                                   ("profarea" . "10")
+                                                   ("profarea" . "11")
+                                                   ("profarea" . "12")
+                                                   ("profarea" . "13")
+                                                   ("profarea" . "14")
+                                                   ("profarea" . "16")
+                                                   ("profarea" . "17")
+                                                   ("profarea" . "18")
+                                                   ("profarea" . "19")
+                                                   ("profarea" . "20")
+                                                   ("profarea" . "21")
+                                                   ("profarea" . "22")
+                                                   ("profarea" . "23")
+                                                   ("profarea" . "24")
+                                                   ("profarea" . "25")
+                                                   ("profarea" . "26")
+                                                   ("profarea" . "15")
+                                                   ("profarea" . "27")
+                                                   ("profarea" . "29")
+                                                   ("salary.amount"        . ,(drakma:url-encode (salary-amount resume) :utf-8))
+                                                   ("salary.currency"      . ,(drakma:url-encode (salary-currency resume) :utf-8))
+                                                   ("employment.string"    . ,(drakma:url-encode (employment resume) :utf-8))
+                                                   ("workSchedule.string"  . ,(drakma:url-encode (work-schedule resume) :utf-8))
+                                                   ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))))))
+                                 (format nil "~{~A~^&~}"
+                                         (mapcar #'(lambda (x)
+                                                     (format nil "~A=~A" (car x) (cdr x)))
+                                                 post-list)))
+                      :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+                      :additional-headers
+                      `(("Accept" . "*/*")
+                        ("Accept-Language" . "en-US,en;q=0.5")
+                        ;; ("Accept-Encoding" . "gzip, deflate")
+                        ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
+                        ("X-Requested-With" . "XMLHttpRequest")
+                        ("Referer" . ,position-url)
+                        ("Connection" . "keep-alive")
+                        ("Pragma" . "no-cache")
+                        ("Cache-Control" . "no-cache")
+                        )
+                      :cookie-jar cookie-jar
+                      :force-binary t)
+                   (return-from resume-position
+                     (values
+                      uri
+                      headers
+                      (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     (print
-      (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-        (resume-position cookie-jar)))
+     ;; (let ((resume (make-resume
+     ;;                :title "Programmer"
+     ;;                :specializations "221"
+     ;;                :prof-area "1"
+     ;;                :salary-amount "100000"
+     ;;                :salary-currency "RUR"
+     ;;                :employment "full"
+     ;;                :work-schedule "full_day")))
+     ;;   (print
+     ;;    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;      (resume-position cookie-jar resume))))
    #+END_SRC
 
 *** Образование (=education=)
@@ -3450,6 +3459,12 @@
    | facebook                | (or db-null varchar) | facebook                                                                                                                    |
    | livejournal             | (or db-null varchar) | livejournal                                                                                                                 |
    | personal                | (or db-null varchar) | personal                                                                                                                    |
+   | prof-area               | (or db-null varchar) | 1                                                                                                                           |
+   | specializations         | (or db-null varchar) | 82 221                                                                                                                      |
+   | salary-amount           | (or db-null varchar) | 100000                                                                                                                      |
+   | salary-currency         | (or db-null varchar) | RUR                                                                                                                         |
+   | employment              | (or db-null varchar) | full                                                                                                                        |
+   | work-schedule           | (or db-null varchar) | full_day                                                                                                                    |
 
    Резюме может быть активным или неактивным:
 
