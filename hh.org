@@ -1348,8 +1348,8 @@
              (mapcar #'parse-salary)
              ))
 
-      (print
-       (hh-parse-vacancy-teasers *last-parse-data*))
+      ;; (print
+      ;;  (hh-parse-vacancy-teasers *last-parse-data*))
 
       ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (hh-parse-vacancy-teasers
