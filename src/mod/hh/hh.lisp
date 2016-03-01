@@ -232,8 +232,8 @@
 
 (defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
   `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
+     ;; (dbg "v1: ~A" (bprint vacancy))
      (dbg "drop teaser: ~A-~A (~A) ~A" (getf vacancy :salary-min) (getf vacancy :salary-max) (getf vacancy :currency) (getf vacancy :name))
-     ;; (dbg "~A" vacancy)
      ,@consequent
      (setf vacancy nil)
      :stop))
@@ -312,9 +312,9 @@
                                         (and (equal (getf vacancy :currency) "RUR")
                                              (< (getf vacancy :salary-max) 90000))
                                         (and (equal (getf vacancy :currency) "USD")
-                                             (< (getf vacancy :salary-max) (floor 90000 67)))
-                                        (and (equal (getf vacancy :currency) "USD")
-                                             (< (getf vacancy :salary-max) (floor 90000 77)))
+                                             (< (getf vacancy :salary-max) (floor 90000 73)))
+                                        (and (equal (getf vacancy :currency) "EUR")
+                                             (< (getf vacancy :salary-max) (floor 90000 80)))
                                         ))
   (dbg "  - low salary"))
 
@@ -784,6 +784,32 @@
               ("data-attach" "dropdown-content-placeholder")))))
     "bloko-contact"))
 
+(make-detect (bloko-contact-two)
+  (`((("class" "search-result-item__phone"))
+           ("button"
+            (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
+            "script" "bloko-icon-phone" "script"
+            ("div"
+             (("class" "g-hidden HH-VacancyContactsLoader-Content")
+              ("data-attach" "dropdown-content-placeholder")))))
+    "bloko-contact-two"))
+
+(make-detect (bloko-contact-three)
+  (`((("class" "search-result-item__phone"))
+     ("button"
+      (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
+      ((("class" "g-hidden HH-VacancyContactsLoader-Content")
+        ("data-attach" "dropdown-content-placeholder")))))
+    "bloko-contact-three"))
+
+(make-detect (bloko-contact-fourth)
+  (`((("class" "search-result-item__phone"))
+     ("button"
+      (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
+      ((("class" "g-hidden HH-VacancyContactsLoader-Content")
+        ("data-attach" "dropdown-content-placeholder")))))
+    "bloko-contact-fourth"))
+
 (defun detect-garbage-elts (tree)
   (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
               "Посмотреть интервью о жизни в компании") 'INTERVIEW)
@@ -799,16 +825,29 @@
 (defparameter *last-parse-data* nil)
 
 
-(defun tree-plist-p (l)
+(defun tree-plist-p (pl)
   "Returns T if L is a plist (list with alternating keyword elements). "
-  (cond ((null l) t)
-        ((not (listp l)) nil)
-        ((and (cdr l)
-              (keywordp (car l))) (tree-plist-p (cddr l)))
-        (t (when (listp (car l))
-             (tree-plist-p (car l))))))
+  (cond ((null pl)                 t)
+        ((and (listp pl)
+              (keywordp (car pl))
+              (cdr pl))            (tree-plist-p (cddr pl)))
+        ((and (listp pl)
+              (listp (car pl)))    (and (tree-plist-p (car pl))
+                                        (tree-plist-p (cdr pl))))
+        (t                         nil)))
 
-;; (tree-plist-p '(:a 1 :b 2 (:c 4))) ;; => T
+;; (tree-plist-p '((((:ID 16031376 :NAME "Копирайтер")
+;;                   (:SNIPPET_RESPONSIBILITY
+;;                    "Подготовка контента для сайта Компании на английском и русском языках. Подготовка фотографий и видео для размещения на сайте. ")
+;;                   (:SNIPPET
+;;                    "Высшее образование по специальности «Журналистика», «Филология», «PR». Свободное знание английского языка. Опыт администрирования сайтов. Опыт написания статей, пресс-релизов, новостей. ")
+;;                   (:EMP-ID 707817 :EMP-NAME "Colvir Software Solutions")
+;;                   (:CITY "Санкт-Петербург" :METRO "" :DATE "29 февраля"
+;;                          ((("class" "search-result-item__phone"))
+;;                           ("button"
+;;                            (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
+;;                            ((("class" "g-hidden HH-VacancyContactsLoader-Content")
+;;                              ("data-attach" "dropdown-content-placeholder"))))))))))
 
 (define-condition malformed-vacancy (error)
   ((text :initarg :text :reader text)))
@@ -850,6 +889,9 @@
        (detect-script)
        (detect-bloko-icon-phone)
        (detect-bloko-contact)
+       (detect-bloko-contact-two)
+       (detect-bloko-contact-three)
+       (detect-bloko-contact-fourth)
        (detect-search-result-description-non-empty)
        ;; filter garbage data
        (maptree-if #'consp
@@ -865,10 +907,14 @@
                         #'mapcar)))
        ;; error if malformed plist
        (mapcar #'(lambda (x)
-                   (unless (tree-plist-p x)
-                     (dbg x)
-                     (error 'malformed-vacancy :text)
-                     )))
+                   (if (not (tree-plist-p x))
+                       (progn
+                         (dbg "~A" (bprint x))
+                         (error 'malformed-vacancy :text))
+                       x)))
+       (mapcar #'(lambda (x)
+                   (dbg "~A" (bprint x))
+                   x))
        ;; linearize for each elt
        (mapcar #'(lambda (tree)
                    (let ((linearize))
