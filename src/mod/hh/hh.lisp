@@ -652,6 +652,11 @@
          "Посмотреть интервью о жизни в компании")
     (list :interview href)))
 
+    ;; ("a" (("class" "interview-insider__link                   m-interview-insider__link-searchresult")
+    ;;       ("href" ,href)
+    ;;       ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+    ;;      "Посмотреть интервью о жизни в компании")
+
 (make-detect (name)
   (`("div" (("class" "search-result-item__head"))
            ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
@@ -784,31 +789,11 @@
               ("data-attach" "dropdown-content-placeholder")))))
     "bloko-contact"))
 
-(make-detect (bloko-contact-two)
-  (`((("class" "search-result-item__phone"))
-           ("button"
-            (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-            "script" "bloko-icon-phone" "script"
-            ("div"
-             (("class" "g-hidden HH-VacancyContactsLoader-Content")
-              ("data-attach" "dropdown-content-placeholder")))))
-    "bloko-contact-two"))
-
-(make-detect (bloko-contact-three)
-  (`((("class" "search-result-item__phone"))
-     ("button"
-      (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-      ((("class" "g-hidden HH-VacancyContactsLoader-Content")
-        ("data-attach" "dropdown-content-placeholder")))))
-    "bloko-contact-three"))
-
-(make-detect (bloko-contact-fourth)
-  (`((("class" "search-result-item__phone"))
-     ("button"
-      (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-      ((("class" "g-hidden HH-VacancyContactsLoader-Content")
-        ("data-attach" "dropdown-content-placeholder")))))
-    "bloko-contact-fourth"))
+(make-detect (bloko-button-rest)
+  (`(:CITY ,city ,@rest)
+    (if (listp (last rest))
+        (append `(:CITY ,city) (nbutlast rest))
+        (append `(:CITY ,city) rest))))
 
 (defun detect-garbage-elts (tree)
   (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
@@ -866,6 +851,7 @@
        (detect-emp)
        (detect-emp-anon)
        (detect-salary)
+       (detect-interview)
        (detect-name)
        (detect-snippet)
        (detect-premium)
@@ -889,10 +875,8 @@
        (detect-script)
        (detect-bloko-icon-phone)
        (detect-bloko-contact)
-       (detect-bloko-contact-two)
-       (detect-bloko-contact-three)
-       (detect-bloko-contact-fourth)
        (detect-search-result-description-non-empty)
+       (detect-bloko-button-rest)
        ;; filter garbage data
        (maptree-if #'consp
                    #'(lambda (x)
@@ -912,9 +896,6 @@
                          (dbg "~A" (bprint x))
                          (error 'malformed-vacancy :text))
                        x)))
-       (mapcar #'(lambda (x)
-                   (dbg "~A" (bprint x))
-                   x))
        ;; linearize for each elt
        (mapcar #'(lambda (tree)
                    (let ((linearize))
@@ -926,7 +907,6 @@
        ;; parse-salary
        (mapcar #'parse-salary)
        ))
-
 
 ;; (print
 ;;  (hh-parse-vacancy-teasers *last-parse-data*))

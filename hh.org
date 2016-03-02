@@ -1098,6 +1098,11 @@
                "Посмотреть интервью о жизни в компании")
           (list :interview href)))
 
+          ;; ("a" (("class" "interview-insider__link                   m-interview-insider__link-searchresult")
+          ;;       ("href" ,href)
+          ;;       ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+          ;;      "Посмотреть интервью о жизни в компании")
+
       (make-detect (name)
         (`("div" (("class" "search-result-item__head"))
                  ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
@@ -1292,6 +1297,7 @@
              (detect-emp)
              (detect-emp-anon)
              (detect-salary)
+             (detect-interview)
              (detect-name)
              (detect-snippet)
              (detect-premium)
