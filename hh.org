@@ -1935,7 +1935,7 @@
 
     Правило может быть активным и неактивным
 
-    #+CAPTION: Состояния конечного автомата вакансии
+    #+CAPTION: Состояния конечного автомата правила
     #+NAME: rule_state
       | action            | from     | to       |
       |-------------------+----------+----------|
@@ -2771,7 +2771,7 @@
    - Фото (photo)
    - Имя, возраст, город  (personal)
    - Контакты  (contacts)
-   - Желаемая должность и зарплата  (position)
+   - Желаемая должность и зарплата  (job-position)
    - Образование (education)
    - Опыт работы  (experience)
 
@@ -3751,7 +3751,227 @@
      ;;  :res-id "33273224"
      ;;  :state ":ACTIVE")
 
+     (defparameter *test-resume*
+       (make-resume
+        :last-name "Глухов"
+        :first-name "Михаил"
+        :middle-name "Михайлович"
+        :birthday ""
+        :gender "male"
+        :area "2"
+        :metro ""
+        :relocation "relocation_possible"
+        :relocation-area "1"
+        :business-trip-readiness "ready"
+        :citizen-ship "113"
+        :work-ticket "113"
+        :travel-time "any"
+
+        :cell-phone-country      "7"
+        :cell-phone-city         "911"
+        :cell-phone-number       "2869290"
+        :cell-phone-comment      "Рано не звоните"
+
+        :home-phone-country      "7"
+        :home-phone-city         ""
+        :home-phone-number       ""
+        :home-phone-comment      ""
+
+        :work-phone-country      "7"
+        :work-phone-city         ""
+        :work-phone-number       ""
+        :work-phone-comment      ""
+
+        :email-string            "avenger-f@yandex.ru"
+        :preferred-contact       "email"
+        :icq                     "icq"
+        :skype                   "skype"
+        :freelance               "freelance"
+        :moi_krug                "moi_krug"
+        :linkedin                "linkedin"
+        :facebook                "facebook"
+        :livejournal             "livejournal"
+        :personal                "personal"
+
+        :title "Programmer"
+        :specializations "221"
+        :prof-area "1"
+        :salary-amount "100000"
+        :salary-currency "RUR"
+        :employment "full"
+        :work-schedule "full_day"
+
+        :education-level-string "higher"
+        :education (list
+                    (make-education :id ""
+                                    :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+                                    :university-id "39864"
+                                    :faculty-id ""
+                                    :organization "Режиссуры"
+                                    :result "Режиссура мультимедиа программ"
+                                    :specialty-id "224"
+                                    :year "2005")
+                    (make-education :id ""
+                                    :name ""
+                                    :university-id ""
+                                    :faculty-id ""
+                                    :organization ""
+                                    :result ""
+                                    :specialty-id ""
+                                    :year ""))
+        :additional-education-id ""
+        :additional-education-name ""
+        :additional-education-organization ""
+        :additional-education-result ""
+        :additional-education-year ""
+        :certificate-id ""
+        :certificate-type ""
+        :certificate-selected ""
+        :certificate-ownerName ""
+        :certificate-transcription-id ""
+        :certificate-password ""
+        :certificate-title ""
+        :certificate-achievementDate ""
+        :certificate-url ""
+        :attestation-education-id ""
+        :attestation-education-name ""
+        :attestation-education-organization ""
+        :attestation-education-result ""
+        :attestation-education-year ""
+        :languages (list
+                    (make-lang :lang-id 34 :lang-degree "native")
+                    (make-lang :lang-id 57 :lang-degree "can_read")
+                    (make-lang :lang-id 58 :lang-degree "basic")
+                    (make-lang :lang-id 59 :lang-degree "none"))
+        :expiriences (list
+                      (make-expirience
+                       :name                "Лаборатория Касперского"
+                       :-company-id         "1057"
+                       :area-id             "1"
+                       :url                 ""
+                       :industry-id         ""
+                       :industries          "540"
+                       :industries          ""
+                       :exp-id              ""
+                       :job-position        "Программист"
+                       :start-date          "2000-01-01"
+                       :end-date            "2001-01-01"
+                       :description         "Работа за деньги")
+                      (make-expirience
+                       :company-name        "Вымпелком"
+                       :company-id          "4934"
+                       :company-area-id     "1"
+                       :company-url         ""
+                       :company-industry-id  ""
+                       :company-industries  "399"
+                       :exp-id              ""
+                       :job-position        "Программист"
+                       :start-date          "2001-01-01"
+                       :end-date            "2005-01-01"
+                       :description         "Работа за еду )"))
+        :key-skills (list
+                     (make-skill :name "Разработка архитектуры")
+                     (make-skill :name "Вакуумная чистка лица"))
+        :skills-string "В последние годы нахожусь на пенсии )"
+        :recommendations (list
+                          (make-recommendation
+                           :recommendation-id ""
+                           :name              "Смирнов"
+                           :job-position      "Начальник"
+                           :organization      "Армия"
+                           :contact-info      "9112869290")
+                          (make-recommendation
+                           :recommendation-id ""
+                           :name              "Иванов"
+                           :job-position      "Зампотех"
+                           :organization      "Армия"
+                           :contact-info      "9112878789"))))
    #+END_SRC
+
+** TODO Вспомогательные сущности резюме
+*** Основное образование
+
+    [TODO] - Написать процедуру сопоставления вузов, факультетов и их идентификаторов на hh
+
+    #+CAPTION: Данные основного образования
+    #+NAME: education_flds
+      | field name    | field type           | note                                                       |
+      |---------------+----------------------+------------------------------------------------------------|
+      | id            | serial               | идентификатор                                              |
+      | education-id  | (or db-null integer) | идентификатор обучалки на hh (как правило пустой)          |
+      | name          | varchar              | название учебного заведения                                |
+      | university-id | (or db-null integer) | идентификатор учебного заведения (если оно есть в базе hh) |
+      | faculty-id    | (or db-null integer) | идентификатор факультета                                   |
+      | organization  | varchar              | факультет                                                  |
+      | result        | varchar              | специальность                                              |
+      | specialty-id  | (or db-null integer) | идентификатор специальности                                |
+      | year          | (or db-null integer) | год окончания                                              |
+
+*** Иностранные языки
+
+    [TODO] - Написать процедуру сопоставления языков и их идентификаторов на hh
+
+    #+CAPTION: Данные иностранного языка
+    #+NAME: lang_flds
+      | field name  | field type           | note                |
+      |-------------+----------------------+---------------------|
+      | id          | serial               | идентификатор       |
+      | name        | (or db-null varchar) | язык                |
+      | lang-id     | (or db-null integer) | идентификатор на hh |
+      | lang-degree | varchar              | уровень владения    |
+
+*** Опыт работы
+
+    [TODO] - Посмотреть что значат некоторые поля
+
+    #+CAPTION: Данные опыта работы
+    #+NAME: experience_flds
+      | field name      | field type           | note                                                  |
+      |-----------------+----------------------+-------------------------------------------------------|
+      | id              | serial               | идентификатор                                         |
+      | name            | varchar              | название компании                                     |
+      | company-id      | (or db-null integer) | идентификатор компании на hh                          |
+      | company-area-id | (or db-null integer) | идентикатор города компании?                          |
+      | url             | varchar              | сайт компании                                         |
+      | industry-id     | (or db-null integer) | предположительно отрасль компании (как правило пуста) |
+      | industries      | varchar              | предположительно направления деятельности             |
+      | exp-id          | varchar              | не знаю что это такое                                 |
+      | job-position    | varchar              | должность                                             |
+      | start-date      | varchar              | начало работы                                         |
+      | end-date        | varchar              | окончание работы                                      |
+      | description     | (or db-null varchar) | описание достижений                                   |
+
+*** Ключевые навыки
+
+    #+CAPTION: Данные ключевых навыков
+    #+NAME: skills_flds
+      | field name | field type | note            |
+      |------------+------------+-----------------|
+      | id         | serial     | идентификатор   |
+      | name       | varchar    | название навыка |
+
+*** Рекоммендации
+
+    #+CAPTION: Данные ключевых навыков
+    #+NAME: recommendation_flds
+      | field name        | field type | note                             |
+      |-------------------+------------+----------------------------------|
+      | id                | serial     | идентификатор                    |
+      | recommendation-id | integer    | идентификатор рекомендации на hh |
+      | name              | varchar    | имя рекомендателя                |
+      | job-position          | varchar    | позиция рекомендателя            |
+      | organization      | varchar    | организация рекоммендателя       |
+      | contact-info      | varchar    | контактная информация            |
+
+*** Портфолио
+
+    #+CAPTION: Данные портфолио
+    #+NAME: portfolio_flds
+      | field name   | field type | note                       |
+      |--------------+------------+----------------------------|
+      | id           | serial     | идентификатор              |
+      | descr        | varchar    | описание файла             |
+      | file         | varchar    | файл                       |
 
 ** Отправка отклика (=send-respond=)
 
@@ -8777,6 +8997,24 @@
      <<gen_automat("resume",      "резюме",    resume_flds,       vacancy_state)>>
      <<gen_automat("rule",        "правила",   rule_flds,         rule_state)>>
      <<gen_automat("srcaccount",  "аккаунта",  srcaccount_flds,   srcaccount_state)>>
+     ;; Вспомогательные сущности резюме
+     <<gen_entity("education", "основного образования", education_flds)>>
+     <<gen_entity("lang", "языка", lang_flds)>>
+     <<gen_entity("experience", "опыта работы", experience_flds)>>
+     <<gen_entity("skills", "ключевых навыков", skills_flds)>>
+     <<gen_entity("recommendation", "рекомендации", recommendation_flds)>>
+     <<gen_entity("portfolio", "портфолио", portfolio_flds)>>
+   #+END_SRC
+
+   #+NAME: gen_entity
+   #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
+     (let ((result))
+       (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
+       (push (gen-fields flds) result)
+       (push ")\n" result)
+       (push "\n" result)
+       (push (format "(make-%s-table)\n" name) result)
+       (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
    #+NAME: gen_automat

@@ -213,4 +213,65 @@
    (:active :logged :account-login)
    (:logged :active :account-logout)
    (:active :wrong :account-wrong)))
+
+;; Вспомогательные сущности резюме
+(define-entity education "Сущность основного образования"
+  ((id serial)
+   (education-id (or db-null integer))
+   (name varchar)
+   (university-id (or db-null integer))
+   (faculty-id (or db-null integer))
+   (organization varchar)
+   (result varchar)
+   (specialty-id (or db-null integer))
+   (year (or db-null integer))))
+
+(make-education-table)
+
+(define-entity lang "Сущность языка"
+  ((id serial)
+   (name (or db-null varchar))
+   (lang-id (or db-null integer))
+   (lang-degree varchar)))
+
+(make-lang-table)
+
+(define-entity experience "Сущность опыта работы"
+  ((id serial)
+   (name varchar)
+   (company-id (or db-null integer))
+   (company-area-id (or db-null integer))
+   (url varchar)
+   (industry-id (or db-null integer))
+   (industries varchar)
+   (exp-id varchar)
+   (job-position varchar)
+   (start-date varchar)
+   (end-date varchar)
+   (description (or db-null varchar))))
+
+(make-experience-table)
+
+(define-entity skills "Сущность ключевых навыков"
+  ((id serial)
+   (name varchar)))
+
+(make-skills-table)
+
+(define-entity recommendation "Сущность рекомендации"
+  ((id serial)
+   (recommendation-id integer)
+   (name varchar)
+   (job-position varchar)
+   (organization varchar)
+   (contact-info varchar)))
+
+(make-recommendation-table)
+
+(define-entity portfolio "Сущность портфолио"
+  ((id serial)
+   (descr varchar)
+   (file varchar)))
+
+(make-portfolio-table)
 ;; entity_and_automates ends here
