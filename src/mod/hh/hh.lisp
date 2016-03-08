@@ -1452,154 +1452,148 @@
 ;;  :res-id "33273224"
 ;;  :state ":ACTIVE")
 
-(defparameter *test-resume*
-  (make-resume
-   :last-name "Глухов"
-   :first-name "Михаил"
-   :middle-name "Михайлович"
-   :birthday ""
-   :gender "male"
-   :area "2"
-   :metro ""
-   :relocation "relocation_possible"
-   :relocation-area "1"
-   :business-trip-readiness "ready"
-   :citizen-ship "113"
-   :work-ticket "113"
-   :travel-time "any"
+;; (defparameter *test-resume*
+;;   (make-resume
+;;    :last-name "Глухов"
+;;    :first-name "Михаил"
+;;    :middle-name "Михайлович"
+;;    :birthday ""
+;;    :gender "male"
+;;    :area "2"
+;;    :metro ""
+;;    :relocation "relocation_possible"
+;;    :relocation-area "1"
+;;    :business-trip-readiness "ready"
+;;    :citizen-ship "113"
+;;    :work-ticket "113"
+;;    :travel-time "any"
 
-   :cell-phone-country      "7"
-   :cell-phone-city         "911"
-   :cell-phone-number       "2869290"
-   :cell-phone-comment      "Рано не звоните"
+;;    :cell-phone-country      "7"
+;;    :cell-phone-city         "911"
+;;    :cell-phone-number       "2869290"
+;;    :cell-phone-comment      "Рано не звоните"
 
-   :home-phone-country      "7"
-   :home-phone-city         ""
-   :home-phone-number       ""
-   :home-phone-comment      ""
+;;    :home-phone-country      "7"
+;;    :home-phone-city         ""
+;;    :home-phone-number       ""
+;;    :home-phone-comment      ""
 
-   :work-phone-country      "7"
-   :work-phone-city         ""
-   :work-phone-number       ""
-   :work-phone-comment      ""
+;;    :work-phone-country      "7"
+;;    :work-phone-city         ""
+;;    :work-phone-number       ""
+;;    :work-phone-comment      ""
 
-   :email-string            "avenger-f@yandex.ru"
-   :preferred-contact       "email"
-   :icq                     "icq"
-   :skype                   "skype"
-   :freelance               "freelance"
-   :moi_krug                "moi_krug"
-   :linkedin                "linkedin"
-   :facebook                "facebook"
-   :livejournal             "livejournal"
-   :personal                "personal"
+;;    :email-string            "avenger-f@yandex.ru"
+;;    :preferred-contact       "email"
+;;    :icq                     "icq"
+;;    :skype                   "skype"
+;;    :freelance               "freelance"
+;;    :moi_krug                "moi_krug"
+;;    :linkedin                "linkedin"
+;;    :facebook                "facebook"
+;;    :livejournal             "livejournal"
+;;    :personal                "personal"
 
-   :title "Programmer"
-   :specializations "221"
-   :prof-area "1"
-   :salary-amount "100000"
-   :salary-currency "RUR"
-   :employment "full"
-   :work-schedule "full_day"
+;;    :title "Programmer"
+;;    :specializations "221"
+;;    :prof-area "1"
+;;    :salary-amount "100000"
+;;    :salary-currency "RUR"
+;;    :employment "full"
+;;    :work-schedule "full_day"
 
-   :education-level-string "higher"
-
-   :education (list
-               (make-education :id ""
-                               :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-                               :university-id "39864"
-                               :faculty-id ""
-                               :organization "Режиссуры"
-                               :result "Режиссура мультимедиа программ"
-                               :specialty-id "224"
-                               :year "2005")
-               (make-education :id ""
-                               :name ""
-                               :university-id ""
-                               :faculty-id ""
-                               :organization ""
-                               :result ""
-                               :specialty-id ""
-                               :year ""))
-   :additional-education-id ""
-   :additional-education-name ""
-   :additional-education-organization ""
-   :additional-education-result ""
-   :additional-education-year ""
-   :certificate-id ""
-   :certificate-type ""
-   :certificate-selected ""
-   :certificate-ownerName ""
-   :certificate-transcription-id ""
-   :certificate-password ""
-   :certificate-title ""
-   :certificate-achievementDate ""
-   :certificate-url ""
-   :attestation-education-id ""
-   :attestation-education-name ""
-   :attestation-education-organization ""
-   :attestation-education-result ""
-   :attestation-education-year ""
-
-   :languages (list
-               (make-lang :lang-id 34 :lang-degree "native")
-               (make-lang :lang-id 57 :lang-degree "can_read")
-               (make-lang :lang-id 58 :lang-degree "basic")
-               (make-lang :lang-id 59 :lang-degree "none"))
-
-   :expiriences (list
-                 (make-expirience
-                  :name "Лаборатория Касперского"
-                  :-company-id          "1057"
-                  :area-id     "1"
-                  :url         ""
-                  :industry-id  ""
-                  :industries  "540"
-                  :industries  ""
-                  :exp-id      ""
-                  :job-position            "Программист"
-                  :start-date          "2000-01-01"
-                  :end-date            "2001-01-01"
-                  :description         "Работа за деньги")
-                 (make-expirience
-                  :company-name        "Вымпелком"
-                  :company-id          "4934"
-                  :company-area-id     "1"
-                  :company-url         ""
-                  :company-industry-id  ""
-                  :company-industries  "399"
-                  :exp-id              ""
-                  :job-position            "Программист"
-                  :start-date          "2001-01-01"
-                  :end-date            "2005-01-01"
-                  :description         "Работа за еду )"))
-   :key-skills (list
-                (make-skill :name "Разработка архитектуры")
-                (make-skill :name "Вакуумная чистка лица"))
-
-   :skills-string                  "В последние годы нахожусь на пенсии )"
-
-   :recommendations (list
-                     (make-recommendation
-                      :recommendation-id              ""
-                      :name            "Смирнов"
-                      :job-position        "Начальник"
-                      :organization    "Армия"
-                      :contact-info    "9112869290")
-                     (make-recommendation
-                      :recommendation-id              ""
-                      :name            "Иванов"
-                      :job-position        "Зампотех"
-                      :organization    "Армия"
-                      :contact-info    "9112878789"))
-   ))
+;;    :education-level-string "higher"
+;;    :education (list
+;;                (make-education :id ""
+;;                                :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+;;                                :university-id "39864"
+;;                                :faculty-id ""
+;;                                :organization "Режиссуры"
+;;                                :result "Режиссура мультимедиа программ"
+;;                                :specialty-id "224"
+;;                                :year "2005")
+;;                (make-education :id ""
+;;                                :name ""
+;;                                :university-id ""
+;;                                :faculty-id ""
+;;                                :organization ""
+;;                                :result ""
+;;                                :specialty-id ""
+;;                                :year ""))
+;;    :additional-education-id ""
+;;    :additional-education-name ""
+;;    :additional-education-organization ""
+;;    :additional-education-result ""
+;;    :additional-education-year ""
+;;    :certificate-id ""
+;;    :certificate-type ""
+;;    :certificate-selected ""
+;;    :certificate-ownerName ""
+;;    :certificate-transcription-id ""
+;;    :certificate-password ""
+;;    :certificate-title ""
+;;    :certificate-achievementDate ""
+;;    :certificate-url ""
+;;    :attestation-education-id ""
+;;    :attestation-education-name ""
+;;    :attestation-education-organization ""
+;;    :attestation-education-result ""
+;;    :attestation-education-year ""
+;;    :languages (list
+;;                (make-lang :lang-id 34 :lang-degree "native")
+;;                (make-lang :lang-id 57 :lang-degree "can_read")
+;;                (make-lang :lang-id 58 :lang-degree "basic")
+;;                (make-lang :lang-id 59 :lang-degree "none"))
+;;    :expiriences (list
+;;                  (make-expirience
+;;                   :name                "Лаборатория Касперского"
+;;                   :-company-id         "1057"
+;;                   :area-id             "1"
+;;                   :url                 ""
+;;                   :industry-id         ""
+;;                   :industries          "540"
+;;                   :industries          ""
+;;                   :exp-id              ""
+;;                   :job-position        "Программист"
+;;                   :start-date          "2000-01-01"
+;;                   :end-date            "2001-01-01"
+;;                   :description         "Работа за деньги")
+;;                  (make-expirience
+;;                   :company-name        "Вымпелком"
+;;                   :company-id          "4934"
+;;                   :company-area-id     "1"
+;;                   :company-url         ""
+;;                   :company-industry-id  ""
+;;                   :company-industries  "399"
+;;                   :exp-id              ""
+;;                   :job-position        "Программист"
+;;                   :start-date          "2001-01-01"
+;;                   :end-date            "2005-01-01"
+;;                   :description         "Работа за еду )"))
+;;    :key-skills (list
+;;                 (make-skill :name "Разработка архитектуры")
+;;                 (make-skill :name "Вакуумная чистка лица"))
+;;    :skills-string "В последние годы нахожусь на пенсии )"
+;;    :recommendations (list
+;;                      (make-recommendation
+;;                       :recommendation-id ""
+;;                       :name              "Смирнов"
+;;                       :job-position      "Начальник"
+;;                       :organization      "Армия"
+;;                       :contact-info      "9112869290")
+;;                      (make-recommendation
+;;                       :recommendation-id ""
+;;                       :name              "Иванов"
+;;                       :job-position      "Зампотех"
+;;                       :organization      "Армия"
+;;                       :contact-info      "9112878789"))))
 
 
 
 ;; Тестируем hh
 (defun hh-test ()
-  
-  
+
+
   (dbg "passed: hh-test~%"))
 (hh-test)
 
