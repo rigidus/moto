@@ -405,9 +405,11 @@
                                         :additional-headers additional-headers
                                         :force-binary t
                                         :cookie-jar cookie-jar))
-         (tree (html5-parser:node-to-xmls
+         (tree ;; (html5-parser:node-to-xmls
                 (html5-parser:parse-html5-fragment
-                 (flexi-streams:octets-to-string response :external-format :utf-8)))))
+                 (flexi-streams:octets-to-string response :external-format :utf-8)
+                 :dom :xmls
+                 )))
     ;; Теперь попробуем использовать печеньки для логина
     ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
     ;; И заходим с вот-таким гет-запросом:
@@ -566,8 +568,7 @@
 ;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
 
 (defun html-to-tree (html)
-  (html5-parser:node-to-xmls
-   (html5-parser:parse-html5-fragment html)))
+  (html5-parser:parse-html5-fragment html :dom :xmls))
 
 (defun extract-search-results (tree)
   (block subtree-extract
@@ -936,7 +937,8 @@
 
 (defun hh-parse-vacancy (html)
   (dbg "hh-parse-vacancy")
-  (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+  (let* ((tree ;; (html5-parser:node-to-xmls
+                (html5-parser:parse-html5-fragment html :dom :xmls)))
     (append (block header-extract
               (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
                             ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
@@ -1589,11 +1591,10 @@
 ;;                       :contact-info      "9112878789"))))
 
 
-
 ;; Тестируем hh
 (defun hh-test ()
-
-
+  
+  
   (dbg "passed: hh-test~%"))
 (hh-test)
 
