@@ -140,7 +140,7 @@
    (attestation-education-year (or db-null varchar))
    (languages (or db-null varchar))
    (expiriences (or db-null varchar))
-   (key-skills (or db-null varchar))
+   (skills (or db-null varchar))
    (recommendations (or db-null varchar))
    (portfolio (or db-null varchar)))
   (:accept :discard :offer :interview :testjob :invite :reject :beenviewed :responded :interesting :uninteresting :unsort)
@@ -217,32 +217,32 @@
 ;; Вспомогательные сущности резюме
 (define-entity education "Сущность основного образования"
   ((id serial)
-   (education-id (or db-null integer))
+   (education-id (or db-null varchar))
    (name varchar)
-   (university-id (or db-null integer))
-   (faculty-id (or db-null integer))
+   (university-id (or db-null varchar))
+   (faculty-id (or db-null varchar))
    (organization varchar)
    (result varchar)
-   (specialty-id (or db-null integer))
-   (year (or db-null integer))))
+   (specialty-id (or db-null varchar))
+   (year (or db-null varchar))))
 
 (make-education-table)
 
 (define-entity lang "Сущность языка"
   ((id serial)
    (name (or db-null varchar))
-   (lang-id (or db-null integer))
+   (lang-id (or db-null varchar))
    (lang-degree varchar)))
 
 (make-lang-table)
 
-(define-entity experience "Сущность опыта работы"
+(define-entity expirience "Сущность опыта работы"
   ((id serial)
    (name varchar)
-   (company-id (or db-null integer))
-   (company-area-id (or db-null integer))
+   (company-id (or db-null varchar))
+   (company-area-id (or db-null varchar))
    (url varchar)
-   (industry-id (or db-null integer))
+   (industry-id (or db-null varchar))
    (industries varchar)
    (exp-id varchar)
    (job-position varchar)
@@ -250,13 +250,13 @@
    (end-date varchar)
    (description (or db-null varchar))))
 
-(make-experience-table)
+(make-expirience-table)
 
-(define-entity skills "Сущность ключевых навыков"
+(define-entity skill "Сущность ключевых навыков"
   ((id serial)
    (name varchar)))
 
-(make-skills-table)
+(make-skill-table)
 
 (define-entity recommendation "Сущность рекомендации"
   ((id serial)

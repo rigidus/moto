@@ -47,7 +47,7 @@
        (mapcar #'name (all-que)))
    #+END_SRC
 
-** операции создания и удаления очередей
+** Операции создания и удаления очередей
 
    #+NAME: que_contents
    #+BEGIN_SRC lisp
@@ -68,7 +68,7 @@
             (err "destroy-que error: que not found")))
    #+END_SRC
 
-** перации очистки очереди и получения содержимого всех ее элементов
+** Операции очистки очереди и получения содержимого всех ее элементов
 
    #+NAME: que_contents
    #+BEGIN_SRC lisp

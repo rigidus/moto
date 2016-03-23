@@ -1434,24 +1434,58 @@
   "inactive-active")
 (in-package #:moto)
 
-;; (make-resume
-;;  :src-id "1036680cff007465bc0039ed1f736563726574"
-;;  :title "Ведущий программист (web) / Руководитель проекта"
-;;  :res-id "7628220"
-;;  :state ":ACTIVE")
+;; Тест, иллюстрирующий magic-методы
+;; При попытке доступа к полю, которого не существует в классе в этот класс добавляется поле. Если доступ был на запись - записывается значение, иначе в поле будет nil.
+;; Это поле - член класса, а не объекта. Технически ничто не мешает нам хранить его значение где-то отдельно от самого класса.
 
-;;  (make-resume
-;;   :src-id "9555a7ecff02588d3c0039ed1f454162305732"
-;;   :title "Senior Developer"
-;;   :res-id "39357756"
-;;   :state ":ACTIVE")
+(defun direct-slot-defn->initarg (slot-defn)
+  (list :name (slot-definition-name slot-defn)
+        :readers (slot-definition-readers slot-defn)
+        :writers (slot-definition-writers slot-defn)
+        :initform (slot-definition-initform slot-defn)
+        :initargs (slot-definition-initargs slot-defn)
+        :initfunction (slot-definition-initfunction slot-defn)))
 
-;; (make-resume
-;;  :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
-;;  :title "Lisp-разработчик"
-;;  :res-id "33273224"
-;;  :state ":ACTIVE")
+(defun add-slot-to-class (class name &key (initform nil) accessors readers writers initargs (initfunction (constantly nil)))
+  (check-type class symbol)
+  (let ((new-slots (list (list :name name
+                               :readers (union accessors readers)
+                               :writers (union writers
+                                               (mapcar #'(lambda (x)
+                                                           (list 'setf x))
+                                                       accessors)
+                                               :test #'equal)
+                               :initform initform
+                               :initargs initargs
+                               :initfunction initfunction))))
+    (dolist (slot-defn (class-direct-slots (find-class class)))
+      (push (direct-slot-defn->initarg slot-defn) new-slots))
+    (ensure-class class :direct-slots new-slots)))
 
+(defclass foo ()
+  ((bar :accessor bar :initform "zzzzzz")
+   (baz :accessor baz :initform "zzzzzz")))
+
+(defmethod slot-missing (class (instance foo) slot-name operation &optional (new-value "defailt value"))
+  (declare (ignorable class))
+  (print (list class instance slot-name operation new-value))
+  ;; (err 'zz)
+  (add-slot-to-class (class-name class) slot-name)
+  (setf (slot-value instance slot-name) new-value))
+
+(defparameter *foo* (make-instance 'foo))
+
+(setf (slot-value *foo* 'bar) "the-bar")
+
+(setf (slot-value *foo* 't2) "zzz")
+
+(defparameter *foo2* (make-instance 'foo))
+
+(slot-value *foo2* 't5)
+
+(slot-value *foo2* 'bar)
+
+;; Тестовое резюме
 (defparameter *test-resume*
   (make-resume
    :last-name "Глухов"
@@ -1503,24 +1537,26 @@
    :work-schedule "full_day"
 
    :education-level-string "higher"
-
-   :education (list
-               (make-education :id ""
-                               :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-                               :university-id "39864"
-                               :faculty-id ""
-                               :organization "Режиссуры"
-                               :result "Режиссура мультимедиа программ"
-                               :specialty-id "224"
-                               :year "2005")
-               (make-education :id ""
-                               :name ""
-                               :university-id ""
-                               :faculty-id ""
-                               :organization ""
-                               :result ""
-                               :specialty-id ""
-                               :year ""))
+   :education (reduce #'(lambda (a b)
+                          (format nil "~A ~A" a b))
+                      (mapcar #'id
+                              (list
+                               (make-education :education-id "0"
+                                               :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+                                               :university-id "39864"
+                                               :faculty-id "0"
+                                               :organization "Режиссуры"
+                                               :result "Режиссура мультимедиа программ"
+                                               :specialty-id "224"
+                                               :year "2005")
+                               (make-education :education-id "0"
+                                               :name ""
+                                               :university-id "0"
+                                               :faculty-id "0"
+                                               :organization ""
+                                               :result ""
+                                               :specialty-id "0"
+                                               :year "0"))))
    :additional-education-id ""
    :additional-education-name ""
    :additional-education-organization ""
@@ -1540,59 +1576,66 @@
    :attestation-education-organization ""
    :attestation-education-result ""
    :attestation-education-year ""
-
-   :languages (list
-               (make-lang :lang-id 34 :lang-degree "native")
-               (make-lang :lang-id 57 :lang-degree "can_read")
-               (make-lang :lang-id 58 :lang-degree "basic")
-               (make-lang :lang-id 59 :lang-degree "none"))
-
-   :expiriences (list
-                 (make-expirience
-                  :name "Лаборатория Касперского"
-                  :-company-id          "1057"
-                  :area-id     "1"
-                  :url         ""
-                  :industry-id  ""
-                  :industries  "540"
-                  :industries  ""
-                  :exp-id      ""
-                  :job-position            "Программист"
-                  :start-date          "2000-01-01"
-                  :end-date            "2001-01-01"
-                  :description         "Работа за деньги")
-                 (make-expirience
-                  :company-name        "Вымпелком"
-                  :company-id          "4934"
-                  :company-area-id     "1"
-                  :company-url         ""
-                  :company-industry-id  ""
-                  :company-industries  "399"
-                  :exp-id              ""
-                  :job-position            "Программист"
-                  :start-date          "2001-01-01"
-                  :end-date            "2005-01-01"
-                  :description         "Работа за еду )"))
-   :key-skills (list
-                (make-skill :name "Разработка архитектуры")
-                (make-skill :name "Вакуумная чистка лица"))
-
-   :skills-string                  "В последние годы нахожусь на пенсии )"
-
-   :recommendations (list
-                     (make-recommendation
-                      :recommendation-id              ""
-                      :name            "Смирнов"
-                      :job-position        "Начальник"
-                      :organization    "Армия"
-                      :contact-info    "9112869290")
-                     (make-recommendation
-                      :recommendation-id              ""
-                      :name            "Иванов"
-                      :job-position        "Зампотех"
-                      :organization    "Армия"
-                      :contact-info    "9112878789"))
-   ))
+   :languages (reduce #'(lambda (a b)
+                          (format nil "~A ~A" a b))
+                      (mapcar #'id
+                              (list
+                               (make-lang :lang-id "34" :lang-degree "native")
+                               (make-lang :lang-id "57" :lang-degree "can_read")
+                               (make-lang :lang-id "58" :lang-degree "basic")
+                               (make-lang :lang-id "59" :lang-degree "none"))))
+   :expiriences (reduce #'(lambda (a b)
+                            (format nil "~A ~A" a b))
+                        (mapcar #'id
+                                (list
+                                 (make-expirience
+                                  :name         "Лаборатория Касперского"
+                                  :company-id   "1057"
+                                  :area-id      "1"
+                                  :url          ""
+                                  :industry-id  "0"
+                                  :industries   "540"
+                                  :industries   ""
+                                  :exp-id       ""
+                                  :job-position "Программист"
+                                  :start-date   "2000-01-01"
+                                  :end-date     "2001-01-01"
+                                  :description  "Работа за деньги")
+                                 (make-expirience
+                                  :name         "Вымпелком"
+                                  :company-id   "4934"
+                                  :area-id      "1"
+                                  :url          ""
+                                  :industry-id  "0"
+                                  :industries   "399"
+                                  :exp-id       ""
+                                  :job-position "Программист"
+                                  :start-date   "2001-01-01"
+                                  :end-date     "2005-01-01"
+                                  :description  "Работа за еду )"))))
+   :skills (reduce #'(lambda (a b)
+                           (format nil "~A ~A" a b))
+                       (mapcar #'id
+                               (list
+                                (make-skill :name "Разработка архитектуры")
+                                (make-skill :name "Вакуумная чистка лица"))))
+   :skills-string "В последние годы нахожусь на пенсии )"
+   :recommendations (reduce #'(lambda (a b)
+                                (format nil "~A ~A" a b))
+                            (mapcar #'id
+                                    (list
+                                     (make-recommendation
+                                      :recommendation-id "0"
+                                      :name              "Смирнов"
+                                      :job-position      "Начальник"
+                                      :organization      "Армия"
+                                      :contact-info      "9112869290")
+                                     (make-recommendation
+                                      :recommendation-id "0"
+                                      :name              "Иванов"
+                                      :job-position      "Зампотех"
+                                      :organization      "Армия"
+                                      :contact-info      "9112878789"))))))
 
 
 
