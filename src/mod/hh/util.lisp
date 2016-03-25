@@ -27,6 +27,7 @@
                (drakma:http-request ,x-to
                                     :user-agent *user-agent*
                                     :additional-headers (get-headers ,x-ot)
+                                    :redirect 10
                                     :force-binary t)
                :external-format :utf-8)))
        r)))

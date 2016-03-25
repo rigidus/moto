@@ -408,11 +408,11 @@
                                         :cookie-jar cookie-jar
                                         :redirect 10
                                         ))
-         (tree ;; (html5-parser:node-to-xmls ;; !=!
+         (tree (html5-parser:node-to-xmls ;; !=!
                 (html5-parser:parse-html5-fragment
                  (flexi-streams:octets-to-string response :external-format :utf-8)
-                 :dom :xmls
-                 )))
+                 ;; :dom :xmls
+                 ))))
     ;; Теперь попробуем использовать печеньки для логина
     ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
     ;; И заходим с вот-таким гет-запросом:
@@ -461,7 +461,7 @@
   "Получение страницы"
   ;; Если ни одного запроса еще не было - сделаем запрос к главной и снимем флаг
   (when *need-start*
-    (drakma:http-request "http://spb.hh.ru/" :user-agent *user-agent*
+    (drakma:http-request "http://spb.hh.ru/" :user-agent *user-agent* :redirect 10
                          :force-binary t     :cookie-jar cookie-jar)
     (setf referer "http://spb.hh.ru/")
     (setf *need-start* nil))
@@ -472,7 +472,7 @@
     (tagbody repeat
        (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
            (drakma:http-request
-            url :user-agent *user-agent* :force-binary t :cookie-jar cookie-jar
+            url :user-agent *user-agent* :force-binary t :cookie-jar cookie-jar :redirect 10
             :additional-headers (append *additional-headers*
                                         `(("Referer" . ,referer))))
          (dbg "-- ~A : ~A" status-code url)
@@ -572,7 +572,12 @@
 ;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
 
 (defun html-to-tree (html)
-  (html5-parser:parse-html5-fragment html :dom :xmls))
+  (html5-parser:node-to-xmls
+   (html5-parser:parse-html5-fragment html ;;:dom :xmls
+                                      )))
+
+;; (print
+;;  (html-to-tree *last-parse-data*))
 
 (defun extract-search-results (tree)
   (block subtree-extract
@@ -943,8 +948,9 @@
 
 (defun hh-parse-vacancy (html)
   (dbg "hh-parse-vacancy")
-  (let* ((tree ;; (html5-parser:node-to-xmls
-                (html5-parser:parse-html5-fragment html :dom :xmls)))
+  (let* ((tree (html5-parser:node-to-xmls
+                (html5-parser:parse-html5-fragment html ;;:dom :xmls
+                                                   ))))
     (append (block header-extract
               (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
                             ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
@@ -1116,6 +1122,7 @@
                            ("Cache-Control" . "no-cache")
                            )
                          :cookie-jar cookie-jar
+                         :redirect 10
                          :force-binary t)))
               (flexi-streams:octets-to-string resp :external-format :utf-8))))))))
 

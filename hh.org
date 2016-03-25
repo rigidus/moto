@@ -777,7 +777,7 @@
         "Получение страницы"
         ;; Если ни одного запроса еще не было - сделаем запрос к главной и снимем флаг
         (when *need-start*
-          (drakma:http-request "http://spb.hh.ru/" :user-agent *user-agent*
+          (drakma:http-request "http://spb.hh.ru/" :user-agent *user-agent* :redirect 10
                                :force-binary t     :cookie-jar cookie-jar)
           (setf referer "http://spb.hh.ru/")
           (setf *need-start* nil))
@@ -788,7 +788,7 @@
           (tagbody repeat
              (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
                  (drakma:http-request
-                  url :user-agent *user-agent* :force-binary t :cookie-jar cookie-jar
+                  url :user-agent *user-agent* :force-binary t :cookie-jar cookie-jar :redirect 10
                   :additional-headers (append *additional-headers*
                                               `(("Referer" . ,referer))))
                (dbg "-- ~A : ~A" status-code url)
@@ -844,83 +844,83 @@
 
      #+NAME: hh_recovery_login
      #+BEGIN_SRC lisp
-              (in-package #:moto)
+       (in-package #:moto)
 
-              <<data_for_account>>
+       <<data_for_account>>
 
-              (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0")
+       (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0")
 
-              (defparameter *additional-headers* `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                                                   ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
-                                                   ("Accept-Charset" . "utf-8")))
+       (defparameter *additional-headers* `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                            ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                            ("Accept-Charset" . "utf-8")))
 
-              (defparameter *cookies* nil)  ;; deprecated, use cookie-jar in closure
+       (defparameter *cookies* nil)  ;; deprecated, use cookie-jar in closure
 
-              (defun is-logged (html)
-                "Проверяем наличие в html блока 'Войти'"
-                (dbg ":: is-logged")
-                (not (contains html "data-qa=\"mainmenu_loginForm\">Войти</div>")))
+       (defun is-logged (html)
+         "Проверяем наличие в html блока 'Войти'"
+         (dbg ":: is-logged")
+         (not (contains html "data-qa=\"mainmenu_loginForm\">Войти</div>")))
 
-              (defun get-cookies-alist (cookie-jar)
-                "Получаем alist с печеньками из cookie-jar"
-                (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
-                   (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
+       (defun get-cookies-alist (cookie-jar)
+         "Получаем alist с печеньками из cookie-jar"
+         (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
+            (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
-              (defun recovery-login (src-account)
-                ;; Сначала заходим на главную как будто первый раз, без печенек
-                (setf drakma:*header-stream* nil)
-                (let* ((start-uri "http://spb.hh.ru/")
-                       (cookie-jar (make-instance 'drakma:cookie-jar))
-                       (additional-headers *additional-headers*)
-                       (response (drakma:http-request start-uri
-                                                      :user-agent *user-agent*
-                                                      :additional-headers additional-headers
-                                                      :force-binary t
-                                                      :cookie-jar cookie-jar
-                                                      :redirect 10
-                                                      ))
-                       (tree ;; (html5-parser:node-to-xmls ;; !=!
-                              (html5-parser:parse-html5-fragment
-                               (flexi-streams:octets-to-string response :external-format :utf-8)
-                               :dom :xmls
-                               )))
-                  ;; Теперь попробуем использовать печеньки для логина
-                  ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
-                  ;; И заходим с вот-таким гет-запросом:
-                  ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
-                  ;; (setf drakma:*header-stream* *standard-output*)
-                  (let* ((post-parameters `(("username" . ,(src_login src-account))
-                                            ("password" . ,(src_password src-account))
-                                            ("backUrl"  . "http://spb.hh.ru/")
-                                            ("remember" . "yes")
-                                            ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
-                                            ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))))
-                         (xsrf (cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))
-                         (cookie-jar-2 (make-instance 'drakma:cookie-jar
-                                                      :cookies (append (list (make-instance 'drakma:cookie :name "GMT"   :value "3" :domain "spb.hh.ru")
-                                                                             (make-instance 'drakma:cookie :name "_xsrf" :value xsrf :domain "spb.hh.ru"))
-                                                                       (remove-if #'(lambda (x)
-                                                                                      (equal "crypted_id" (drakma:cookie-name x)))
-                                                                                  (drakma:cookie-jar-cookies cookie-jar)))))
-                         (response-2 (drakma:http-request "https://spb.hh.ru/account/login"
-                                                          :user-agent *user-agent*
-                                                          :method :post
-                                                          :parameters post-parameters
-                                                          :additional-headers (append *additional-headers* `(("Referer" . ,start-uri)))
-                                                          :cookie-jar cookie-jar-2
-                                                          :force-binary t
-                                                          :redirect 10))
-                         (html (flexi-streams:octets-to-string response-2 :external-format :utf-8)))
-                    (when (contains html "Неправильные имя и/или пароль - попробуйте, пожалуйста, снова.")
-                      (err "login failed"))
-                    (when (contains html "Что-то пошло не так")
-                      (err "login error"))
-                    (when (contains html (src_fio src-account))
-                      (return-from recovery-login
-                        (values ;; (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))
-                                html
-                                cookie-jar-2)))
-                    (err "login exception"))))
+       (defun recovery-login (src-account)
+         ;; Сначала заходим на главную как будто первый раз, без печенек
+         (setf drakma:*header-stream* nil)
+         (let* ((start-uri "http://spb.hh.ru/")
+                (cookie-jar (make-instance 'drakma:cookie-jar))
+                (additional-headers *additional-headers*)
+                (response (drakma:http-request start-uri
+                                               :user-agent *user-agent*
+                                               :additional-headers additional-headers
+                                               :force-binary t
+                                               :cookie-jar cookie-jar
+                                               :redirect 10
+                                               ))
+                (tree (html5-parser:node-to-xmls ;; !=!
+                       (html5-parser:parse-html5-fragment
+                        (flexi-streams:octets-to-string response :external-format :utf-8)
+                        ;; :dom :xmls
+                        ))))
+           ;; Теперь попробуем использовать печеньки для логина
+           ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
+           ;; И заходим с вот-таким гет-запросом:
+           ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
+           ;; (setf drakma:*header-stream* *standard-output*)
+           (let* ((post-parameters `(("username" . ,(src_login src-account))
+                                     ("password" . ,(src_password src-account))
+                                     ("backUrl"  . "http://spb.hh.ru/")
+                                     ("remember" . "yes")
+                                     ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
+                                     ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))))
+                  (xsrf (cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))
+                  (cookie-jar-2 (make-instance 'drakma:cookie-jar
+                                               :cookies (append (list (make-instance 'drakma:cookie :name "GMT"   :value "3" :domain "spb.hh.ru")
+                                                                      (make-instance 'drakma:cookie :name "_xsrf" :value xsrf :domain "spb.hh.ru"))
+                                                                (remove-if #'(lambda (x)
+                                                                               (equal "crypted_id" (drakma:cookie-name x)))
+                                                                           (drakma:cookie-jar-cookies cookie-jar)))))
+                  (response-2 (drakma:http-request "https://spb.hh.ru/account/login"
+                                                   :user-agent *user-agent*
+                                                   :method :post
+                                                   :parameters post-parameters
+                                                   :additional-headers (append *additional-headers* `(("Referer" . ,start-uri)))
+                                                   :cookie-jar cookie-jar-2
+                                                   :force-binary t
+                                                   :redirect 10))
+                  (html (flexi-streams:octets-to-string response-2 :external-format :utf-8)))
+             (when (contains html "Неправильные имя и/или пароль - попробуйте, пожалуйста, снова.")
+               (err "login failed"))
+             (when (contains html "Что-то пошло не так")
+               (err "login error"))
+             (when (contains html (src_fio src-account))
+               (return-from recovery-login
+                 (values ;; (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))
+                         html
+                         cookie-jar-2)))
+             (err "login exception"))))
      #+END_SRC
 
 ***** Аккаунты на источнике вакансий
@@ -1017,7 +1017,12 @@
       <<parse_salary>>
 
       (defun html-to-tree (html)
-        (html5-parser:parse-html5-fragment html :dom :xmls))
+        (html5-parser:node-to-xmls
+         (html5-parser:parse-html5-fragment html ;;:dom :xmls
+                                            )))
+
+      ;; (print
+      ;;  (html-to-tree *last-parse-data*))
 
       (defun extract-search-results (tree)
         (block subtree-extract
@@ -1858,8 +1863,9 @@
 
       (defun hh-parse-vacancy (html)
         (dbg "hh-parse-vacancy")
-        (let* ((tree ;; (html5-parser:node-to-xmls
-                      (html5-parser:parse-html5-fragment html :dom :xmls)))
+        (let* ((tree (html5-parser:node-to-xmls
+                      (html5-parser:parse-html5-fragment html ;;:dom :xmls
+                                                         ))))
           (append (block header-extract
                     (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
                                   ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
@@ -2932,6 +2938,7 @@
                                                   ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
                                                 ))
                        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+                       :redirect 10
                        :additional-headers
                        `(("Accept" . "*/*")
                          ("Accept-Language" . "en-US,en;q=0.5")
@@ -3049,6 +3056,7 @@
                          ("Cache-Control" . "no-cache")
                          )
                        :cookie-jar cookie-jar
+                       :redirect 10
                        :force-binary t)
                     (return-from contacts
                       (values
@@ -3191,6 +3199,7 @@
                         ("Cache-Control" . "no-cache")
                         )
                       :cookie-jar cookie-jar
+                      :redirect 10
                       :force-binary t)
                    (return-from resume-position
                      (values
@@ -3306,6 +3315,7 @@
                          ("Cache-Control" . "no-cache")
                          )
                        :cookie-jar cookie-jar
+                       :redirect 10
                        :force-binary t)
                     (return-from education
                       (values
@@ -3492,6 +3502,7 @@
                         ("Cache-Control" . "no-cache")
                         )
                       :cookie-jar cookie-jar
+                      :redirect 10
                       :force-binary t)
                    (return-from expirience
                      (values
@@ -3591,6 +3602,7 @@
                          ("Cache-Control" . "no-cache")
                          )
                        :cookie-jar cookie-jar
+                       :redirect 10
                        :force-binary t)
                     (return-from touch
                       (values
@@ -4232,6 +4244,7 @@
                                 ("Cache-Control" . "no-cache")
                                 )
                               :cookie-jar cookie-jar
+                              :redirect 10
                               :force-binary t)))
                    (flexi-streams:octets-to-string resp :external-format :utf-8))))))))
 
@@ -9065,6 +9078,7 @@
                     (drakma:http-request ,x-to
                                          :user-agent *user-agent*
                                          :additional-headers (get-headers ,x-ot)
+                                         :redirect 10
                                          :force-binary t)
                     :external-format :utf-8)))
             r)))
