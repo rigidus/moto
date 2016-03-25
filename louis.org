@@ -960,7 +960,7 @@
        (let ((time-record
               (multiple-value-bind (second minute hour date month year day daylight-p zone)
                   (decode-universal-time (ts-create param))
-                (format nil "~A:~A:~A ~A.~A.~A"
+                (format nil "~2,'0d:~2,'0d:~2,'0d ~2,'0d.~2,'0d.~2,'0d"
                         hour minute second date month year))))
 
        (ps-html

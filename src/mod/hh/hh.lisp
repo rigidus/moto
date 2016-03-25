@@ -323,7 +323,8 @@
     "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
     "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
     "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "NodeJS"
-    "тестировщик" "Системный администратор" "Трафик-менеджер")
+    "тестировщик" "Системный администратор" "Трафик-менеджер" "Traffic"
+    "маркетолог" "DevOps" "Axapta")
 
 (defun get-all-rules ()
   (sort
@@ -404,10 +405,14 @@
                                         :user-agent *user-agent*
                                         :additional-headers additional-headers
                                         :force-binary t
-                                        :cookie-jar cookie-jar))
-         (tree (html5-parser:node-to-xmls
+                                        :cookie-jar cookie-jar
+                                        :redirect 10
+                                        ))
+         (tree ;; (html5-parser:node-to-xmls ;; !=!
                 (html5-parser:parse-html5-fragment
-                 (flexi-streams:octets-to-string response :external-format :utf-8)))))
+                 (flexi-streams:octets-to-string response :external-format :utf-8)
+                 :dom :xmls
+                 )))
     ;; Теперь попробуем использовать печеньки для логина
     ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
     ;; И заходим с вот-таким гет-запросом:
@@ -432,7 +437,8 @@
                                             :parameters post-parameters
                                             :additional-headers (append *additional-headers* `(("Referer" . ,start-uri)))
                                             :cookie-jar cookie-jar-2
-                                            :force-binary t))
+                                            :force-binary t
+                                            :redirect 10))
            (html (flexi-streams:octets-to-string response-2 :external-format :utf-8)))
       (when (contains html "Неправильные имя и/или пароль - попробуйте, пожалуйста, снова.")
         (err "login failed"))
@@ -566,8 +572,7 @@
 ;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
 
 (defun html-to-tree (html)
-  (html5-parser:node-to-xmls
-   (html5-parser:parse-html5-fragment html)))
+  (html5-parser:parse-html5-fragment html :dom :xmls))
 
 (defun extract-search-results (tree)
   (block subtree-extract
@@ -598,7 +603,9 @@
 (make-detect (date)
   (`("span" (("class" "b-vacancy-list-date")
              ("data-qa" "vacancy-serp__vacancy-date")) ,date)
-    (list :date date)))
+    (list :date (progn
+                  ;; (print date)
+                  (if (null date) "" date)))))
 
 (make-detect (platform)
   (`("span"
@@ -765,9 +772,6 @@
          ,text)
     (list :snippet_responsibility text)))
 
-  ;; (`(("class" "search-result-item__snippet")
-  ;;    ("data-qa" "vacancy-serp__vacancy_snippet_responsibility")) "vacancy_snippet_responsibility"))
-
 (make-detect (noindex)
   (`("div" (("class" "search-result-description__item")) "noindex" "hrbrand"
            "/noindex")
@@ -791,24 +795,40 @@
 
 (make-detect (bloko-button-rest)
   (`(:CITY ,city ,@rest)
-    (if (listp (last rest))
-        (append `(:CITY ,city) (nbutlast rest))
-        (append `(:CITY ,city) rest))))
+    (append `(:CITY ,city ,(remove-if #'(lambda (x)
+                                          (or
+                                           (member x '("div" "trigger-button" "vacancy-response-popup-script" "response-popup-link") :test #'equal)
+                                           (listp x)))
+                                      rest)))))
+
+(remove-if #'(lambda (x)
+               (or
+                (listp x)
+                (member x '("div" "trigger-button" "vacancy-response-popup-script" "response-popup-link") :test #'equal)))
+           '(:CITY "Санкт-Петербург" :METRO "" :DATE "22 марта" :PLATFORM CAREER.RU
+             ((("class" "search-result-item__phone"))
+              ("button"
+               (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
+               ((("class" "g-hidden HH-VacancyContactsLoader-Content")
+                 ("data-attach" "dropdown-content-placeholder")))))))
 
 (defun detect-garbage-elts (tree)
   (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
               "Посмотреть интервью о жизни в компании") 'INTERVIEW)
        (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_invited")
-                    ("data-qa" "vacancy-serp__vacancy_invited")) "Вы приглашены!") 'INVITED)
+                    ("data-qa" "vacancy-serp__vacancy_invited")) "Вы приглашены!") '(:INVITED "invited"))
             (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
-                         ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'DECINE)
+                         ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") '(:DECINE "decine"))
                  (mtm (`("a" (("href" ,_) ("target" "_blank") ("class" "search-result-item__label search-result-item__label_discard")
-                              ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") 'REJECTED)
-                      (mtm (`("div" (("class" "search-result-item__image")) ,_) 'ITEM-IMAGE)
+                              ("data-qa" "vacancy-serp__vacancy_rejected")) "Вам отказали") '(:REJECTED "regected"))
+                      (mtm (`("div" (("class" "search-result-item__image")) ,_) ':ITEM-IMAGE)
                            tree))))))
 
 (defparameter *last-parse-data* nil)
 
+;; (print *last-parse-data*)
+
+;; (hh-parse-vacancy-teasers *last-parse-data*)
 
 (defun tree-plist-p (pl)
   "Returns T if L is a plist (list with alternating keyword elements). "
@@ -820,19 +840,6 @@
               (listp (car pl)))    (and (tree-plist-p (car pl))
                                         (tree-plist-p (cdr pl))))
         (t                         nil)))
-
-;; (tree-plist-p '((((:ID 16031376 :NAME "Копирайтер")
-;;                   (:SNIPPET_RESPONSIBILITY
-;;                    "Подготовка контента для сайта Компании на английском и русском языках. Подготовка фотографий и видео для размещения на сайте. ")
-;;                   (:SNIPPET
-;;                    "Высшее образование по специальности «Журналистика», «Филология», «PR». Свободное знание английского языка. Опыт администрирования сайтов. Опыт написания статей, пресс-релизов, новостей. ")
-;;                   (:EMP-ID 707817 :EMP-NAME "Colvir Software Solutions")
-;;                   (:CITY "Санкт-Петербург" :METRO "" :DATE "29 февраля"
-;;                          ((("class" "search-result-item__phone"))
-;;                           ("button"
-;;                            (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-;;                            ((("class" "g-hidden HH-VacancyContactsLoader-Content")
-;;                              ("data-attach" "dropdown-content-placeholder"))))))))))
 
 (define-condition malformed-vacancy (error)
   ((text :initarg :text :reader text)))
@@ -936,7 +943,8 @@
 
 (defun hh-parse-vacancy (html)
   (dbg "hh-parse-vacancy")
-  (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+  (let* ((tree ;; (html5-parser:node-to-xmls
+                (html5-parser:parse-html5-fragment html :dom :xmls)))
     (append (block header-extract
               (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
                             ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
@@ -1432,211 +1440,6 @@
 
 (defun ria ()
   "inactive-active")
-(in-package #:moto)
-
-;; Тест, иллюстрирующий magic-методы
-;; При попытке доступа к полю, которого не существует в классе в этот класс добавляется поле. Если доступ был на запись - записывается значение, иначе в поле будет nil.
-;; Это поле - член класса, а не объекта. Технически ничто не мешает нам хранить его значение где-то отдельно от самого класса.
-
-(defun direct-slot-defn->initarg (slot-defn)
-  (list :name (slot-definition-name slot-defn)
-        :readers (slot-definition-readers slot-defn)
-        :writers (slot-definition-writers slot-defn)
-        :initform (slot-definition-initform slot-defn)
-        :initargs (slot-definition-initargs slot-defn)
-        :initfunction (slot-definition-initfunction slot-defn)))
-
-(defun add-slot-to-class (class name &key (initform nil) accessors readers writers initargs (initfunction (constantly nil)))
-  (check-type class symbol)
-  (let ((new-slots (list (list :name name
-                               :readers (union accessors readers)
-                               :writers (union writers
-                                               (mapcar #'(lambda (x)
-                                                           (list 'setf x))
-                                                       accessors)
-                                               :test #'equal)
-                               :initform initform
-                               :initargs initargs
-                               :initfunction initfunction))))
-    (dolist (slot-defn (class-direct-slots (find-class class)))
-      (push (direct-slot-defn->initarg slot-defn) new-slots))
-    (ensure-class class :direct-slots new-slots)))
-
-(defclass foo ()
-  ((bar :accessor bar :initform "zzzzzz")
-   (baz :accessor baz :initform "zzzzzz")))
-
-(defmethod slot-missing (class (instance foo) slot-name operation &optional (new-value "defailt value"))
-  (declare (ignorable class))
-  (print (list class instance slot-name operation new-value))
-  ;; (err 'zz)
-  (add-slot-to-class (class-name class) slot-name)
-  (setf (slot-value instance slot-name) new-value))
-
-(defparameter *foo* (make-instance 'foo))
-
-(setf (slot-value *foo* 'bar) "the-bar")
-
-(setf (slot-value *foo* 't2) "zzz")
-
-(defparameter *foo2* (make-instance 'foo))
-
-(slot-value *foo2* 't5)
-
-(slot-value *foo2* 'bar)
-
-;; Тестовое резюме
-(defparameter *test-resume*
-  (make-resume
-   :last-name "Глухов"
-   :first-name "Михаил"
-   :middle-name "Михайлович"
-   :birthday ""
-   :gender "male"
-   :area "2"
-   :metro ""
-   :relocation "relocation_possible"
-   :relocation-area "1"
-   :business-trip-readiness "ready"
-   :citizen-ship "113"
-   :work-ticket "113"
-   :travel-time "any"
-
-   :cell-phone-country      "7"
-   :cell-phone-city         "911"
-   :cell-phone-number       "2869290"
-   :cell-phone-comment      "Рано не звоните"
-
-   :home-phone-country      "7"
-   :home-phone-city         ""
-   :home-phone-number       ""
-   :home-phone-comment      ""
-
-   :work-phone-country      "7"
-   :work-phone-city         ""
-   :work-phone-number       ""
-   :work-phone-comment      ""
-
-   :email-string            "avenger-f@yandex.ru"
-   :preferred-contact       "email"
-   :icq                     "icq"
-   :skype                   "skype"
-   :freelance               "freelance"
-   :moi_krug                "moi_krug"
-   :linkedin                "linkedin"
-   :facebook                "facebook"
-   :livejournal             "livejournal"
-   :personal                "personal"
-
-   :title "Programmer"
-   :specializations "221"
-   :prof-area "1"
-   :salary-amount "100000"
-   :salary-currency "RUR"
-   :employment "full"
-   :work-schedule "full_day"
-
-   :education-level-string "higher"
-   :education (reduce #'(lambda (a b)
-                          (format nil "~A ~A" a b))
-                      (mapcar #'id
-                              (list
-                               (make-education :education-id "0"
-                                               :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-                                               :university-id "39864"
-                                               :faculty-id "0"
-                                               :organization "Режиссуры"
-                                               :result "Режиссура мультимедиа программ"
-                                               :specialty-id "224"
-                                               :year "2005")
-                               (make-education :education-id "0"
-                                               :name ""
-                                               :university-id "0"
-                                               :faculty-id "0"
-                                               :organization ""
-                                               :result ""
-                                               :specialty-id "0"
-                                               :year "0"))))
-   :additional-education-id ""
-   :additional-education-name ""
-   :additional-education-organization ""
-   :additional-education-result ""
-   :additional-education-year ""
-   :certificate-id ""
-   :certificate-type ""
-   :certificate-selected ""
-   :certificate-ownerName ""
-   :certificate-transcription-id ""
-   :certificate-password ""
-   :certificate-title ""
-   :certificate-achievementDate ""
-   :certificate-url ""
-   :attestation-education-id ""
-   :attestation-education-name ""
-   :attestation-education-organization ""
-   :attestation-education-result ""
-   :attestation-education-year ""
-   :languages (reduce #'(lambda (a b)
-                          (format nil "~A ~A" a b))
-                      (mapcar #'id
-                              (list
-                               (make-lang :lang-id "34" :lang-degree "native")
-                               (make-lang :lang-id "57" :lang-degree "can_read")
-                               (make-lang :lang-id "58" :lang-degree "basic")
-                               (make-lang :lang-id "59" :lang-degree "none"))))
-   :expiriences (reduce #'(lambda (a b)
-                            (format nil "~A ~A" a b))
-                        (mapcar #'id
-                                (list
-                                 (make-expirience
-                                  :name         "Лаборатория Касперского"
-                                  :company-id   "1057"
-                                  :area-id      "1"
-                                  :url          ""
-                                  :industry-id  "0"
-                                  :industries   "540"
-                                  :industries   ""
-                                  :exp-id       ""
-                                  :job-position "Программист"
-                                  :start-date   "2000-01-01"
-                                  :end-date     "2001-01-01"
-                                  :description  "Работа за деньги")
-                                 (make-expirience
-                                  :name         "Вымпелком"
-                                  :company-id   "4934"
-                                  :area-id      "1"
-                                  :url          ""
-                                  :industry-id  "0"
-                                  :industries   "399"
-                                  :exp-id       ""
-                                  :job-position "Программист"
-                                  :start-date   "2001-01-01"
-                                  :end-date     "2005-01-01"
-                                  :description  "Работа за еду )"))))
-   :skills (reduce #'(lambda (a b)
-                           (format nil "~A ~A" a b))
-                       (mapcar #'id
-                               (list
-                                (make-skill :name "Разработка архитектуры")
-                                (make-skill :name "Вакуумная чистка лица"))))
-   :skills-string "В последние годы нахожусь на пенсии )"
-   :recommendations (reduce #'(lambda (a b)
-                                (format nil "~A ~A" a b))
-                            (mapcar #'id
-                                    (list
-                                     (make-recommendation
-                                      :recommendation-id "0"
-                                      :name              "Смирнов"
-                                      :job-position      "Начальник"
-                                      :organization      "Армия"
-                                      :contact-info      "9112869290")
-                                     (make-recommendation
-                                      :recommendation-id "0"
-                                      :name              "Иванов"
-                                      :job-position      "Зампотех"
-                                      :organization      "Армия"
-                                      :contact-info      "9112878789"))))))
-
 
 
 ;; Тестируем hh

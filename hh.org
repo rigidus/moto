@@ -822,7 +822,7 @@
       ;;              "http://spb.hh.ru/")
     #+END_SRC
 
-**** COMMENT Логин на источник (=recovery-login=)
+**** Логин на источник (=recovery-login=)
 
      Прежде чем мы получим возможность забирать авторизованную информацию с нашего источника,
      нам нужно иметь способ залогиниться на него. В дополнение к этому мы должны отслеживать
@@ -844,81 +844,83 @@
 
      #+NAME: hh_recovery_login
      #+BEGIN_SRC lisp
-       (in-package #:moto)
+              (in-package #:moto)
 
-       <<data_for_account>>
+              <<data_for_account>>
 
-       (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0")
+              (defparameter *user-agent* "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0")
 
-       (defparameter *additional-headers* `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                                            ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
-                                            ("Accept-Charset" . "utf-8")))
+              (defparameter *additional-headers* `(("Accept" . "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                                   ("Accept-Language" . "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3")
+                                                   ("Accept-Charset" . "utf-8")))
 
-       (defparameter *cookies* nil)  ;; deprecated, use cookie-jar in closure
+              (defparameter *cookies* nil)  ;; deprecated, use cookie-jar in closure
 
-       (defun is-logged (html)
-         "Проверяем наличие в html блока 'Войти'"
-         (dbg ":: is-logged")
-         (not (contains html "data-qa=\"mainmenu_loginForm\">Войти</div>")))
+              (defun is-logged (html)
+                "Проверяем наличие в html блока 'Войти'"
+                (dbg ":: is-logged")
+                (not (contains html "data-qa=\"mainmenu_loginForm\">Войти</div>")))
 
-       (defun get-cookies-alist (cookie-jar)
-         "Получаем alist с печеньками из cookie-jar"
-         (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
-            (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
+              (defun get-cookies-alist (cookie-jar)
+                "Получаем alist с печеньками из cookie-jar"
+                (loop :for cookie :in (drakma:cookie-jar-cookies cookie-jar) :append
+                   (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
-       (defun recovery-login (src-account)
-         ;; Сначала заходим на главную как будто первый раз, без печенек
-         (setf drakma:*header-stream* nil)
-         (let* ((start-uri "http://spb.hh.ru/")
-                (cookie-jar (make-instance 'drakma:cookie-jar))
-                (additional-headers *additional-headers*)
-                (response (drakma:http-request start-uri
-                                               :user-agent *user-agent*
-                                               :additional-headers additional-headers
-                                               :force-binary t
-                                               :cookie-jar cookie-jar
-                                               :redirect 10
-                                               ))
-                (tree (html5-parser:node-to-xmls
-                       (html5-parser:parse-html5-fragment
-                        (flexi-streams:octets-to-string response :external-format :utf-8)))))
-           ;; Теперь попробуем использовать печеньки для логина
-           ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
-           ;; И заходим с вот-таким гет-запросом:
-           ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
-           ;; (setf drakma:*header-stream* *standard-output*)
-           (let* ((post-parameters `(("username" . ,(src_login src-account))
-                                     ("password" . ,(src_password src-account))
-                                     ("backUrl"  . "http://spb.hh.ru/")
-                                     ("remember" . "yes")
-                                     ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
-                                     ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))))
-                  (xsrf (cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))
-                  (cookie-jar-2 (make-instance 'drakma:cookie-jar
-                                               :cookies (append (list (make-instance 'drakma:cookie :name "GMT"   :value "3" :domain "spb.hh.ru")
-                                                                      (make-instance 'drakma:cookie :name "_xsrf" :value xsrf :domain "spb.hh.ru"))
-                                                                (remove-if #'(lambda (x)
-                                                                               (equal "crypted_id" (drakma:cookie-name x)))
-                                                                           (drakma:cookie-jar-cookies cookie-jar)))))
-                  (response-2 (drakma:http-request "https://spb.hh.ru/account/login"
-                                                   :user-agent *user-agent*
-                                                   :method :post
-                                                   :parameters post-parameters
-                                                   :additional-headers (append *additional-headers* `(("Referer" . ,start-uri)))
-                                                   :cookie-jar cookie-jar-2
-                                                   :force-binary t
-                                                   :redirect 10))
-                  (html (flexi-streams:octets-to-string response-2 :external-format :utf-8)))
-             (when (contains html "Неправильные имя и/или пароль - попробуйте, пожалуйста, снова.")
-               (err "login failed"))
-             (when (contains html "Что-то пошло не так")
-               (err "login error"))
-             (when (contains html (src_fio src-account))
-               (return-from recovery-login
-                 (values ;; (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))
-                         html
-                         cookie-jar-2)))
-             (err "login exception"))))
+              (defun recovery-login (src-account)
+                ;; Сначала заходим на главную как будто первый раз, без печенек
+                (setf drakma:*header-stream* nil)
+                (let* ((start-uri "http://spb.hh.ru/")
+                       (cookie-jar (make-instance 'drakma:cookie-jar))
+                       (additional-headers *additional-headers*)
+                       (response (drakma:http-request start-uri
+                                                      :user-agent *user-agent*
+                                                      :additional-headers additional-headers
+                                                      :force-binary t
+                                                      :cookie-jar cookie-jar
+                                                      :redirect 10
+                                                      ))
+                       (tree ;; (html5-parser:node-to-xmls ;; !=!
+                              (html5-parser:parse-html5-fragment
+                               (flexi-streams:octets-to-string response :external-format :utf-8)
+                               :dom :xmls
+                               )))
+                  ;; Теперь попробуем использовать печеньки для логина
+                  ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
+                  ;; И заходим с вот-таким гет-запросом:
+                  ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
+                  ;; (setf drakma:*header-stream* *standard-output*)
+                  (let* ((post-parameters `(("username" . ,(src_login src-account))
+                                            ("password" . ,(src_password src-account))
+                                            ("backUrl"  . "http://spb.hh.ru/")
+                                            ("remember" . "yes")
+                                            ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
+                                            ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))))
+                         (xsrf (cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))
+                         (cookie-jar-2 (make-instance 'drakma:cookie-jar
+                                                      :cookies (append (list (make-instance 'drakma:cookie :name "GMT"   :value "3" :domain "spb.hh.ru")
+                                                                             (make-instance 'drakma:cookie :name "_xsrf" :value xsrf :domain "spb.hh.ru"))
+                                                                       (remove-if #'(lambda (x)
+                                                                                      (equal "crypted_id" (drakma:cookie-name x)))
+                                                                                  (drakma:cookie-jar-cookies cookie-jar)))))
+                         (response-2 (drakma:http-request "https://spb.hh.ru/account/login"
+                                                          :user-agent *user-agent*
+                                                          :method :post
+                                                          :parameters post-parameters
+                                                          :additional-headers (append *additional-headers* `(("Referer" . ,start-uri)))
+                                                          :cookie-jar cookie-jar-2
+                                                          :force-binary t
+                                                          :redirect 10))
+                         (html (flexi-streams:octets-to-string response-2 :external-format :utf-8)))
+                    (when (contains html "Неправильные имя и/или пароль - попробуйте, пожалуйста, снова.")
+                      (err "login failed"))
+                    (when (contains html "Что-то пошло не так")
+                      (err "login error"))
+                    (when (contains html (src_fio src-account))
+                      (return-from recovery-login
+                        (values ;; (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))
+                                html
+                                cookie-jar-2)))
+                    (err "login exception"))))
      #+END_SRC
 
 ***** Аккаунты на источнике вакансий
@@ -981,7 +983,7 @@
                                                     :state ":ACTIVE"))
       #+END_SRC
 
-*** COMMENT Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
+*** Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
 
     Чтобы получить вакансии со страниц поисковой выдачи - воспользуемся парсером,
     который переведет полученный html в более удобное лисп-дерево (=html-to-tree=)
@@ -1015,8 +1017,7 @@
       <<parse_salary>>
 
       (defun html-to-tree (html)
-        (html5-parser:node-to-xmls
-         (html5-parser:parse-html5-fragment html)))
+        (html5-parser:parse-html5-fragment html :dom :xmls))
 
       (defun extract-search-results (tree)
         (block subtree-extract
@@ -1270,9 +1271,9 @@
 
       (defparameter *last-parse-data* nil)
 
-      (print *last-parse-data*)
+      ;; (print *last-parse-data*)
 
-      (hh-parse-vacancy-teasers *last-parse-data*)
+      ;; (hh-parse-vacancy-teasers *last-parse-data*)
 
       (defun tree-plist-p (pl)
         "Returns T if L is a plist (list with alternating keyword elements). "
@@ -1358,9 +1359,6 @@
              ;; parse-salary
              (mapcar #'parse-salary)
              ))
-
-      (hh-parse-vacancy-teasers *last-parse-data-2*)
-
 
       ;; (print
       ;;  (hh-parse-vacancy-teasers *last-parse-data*))
@@ -1860,7 +1858,8 @@
 
       (defun hh-parse-vacancy (html)
         (dbg "hh-parse-vacancy")
-        (let* ((tree (html5-parser:node-to-xmls (html5-parser:parse-html5-fragment html))))
+        (let* ((tree ;; (html5-parser:node-to-xmls
+                      (html5-parser:parse-html5-fragment html :dom :xmls)))
           (append (block header-extract
                     (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
                                   ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
@@ -3314,55 +3313,55 @@
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     (let ((resume (make-resume
-                    :education-level-string "higher"
-                    :primary-education-id ""
-                    :primary-education-name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-                    :primary-education-university-id "39864"
-                    :primary-education-faculty-id ""
-                    :primary-education-organization "Режиссуры"
-                    :primary-education-result "Режиссура мультимедиа программ"
-                    :primary-education-specialty-id "224"
-                    :primary-education-year "2005"
-                    ;; :primary-education-id ""
-                    ;; :primary-education-name ""
-                    ;; :primary-education-university-id ""
-                    ;; :primary-education-faculty-id ""
-                    ;; :primary-education-organization ""
-                    ;; :primary-education-result ""
-                    ;; :primary-education-specialty-id ""
-                    ;; :primary-education-year ""
-                    :additional-education-id ""
-                    :additional-education-name ""
-                    :additional-education-organization ""
-                    :additional-education-result ""
-                    :additional-education-year ""
-                    :certificate-id ""
-                    :certificate-type ""
-                    :certificate-selected ""
-                    :certificate-ownerName ""
-                    :certificate-transcription-id ""
-                    :certificate-password ""
-                    :certificate-title ""
-                    :certificate-achievementDate ""
-                    :certificate-url ""
-                    :attestation-education-id ""
-                    :attestation-education-name ""
-                    :attestation-education-organization ""
-                    :attestation-education-result ""
-                    :attestation-education-year ""
-                    ;; :language-id "34"
-                    ;; :language-degree "native"
-                    ;; :language-id "57"
-                    ;; :language-degree "can_read"
-                    ;; :language-id "58"
-                    ;; :language-degree "basic"
-                    ;; :language-id "59"
-                    ;; :language-degree "none"
-                    )))
-       (print
-        (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-          (education cookie-jar resume))))
+     ;; (let ((resume (make-resume
+     ;;                :education-level-string "higher"
+     ;;                :primary-education-id ""
+     ;;                :primary-education-name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+     ;;                :primary-education-university-id "39864"
+     ;;                :primary-education-faculty-id ""
+     ;;                :primary-education-organization "Режиссуры"
+     ;;                :primary-education-result "Режиссура мультимедиа программ"
+     ;;                :primary-education-specialty-id "224"
+     ;;                :primary-education-year "2005"
+     ;;                ;; :primary-education-id ""
+     ;;                ;; :primary-education-name ""
+     ;;                ;; :primary-education-university-id ""
+     ;;                ;; :primary-education-faculty-id ""
+     ;;                ;; :primary-education-organization ""
+     ;;                ;; :primary-education-result ""
+     ;;                ;; :primary-education-specialty-id ""
+     ;;                ;; :primary-education-year ""
+     ;;                :additional-education-id ""
+     ;;                :additional-education-name ""
+     ;;                :additional-education-organization ""
+     ;;                :additional-education-result ""
+     ;;                :additional-education-year ""
+     ;;                :certificate-id ""
+     ;;                :certificate-type ""
+     ;;                :certificate-selected ""
+     ;;                :certificate-ownerName ""
+     ;;                :certificate-transcription-id ""
+     ;;                :certificate-password ""
+     ;;                :certificate-title ""
+     ;;                :certificate-achievementDate ""
+     ;;                :certificate-url ""
+     ;;                :attestation-education-id ""
+     ;;                :attestation-education-name ""
+     ;;                :attestation-education-organization ""
+     ;;                :attestation-education-result ""
+     ;;                :attestation-education-year ""
+     ;;                ;; :language-id "34"
+     ;;                ;; :language-degree "native"
+     ;;                ;; :language-id "57"
+     ;;                ;; :language-degree "can_read"
+     ;;                ;; :language-id "58"
+     ;;                ;; :language-degree "basic"
+     ;;                ;; :language-id "59"
+     ;;                ;; :language-degree "none"
+     ;;                )))
+     ;;   (print
+     ;;    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;      (education cookie-jar resume))))
    #+END_SRC
 
 *** START Опыт работы (=experience=)
@@ -3742,6 +3741,7 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+<<<<<<< HEAD
      ;; Тест, иллюстрирующий magic-методы
      ;; При попытке доступа к полю, которого не существует в классе в этот класс добавляется поле. Если доступ был на запись - записывается значение, иначе в поле будет nil.
      ;; Это поле - член класса, а не объекта. Технически ничто не мешает нам хранить его значение где-то отдельно от самого класса.
@@ -3945,6 +3945,161 @@
                                            :organization      "Армия"
                                            :contact-info      "9112878789"))))))
 
+=======
+     ;; (make-resume
+     ;;  :src-id "1036680cff007465bc0039ed1f736563726574"
+     ;;  :title "Ведущий программист (web) / Руководитель проекта"
+     ;;  :res-id "7628220"
+     ;;  :state ":ACTIVE")
+
+     ;;  (make-resume
+     ;;   :src-id "9555a7ecff02588d3c0039ed1f454162305732"
+     ;;   :title "Senior Developer"
+     ;;   :res-id "39357756"
+     ;;   :state ":ACTIVE")
+
+     ;; (make-resume
+     ;;  :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
+     ;;  :title "Lisp-разработчик"
+     ;;  :res-id "33273224"
+     ;;  :state ":ACTIVE")
+
+     ;; (defparameter *test-resume*
+     ;;   (make-resume
+     ;;    :last-name "Глухов"
+     ;;    :first-name "Михаил"
+     ;;    :middle-name "Михайлович"
+     ;;    :birthday ""
+     ;;    :gender "male"
+     ;;    :area "2"
+     ;;    :metro ""
+     ;;    :relocation "relocation_possible"
+     ;;    :relocation-area "1"
+     ;;    :business-trip-readiness "ready"
+     ;;    :citizen-ship "113"
+     ;;    :work-ticket "113"
+     ;;    :travel-time "any"
+
+     ;;    :cell-phone-country      "7"
+     ;;    :cell-phone-city         "911"
+     ;;    :cell-phone-number       "2869290"
+     ;;    :cell-phone-comment      "Рано не звоните"
+
+     ;;    :home-phone-country      "7"
+     ;;    :home-phone-city         ""
+     ;;    :home-phone-number       ""
+     ;;    :home-phone-comment      ""
+
+     ;;    :work-phone-country      "7"
+     ;;    :work-phone-city         ""
+     ;;    :work-phone-number       ""
+     ;;    :work-phone-comment      ""
+
+     ;;    :email-string            "avenger-f@yandex.ru"
+     ;;    :preferred-contact       "email"
+     ;;    :icq                     "icq"
+     ;;    :skype                   "skype"
+     ;;    :freelance               "freelance"
+     ;;    :moi_krug                "moi_krug"
+     ;;    :linkedin                "linkedin"
+     ;;    :facebook                "facebook"
+     ;;    :livejournal             "livejournal"
+     ;;    :personal                "personal"
+
+     ;;    :title "Programmer"
+     ;;    :specializations "221"
+     ;;    :prof-area "1"
+     ;;    :salary-amount "100000"
+     ;;    :salary-currency "RUR"
+     ;;    :employment "full"
+     ;;    :work-schedule "full_day"
+
+     ;;    :education-level-string "higher"
+     ;;    :education (list
+     ;;                (make-education :id ""
+     ;;                                :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+     ;;                                :university-id "39864"
+     ;;                                :faculty-id ""
+     ;;                                :organization "Режиссуры"
+     ;;                                :result "Режиссура мультимедиа программ"
+     ;;                                :specialty-id "224"
+     ;;                                :year "2005")
+     ;;                (make-education :id ""
+     ;;                                :name ""
+     ;;                                :university-id ""
+     ;;                                :faculty-id ""
+     ;;                                :organization ""
+     ;;                                :result ""
+     ;;                                :specialty-id ""
+     ;;                                :year ""))
+     ;;    :additional-education-id ""
+     ;;    :additional-education-name ""
+     ;;    :additional-education-organization ""
+     ;;    :additional-education-result ""
+     ;;    :additional-education-year ""
+     ;;    :certificate-id ""
+     ;;    :certificate-type ""
+     ;;    :certificate-selected ""
+     ;;    :certificate-ownerName ""
+     ;;    :certificate-transcription-id ""
+     ;;    :certificate-password ""
+     ;;    :certificate-title ""
+     ;;    :certificate-achievementDate ""
+     ;;    :certificate-url ""
+     ;;    :attestation-education-id ""
+     ;;    :attestation-education-name ""
+     ;;    :attestation-education-organization ""
+     ;;    :attestation-education-result ""
+     ;;    :attestation-education-year ""
+     ;;    :languages (list
+     ;;                (make-lang :lang-id 34 :lang-degree "native")
+     ;;                (make-lang :lang-id 57 :lang-degree "can_read")
+     ;;                (make-lang :lang-id 58 :lang-degree "basic")
+     ;;                (make-lang :lang-id 59 :lang-degree "none"))
+     ;;    :expiriences (list
+     ;;                  (make-expirience
+     ;;                   :name                "Лаборатория Касперского"
+     ;;                   :-company-id         "1057"
+     ;;                   :area-id             "1"
+     ;;                   :url                 ""
+     ;;                   :industry-id         ""
+     ;;                   :industries          "540"
+     ;;                   :industries          ""
+     ;;                   :exp-id              ""
+     ;;                   :job-position        "Программист"
+     ;;                   :start-date          "2000-01-01"
+     ;;                   :end-date            "2001-01-01"
+     ;;                   :description         "Работа за деньги")
+     ;;                  (make-expirience
+     ;;                   :company-name        "Вымпелком"
+     ;;                   :company-id          "4934"
+     ;;                   :company-area-id     "1"
+     ;;                   :company-url         ""
+     ;;                   :company-industry-id  ""
+     ;;                   :company-industries  "399"
+     ;;                   :exp-id              ""
+     ;;                   :job-position        "Программист"
+     ;;                   :start-date          "2001-01-01"
+     ;;                   :end-date            "2005-01-01"
+     ;;                   :description         "Работа за еду )"))
+     ;;    :key-skills (list
+     ;;                 (make-skill :name "Разработка архитектуры")
+     ;;                 (make-skill :name "Вакуумная чистка лица"))
+     ;;    :skills-string "В последние годы нахожусь на пенсии )"
+     ;;    :recommendations (list
+     ;;                      (make-recommendation
+     ;;                       :recommendation-id ""
+     ;;                       :name              "Смирнов"
+     ;;                       :job-position      "Начальник"
+     ;;                       :organization      "Армия"
+     ;;                       :contact-info      "9112869290")
+     ;;                      (make-recommendation
+     ;;                       :recommendation-id ""
+     ;;                       :name              "Иванов"
+     ;;                       :job-position      "Зампотех"
+     ;;                       :organization      "Армия"
+     ;;                       :contact-info      "9112878789"))))
+>>>>>>> 98e88bf68cd902627693f71ca1e46a3c7b497bc5
    #+END_SRC
 
 ** TODO Вспомогательные сущности резюме
@@ -4477,67 +4632,69 @@
      (in-package #:moto)
 
      (define-page vacancy "/hh/vac/:src-id"
-       (let* ((vac (car (find-vacancy :src-id src-id)))
-              (breadcrumb (if (null vac)
-                              (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))
-                              (breadcrumb (name vac) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))))
-              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
-              (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
-         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-           (content-box ()
-             (heading ((format nil "~A ~A" (name vac) (ps-html ((:span :style "color:red") (salary-text vac)))))
-               (form ("chvacstateform" "")
-                 ((:table :border 0 :style "font-size: small;")
-                  ((:tr)
-                   ((:td) "id:")
-                   ((:td) (id vac))
-                   ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "src-id:")
-                   ((:td) ((:a :href (format nil "http://hh.ru/vacancy/~A" (src-id vac))) (src-id vac)))
-                   ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "archive:")
-                   ((:td) (archive vac))
-                   ((:td) "&nbsp;&nbsp;&nbsp;"))
-                  ((:tr)
-                   ((:td) "emp-id:")
-                   ((:td) (emp-id vac))
-                   ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "emp-name:")
-                   ((:td) ((:span :style "color:red") (emp-name vac)))
-                   ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "state:")
-                   ((:td) (state vac))
-                   ((:td) "&nbsp;&nbsp;&nbsp;"))
-                  ((:tr)
-                   ((:td) "city:")       ((:td) (city vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "metro:")      ((:td) (metro vac))                                   ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "state:")
-                   ((:td)
-                    (fieldset ""
-                      (eval
-                       (macroexpand
-                        (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
-                                (list
-                                 (mapcar #'(lambda (x)
-                                             (cons (symbol-name x) (symbol-name x)))
-                                         (possible-trans vac))))))))
-                   ((:td) "&nbsp;&nbsp;&nbsp;"))
-                  ((:tr)
-                   ((:td) "experience:") ((:td) (experience vac))                              ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "date:")       ((:td) (date vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
-                   ((:td) "state:")      ((:td) %CHSTATE%)                                     ((:td) "&nbsp;&nbsp;&nbsp;"))
-                  ))))
-           (content-box ()
-             ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
-           (content-box ()
-             (form ("vacform" nil :class "form-section-container")
-               ((:div :class "form-section")
-                (fieldset "Заметки"
-                  (textarea ("notes" "Заметки") (notes vac))
-                  (textarea ("response" "Сопроводительное письмо") (response vac))
-                  (ps-html ((:span :class "clear")))))
-               %RESPOND% %SAVE%))
-           (ps-html ((:span :class "clear")))))
+       (let ((vac (car (find-vacancy :src-id src-id))))
+         (when (null vac)
+           (return-from vacancy 404))
+         (let* ((breadcrumb (if (null vac)
+                                (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))
+                                (breadcrumb (name vac) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))))
+                (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
+                (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
+           (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+             (content-box ()
+               (heading ((format nil "~A ~A" (name vac) (ps-html ((:span :style "color:red") (salary-text vac)))))
+                 (form ("chvacstateform" "")
+                   ((:table :border 0 :style "font-size: small;")
+                    ((:tr)
+                     ((:td) "id:")
+                     ((:td) (id vac))
+                     ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "src-id:")
+                     ((:td) ((:a :href (format nil "http://hh.ru/vacancy/~A" (src-id vac))) (src-id vac)))
+                     ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "archive:")
+                     ((:td) (archive vac))
+                     ((:td) "&nbsp;&nbsp;&nbsp;"))
+                    ((:tr)
+                     ((:td) "emp-id:")
+                     ((:td) (emp-id vac))
+                     ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "emp-name:")
+                     ((:td) ((:span :style "color:red") (emp-name vac)))
+                     ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "state:")
+                     ((:td) (state vac))
+                     ((:td) "&nbsp;&nbsp;&nbsp;"))
+                    ((:tr)
+                     ((:td) "city:")       ((:td) (city vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "metro:")      ((:td) (metro vac))                                   ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "state:")
+                     ((:td)
+                      (fieldset ""
+                        (eval
+                         (macroexpand
+                          (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
+                                  (list
+                                   (mapcar #'(lambda (x)
+                                               (cons (symbol-name x) (symbol-name x)))
+                                           (possible-trans vac))))))))
+                     ((:td) "&nbsp;&nbsp;&nbsp;"))
+                    ((:tr)
+                     ((:td) "experience:") ((:td) (experience vac))                              ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "date:")       ((:td) (date vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
+                     ((:td) "state:")      ((:td) %CHSTATE%)                                     ((:td) "&nbsp;&nbsp;&nbsp;"))
+                    ))))
+             (content-box ()
+               ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
+             (content-box ()
+               (form ("vacform" nil :class "form-section-container")
+                 ((:div :class "form-section")
+                  (fieldset "Заметки"
+                    (textarea ("notes" "Заметки") (notes vac))
+                    (textarea ("response" "Сопроводительное письмо") (response vac))
+                    (ps-html ((:span :class "clear")))))
+                 %RESPOND% %SAVE%))
+             (ps-html ((:span :class "clear"))))))
        (:chstate (ps-html ((:div :class "form-send-container")
                            (submit "Изменить" :name "act" :value "CHSTATE")))
                  (progn
