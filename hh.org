@@ -2965,72 +2965,54 @@
                                                (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
                                            (drakma:cookie-jar-cookies cookie-jar))))
                  ;; Отправляем POST
-                  (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
-                      (drakma:http-request
-                       personal-url
-                       :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
-                       :method :post
-                       :content (format nil "~{~A~^&~}"
-                                        (mapcar #'(lambda (x)
-                                                    (format nil "~A=~A" (car x) (cdr x)))
-                                                `(("lastName.string"                         . ,(drakma:url-encode (last-name resume) :utf-8))
-                                                  ("firstName.string"                        . ,(drakma:url-encode (first-name resume) :utf-8))
-                                                  ("middleName.string"                       . ,(drakma:url-encode (middle-name resume) :utf-8))
-                                                  ("birthday.date"                           . ,(drakma:url-encode (birthday resume) :utf-8))
-                                                  ("gender.string"                           . ,(drakma:url-encode (gender resume) :utf-8))
-                                                  ("area.string"                             . ,(drakma:url-encode (area resume) :utf-8))
-                                                  ("metro.string"                            . ,(drakma:url-encode (metro resume) :utf-8))
-                                                  ("relocation.string"                       . ,(drakma:url-encode (relocation resume) :utf-8))
-                                                  ("relocationArea.string"                   . ,(drakma:url-encode (relocation-area resume) :utf-8))
-                                                  ("businessTripReadiness.string"            . ,(drakma:url-encode (business-trip-readiness resume) :utf-8))
-                                                  ("citizenship"                             . ,(drakma:url-encode (citizen-ship resume) :utf-8))
-                                                  ("citizenship.string"                      . ,(drakma:url-encode (citizen-ship resume) :utf-8))
-                                                  ("workTicket"                              . ,(drakma:url-encode (work-ticket resume) :utf-8))
-                                                  ("workTicket.string"                       . ,(drakma:url-encode (work-ticket resume) :utf-8))
-                                                  ("travelTime.string"                       . ,(drakma:url-encode (travel-time resume) :utf-8))
-                                                  ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
-                                                ))
-                       :content-type "application/x-www-form-urlencoded; charset=UTF-8"
-                       :redirect 10
-                       :additional-headers
-                       `(("Accept" . "*/*")
-                         ("Accept-Language" . "en-US,en;q=0.5")
-                         ;; ("Accept-Encoding" . "gzip, deflate")
-                         ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
-                         ("X-Requested-With" . "XMLHttpRequest")
-                         ("Referer" . ,personal-url)
-                         ("Connection" . "keep-alive")
-                         ("Pragma" . "no-cache")
-                         ("Cache-Control" . "no-cache")
-                         )
-                       :cookie-jar cookie-jar
-                       :force-binary t)
-                    (return-from personal
-                      (values
-                       uri
-                       headers
-                       (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
+                 (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
+                     (drakma:http-request
+                      personal-url
+                      :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
+                      :method :post
+                      :content (format nil "~{~A~^&~}"
+                                       (mapcar #'(lambda (x)
+                                                   (format nil "~A=~A" (car x) (cdr x)))
+                                               `(("lastName.string"                         . ,(drakma:url-encode (last-name resume) :utf-8))
+                                                 ("firstName.string"                        . ,(drakma:url-encode (first-name resume) :utf-8))
+                                                 ("middleName.string"                       . ,(drakma:url-encode (middle-name resume) :utf-8))
+                                                 ("birthday.date"                           . ,(drakma:url-encode (birthday resume) :utf-8))
+                                                 ("gender.string"                           . ,(drakma:url-encode (gender resume) :utf-8))
+                                                 ("area.string"                             . ,(drakma:url-encode (area resume) :utf-8))
+                                                 ("metro.string"                            . ,(drakma:url-encode (metro resume) :utf-8))
+                                                 ("relocation.string"                       . ,(drakma:url-encode (relocation resume) :utf-8))
+                                                 ("relocationArea.string"                   . ,(drakma:url-encode (relocation-area resume) :utf-8))
+                                                 ("businessTripReadiness.string"            . ,(drakma:url-encode (business-trip-readiness resume) :utf-8))
+                                                 ("citizenship"                             . ,(drakma:url-encode (citizen-ship resume) :utf-8))
+                                                 ("citizenship.string"                      . ,(drakma:url-encode (citizen-ship resume) :utf-8))
+                                                 ("workTicket"                              . ,(drakma:url-encode (work-ticket resume) :utf-8))
+                                                 ("workTicket.string"                       . ,(drakma:url-encode (work-ticket resume) :utf-8))
+                                                 ("travelTime.string"                       . ,(drakma:url-encode (travel-time resume) :utf-8))
+                                                 ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
+                                               ))
+                      :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+                      :redirect 10
+                      :additional-headers
+                      `(("Accept" . "*/*")
+                        ("Accept-Language" . "en-US,en;q=0.5")
+                        ;; ("Accept-Encoding" . "gzip, deflate")
+                        ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
+                        ("X-Requested-With" . "XMLHttpRequest")
+                        ("Referer" . ,personal-url)
+                        ("Connection" . "keep-alive")
+                        ("Pragma" . "no-cache")
+                        ("Cache-Control" . "no-cache")
+                        )
+                      :cookie-jar cookie-jar
+                      :force-binary t)
+                   (return-from personal
+                     (values
+                      uri
+                      headers
+                      (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     ;; (let ((resume (make-resume
-     ;;                :title "Неопубликованное резюме"
-     ;;                :last-name "Глухов"
-     ;;                :first-name "Михаил"
-     ;;                :middle-name "Михайлович"
-     ;;                :birthday ""
-     ;;                :gender "male"
-     ;;                :area "2"
-     ;;                :metro ""
-     ;;                :relocation "relocation_possible"
-     ;;                :relocation-area "1"
-     ;;                :business-trip-readiness "ready"
-     ;;                :citizen-ship "113"
-     ;;                :work-ticket "113"
-     ;;                :travel-time "any")))
-     ;;    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-     ;;      (print
-     ;;       (personal cookie-jar resume
-     ;;                 ;; "759ee897ff02f6bb1c0039ed1f584f45523361"
-     ;;                 ))))
+     ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;   (print (personal cookie-jar *test-resume*)))
    #+END_SRC
 
 *** Контакты (=contacts=)
@@ -3093,7 +3075,7 @@
                                                   ("personalSite.type" . "livejournal")
                                                   ("personalSite.url" . ,(drakma:url-encode (livejournal resume) :utf-8))
                                                   ("personalSite.type" . "personal")
-                                                  ("personalSite.url" . ,(drakma:url-encode (personal resume) :utf-8))
+                                                  ("personalSite.url" . ,(drakma:url-encode (personal-site resume) :utf-8))
                                                   ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
                                                 ))
                        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
@@ -3117,55 +3099,11 @@
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     ;; (let ((resume (make-resume
-     ;;                :title "Неопубликованное резюме"
-     ;;                :last-name "Глухов"
-     ;;                :first-name "Михаил"
-     ;;                :middle-name "Михайлович"
-     ;;                :birthday ""
-     ;;                :gender "male"
-     ;;                :area "2"
-     ;;                :metro ""
-     ;;                :relocation "relocation_possible"
-     ;;                :relocation-area "1"
-     ;;                :business-trip-readiness "ready"
-     ;;                :citizen-ship "113"
-     ;;                :work-ticket "113"
-     ;;                :travel-time "any"
-
-     ;;                :cell-phone-country      "7"
-     ;;                :cell-phone-city         "911"
-     ;;                :cell-phone-number       "2869290"
-     ;;                :cell-phone-comment      "Рано не звоните"
-
-     ;;                :home-phone-country      "7"
-     ;;                :home-phone-city         ""
-     ;;                :home-phone-number       ""
-     ;;                :home-phone-comment      ""
-
-     ;;                :work-phone-country      "7"
-     ;;                :work-phone-city         ""
-     ;;                :work-phone-number       ""
-     ;;                :work-phone-comment      ""
-
-     ;;                :email-string            "avenger-f@yandex.ru"
-     ;;                :preferred-contact       "email"
-     ;;                :icq                     "icq"
-     ;;                :skype                   "skype"
-     ;;                :freelance               "freelance"
-     ;;                :moi_krug                "moi_krug"
-     ;;                :linkedin                "linkedin"
-     ;;                :facebook                "facebook"
-     ;;                :livejournal             "livejournal"
-     ;;                :personal                "personal"
-
-     ;;                )))
-     ;;   (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-     ;;     (print
-     ;;      (contacts cookie-jar resume
-     ;;                ;; "759ee897ff02f6bb1c0039ed1f584f45523361"
-     ;;                ))))
-
+     ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;   (print
+     ;;    (contacts cookie-jar *test-resume*
+     ;;              "8eb43271ff030a44e00039ed1f735871443047"
+     ;;              )))
    #+END_SRC
 
 *** Желаемая должность и зарплата (=resume-position=)
@@ -3260,17 +3198,11 @@
                       headers
                       (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     ;; (let ((resume (make-resume
-     ;;                :title "Programmer"
-     ;;                :specializations "221"
-     ;;                :prof-area "1"
-     ;;                :salary-amount "100000"
-     ;;                :salary-currency "RUR"
-     ;;                :employment "full"
-     ;;                :work-schedule "full_day")))
-     ;;   (print
-     ;;    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-     ;;      (resume-position cookie-jar resume))))
+     ;; (print
+     ;;  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;    (resume-position cookie-jar *test-resume*
+     ;;                     "8eb43271ff030a44e00039ed1f735871443047"
+     ;;                     )))
    #+END_SRC
 
 *** Образование (=education=)
@@ -3279,7 +3211,7 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-     (defun education (cookie-jar resume &optional (resume-id ""))
+     (defun education-resume (cookie-jar resume &optional (resume-id ""))
        ;; Сначала запросим основную страницу резюме
        (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
          (multiple-value-bind (response cookie-jar url)
@@ -3301,59 +3233,65 @@
                        :content (format nil "~{~A~^&~}"
                                         (mapcar #'(lambda (x)
                                                     (format nil "~A=~A" (car x) (cdr x)))
-                                                `(("educationLevel.string"          . ,(drakma:url-encode (education-level-string resume) :utf-8))
-                                                  ("primaryEducation.id"            . ,(drakma:url-encode (primary-education-id resume) :utf-8))
-                                                  ("primaryEducation.name"          . ,(drakma:url-encode (primary-education-name resume) :utf-8))
-                                                  ("primaryEducation.universityId"  . ,(drakma:url-encode (primary-education-university-id resume) :utf-8))
-                                                  ("primaryEducation.facultyId"     . ,(drakma:url-encode (primary-education-faculty-id resume) :utf-8))
-                                                  ("primaryEducation.organization"  . ,(drakma:url-encode (primary-education-organization resume) :utf-8))
-                                                  ("primaryEducation.result"        . ,(drakma:url-encode (primary-education-result resume) :utf-8))
-                                                  ("primaryEducation.specialtyId"   . ,(drakma:url-encode (primary-education-specialty-id resume) :utf-8))
-                                                  ("primaryEducation.year"          . ,(drakma:url-encode (primary-education-year resume) :utf-8))
-                                                  ("primaryEducation.id"            . ,(drakma:url-encode "" :utf-8))
-                                                  ("primaryEducation.name"          . ,(drakma:url-encode "" :utf-8))
-                                                  ("primaryEducation.universityId"  . ,(drakma:url-encode "" :utf-8))
-                                                  ("primaryEducation.facultyId"     . ,(drakma:url-encode "" :utf-8))
-                                                  ("primaryEducation.organization"  . ,(drakma:url-encode "" :utf-8))
-                                                  ("primaryEducation.result"        . ,(drakma:url-encode "" :utf-8))
-                                                  ("primaryEducation.specialtyId"   . ,(drakma:url-encode "" :utf-8))
-                                                  ("primaryEducation.year"          . ,(drakma:url-encode "" :utf-8))
-                                                  ("additionalEducation.id"         . ,(drakma:url-encode (additional-education-id resume) :utf-8))
-                                                  ("additionalEducation.name"       . ,(drakma:url-encode (additional-education-name resume) :utf-8))
-                                                  ("additionalEducation.organization" . ,(drakma:url-encode (additional-education-organization resume) :utf-8))
-                                                  ("additionalEducation.result"     . ,(drakma:url-encode (additional-education-result resume) :utf-8))
-                                                  ("additionalEducation.year"       . ,(drakma:url-encode (additional-education-year resume) :utf-8))
-                                                  ("certificate.id"                 . ,(drakma:url-encode (certificate-id resume) :utf-8))
-                                                  ("certificate.type"               . ,(drakma:url-encode (certificate-type resume) :utf-8))
-                                                  ("certificate.selected"           . ,(drakma:url-encode (certificate-selected resume) :utf-8))
-                                                  ("certificate.ownerName"          . ,(drakma:url-encode (certificate-ownerName resume) :utf-8))
-                                                  ("certificate.transcriptionId"    . ,(drakma:url-encode (certificate-transcription-id resume) :utf-8))
-                                                  ("certificate.password"           . ,(drakma:url-encode (certificate-password resume) :utf-8))
-                                                  ("certificate.title"              . ,(drakma:url-encode (certificate-title resume) :utf-8))
-                                                  ("certificate.achievementDate"    . ,(drakma:url-encode (certificate-achievementDate resume) :utf-8))
-                                                  ("certificate.url"                . ,(drakma:url-encode (certificate-url resume) :utf-8))
-                                                  ("attestationEducation.id"        . ,(drakma:url-encode (attestation-education-id resume) :utf-8))
-                                                  ("attestationEducation.name"      . ,(drakma:url-encode (attestation-education-name resume) :utf-8))
-                                                  ("attestationEducation.organization" . ,(drakma:url-encode (attestation-education-organization resume) :utf-8))
-                                                  ("attestationEducation.result"    . ,(drakma:url-encode (attestation-education-result resume) :utf-8))
-                                                  ("attestationEducation.year"      . ,(drakma:url-encode (attestation-education-year resume) :utf-8))
-                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
-                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
-                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
-                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
-                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
-                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
-                                                  ;; ("language.id"                    . ,(drakma:url-encode (language-id resume) :utf-8))
-                                                  ;; ("language.degree"                . ,(drakma:url-encode (language-degree resume) :utf-8))
-                                                  ("language.id" . "34")
-                                                  ("language.degree" . "native")
-                                                  ("language.id" . "57")
-                                                  ("language.degree" . "can_read")
-                                                  ("language.id" . "58")
-                                                  ("language.degree" . "basic")
-                                                  ("language.id" . "59")
-                                                  ("language.degree" . "none")
-                                                  ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
+                                                 (append
+                                                  `(("educationLevel.string" . ,(drakma:url-encode (education-level-string resume) :utf-8)))
+                                                  (let ((primary-education-id (car (split-sequence:split-sequence #\Space (educations resume)))))
+                                                    (if (null primary-education-id)
+                                                        (err "error education-id")
+                                                        (let ((education (get-education (parse-integer primary-education-id))))
+                                                          `(("primaryEducation.id"            . ,(let ((it (education-id education)))
+                                                                                                      (if (equal 0 it)
+                                                                                                          ""
+                                                                                                          (drakma:url-encode it :utf-8))))
+                                                            ("primaryEducation.name"          . ,(drakma:url-encode (name education) :utf-8))
+                                                            ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" (university-id education)) :utf-8))
+                                                            ("primaryEducation.facultyId"     . ,(let ((it (faculty-id education)))
+                                                                                                      (if (equal 0 it)
+                                                                                                          ""
+                                                                                                          (drakma:url-encode it :utf-8))))
+                                                            ("primaryEducation.organization"  . ,(drakma:url-encode (organization education) :utf-8))
+                                                            ("primaryEducation.result"        . ,(drakma:url-encode (result education) :utf-8))
+                                                            ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" (specialty-id education)) :utf-8))
+                                                            ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" (year education)) :utf-8))))))
+                                                  `(("primaryEducation.id"            . ,(drakma:url-encode "" :utf-8))
+                                                    ("primaryEducation.name"          . ,(drakma:url-encode "" :utf-8))
+                                                    ("primaryEducation.universityId"  . ,(drakma:url-encode "" :utf-8))
+                                                    ("primaryEducation.facultyId"     . ,(drakma:url-encode "" :utf-8))
+                                                    ("primaryEducation.organization"  . ,(drakma:url-encode "" :utf-8))
+                                                    ("primaryEducation.result"        . ,(drakma:url-encode "" :utf-8))
+                                                    ("primaryEducation.specialtyId"   . ,(drakma:url-encode "" :utf-8))
+                                                    ("primaryEducation.year"          . ,(drakma:url-encode "" :utf-8))
+                                                    ("additionalEducation.id"         . ,(drakma:url-encode (additional-education-id resume) :utf-8))
+                                                    ("additionalEducation.name"       . ,(drakma:url-encode (additional-education-name resume) :utf-8))
+                                                    ("additionalEducation.organization" . ,(drakma:url-encode (additional-education-organization resume) :utf-8))
+                                                    ("additionalEducation.result"     . ,(drakma:url-encode (additional-education-result resume) :utf-8))
+                                                    ("additionalEducation.year"       . ,(drakma:url-encode (additional-education-year resume) :utf-8))
+                                                    ("certificate.id"                 . ,(drakma:url-encode (certificate-id resume) :utf-8))
+                                                    ("certificate.type"               . ,(drakma:url-encode (certificate-type resume) :utf-8))
+                                                    ("certificate.selected"           . ,(drakma:url-encode (certificate-selected resume) :utf-8))
+                                                    ("certificate.ownerName"          . ,(drakma:url-encode (certificate-ownerName resume) :utf-8))
+                                                    ("certificate.transcriptionId"    . ,(drakma:url-encode (certificate-transcription-id resume) :utf-8))
+                                                    ("certificate.password"           . ,(drakma:url-encode (certificate-password resume) :utf-8))
+                                                    ("certificate.title"              . ,(drakma:url-encode (certificate-title resume) :utf-8))
+                                                    ("certificate.achievementDate"    . ,(drakma:url-encode (certificate-achievementDate resume) :utf-8))
+                                                    ("certificate.url"                . ,(drakma:url-encode (certificate-url resume) :utf-8))
+                                                    ("attestationEducation.id"        . ,(drakma:url-encode (attestation-education-id resume) :utf-8))
+                                                    ("attestationEducation.name"      . ,(drakma:url-encode (attestation-education-name resume) :utf-8))
+                                                    ("attestationEducation.organization" . ,(drakma:url-encode (attestation-education-organization resume) :utf-8))
+                                                    ("attestationEducation.result"    . ,(drakma:url-encode (attestation-education-result resume) :utf-8))
+                                                    ("attestationEducation.year"      . ,(drakma:url-encode (attestation-education-year resume) :utf-8))
+                                                    )
+                                                  (let ((langs))
+                                                    (mapcar #'(lambda (x)
+                                                                (let ((lang (get-lang (parse-integer x))))
+                                                                  (push `("language.id"     . ,(drakma:url-encode (format nil "~A"(lang-id lang))     :utf-8)) langs)
+                                                                  (push `("language.degree" . ,(drakma:url-encode (format nil "~A" (lang-degree lang)) :utf-8)) langs)
+                                                                  ))
+                                                            (split-sequence:split-sequence #\Space (languages *test-resume*)))
+                                                    (reverse langs))
+                                                  `(
+                                                    ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
+                                                  )
                                                 ))
                        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
                        :additional-headers
@@ -3370,61 +3308,17 @@
                        :cookie-jar cookie-jar
                        :redirect 10
                        :force-binary t)
-                    (return-from education
+                    (return-from education-resume
                       (values
                        uri
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     ;; (let ((resume (make-resume
-     ;;                :education-level-string "higher"
-     ;;                :primary-education-id ""
-     ;;                :primary-education-name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-     ;;                :primary-education-university-id "39864"
-     ;;                :primary-education-faculty-id ""
-     ;;                :primary-education-organization "Режиссуры"
-     ;;                :primary-education-result "Режиссура мультимедиа программ"
-     ;;                :primary-education-specialty-id "224"
-     ;;                :primary-education-year "2005"
-     ;;                ;; :primary-education-id ""
-     ;;                ;; :primary-education-name ""
-     ;;                ;; :primary-education-university-id ""
-     ;;                ;; :primary-education-faculty-id ""
-     ;;                ;; :primary-education-organization ""
-     ;;                ;; :primary-education-result ""
-     ;;                ;; :primary-education-specialty-id ""
-     ;;                ;; :primary-education-year ""
-     ;;                :additional-education-id ""
-     ;;                :additional-education-name ""
-     ;;                :additional-education-organization ""
-     ;;                :additional-education-result ""
-     ;;                :additional-education-year ""
-     ;;                :certificate-id ""
-     ;;                :certificate-type ""
-     ;;                :certificate-selected ""
-     ;;                :certificate-ownerName ""
-     ;;                :certificate-transcription-id ""
-     ;;                :certificate-password ""
-     ;;                :certificate-title ""
-     ;;                :certificate-achievementDate ""
-     ;;                :certificate-url ""
-     ;;                :attestation-education-id ""
-     ;;                :attestation-education-name ""
-     ;;                :attestation-education-organization ""
-     ;;                :attestation-education-result ""
-     ;;                :attestation-education-year ""
-     ;;                ;; :language-id "34"
-     ;;                ;; :language-degree "native"
-     ;;                ;; :language-id "57"
-     ;;                ;; :language-degree "can_read"
-     ;;                ;; :language-id "58"
-     ;;                ;; :language-degree "basic"
-     ;;                ;; :language-id "59"
-     ;;                ;; :language-degree "none"
-     ;;                )))
-     ;;   (print
-     ;;    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-     ;;      (education cookie-jar resume))))
+     ;; (print
+     ;;  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+     ;;    (education-resume cookie-jar *test-resume*
+     ;;                      "8eb43271ff030a44e00039ed1f735871443047"
+     ;;                      )))
    #+END_SRC
 
 *** START Опыт работы (=experience=)
@@ -3719,7 +3613,7 @@
    | linkedin                           | (or db-null varchar) | linkedin                                                                            |
    | facebook                           | (or db-null varchar) | facebook                                                                            |
    | livejournal                        | (or db-null varchar) | livejournal                                                                         |
-   | personal                           | (or db-null varchar) | personal                                                                            |
+   | personal-site                      | (or db-null varchar) | personal                                                                            |
    | prof-area                          | (or db-null varchar) | 1                                                                                   |
    | specializations                    | (or db-null varchar) | 82 221                                                                              |
    | salary-amount                      | (or db-null varchar) | 100000                                                                              |
@@ -3727,6 +3621,7 @@
    | employment                         | (or db-null varchar) | full                                                                                |
    | work-schedule                      | (or db-null varchar) | full_day                                                                            |
    | education-level-string             | (or db-null varchar) | higher                                                                              |
+   | educations                         | (or db-null varchar) |                                                                                     |
    | primary-education-id               | (or db-null varchar) |                                                                                     |
    | primary-education-name             | (or db-null varchar) |                                                                                     |
    | primary-education-university-id    | (or db-null varchar) | 39864                                                                               |
@@ -3806,7 +3701,6 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
-<<<<<<< HEAD
      ;; Тест, иллюстрирующий magic-методы
      ;; При попытке доступа к полю, которого не существует в классе в этот класс добавляется поле. Если доступ был на запись - записывается значение, иначе в поле будет nil.
      ;; Это поле - член класса, а не объекта. Технически ничто не мешает нам хранить его значение где-то отдельно от самого класса.
@@ -3864,7 +3758,7 @@
         :last-name "Глухов"
         :first-name "Михаил"
         :middle-name "Михайлович"
-        :birthday ""
+        :birthday "1982-12-15"
         :gender "male"
         :area "2"
         :metro ""
@@ -3878,7 +3772,7 @@
         :cell-phone-country      "7"
         :cell-phone-city         "911"
         :cell-phone-number       "2869290"
-        :cell-phone-comment      "Рано не звоните"
+        :cell-phone-comment      "В любое время"
 
         :home-phone-country      "7"
         :home-phone-city         ""
@@ -3892,25 +3786,25 @@
 
         :email-string            "avenger-f@yandex.ru"
         :preferred-contact       "email"
-        :icq                     "icq"
-        :skype                   "skype"
-        :freelance               "freelance"
-        :moi_krug                "moi_krug"
-        :linkedin                "linkedin"
-        :facebook                "facebook"
-        :livejournal             "livejournal"
-        :personal                "personal"
+        :icq                     ""
+        :skype                   "i.am.rigidus"
+        :freelance               ""
+        :moi_krug                ""
+        :linkedin                ""
+        :facebook                ""
+        :livejournal             "rigidus"
+        :personal-site           "http://rigidus.ru"
 
         :title "Programmer"
         :specializations "221"
         :prof-area "1"
-        :salary-amount "100000"
+        :salary-amount "160000"
         :salary-currency "RUR"
         :employment "full"
         :work-schedule "full_day"
 
         :education-level-string "higher"
-        :education (reduce #'(lambda (a b)
+        :educations (reduce #'(lambda (a b)
                                (format nil "~A ~A" a b))
                            (mapcar #'id
                                    (list
@@ -3987,11 +3881,11 @@
                                        :end-date     "2005-01-01"
                                        :description  "Работа за еду )"))))
         :skills (reduce #'(lambda (a b)
-                                (format nil "~A ~A" a b))
-                            (mapcar #'id
-                                    (list
-                                     (make-skill :name "Разработка архитектуры")
-                                     (make-skill :name "Вакуумная чистка лица"))))
+                            (format nil "~A ~A" a b))
+                        (mapcar #'id
+                                (list
+                                 (make-skill :name "Разработка архитектуры")
+                                 (make-skill :name "Вакуумная чистка лица"))))
         :skills-string "В последние годы нахожусь на пенсии )"
         :recommendations (reduce #'(lambda (a b)
                                      (format nil "~A ~A" a b))
@@ -4010,7 +3904,6 @@
                                            :organization      "Армия"
                                            :contact-info      "9112878789"))))))
 
-=======
      ;; (make-resume
      ;;  :src-id "1036680cff007465bc0039ed1f736563726574"
      ;;  :title "Ведущий программист (web) / Руководитель проекта"
@@ -4164,7 +4057,7 @@
      ;;                       :job-position      "Зампотех"
      ;;                       :organization      "Армия"
      ;;                       :contact-info      "9112878789"))))
->>>>>>> 98e88bf68cd902627693f71ca1e46a3c7b497bc5
+
    #+END_SRC
 
 ** TODO Вспомогательные сущности резюме
