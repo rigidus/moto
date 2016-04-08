@@ -592,7 +592,7 @@
                                  "response-popup-link" "vacancy-response-popup-script" "emp-logo"
                                  "search-result-description" "search-result-description-empty"
                                  "search-result-description-primary" "hrbrand" "noindex" "script"
-                                 "bloko-icon-phone" "bloko-contact"))
+                                 "bloko-icon-phone" "bloko-contact" "bloko-icon-initial"))
 
 (defmacro make-detect ((name) &body body)
   (let ((param   (gensym))
@@ -642,7 +642,7 @@
            ("a" (("href" ,emp-id)
                  ("class" "link-secondary")
                  ("data-qa" "vacancy-serp__vacancy-employer"))
-                ,emp-name))
+                ,emp-name) ,@rest)
     (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id)))
                                  :junk-allowed t)
           :emp-name (string-trim '(#\Space #\Tab #\Newline) emp-name))))
@@ -785,6 +785,9 @@
 (make-detect (script)
   (`("script" ,@rest) "script"))
 
+(make-detect (bloko-icon-initial)
+  (`("span" (("class" "bloko-icon bloko-icon_done bloko-icon_done-initial-action")) "script") "bloko-icon-initial"))
+
 (make-detect (bloko-icon-phone)
   (`("span" (("class" "bloko-icon bloko-icon_phone"))) "bloko-icon-phone"))
 
@@ -844,7 +847,24 @@
         ((and (listp pl)
               (listp (car pl)))    (and (tree-plist-p (car pl))
                                         (tree-plist-p (cdr pl))))
-        (t                         nil)))
+        (t                         (progn
+                                     ;; (print pl)
+                                     nil))))
+
+;; (untrace tree-plist-p)
+
+;; (tree-plist-p
+;;  '("div" "premium" "response-trigger" "vacancy-responded"
+;;    ("star"
+;;     ("div" "search-result-description-primary"
+;;      (:ID 12359860 :NAME "ASP.NET MVC Developer")
+;;      (:SNIPPET_RESPONSIBILITY ("resp" NIL))
+;;      (:SNIPPET
+;;       "Опыт коммерческой разработки на платформе .NET with C# - не менее 2 лет. ASP.NET MVC. HTML, CSS, JavaScript. SQL Server. ")
+;;      (:EMP-ID 208902 :EMP-NAME "ЗАО Аркадия")
+;;      (:CITY "Санкт-Петербург" (:METRO "" :DATE "6 апреля")))
+;;     "emp-logo" "search-result-description")))
+
 
 (define-condition malformed-vacancy (error)
   ((text :initarg :text :reader text)))
@@ -886,6 +906,7 @@
        (detect-noindex)
        (detect-script)
        (detect-bloko-icon-phone)
+       (detect-bloko-icon-initial)
        (detect-bloko-contact)
        (detect-search-result-description-non-empty)
        (detect-bloko-button-rest)
@@ -919,7 +940,6 @@
        ;; parse-salary
        (mapcar #'parse-salary)
        ))
-
 ;; (print
 ;;  (hh-parse-vacancy-teasers *last-parse-data*))
 
@@ -946,53 +966,86 @@
                                      (mtm (`("br") `((:br)))
                                           (rem-space tree-descr))))))))))
 
+(defun header-extractor (tree)
+  (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
+                ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
+         (return-from header-extractor
+           (append (list :name name :archive (if archive t nil))
+                   ;; (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
+                   ;;                         (return-from emp-block
+                   ;;                           (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
+                   ;;                                 :emp-name emp-name)))
+                   ;;                       rest))
+                   )))
+       tree))
+
+(defun company-extractor (tree)
+  (mtm (`("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name)
+         (return-from company-extractor
+           (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
+                 :emp-name emp-name)))
+       tree))
+
+(defun salary-extractor (tree)
+  (let ((salary-result (block salary-extract
+                         (mtm (`("div" (("class" "l-paddings"))
+                                       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+                                       ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
+                                       ,salary-text)
+                                (return-from salary-extract (list :currency currency :base-salary (parse-integer base-salary) :salary-text salary-text)))
+                              tree))))
+    (if (equal 6 (length salary-result))
+        salary-result
+        (list :currency nil :base-salary nil :salary-text nil))))
+
+(defun city-extractor (tree)
+  (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
+                                                (return-from city-extract (list :city city))) tree))))
+    (if (equal 2 (length city-result)) city-result (list :city nil))))
+
+(defun exp-extractor (tree)
+  (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
+                                                    ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
+                                              (return-from exp-extract (list :exp exp))) tree))))
+    (if (equal 2 (length exp-result)) exp-result (list :exp nil))))
+
+(defun respond-extractor (tree)
+  (let ((respond-result (block respond-extract (mtm (`("div" (("class" "g-attention m-attention_good b-vacancy-message"))
+                                                             "Вы уже откликались на эту вакансию. "
+                                                             ("a" (("href" ,resp)) "Посмотреть отклики."))
+                                                      (return-from respond-extract (list :respond resp))) tree))))
+    (if (equal 2 (length respond-result)) respond-result (list :respond nil))))
+
+(defun descr-extractor (tree)
+  (block descr-extract
+    (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
+           (return-from descr-extract (list :descr (transform-description descr)))) tree)))
+
 (defun hh-parse-vacancy (html)
   (dbg "hh-parse-vacancy")
-  (let* ((tree (html5-parser:node-to-xmls
-                (html5-parser:parse-html5-fragment html ;;:dom :xmls
-                                                   ))))
-    (append (block header-extract
-              (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
-                            ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
-                     (return-from header-extract
-                       (append (list :name name :archive (if archive t nil))
-                               (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
-                                                       (return-from emp-block
-                                                         (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
-                                                               :emp-name emp-name))) rest)))))
-                   tree))
-            (let ((salary-result (block salary-extract
-                                   (mtm (`("div" (("class" "l-paddings"))
-                                                 ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                                                 ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
-                                                 ,salary-text)
-                                          (return-from salary-extract (list :currency currency :base-salary (parse-integer base-salary) :salary-text salary-text)))
-                                        tree))))
-              (if (equal 6 (length salary-result))
-                  salary-result
-                  (list :currency nil :base-salary nil :salary-text nil)))
-            (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
-                                                          (return-from city-extract (list :city city))) tree))))
-              (if (equal 2 (length city-result)) city-result (list :city nil)))
-            (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
-                                                              ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
-                                                        (return-from exp-extract (list :exp exp))) tree))))
-              (if (equal 2 (length exp-result)) exp-result (list :exp nil)))
-            (let ((respond-result (block respond-extract (mtm (`("div" (("class" "g-attention m-attention_good b-vacancy-message"))
-                                                                       "Вы уже откликались на эту вакансию. "
-                                                                       ("a" (("href" ,resp)) "Посмотреть отклики."))
-                                                                (return-from respond-extract (list :respond resp))) tree))))
-              (if (equal 2 (length respond-result)) respond-result (list :respond nil)))
-            (block descr-extract
-              (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
-                     (return-from descr-extract (list :descr (transform-description descr)))) tree)))))
+  (let* ((tree (html-to-tree html))
+         (candidat (append (header-extractor tree)
+                           (company-extractor tree)
+                           (salary-extractor tree)
+                           (city-extractor tree)
+                           (exp-extractor tree)
+                           (respond-extractor tree)
+                           (descr-extractor tree))))
+    (if (not (tree-plist-p candidat))
+        (progn
+          (dbg "~A" (bprint x))
+          (error 'malformed-vacancy :text))
+        candidat)))
+
 
 ;; (print
 ;;  (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;    (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525" temp-cookie-jar "http://spb.hh.ru/"))))
+;;    (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525" temp-cookie-jar *hh_account* "http://spb.hh.ru/"))))
+
 
 ;; (print
-;;  (hh-parse-vacancy (hh-get-page  "http://spb.hh.ru/vacancy/12091953")))
+;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+;;     (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/16606806" temp-cookie-jar *hh_account* "http://spb.hh.ru/"))))
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
   ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
