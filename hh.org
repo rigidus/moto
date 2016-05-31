@@ -3327,6 +3327,12 @@
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
+     (defmacro url-enc (&body body)
+       `(let ((it ,@body))
+          (if (equal 0 it)
+              ""
+              (drakma:url-encode (format nil "~A" it) :utf-8))))
+
      (defun expirience (cookie-jar resume &optional (resume-id ""))
        ;; Сначала запросим основную страницу резюме
        (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
@@ -3373,6 +3379,7 @@
                                                  ("experience.startDate" . "2001-01-01")
                                                  ("experience.endDate" . "2005-01-01")
                                                  ("experience.description" . "%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0+%D0%B7%D0%B0+%D0%B5%D0%B4%D1%83+%29")
+
                                                  ("keySkills.string" . "%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0+%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D0%B8+%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%B2%D1%8B%D1%85+%D0%BA%D0%BE%D0%BC%D0%BF%D0%B5%D1%82%D0%B5%D0%BD%D1%86%D0%B8%D0%B9")
                                                  ("keySkills.string" . "%D0%92%D0%B0%D0%BA%D1%83%D1%83%D0%BC%D0%BD%D0%B0%D1%8F+%D1%87%D0%B8%D1%81%D1%82%D0%BA%D0%B0+%D0%BB%D0%B8%D1%86%D0%B0")
                                                  ("skills.string" . "%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%BD%D0%B0+%D0%BF%D0%B5%D0%BD%D1%81%D0%B8%D0%B8.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B5%D0%B5+%D0%B2%D1%80%D0%B5%D0%BC%D1%8F+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%B2+%D0%BF%D0%BE%D0%B8%D1%81%D0%BA%D0%B0%D1%85+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D1%81%D0%BB%D1%83%D0%B6%D0%B1%D1%83+%D0%B2+%D0%B0%D1%80%D0%BC%D0%B8%D0%B8.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B1%D0%B5%D0%B7+%D0%B2%D0%BE%D0%B7%D0%BC%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D1%82%D1%8C.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B4%D0%B8%D0%BB%D0%B0%D1%81%D1%8C+%D0%B2+%D0%B4%D0%B5%D0%BA%D1%80%D0%B5%D1%82%D0%BD%D0%BE%D0%BC+%D0%BE%D1%82%D0%BF%D1%83%D1%81%D0%BA%D0%B5.%0D%0A")
@@ -3391,6 +3398,82 @@
                                                  ("file" . "")
                                                  ("title" . "")
                                                  ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
+
+
+
+                                                (let ((resume (get-resume 1)))
+                                                  (apply 'append
+                                                         (loop :for item :in (split-sequence:split-sequence #\Space (expiriences resume)) :collect
+                                                            (let ((item (get-expirience (parse-integer item))))
+                                                              `(("experience.companyName"      . ,(url-enc (name item)))
+                                                                ("experience.companyId"        . ,(url-enc (company-id item)))
+                                                                ("experience.companyAreaId"    . ,(url-enc (company-area-id item)))
+                                                                ("experience.companyUrl"       . ,(url-enc (url item)))
+                                                                ("experience.companyIndustryId". ,(url-enc (industry-id item)))
+                                                                ("experience.companyIndustries". ,(url-enc (industries item)))
+                                                                ("experience.companyIndustries". "") ;; compatibility: предположительно направления деятельности
+                                                                ("experience.id"               . ,(url-enc (exp-id item)))
+                                                                ("experience.position"         . ,(url-enc (job-position item)))
+                                                                ("experience.startDate"        . ,(url-enc (start-date item)))
+                                                                ("experience.endDate"          . ,(url-enc (end-date item)))
+                                                                ("experience.description"      . ,(url-enc (description item)))
+                                                                )))))
+
+                                                (let ((resume (get-resume 1)))
+                                                  (apply 'append
+                                                         (loop :for item :in (split-sequence:split-sequence #\Space (skills resume)) :collect
+                                                            (let ((item (get-skill (parse-integer item))))
+                                                              `(("keySkills.string"      . ,(url-enc (name item)))))))
+                                                  ;; fix it (only name)
+                                                  `(
+                                                    ("keySkills.string" . "%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0+%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D0%B8+%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%B2%D1%8B%D1%85+%D0%BA%D0%BE%D0%BC%D0%BF%D0%B5%D1%82%D0%B5%D0%BD%D1%86%D0%B8%D0%B9")
+                                                    ("keySkills.string" . "%D0%92%D0%B0%D0%BA%D1%83%D1%83%D0%BC%D0%BD%D0%B0%D1%8F+%D1%87%D0%B8%D1%81%D1%82%D0%BA%D0%B0+%D0%BB%D0%B8%D1%86%D0%B0")
+                                                    ("skills.string" . "%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%BD%D0%B0+%D0%BF%D0%B5%D0%BD%D1%81%D0%B8%D0%B8.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B5%D0%B5+%D0%B2%D1%80%D0%B5%D0%BC%D1%8F+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%B2+%D0%BF%D0%BE%D0%B8%D1%81%D0%BA%D0%B0%D1%85+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D1%81%D0%BB%D1%83%D0%B6%D0%B1%D1%83+%D0%B2+%D0%B0%D1%80%D0%BC%D0%B8%D0%B8.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B1%D0%B5%D0%B7+%D0%B2%D0%BE%D0%B7%D0%BC%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D1%82%D1%8C.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B4%D0%B8%D0%BB%D0%B0%D1%81%D1%8C+%D0%B2+%D0%B4%D0%B5%D0%BA%D1%80%D0%B5%D1%82%D0%BD%D0%BE%D0%BC+%D0%BE%D1%82%D0%BF%D1%83%D1%81%D0%BA%D0%B5.%0D%0A")))
+
+                                                (let ((resume (get-resume 1)))
+                                                  (apply 'append
+                                                         (loop :for item :in (split-sequence:split-sequence #\Space (recommendations resume)) :collect
+                                                            (let ((item (get-recommendation (parse-integer item))))
+                                                              `(("recommendation.id"            . ,(url-enc (recommendation-id item)))
+                                                                ("recommendation.name"          . ,(url-enc (name item)))
+                                                                ("recommendation.position"      . ,(url-enc (job-position item)))
+                                                                ("recommendation.organization"  . ,(url-enc (organization item)))
+                                                                ("recommendation.contactInfo"   . ,(url-enc (contact-info item))))))))
+
+                                               ;; append
+
+                                               ("type" . "PORTFOLIO")
+                                               ("portfolio.string" . "")
+                                               ("file" . "")
+                                               ("title" . "")
+                                               ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
+
+
+                                               ;; (let ((primary-education-id (car (split-sequence:split-sequence #\Space (educations resume)))))
+                                               ;;   (if (null primary-education-id)
+                                               ;;       (err "error education-id")
+                                               ;;       (let ((education (get-education (parse-integer primary-education-id))))
+                                               ;;         `(("primaryEducation.id"            . ,(let ((it (education-id education)))
+                                               ;;                                                     (if (equal 0 it)
+                                               ;;                                                         ""
+                                               ;;                                                         (drakma:url-encode it :utf-8))))
+                                               ;;           ("primaryEducation.name"          . ,(drakma:url-encode (name education) :utf-8))
+                                               ;;           ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" (university-id education)) :utf-8))
+                                               ;;           ("primaryEducation.facultyId"     . ,(let ((it (faculty-id education)))
+                                               ;;                                                     (if (equal 0 it)
+                                               ;;                                                         ""
+                                               ;;                                                         (drakma:url-encode it :utf-8))))
+                                               ;;           ("primaryEducation.organization"  . ,(drakma:url-encode (organization education) :utf-8))
+                                               ;;           ("primaryEducation.result"        . ,(drakma:url-encode (result education) :utf-8))
+                                               ;;           ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" (specialty-id education)) :utf-8))
+                                               ;;           ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" (year education)) :utf-8))))))
+
+                                               ;; (let ((resume (get-resume 1)))
+                                               ;;   (apply 'append
+                                               ;;          (loop :for item :in (split-sequence:split-sequence #\Space (educations resume)) :collect
+                                               ;;             (let ((item (get-education (parse-integer item))))
+                                               ;;               item))))
+
 
                                                ;; | experience-company-name       | (or db-null varchar) | "Лаборатория Касперского              |
                                                ;; | experience-company-id         | (or db-null varchar) | "1057"                                |
@@ -3443,7 +3526,8 @@
                         ;; ("Accept-Encoding" . "gzip, deflate")
                         ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
                         ("X-Requested-With" . "XMLHttpRequest")
-                        ("Referer" . ,expirience-url)
+
+                 ("Referer" . ,expirience-url)
                         ("Connection" . "keep-alive")
                         ("Pragma" . "no-cache")
                         ("Cache-Control" . "no-cache")
@@ -3457,51 +3541,7 @@
                       headers
                       (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
-     (let ((resume (make-resume
-                    :experience-company-name "%D0%9B%D0%B0%D0%B1%D0%BE%D1%80%D0%B0%D1%82%D0%BE%D1%80%D0%B8%D1%8F+%D0%9A%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE"
-                    :experience-company-id "1057"
-                    :experience-company-area-id "1"
-                    :experience-company-url ""
-                    :experience-company-industryId ""
-                    :experience-company-industries "540"
-                    :experience-company-industries ""
-                    :experience-id ""
-                    :experience-position "%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82"
-                    :experience-start-date "2000-01-01"
-                    :experience-end-date "2001-01-01"
-                    :experience-description "%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0+%D0%B7%D0%B0+%D0%B4%D0%B5%D0%BD%D1%8C%D0%B3%D0%B8"
-                    :experience-company-name "%D0%92%D1%8B%D0%BC%D0%BF%D0%B5%D0%BB%D0%BA%D0%BE%D0%BC"
-                    :experience-company-id "4934"
-                    :experience-company-areaId "1"
-                    :experience-company-url ""
-                    :experience-company-industryId ""
-                    :experience-company-industries "399"
-                    :experience-company-industries ""
-                    :experience-id ""
-                    :experience-position "%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82"
-                    :experience-start-date "2001-01-01"
-                    :experience-end-date "2005-01-01"
-                    :experience-description "%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0+%D0%B7%D0%B0+%D0%B5%D0%B4%D1%83+%29"
-                    :key-skills-string "%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0+%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D0%B8+%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%B2%D1%8B%D1%85+%D0%BA%D0%BE%D0%BC%D0%BF%D0%B5%D1%82%D0%B5%D0%BD%D1%86%D0%B8%D0%B9"
-                    :key-skills-string "%D0%92%D0%B0%D0%BA%D1%83%D1%83%D0%BC%D0%BD%D0%B0%D1%8F+%D1%87%D0%B8%D1%81%D1%82%D0%BA%D0%B0+%D0%BB%D0%B8%D1%86%D0%B0"
-                    :skills-string "%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%BD%D0%B0+%D0%BF%D0%B5%D0%BD%D1%81%D0%B8%D0%B8-%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B5%D0%B5+%D0%B2%D1%80%D0%B5%D0%BC%D1%8F+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%B2+%D0%BF%D0%BE%D0%B8%D1%81%D0%BA%D0%B0%D1%85+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B-%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D1%81%D0%BB%D1%83%D0%B6%D0%B1%D1%83+%D0%B2+%D0%B0%D1%80%D0%BC%D0%B8%D0%B8-%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B1%D0%B5%D0%B7+%D0%B2%D0%BE%D0%B7%D0%BC%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D1%82%D1%8C-%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B4%D0%B8%D0%BB%D0%B0%D1%81%D1%8C+%D0%B2+%D0%B4%D0%B5%D0%BA%D1%80%D0%B5%D1%82%D0%BD%D0%BE%D0%BC+%D0%BE%D1%82%D0%BF%D1%83%D1%81%D0%BA%D0%B5-%0D%0A"
-                    :recommendation-id ""
-                    :recommendation-name "%D0%A1%D0%BC%D0%B8%D1%80%D0%BD%D0%BE%D0%B2"
-                    :recommendation-position "%D0%9A%D0%B0%D0%BF%D0%B8%D1%82%D0%B0%D0%BD"
-                    :recommendation-organization "%D0%90%D1%80%D0%BC%D0%B8%D1%8F"
-                    :recommendation-contact-info "9112869290"
-                    :recommendation-id ""
-                    :recommendation-name "%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2"
-                    :recommendation-position "%D0%9A%D0%B0%D0%BF%D1%80%D0%B0%D0%BB"
-                    :recommendation-organization "%D0%90%D1%80%D0%BC%D0%B8%D1%8F"
-                    :recommendation-contact-info "9112878789"
-                    :type "PORTFOLIO"
-                    :portfolio-string ""
-                    :file ""
-                    :title "")))
-       (print
-        (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-          (expirience cookie-jar))))
+
    #+END_SRC
 
 *** TODO Публикация (=touch=)
@@ -3903,161 +3943,6 @@
                                            :job-position      "Зампотех"
                                            :organization      "Армия"
                                            :contact-info      "9112878789"))))))
-
-     ;; (make-resume
-     ;;  :src-id "1036680cff007465bc0039ed1f736563726574"
-     ;;  :title "Ведущий программист (web) / Руководитель проекта"
-     ;;  :res-id "7628220"
-     ;;  :state ":ACTIVE")
-
-     ;;  (make-resume
-     ;;   :src-id "9555a7ecff02588d3c0039ed1f454162305732"
-     ;;   :title "Senior Developer"
-     ;;   :res-id "39357756"
-     ;;   :state ":ACTIVE")
-
-     ;; (make-resume
-     ;;  :src-id "2a016741ff01fbb5880039ed1f466b6e573358"
-     ;;  :title "Lisp-разработчик"
-     ;;  :res-id "33273224"
-     ;;  :state ":ACTIVE")
-
-     ;; (defparameter *test-resume*
-     ;;   (make-resume
-     ;;    :last-name "Глухов"
-     ;;    :first-name "Михаил"
-     ;;    :middle-name "Михайлович"
-     ;;    :birthday ""
-     ;;    :gender "male"
-     ;;    :area "2"
-     ;;    :metro ""
-     ;;    :relocation "relocation_possible"
-     ;;    :relocation-area "1"
-     ;;    :business-trip-readiness "ready"
-     ;;    :citizen-ship "113"
-     ;;    :work-ticket "113"
-     ;;    :travel-time "any"
-
-     ;;    :cell-phone-country      "7"
-     ;;    :cell-phone-city         "911"
-     ;;    :cell-phone-number       "2869290"
-     ;;    :cell-phone-comment      "Рано не звоните"
-
-     ;;    :home-phone-country      "7"
-     ;;    :home-phone-city         ""
-     ;;    :home-phone-number       ""
-     ;;    :home-phone-comment      ""
-
-     ;;    :work-phone-country      "7"
-     ;;    :work-phone-city         ""
-     ;;    :work-phone-number       ""
-     ;;    :work-phone-comment      ""
-
-     ;;    :email-string            "avenger-f@yandex.ru"
-     ;;    :preferred-contact       "email"
-     ;;    :icq                     "icq"
-     ;;    :skype                   "skype"
-     ;;    :freelance               "freelance"
-     ;;    :moi_krug                "moi_krug"
-     ;;    :linkedin                "linkedin"
-     ;;    :facebook                "facebook"
-     ;;    :livejournal             "livejournal"
-     ;;    :personal                "personal"
-
-     ;;    :title "Programmer"
-     ;;    :specializations "221"
-     ;;    :prof-area "1"
-     ;;    :salary-amount "100000"
-     ;;    :salary-currency "RUR"
-     ;;    :employment "full"
-     ;;    :work-schedule "full_day"
-
-     ;;    :education-level-string "higher"
-     ;;    :education (list
-     ;;                (make-education :id ""
-     ;;                                :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-     ;;                                :university-id "39864"
-     ;;                                :faculty-id ""
-     ;;                                :organization "Режиссуры"
-     ;;                                :result "Режиссура мультимедиа программ"
-     ;;                                :specialty-id "224"
-     ;;                                :year "2005")
-     ;;                (make-education :id ""
-     ;;                                :name ""
-     ;;                                :university-id ""
-     ;;                                :faculty-id ""
-     ;;                                :organization ""
-     ;;                                :result ""
-     ;;                                :specialty-id ""
-     ;;                                :year ""))
-     ;;    :additional-education-id ""
-     ;;    :additional-education-name ""
-     ;;    :additional-education-organization ""
-     ;;    :additional-education-result ""
-     ;;    :additional-education-year ""
-     ;;    :certificate-id ""
-     ;;    :certificate-type ""
-     ;;    :certificate-selected ""
-     ;;    :certificate-ownerName ""
-     ;;    :certificate-transcription-id ""
-     ;;    :certificate-password ""
-     ;;    :certificate-title ""
-     ;;    :certificate-achievementDate ""
-     ;;    :certificate-url ""
-     ;;    :attestation-education-id ""
-     ;;    :attestation-education-name ""
-     ;;    :attestation-education-organization ""
-     ;;    :attestation-education-result ""
-     ;;    :attestation-education-year ""
-     ;;    :languages (list
-     ;;                (make-lang :lang-id 34 :lang-degree "native")
-     ;;                (make-lang :lang-id 57 :lang-degree "can_read")
-     ;;                (make-lang :lang-id 58 :lang-degree "basic")
-     ;;                (make-lang :lang-id 59 :lang-degree "none"))
-     ;;    :expiriences (list
-     ;;                  (make-expirience
-     ;;                   :name                "Лаборатория Касперского"
-     ;;                   :-company-id         "1057"
-     ;;                   :area-id             "1"
-     ;;                   :url                 ""
-     ;;                   :industry-id         ""
-     ;;                   :industries          "540"
-     ;;                   :industries          ""
-     ;;                   :exp-id              ""
-     ;;                   :job-position        "Программист"
-     ;;                   :start-date          "2000-01-01"
-     ;;                   :end-date            "2001-01-01"
-     ;;                   :description         "Работа за деньги")
-     ;;                  (make-expirience
-     ;;                   :company-name        "Вымпелком"
-     ;;                   :company-id          "4934"
-     ;;                   :company-area-id     "1"
-     ;;                   :company-url         ""
-     ;;                   :company-industry-id  ""
-     ;;                   :company-industries  "399"
-     ;;                   :exp-id              ""
-     ;;                   :job-position        "Программист"
-     ;;                   :start-date          "2001-01-01"
-     ;;                   :end-date            "2005-01-01"
-     ;;                   :description         "Работа за еду )"))
-     ;;    :key-skills (list
-     ;;                 (make-skill :name "Разработка архитектуры")
-     ;;                 (make-skill :name "Вакуумная чистка лица"))
-     ;;    :skills-string "В последние годы нахожусь на пенсии )"
-     ;;    :recommendations (list
-     ;;                      (make-recommendation
-     ;;                       :recommendation-id ""
-     ;;                       :name              "Смирнов"
-     ;;                       :job-position      "Начальник"
-     ;;                       :organization      "Армия"
-     ;;                       :contact-info      "9112869290")
-     ;;                      (make-recommendation
-     ;;                       :recommendation-id ""
-     ;;                       :name              "Иванов"
-     ;;                       :job-position      "Зампотех"
-     ;;                       :organization      "Армия"
-     ;;                       :contact-info      "9112878789"))))
-
    #+END_SRC
 
 ** TODO Вспомогательные сущности резюме
