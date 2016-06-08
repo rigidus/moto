@@ -2263,6 +2263,9 @@
       (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
         (dbg "   - already worked"))
 
+      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "SEMrush"))
+        (dbg "   - already worked"))
+
       (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
         (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
           (dbg "   - already exists")))
