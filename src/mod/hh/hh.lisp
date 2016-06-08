@@ -50,10 +50,10 @@
              (find-rule :name ,(symbol-name name)))
      (list
       (alexandria:named-lambda
-          ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT")) (vacancy)
+          ,(intern (concatenate 'string (symbol-name name) "-ANTECEDENT-" (symbol-name (gensym)))) (vacancy)
         ,antecedent)
       (alexandria:named-lambda
-          ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT")) (vacancy)
+          ,(intern (concatenate 'string (symbol-name name) "-CONSEQUENT-" (symbol-name (gensym)))) (vacancy)
         (let ((result (progn ,@consequent)))
           (values vacancy result)))
       (make-rule :name ,(symbol-name name)
@@ -319,11 +319,12 @@
   (dbg "  - low salary"))
 
 (define-drop-all-teaser-when-name-contains-rule
-    "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
+    "iOS" "Python" "Django" "IOS" "1C" "C++" "С++" "Ruby" "Ruby on Rails"
     "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
     "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
     "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "NodeJS"
     "тестировщик" "Системный администратор" "Трафик-менеджер" "Traffic"
+    "менеджер по продажам" "Менеджер по продажам"
     "маркетолог" "DevOps" "Axapta")
 
 (defun get-all-rules ()
@@ -408,11 +409,12 @@
                                         :cookie-jar cookie-jar
                                         :redirect 10
                                         ))
-         (tree (html5-parser:node-to-xmls ;; !=!
+         (tree ;; (html5-parser:node-to-xmls ;; !=!
                 (html5-parser:parse-html5-fragment
                  (flexi-streams:octets-to-string response :external-format :utf-8)
-                 ;; :dom :xmls
-                 ))))
+                 :dom :xmls
+                 ;; )
+                 )))
     ;; Теперь попробуем использовать печеньки для логина
     ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
     ;; И заходим с вот-таким гет-запросом:
@@ -572,9 +574,9 @@
 ;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
 
 (defun html-to-tree (html)
-  (html5-parser:node-to-xmls
-   (html5-parser:parse-html5-fragment html ;;:dom :xmls
-                                      )))
+  ;; (html5-parser:node-to-xmls
+  (html5-parser:parse-html5-fragment html :dom :xmls
+                                     ))
 
 ;; (print
 ;;  (html-to-tree *last-parse-data*))
@@ -590,7 +592,7 @@
 
 (defparameter *detect-garbage* '("premium" "response-trigger" "vacancy-responded" "star" "trigger-button"
                                  "response-popup-link" "vacancy-response-popup-script" "emp-logo"
-                                 "search-result-description" "search-result-description-empty"
+                                 "search-result-description" "search-result-description-with-garbage" "search-result-description-empty"
                                  "search-result-description-primary" "hrbrand" "noindex" "script"
                                  "bloko-icon-phone" "bloko-contact" "bloko-icon-initial"))
 
@@ -762,6 +764,9 @@
 (make-detect (search-result-description-empty)
   (`("div" (("class" "search-result-description__item")) ,_) "search-result-description-empty"))
 
+(make-detect (search-result-description-with-garbage)
+  (`("div" (("class" "search-result-description__item"))  ,@rest)
+    "search-result-description-with-garbage"))
 
 (make-detect (search-result-description-primary)
   (`(("class" "search-result-description__item search-result-description__item_primary")) "search-result-description-primary"))
@@ -836,7 +841,9 @@
 
 ;; (print *last-parse-data*)
 
-;; (hh-parse-vacancy-teasers *last-parse-data*)
+;; (print
+;;  (hh-parse-vacancy-teasers *last-parse-data*)
+;;  )
 
 (defun tree-plist-p (pl)
   "Returns T if L is a plist (list with alternating keyword elements). "
@@ -893,6 +900,7 @@
        (detect-garbage-elts)
        (detect-vacancy-responded)
        (detect-search-result-description)
+       (detect-search-result-description-with-garbage)
        (detect-star)
        (detect-trigger-button)
        (detect-response-popup-link)
@@ -940,6 +948,7 @@
        ;; parse-salary
        (mapcar #'parse-salary)
        ))
+
 ;; (print
 ;;  (hh-parse-vacancy-teasers *last-parse-data*))
 
@@ -980,11 +989,15 @@
        tree))
 
 (defun company-extractor (tree)
-  (mtm (`("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name)
-         (return-from company-extractor
-           (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
-                 :emp-name emp-name)))
-       tree))
+  (let ((candidat (mtm (`("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name)
+                       (return-from company-extractor
+                         (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
+                               :emp-name emp-name)))
+                     tree)))
+    (if (not (tree-plist-p candidat))
+        (list :emp-id 0
+              :emp-name "")
+        candidat)))
 
 (defun salary-extractor (tree)
   (let ((salary-result (block salary-extract
@@ -1033,7 +1046,7 @@
                            (descr-extractor tree))))
     (if (not (tree-plist-p candidat))
         (progn
-          (dbg "~A" (bprint x))
+          (dbg "~A" (bprint candidat))
           (error 'malformed-vacancy :text))
         candidat)))
 
@@ -1214,8 +1227,14 @@
 
 (make-detect (response-date)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
-          ("span" (("class" "responses-date responses-date_dimmed")) ,result))
+          ("span" (("class" "responses-date")) ,result))
     `(:response-date ,result)))
+
+(make-detect (response-date-dimmed)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
+          ("span" (("class" "responses-date responses-date_dimmed"))
+                  ,result))
+    `(response-date ,result)))
 
 (make-detect (result-date)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
@@ -1271,25 +1290,24 @@
   (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) "responses-bubble"))
 
 (make-detect (prosper-table__cell)
-  (`("td" (("class" "prosper-table__cell"))) "prosper-table__cell"))
-
+  (`("td" (("class" "prosper-table__cell")) ,@rest) "prosper-table__cell"))
 
 (defun hh-parse-responds (html)
   "Получение списка вакансий из html"
   (dbg "hh-parse-responds")
-  ;; (setf *last-parse-data* html)
+  (setf *last-parse-data* html)
   (->> (html-to-tree html)
        (extract-responds-results)
        (detect-response-date)
-       (detect-response-date)
-       (detect-result-date)
+       (detect-response-date-dimmed)
+       ;; (detect-result-date)
        (detect-result-deny)
        (detect-result-invite)
        (detect-result-no-view)
        (detect-result-view)
        (detect-result-archive)
-       (detect-responses-vacancy)
-       (detect-responses-vacancy-disabled)
+       ;; (detect-responses-vacancy)
+       ;; (detect-responses-vacancy-disabled)
        (detect-topic)
        ;; trash
        (detect-responses-trash)
@@ -1317,6 +1335,10 @@
                               tree)
                      linearize)))
        ))
+
+;; (print
+;;  (hh-parse-responds *last-parse-data*))
+
 
 ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (print
