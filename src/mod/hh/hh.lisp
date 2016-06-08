@@ -545,6 +545,8 @@
            (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
           ((equal currency "EUR")
            (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
+          ((equal currency "UAH")
+           (setf salary-text (ppcre:regex-replace-all " грн." salary-text "")))
           ((equal currency nil)
            'nil)
           (t (progn
