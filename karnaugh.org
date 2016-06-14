@@ -48,10 +48,10 @@
 
   #+BEGIN_EXAMPLE
 
-    _________|\
+             |\
              | \
-             |  o----
-    _________| /
+    ---------+  o----
+             | /
              |/
 
   #+END_EXAMPLE
@@ -87,7 +87,7 @@
 
   Соединяя элементарные функции, можно получать более сложные. Для этого надо
   подсоединять выходы одних функциональных элементов ко в ходам других. Например, схема
-  полусумматора (half-adder) состоит из ИЛИ-элемента, двух И-элементов и
+  =полусумматора= (half-adder) состоит из ИЛИ-элемента, двух И-элементов и
   инвертора. Полусумматор получает два входа, A и B, и имеет два выхода, S и C.
 
   #+BEGIN_EXAMPLE
@@ -126,16 +126,16 @@
   порождает провода. Например, мы можем создать шесть проводов так:
 
   #+BEGIN_EXAMPLE
-    (defparameter *a* (make-wire))
-    (defparameter *b* (make-wire))
-    (defparameter *c* (make-wire))
-    (defparameter *d* (make-wire))
-    (defparameter *e* (make-wire))
-    (defparameter *s* (make-wire))
+    (defparameter *a* (make-instance 'wire))
+    (defparameter *b* (make-instance 'wire))
+    (defparameter *c* (make-instance 'wire))
+    (defparameter *d* (make-instance 'wire))
+    (defparameter *e* (make-instance 'wire))
+    (defparameter *s* (make-instance 'wire))
   #+END_EXAMPLE
 
   Мы подсоединяем функциональный элемент к проводу во время вызова процедуры, которая
-  создает данный вид элемента. Аргументами порождающей процедуры служат про- вода,
+  создает данный вид элемента. Аргументами порождающей процедуры служат провода,
   подсоединяемые к элементу. Например, если мы умеем создавать И-элементы, ИЛИ-элементы
   и инверторы, мы можем собрать полусумматор:
 
@@ -152,17 +152,17 @@
 
   #+NAME: half_adder
   #+BEGIN_SRC lisp
-    (defun half-adder (a b s c)
-      (let ((d (make-wire))
-            (e (make-wire)))
-        (or-gate a b d)
-        (and-gate a b c)
-        (inverter c e)
-        (and-gate d e s)))
+    (defun half-adder (a b s c coord-x coord-y
+                       &key (d (make-instance 'wire)) (e (make-instance 'wire)))
+      (list
+       (or-gate a b d (+ coord-x 15) (+ coord-y 0))
+       (and-gate a b c (+ coord-x 0) (+ coord-y 50))
+       (inverter c e (+ coord-x 60) (+ coord-y 50))
+       (and-gate d e s (+ coord-x 90) (+ coord-y 6))))
   #+END_SRC
 
   Преимущество этого определения в том, что теперь мы можем использовать =half-adder=
-  как строительный блок при создании более сложных схем. Напр имер, сумматор
+  как строительный блок при создании более сложных схем. Например, сумматор
   (full-adder), состоящий из двух полусумматоров и ИЛИ-элемента.
 
   [[file:./img/full-adder.png]]
@@ -171,29 +171,690 @@
 
   #+NAME: full_adder
   #+BEGIN_SRC lisp
-    (defun full-adder (a b c-in sum c-out)
-      (let ((s (make-wire))
-            (c1 (make-wire))
-            (c2 (make-wire)))
-        (half-adder b c-in s c1)
-        (half-adder a s sum c2)
-        (or-gate c1 c2 c-out)))
+    (defun full-adder (a b c-in sum c-out coord-x coord-y
+                       &key
+                         (s (make-instance 'wire))
+                         (c1 (make-instance 'wire))
+                         (c2 (make-instance 'wire)))
+      (append
+       (half-adder b c-in s c1 coord-x (+ 0 coord-y))
+       (half-adder a s sum c2 (+ coord-x 150) coord-y)
+       (list
+        (or-gate c1 c2 c-out 200 200))))
   #+END_SRC
 
-Определив full-adder как процедуру, мы можем ее использовать как строительный блок для еще более сложных схем. В сущности, наша имитация дает инструмент, с помощью которого строится язык
-описания схем. Принимая общую точку зрения на языки, с которой мы приступилик изучению Лиспа в разделе 1.1, можно сказать, что элементар
-ные функциональные элементы являются примитивами языка, связывание их проводами
-представляет собой средство комбинирования, а определение шаблонных схем в ви
-де процедур служит сред
+  Определив full-adder как процедуру, мы можем ее использовать как строительный блок
+  для еще более сложных схем. В сущности, наша имитация дает инструмент, с помощью
+  которого строится язык описания схем. Можно сказать, что элементарные функциональные
+  элементы являются примитивами языка, связывание их проводами представляет собой
+  средство комбинирования, а определение шаблонных схем в виде процедур служит
+  средством абстракции.
 
-* Задача в общем виде
+* Элементарные функциональные элементы
+
+  Элементарные функциональные элементы изображают «силы», через посредство которых
+  изменение сигнала в одном проводе влечет изменение сигнала в других проводах. Для
+  построения функциональных элементов мы будем пользоваться следующими операциями над
+  проводами:
+
+  - (get-signal =провод= ) возвращает текущее значение сигнала в проводе.
+  - (set-signal =провод= =новое-значение= ) заменяет значение сигнала в проводе на указанное
+  - (add-action =провод= =процедура без аргументов= ) указывает, чтобы
+    процедура-аргумент вызывалась каждый раз, когда сигнальный провод изменяет
+    значение. Такие процедуры служат передаточным механизмом, с помощью которого
+    изменение значения сигнала в одном проводе передается другим проводам. В
+    дополнение, мы будем пользоваться процедурой =after-delay=, которая принимает
+    значение задержки и процедуру. Она выполняет процедуру после истечения задержки.
+
+  При помощи этих процедур можно определить элементарные функции цифровой логики. Чтобы
+  соединить вход с выходом через инвертор, мы используем =add-action= и ассоциируем со
+  входным проводом процедуру, которая будет вызываться всякий раз, когда сигнал на
+  входе элемента изменит значение. Процедура вычисляет =logical-not= (логическое
+  отрицание) входного сигнала, а затем, переждав inverter-delay, устанавливает выходной
+  сигнал в новое значение:
+
+  #+NAME: inverter
+  #+BEGIN_SRC lisp
+    (defun logical-not (s)
+      (cond ((equal s 0) 1)
+            ((equal s 1) 0)
+            (t (err "logical not error signal"))))
+
+    (defun inverter (input output coord-x coord-y)
+      (let* ((obj (make-instance 'not-elt :base (make-point :x coord-x :y coord-y)))
+             (x (point-x (base obj)))
+             (y (point-y (base obj))))
+        (setf (inputs obj)
+              (list (make-inout
+                     :coord (make-point :x x :y (+ y 15))
+                     :wire (name input))))
+        (setf (outputs obj)
+              (list (make-inout
+                     :coord (make-point :x (+ x 55) :y (+ y 15))
+                     :wire (name output))))
+        (flet ((invert-input ()
+                 (let ((new-value (logical-not (get-signal input))))
+                   (after-delay *the-agenda* *inverter-delay*
+                                (lambda ()
+                                  (set-signal output new-value))))))
+          (add-action input #'invert-input))
+        obj))
+  #+END_SRC
+
+  И-элемент устроен немного сложнее. Процедура-действие должна вызываться, когда
+  меняется любое из значений на входе. Она при этом через процедуру, подобную
+  logical-not, вычисляет logical-and (логическое И) значений сигналов на входных
+  проводах, и затем требует, чтобы изменение значения выходного провода произошло
+  спустя задержку длиной в and-gate-delay.
+
+  #+NAME: and-gate
+  #+BEGIN_SRC lisp
+    (defun logical-and (a b)
+      (cond ((and (equal a 1) (equal b 1)) 1)
+            ((and (equal a 0) (equal b 1)) 0)
+            ((and (equal a 1) (equal b 0)) 0)
+            ((and (equal a 0) (equal b 0)) 0)
+            (t (err "logical-and error signal"))))
+
+    (defun and-gate (a1 a2 output coord-x coord-y)
+      (let* ((obj (make-instance 'and-elt :base (make-point :x coord-x :y coord-y)))
+             (x (point-x (base obj)))
+             (y (point-y (base obj))))
+        (setf (inputs obj)
+              (list (make-inout
+                     :coord (make-point :x x :y (+ y 09))
+                     :wire (name a1))
+                    (make-inout
+                     :coord (make-point :x x :y (+ y 21))
+                     :wire (name a2))))
+        (setf (outputs obj)
+              (list (make-inout
+                     :coord (make-point :x (+ x 55) :y (+ y 15))
+                     :wire (name output))))
+        (flet ((and-action-procedure ()
+                 (let ((new-value (logical-and (get-signal a1) (get-signal a2))))
+                   (after-delay *the-agenda*  *and-gate-delay*
+                                (lambda ()
+                                  (set-signal output new-value))))))
+          (add-action a1 #'and-action-procedure)
+          (add-action a2 #'and-action-procedure))
+        obj))
+  #+END_SRC
+
+  Аналогичным образом определим ИЛИ-элемент:
+
+  #+NAME: or-gate
+  #+BEGIN_SRC lisp
+    (defun logical-or (a b)
+      (cond ((and (equal a 1) (equal b 1)) 1)
+            ((and (equal a 0) (equal b 1)) 1)
+            ((and (equal a 1) (equal b 0)) 1)
+            ((and (equal a 0) (equal b 0)) 0)
+            (t (err "logical-or error signal"))))
+
+    (defun or-gate (a1 a2 output coord-x coord-y)
+      (let* ((obj (make-instance 'or-elt :base (make-point :x coord-x :y coord-y)))
+             (x (point-x (base obj)))
+             (y (point-y (base obj))))
+        (setf (inputs obj)
+              (list (make-inout
+                     :coord (make-point :x x :y (+ y 09))
+                     :wire (name a1))
+                    (make-inout
+                     :coord (make-point :x x :y (+ y 21))
+                     :wire (name a2))))
+        (setf (outputs obj)
+              (list (make-inout
+                     :coord (make-point :x (+ x 55) :y (+ y 15))
+                     :wire (name output))))
+        (flet ((or-action-procedure ()
+                 (let ((new-value (logical-or (get-signal a1) (get-signal a2))))
+                   (after-delay *the-agenda* *or-gate-delay*
+                                (lambda ()
+                                  (set-signal output new-value))))))
+          (add-action a1 #'or-action-procedure)
+          (add-action a2 #'or-action-procedure))
+        obj))
+  #+END_SRC
+
+* Представление проводов
+
+  Провод в нашей имитации будет объектом с тремя переменными:
+  - имя провода, для его отображения на схеме
+  - значение сигнала =signal-value= (вначале равное 0)
+  - набор процедур-действий =action-procedures=, подлежащих исполнению, когда сигнал
+    изменяется.
+
+  #+NAME: wire_class
+  #+BEGIN_SRC lisp
+    (defclass wire ()
+      ((name               :initarg :name               :accessor name          :initform (gensym "WIRE-"))
+       (signal-value       :initarg :signal-value       :accessor signal-value  :initform 0)
+       (action-procedures  :initarg :action-procedures  :accessor action-procedures :initform nil)))
+  #+END_SRC
+
+  Метод =get-signal= возвращает текущее значение сигнала в проводе:
+
+  #+NAME: wire_get_signal
+  #+BEGIN_SRC lisp
+    (defmethod get-signal ((obj wire))
+      (signal-value obj))
+  #+END_SRC
+
+  Метод =set-signal= проверяет, отличается ли новое значение сигнала в проводе от
+  старого. Если да, то он запускает все процедуры-действия:
+
+  #+NAME: wire_set_signal
+  #+BEGIN_SRC lisp
+    (defmethod set-signal ((obj wire) new-value)
+      (if (not (equal (signal-value obj) new-value))
+          (progn
+            (setf (signal-value obj) new-value)
+            (loop :for procedure :in (action-procedures obj) :do (funcall procedure)))))
+  #+END_SRC
+
+  Метод =add-action= добавляет процедуру к списку действий, а затем один раз запускает
+  добавленную процедуру, чтобы сделать инициализацию:
+
+  #+NAME: wire_add_action
+  #+BEGIN_SRC lisp
+    (defmethod add-action ((obj wire) procedure)
+      (setf (action-procedures obj)
+            (append (action-procedures obj) (list procedure)))
+      (funcall procedure))
+  #+END_SRC
+
+* Представление очередей
+
+  Очередь (=queue=) представляет собой последовательность, в которую можно добавлять
+  элементы с одного конца (=rear=) и убирать с другого (=front=).
+
+  - конструктор (make-queue) возвращает пустую очередь
+  - два селектора: =empty-queue= проверяет, пуста ли очередь, =front-queue= возвращает
+    объект, находящийся в голове очереди. Если очередь пуста, он сообщает об
+    ошибке. Очередь не модифицируется.
+  - два мутатора: =insert-queue= вставляет элемент в
+    хвост очереди и возвращает в качестве значения измененную очередь; =delete-queue!=
+    удаляет элемент в голове очереди и возвращает в качестве значения измененную
+    очередь. Если перед уничтожением элемента очередь оказывается пустой, выводится
+    сообщение об ошибке.
+
+  Поскольку очередь есть последовательность элементов, ее, разумеется, можно было бы
+  представить как обыкновенный список; головой очереди был бы =car= этого списка, вставка
+  элемента в очередь сводилась бы к добавлению нового элемента в конец списка, а
+  уничтожение элемента из очереди состояло бы просто во взятии =cdr= списка.
+
+  Однако такая реализация неэффективна, поскольку для вставки элемента нам пришлось бы
+  просматривать весь список до конца. Поскольку единственный доступный нам метод
+  просмотра списка — это последовательное применение =cdr=, такой просмотр требует Θ(n)
+  шагов для очереди с n членами.
+
+  Простое видоизменение спискового представления преодолевает этот недостаток, позволяя
+  нам реализовать операции с очередью так, чтобы все они требовали Θ(1) шагов; то есть,
+  чтобы число шагов алгоритма не зависело от длины очереди.
+
+  Сложность со списковым представлением возникает из-за необходимости искать конец
+  списка. Искать приходится потому, что, хотя стандартный способ представления списка в
+  виде цепочки пар дает нам указатель на начало списка, легкодоступного указателя на
+  конец он не дает. Модификация, обходящая этот недостаток, состоит в том, чтобы
+  представлять очередь в виде списка, и держать еще дополнительный указатель на его
+  последнюю пару.
+
+  В таком случае, когда требуется вставить элемент, мы можем просто посмотреть на этот
+  указатель и избежать за счет этого просмотра всего списка. Очередь, таким образом,
+  представляется в виде пары указателей, front-ptr и rear-ptr, которые обозначают,
+  соответственно, первую и последнюю пару обыкновенного списка.
+
+  #+NAME: queue_class
+  #+BEGIN_SRC lisp
+    (defclass queue ()
+      ((front-ptr   :initarg :front-ptr   :accessor front-ptr :initform nil)
+       (rear-ptr    :initarg :rear-ptr    :accessor rear-ptr  :initform nil)))
+  #+END_SRC
+
+  Теперь можно реализовать сами операции над очередью. Очередь будет считаться пустой,
+  если ее головной указатель указывает на пустой список:
+
+  #+NAME: queue_empty
+  #+BEGIN_SRC lisp
+    (defmethod empty ((obj queue))
+      (null (front-ptr obj)))
+  #+END_SRC
+
+  При обращении к элементу в голове очереди мы возвращаем car пары, на которую
+  указывает головной указатель:
+
+  #+NAME: queue_front
+  #+BEGIN_SRC lisp
+    (defmethod front ((obj queue))
+      (if (empty obj)
+          (err "front-queue: empty queue")
+          (car (front-ptr obj))))
+  #+END_SRC
+
+  Чтобы вставить элемент в конец очереди, первым делом мы создаем новую пару, =car=
+  которой содержит вставляемый элемент, а =cdr= — пустой список. Если очередь была
+  пуста, мы перенаправляем на эту пару и головной, и хвостовой указатели. В противном
+  случае, мы изменяем последнюю пару очереди так, чтобы следующей была новая пара, и
+  хвостовой указатель тоже перенаправляем на нее же:
+
+  #+NAME: queue_insert
+  #+BEGIN_SRC lisp
+    (defmethod insert ((obj queue) item)
+      (let ((new-pair (cons item '())))
+        (cond ((empty obj)
+               (progn
+                 (setf (front-ptr obj) new-pair)
+                 (setf (rear-ptr obj) new-pair)))
+              (t
+               (progn
+                 (setf (cdr (rear-ptr obj)) new-pair)
+                 (setf (rear-ptr obj) new-pair))))
+        obj))
+  #+END_SRC
+
+  Чтобы уничтожить элемент в голове очереди, мы просто переставляем головной указатель
+  на второй элемент очереди, а его можно найти в =cdr= первого элемента:
+
+  #+NAME: queue_del
+  #+BEGIN_SRC lisp
+    (defmethod del ((obj queue))
+      (cond ((empty obj) (err "delete-queue: empty"))
+            (t (setf (front-ptr obj) (cdr (front-ptr obj)))))
+      obj)
+  #+END_SRC
+
+  В случае, если первый элемент — одновременно и последний, после его уничтожения
+  головной указатель окажется пустым списком, и это будет означать, что очередь пуста;
+  нам незачем заботиться о хвостовом ука зателе, который по-прежнему будет указывать на
+  уничтоженный элемент, поскольку =empty= смотрит только на голову.
+
+* План действий
+
+  Теперь для завершения модели нам остается только написать =after-delay=.
+
+  Здесь идея состоит в том, чтобы организовать структуру данных под названием план
+  действий (agenda), где будет храниться расписание того, что нам надо сделать. Для
+  планов действий определены следующие операции:
+
+  - =empty-agenda= - истинно, если план пуст.
+  - =first-agenda-item= - возвращает первый элемент плана.
+  - =remove-first-agenda-item= - модифицирует план, убирая из него первый элемент.
+  - =add-to-agenda= модифицирует план, добавляя процедуру-действие, которую нужно
+    запустить в указанное время.
+  - current-time возвращает текущее время модели.
+
+  Сам по себе план действий является одномерной таблицей временных отрезков. Сегменты
+  отсортированы в порядке возрастания времени. В дополнение к этому мы храним текущее
+  время (current time) (т. е. время последнего исполненного действия) в поле
+  плана. Свежесозданный план не содержит временных отрезков, а его текущее время равно
+  нулю:
+
+  #+NAME: agenda_class
+  #+BEGIN_SRC lisp
+    (defclass agenda ()
+      ((current-time  :initarg :current-time  :accessor current-time  :initform 0)
+       (segments      :initarg :segments      :accessor segments      :initform nil)))
+  #+END_SRC
+
+  План пуст, если в нем нет ни одного временного отрезка:
+
+  #+NAME: agenda_empty
+  #+BEGIN_SRC lisp
+    (defmethod empty ((obj agenda))
+      (null (segments obj)))
+  #+END_SRC
+
+  Экземпляр плана, которым мы будем пользоваться, будет обозначаться =the-agenda=.
+
+  #+NAME: agenda_object
+  #+BEGIN_SRC lisp
+    (defparameter *the-agenda* (make-instance 'agenda))
+  #+END_SRC
+
+  Процедура =after-delay= добавляет новый элемент в план:
+
+  #+NAME: after_delay
+  #+BEGIN_SRC lisp
+    (defmethod after-delay ((obj agenda) delay action)
+      (add-to-agenda obj
+                     (+ delay (current-time obj))
+                     action))
+  #+END_SRC
+
+  Имитация управляется процедурой =propagate=, которая работает с объектом, по очереди
+  выполняя процедуры, содержащиеся в плане. В общем случае, при работе модели в план
+  добавляются новые элементы, =propagate= продолжает работу, пока план не становится
+  пустым:
+
+  #+NAME: propagate
+  #+BEGIN_SRC lisp
+    (defmethod propagate ((obj agenda))
+      (if (empty obj)
+          (return-from propagate nil)
+          ;; else
+          (let ((first-item (first-agenda-item obj)))
+            (funcall first-item)
+            (remove-first-agenda-item obj)
+            (propagate obj))))
+  #+END_SRC
+
+  Наконец, мы описываем детали структуры данных плана действий, которая хранит
+  процедуры, предназначенные для исполнения в будущем.
+
+  План состоит из временных отрезков. Каждый временной отрезок является структурой
+  состоящей из числа (значения времени) и очереди, которая содержит процедуры,
+  предназначенные к исполнению в этот временной отрезок.
+
+  #+NAME: time_segment_class
+  #+BEGIN_SRC lisp
+    (defclass time-segment ()
+      ((timepoint  :initarg :timepoint  :accessor timepoint  :initform 0)
+       (queue      :initarg :queue     :accessor queue      :initform nil)))
+  #+END_SRC
+
+  Для того, чтобы добавить в план новое действие, прежде всего мы проверяем, не пуст ли
+  план. Если пуст, мы создаем для действия новый отрезок и вставляем его в план. Иначе
+  мы просматриваем план, глядя на времена отрезков. Если мы находим отрезок с
+  назначенным временем, мы добавляем действие к соответствующей очереди. Если же мы
+  обнаруживаем время, большее, чем назначенное, мы вставляем новый отрезок перед
+  текущим. Если мы доходим до конца плана, мы вставляем новый отрезок в конец.
+
+  #+NAME: agenda_add
+  #+BEGIN_SRC lisp
+    (defun belongs-before (time segments)
+      (or (null segments)
+          (< time (timepoint (car segments)))))
+
+    (defun make-new-time-segment (time action)
+      (let ((que (make-instance 'queue)))
+        (insert que action)
+        (make-instance 'time-segment :timepoint time :queue que)))
+
+    (defun add-to-segments (segments time action)
+      (if (equal (timepoint (car segments)) time)
+          (insert (queue (car segments)) action)
+          ;; else
+          (let ((rest (cdr segments)))
+            (if (belongs-before time rest)
+                (setf (cdr segments)
+                      (append (cdr segments)
+                              (list (make-new-time-segment time action))))
+                ;; else
+                (add-to-segments rest time action)))))
+
+    (defmethod add-to-agenda ((obj agenda) time action)
+      (let ((segments (segments obj)))
+        (if (belongs-before time segments)
+            (setf (segments obj)
+                  (append (segments obj)
+                          (list (make-new-time-segment time action))))
+            ;; else
+            (add-to-segments segments time action))))
+  #+END_SRC
+
+  Процедура, которая убирает из плана первый элемент, уничтожает элемент в начале
+  очереди первого отрезка времени. Если в результате отрезок становится пустым, мы
+  изымаем его из списка отрезков.
+
+  #+NAME: agenda_remove_first_item
+  #+BEGIN_SRC lisp
+    (defmethod remove-first-agenda-item ((obj agenda))
+      (let ((segments (segments obj)))
+        (when (null segments)
+          (err "remove-first-agenda-item: empty segments"))
+        (let ((que (queue (car segments))))
+          (del que)
+          (if (empty que)
+              (setf (segments obj)
+                    (cdr (segments obj)))))))
+  #+END_SRC
+
+  Первый элемент плана находится в начале очереди в первом временном отрезке. Каждый
+  раз, когда мы обращаемся к такому элементу, мы обновляем текущее время. Таким
+  образом, текущее время всегда будет совпадать с временем последнего обработанного
+  действия. Благодаря тому, что это время хранится в поле плана, оно всегда доступно,
+  даже если соответствующий отрезок времени был уничтожен:
+
+  #+NAME: agenda_first_item
+  #+BEGIN_SRC lisp
+    (defmethod first-agenda-item ((obj agenda))
+      (if (null (segments obj))
+          (err "agenda empty")
+          (let ((first-seg (car (segments obj))))
+            (setf (current-time obj) (timepoint first-seg))
+            (front (queue first-seg)))))
+  #+END_SRC
+
+* Пример работы модели
+
+  Следующая процедура, которая навешивает на провод «тестер», показывает имитационную
+  модель в действии. Тестер говорит проводу, что, каждый раз, когда сигнал изменяет
+  значение, нужно напечатать новое значение сигнала, а также текущее время и имя
+  провода:
+
+  #+NAME: probe
+  #+BEGIN_SRC lisp
+    (defun probe (name wire)
+      (add-action wire #'(lambda ()
+                           (format t "~%name: ~A; time: ~A; value: ~A"
+                                   name
+                                   (current-time *the-agenda*)
+                                   (get-signal wire)))))
+  #+END_SRC
+
+  Сначала мы инициализируем план действий и указываем задержки для элементарных
+  функциональных элементов:
+
+  #+NAME: init
+  #+BEGIN_SRC lisp
+    (defparameter *the-agenda* (make-instance 'agenda))
+    (defparameter *inverter-delay* 2)
+    (defparameter *and-gate-delay* 3)
+    (defparameter *or-gate-delay* 5)
+  #+END_SRC
+
+  Затем мы создаем четыре провода и к двум из них подсоединяем тестеры:
+
+  #+NAME: components
+  #+BEGIN_SRC lisp
+    (defparameter *input-1* (make-instance 'wire :name '|a|))
+    (defparameter *input-2* (make-instance 'wire :name '|b|))
+    (defparameter *sum* (make-instance 'wire :name '|sum|))
+    (defparameter *carry* (make-instance 'wire :name '|cf|))
+
+    (probe 'sum *sum*)
+    (probe 'carry *carry*)
+  #+END_SRC
+
+  Затем мы связываем провода, образуя схему полусумматора (как на рис. 3.25),
+  устанавливаем сигнал на входе =input-1= в 1, и запускаем модель:
+
+  #+NAME: components
+  #+BEGIN_SRC lisp
+    (half-adder *input-1* *input-2* *sum* *carry*)
+    (set-signal *input-1* 1)
+    (propagate *the-agenda*)
+
+    (set-signal *input-2* 1)
+    (propagate *the-agenda*)
+
+    ;; (mapcar #'(lambda (x)
+    ;;             (list (timepoint x) (front-ptr (queue x))))
+    ;;         (segments *the-agenda*))
+  #+END_SRC
+
+* START Визуализация
+
+  Чтобы визуализировать функциональный элемент, нужно иметь объект, который будет
+  содержать координаты изображения и всех его входов и выходов. Базовая координата -
+  двухэлементная структура, содержащая X и Y.
+
+  В списках входов и выходов каждый элемент - структура =inout=, состоящая из координат
+  и имени провода, с которым связан вывод:
+
+  #+NAME: vis_class
+  #+BEGIN_SRC lisp
+    (defstruct point
+      (x 0 :type integer)
+      (y 0 :type integer))
+
+    (defstruct inout
+      (coord nil :type point)
+      (wire  nil :type symbol))
+
+    (defclass vis ()
+      ((base     :initarg :base     :accessor base    :type point)
+       (inputs   :initarg :inputs   :accessor inputs  :type list-of-inout :initform nil)
+       (outputs  :initarg :outputs  :accessor outputs :type list-of-inout :initform nil)))
+  #+END_SRC
+
+  От этого класса мы можем наследовать классы функциональных элементов, которые
+  отличаются только методами:
+  - Метод =get-drawer= возвращает функцию отрисовки, которая принимает =canvas=, на
+    котором рисует элемент.
+
+  #+NAME: elt_class_drivers
+  #+BEGIN_SRC lisp
+    (defclass and-elt (vis) ())
+    (defclass or-elt  (vis) ())
+    (defclass not-elt (vis) ())
+
+    (defmethod get-drawer ((obj and-elt))
+      (let ((x (point-x (base obj)))
+            (y (point-y (base obj))))
+        (lambda (canvas)
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 30) ,(+ y 0)))
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
+          (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 30) ,(+ y 30)))
+          (create-arc canvas (+ x 15) y (+ x 45) (+ y 30) :start -90 :extent 180 :style "arc")
+          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 10) ,(+ y 09)))
+          (create-oval canvas (+ x -1) (+ y 08) (+ x 1) (+ y 10))
+          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 10) ,(+ y 21)))
+          (create-oval canvas (+ x -1) (+ y 20) (+ x 1) (+ y 22))
+          (create-line canvas `(,(+ x 45) ,(+ y 15) ,(+ x 55) ,(+ y 15)))
+          (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
+          (create-text canvas (+ x 15) (+ y 7) "and"))))
+
+    (defmethod get-drawer ((obj or-elt))
+      (let ((x (point-x (base obj)))
+            (y (point-y (base obj))))
+        (lambda (canvas)
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 20) ,(+ y 0)))
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
+          (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 20) ,(+ y 30)))
+          (create-arc canvas (+ x -15) (+ y 00) (+ x 45) (+ y 60) :start 30 :extent 60 :style "arc")
+          (create-arc canvas (+ x -15) (+ y 30) (+ x 45) (- y 30) :start -30 :extent -60 :style "arc")
+          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 10) ,(+ y 09)))
+          (create-oval canvas (+ x -1) (+ y 08) (+ x 1) (+ y 10))
+          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 10) ,(+ y 21)))
+          (create-oval canvas (+ x -1) (+ y 20) (+ x 1) (+ y 22))
+          (create-line canvas `(,(+ x 40) ,(+ y 15) ,(+ x 55) ,(+ y 15)))
+          (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
+          (create-text canvas (+ x 15) (+ y 7) "or"))))
+
+    (defmethod get-drawer ((obj not-elt))
+      (let ((x (point-x (base obj)))
+            (y (point-y (base obj))))
+        (lambda (canvas)
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
+          (create-line canvas `(,(+ x 10) ,(+ y 00) ,(+ x 35) ,(+ y 15)))
+          (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 35) ,(+ y 15)))
+          (create-oval canvas (- (+ x 40) 5) (- (+ y 15) 5) (+ (+ x 40) 5) (+ (+ y 15) 5))
+          (create-line canvas `(,(+ x 0) ,(+ y 15) ,(+ x 10) ,(+ y 15)))
+          (create-oval canvas (+ x -1) (+ y 14) (+ x 1) (+ y 16))
+          (create-line canvas `(,(+ x 45) ,(+ y 15) ,(+ x 55) ,(+ y 15)))
+          (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16)))))
+
+    (defun viz (canvas elts)
+      (with-ltk ()
+        (let ((ht (make-hash-table))
+              (wires))
+          (mapcar #'(lambda (elt)
+                      (funcall (get-drawer elt) canvas)
+                      (setf wires (append wires (inputs elt)))
+                      (setf wires (append wires (outputs elt))))
+                  elts)
+          (mapcar #'(lambda (x)
+                      (setf (gethash (inout-wire x) ht)
+                            (append (gethash (inout-wire x) ht)
+                                    (list (inout-coord x)))))
+                  wires)
+          (maphash #'(lambda (k v)
+                       (format t "~% ~A : ~A" k v)
+                       (let ((first-point nil))
+                         (loop :for n :in v :do
+                            (if (null first-point)
+                                (progn
+                                  (setf first-point n)
+                                  (unless (equal 0 (search "WIRE-" (symbol-name k)))
+                                    (create-text canvas
+                                                 (point-x n) (point-y n)
+                                                 (format nil "~A=~A" (symbol-name k)
+                                                         (signal-value (symbol-value k))
+                                                         ))))
+                                ;; else
+                                (progn
+                                  (create-line canvas
+                                               `(,(point-x first-point) ,(point-y first-point)
+                                                  ,(point-x n) ,(point-y n)))
+                                  (setf first-point n))))))
+                   ht)
+          (pack canvas))))
+  #+END_SRC
+
+  #+NAME: test
+  #+BEGIN_SRC lisp
+    (let ((a (make-instance 'wire :name 'a))
+          (b (make-instance 'wire :name 'b))
+          (s (make-instance 'wire :name 's))
+          (c (make-instance 'wire :name 'c)))
+      (declare (special a))
+      (declare (special b))
+      (declare (special s))
+      (declare (special c))
+      (let ((elts (half-adder a b s c 50 50))
+            (canvas (make-instance 'canvas)))
+        (set-signal a 1)
+        (set-signal b 1)
+        (propagate *the-agenda*)
+        ;; (print elts))
+        (viz canvas elts)))
+
+    (let ((s (make-instance 'wire :name 's))
+          (c1 (make-instance 'wire :name 'c1))
+          (c2 (make-instance 'wire :name 'c2)))
+      (declare (special s))
+      (declare (special c1))
+      (declare (special c2))
+      (let ((a (make-instance 'wire :name 'a))
+            (b (make-instance 'wire :name 'b))
+            (c-in (make-instance 'wire :name 'c-in))
+            (sum (make-instance 'wire :name 'sum))
+            (c-out (make-instance 'wire :name 'c-out)))
+        (declare (special cf))
+        (declare (special a))
+        (declare (special b))
+        (declare (special c-in))
+        (declare (special sum))
+        (declare (special c-out))
+        (let ((elts (full-adder a b c-in sum c-out 20 20 :s s :c1 c1 :c2 c2))
+              (canvas (make-instance 'canvas)))
+          (set-signal a 1)
+          (set-signal c-in 1)
+          (propagate *the-agenda*)
+          ;; (print elts))
+          (viz canvas elts))))
+  #+END_SRC
+
+* TODO Задача в общем виде
 
   Предположим наличие комбинационной схемы, у которой N входов и M выходов. Для всех
   необходимых комбинаций сигналов на входах даны соответствующие комбинации на
   выходах. Необходимо автоматически синтезировать по возможности оптимальную схему
   преобразования входов в выходы.
 
-* Частный случай
+* TODO Частный случай
 
   Рассмотрим схему преобразования двоичного четырехразрядного входного кода в его
   семиразрядное значение для семисегментного индикатора.
@@ -230,7 +891,7 @@
     | F | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 0 | 1 |
     | G | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 1 |
 
-* Тесты
+* TODO Тесты
 
   Для тестирования получившихся результатов необходимо сформировать по таблице
   соответствий тесты.
@@ -269,240 +930,89 @@
   Эта процедура зависит от функции =interptet=, которая должна применять значения
   входов =in= к комбинационной схеме =scheme=.
 
-* Представление проводов
-
-  Провод в нашей имитации будет объектом с двумя переменными:
-  - значение сигнала =signal-value= (вначале равное 0)
-  - набор процедур-действий =action-procedures=, подлежащих исполнению, когда сигнал
-    изменяется.
-
-  #+NAME: wire_object
-  #+BEGIN_SRC lisp
-    (defclass wire ()
-      ((signal-value       :initarg :signal-value       :accessor signal-value)
-       (action-procedures  :initarg :action-procedures  :accessor action-procedures)))
-  #+END_SRC
-
-  Метод =get-signal= возвращает текущее значение сигнала в проводе:
-
-  #+NAME: wire_get_signal
-  #+BEGIN_SRC lisp
-    (defmethod get-signal ((obj wire))
-      (signal-value obj))
-  #+END_SRC
-
-  Метод =set-signal= проверяет, отличается ли новое значение сигнала в проводе от
-  старого. Если да, то она запускает все процедуры-действия:
-
-  #+NAME: wire_set_signal
-  #+BEGIN_SRC lisp
-    (defmethod set-signal ((obj wire) new-value)
-      (if (not (equal (signal-value obj) new-value))
-          (progn
-            (setf (signal-value obj) new-value)
-            (loop :for procedure :in (action-procedures obj) :do (funcall procedure)))))
-  #+END_SRC
-
-  Метод =add-action= добавляет процедуру к списку действий, а затем один раз запускает
-  добавленную процедуру, чтобы сделать инициализацию:
-
-  #+NAME: wire_add_action
-  #+BEGIN_SRC lisp
-    (defmethod add-action ((obj wire) procedure)
-      (setf action-procedures
-            (append action-procedures (list procedure)))
-      (funcall procedure))
-  #+END_SRC
-
-  Соберем все, что касается =wire= в один кодовый блок:
-
-  #+NAME: wire
-  #+BEGIN_SRC lisp
-    <<wire_object>>
-    <<wire_get_signal>>
-    <<wire_set_signal>>
-    <<wire_add_action>>
-  #+END_SRC
-
-* План действий
-
-  Теперь для завершения модели нам остается только написать =after-delay=.
-
-  Здесь идея состоит в том, чтобы организовать структуру данных под названием план
-  действий (agenda), где будет храниться расписание того, что нам надо сделать. Для
-  планов действий определены следующие операции:
-
-  - =make-agenda= - возвращает новый пустой план действий.
-  - =empty-agenda= - истинно, если план пуст.
-  - =first-agenda-item= - возвращает первый элемент плана.
-  - =remove-first-agenda-item= - модифицирует план, убирая из него первый элемент.
-  - =add-to-agenda= модифицирует план, добавляя процедуру-действие, которую нужно
-    запустить в указанное время.
-  - current-time возвращает текущее время модели.
-
-  Экземпляр плана, которым мы будем пользоваться, будет обоз начаться =the-agenda=
-
-  Процедура =after-delay= добавляет новый элемент в план the-agenda:
-
-  #+NAME: after_delay
-  #+BEGIN_SRC lisp
-    (defmethod after-delay ((obj agenda) delay action)
-      (add-to-agenda obj
-                     (+ delay (current-time obj))
-                     action))
-  #+END_SRC
-
-  Имитация управляется процедурой =propagate=, которая работает с объектом, по очереди
-  выполняяпроцедуры, содержащиеся в плане. В общем случае, при работе модели в план
-  добавляются новые элементы, а =propagate= продолжает работу, пока план не становится
-  пустым:
-
-  #+NAME: propagate
-  #+BEGIN_SRC lisp
-    (defmethod propagate ((obj agenda))
-      (if (empty-agenda obj)
-          (return-from propagate nil)
-          (let ((first-item (first-agenda-item obj)))
-            (funcall first-item)
-            (remove-first-agenda-item obj)
-            (propagate))))
-  #+END_SRC
-
-  Наконец, мы описываем детали структуры данных плана действий, которая хранит
-  процедуры, предназначенные для исполнения в будущем.
-
-  План состоит из временных отрезков. Каждый временной отрезок является парой,
-  состоящей из числа (значения времени) и очереди, которая содержит процедуры,
-  предназначенные к исполнению в этот временной отрезок.
-
-  #+NAME: time_segment
-  #+BEGIN_SRC lisp
-    (defun make-time-segment (time queue)
-      (cons time queue))
-
-    (defun segment-time (s)
-      (car s))
-
-    (defun segment-queue (s)
-      (cdr s))
-  #+END_SRC
-
-  Сам по себе план действий является одномерной таблицей врем енных отрезков. Сегменты
-  отсортированы в порядке возрастания времени. В дополнение к этому мы храним текущее
-  время (current time) (т. е. время последнего исполненного действия) в голове
-  плана. Свежесозданный план не содержит временных отрезков, а его текущее время равно
-  нулю:
-
-  #+NAME: agenda_segments_ops
-  #+BEGIN_SRC lisp
-    (defun make-agenda ()
-      (list 0))
-
-    (defun current-time (agenda)
-      (car agenda))
-
-    (defun set-current-time (agenda time)
-      (setf (car agenda) time))
-
-    (defun segments (agenda)
-      (cdr agenda))
-
-    (defun set-segments (agenda segments)
-      (setf (cdr agenda) segments))
-
-    (defun first-segment (agenda)
-      (car (segments agenda)))
-
-    (defun rest-segments (agenda)
-      (cdr (segments agenda)))
-  #+END_SRC
-
-  План пуст, если в нем нет ни одного временного отрезка:
-
-  #+NAME: agenda_empty
-  #+BEGIN_SRC lisp
-    (defun empty-agenda (agenda)
-      (null (segments agenda)))
-  #+END_SRC
-
-  Для того, чтобы добавить в план новое действие, прежде всего мы проверяем, не пуст ли
-  план. Если пуст, мы создаем для действия новый отрезок и вставляем его в план. Иначе
-  мы просматриваем план, глядя на времена отрезков. Есл и мы находим отрезок с
-  назначенным временем, мы добавляем действие к соответствующей очереди. Если же мы
-  обнаруживаем время, большее, чем назначенное, мы вставляем новый отрезок перед
-  текущим. Если мы доходим до конца плана, мы вставляем новый отрезок в конец.
-
-  #+NAME: agenda_add
-  #+BEGIN_SRC lisp
-    (defun belongs-before (segments)
-      (or (null segments)
-          (< time (segment-time (car segments)))))
-
-    (defun make-new-time-segment (time action)
-      (let ((q (make-queue)))
-        (insert-queue q action)
-        (make-time-segment time q)))
-
-    (defun add-to-segments (segments)
-      (if (equal (segment-time (car segments)) time)
-          (insert-queue (segment-queue (car segments))
-                        action)
-          ;; else
-          (let ((rest (cdr segments)))
-            (if (belongs-before rest)
-                (set (cdr segments)
-                     (cons (make-new-time-segment time action)
-                           (cdr segments)))
-                ;; else
-                (add-to-segments rest)))))
-
-    (defmethod add-to-agenda (agenda time action)
-      (let ((segments (segment agenda)))
-        (if (belongs-before segments)
-            (set-segments agenda
-                          (cons (make-new-time-segment time action)
-                                segments))
-            ;; else
-            (add-to-segments segments))))
-  #+END_SRC
-
-  Процедура, которая убирает из плана первый элемент, уничто жает элемент в начале
-  очереди первого отрезка времени. Если в результате отрезок становится пустым, мы
-  изымаем его из списка отрезков.
-
-  #+NAME: agenda_remove_first_item
-  #+BEGIN_SRC lisp
-    (defun remove-first-agenda-item (agenda)
-      (let ((q (segment-queue (first-segment agenda))))
-        (delete-queue q)
-        (if (empty-queue q)
-            (set-segments agenda (rest-segments agenda)))))
-  #+END_SRC
-
-  Первый элемент плана находится в начале очереди в первом временном отрезке. Каждый
-  раз, когда мы обращаемся к такому элементу, мы обновляем текущее время. Таким
-  образом, текущее время всегда будет совпадать с временем последнего обработанного
-  действия.
-
-  Благодаря тому, что это время хранится в голове плана, оно всегда доступно, даже если
-  соответствующий отрезок времени был уничтожен:
-
-  #+NAME: agenda_first_item
-  #+BEGIN_SRC lisp
-    (defun first-agenda-item (agenda)
-      (if (empty-agenda agenda)
-          (err "agenda empty")
-          (let ((first-seg (first-segment agenda)))
-            (set-current-time agenda (segment-time first-seg))
-            (front-queue (segment-queue first-seg)))))
-  #+END_SRC
-
-* Распространение ограничений
-
-
-* Компоненты
-* Разводка
+* TODO Распространение ограничений
+* TODO Компоненты
+* TODO Разводка
 
   В одном слое
 * Литература
   http://www.bestreferat.ru/referat-273547.html
+* Сборка
+
+  #+BEGIN_SRC lisp :tangle karnaugh.lisp :noweb tangle :padline no :comments link
+    ;; Макросы для корректного вывода ошибок
+    (ql:quickload "ltk")
+    (use-package :ltk)
+
+    (defmacro bprint (var)
+      `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
+
+    (defmacro err (var)
+      `(error (format nil "ERR:[~A]" (bprint ,var))))
+
+    <<agenda_class>>
+
+    <<wire_class>>
+
+    <<time_segment_class>>
+
+    <<queue_class>>
+
+    <<vis_class>>
+
+    <<elt_class_drivers>>
+
+
+    <<init>>
+
+
+    <<queue_empty>>
+
+    <<queue_front>>
+
+    <<queue_insert>>
+
+    <<queue_del>>
+
+
+    <<agenda_empty>>
+
+    <<agenda_object>>
+
+    <<agenda_add>>
+
+    <<after_delay>>
+
+    <<agenda_remove_first_item>>
+
+    <<agenda_first_item>>
+
+    <<propagate>>
+
+
+    <<wire_get_signal>>
+
+    <<wire_set_signal>>
+
+    <<wire_add_action>>
+
+
+    <<inverter>>
+
+    <<and-gate>>
+
+    <<or-gate>>
+
+
+    <<half_adder>>
+
+    <<full_adder>>
+
+
+    <<probe>>
+
+    <<components>>
+
+
+    <<test>>
+  #+END_SRC
