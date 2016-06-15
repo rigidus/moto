@@ -31,8 +31,9 @@
   (y 0 :type integer))
 
 (defstruct inout
-  (coord nil :type point)
-  (wire  nil :type symbol))
+  (coord   nil :type point)
+  (is-out  nil :type boolean)
+  (wire    nil :type symbol))
 
 (defclass vis ()
   ((base     :initarg :base     :accessor base    :type point)
@@ -90,40 +91,43 @@
       (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16)))))
 
 (defun viz (canvas elts)
-  (with-ltk ()
-    (let ((ht (make-hash-table))
-          (wires))
-      (mapcar #'(lambda (elt)
-                  (funcall (get-drawer elt) canvas)
-                  (setf wires (append wires (inputs elt)))
-                  (setf wires (append wires (outputs elt))))
-              elts)
-      (mapcar #'(lambda (x)
-                  (setf (gethash (inout-wire x) ht)
-                        (append (gethash (inout-wire x) ht)
-                                (list (inout-coord x)))))
-              wires)
-      (maphash #'(lambda (k v)
-                   (format t "~% ~A : ~A" k v)
-                   (let ((first-point nil))
-                     (loop :for n :in v :do
-                        (if (null first-point)
-                            (progn
-                              (setf first-point n)
-                              (unless (equal 0 (search "WIRE-" (symbol-name k)))
-                                (create-text canvas
-                                             (point-x n) (point-y n)
-                                             (format nil "~A=~A" (symbol-name k)
-                                                     (signal-value (symbol-value k))
-                                                     ))))
-                            ;; else
-                            (progn
-                              (create-line canvas
-                                           `(,(point-x first-point) ,(point-y first-point)
-                                              ,(point-x n) ,(point-y n)))
-                              (setf first-point n))))))
-               ht)
-      (pack canvas))))
+  (let ((ht (make-hash-table))
+        (wires))
+    (mapcar #'(lambda (elt)
+                (funcall (get-drawer elt) canvas)
+                (setf wires (append wires (inputs elt)))
+                (setf wires (append wires (outputs elt))))
+            elts)
+    (mapcar #'(lambda (x)
+                (setf (gethash (inout-wire x) ht)
+                      (append (gethash (inout-wire x) ht)
+                              (list x))))
+            wires)
+    (maphash #'(lambda (wire inouts)
+                 (format t "~% ~A : ~A" wire inouts)
+                 (let ((first-inout nil))
+                   (loop :for inout :in inouts :do
+                      (if (null first-inout)
+                          (progn
+                            (setf first-inout inout)
+                            (unless (equal 0 (search "WIRE-" (symbol-name wire)))
+                              (create-text canvas
+                                           (if (inout-is-out inout)
+                                               (point-x (inout-coord inout))
+                                               (- (point-x (inout-coord inout)) 30))
+                                           (if (inout-is-out inout)
+                                               (point-y (inout-coord inout))
+                                               (- (point-y (inout-coord inout)) 15))
+                                           (format nil "~A=~A" (symbol-name wire)
+                                                   (signal-value (symbol-value wire))))))
+                          ;; else
+                          (progn
+                            (create-line canvas `(,(point-x (inout-coord first-inout))
+                                                   ,(point-y (inout-coord first-inout))
+                                                   ,(point-x (inout-coord inout))
+                                                   ,(point-y (inout-coord inout))))
+                            (setf first-inout inout))))))
+             ht)))
 
 
 (defparameter *the-agenda* (make-instance 'agenda))
@@ -252,10 +256,12 @@
     (setf (inputs obj)
           (list (make-inout
                  :coord (make-point :x x :y (+ y 15))
+                 :is-out nil
                  :wire (name input))))
     (setf (outputs obj)
           (list (make-inout
                  :coord (make-point :x (+ x 55) :y (+ y 15))
+                 :is-out t
                  :wire (name output))))
     (flet ((invert-input ()
              (let ((new-value (logical-not (get-signal input))))
@@ -279,13 +285,16 @@
     (setf (inputs obj)
           (list (make-inout
                  :coord (make-point :x x :y (+ y 09))
+                 :is-out nil
                  :wire (name a1))
                 (make-inout
                  :coord (make-point :x x :y (+ y 21))
+                 :is-out nil
                  :wire (name a2))))
     (setf (outputs obj)
           (list (make-inout
                  :coord (make-point :x (+ x 55) :y (+ y 15))
+                 :is-out t
                  :wire (name output))))
     (flet ((and-action-procedure ()
              (let ((new-value (logical-and (get-signal a1) (get-signal a2))))
@@ -310,13 +319,16 @@
     (setf (inputs obj)
           (list (make-inout
                  :coord (make-point :x x :y (+ y 09))
+                 :is-out nil
                  :wire (name a1))
                 (make-inout
                  :coord (make-point :x x :y (+ y 21))
+                 :is-out nil
                  :wire (name a2))))
     (setf (outputs obj)
           (list (make-inout
                  :coord (make-point :x (+ x 55) :y (+ y 15))
+                 :is-out t
                  :wire (name output))))
     (flet ((or-action-procedure ()
              (let ((new-value (logical-or (get-signal a1) (get-signal a2))))
@@ -333,19 +345,23 @@
   (list
    (or-gate a b d (+ coord-x 15) (+ coord-y 0))
    (and-gate a b c (+ coord-x 0) (+ coord-y 50))
-   (inverter c e (+ coord-x 60) (+ coord-y 50))
-   (and-gate d e s (+ coord-x 90) (+ coord-y 6))))
+   (inverter c e (+ coord-x 90) (+ coord-y 50))
+   (and-gate d e s (+ coord-x 145) (+ coord-y 6))))
 
-(defun full-adder (a b c-in sum c-out coord-x coord-y
+(defun full-adder (a b c sum c-out coord-x coord-y
                    &key
                      (s (make-instance 'wire))
                      (c1 (make-instance 'wire))
-                     (c2 (make-instance 'wire)))
+                     (c2 (make-instance 'wire))
+                     (d1 (make-instance 'wire))
+                     (e1 (make-instance 'wire))
+                     (d2 (make-instance 'wire))
+                     (e2 (make-instance 'wire)))
   (append
-   (half-adder b c-in s c1 coord-x (+ 0 coord-y))
-   (half-adder a s sum c2 (+ coord-x 150) coord-y)
+   (half-adder b c s c1 coord-x (+ 0 coord-y) :d d1 :e e1)
+   (half-adder a s sum c2 (+ coord-x 250) coord-y :d d2 :e e2)
    (list
-    (or-gate c1 c2 c-out 200 200))))
+    (or-gate c2 c1 c-out 390 150))))
 
 
 (defun probe (name wire)
@@ -374,44 +390,36 @@
 ;;         (segments *the-agenda*))
 
 
-(let ((a (make-instance 'wire :name 'a))
-      (b (make-instance 'wire :name 'b))
-      (s (make-instance 'wire :name 's))
-      (c (make-instance 'wire :name 'c)))
-  (declare (special a))
-  (declare (special b))
-  (declare (special s))
-  (declare (special c))
-  (let ((elts (half-adder a b s c 50 50))
-        (canvas (make-instance 'canvas)))
+(defmacro declare-wires ((&rest wires) &body body)
+  `(let ,(loop :for wire :in wires :collect
+            `(,wire (make-instance 'wire :name ',wire)))
+     ,@(loop :for wire :in wires :collect
+          `(declare (special ,wire)))
+     ,@body))
+
+(declare-wires (d e a b s c)
+  (let ((elts (half-adder a b s c 50 50 :d d :e e)))
     (set-signal a 1)
     (set-signal b 1)
     (propagate *the-agenda*)
-    ;; (print elts))
-    (viz canvas elts)))
+    (with-ltk ()
+      (let* ((sc (make-instance 'scrolled-canvas :borderwidth 2 :relief :raised))
+             (canvas (canvas sc)))
+        (configure canvas :borderwidth 2 :relief :sunken :width 300 :height 200)
+        (pack sc :side :top :fill :both :expand t)
+        (scrollregion canvas 0 0 300 200 )
+        (viz canvas elts)))))
 
-(let ((s (make-instance 'wire :name 's))
-      (c1 (make-instance 'wire :name 'c1))
-      (c2 (make-instance 'wire :name 'c2)))
-  (declare (special s))
-  (declare (special c1))
-  (declare (special c2))
-  (let ((a (make-instance 'wire :name 'a))
-        (b (make-instance 'wire :name 'b))
-        (c-in (make-instance 'wire :name 'c-in))
-        (sum (make-instance 'wire :name 'sum))
-        (c-out (make-instance 'wire :name 'c-out)))
-    (declare (special cf))
-    (declare (special a))
-    (declare (special b))
-    (declare (special c-in))
-    (declare (special sum))
-    (declare (special c-out))
-    (let ((elts (full-adder a b c-in sum c-out 20 20 :s s :c1 c1 :c2 c2))
-          (canvas (make-instance 'canvas)))
-      (set-signal a 1)
-      (set-signal c-in 1)
-      (propagate *the-agenda*)
-      ;; (print elts))
-      (viz canvas elts))))
+(declare-wires (d1 e1 d2 e2 s c1 c2 a b c sum c-out)
+  (let ((elts (full-adder a b c sum c-out 50 50 :s s :c1 c1 :c2 c2 :d1 d1 :e1 e1 :d2 d2 :e2 e2)))
+    (set-signal a 1)
+    (set-signal c 1)
+    (propagate *the-agenda*)
+    (with-ltk ()
+      (let* ((sc (make-instance 'scrolled-canvas :borderwidth 2 :relief :raised))
+             (canvas (canvas sc)))
+        (configure canvas :borderwidth 2 :relief :sunken :width 600 :height 200)
+        (pack sc :side :top :fill :both :expand t)
+        (scrollregion canvas 0 0 600 200)
+        (viz canvas elts)))))
 ;; Сборка:1 ends here
