@@ -363,6 +363,28 @@
       (add-action a2 #'or-action-procedure))
     obj))
 
+(defun conn (input output coord-x coord-y)
+  (let* ((obj (make-instance 'conn-elt :base (make-point :x coord-x :y coord-y)))
+         (x (point-x (base obj)))
+         (y (point-y (base obj))))
+    (setf (inputs obj)
+          (list (make-inout
+                 :coord (make-point :x x :y (+ y 15))
+                 :is-out nil
+                 :wire (name input))))
+    (setf (outputs obj)
+          (list (make-inout
+                 :coord (make-point :x (+ x 20) :y (+ y 15))
+                 :is-out t
+                 :wire (name output))))
+    (flet ((conn-input ()
+             (let ((new-value (get-signal input)))
+               (after-delay *the-agenda* *conn-delay*
+                            (lambda ()
+                              (set-signal output new-value))))))
+      (add-action input #'conn-input))
+    obj))
+
 
 (defun half-adder (a b s c coord-x coord-y
                    &key (a1 (make-instance 'wire)) (a2 (make-instance 'wire))
@@ -380,8 +402,10 @@
    (and-gate d e s (+ coord-x 360) (+ coord-y 12))
    (conn c1 c (+ coord-x 400) (+ coord-y 80))))
 
-(defun full-adder (a a20 b c sum c-out coord-x coord-y
+(defun full-adder (a b c sum c-out coord-x coord-y
                    &key
+                     (a20   (make-instance 'wire))
+
                      (s   (make-instance 'wire))
                      (cf1 (make-instance 'wire))
                      (cf2 (make-instance 'wire))
@@ -412,30 +436,30 @@
     (or-gate cf2 cf1 c-out 980 152))))
 
 
-(defun probe (name wire)
-  (add-action wire #'(lambda ()
-                       (format t "~%name: ~A; time: ~A; value: ~A"
-                               name
-                               (current-time *the-agenda*)
-                               (get-signal wire)))))
+;; (defun probe (name wire)
+;;   (add-action wire #'(lambda ()
+;;                        (format t "~%name: ~A; time: ~A; value: ~A"
+;;                                name
+;;                                (current-time *the-agenda*)
+;;                                (get-signal wire)))))
 
-(defparameter *input-1* (make-instance 'wire :name '|a|))
-(defparameter *input-2* (make-instance 'wire :name '|b|))
-(defparameter *sum* (make-instance 'wire :name '|sum|))
-(defparameter *carry* (make-instance 'wire :name '|cf|))
-
-(probe 'sum *sum*)
-(probe 'carry *carry*)
-(half-adder *input-1* *input-2* *sum* *carry*)
-(set-signal *input-1* 1)
-(propagate *the-agenda*)
-
-(set-signal *input-2* 1)
-(propagate *the-agenda*)
-
-;; (mapcar #'(lambda (x)
-;;             (list (timepoint x) (front-ptr (queue x))))
-;;         (segments *the-agenda*))
+;; (defparameter *input-1* (make-instance 'wire :name '|a|))
+;; (defparameter *input-2* (make-instance 'wire :name '|b|))
+;; (defparameter *sum* (make-instance 'wire :name '|sum|))
+;; (defparameter *carry* (make-instance 'wire :name '|cf|))
+;; 
+;; (probe 'sum *sum*)
+;; (probe 'carry *carry*)
+;; (half-adder *input-1* *input-2* *sum* *carry*)
+;; (set-signal *input-1* 1)
+;; (propagate *the-agenda*)
+;; 
+;; (set-signal *input-2* 1)
+;; (propagate *the-agenda*)
+;; 
+;; ;; (mapcar #'(lambda (x)
+;; ;;             (list (timepoint x) (front-ptr (queue x))))
+;; ;;         (segments *the-agenda*))
 
 
 (defmacro declare-wires ((&rest wires) &body body)
@@ -491,11 +515,12 @@
 
 (declare-wires
     (a a20 b c sum c-out s cf1 cf2 a11 a12 b11 b12 c11 a21 a22 b21 b22 c21 d1 e1 d2 e2)
-  (let ((elts (full-adder a a20 b c sum c-out 50 50
+  (let ((elts (full-adder a b c sum c-out 50 50
+                          :a20 a20
                           :s s :cf1 cf1 :cf2 cf2 :a11 a11 :a12 a12 :b11 b11 :b12 b12
                           :c11 c11 :a21 a21 :a22 a22 :b21 b21 :b22 b22 :c21 c21
                           :d1 d1 :e1 e1 :d2 d2 :e2 e2)))
-    (set-signal a20 1)
+    (set-signal a 1)
     (set-signal c 1)
     (propagate *the-agenda*)
     (ltk-show elts 1200 300 1200 300)))
