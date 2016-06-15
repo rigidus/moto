@@ -43,11 +43,14 @@
 (defclass and-elt (vis) ())
 (defclass or-elt  (vis) ())
 (defclass not-elt (vis) ())
+(defclass conn-elt (vis) ())
+
 
 (defmethod get-drawer ((obj and-elt))
   (let ((x (point-x (base obj)))
         (y (point-y (base obj))))
     (lambda (canvas)
+      (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
       (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 30) ,(+ y 0)))
       (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
       (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 30) ,(+ y 30)))
@@ -64,6 +67,7 @@
   (let ((x (point-x (base obj)))
         (y (point-y (base obj))))
     (lambda (canvas)
+      (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
       (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 20) ,(+ y 0)))
       (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
       (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 20) ,(+ y 30)))
@@ -81,6 +85,7 @@
   (let ((x (point-x (base obj)))
         (y (point-y (base obj))))
     (lambda (canvas)
+      (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
       (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
       (create-line canvas `(,(+ x 10) ,(+ y 00) ,(+ x 35) ,(+ y 15)))
       (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 35) ,(+ y 15)))
@@ -89,6 +94,16 @@
       (create-oval canvas (+ x -1) (+ y 14) (+ x 1) (+ y 16))
       (create-line canvas `(,(+ x 45) ,(+ y 15) ,(+ x 55) ,(+ y 15)))
       (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16)))))
+
+(defmethod get-drawer ((obj conn-elt))
+  (let ((x (point-x (base obj)))
+        (y (point-y (base obj))))
+    (lambda (canvas)
+      ;; (create-rectangle canvas x y (+ x 20) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
+      ;; (create-oval canvas (- (+ x 15) 5) (- (+ y 15) 5) (+ (+ x 15) 5) (+ (+ y 15) 5))
+      (create-line canvas `(,(+ x 0) ,(+ y 15) ,(+ x 20) ,(+ y 15)))
+      (create-oval canvas (+ x -1) (+ y 14) (+ x 1) (+ y 16))
+      (create-oval canvas (+ x 19) (+ y 14) (+ x 21) (+ y 16)))))
 
 (defun viz (canvas elts)
   (let ((ht (make-hash-table))
@@ -113,17 +128,25 @@
                             (unless (equal 0 (search "WIRE-" (symbol-name wire)))
                               (create-text canvas
                                            (if (inout-is-out inout)
-                                               (point-x (inout-coord inout))
+                                               (+ 3 (point-x (inout-coord inout)))
                                                (- (point-x (inout-coord inout)) 30))
                                            (if (inout-is-out inout)
                                                (point-y (inout-coord inout))
-                                               (- (point-y (inout-coord inout)) 15))
+                                               (- (point-y (inout-coord inout)) 13))
                                            (format nil "~A=~A" (symbol-name wire)
                                                    (signal-value (symbol-value wire))))))
                           ;; else
                           (progn
+                            ;; (create-line canvas `(,(point-x (inout-coord first-inout))
+                            ;;                        ,(point-y (inout-coord first-inout))
+                            ;;                        ,(point-x (inout-coord inout))
+                            ;;                        ,(point-y (inout-coord inout))))
                             (create-line canvas `(,(point-x (inout-coord first-inout))
                                                    ,(point-y (inout-coord first-inout))
+                                                   ,(point-x (inout-coord first-inout))
+                                                   ,(point-y (inout-coord inout))))
+                            (create-line canvas `(,(point-x (inout-coord first-inout))
+                                                   ,(point-y (inout-coord inout))
                                                    ,(point-x (inout-coord inout))
                                                    ,(point-y (inout-coord inout))))
                             (setf first-inout inout))))))
@@ -132,6 +155,7 @@
 
 (defparameter *the-agenda* (make-instance 'agenda))
 (defparameter *inverter-delay* 2)
+(defparameter *conn-delay* 1)
 (defparameter *and-gate-delay* 3)
 (defparameter *or-gate-delay* 5)
 
@@ -341,27 +365,51 @@
 
 
 (defun half-adder (a b s c coord-x coord-y
-                   &key (d (make-instance 'wire)) (e (make-instance 'wire)))
-  (list
-   (or-gate a b d (+ coord-x 15) (+ coord-y 0))
-   (and-gate a b c (+ coord-x 0) (+ coord-y 50))
-   (inverter c e (+ coord-x 90) (+ coord-y 50))
-   (and-gate d e s (+ coord-x 145) (+ coord-y 6))))
-
-(defun full-adder (a b c sum c-out coord-x coord-y
-                   &key
-                     (s (make-instance 'wire))
+                   &key (a1 (make-instance 'wire)) (a2 (make-instance 'wire))
+                     (b1 (make-instance 'wire)) (b2 (make-instance 'wire))
                      (c1 (make-instance 'wire))
-                     (c2 (make-instance 'wire))
-                     (d1 (make-instance 'wire))
-                     (e1 (make-instance 'wire))
-                     (d2 (make-instance 'wire))
-                     (e2 (make-instance 'wire)))
+                     (d (make-instance 'wire))  (e (make-instance 'wire)))
+  (list
+   (conn a a1 (+ coord-x 0) (+ coord-y 0))
+   (conn a1 a2 (+ coord-x 70) (+ coord-y 0))
+   (conn b b1 (+ coord-x 0) (+ coord-y 40))
+   (conn b b2 (+ coord-x 125) (+ coord-y 40))
+   (or-gate a2 b2 d (+ coord-x 195) (+ coord-y 6))
+   (and-gate b2 a1 c1 (+ coord-x 195) (+ coord-y 56))
+   (inverter c1 e (+ coord-x 305) (+ coord-y 56))
+   (and-gate d e s (+ coord-x 360) (+ coord-y 12))
+   (conn c1 c (+ coord-x 400) (+ coord-y 80))))
+
+(defun full-adder (a a20 b c sum c-out coord-x coord-y
+                   &key
+                     (s   (make-instance 'wire))
+                     (cf1 (make-instance 'wire))
+                     (cf2 (make-instance 'wire))
+
+                     (a11 (make-instance 'wire))
+                     (a12 (make-instance 'wire))
+                     (b11 (make-instance 'wire))
+                     (b12 (make-instance 'wire))
+                     (c11 (make-instance 'wire))
+
+                     (a21 (make-instance 'wire))
+                     (a22 (make-instance 'wire))
+                     (b21 (make-instance 'wire))
+                     (b22 (make-instance 'wire))
+                     (c21 (make-instance 'wire))
+
+                     (d1  (make-instance 'wire))
+                     (e1  (make-instance 'wire))
+                     (d2  (make-instance 'wire))
+                     (e2  (make-instance 'wire)))
   (append
-   (half-adder b c s c1 coord-x (+ 0 coord-y) :d d1 :e e1)
-   (half-adder a s sum c2 (+ coord-x 250) coord-y :d d2 :e e2)
+   (list (conn a a20 coord-x coord-y))
+   (half-adder b c s   cf1 coord-x         (+ coord-y 28)
+               :a1 a11 :a2 a12 :b1 b11 :b2 b12 :c1 c11 :d d1 :e e1)
+   (half-adder a20 s sum cf2 (+ coord-x 460) coord-y
+               :a1 a21 :a2 a22 :b1 b21 :b2 b22 :c1 c21 :d d2 :e e2)
    (list
-    (or-gate c2 c1 c-out 390 150))))
+    (or-gate cf2 cf1 c-out 980 152))))
 
 
 (defun probe (name wire)
@@ -433,17 +481,22 @@
                               :outline "red"))))
        (viz canvas ,elts))))
 
-(declare-wires (d e a b s c)
-  (let ((elts (half-adder a b s c 50 50 :d d :e e)))
+(declare-wires (a b a1 a2 b1 b2 c1 d e s c)
+  (let ((elts (half-adder a b s c 50 50
+                          :a1 a1 :a2 a2 :b1 b1 :b2 b2 :c1 c1 :d d :e e)))
     (set-signal a 1)
     (set-signal b 1)
     (propagate *the-agenda*)
-    (ltk-show elts 300 200 300 200)))
+    (ltk-show elts 500 200 500 200)))
 
-(declare-wires (d1 e1 d2 e2 s c1 c2 a b c sum c-out)
-  (let ((elts (full-adder a b c sum c-out 50 50 :s s :c1 c1 :c2 c2 :d1 d1 :e1 e1 :d2 d2 :e2 e2)))
-    (set-signal a 1)
+(declare-wires
+    (a a20 b c sum c-out s cf1 cf2 a11 a12 b11 b12 c11 a21 a22 b21 b22 c21 d1 e1 d2 e2)
+  (let ((elts (full-adder a a20 b c sum c-out 50 50
+                          :s s :cf1 cf1 :cf2 cf2 :a11 a11 :a12 a12 :b11 b11 :b12 b12
+                          :c11 c11 :a21 a21 :a22 a22 :b21 b21 :b22 b22 :c21 c21
+                          :d1 d1 :e1 e1 :d2 d2 :e2 e2)))
+    (set-signal a20 1)
     (set-signal c 1)
     (propagate *the-agenda*)
-    (ltk-show elts 600 200 600 200)))
+    (ltk-show elts 1200 300 1200 300)))
 ;; Сборка:1 ends here
