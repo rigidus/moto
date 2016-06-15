@@ -104,7 +104,7 @@
                               (list x))))
             wires)
     (maphash #'(lambda (wire inouts)
-                 (format t "~% ~A : ~A" wire inouts)
+                 ;; (format t "~% ~A : ~A" wire inouts)
                  (let ((first-inout nil))
                    (loop :for inout :in inouts :do
                       (if (null first-inout)
@@ -400,10 +400,37 @@
 (defmacro ltk-show (elts width height scroll-width scroll-height)
   `(with-ltk ()
      (let* ((sc (make-instance 'scrolled-canvas :borderwidth 2 :relief :raised))
-            (canvas (canvas sc)))
-       (configure canvas :borderwidth 2 :relief :sunken :width ,width :height ,height)
+            (canvas (canvas sc))
+            (down nil))
+       (configure canvas
+                  :borderwidth 2 :relief :sunken
+                  :width ,width :height ,height)
        (pack sc :side :top :fill :both :expand t)
        (scrollregion canvas 0 0 ,scroll-width ,scroll-height)
+       ;; (print (choose-color :parent canvas :title "title" :initialcolor "red"))
+       (create-text canvas 15 7 "test" :fill "red")
+       (bind canvas "<ButtonPress-1>"
+             (lambda (evt)
+               (setf down (make-point :x (event-x evt) :y (event-y evt)))
+               (create-oval canvas
+                            (- (event-x evt) 10) (- (event-y evt) 10)
+                            (+ (event-x evt) 10) (+ (event-y evt) 10)
+                            :outline "blue")))
+       (bind canvas "<ButtonRelease-1>" (lambda (evt)
+                                          (declare (ignore evt))
+                                          (setf down nil)))
+       (bind canvas "<Motion>"
+             (lambda (evt)
+               (when down
+                 (create-oval canvas
+                              (- (point-x down) 10) (- (point-y down) 10)
+                              (+ (point-x down) 10) (+ (point-y down) 10)
+                              :outline "white")
+                 (setf down (make-point :x (event-x evt) :y (event-y evt)))
+                 (create-oval canvas
+                              (- (event-x evt) 10) (- (event-y evt) 10)
+                              (+ (event-x evt) 10) (+ (event-y evt) 10)
+                              :outline "red"))))
        (viz canvas ,elts))))
 
 (declare-wires (d e a b s c)
