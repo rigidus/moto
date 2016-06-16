@@ -273,8 +273,8 @@
         obj))
   #+END_SRC
 
-  Аналогичным образом сделаем клемму (точку соединения), которая отличается от
-  инвертора только тем, что не изменяет значение поступившее на вход:
+  Аналогичным образом сделаем повторитель (клемму или точку соединения, которая
+  отличается от инвертора только тем, что не изменяет значение поступившее на вход:
 
   #+NAME: conn
   #+BEGIN_SRC lisp
@@ -308,7 +308,7 @@
   проводах, и затем требует, чтобы изменение значения выходного провода произошло
   спустя задержку длиной в and-gate-delay.
 
-  #+NAME: and-gate
+  #+NAME: and_gate
   #+BEGIN_SRC lisp
     (defun logical-and (a b)
       (cond ((and (equal a 1) (equal b 1)) 1)
@@ -345,9 +345,41 @@
         obj))
   #+END_SRC
 
+  Теперь также определим инверсию коньюнкции (элемент И-НЕ):
+
+  #+NAME: nand_gate
+  #+BEGIN_SRC lisp
+    (defun nand-gate (a1 a2 output coord-x coord-y)
+      (let* ((obj (make-instance 'nand-elt :base (make-point :x coord-x :y coord-y)))
+             (x (point-x (base obj)))
+             (y (point-y (base obj))))
+        (setf (inputs obj)
+              (list (make-inout
+                     :coord (make-point :x x :y (+ y 09))
+                     :is-out nil
+                     :wire (name a1))
+                    (make-inout
+                     :coord (make-point :x x :y (+ y 21))
+                     :is-out nil
+                     :wire (name a2))))
+        (setf (outputs obj)
+              (list (make-inout
+                     :coord (make-point :x (+ x 55) :y (+ y 15))
+                     :is-out t
+                     :wire (name output))))
+        (flet ((and-action-procedure ()
+                 (let ((new-value (logical-not (logical-and (get-signal a1) (get-signal a2)))))
+                   (after-delay *the-agenda*  *and-gate-delay*
+                                (lambda ()
+                                  (set-signal output new-value))))))
+          (add-action a1 #'and-action-procedure)
+          (add-action a2 #'and-action-procedure))
+        obj))
+  #+END_SRC
+
   Аналогичным образом определим ИЛИ-элемент:
 
-  #+NAME: or-gate
+  #+NAME: or_gate
   #+BEGIN_SRC lisp
     (defun logical-or (a b)
       (cond ((and (equal a 1) (equal b 1)) 1)
@@ -376,6 +408,103 @@
                      :wire (name output))))
         (flet ((or-action-procedure ()
                  (let ((new-value (logical-or (get-signal a1) (get-signal a2))))
+                   (after-delay *the-agenda* *or-gate-delay*
+                                (lambda ()
+                                  (set-signal output new-value))))))
+          (add-action a1 #'or-action-procedure)
+          (add-action a2 #'or-action-procedure))
+        obj))
+  #+END_SRC
+
+  Теперь также определим инверсию коньюнкции (элемент ИЛИ-НЕ):
+
+  #+NAME: nor_gate
+  #+BEGIN_SRC lisp
+    (defun nor-gate (a1 a2 output coord-x coord-y)
+      (let* ((obj (make-instance 'nor-elt :base (make-point :x coord-x :y coord-y)))
+             (x (point-x (base obj)))
+             (y (point-y (base obj))))
+        (setf (inputs obj)
+              (list (make-inout
+                     :coord (make-point :x x :y (+ y 09))
+                     :is-out nil
+                     :wire (name a1))
+                    (make-inout
+                     :coord (make-point :x x :y (+ y 21))
+                     :is-out nil
+                     :wire (name a2))))
+        (setf (outputs obj)
+              (list (make-inout
+                     :coord (make-point :x (+ x 55) :y (+ y 15))
+                     :is-out t
+                     :wire (name output))))
+        (flet ((or-action-procedure ()
+                 (let ((new-value (logical-not (logical-or (get-signal a1) (get-signal a2)))))
+                   (after-delay *the-agenda* *or-gate-delay*
+                                (lambda ()
+                                  (set-signal output new-value))))))
+          (add-action a1 #'or-action-procedure)
+          (add-action a2 #'or-action-procedure))
+        obj))
+  #+END_SRC
+
+  Теперь также определим исключающее или (XOR, неравнозначность, инверсия
+  равнозначности, сложение по модулю два):
+
+  #+NAME: xor_gate
+  #+BEGIN_SRC lisp
+    (defun xor-gate (a1 a2 output coord-x coord-y)
+      (let* ((obj (make-instance 'xor-elt :base (make-point :x coord-x :y coord-y)))
+             (x (point-x (base obj)))
+             (y (point-y (base obj))))
+        (setf (inputs obj)
+              (list (make-inout
+                     :coord (make-point :x x :y (+ y 09))
+                     :is-out nil
+                     :wire (name a1))
+                    (make-inout
+                     :coord (make-point :x x :y (+ y 21))
+                     :is-out nil
+                     :wire (name a2))))
+        (setf (outputs obj)
+              (list (make-inout
+                     :coord (make-point :x (+ x 55) :y (+ y 15))
+                     :is-out t
+                     :wire (name output))))
+        (flet ((or-action-procedure ()
+                 (let ((new-value (logical-not (logical-or (get-signal a1) (get-signal a2)))))
+                   (after-delay *the-agenda* *or-gate-delay*
+                                (lambda ()
+                                  (set-signal output new-value))))))
+          (add-action a1 #'or-action-procedure)
+          (add-action a2 #'or-action-procedure))
+        obj))
+  #+END_SRC
+
+  Теперь также определим исключающее или-не (равнозначность):
+
+  #+NAME: nxor_gate
+  #+BEGIN_SRC lisp
+    (defun nxor-gate (a1 a2 output coord-x coord-y)
+      (let* ((obj (make-instance 'nxor-elt :base (make-point :x coord-x :y coord-y)))
+             (x (point-x (base obj)))
+             (y (point-y (base obj))))
+        (setf (inputs obj)
+              (list (make-inout
+                     :coord (make-point :x x :y (+ y 09))
+                     :is-out nil
+                     :wire (name a1))
+                    (make-inout
+                     :coord (make-point :x x :y (+ y 21))
+                     :is-out nil
+                     :wire (name a2))))
+        (setf (outputs obj)
+              (list (make-inout
+                     :coord (make-point :x (+ x 55) :y (+ y 15))
+                     :is-out t
+                     :wire (name output))))
+        (flet ((or-action-procedure ()
+                 (let ((new-value (logical-not (logical-or (get-signal a1) (get-signal a2)))))
                    (after-delay *the-agenda* *or-gate-delay*
                                 (lambda ()
                                   (set-signal output new-value))))))
@@ -752,7 +881,7 @@
     ;;         (segments *the-agenda*))
   #+END_SRC
 
-* Визуализация
+* COMMENT Визуализация
 
   Чтобы визуализировать функциональный элемент, нужно иметь объект, который будет
   содержать координаты изображения и всех его входов и выходов. Базовая координата -
@@ -785,9 +914,13 @@
 
   #+NAME: elt_class_drivers
   #+BEGIN_SRC lisp
-    (defclass and-elt (vis) ())
-    (defclass or-elt  (vis) ())
-    (defclass not-elt (vis) ())
+    (defclass and-elt  (vis) ())
+    (defclass nand-elt (vis) ())
+    (defclass or-elt   (vis) ())
+    (defclass nor-elt  (vis) ())
+    (defclass xor-elt  (vis) ())
+    (defclass nxor-elt (vis) ())
+    (defclass not-elt  (vis) ())
     (defclass conn-elt (vis) ())
 
 
@@ -808,23 +941,98 @@
           (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
           (create-text canvas (+ x 15) (+ y 7) "and"))))
 
+    (defmethod get-drawer ((obj nand-elt))
+      (let ((x (point-x (base obj)))
+            (y (point-y (base obj))))
+        (lambda (canvas)
+          (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 32) ,(+ y 0)))
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
+          (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 32) ,(+ y 30)))
+          (create-arc canvas (+ x 15) y (+ x 50) (+ y 30) :start -90 :extent 72 :style "arc")
+          (create-arc canvas (+ x 15) y (+ x 50) (+ y 30) :start 90 :extent -72 :style "arc")
+          (create-oval canvas (- (+ x 49) 4) (- (+ y 15) 4) (+ (+ x 49) 4) (+ (+ y 15) 4))
+          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 10) ,(+ y 09)))
+          (create-oval canvas (+ x -1) (+ y 08) (+ x 1) (+ y 10))
+          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 10) ,(+ y 21)))
+          (create-oval canvas (+ x -1) (+ y 20) (+ x 1) (+ y 22))
+          (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
+          (create-text canvas (+ x 13) (+ y 7) "nand"))))
+
     (defmethod get-drawer ((obj or-elt))
       (let ((x (point-x (base obj)))
             (y (point-y (base obj))))
         (lambda (canvas)
           (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
           (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 20) ,(+ y 0)))
-          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 10) ,(+ y 30)))
+          (create-arc canvas (- x 0) y (+ x 15) (+ y 30) :start -90 :extent 180 :style "arc")
           (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 20) ,(+ y 30)))
           (create-arc canvas (+ x -15) (+ y 00) (+ x 45) (+ y 60) :start 30 :extent 60 :style "arc")
           (create-arc canvas (+ x -15) (+ y 30) (+ x 45) (- y 30) :start -30 :extent -60 :style "arc")
-          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 10) ,(+ y 09)))
+          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 14) ,(+ y 09)))
           (create-oval canvas (+ x -1) (+ y 08) (+ x 1) (+ y 10))
-          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 10) ,(+ y 21)))
+          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 14) ,(+ y 21)))
           (create-oval canvas (+ x -1) (+ y 20) (+ x 1) (+ y 22))
           (create-line canvas `(,(+ x 40) ,(+ y 15) ,(+ x 55) ,(+ y 15)))
           (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
-          (create-text canvas (+ x 15) (+ y 7) "or"))))
+          (create-text canvas (+ x 20) (+ y 7) "or"))))
+
+    (defmethod get-drawer ((obj nor-elt))
+      (let ((x (point-x (base obj)))
+            (y (point-y (base obj))))
+        (lambda (canvas)
+          (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 20) ,(+ y 0)))
+          (create-arc canvas (- x 0) y (+ x 15) (+ y 30) :start -90 :extent 180 :style "arc")
+          (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 20) ,(+ y 30)))
+          (create-arc canvas (+ x -11) (+ y 00) (+ x 50) (+ y 60) :start 30 :extent 60 :style "arc")
+          (create-arc canvas (+ x -11) (+ y 30) (+ x 50) (- y 30) :start -30 :extent -60 :style "arc")
+          (create-oval canvas (- (+ x 49) 4) (- (+ y 15) 4) (+ (+ x 49) 4) (+ (+ y 15) 4))
+          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 14) ,(+ y 09)))
+          (create-oval canvas (+ x -1) (+ y 08) (+ x 1) (+ y 10))
+          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 14) ,(+ y 21)))
+          (create-oval canvas (+ x -1) (+ y 20) (+ x 1) (+ y 22))
+          (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
+          (create-text canvas (+ x 19) (+ y 7) "nor"))))
+
+    (defmethod get-drawer ((obj xor-elt))
+      (let ((x (point-x (base obj)))
+            (y (point-y (base obj))))
+        (lambda (canvas)
+          (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 20) ,(+ y 0)))
+          (create-arc canvas (- x 5) y (+ x 10) (+ y 30) :start -90 :extent 180 :style "arc")
+          (create-arc canvas (- x 0) y (+ x 15) (+ y 30) :start -90 :extent 180 :style "arc")
+          (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 20) ,(+ y 30)))
+          (create-arc canvas (+ x -11) (+ y 00) (+ x 50) (+ y 60) :start 30 :extent 60 :style "arc")
+          (create-arc canvas (+ x -11) (+ y 30) (+ x 50) (- y 30) :start -30 :extent -60 :style "arc")
+          ;; (create-oval canvas (- (+ x 49) 4) (- (+ y 15) 4) (+ (+ x 49) 4) (+ (+ y 15) 4))
+          (create-line canvas `(,(+ x 45) ,(+ y 15) ,(+ x 55) ,(+ y 15)))
+          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 14) ,(+ y 09)))
+          (create-oval canvas (+ x -1) (+ y 08) (+ x 1) (+ y 10))
+          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 14) ,(+ y 21)))
+          (create-oval canvas (+ x -1) (+ y 20) (+ x 1) (+ y 22))
+          (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
+          (create-text canvas (+ x 19) (+ y 7) "xor"))))
+
+    (defmethod get-drawer ((obj nxor-elt))
+      (let ((x (point-x (base obj)))
+            (y (point-y (base obj))))
+        (lambda (canvas)
+          (create-rectangle canvas x y (+ x 55) (+ y 30) :fill "#d0d0d0" :outline "#c0c0c0")
+          (create-line canvas `(,(+ x 10) ,(+ y 0) ,(+ x 20) ,(+ y 0)))
+          (create-arc canvas (- x 3) y (+ x 7) (+ y 30) :start -90 :extent 180 :style "arc")
+          (create-arc canvas (- x 0) y (+ x 12) (+ y 30) :start -90 :extent 180 :style "arc")
+          (create-line canvas `(,(+ x 10) ,(+ y 30) ,(+ x 20) ,(+ y 30)))
+          (create-arc canvas (+ x -11) (+ y 00) (+ x 50) (+ y 60) :start 30 :extent 60 :style "arc")
+          (create-arc canvas (+ x -11) (+ y 30) (+ x 50) (- y 30) :start -30 :extent -60 :style "arc")
+          (create-oval canvas (- (+ x 49) 4) (- (+ y 15) 4) (+ (+ x 49) 4) (+ (+ y 15) 4))
+          (create-line canvas `(,(+ x 0) ,(+ y 09) ,(+ x 12) ,(+ y 09)))
+          (create-oval canvas (+ x -1) (+ y 08) (+ x 1) (+ y 10))
+          (create-line canvas `(,(+ x 0) ,(+ y 21) ,(+ x 12) ,(+ y 21)))
+          (create-oval canvas (+ x -1) (+ y 20) (+ x 1) (+ y 22))
+          (create-oval canvas (+ x 54) (+ y 14) (+ x 56) (+ y 16))
+          (create-text canvas (+ x 15) (+ y 7) "nxor"))))
 
     (defmethod get-drawer ((obj not-elt))
       (let ((x (point-x (base obj)))
@@ -957,7 +1165,7 @@
         (set-signal a 1)
         (set-signal b 1)
         (propagate *the-agenda*)
-        (ltk-show elts 500 200 500 200)))
+        (ltk-show elts 600 300 600 300)))
 
     (declare-wires
         (a a20 b c sum c-out s cf1 cf2 a11 a12 b11 b12 c11 a21 a22 b21 b22 c21 d1 e1 d2 e2)
@@ -971,6 +1179,33 @@
         (propagate *the-agenda*)
         (ltk-show elts 1200 300 1200 300)))
   #+END_SRC
+
+* Построение таблицы истинности
+
+  Определим входы и выходы, которые нас интересуют и для каждого вычислим выходы
+
+  #+NAME: assembly_table
+  #+BEGIN_SRC lisp
+    (defparameter *tbl*
+      (let ((result))
+        (declare-wires
+            (a a20 b c sum c-out s cf1 cf2 a11 a12 b11 b12 c11 a21 a22 b21 b22 c21 d1 e1 d2 e2)
+          (loop :for _a :in '(0 1) :do
+             (loop :for _b :in '(0 1) :do
+                (loop :for _c :in '(0 1) :do
+                   (let ((elts (full-adder a b c sum c-out 50 50 :a20 a20 :s s
+                                           :cf1 cf1 :cf2 cf2 :a11 a11 :a12 a12 :b11 b11 :b12 b12
+                                           :c11 c11 :a21 a21 :a22 a22 :b21 b21 :b22 b22 :c21 c21
+                                           :d1 d1 :e1 e1 :d2 d2 :e2 e2)))
+
+                     (set-signal a _a)
+                     (set-signal b _b)
+                     (set-signal c _c)
+                     (propagate *the-agenda*)
+                     (push (list _a _b _c (get-signal sum) (get-signal c-out)) result))))))
+        (reverse result)))
+  #+END_SRC
+
 * TODO Автоматическая оптимизация
 ** TODO Удаление conn-elt.
 ** TODO Другие типы элементов
@@ -1128,9 +1363,13 @@
 
     <<inverter>>
 
-    <<and-gate>>
+    <<and_gate>>
 
-    <<or-gate>>
+    <<nand_gate>>
+
+    <<or_gate>>
+
+    <<nor_gate>>
 
     <<conn>>
 
