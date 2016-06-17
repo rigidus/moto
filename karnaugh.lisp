@@ -533,9 +533,7 @@
    (and-gate b2 a1 c1 (+ coord-x 195) (+ coord-y 56))
    (inverter c1 e (+ coord-x 305) (+ coord-y 56))
    (and-gate d e s (+ coord-x 360) (+ coord-y 12))
-   (conn c1 c (+ coord-x 400) (+ coord-y 80))
-   (nxor-gate b1 a2 c1 300 200)
-   ))
+   (conn c1 c (+ coord-x 400) (+ coord-y 80))))
 
 (defun full-adder (a b c sum c-out coord-x coord-y
                    &key

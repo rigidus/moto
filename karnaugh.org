@@ -881,7 +881,7 @@
     ;;         (segments *the-agenda*))
   #+END_SRC
 
-* COMMENT Визуализация
+* Визуализация
 
   Чтобы визуализировать функциональный элемент, нужно иметь объект, который будет
   содержать координаты изображения и всех его входов и выходов. Базовая координата -
@@ -1098,18 +1098,18 @@
                                                        (signal-value (symbol-value wire))))))
                               ;; else
                               (progn
-                                ;; (create-line canvas `(,(point-x (inout-coord first-inout))
-                                ;;                        ,(point-y (inout-coord first-inout))
-                                ;;                        ,(point-x (inout-coord inout))
-                                ;;                        ,(point-y (inout-coord inout))))
                                 (create-line canvas `(,(point-x (inout-coord first-inout))
                                                        ,(point-y (inout-coord first-inout))
-                                                       ,(point-x (inout-coord first-inout))
-                                                       ,(point-y (inout-coord inout))))
-                                (create-line canvas `(,(point-x (inout-coord first-inout))
-                                                       ,(point-y (inout-coord inout))
                                                        ,(point-x (inout-coord inout))
                                                        ,(point-y (inout-coord inout))))
+                                ;; (create-line canvas `(,(point-x (inout-coord first-inout))
+                                ;;                        ,(point-y (inout-coord first-inout))
+                                ;;                        ,(point-x (inout-coord first-inout))
+                                ;;                        ,(point-y (inout-coord inout))))
+                                ;; (create-line canvas `(,(point-x (inout-coord first-inout))
+                                ;;                        ,(point-y (inout-coord inout))
+                                ;;                        ,(point-x (inout-coord inout))
+                                ;;                        ,(point-y (inout-coord inout))))
                                 (setf first-inout inout))))))
                  ht)))
   #+END_SRC
@@ -1127,36 +1127,48 @@
       `(with-ltk ()
          (let* ((sc (make-instance 'scrolled-canvas :borderwidth 2 :relief :raised))
                 (canvas (canvas sc))
-                (down nil))
-           (configure canvas
-                      :borderwidth 2 :relief :sunken
-                      :width ,width :height ,height)
+                (down nil)
+                (drag nil))
+           (configure canvas :borderwidth 2 :relief :sunken :width ,width :height ,height)
            (pack sc :side :top :fill :both :expand t)
            (scrollregion canvas 0 0 ,scroll-width ,scroll-height)
-           ;; (print (choose-color :parent canvas :title "title" :initialcolor "red"))
-           (create-text canvas 15 7 "test" :fill "red")
            (bind canvas "<ButtonPress-1>"
                  (lambda (evt)
-                   (setf down (make-point :x (event-x evt) :y (event-y evt)))
-                   (create-oval canvas
-                                (- (event-x evt) 10) (- (event-y evt) 10)
-                                (+ (event-x evt) 10) (+ (event-y evt) 10)
-                                :outline "blue")))
+                   (let ((elt2 (remove-if #'(lambda (elt)
+                                              (or (equal (type-of elt) 'conn-elt)
+                                                   (let* ((point (base elt))
+                                                          (x (point-x point))
+                                                          (y (point-y point)))
+                                                     (or
+                                                      (< (event-x evt) x)
+                                                      (< (event-y evt) y)
+                                                      (> (event-x evt) (+ 55 x))
+                                                      (> (event-y evt) (+ 30 y))))))
+                                          elts)))
+                     (unless (null elt2)
+                       (setf drag (car elt2))
+                       (create-text canvas 15 7 (bprint elt2)  :fill "red")
+                       (setf down (make-point :x (event-x evt) :y (event-y evt)))))))
            (bind canvas "<ButtonRelease-1>" (lambda (evt)
                                               (declare (ignore evt))
-                                              (setf down nil)))
+                                              (setf down nil)
+                                              (setf drag nil)
+                                              (clear canvas)
+                                              (viz canvas ,elts)))
            (bind canvas "<Motion>"
                  (lambda (evt)
                    (when down
-                     (create-oval canvas
-                                  (- (point-x down) 10) (- (point-y down) 10)
-                                  (+ (point-x down) 10) (+ (point-y down) 10)
-                                  :outline "white")
                      (setf down (make-point :x (event-x evt) :y (event-y evt)))
-                     (create-oval canvas
-                                  (- (event-x evt) 10) (- (event-y evt) 10)
-                                  (+ (event-x evt) 10) (+ (event-y evt) 10)
-                                  :outline "red"))))
+                     (unless (null drag)
+                       (loop :for input :in (append (inputs drag) (outputs drag)) :do
+                          (let ((dif-x (- (point-x (inout-coord input)) (point-x (base drag))))
+                                (dif-y (- (point-y (inout-coord input)) (point-y (base drag)))))
+                            (setf (point-x (inout-coord input)) (+ (event-x evt) dif-x))
+                            (setf (point-y (inout-coord input)) (+ (event-y evt) dif-y))
+                            ))
+                       (setf (point-x (base drag)) (event-x evt))
+                       (setf (point-y (base drag)) (event-y evt))
+                       (funcall (get-drawer drag) canvas)))))
            (viz canvas ,elts))))
 
     (declare-wires (a b a1 a2 b1 b2 c1 d e s c)
@@ -1209,6 +1221,42 @@
 * TODO Автоматическая оптимизация
 ** TODO Удаление conn-elt.
 ** TODO Другие типы элементов
+
+   Тождества для преобразование в И-НЕ
+
+   x1x2 or x3x4 = not( not(x1x2) (not(x3x4) ) )
+   x1 or x2     = not( not(x1)   (not(x2)   ) )
+   not(x1)      = not( x1 x1 )
+
+** TODO Быстродействие
+
+   Максимальная суммарная задержка распространения сигнала
+
+** TODO Аппаратные затраты
+
+   Минимизируем число эквивалентных корпусов
+
+** TODO Потребляемая мощность
+
+   Усредненное значение мощностей, потребляемых всеми ИС "0" и "1" состояниях
+
+   Состояние "0" и "1" элемента определяется по состоянию его выхода. Если элемент
+   имеет несколько выходов потребляемая мощность указыватся при всех выходах,
+   находящихся в одинаковом состоянии.
+
+   Элементы, имеющие выходы, принципиально не могущие находится в одном и том же
+   состоянии (например, триггер) естественно оцениваются по одному значению
+   потребляемой мощности
+
+** TODO Простота разводки
+*** TODO В одном слое
+*** TODO В нескольких слоях
+*** TODO Переходные отверстия
+** TODO Минимизация известными методам
+*** TODO Карты Карно
+*** TODO Алгоритм Рота
+*** TODO Метод Квайна-Мак-Класски
+*** TODO ...
 * TODO Построение схемы по таблицам комбинаций входов и выходоа
 
   Предположим наличие комбинационной схемы, у которой N входов и M выходов. Для всех
@@ -1294,9 +1342,6 @@
 
 * TODO Распространение ограничений
 * TODO Компоненты
-* TODO Разводка
-** TODO В одном слое
-** TODO В двух слоях с переходными отверстиями
 * Литература
   http://www.bestreferat.ru/referat-273547.html
 * Сборка
