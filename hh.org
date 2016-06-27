@@ -2634,7 +2634,7 @@
                             :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
    #+END_SRC
 
-** Состояния вакансий
+** COMMENT Состояния вакансий
 
    После загрузки, вакансия получает статус =unsort=
 
@@ -2652,6 +2652,9 @@
    | uns-uni | unsort        | uninteresting |
    | uns-int | unsort        | interesting   |
    | uns-res | unsort        | responded     |
+   | uns-bee | unsort        | beenviewed    |
+   | uns-rej | unsort        | reject        |
+   | uns-inv | unsort        | invite        |
    | uni-int | uninteresting | interesting   |
    | uni-res | uninteresting | responded     |
    | uni-uni | uninteresting | uninteresting |
@@ -2723,6 +2726,12 @@
        "unsort        | interesting   |")
      (defun uns-res ()
        "unsort        | responded     |")
+     (defun uns-bee ()
+       "unsort        | beenviewed    |")
+     (defun uns-rej ()
+       "unsort        | reject        |")
+     (defun uns-inv ()
+       "unsort        | invite        |")
      (defun uni-int ()
        "uninteresting | interesting   |")
      (defun uni-res ()
@@ -2910,7 +2919,7 @@
    accessType.string={VISIBILITY}
    _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
 
-   Где вместо {VISIBILITY} посылается тип видимости
+   Где вместо {VISIBILITY} посылается тип видимости:
 
    -everyone
    -no_one
@@ -3626,6 +3635,10 @@
     resumeId=47592531
     _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
 
+** TODO Синхронизация резюме на hh и в хранилище
+*** Парсер резюме в личном кабинете
+** Создание резюме под вакасию по шаблону
+*** Сущности шаблона резюме
 ** TODO Сущность резюме соискателя (=entity:resume=)
 
    Иногда у одного соискателя может быть несколько резюме. Опишем структуру данных резюме:
@@ -4169,6 +4182,7 @@
      (defmethod process-respond (respond)
        ;; Найти src-id вакансии
        (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
+         (print respond)
          ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
          (unless (equal "Не просмотрен" (getf respond :result))
            (unless (null src-id)
@@ -4176,8 +4190,9 @@
              (let ((target (car (find-vacancy :src-id src-id))))
                (unless (null target)
                  (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
-                 ;; и у нее статус RESPONDED или BEENVIEWED  - установить статус
-                 (when (or (equal ":RESPONDED" (state target))
+                 ;; и у нее статус UNSORT, RESPONDED или BEENVIEWED  - установить статус
+                 (when (or (equal ":UNSORT" (state target))
+                           (equal ":RESPONDED" (state target))
                            (equal ":BEENVIEWED" (state target)))
                    (cond ((equal "Просмотрен" (getf respond :result))
                           (takt target :beenviewed))
@@ -4239,12 +4254,12 @@
 
      (make-detect (responses-vacancy)
        (`("td" (("class" "prosper-table__cell"))
-               ("div" (("class" "responses-vacancy"))
-                      ("a"
-                       (("class" ,_)
-                        ("target" "_blank") ("href" ,vacancy-link))
-                       ,vacancy-name))
-               ("div" (("class" "responses-company")) ,emp-name))
+               ("div" (("class" "responses-vacancy-wrapper"))
+                      ("div" (("class" "responses-vacancy"))
+                             ("a"
+                              (("class" ,_) ("target" "_blank") ("href" ,vacancy-link))
+                              ,vacancy-name))
+                      ("div" (("class" "responses-company")) ,emp-name)))
          `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name)))
 
      (make-detect (responses-vacancy-disabled)
@@ -4288,6 +4303,7 @@
             ;; (detect-responses-vacancy)
             ;; (detect-responses-vacancy-disabled)
             (detect-topic)
+            (detect-responses-vacancy)
             ;; trash
             (detect-responses-trash)
             (detect-cell_nowrap)
@@ -9115,3 +9131,17 @@
        (push ")\n" result)
        (mapconcat 'identity (reverse result) ""))
    #+END_SRC
+* Lisp
+
+  #+BEGIN_SRC lisp
+    (defparameter *num-sheep* 4)
+    (defparameter *month-number* 1)
+    (defparameter *moths-to-print* 12)
+
+    (loop :for month :from *month-number* :to *moths-to-print* :with current-sheep-count = *num-sheep* :do
+       (setf current-sheep-count
+             (* 4 current-sheep-count))
+       (print (list month current-sheep-count)))
+
+
+  #+END_SRC

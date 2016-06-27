@@ -1265,12 +1265,12 @@
 
 (make-detect (responses-vacancy)
   (`("td" (("class" "prosper-table__cell"))
-          ("div" (("class" "responses-vacancy"))
-                 ("a"
-                  (("class" ,_)
-                   ("target" "_blank") ("href" ,vacancy-link))
-                  ,vacancy-name))
-          ("div" (("class" "responses-company")) ,emp-name))
+          ("div" (("class" "responses-vacancy-wrapper"))
+                 ("div" (("class" "responses-vacancy"))
+                        ("a"
+                         (("class" ,_) ("target" "_blank") ("href" ,vacancy-link))
+                         ,vacancy-name))
+                 ("div" (("class" "responses-company")) ,emp-name)))
     `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name)))
 
 (make-detect (responses-vacancy-disabled)
@@ -1314,6 +1314,7 @@
        ;; (detect-responses-vacancy)
        ;; (detect-responses-vacancy-disabled)
        (detect-topic)
+       (detect-responses-vacancy)
        ;; trash
        (detect-responses-trash)
        (detect-cell_nowrap)
@@ -1355,6 +1356,7 @@
 (defmethod process-respond (respond)
   ;; Найти src-id вакансии
   (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
+    (print respond)
     ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
     (unless (equal "Не просмотрен" (getf respond :result))
       (unless (null src-id)
@@ -1362,8 +1364,9 @@
         (let ((target (car (find-vacancy :src-id src-id))))
           (unless (null target)
             (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
-            ;; и у нее статус RESPONDED или BEENVIEWED  - установить статус
-            (when (or (equal ":RESPONDED" (state target))
+            ;; и у нее статус UNSORT, RESPONDED или BEENVIEWED  - установить статус
+            (when (or (equal ":UNSORT" (state target))
+                      (equal ":RESPONDED" (state target))
                       (equal ":BEENVIEWED" (state target)))
               (cond ((equal "Просмотрен" (getf respond :result))
                      (takt target :beenviewed))
