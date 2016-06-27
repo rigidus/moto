@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Модуль HeadHunter</title>
-<!-- 2016-06-27 Пн. 15:20 -->
+<!-- 2016-06-27 Пн. 16:26 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="rigidus" />
@@ -3992,6 +3992,24 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
 </tr>
 
 <tr>
+<td class="left">uns-bee</td>
+<td class="left">unsort</td>
+<td class="left">beenviewed</td>
+</tr>
+
+<tr>
+<td class="left">uns-rej</td>
+<td class="left">unsort</td>
+<td class="left">reject</td>
+</tr>
+
+<tr>
+<td class="left">uns-inv</td>
+<td class="left">unsort</td>
+<td class="left">invite</td>
+</tr>
+
+<tr>
 <td class="left">uni-int</td>
 <td class="left">uninteresting</td>
 <td class="left">interesting</td>
@@ -4256,6 +4274,12 @@ pattern-matchinga из пакета <code>optima</code> делает вышеп�
   <span style="color: #00cd00;">"unsort        | interesting   |"</span>)
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">uns-res</span> ()
   <span style="color: #00cd00;">"unsort        | responded     |"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">uns-bee</span> ()
+  <span style="color: #00cd00;">"unsort        | beenviewed    |"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">uns-rej</span> ()
+  <span style="color: #00cd00;">"unsort        | reject        |"</span>)
+(<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">uns-inv</span> ()
+  <span style="color: #00cd00;">"unsort        | invite        |"</span>)
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">uni-int</span> ()
   <span style="color: #00cd00;">"uninteresting | interesting   |"</span>)
 (<span style="color: #00cdcd; font-weight: bold;">defun</span> <span style="color: #0000ee; font-weight: bold;">uni-res</span> ()
@@ -6582,6 +6606,7 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
 (<span style="color: #00cdcd; font-weight: bold;">defmethod</span> <span style="color: #0000ee; font-weight: bold;">process-respond</span> (respond)
   <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1053;&#1072;&#1081;&#1090;&#1080; src-id &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1080;</span>
   (<span style="color: #00cdcd; font-weight: bold;">let</span> ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond <span style="color: #0000ee; font-weight: bold;">:vacancy-link</span>))))))
+    (print respond)
     <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1044;&#1083;&#1103; &#1074;&#1089;&#1077;&#1093; &#1087;&#1086;&#1083;&#1091;&#1095;&#1077;&#1085;&#1085;&#1099;&#1093; &#1074;&#1072;&#1082;&#1072;&#1085;&#1089;&#1080;&#1081;, &#1089;&#1090;&#1072;&#1090;&#1091;&#1089; &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1093; &#1086;&#1090;&#1083;&#1080;&#1095;&#1072;&#1077;&#1090;&#1089;&#1103; &#1086;&#1090; "&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"..</span>
     (<span style="color: #00cdcd; font-weight: bold;">unless</span> (equal <span style="color: #00cd00;">"&#1053;&#1077; &#1087;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span> (getf respond <span style="color: #0000ee; font-weight: bold;">:result</span>))
       (<span style="color: #00cdcd; font-weight: bold;">unless</span> (null src-id)
@@ -6589,8 +6614,9 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
         (<span style="color: #00cdcd; font-weight: bold;">let</span> ((target (car (find-vacancy <span style="color: #0000ee; font-weight: bold;">:src-id</span> src-id))))
           (<span style="color: #00cdcd; font-weight: bold;">unless</span> (null target)
             (dbg (format nil <span style="color: #00cd00;">"~A : [~A] ~A "</span> src-id (getf respond <span style="color: #0000ee; font-weight: bold;">:result</span>) (getf respond <span style="color: #0000ee; font-weight: bold;">:vacancy-name</span>)))
-            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1080; &#1091; &#1085;&#1077;&#1077; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089; RESPONDED &#1080;&#1083;&#1080; BEENVIEWED  - &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1100; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089;</span>
-            (<span style="color: #00cdcd; font-weight: bold;">when</span> (or (equal <span style="color: #00cd00;">":RESPONDED"</span> (state target))
+            <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">&#1080; &#1091; &#1085;&#1077;&#1077; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089; UNSORT, RESPONDED &#1080;&#1083;&#1080; BEENVIEWED  - &#1091;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1080;&#1090;&#1100; &#1089;&#1090;&#1072;&#1090;&#1091;&#1089;</span>
+            (<span style="color: #00cdcd; font-weight: bold;">when</span> (or (equal <span style="color: #00cd00;">":UNSORT"</span> (state target))
+                      (equal <span style="color: #00cd00;">":RESPONDED"</span> (state target))
                       (equal <span style="color: #00cd00;">":BEENVIEWED"</span> (state target)))
               (<span style="color: #00cdcd; font-weight: bold;">cond</span> ((equal <span style="color: #00cd00;">"&#1055;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;&#1077;&#1085;"</span> (getf respond <span style="color: #0000ee; font-weight: bold;">:result</span>))
                      (takt target <span style="color: #0000ee; font-weight: bold;">:beenviewed</span>))
@@ -6656,12 +6682,12 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
 
 (make-detect (responses-vacancy)
   (`(<span style="color: #00cd00;">"td"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"prosper-table__cell"</span>))
-          (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-vacancy"</span>))
-                 (<span style="color: #00cd00;">"a"</span>
-                  ((<span style="color: #00cd00;">"class"</span> ,_)
-                   (<span style="color: #00cd00;">"target"</span> <span style="color: #00cd00;">"_blank"</span>) (<span style="color: #00cd00;">"href"</span> ,vacancy-link))
-                  ,vacancy-name))
-          (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-company"</span>)) ,emp-name))
+          (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-vacancy-wrapper"</span>))
+                 (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-vacancy"</span>))
+                        (<span style="color: #00cd00;">"a"</span>
+                         ((<span style="color: #00cd00;">"class"</span> ,_) (<span style="color: #00cd00;">"target"</span> <span style="color: #00cd00;">"_blank"</span>) (<span style="color: #00cd00;">"href"</span> ,vacancy-link))
+                         ,vacancy-name))
+                 (<span style="color: #00cd00;">"div"</span> ((<span style="color: #00cd00;">"class"</span> <span style="color: #00cd00;">"responses-company"</span>)) ,emp-name)))
     `(<span style="color: #0000ee; font-weight: bold;">:vacancy-link</span> ,vacancy-link <span style="color: #0000ee; font-weight: bold;">:vacancy-name</span> ,vacancy-name <span style="color: #0000ee; font-weight: bold;">:emp-name</span> ,emp-name)))
 
 (make-detect (responses-vacancy-disabled)
@@ -6705,6 +6731,7 @@ _xsrf=b2dccfd0ce2ff68b2c4f795ac6d549fb
        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(detect-responses-vacancy)</span>
        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">(detect-responses-vacancy-disabled)</span>
        (detect-topic)
+       (detect-responses-vacancy)
        <span style="color: #cd0000;">;; </span><span style="color: #cd0000;">trash</span>
        (detect-responses-trash)
        (detect-cell_nowrap)
@@ -11692,7 +11719,7 @@ a, b, &#x2026; - их аргументы.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: rigidus</p>
-<p class="date">Created: 2016-06-27 Пн. 15:20</p>
+<p class="date">Created: 2016-06-27 Пн. 16:26</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode )</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

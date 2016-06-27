@@ -46,4 +46,17 @@
         (let ((x (car (last rows))))
           (push (format "   (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x)) result))))
     (mapconcat 'identity (reverse result) "")))
+
+(defun gen-post (rows var)
+  (let ((result))
+    (push (format "(format nil \"~{~A~^&~}\"") result)
+    (push (format "\n            (mapcar #'(lambda (x)") result)
+    (push (format "\n                        (format nil \"~A=~A\" (car x) (cdr x)))") result)
+    (push (format "\n                    `((\"%s\" . ,(drakma:url-encode (%s %s) :utf-8))"  (caar rows) (caadr rows) var) result)
+    (mapcar #'(lambda (x)
+                (push (format "\n                      (\"%s\" . ,(drakma:url-encode (%s %s) :utf-8))"  (car x) (cadr x) var) result))
+            (butlast (cdr rows)))
+    (push (format "\n                      (\"%s\" . ,(drakma:url-encode (%s %s) :utf-8)))"  (caar (last rows)) (cadar (last rows)) var) result)
+    (push "))" result)
+    (mapconcat 'identity (reverse result) "")))
 ;; generators ends here
