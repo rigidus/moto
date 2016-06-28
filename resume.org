@@ -107,9 +107,9 @@
 
    #+NAME: send_post
    #+BEGIN_SRC lisp
-     (defmacro send-post ((personal-url cookie-jar cookie-alist) &body body)
+     (defmacro send-post ((url cookie-jar cookie-alist) &body body)
        `(drakma:http-request
-         personal-url
+         ,url
          :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
          :method :post
          :content (assembly-post ,@body)
@@ -120,7 +120,7 @@
            ("Accept-Language" . "en-US,en;q=0.5")
            ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" ,cookie-alist :test #'equal)))
            ("X-Requested-With" . "XMLHttpRequest")
-           ("Referer" . ,,personal-url)
+           ("Referer" . ,,url)
            ("Connection" . "keep-alive")
            ("Pragma" . "no-cache")
            ("Cache-Control" . "no-cache"))
@@ -149,8 +149,6 @@
                                     (drakma:cookie-jar-cookies ,cookie-jar))))
           ,@body))
    #+END_SRC
-
-
 
 *** TODO Фото (=photo=)
 **** При выборе уже загруженных фото
@@ -214,14 +212,15 @@
     | workTicket.string            | work-ticket              |
     | travelTime.string            | travel-time              |
 
-    Сгенерируем из этой таблицы код, который формирует POST-запрос
+    Сгенерируем из этой таблицы код, который формирует POST-запрос и напишем процедуру
+    которая его отсылает:
 
-    #+NAME: personal
+    #+NAME: set_resume_personal
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      (defun personal (cookie-jar resume &optional (resume-id ""))
-        ;; Сначала запросим основную страницу резюме
+      (defun set-resume-personal (cookie-jar resume &optional (resume-id ""))
+        ;; Сначала запросим основную страницу резюме (main-url можно вынести в замыкание)
         (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
           (multiple-value-bind (response cookie-jar url)
               (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
@@ -233,23 +232,64 @@
                   (send-post-multiple-values (personal-url cookie-jar cookie-alist
                                                            <<gen_post(personal_eq, "resume")>>
                                                            )
-                    (return-from personal
+                    (return
                       (values
                        uri
                        headers
                        (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
 
       ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-      ;;   (print (personal cookie-jar (car (all-resume)))))
+      ;;   (print (set-resume-personal cookie-jar (car (all-resume)))))
    #+END_SRC
 
 *** Контакты (=contacts=)
 
-    #+NAME: contacts
+    Страница hh.ru, которая принимает POST-запрос, изменяющий контакты использует
+    позиционные маркеры, вроде =phone.type=, которые отделяют друг от друга блоки
+    одинаковых ключей. Поэтому мне пришлось немного модифицировать =gen_post=, чтобы
+    позиционные маркеры отправлялись "как есть", а не оборачивалось в вызов
+    accessor-a. В остальном все работает таким же образом как и в предыдущем разделе
+
+    #+NAME: contacts_eq
+    | phone.type              | :cell              |
+    | phone.country           | cell-phone-country |
+    | phone.city              | cell-phone-city    |
+    | phone.number            | cell-phone-number  |
+    | phone.comment           | cell-phone-comment |
+    | phone.type              | :home              |
+    | phone.country           | home-phone-country |
+    | phone.city              | home-phone-city    |
+    | phone.number            | home-phone-number  |
+    | phone.comment           | home-phone-comment |
+    | phone.type              | :work              |
+    | phone.country           | home-phone-country |
+    | phone.city              | home-phone-city    |
+    | phone.number            | home-phone-number  |
+    | phone.comment           | home-phone-comment |
+    | email.string            | email-string       |
+    | preferredContact.string | preferred-contact  |
+    | personalSite.type       | :icq               |
+    | personalSite.url        | icq                |
+    | personalSite.type       | :skype             |
+    | personalSite.url        | skype              |
+    | personalSite.type       | :freelance         |
+    | personalSite.url        | freelance          |
+    | personalSite.type       | :moi_krug          |
+    | personalSite.url        | moi_krug           |
+    | personalSite.type       | :linkedin          |
+    | personalSite.url        | linkedin           |
+    | personalSite.type       | :facebook          |
+    | personalSite.url        | facebook           |
+    | personalSite.type       | :livejournal       |
+    | personalSite.url        | livejournal        |
+    | personalSite.type       | :personal          |
+    | personalSite.url        | personal-site      |
+
+    #+NAME: set_resume_contacts
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      (defun contacts (cookie-jar resume &optional (resume-id ""))
+      (defun set-resume-contacts (cookie-jar resume &optional (resume-id ""))
         ;; Сначала запросим основную страницу резюме
         (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
           (multiple-value-bind (response cookie-jar url)
@@ -259,80 +299,20 @@
               (multiple-value-bind (response cookie-jar url)
                   (hh-get-page contacts-url cookie-jar *hh_account* "http://spb.hh.ru")
                 ;; Получаем ключ-значения cookies
-                (let ((cookie-alist (mapcar #'(lambda (cookie)
-                                                (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))
-                                            (drakma:cookie-jar-cookies cookie-jar))))
-                  ;; Отправляем POST
-                  (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
-                      (drakma:http-request
-                       contacts-url
-                       :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
-                       :method :post
-                       :content
-                       (format nil "~{~A~^&~}"
-                               (mapcar #'(lambda (x)
-                                           (format nil "~A=~A" (car x) (cdr x)))
-                                       `(("phone.type"    . "cell")
-                                         ("phone.country" . ,(drakma:url-encode (cell-phone-country resume) :utf-8))
-                                         ("phone.city"    . ,(drakma:url-encode (cell-phone-city resume) :utf-8))
-                                         ("phone.number"  . ,(drakma:url-encode (cell-phone-number resume) :utf-8))
-                                         ("phone.comment" . ,(drakma:url-encode (cell-phone-comment resume) :utf-8))
-                                         ("phone.type"    . "home")
-                                         ("phone.country" . ,(drakma:url-encode (home-phone-country resume) :utf-8))
-                                         ("phone.city"    . ,(drakma:url-encode (home-phone-city resume) :utf-8))
-                                         ("phone.number"  . ,(drakma:url-encode (home-phone-number resume) :utf-8))
-                                         ("phone.comment" . ,(drakma:url-encode (home-phone-comment resume) :utf-8))
-                                         ("phone.type"    . "work")
-                                         ("phone.country" . ,(drakma:url-encode (home-phone-country resume) :utf-8))
-                                         ("phone.city"    . ,(drakma:url-encode (home-phone-city resume) :utf-8))
-                                         ("phone.number"  . ,(drakma:url-encode (home-phone-number resume) :utf-8))
-                                         ("phone.comment" . ,(drakma:url-encode (home-phone-comment resume) :utf-8))
-                                         ("email.string"  . ,(drakma:url-encode (email-string resume) :utf-8))
-                                         ("preferredContact.string" . ,(drakma:url-encode (preferred-contact resume) :utf-8))
-                                         ("personalSite.type" . "icq")
-                                         ("personalSite.url" . ,(drakma:url-encode (icq resume) :utf-8))
-                                         ("personalSite.type" . "skype")
-                                         ("personalSite.url" . ,(drakma:url-encode (skype resume) :utf-8))
-                                         ("personalSite.type" . "freelance")
-                                         ("personalSite.url" . ,(drakma:url-encode (freelance resume) :utf-8))
-                                         ("personalSite.type" . "moi_krug")
-                                         ("personalSite.url" . ,(drakma:url-encode (moi_krug resume) :utf-8))
-                                         ("personalSite.type" . "linkedin")
-                                         ("personalSite.url" . ,(drakma:url-encode (linkedin resume) :utf-8))
-                                         ("personalSite.type" . "facebook")
-                                         ("personalSite.url" . ,(drakma:url-encode (facebook resume) :utf-8))
-                                         ("personalSite.type" . "livejournal")
-                                         ("personalSite.url" . ,(drakma:url-encode (livejournal resume) :utf-8))
-                                         ("personalSite.type" . "personal")
-                                         ("personalSite.url" . ,(drakma:url-encode (personal-site resume) :utf-8))
-                                         ("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
-                                       ))
-                       :content-type "application/x-www-form-urlencoded; charset=UTF-8"
-                       :additional-headers
-                       `(("Accept" . "*/*")
-                         ("Accept-Language" . "en-US,en;q=0.5")
-                         ;; ("Accept-Encoding" . "gzip, deflate")
-                         ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
-                         ("X-Requested-With" . "XMLHttpRequest")
-                         ("Referer" . ,contacts-url)
-                         ("Connection" . "keep-alive")
-                         ("Pragma" . "no-cache")
-                         ("Cache-Control" . "no-cache")
-                         )
-                       :cookie-jar cookie-jar
-                       :redirect 10
-                       :force-binary t)
-                    (return-from contacts
-                      (values
-                       uri
-                       headers
-                       (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
+                (with-cookie-alist (cookie-jar)
+                  (send-post-multiple-values (contacts-url cookie-jar cookie-alist
+                                                           <<gen_post(contacts_eq, "resume")>>
+                                                           )
+                    (values
+                     uri
+                     headers
+                     (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))))))))
 
       ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (print
-      ;;    (contacts cookie-jar *test-resume*
-      ;;              "8eb43271ff030a44e00039ed1f735871443047"
-      ;;              )))
+      ;;    (set-resume-contacts cookie-jar (car (all-resume))
+      ;;                         ;; "8eb43271ff030a44e00039ed1f735871443047"
+      ;;                         )))
    #+END_SRC
 
 *** Желаемая должность и зарплата (=resume-position=)
@@ -1265,7 +1245,7 @@
 
 * Сборка
 
-   #+NAME: entity_and_automates
+   #+NAME: resume
    #+BEGIN_SRC lisp :tangle resume.lisp :noweb tangle :padline no :comments link
      (in-package #:moto)
 
@@ -1277,5 +1257,7 @@
 
      <<with_cookie_alist>>
 
-     <<personal>>
+     <<set_resume_personal>>
+
+     <<set_resume_contacts>>
    #+END_SRC

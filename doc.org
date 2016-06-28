@@ -257,18 +257,40 @@
          (mapconcat 'identity (reverse result) "")))
    #+END_SRC
 
-   Аналогичным образом напишем генератор, который собирает POST-запрос:
+   Аналогичным образом напишем генератор, который собирает
+   POST-запрос из таблицы с двумя столбцами, в первом из которых лежит
+   ключ, а во втором - значение. Если значение начинается с символа
+   двоеточия - то мы отправляем его "как есть" (но без двоеточия), а
+   противном случае мы считаем его accessor-ом и кодируем в url-encode.
 
    #+NAME: gen_post
    #+BEGIN_SRC emacs-lisp
      (defun gen-post (rows var)
-       (let ((result))
-         (push (format "`((\"%s\" . ,(drakma:url-encode (%s %s) :utf-8))"  (caar rows) (cadar rows) var) result)
-         (mapcar #'(lambda (x)
-                     (push (format "\n  (\"%s\" . ,(drakma:url-encode (%s %s) :utf-8))"  (car x) (cadr x) var) result))
-                 (butlast (cdr rows)))
-         (push (format "\n  (\"%s\" . ,(drakma:url-encode (%s %s) :utf-8)))"  (caar (last rows)) (cadar (last rows)) var) result)
-         (mapconcat 'identity (reverse result) "")))
+       (flet ((rval (val var)
+                    (let ((match-result (string-match ":" val)))
+                      (if (and (not (null match-result))
+                               (= 0 (string-match ":" val)))
+                          (concat "\"" (substring val 1) "\"")
+                        (format ",(drakma:url-encode (%s %s) :utf-8)" val var)))))
+         (let ((result))
+           (push (format "`((\"%s\" . %s)"
+                         (caar rows)
+                         (rval (cadar rows) var)
+                         var)
+                 result)
+           (mapcar #'(lambda (x)
+                       (push (format "\n  (\"%s\" . %s)"
+                                     (car x)
+                                     (rval (cadr x) var)
+                                     var)
+                             result))
+                   (butlast (cdr rows)))
+           (push (format "\n  (\"%s\" . %s))"
+                         (caar (last rows))
+                         (rval (cadar (last rows)) var)
+                         var)
+                 result)
+           (mapconcat 'identity (reverse result) ""))))
    #+END_SRC
 
 
