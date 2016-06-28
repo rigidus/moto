@@ -150,6 +150,28 @@
           ,@body))
    #+END_SRC
 
+   Теперь мы можем реализовать макросом основной сценарий заполения полей резюме:
+   сначала запрашивем страницу, где размещены все резюме, потом запрашиваем страницу
+   для заполнения одной из секций резюме, потом отправляем POST-запрос с заполенными
+   полями, и наконец возвращаем полученный ответ:
+
+   #+NAME: with_set_resume_section
+   #+BEGIN_SRC lisp
+     (defmacro with-set-resume-section ((section-url &body post-data) &body body)
+       ;; Сначала запросим основную страницу резюме
+       `(let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
+          (multiple-value-bind (response cookie-jar url)
+              (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
+            ;; Теперь запрашиваем section-url
+            (multiple-value-bind (response cookie-jar url)
+                (hh-get-page ,section-url cookie-jar *hh_account* "http://spb.hh.ru")
+              (with-cookie-alist (cookie-jar)
+                (send-post-multiple-values (,section-url cookie-jar cookie-alist ,@post-data)
+                  ,@body))))))
+   #+END_SRC
+
+
+
 *** TODO Фото (=photo=)
 **** При выборе уже загруженных фото
 
@@ -220,23 +242,13 @@
       (in-package #:moto)
 
       (defun set-resume-personal (cookie-jar resume &optional (resume-id ""))
-        ;; Сначала запросим основную страницу резюме (main-url можно вынести в замыкание)
-        (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
-          (multiple-value-bind (response cookie-jar url)
-              (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
-            ;; Теперь запрашиваем personal
-            (let ((personal-url (format nil "http://spb.hh.ru/applicant/resumes/edit/personal?resume=~A" resume-id)))
-              (multiple-value-bind (response cookie-jar url)
-                  (hh-get-page personal-url cookie-jar *hh_account* "http://spb.hh.ru")
-                (with-cookie-alist (cookie-jar)
-                  (send-post-multiple-values (personal-url cookie-jar cookie-alist
-                                                           <<gen_post(personal_eq, "resume")>>
-                                                           )
-                    (return
-                      (values
-                       uri
-                       headers
-                       (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))))))))
+        (with-set-resume-section ((format nil "http://spb.hh.ru/applicant/resumes/edit/personal?resume=~A" resume-id)
+                                  <<gen_post(personal_eq, "resume")>>
+                                  )
+          (values
+           uri
+           headers
+           (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))
 
       ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (print (set-resume-personal cookie-jar (car (all-resume)))))
@@ -290,23 +302,13 @@
       (in-package #:moto)
 
       (defun set-resume-contacts (cookie-jar resume &optional (resume-id ""))
-        ;; Сначала запросим основную страницу резюме
-        (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
-          (multiple-value-bind (response cookie-jar url)
-              (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
-            ;; Теперь запрашиваем contacts
-            (let ((contacts-url (format nil "http://spb.hh.ru/applicant/resumes/edit/contacts?resume=~A" resume-id)))
-              (multiple-value-bind (response cookie-jar url)
-                  (hh-get-page contacts-url cookie-jar *hh_account* "http://spb.hh.ru")
-                ;; Получаем ключ-значения cookies
-                (with-cookie-alist (cookie-jar)
-                  (send-post-multiple-values (contacts-url cookie-jar cookie-alist
-                                                           <<gen_post(contacts_eq, "resume")>>
-                                                           )
-                    (values
-                     uri
-                     headers
-                     (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))))))))
+        (with-set-resume-section ((format nil "http://spb.hh.ru/applicant/resumes/edit/contacts?resume=~A" resume-id)
+                                  <<gen_post(contacts_eq, "resume")>>
+                                  )
+          (values
+           uri
+           headers
+           (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))
 
       ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (print
@@ -315,7 +317,7 @@
       ;;                         )))
    #+END_SRC
 
-*** Желаемая должность и зарплата (=resume-position=)
+*** TODO Желаемая должность и зарплата (=resume-position=)
 
     Важно чтобы названия у разных резюме отличались, иначе возращается ошибка.
 
@@ -414,7 +416,7 @@
       ;;                     )))
    #+END_SRC
 
-*** Образование (=education=)
+*** TODO Образование (=education=)
 
     #+NAME: education
     #+BEGIN_SRC lisp
@@ -1256,6 +1258,8 @@
      <<send_post_multiple_values>>
 
      <<with_cookie_alist>>
+
+     <<with_set_resume_section>>
 
      <<set_resume_personal>>
 
