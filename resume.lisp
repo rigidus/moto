@@ -184,6 +184,15 @@
 
 (in-package #:moto)
 
+(defmacro if-zero-then-empty (&body body)
+  (let ((it (gensym "IT-")))
+    `(let ((,it ,@body))
+       (if (equal 0 ,it)
+           ""
+           (drakma:url-encode (format nil "~A" ,it) :utf-8)))))
+
+;; (macroexpand-1 '(if-zero-then-empty (education-id education)))
+
 (defun set-resume-education (cookie-jar resume &optional (resume-id ""))
   (with-set-resume-section ((format nil "http://spb.hh.ru/applicant/resumes/edit/education?resume=~A" resume-id)
                             (append
@@ -192,16 +201,10 @@
                                (if (null primary-education-id)
                                    (err "error education-id")
                                    (let ((education (get-education (parse-integer primary-education-id))))
-                                     `(("primaryEducation.id"            . ,(let ((it (education-id education)))
-                                                                                 (if (equal 0 it)
-                                                                                     ""
-                                                                                     (drakma:url-encode it :utf-8))))
+                                     `(("primaryEducation.id"            . ,(if-zero-then-empty (education-id education)))
                                        ("primaryEducation.name"          . ,(drakma:url-encode (name education) :utf-8))
                                        ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" (university-id education)) :utf-8))
-                                       ("primaryEducation.facultyId"     . ,(let ((it (faculty-id education)))
-                                                                                 (if (equal 0 it)
-                                                                                     ""
-                                                                                     (drakma:url-encode it :utf-8))))
+                                       ("primaryEducation.facultyId"     . ,(if-zero-then-empty (faculty-id education)))
                                        ("primaryEducation.organization"  . ,(drakma:url-encode (organization education) :utf-8))
                                        ("primaryEducation.result"        . ,(drakma:url-encode (result education) :utf-8))
                                        ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" (specialty-id education)) :utf-8))
@@ -256,4 +259,61 @@
 ;;                      ;; "8eb43271ff030a44e00039ed1f735871443047"
 ;;                      )))
 
+(in-package #:moto)
+
+;; дубль if-sero-then-empty
+(defmacro url-enc (&body body)
+  `(let ((it ,@body))
+     (if (equal 0 it)
+         ""
+         (drakma:url-encode (format nil "~A" it) :utf-8))))
+
+(defun set-resume-expirience (cookie-jar resume &optional (resume-id ""))
+  (with-set-resume-section ((format nil "http://spb.hh.ru/applicant/resumes/edit/experience?resume=~A" resume-id)
+                            (let ((resume (get-resume 1)))
+                              (append
+                               (apply 'append
+                                      (loop :for item :in (split-sequence:split-sequence #\Space (expiriences resume)) :collect
+                                         (let ((item (get-expirience (parse-integer item))))
+                                           `(("experience.companyName"      . ,(url-enc (name item)))
+                                             ("experience.companyId"        . ,(url-enc (company-id item)))
+                                             ("experience.companyAreaId"    . ,(url-enc (company-area-id item)))
+                                             ("experience.companyUrl"       . ,(url-enc (url item)))
+                                             ("experience.companyIndustryId". ,(url-enc (industry-id item)))
+                                             ("experience.companyIndustries". ,(url-enc (industries item)))
+                                             ("experience.companyIndustries". "") ;; compatibility: предположительно направления деятельности
+                                             ("experience.id"               . ,(url-enc (exp-id item)))
+                                             ("experience.position"         . ,(url-enc (job-position item)))
+                                             ("experience.startDate"        . ,(url-enc (start-date item)))
+                                             ("experience.endDate"          . ,(url-enc (end-date item)))
+                                             ("experience.description"      . ,(url-enc (description item)))
+                                             ))))
+                               (apply 'append
+                                      (loop :for item :in (split-sequence:split-sequence #\Space (skills resume)) :collect
+                                         (let ((item (get-skill (parse-integer item))))
+                                           `(("keySkills.string"      . ,(url-enc (name item)))))))
+                               `(("skills.string" . "%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%BD%D0%B0+%D0%BF%D0%B5%D0%BD%D1%81%D0%B8%D0%B8.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B5%D0%B5+%D0%B2%D1%80%D0%B5%D0%BC%D1%8F+%D0%BD%D0%B0%D1%85%D0%BE%D0%B6%D1%83%D1%81%D1%8C+%D0%B2+%D0%BF%D0%BE%D0%B8%D1%81%D0%BA%D0%B0%D1%85+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D1%81%D0%BB%D1%83%D0%B6%D0%B1%D1%83+%D0%B2+%D0%B0%D1%80%D0%BC%D0%B8%D0%B8.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BF%D1%80%D0%BE%D1%85%D0%BE%D0%B4%D0%B8%D0%BB+%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B1%D0%B5%D0%B7+%D0%B2%D0%BE%D0%B7%D0%BC%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8+%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D1%82%D1%8C.%0D%0A%D0%92+%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D0%B8%D0%B5+%D0%B3%D0%BE%D0%B4%D1%8B+%D0%BD%D0%B0%D1%85%D0%BE%D0%B4%D0%B8%D0%BB%D0%B0%D1%81%D1%8C+%D0%B2+%D0%B4%D0%B5%D0%BA%D1%80%D0%B5%D1%82%D0%BD%D0%BE%D0%BC+%D0%BE%D1%82%D0%BF%D1%83%D1%81%D0%BA%D0%B5.%0D%0A"))
+                               (apply 'append
+                                      (loop :for item :in (split-sequence:split-sequence #\Space (recommendations resume)) :collect
+                                         (let ((item (get-recommendation (parse-integer item))))
+                                           `(("recommendation.id"            . ,(url-enc (recommendation-id item)))
+                                             ("recommendation.name"          . ,(url-enc (name item)))
+                                             ("recommendation.position"      . ,(url-enc (job-position item)))
+                                             ("recommendation.organization"  . ,(url-enc (organization item)))
+                                             ("recommendation.contactInfo"   . ,(url-enc (contact-info item)))))))
+                               `(("type" . "PORTFOLIO")
+                                 ("portfolio.string" . "")
+                                 ("file" . "")
+                                 ("title" . ""))
+                               )))
+    (values
+     uri
+     headers
+     (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))
+
+;; (print
+;;  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+;;    (set-resume-expirience cookie-jar (car (all-resume))
+;;                      ;; "8eb43271ff030a44e00039ed1f735871443047"
+;;                      )))
 ;; resume ends here
