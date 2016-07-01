@@ -1356,27 +1356,35 @@
 (defmethod process-respond (respond)
   ;; Найти src-id вакансии
   (let ((src-id (car (last (split-sequence:split-sequence #\/ (getf respond :vacancy-link))))))
-    (print respond)
-    ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
-    (unless (equal "Не просмотрен" (getf respond :result))
-      (unless (null src-id)
-        ;; Если такая вакансия есть в бд
-        (let ((target (car (find-vacancy :src-id src-id))))
-          (unless (null target)
-            (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
-            ;; и у нее статус UNSORT, RESPONDED или BEENVIEWED  - установить статус
-            (when (or (equal ":UNSORT" (state target))
-                      (equal ":RESPONDED" (state target))
-                      (equal ":BEENVIEWED" (state target)))
-              (cond ((equal "Просмотрен" (getf respond :result))
-                     (takt target :beenviewed))
-                    ((equal "Отказ" (getf respond :result))
-                     (takt target :reject))
-                    ((equal "Приглашение" (getf respond :result))
-                     (takt target :invite))
-                    ((equal "Не просмотрен" (getf respond :result))
-                     nil)
-                    (t (err (format nil "unk respond state ~A" (state target)))))))))))
+    ;; (unless (null src-id)
+    (dbg (format nil "~A : [~A] ~A " src-id (getf respond :result) (getf respond :vacancy-name)))
+    ;; (print respond)
+    ;; Если такая вакансия есть в бд
+    (let ((target (car (find-vacancy :src-id src-id))))
+      (unless (null target)
+        (dbg (format nil " | ~A" (state target)))
+        ;; Все обнаруженные на странице отзывов вакансии следует пометить как :responded, если они имеют статус :unsort :interesting или :uninteresting
+        (if (or (equal (state target) ":UNSORT")
+                (equal (state target) ":INTERESTING")
+                (equal (state target) ":UNINTERESTING"))
+            (progn
+              (dbg (format nil "~% ~A -> SET RESPONDED" (state target)))
+              (takt target :responded)))
+        ;; Для всех полученных вакансий, статус которых отличается от "Не просмотрен"..
+        (unless (equal "Не просмотрен" (getf respond :result))
+          ;; и у нее статус UNSORT, RESPONDED или BEENVIEWED  - установить статус
+          (when (or (equal ":UNSORT" (state target))
+                    (equal ":RESPONDED" (state target))
+                    (equal ":BEENVIEWED" (state target)))
+            (cond ((equal "Просмотрен" (getf respond :result))
+                   (takt target :beenviewed))
+                  ((equal "Отказ" (getf respond :result))
+                   (takt target :reject))
+                  ((equal "Приглашение" (getf respond :result))
+                   (takt target :invite))
+                  ((equal "Не просмотрен" (getf respond :result))
+                   nil)
+                  (t (err (format nil "unk respond state ~A" (state target))))))))))
   respond)
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
