@@ -1038,7 +1038,8 @@
                                        "response-popup-link" "vacancy-response-popup-script" "emp-logo"
                                        "search-result-description" "search-result-description-with-garbage" "search-result-description-empty"
                                        "search-result-description-primary" "hrbrand" "noindex" "script"
-                                       "bloko-icon-phone" "bloko-contact" "bloko-icon-initial"))
+                                       "bloko-icon-phone" "bloko-contact" "bloko-icon-initial-action" "bloko-icon-done-initial-action" "span"))
+
 
       (defmacro make-detect ((name) &body body)
         (let ((param   (gensym))
@@ -1060,16 +1061,16 @@
 
       (make-detect (platform)
         (`("span"
-                (("class" "vacancy-list-platform")
-                 ("data-qa" "vacancy-serp__vacancy_career"))
-                "  •  " ("span" (("class" "vacancy-list-platform__name"))
-                                "CAREER.RU"))
-               (list :platform 'career.ru)))
+           (("class" "vacancy-list-platform")
+            ("data-qa" "vacancy-serp__vacancy_career"))
+           "  •  " ("span" (("class" "vacancy-list-platform__name"))
+                           "CAREER.RU"))
+          (list :platform 'career.ru)))
 
       (make-detect (metro)
         (`("span" (("class" "metro-station"))
-                       ("span" (("class" "metro-point") ("style" ,_))) ,metro)
-               (list :metro (aif metro it ""))))
+                  ("span" (("class" "metro-point") ("style" ,_))) ,metro)
+          (list :metro (aif metro it ""))))
 
       (make-detect (address)
         (`("span" (("class" "searchresult__address")
@@ -1110,10 +1111,10 @@
                "Посмотреть интервью о жизни в компании")
           (list :interview href)))
 
-          ;; ("a" (("class" "interview-insider__link                   m-interview-insider__link-searchresult")
-          ;;       ("href" ,href)
-          ;;       ("data-qa" "vacancy-serp__vacancy-interview-insider"))
-          ;;      "Посмотреть интервью о жизни в компании")
+      ;; ("a" (("class" "interview-insider__link                   m-interview-insider__link-searchresult")
+      ;;       ("href" ,href)
+      ;;       ("data-qa" "vacancy-serp__vacancy-interview-insider"))
+      ;;      "Посмотреть интервью о жизни в компании")
 
       (make-detect (name)
         (`("div" (("class" "search-result-item__head"))
@@ -1140,7 +1141,6 @@
             "search-result-item search-result-item_premium  search-result-item_premium"))
           "premium"))
 
-      ;; --->>
       (make-detect (standart)
         (`("div"
            (("data-qa" "vacancy-serp__vacancy")
@@ -1223,7 +1223,7 @@
       (make-detect (vacancy_snippet_responsibility)
         (`("div" (("class" "search-result-item__snippet")
                   ("data-qa" "vacancy-serp__vacancy_snippet_responsibility"))
-               ,text)
+                 ,text)
           (list :snippet_responsibility text)))
 
       (make-detect (noindex)
@@ -1234,11 +1234,14 @@
       (make-detect (script)
         (`("script" ,@rest) "script"))
 
-      (make-detect (bloko-icon-initial)
-        (`("span" (("class" "bloko-icon bloko-icon_done bloko-icon_done-initial-action")) "script") "bloko-icon-initial"))
+      (make-detect (bloko-icon-initial-action)
+        (`(("class" "bloko-icon bloko-icon_done bloko-icon_initial-action")) "bloko-icon-initial-action"))
+
+      (make-detect (bloko-icon-done-initial-action)
+        (`(("class" "bloko-icon bloko-icon_done bloko-icon_done-initial-action")) "bloko-icon-done-initial-action"))
 
       (make-detect (bloko-icon-phone)
-        (`("span" (("class" "bloko-icon bloko-icon_phone"))) "bloko-icon-phone"))
+        (`(("class" "bloko-icon bloko-icon_phone")) "bloko-icon-phone"))
 
       (make-detect (bloko-contact)
         (`("div" (("class" "search-result-item__phone"))
@@ -1257,17 +1260,6 @@
                                                  (member x '("div" "trigger-button" "vacancy-response-popup-script" "response-popup-link") :test #'equal)
                                                  (listp x)))
                                             rest)))))
-
-      (remove-if #'(lambda (x)
-                     (or
-                      (listp x)
-                      (member x '("div" "trigger-button" "vacancy-response-popup-script" "response-popup-link") :test #'equal)))
-                 '(:CITY "Санкт-Петербург" :METRO "" :DATE "22 марта" :PLATFORM CAREER.RU
-                   ((("class" "search-result-item__phone"))
-                    ("button"
-                     (("class" "bloko-button") ("data-qa" "vacancy-serp__vacancy_contacts"))
-                     ((("class" "g-hidden HH-VacancyContactsLoader-Content")
-                       ("data-attach" "dropdown-content-placeholder")))))))
 
       (defun detect-garbage-elts (tree)
         (mtm (`("a" (("class" _) ("href" _) ("data-qa" "vacancy-serp__vacancy-interview-insider"))
@@ -1356,9 +1348,10 @@
              (detect-hrbrand)
              (detect-vacancy_snippet_responsibility)
              (detect-noindex)
-             (detect-script)
              (detect-bloko-icon-phone)
-             (detect-bloko-icon-initial)
+             (detect-bloko-icon-initial-action)
+             (detect-bloko-icon-done-initial-action)
+             (detect-script)
              (detect-bloko-contact)
              (detect-search-result-description-non-empty)
              (detect-bloko-button-rest)
@@ -1399,6 +1392,10 @@
       ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (hh-parse-vacancy-teasers
       ;;    (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true" temp-cookie-jar "http://spb.hh.ru/")))
+
+      ;; (print
+      ;;  *last-parse-data*)
+
     #+END_SRC
 
 **** Трансформация дерева
