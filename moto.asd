@@ -84,6 +84,9 @@
                                      (:file "globals")
                                      (:file "entityes")
                                      (:file "hh")
+                                     (:file "vacancy")
+                                     (:file "resume")
+                                     (:file "response")
                                      (:file "iface")))
                (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса

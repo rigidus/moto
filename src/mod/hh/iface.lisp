@@ -1,4 +1,4 @@
-;; [[file:hh.org::*Interface][iface]]
+;; [[file:hh-iface.org::*Interface][iface]]
 ;;;; iface.lisp
 
 (in-package #:moto)

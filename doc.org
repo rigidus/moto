@@ -293,7 +293,6 @@
            (mapconcat 'identity (reverse result) ""))))
    #+END_SRC
 
-
    Соберем все это в один файл, чтобы загружать перед кодогенерацией проекта:
 
    #+NAME: generators
@@ -1270,6 +1269,9 @@
                            (:file "globals")
                            (:file "entityes")
                            (:file "hh")
+                           (:file "vacancy")
+                           (:file "resume")
+                           (:file "response")
                            (:file "iface")))
    #+END_SRC
 

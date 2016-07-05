@@ -10,6 +10,7 @@
 <link rel="stylesheet" type="text/css" href="/css/css.css" />
 #+END_HTML
 
+
 ** START Жизненный цикл резюме
 
    Создание резюме на hh.ru начинается с перехода на страницу
@@ -612,29 +613,29 @@
 *** Сущности шаблона резюме
 * Сборка
 
-   #+NAME: resume
-   #+BEGIN_SRC lisp :tangle resume.lisp :noweb tangle :padline no :comments link
-     (in-package #:moto)
+  #+NAME: resume
+  #+BEGIN_SRC lisp :tangle src/mod/hh/resume.lisp :noweb tangle :padline no :comments link
+    (in-package #:moto)
 
-     <<assembly_post>>
+    <<assembly_post>>
 
-     <<send_post>>
+    <<send_post>>
 
-     <<send_post_multiple_values>>
+    <<send_post_multiple_values>>
 
-     <<with_cookie_alist>>
+    <<with_cookie_alist>>
 
-     <<with_set_resume_section>>
+    <<with_set_resume_section>>
 
-     <<set_resume_personal>>
+    <<set_resume_personal>>
 
-     <<set_resume_contacts>>
+    <<set_resume_contacts>>
 
-     <<set_resume_position>>
+    <<set_resume_position>>
 
-     <<set_resume_education>>
+    <<set_resume_education>>
 
-     <<set_resume_expirience>>
+    <<set_resume_expirience>>
    #+END_SRC
 * Язык описания резюме
 
