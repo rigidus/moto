@@ -2132,7 +2132,7 @@
           "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "Node"
           "тестировщик" "Системный администратор" "Трафик-менеджер" "Traffic" "Трафик" "Медиабайер"
           "менеджер по продажам" "Менеджер по продажам" "SAP"
-          "маркетолог" "DevOps" "Axapta" "Помошник")
+          "маркетолог" "DevOps" "Axapta" "Помошник" "Smolensk")
 
       ;; (mapcar #'(lambda (x)
       ;;             (del-vacancy (id x)))
@@ -2248,8 +2248,11 @@
       слов: Lisp, Erlang, Closure, Prolog, Haskell, Smalltalk
     - Я хочу особо отметить вакансии, у которых ранг выше [порогового ранга], чтобы
       [отправить отклик]
-    - Я хочу занести вакансию в базу.
+    - Я хочу проанализировать заголовок и текст вакансии, чтобы тэггировать ее -
+      определить, под какой профиль работы она более всего подходит. В дальнейшем это
+      станет основой для построения резюме под вакансию.
     - Я хочу вывести вакансию в консоль.
+    - Я хочу занести вакансию в базу.
 
     #+NAME: rules_for_vacancy
     #+BEGIN_SRC lisp
@@ -2289,6 +2292,24 @@
       (define-rule (set-rank-up-by-haskell (contains (format nil "~A" (bprint (getf vacancy :descr))) "Haskell"))
         (dbg "up rank by Haskell")
         (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
+
+      ;; Превращаем описание вакансии в plain-text с минимумом знаков препринания, а потом разбиваем по пробелам,
+      ;; чтобы получить список слов. Потом выявляем наиболее часто встречающиеся элементы (https://habrahabr.ru/post/167177/)
+      ;; (print
+      ;;  (ppcre:split "\\s+"
+      ;;               (ppcre:regex-replace-all
+      ;;                "\\s+" (->  (replace-all (descr (car (find-vacancy :src-id 17503441))) "(:P)" "")
+      ;;                            (replace-all "(:B)" "")
+      ;;                            (replace-all "(:LI)" "")
+      ;;                            (replace-all "(:UL)" "")
+      ;;                            (replace-all "(" "")
+      ;;                            (replace-all ")" "")
+      ;;                            (replace-all "\"" "")
+      ;;                            (replace-all "," "")
+      ;;                            (replace-all ":" "")
+      ;;                            (replace-all ";" "")
+      ;;                            (replace-all "-" ""))
+      ;;                " ")))
 
       (define-rule (z-print t)
         (show-vacancy vacancy))
@@ -2603,6 +2624,7 @@
    | respond     | varchar              | ссылка на отклик                                |
    | descr       | varchar              | описание вакансии                               |
    | notes       | (or db-null varchar) | заметки по вакансии                             |
+   | tags        | (or db-null varchar) | Тэги вакансии                                   |
    | response    | (or db-null varchar) | текст отклика на вакансию                       |
 
    Напишем процедуру сохранения вакансии в базу данных
@@ -2636,6 +2658,7 @@
                             :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
                             :descr (bprint (getf vacancy :descr))
                             :notes ""
+                            :tags ""
                             :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
    #+END_SRC
 
@@ -3805,6 +3828,12 @@
                     ))))
              (content-box ()
                ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
+             (content-box ()
+               (form ("tagform" nil :class "form-section-container")
+                 ((:div :class "form-section")
+                  (fieldset "Тэги"
+                    (textarea ("tags" "Тэги") (tags vac))
+                    (ps-html ((:span :class "clear")))))))
              (content-box ()
                (form ("vacform" nil :class "form-section-container")
                  ((:div :class "form-section")

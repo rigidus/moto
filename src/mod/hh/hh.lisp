@@ -329,7 +329,7 @@
     "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "Node"
     "тестировщик" "Системный администратор" "Трафик-менеджер" "Traffic" "Трафик" "Медиабайер"
     "менеджер по продажам" "Менеджер по продажам" "SAP"
-    "маркетолог" "DevOps" "Axapta" "Помошник")
+    "маркетолог" "DevOps" "Axapta" "Помошник" "Smolensk")
 
 ;; (mapcar #'(lambda (x)
 ;;             (del-vacancy (id x)))
@@ -1155,6 +1155,7 @@
                        :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
                        :descr (bprint (getf vacancy :descr))
                        :notes ""
+                       :tags ""
                        :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
 
 (in-package #:moto)

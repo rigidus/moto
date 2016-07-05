@@ -20,6 +20,7 @@
    (respond varchar)
    (descr varchar)
    (notes (or db-null varchar))
+   (tags (or db-null varchar))
    (response (or db-null varchar)))
   (:accept :discard :offer :interview :testjob :invite :reject :beenviewed :responded :interesting :uninteresting :unsort)
   ((:unsort :uninteresting :uns-uni)

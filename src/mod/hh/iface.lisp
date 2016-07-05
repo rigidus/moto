@@ -173,6 +173,12 @@
         (content-box ()
           ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
         (content-box ()
+          (form ("tagform" nil :class "form-section-container")
+            ((:div :class "form-section")
+             (fieldset "Заметки"
+               (textarea ("tags" "Тэги") (tags vac))
+               (ps-html ((:span :class "clear")))))))
+        (content-box ()
           (form ("vacform" nil :class "form-section-container")
             ((:div :class "form-section")
              (fieldset "Заметки"
