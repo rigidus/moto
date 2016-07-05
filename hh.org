@@ -1396,6 +1396,9 @@
       ;; (print
       ;;  *last-parse-data*)
 
+      ;; (mapcar #'(lambda (x)
+      ;;             (del-vacancy (id x)))
+      ;;         (find-vacancy :state ":UNINTERESTING"))
     #+END_SRC
 
 **** Трансформация дерева
@@ -2122,13 +2125,18 @@
         (dbg "  - low salary"))
 
       (define-drop-all-teaser-when-name-contains-rule
-          "iOS" "Python" "Django" "IOS" "1C" "C++" "С++" "Ruby" "Ruby on Rails"
+          "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
           "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
-          "Unity3D" "Flash" "Java" "Android" "ASP" "Objective-C" "Go" "Delphi"
-          "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "NodeJS"
-          "тестировщик" "Системный администратор" "Трафик-менеджер" "Traffic"
-          "менеджер по продажам" "Менеджер по продажам"
-          "маркетолог" "DevOps" "Axapta")
+          "Unity3D" "Flash" ;; "Java"
+          "Android" "ASP" "Objective-C" "Go" "Delphi"
+          "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "Node"
+          "тестировщик" "Системный администратор" "Трафик-менеджер" "Traffic" "Трафик" "Медиабайер"
+          "менеджер по продажам" "Менеджер по продажам" "SAP"
+          "маркетолог" "DevOps" "Axapta" "Помошник")
+
+      ;; (mapcar #'(lambda (x)
+      ;;             (del-vacancy (id x)))
+      ;;         (find-vacancy :state ":UNSORT"))
     #+END_SRC
 
 **** Макросы для определения правил отсева тизеров
@@ -2251,17 +2259,17 @@
 
       <<show_vacancy>>
 
-      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
-        (dbg "   - already worked"))
+      ;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Webdom"))
+      ;;   (dbg "   - already worked"))
 
-      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
-        (dbg "   - already worked"))
+      ;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "Пулково-Сервис"))
+      ;;   (dbg "   - already worked"))
 
-      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
-        (dbg "   - already worked"))
+      ;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "FBS"))
+      ;;   (dbg "   - already worked"))
 
-      (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "SEMrush"))
-        (dbg "   - already worked"))
+      ;; (define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) "SEMrush"))
+      ;;   (dbg "   - already worked"))
 
       (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
         (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
