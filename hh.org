@@ -2125,14 +2125,41 @@
         (dbg "  - low salary"))
 
       (define-drop-all-teaser-when-name-contains-rule
-          "iOS" "Python" "Django" "IOS" "1C" "1С" "C++" "С++" "Ruby" "Ruby on Rails"
-          "Frontend" "Front End" "Front-end" "Go" "Q/A" "QA" "C#" ".NET" ".Net"
-          "Unity3D" "Flash" ;; "Java"
-          "Android" "ASP" "Objective-C" "Go" "Delphi"
-          "Sharepoint" "Flash" "PL/SQL" "Oracle" "designer" "SharePoint" "Node"
-          "тестировщик" "Системный администратор" "Трафик-менеджер" "Traffic" "Трафик" "Медиабайер"
-          "менеджер по продажам" "Менеджер по продажам" "SAP"
-          "маркетолог" "DevOps" "Axapta" "Помошник" "Smolensk")
+          "Python" "Django"
+          "IOS" "iOS"
+          "1C" "1С"
+          "C++" "С++"
+          "Ruby" "Ruby on Rails"
+          "Frontend" "Front End" "Front-end" "Front-End"
+          "Go"
+          "Q/A" "QA"
+          "C#" ".NET" ".Net"
+          "Unity" "Unity3D"
+          "Flash"
+          ;; "Java"
+          "Android"
+          "ASP"
+          "Objective-C"
+          "Delphi"
+          "Sharepoint"
+          "PL/SQL"
+          "Oracle"
+          "Node"
+          "тестировщик"
+          "Системный администратор"
+          "Трафик-менеджер"
+          "Traffic" "Трафик"
+          "Медиабайер" "Media Buyer"
+          "менеджер по продажам" "Менеджер по продажам"
+          "SAP"
+          "маркетолог"
+          "DevOps"
+          "Axapta"
+          "designer"
+          "Дизайнер"
+          "Помощник"
+          "Верстальщик"
+          "Smolensk" "Львов")
 
       ;; (mapcar #'(lambda (x)
       ;;             (del-vacancy (id x)))
@@ -3040,6 +3067,8 @@
 
     #+NAME: expample
     #+BEGIN_SRC lisp
+      (in-package :moto)
+
       (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
         (process-teaser (list :id 17188522 :salary-min 100000 :salary-max 150000 :salary 150000) *hh_account* "https://spb.hh.ru"))
     #+END_SRC
