@@ -258,10 +258,11 @@
     (maphash #'(lambda (k v)
                  (setf result (append result (list (list v k)))))
              hash)
+    ;; (dbg "~A" (bprint result))
     (setf result (remove-if #'(lambda (x)
                                 (block the-filter
                                   ;; Известные нам слова
-                                  (if (or (equal "1С" x)
+                                  (if (or (equal "1С" (cadr x))
                                           ;; need more ...
                                           )
                                       (return-from the-filter nil))
@@ -275,7 +276,6 @@
     (setf (getf vacancy :tags)
           (bprint result))
   ))
-
 
 (define-rule (z-print t)
   (show-vacancy vacancy))
