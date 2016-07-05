@@ -175,7 +175,7 @@
         (content-box ()
           (form ("tagform" nil :class "form-section-container")
             ((:div :class "form-section")
-             (fieldset "Заметки"
+             (fieldset "Тэги"
                (textarea ("tags" "Тэги") (tags vac))
                (ps-html ((:span :class "clear")))))))
         (content-box ()
