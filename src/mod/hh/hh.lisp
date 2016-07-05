@@ -108,6 +108,7 @@
             (if (funcall (eval (read-from-string (format nil "(lambda (vacancy) ~A)" (antecedent rule))))
                          vacancy)
                 (progn
+                  ;; (dbg ": ~A : ~A" (id rule) (name rule))
                   (multiple-value-bind (vacancy-result rule-result)
                       (funcall (eval `(lambda (vacancy)
                                         (let ((result (progn ,@(read-from-string (consequent rule)))))
@@ -224,7 +225,13 @@
 
 (define-rule (set-tags t)
   ;; Превращаем описание вакансии в plain-text с минимумом знаков препринания, а потом разбиваем по пробелам,
-  ;; чтобы получить список слов. Потом выявляем наиболее часто встречающиеся элементы (https://habrahabr.ru/post/167177/)
+  ;; чтобы получить список слов, отсортированный по частоте встречаемости
+  ;; Из этого списка слов мы хотим найти все термины. Терминами могут быть:
+  ;; - аббревитуры технологий
+  ;; - названия технологий и продуктов, известные нам.
+  ;; Мы считаем интересными те слова, которые содержат только английские буквы (пусть даже и в нижнем регистре)
+  ;; Можно еще выявлять наиболее часто встречающиеся элементы (https://habrahabr.ru/post/167177/)
+  ;; Найденные абревиатуры кладем в поле tags
   (let ((hash (make-hash-table :test #'equal))
         (result))
     (mapcar #'(lambda (trm)
@@ -235,13 +242,14 @@
                       (setf (gethash trm hash) (+ 1 result)))))
             (ppcre:split "\\s+"
                          (ppcre:regex-replace-all
-                          "\\s+" (->  (replace-all (descr (car (find-vacancy :src-id 17503441))) "(:P)" "")
+                          "\\s+" (->  (replace-all (bprint (getf vacancy :descr)) "(:P)" "")
                                       (replace-all "(:B)" "")
                                       (replace-all "(:LI)" "")
                                       (replace-all "(:UL)" "")
                                       (replace-all "(" "")
                                       (replace-all ")" "")
                                       (replace-all "\"" "")
+                                      (replace-all "/" " ")
                                       (replace-all "," "")
                                       (replace-all ":" "")
                                       (replace-all ";" "")
@@ -251,13 +259,23 @@
                  (setf result (append result (list (list v k)))))
              hash)
     (setf result (remove-if #'(lambda (x)
-                                (or (equal 1 (car x))
-                                    (equal 1 (length (cadr x)))))
+                                (block the-filter
+                                  ;; Известные нам слова
+                                  (if (or (equal "1С" x)
+                                          ;; need more ...
+                                          )
+                                      (return-from the-filter nil))
+                                  (loop :for char :across (cadr x) :do
+                                     (if (< 1 (length (subseq (bprint char) 2)))
+                                         (return-from the-filter t)))
+                                  nil))
                             result))
     (sort result #'(lambda (a b)
                      (< (car a) (car b))))
-    (setf (tags vacancy)
-          (bprint result))))
+    (setf (getf vacancy :tags)
+          (bprint result))
+  ))
+
 
 (define-rule (z-print t)
   (show-vacancy vacancy))
@@ -393,7 +411,7 @@
              (get-all-rules)))
 
 (defmethod process-teaser :around (current-teaser src-account referer)
-  ;; (dbg "process-teaser :around")
+  (dbg "process-teaser :around")
   (aif (process current-teaser (rules-for-teaser))
        (process (call-next-method it) (rules-for-vacancy))
        nil))
@@ -405,7 +423,7 @@
 
 
 (defun make-hh-url (city prof-area &optional specs)
-  "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A")
+  "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A")
 
 ;; test
 ;; (make-hh-url "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
@@ -444,7 +462,7 @@
 (defun recovery-login (src-account)
   ;; Сначала заходим на главную как будто первый раз, без печенек
   (setf drakma:*header-stream* nil)
-  (let* ((start-uri "http://spb.hh.ru/")
+  (let* ((start-uri "https://spb.hh.ru/")
          (cookie-jar (make-instance 'drakma:cookie-jar))
          (additional-headers *additional-headers*)
          (response (drakma:http-request start-uri
@@ -463,11 +481,11 @@
     ;; Теперь попробуем использовать печеньки для логина
     ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
     ;; И заходим с вот-таким гет-запросом:
-    ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
+    ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=https://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
     ;; (setf drakma:*header-stream* *standard-output*)
     (let* ((post-parameters `(("username" . ,(src_login src-account))
                               ("password" . ,(src_password src-account))
-                              ("backUrl"  . "http://spb.hh.ru/")
+                              ("backUrl"  . "https://spb.hh.ru/")
                               ("remember" . "yes")
                               ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
                               ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))))
@@ -508,9 +526,9 @@
   "Получение страницы"
   ;; Если ни одного запроса еще не было - сделаем запрос к главной и снимем флаг
   (when *need-start*
-    (drakma:http-request "http://spb.hh.ru/" :user-agent *user-agent* :redirect 10
+    (drakma:http-request "https://spb.hh.ru/" :user-agent *user-agent* :redirect 10
                          :force-binary t     :cookie-jar cookie-jar)
-    (setf referer "http://spb.hh.ru/")
+    (setf referer "https://spb.hh.ru/")
     (setf *need-start* nil))
   ;; Делаем основной запрос, по урлу из параметров, сохраняя результат в response
   ;; и обновляя cookie-jar
@@ -548,9 +566,9 @@
             cookie-jar
             url)))
 
-;; (hh-get-page "http://spb.hh.ru/applicant/negotiations?wed=1"
+;; (hh-get-page "https://spb.hh.ru/applicant/negotiations?wed=1"
 ;;              (make-instance 'drakma:cookie-jar)
-;;              "http://spb.hh.ru/")
+;;              "https://spb.hh.ru/")
 
 (in-package #:moto)
 
@@ -618,7 +636,7 @@
     vacancy))
 
 ;; (hh-parse-vacancy-teasers
-;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
+;;  (hh-get-page "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
 
 (defun html-to-tree (html)
   ;; (html5-parser:node-to-xmls
@@ -994,7 +1012,7 @@
 
 ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (hh-parse-vacancy-teasers
-;;    (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true" temp-cookie-jar "http://spb.hh.ru/")))
+;;    (hh-get-page "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true" temp-cookie-jar "https://spb.hh.ru/")))
 
 ;; (print
 ;;  *last-parse-data*)
@@ -1100,18 +1118,18 @@
 
 ;; (print
 ;;  (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;    (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525" temp-cookie-jar *hh_account* "http://spb.hh.ru/"))))
+;;    (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/12561525" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
 
 
 ;; (print
 ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;     (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/16606806" temp-cookie-jar *hh_account* "http://spb.hh.ru/"))))
+;;     (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/16606806" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
   ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
   (defmethod process-teaser (current-teaser src-account referer)
     (dbg "process-teaser")
-    (let ((vacancy-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
+    (let ((vacancy-page (format nil "https://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
       (multiple-value-bind (vacancy new-cookies ref-url)
           (hh-get-page vacancy-page cookie-jar src-account referer)
         (setf cookie-jar new-cookies)
@@ -1130,7 +1148,7 @@
         (labels ((load-next-teasers-page ()
                    (dbg "load-next-teasers-page (page=~A)" page)
                    (let* ((next-teasers-page-url (format nil url page))
-                          (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
+                          (referer (if (= page 0) "https://spb.hh.ru"(format nil url (- page 1)))))
                      (handler-case
                          (multiple-value-bind (next-teasers-page new-cookies ref-url)
                              (hh-get-page next-teasers-page-url cookie-jar src-account referer)
@@ -1192,18 +1210,18 @@
                        :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
                        :descr (bprint (getf vacancy :descr))
                        :notes ""
-                       :tags ""
+                       :tags (aif (getf vacancy :tags) it "")
                        :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
 
 (in-package #:moto)
 
 (defun send-respond (vacancy-id cookie-jar resume-id letter)
-  (let ((url (format nil "http://spb.hh.ru/vacancy/~A" vacancy-id)))
+  (let ((url (format nil "https://spb.hh.ru/vacancy/~A" vacancy-id)))
     ;; Сначала запрашиваем страницу
     (multiple-value-bind (response cookie-jar url)
-        (hh-get-page url cookie-jar *hh_account* "http://spb.hh.ru")
+        (hh-get-page url cookie-jar *hh_account* "https://spb.hh.ru")
       ;; Потом запрашиваем всплывающее окно (X-Requested-With: XMLHttpRequest, Referer)
-      (let ((url-popup (format nil "http://spb.hh.ru/applicant/vacancy_response/popup?vacancyId=~A&autoOpen=no&isTest=no&withoutTest=no" vacancy-id)))
+      (let ((url-popup (format nil "https://spb.hh.ru/applicant/vacancy_response/popup?vacancyId=~A&autoOpen=no&isTest=no&withoutTest=no" vacancy-id)))
         (multiple-value-bind (response cookie-jar url)
             (hh-get-page url-popup cookie-jar *hh_account* url)
           ;; Тут можно было бы проанализировать форму на предмет соответствия выбираемых резюме
@@ -1212,7 +1230,7 @@
                                       (drakma:cookie-jar-cookies cookie-jar))))
             ;; Теперь отправляем POST-запрос
             (let ((resp (drakma:http-request
-                         "http://spb.hh.ru/applicant/vacancy_response/popup"
+                         "https://spb.hh.ru/applicant/vacancy_response/popup"
                          :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
                          :method :post
                          :content (format nil "~{~A~^&~}"
@@ -1230,7 +1248,7 @@
                            ("Accept-Encoding" . "gzip, deflate")
                            ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
                            ("X-Requested-With" . "XMLHttpRequest")
-                           ("Referer" . ,(format nil "http://spb.hh.ru/vacancy/~A" vacancy-id))
+                           ("Referer" . ,(format nil "https://spb.hh.ru/vacancy/~A" vacancy-id))
                            ("Connection" . "keep-alive")
                            ("Pragma" . "no-cache")
                            ("Cache-Control" . "no-cache")
@@ -1392,7 +1410,7 @@
 ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (print
 ;;    (hh-parse-responds
-;;     (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1" cookie-jar *hh_account* "http://spb.hh.ru" ))))
+;;     (hh-get-page "https://spb.hh.ru/applicant/negotiations?page=1" cookie-jar *hh_account* "https://spb.hh.ru" ))))
 
 (in-package :moto)
 
@@ -1432,14 +1450,14 @@
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
   (defmethod response-factory ((vac-src (eql 'hh)) src-account)
-    (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
+    (let ((url      "https://spb.hh.ru/applicant/negotiations?page=~A")
           (page     0)
           (responds nil))
       (alexandria:named-lambda get-responds ()
         (labels ((load-next-responds-page ()
                    (dbg "load-next-responds-page (page=~A)" page)
                    (let ((next-responds-page-url (format nil url page))
-                         (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
+                         (referer (if (= page 0) "https://spb.hh.ru"(format nil url (- page 1)))))
                      (multiple-value-bind (next-responds-page new-cookies ref-url)
                          (hh-get-page next-responds-page-url cookie-jar src-account referer)
                        (setf cookie-jar new-cookies)

@@ -532,7 +532,7 @@
        ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
        (defmethod process-teaser (current-teaser src-account referer)
          (dbg "process-teaser")
-         (let ((vacancy-page (format nil "http://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
+         (let ((vacancy-page (format nil "https://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
            (multiple-value-bind (vacancy new-cookies ref-url)
                (hh-get-page vacancy-page cookie-jar src-account referer)
              (setf cookie-jar new-cookies)
@@ -551,7 +551,7 @@
              (labels ((load-next-teasers-page ()
                         (dbg "load-next-teasers-page (page=~A)" page)
                         (let* ((next-teasers-page-url (format nil url page))
-                               (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
+                               (referer (if (= page 0) "https://spb.hh.ru"(format nil url (- page 1)))))
                           (handler-case
                               (multiple-value-bind (next-teasers-page new-cookies ref-url)
                                   (hh-get-page next-teasers-page-url cookie-jar src-account referer)
@@ -611,7 +611,7 @@
       <<!make_specialization_hh_url_string>>
 
       (defun make-hh-url (city prof-area &optional specs)
-        "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A")
+        "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A")
 
       ;; test
       ;; (make-hh-url "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
@@ -777,9 +777,9 @@
         "Получение страницы"
         ;; Если ни одного запроса еще не было - сделаем запрос к главной и снимем флаг
         (when *need-start*
-          (drakma:http-request "http://spb.hh.ru/" :user-agent *user-agent* :redirect 10
+          (drakma:http-request "https://spb.hh.ru/" :user-agent *user-agent* :redirect 10
                                :force-binary t     :cookie-jar cookie-jar)
-          (setf referer "http://spb.hh.ru/")
+          (setf referer "https://spb.hh.ru/")
           (setf *need-start* nil))
         ;; Делаем основной запрос, по урлу из параметров, сохраняя результат в response
         ;; и обновляя cookie-jar
@@ -817,9 +817,9 @@
                   cookie-jar
                   url)))
 
-      ;; (hh-get-page "http://spb.hh.ru/applicant/negotiations?wed=1"
+      ;; (hh-get-page "https://spb.hh.ru/applicant/negotiations?wed=1"
       ;;              (make-instance 'drakma:cookie-jar)
-      ;;              "http://spb.hh.ru/")
+      ;;              "https://spb.hh.ru/")
     #+END_SRC
 
 **** Логин на источник (=recovery-login=)
@@ -869,7 +869,7 @@
        (defun recovery-login (src-account)
          ;; Сначала заходим на главную как будто первый раз, без печенек
          (setf drakma:*header-stream* nil)
-         (let* ((start-uri "http://spb.hh.ru/")
+         (let* ((start-uri "https://spb.hh.ru/")
                 (cookie-jar (make-instance 'drakma:cookie-jar))
                 (additional-headers *additional-headers*)
                 (response (drakma:http-request start-uri
@@ -888,11 +888,11 @@
            ;; Теперь попробуем использовать печеньки для логина
            ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
            ;; И заходим с вот-таким гет-запросом:
-           ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=http://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
+           ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=https://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
            ;; (setf drakma:*header-stream* *standard-output*)
            (let* ((post-parameters `(("username" . ,(src_login src-account))
                                      ("password" . ,(src_password src-account))
-                                     ("backUrl"  . "http://spb.hh.ru/")
+                                     ("backUrl"  . "https://spb.hh.ru/")
                                      ("remember" . "yes")
                                      ("action"   . "%D0%92%D0%BE%D0%B9%D1%82%D0%B8")
                                      ("_xsrf"    . ,(cdr (assoc "_xsrf" (get-cookies-alist cookie-jar) :test #'equal)))))
@@ -1391,7 +1391,7 @@
 
       ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (hh-parse-vacancy-teasers
-      ;;    (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true" temp-cookie-jar "http://spb.hh.ru/")))
+      ;;    (hh-get-page "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true" temp-cookie-jar "https://spb.hh.ru/")))
 
       ;; (print
       ;;  *last-parse-data*)
@@ -1855,7 +1855,7 @@
            vacancy))
 
        ;; (hh-parse-vacancy-teasers
-       ;;  (hh-get-page "http://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
+       ;;  (hh-get-page "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
      #+END_SRC
 
 *** Разбор вакансий (=hh-parse-vacancy=)
@@ -1969,12 +1969,12 @@
 
       ;; (print
       ;;  (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-      ;;    (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/12561525" temp-cookie-jar *hh_account* "http://spb.hh.ru/"))))
+      ;;    (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/12561525" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
 
 
       ;; (print
       ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-      ;;     (hh-parse-vacancy (hh-get-page "http://spb.hh.ru/vacancy/16606806" temp-cookie-jar *hh_account* "http://spb.hh.ru/"))))
+      ;;     (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/16606806" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
     #+END_SRC
 
 ** Правила обработки тизеров и вакансий
@@ -2293,44 +2293,59 @@
         (dbg "up rank by Haskell")
         (setf (getf vacancy :rank) (+ (getf vacancy :rank) 10000)))
 
-      ;; (define-rule (set-tags t)
-      ;;   ;; Превращаем описание вакансии в plain-text с минимумом знаков препринания, а потом разбиваем по пробелам,
-      ;;   ;; чтобы получить список слов. Потом выявляем наиболее часто встречающиеся элементы (https://habrahabr.ru/post/167177/)
-      ;;   (let ((hash (make-hash-table :test #'equal))
-      ;;         (result))
-      ;;     (mapcar #'(lambda (trm)
-      ;;                 (multiple-value-bind (result exist)
-      ;;                     (gethash trm hash)
-      ;;                   (if (null exist)
-      ;;                       (setf (gethash trm hash) 1)
-      ;;                       (setf (gethash trm hash) (+ 1 result)))))
-      ;;             (ppcre:split "\\s+"
-      ;;                          (ppcre:regex-replace-all
-      ;;                           "\\s+" (->  (replace-all (descr (car (find-vacancy :src-id 17503441))) "(:P)" "")
-      ;;                                       (replace-all "(:B)" "")
-      ;;                                       (replace-all "(:LI)" "")
-      ;;                                       (replace-all "(:UL)" "")
-      ;;                                       (replace-all "(" "")
-      ;;                                       (replace-all ")" "")
-      ;;                                       (replace-all "\"" "")
-      ;;                                       (replace-all "," "")
-      ;;                                       (replace-all ":" "")
-      ;;                                       (replace-all ";" "")
-      ;;                                       (replace-all "-" ""))
-      ;;                           " ")))
-      ;;     (maphash #'(lambda (k v)
-      ;;                  (setf result (append result (list (list v k)))))
-      ;;              hash)
-      ;;     (setf result (remove-if #'(lambda (x)
-      ;;                                 (or (equal 1 (car x))
-      ;;                                     (equal 1 (length (cadr x)))))
-      ;;                             result))
-      ;;     (sort result #'(lambda (a b)
-      ;;                      (< (car a) (car b))))
-      ;;     (setf (tags vacancy)
-      ;;           (bprint result))))
+      (define-rule (set-tags t)
+        ;; Превращаем описание вакансии в plain-text с минимумом знаков препринания, а потом разбиваем по пробелам,
+        ;; чтобы получить список слов, отсортированный по частоте встречаемости
+        ;; Из этого списка слов мы хотим найти все термины. Терминами могут быть:
+        ;; - аббревитуры технологий
+        ;; - названия технологий и продуктов, известные нам.
+        ;; Мы считаем интересными те слова, которые содержат только английские буквы (пусть даже и в нижнем регистре)
+        ;; Можно еще выявлять наиболее часто встречающиеся элементы (https://habrahabr.ru/post/167177/)
+        ;; Найденные абревиатуры кладем в поле tags
+        (let ((hash (make-hash-table :test #'equal))
+              (result))
+          (mapcar #'(lambda (trm)
+                      (multiple-value-bind (result exist)
+                          (gethash trm hash)
+                        (if (null exist)
+                            (setf (gethash trm hash) 1)
+                            (setf (gethash trm hash) (+ 1 result)))))
+                  (ppcre:split "\\s+"
+                               (ppcre:regex-replace-all
+                                "\\s+" (->  (replace-all (bprint (getf vacancy :descr)) "(:P)" "")
+                                            (replace-all "(:B)" "")
+                                            (replace-all "(:LI)" "")
+                                            (replace-all "(:UL)" "")
+                                            (replace-all "(" "")
+                                            (replace-all ")" "")
+                                            (replace-all "\"" "")
+                                            (replace-all "/" " ")
+                                            (replace-all "," "")
+                                            (replace-all ":" "")
+                                            (replace-all ";" "")
+                                            (replace-all "-" ""))
+                                " ")))
+          (maphash #'(lambda (k v)
+                       (setf result (append result (list (list v k)))))
+                   hash)
+          (setf result (remove-if #'(lambda (x)
+                                      (block the-filter
+                                        ;; Известные нам слова
+                                        (if (or (equal "1С" x)
+                                                ;; need more ...
+                                                )
+                                            (return-from the-filter nil))
+                                        (loop :for char :across (cadr x) :do
+                                           (if (< 1 (length (subseq (bprint char) 2)))
+                                               (return-from the-filter t)))
+                                        nil))
+                                  result))
+          (sort result #'(lambda (a b)
+                           (< (car a) (car b))))
+          (setf (getf vacancy :tags)
+                (bprint result))
+        ))
 
-      ;; (tags (car (find-vacancy :src-id 17503441)))
 
       (define-rule (z-print t)
         (show-vacancy vacancy))
@@ -2413,7 +2428,7 @@
 
    Теперь мы можем создать процессор правил =process=, который применяет к вакансии правила
    поочередно. По сути, это =машина Э.Поста=, а все вместе представляет собой =продукционную
-   систему= с прямой цепочкой вывода. Подробнее про продукционные системы [[http://www.ngpedia.ru/id429603p1.html][тут]] и [[http://www.myshared.ru/slide/445840/][тут]].
+   систему= с прямой цепочкой вывода. Подробнее про продукционные системы [[https://www.ngpedia.ru/id429603p1.html][тут]] и [[https://www.myshared.ru/slide/445840/][тут]].
 
    #+CAPTION: Продукционная система
    #+NAME: fig:production_system
@@ -2483,6 +2498,7 @@
                  (if (funcall (eval (read-from-string (format nil "(lambda (vacancy) ~A)" (antecedent rule))))
                               vacancy)
                      (progn
+                       ;; (dbg ": ~A : ~A" (id rule) (name rule))
                        (multiple-value-bind (vacancy-result rule-result)
                            (funcall (eval `(lambda (vacancy)
                                              (let ((result (progn ,@(read-from-string (consequent rule)))))
@@ -2573,7 +2589,7 @@
      <<rules>>
 
      (defmethod process-teaser :around (current-teaser src-account referer)
-       ;; (dbg "process-teaser :around")
+       (dbg "process-teaser :around")
        (aif (process current-teaser (rules-for-teaser))
             (process (call-next-method it) (rules-for-vacancy))
             nil))
@@ -2679,7 +2695,7 @@
                             :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
                             :descr (bprint (getf vacancy :descr))
                             :notes ""
-                            :tags ""
+                            :tags (aif (getf vacancy :tags) it "")
                             :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
    #+END_SRC
 
@@ -2912,12 +2928,12 @@
      (in-package #:moto)
 
      (defun send-respond (vacancy-id cookie-jar resume-id letter)
-       (let ((url (format nil "http://spb.hh.ru/vacancy/~A" vacancy-id)))
+       (let ((url (format nil "https://spb.hh.ru/vacancy/~A" vacancy-id)))
          ;; Сначала запрашиваем страницу
          (multiple-value-bind (response cookie-jar url)
-             (hh-get-page url cookie-jar *hh_account* "http://spb.hh.ru")
+             (hh-get-page url cookie-jar *hh_account* "https://spb.hh.ru")
            ;; Потом запрашиваем всплывающее окно (X-Requested-With: XMLHttpRequest, Referer)
-           (let ((url-popup (format nil "http://spb.hh.ru/applicant/vacancy_response/popup?vacancyId=~A&autoOpen=no&isTest=no&withoutTest=no" vacancy-id)))
+           (let ((url-popup (format nil "https://spb.hh.ru/applicant/vacancy_response/popup?vacancyId=~A&autoOpen=no&isTest=no&withoutTest=no" vacancy-id)))
              (multiple-value-bind (response cookie-jar url)
                  (hh-get-page url-popup cookie-jar *hh_account* url)
                ;; Тут можно было бы проанализировать форму на предмет соответствия выбираемых резюме
@@ -2926,7 +2942,7 @@
                                            (drakma:cookie-jar-cookies cookie-jar))))
                  ;; Теперь отправляем POST-запрос
                  (let ((resp (drakma:http-request
-                              "http://spb.hh.ru/applicant/vacancy_response/popup"
+                              "https://spb.hh.ru/applicant/vacancy_response/popup"
                               :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
                               :method :post
                               :content (format nil "~{~A~^&~}"
@@ -2944,7 +2960,7 @@
                                 ("Accept-Encoding" . "gzip, deflate")
                                 ("X-Xsrftoken" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal)))
                                 ("X-Requested-With" . "XMLHttpRequest")
-                                ("Referer" . ,(format nil "http://spb.hh.ru/vacancy/~A" vacancy-id))
+                                ("Referer" . ,(format nil "https://spb.hh.ru/vacancy/~A" vacancy-id))
                                 ("Connection" . "keep-alive")
                                 ("Pragma" . "no-cache")
                                 ("Cache-Control" . "no-cache")
@@ -2988,14 +3004,14 @@
 
      (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
        (defmethod response-factory ((vac-src (eql 'hh)) src-account)
-         (let ((url      "http://spb.hh.ru/applicant/negotiations?page=~A")
+         (let ((url      "https://spb.hh.ru/applicant/negotiations?page=~A")
                (page     0)
                (responds nil))
            (alexandria:named-lambda get-responds ()
              (labels ((load-next-responds-page ()
                         (dbg "load-next-responds-page (page=~A)" page)
                         (let ((next-responds-page-url (format nil url page))
-                              (referer (if (= page 0) "http://spb.hh.ru"(format nil url (- page 1)))))
+                              (referer (if (= page 0) "https://spb.hh.ru"(format nil url (- page 1)))))
                           (multiple-value-bind (next-responds-page new-cookies ref-url)
                               (hh-get-page next-responds-page-url cookie-jar src-account referer)
                             (setf cookie-jar new-cookies)
@@ -3017,7 +3033,16 @@
                         (return-from get-responds current-respond)))))))))
    #+END_SRC
 
-*** Разбор отзыва (=process-respond=)
+*** TODO Разбор отзыва (=process-respond=)
+
+    [TODO:gmm] Иногда случается, что пришло, например, приглашение на вакансию, которой
+    нет в базе. В этом случае надо эту вакансию загрузить и обработать, например так:
+
+    #+NAME: expample
+    #+BEGIN_SRC lisp
+      (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+        (process-teaser (list :id 17188522 :salary-min 100000 :salary-max 150000 :salary 150000) *hh_account* "https://spb.hh.ru"))
+    #+END_SRC
 
    #+NAME: process_respond
    #+BEGIN_SRC lisp :exports code :padline no :comments link
@@ -3190,7 +3215,7 @@
      ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
      ;;   (print
      ;;    (hh-parse-responds
-     ;;     (hh-get-page "http://spb.hh.ru/applicant/negotiations?page=1" cookie-jar *hh_account* "http://spb.hh.ru" ))))
+     ;;     (hh-get-page "https://spb.hh.ru/applicant/negotiations?page=1" cookie-jar *hh_account* "https://spb.hh.ru" ))))
    #+END_SRC
 
 ** Получение и обработка отзывов (=run-response=)
@@ -3449,7 +3474,7 @@
         :linkedin                ""
         :facebook                ""
         :livejournal             "rigidus"
-        :personal-site           "http://rigidus.ru"
+        :personal-site           "https://rigidus.ru"
 
         :title "Programmer"
         :specializations "221"
@@ -3694,8 +3719,8 @@
 
 ** Страница списка вакансий
 
-   http://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
-   http://romka.eu/blog/jquery-table-drag-and-drop
+   https://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
+   https://romka.eu/blog/jquery-table-drag-and-drop
 
    #+NAME: iface_contents
    #+BEGIN_SRC lisp
@@ -3813,7 +3838,7 @@
                      ((:td) (id vac))
                      ((:td) "&nbsp;&nbsp;&nbsp;")
                      ((:td) "src-id:")
-                     ((:td) ((:a :href (format nil "http://hh.ru/vacancy/~A" (src-id vac))) (src-id vac)))
+                     ((:td) ((:a :href (format nil "https://hh.ru/vacancy/~A" (src-id vac))) (src-id vac)))
                      ((:td) "&nbsp;&nbsp;&nbsp;")
                      ((:td) "archive:")
                      ((:td) (archive vac))
@@ -4187,7 +4212,7 @@
      /**
       ,* Ribbon theme for Shower HTML presentation engine
       ,* shower-ribbon v1.1.0, https://github.com/shower/ribbon
-      ,* Copyright © 2010–2015 Vadim Makeev, http://pepelsbey.net
+      ,* Copyright © 2010–2015 Vadim Makeev, https://pepelsbey.net
       ,* Licensed under MIT license: github.com/shower/shower/wiki/MIT-License
       ,*/
      @charset \"UTF-8\";@font-face{font-family:'PT Sans';src:url(../fonts/PTSans.woff) format(\"woff\")}@font-face{font-weight:700;font-family:'PT Sans';src:url(../fonts/PTSans.Bold.woff) format(\"woff\")}@font-face{font-style:italic;font-family:'PT Sans';src:url(../fonts/PTSans.Italic.woff) format(\"woff\")}@font-face{font-style:italic;font-weight:700;font-family:'PT Sans';src:url(../fonts/PTSans.Bold.Italic.woff) format(\"woff\")}@font-face{font-family:'PT Sans Narrow';font-weight:700;src:url(../fonts/PTSans.Narrow.Bold.woff) format(\"woff\")}@font-face{font-family:'PT Mono';src:url(../fonts/PTMono.woff) format(\"woff\")}html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}table{border-collapse:collapse;border-spacing:0}.shower{counter-reset:slide;font:25px/2 'PT Sans',sans-serif}@media print{.shower{text-rendering:geometricPrecision}}.shower a{color:#4b86c2;background:-webkit-linear-gradient(bottom,currentColor,currentColor .09em,transparent .09em,transparent)repeat-x;background:linear-gradient(to top,currentColor,currentColor .09em,transparent .09em,transparent)repeat-x;text-decoration:none}.caption{display:none;margin:0 0 50px;color:#3c3d40;text-shadow:0 1px 1px #8d8e90}.caption h1{font:700 50px/1 'PT Sans Narrow',sans-serif}.caption a{text-shadow:0 -1px 1px #1f3f60;background:0 0}.caption a:hover{color:#5e93c8}.badge{position:absolute;top:0;right:0;display:none;overflow:hidden;visibility:hidden;width:11em;height:11em;line-height:2.5;font-size:15px}.badge a{position:absolute;bottom:50%;right:-50%;left:-50%;visibility:visible;background:#4b86c2;box-shadow:0 0 1em rgba(0,0,0,.3);color:#fff;text-decoration:none;text-align:center;-webkit-transform-origin:50% 100%;-ms-transform-origin:50% 100%;transform-origin:50% 100%;-webkit-transform:rotate(45deg) translateY(-1em);-ms-transform:rotate(45deg) translateY(-1em);transform:rotate(45deg) translateY(-1em)}.badge a:hover{background:#568ec6}.region{display:none}.slide{position:relative;width:1024px;height:640px;background:#fff;color:#000;-webkit-print-color-adjust:exact;-webkit-text-size-adjust:none;-moz-text-size-adjust:none;-ms-text-size-adjust:none}@media print{.slide{page-break-before:always}}.slide:after{position:absolute;top:0;right:119px;padding:20px 0 0;width:50px;height:80px;background:url(../images/ribbon.svg) no-repeat;color:#fff;counter-increment:slide;content:counter(slide);text-align:center;font-size:20px}.slide>div{position:absolute;top:0;left:0;overflow:hidden;padding:105px 120px 0;width:784px;height:535px}.slide h2{margin:0 0 37px;color:#666;font:700 50px/1 'PT Sans Narrow',sans-serif}.slide p{margin:0 0 50px}.slide p.note{color:#999}.slide b,.slide strong{font-weight:700}.slide i,.slide em{font-style:italic}.slide code,.slide kbd,.slide mark,.slide samp{padding:3px 8px;border-radius:8px;color:#000}.slide kbd,.slide code,.slide samp{background:rgba(0,0,0,.07);color:#000;line-height:1;font-family:'PT Mono',monospace}.slide mark{background:#fafaa2}.slide sub,.slide sup{position:relative;line-height:0;font-size:75%}.slide sub{bottom:-.25em}.slide sup{top:-.5em}.slide blockquote{font-style:italic}.slide blockquote:before{position:absolute;margin:-16px 0 0 -80px;color:#ccc;font:200px/1 'PT Sans',sans-serif;content:'\201C'}.slide blockquote+figcaption{margin:-50px 0 50px;font-style:italic;font-weight:700}.slide ol,.slide ul{margin:0 0 50px;counter-reset:list}.slide ol li,.slide ul li{text-indent:-2em}.slide ol li:before,.slide ul li:before{display:inline-block;width:2em;color:#bbb;text-align:right}.slide ol ol,.slide ol ul,.slide ul ol,.slide ul ul{margin:0 0 0 2em}.slide ul>li:before{content:'\2022\00A0\00A0'}.slide ul>li:lang(ru):before{content:'\2014\00A0\00A0'}.slide ol>li:before{counter-increment:list;content:counter(list)\". \"}.slide pre{margin:0 0 49px;padding:1px 0 0;counter-reset:code;white-space:normal;-moz-tab-size:4;-o-tab-size:4;tab-size:4}.slide pre code{display:block;padding:0;background:0 0;white-space:pre;line-height:2}.slide pre code:before{position:absolute;margin-left:-50px;color:#bbb;counter-increment:code;content:counter(code,decimal-leading-zero)\".\"}.slide pre code:only-child:before{content:''}.slide pre mark.important{background:#c00;color:#fff}.slide pre mark.comment{padding:0;background:0 0;color:#999}.slide table{margin:0 0 50px;width:100%;border-collapse:collapse;border-spacing:0}.slide table th,.slide table td{background:-webkit-linear-gradient(bottom,#bbb,#bbb .055em,transparent .055em,transparent)repeat-x;background:linear-gradient(to top,#bbb,#bbb .055em,transparent .055em,transparent)repeat-x}.slide table th{text-align:left;font-weight:700}.slide table.striped tr:nth-child(even){background:#eee}.slide.cover,.slide.shout{z-index:1}.slide.cover:after,.slide.shout:after{visibility:hidden}.slide.cover{background:#000}.slide.cover img,.slide.cover svg,.slide.cover video,.slide.cover object,.slide.cover canvas,.slide.cover iframe{position:absolute;top:0;left:0;z-index:-1}.slide.cover.w img,.slide.cover.w svg,.slide.cover.w video,.slide.cover.w object,.slide.cover.w canvas,.slide.cover.w iframe{top:50%;width:100%;-webkit-transform:translateY(-50%);-ms-transform:translateY(-50%);transform:translateY(-50%)}.slide.cover.h img,.slide.cover.h svg,.slide.cover.h video,.slide.cover.h object,.slide.cover.h canvas,.slide.cover.h iframe{left:50%;height:100%;-webkit-transform:translateX(-50%);-ms-transform:translateX(-50%);transform:translateX(-50%)}.slide.cover.w.h img,.slide.cover.w.h svg,.slide.cover.w.h video,.slide.cover.w.h object,.slide.cover.w.h canvas,.slide.cover.w.h iframe{top:0;left:0;-webkit-transform:none;-ms-transform:none;transform:none}.slide.shout h2{position:absolute;top:50%;left:0;width:100%;text-align:center;line-height:1;font-size:150px;-webkit-transform:translateY(-50%);-ms-transform:translateY(-50%);transform:translateY(-50%)}.slide.shout h2 a{background:-webkit-linear-gradient(bottom,currentColor,currentColor .11em,transparent .11em,transparent)repeat-x;background:linear-gradient(to top,currentColor,currentColor .11em,transparent .11em,transparent)repeat-x}.slide .place{position:absolute;top:50%;left:50%;-webkit-transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);transform:translate(-50%,-50%)}.slide .place.t.l,.slide .place.t.r,.slide .place.b.r,.slide .place.b.l{-webkit-transform:none;-ms-transform:none;transform:none}.slide .place.t,.slide .place.b{-webkit-transform:translate(-50%,0);-ms-transform:translate(-50%,0);transform:translate(-50%,0)}.slide .place.l,.slide .place.r{-webkit-transform:translate(0,-50%);-ms-transform:translate(0,-50%);transform:translate(0,-50%)}.slide .place.t,.slide .place.t.l,.slide .place.t.r{top:0}.slide .place.r{right:0;left:auto}.slide .place.b,.slide .place.b.r,.slide .place.b.l{top:auto;bottom:0}.slide .place.l{left:0}.slide footer{position:absolute;left:0;right:0;bottom:-640px;z-index:1;display:none;padding:20px 120px 4px;background:#fafaa2;box-shadow:0 0 0 2px #f0f0ac inset;-webkit-transition:bottom .3s;transition:bottom .3s}.slide footer p{margin:0 0 16px}.slide footer mark{background:rgba(255,255,255,.7)}.slide:hover footer{bottom:0}@media screen{.shower.list{position:absolute;clip:rect(0,auto,auto,0);padding:80px 0 40px 100px;background:#585a5e url(../images/linen.png)}}@media screen and (-webkit-min-device-pixel-ratio:2),screen and (min-resolution:192dpi){.shower.list{background-image:url(../images/linen@2x.png);background-size:256px}}@media screen{.shower.list .caption,.shower.list .badge{display:block}.shower.list .slide{float:left;margin:0 -412px -220px 0;-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0;-webkit-transform:scale(.5);-ms-transform:scale(.5);transform:scale(.5)}}@media screen and (max-width:1324px){.shower.list .slide{margin:0 -688px -400px 0;-webkit-transform:scale(.25);-ms-transform:scale(.25);transform:scale(.25)}}@media screen{.shower.list .slide:before{position:absolute;top:0;left:0;z-index:-1;width:512px;height:320px;box-shadow:0 0 30px rgba(0,0,0,.005),0 20px 50px rgba(42,43,45,.6);border-radius:2px;content:'';-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0;-webkit-transform:scale(2);-ms-transform:scale(2);transform:scale(2)}}@media screen and (max-width:1324px){.shower.list .slide:before{width:256px;height:160px;-webkit-transform:scale(4);-ms-transform:scale(4);transform:scale(4)}}@media screen{.shower.list .slide:after{top:auto;right:auto;bottom:-80px;left:120px;padding:0;width:auto;height:auto;background:0 0;color:#3c3d40;text-shadow:0 1px 1px #8d8e90;font-weight:700;-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0;-webkit-transform:scale(2);-ms-transform:scale(2);transform:scale(2)}}@media screen and (max-width:1324px){.shower.list .slide:after{bottom:-104px;-webkit-transform:scale(4);-ms-transform:scale(4);transform:scale(4)}}@media screen{.shower.list .slide:hover:before{box-shadow:0 0 0 10px rgba(42,43,45,.3),0 20px 50px rgba(42,43,45,.6)}.shower.list .slide:target:before{box-shadow:0 0 0 1px #376da3,0 0 0 10px #4b86c2,0 20px 50px rgba(42,43,45,.6)}}@media screen and (max-width:1324px){.shower.list .slide:target:before{box-shadow:0 0 0 1px #376da3,0 0 0 10px #4b86c2,0 20px 50px rgba(42,43,45,.6)}}@media screen{.shower.list .slide:target:after{text-shadow:0 1px 1px rgba(42,43,45,.6);color:#4b86c2}.shower.list .slide>div:before{position:absolute;top:0;right:0;bottom:0;left:0;z-index:2;content:''}.shower.list .slide.cover:after,.shower.list .slide.shout:after{visibility:visible}.shower.list .slide footer{display:block}.shower.full{position:absolute;top:50%;left:50%;overflow:hidden;margin:-320px 0 0 -512px;width:1024px;height:640px;background:#000}.shower.full.debug:after{position:absolute;top:0;right:0;bottom:0;left:0;z-index:2;background:url(../images/grid-16x10.svg) no-repeat;content:''}.shower.full .region{position:absolute;clip:rect(0 0 0 0);overflow:hidden;margin:-1px;padding:0;width:1px;height:1px;border:none;display:block}.shower.full .slide{position:absolute;top:0;left:0;margin-left:150%}.shower.full .slide .next{visibility:hidden}.shower.full .slide .next.active{visibility:visible}.shower.full .slide:target{margin:0}.shower.full .slide.shout.grow h2,.shower.full .slide.shout.shrink h2{opacity:0;-webkit-transition:all .4s ease-out;transition:all .4s ease-out}.shower.full .slide.shout.grow:target h2,.shower.full .slide.shout.shrink:target h2{opacity:1;-webkit-transform:scale(1) translateY(-50%);-ms-transform:scale(1) translateY(-50%);transform:scale(1) translateY(-50%)}.shower.full .slide.shout.grow h2{-webkit-transform:scale(.1) translateY(-50%);-ms-transform:scale(.1) translateY(-50%);transform:scale(.1) translateY(-50%)}.shower.full .slide.shout.shrink h2{-webkit-transform:scale(10) translateY(-50%);-ms-transform:scale(10) translateY(-50%);transform:scale(10) translateY(-50%)}.shower.full .progress{position:absolute;left:-20px;bottom:0;z-index:1;width:0;height:0;box-sizing:content-box;border:10px solid #4b86c2;border-right-color:transparent;-webkit-transition:width .2s linear;transition:width .2s linear;clip:rect(10px,1044px,20px,20px)}.shower.full .progress[style*='100%']{padding-left:10px}}@page{margin:0;size:1024px 640px}
@@ -4244,7 +4269,7 @@
      <body class=\"shower list\">
      <header class=\"caption\">
      <h1>Flexbox, теперь понятно</h1>
-     <p><a href=\"http://pepelsbey.net/\">Вадим Макеев</a>, <a href=\"http://opera.com\">Opera Software</a></p>
+     <p><a href=\"https://pepelsbey.net/\">Вадим Макеев</a>, <a href=\"https://opera.com\">Opera Software</a></p>
      </header>
      <section class=\"slide cover\" id=\"Cover\"><div>
      <h2 class=\"next\">Flexbox, теперь понятно</h2>
@@ -4266,7 +4291,7 @@
      <h2>&lt;br clear=all&gt;</h2>
      </div></section>
      <section class=\"slide shout\"><div>
-     <h2 style=\"font-size:130px\"><a href=\"http://www.w3.org/TR/2009/WD-css3-flexbox-20090723/\" target=\"_blank\">F09</a> ‣ <a href=\"http://www.w3.org/TR/2012/WD-css3-flexbox-20120322/\" target=\"_blank\">F11</a> ‣ <a href=\"http://www.w3.org/TR/css3-flexbox/\" target=\"_blank\">F12</a></h2>
+     <h2 style=\"font-size:130px\"><a href=\"https://www.w3.org/TR/2009/WD-css3-flexbox-20090723/\" target=\"_blank\">F09</a> ‣ <a href=\"https://www.w3.org/TR/2012/WD-css3-flexbox-20120322/\" target=\"_blank\">F11</a> ‣ <a href=\"https://www.w3.org/TR/css3-flexbox/\" target=\"_blank\">F12</a></h2>
      </div></section>
      <section class=\"slide cover\"><div>
      <img src=\"pictures/browsers-olympic.svg\" alt=\"\">
@@ -5149,27 +5174,27 @@
      <section class=\"slide\"><div>
      <h2>Читать</h2>
      <ul>
-     <li><a href=\"http://caniuse.com/flexbox\">Поддержка Flexbox в браузерах</a></li>
-     <li><a href=\"http://wiki.csswg.org/spec/flexbox-2009-2011-spec-property-mapping\">Таблица соответствия F09 и F11</a></li>
-     <li><a href=\"http://zomigi.com/blog/flexbox-syntax-for-ie-10/\">Таблица соответствия F09 и F11 для IE10</a></li>
-     <li><a href=\"http://bennettfeely.com/flexplorer/\">CSS3 Flexplorer</a></li>
+     <li><a href=\"https://caniuse.com/flexbox\">Поддержка Flexbox в браузерах</a></li>
+     <li><a href=\"https://wiki.csswg.org/spec/flexbox-2009-2011-spec-property-mapping\">Таблица соответствия F09 и F11</a></li>
+     <li><a href=\"https://zomigi.com/blog/flexbox-syntax-for-ie-10/\">Таблица соответствия F09 и F11 для IE10</a></li>
+     <li><a href=\"https://bennettfeely.com/flexplorer/\">CSS3 Flexplorer</a></li>
      <li><a href=\"https://developer.mozilla.org/en-US/docs/CSS/Using_CSS_flexible_boxes\">Использование Flexbox от Mozilla</a></li>
-     <li><a href=\"http://msdn.microsoft.com/en-us/library/ie/hh673531(v=vs.85).aspx\">Руководство по Flexbox от Microsoft</a></li>
+     <li><a href=\"https://msdn.microsoft.com/en-us/library/ie/hh673531(v=vs.85).aspx\">Руководство по Flexbox от Microsoft</a></li>
      </ul>
      </div></section>
      <section class=\"slide\" id=\"ThankYou\"><div>
      <h2>Flexbox, теперь понятно</h2>
      <p>Вадим Макеев, Opera Software</p>
      <ul>
-     <li><a href=\"http://twitter.com/pepelsbey\">@pepelsbey</a></li>
-     <li><a href=\"http://pepelsbey.net\">pepelsbey.net</a></li>
+     <li><a href=\"https://twitter.com/pepelsbey\">@pepelsbey</a></li>
+     <li><a href=\"https://pepelsbey.net\">pepelsbey.net</a></li>
      <li><a href=\"mailto:pepelsbey@gmail.com\">pepelsbey@gmail.com</a></li>
      </ul>
      <img src=\"pictures/flexo.png\" alt=\"\" class=\"place b r\" style=\"margin-right:70px\">
-     <p>Презентация: <a href=\"http://pepelsbey.net/pres/flexbox-gotcha/\">pepelsbey.net/pres/flexbox-gotcha</a></p>
+     <p>Презентация: <a href=\"https://pepelsbey.net/pres/flexbox-gotcha/\">pepelsbey.net/pres/flexbox-gotcha</a></p>
      </div></section>
      <section class=\"slide shout\"><div>
-     <h2><a href=\"http://sokr.me/fbx\">sokr.me/fbx</a></h2>
+     <h2><a href=\"https://sokr.me/fbx\">sokr.me/fbx</a></h2>
      </div></section>
      <p class=\"badge\"><a href=\"https://github.com/shower/shower\">Powered by Shower</a></p>
      <div class=\"progress\"></div>
@@ -5277,7 +5302,7 @@
      ;; GNU General Public License for more details.
 
      ;; You should have received a copy of the GNU General Public License
-     ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
      ;;; Commentary:
 
@@ -8030,7 +8055,7 @@
        (apply #'map 'list #'list args))
 
      (defun symstuff (l)
-       "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html
+       "From the Common Lisp Cookbook - https://cl-cookbook.sourceforge.net/macros.html
      Helper function to (build-symbol)"
        `(concatenate 'string
                      ,@(for (x :in l)
@@ -8046,7 +8071,7 @@
                                    `(format nil "~a" ,x))))))
 
      (defmacro build-symbol (&rest l)
-       "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html"
+       "From the Common Lisp Cookbook - https://cl-cookbook.sourceforge.net/macros.html"
        (let ((p (find-if (lambda (x) (and (consp x) (eq (car x) ':package)))
                          l)))
          (cond (p

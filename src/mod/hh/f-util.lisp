@@ -167,7 +167,7 @@ Example:
   (apply #'map 'list #'list args))
 
 (defun symstuff (l)
-  "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html
+  "From the Common Lisp Cookbook - https://cl-cookbook.sourceforge.net/macros.html
 Helper function to (build-symbol)"
   `(concatenate 'string
                 ,@(for (x :in l)
@@ -183,7 +183,7 @@ Helper function to (build-symbol)"
                               `(format nil "~a" ,x))))))
 
 (defmacro build-symbol (&rest l)
-  "From the Common Lisp Cookbook - http://cl-cookbook.sourceforge.net/macros.html"
+  "From the Common Lisp Cookbook - https://cl-cookbook.sourceforge.net/macros.html"
   (let ((p (find-if (lambda (x) (and (consp x) (eq (car x) ':package)))
                     l)))
     (cond (p
