@@ -123,8 +123,6 @@
 
 (in-package #:moto)
 
-(in-package #:moto)
-
 (defmacro define-drop-vacancy-rule ((name antecedent) &body consequent)
   `(define-rule (,(intern (concatenate 'string "DROP-VACANCY-IF-"(symbol-name name))) ,antecedent)
      (dbg "drop vacancy: ~A : ~A" (getf vacancy :name) (getf vacancy :emp-name))
@@ -153,8 +151,7 @@
 (defmacro define-drop-all-vacancy-when-already-worked (&rest employers)
   `(list ,@(loop :for emp :in employers :collect
               `(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) ,emp))
-                 (dbg "   - already worked")))))
-
+                   (dbg "   - already worked")))))
 
 ;; expand
 ;; (macroexpand-1 '(define-drop-all-vacancy-when-already-worked "Webdom" "Semrush" "Пулково-Сервис"))
@@ -174,6 +171,70 @@
 ;; test
 
 ;; (define-drop-all-vacancy-when-already-worked "Webdom" "Semrush" "Пулково-Сервис")
+
+(define-drop-all-vacancy-when-already-worked "Webdom" "Semrush" "Пулково-Сервис" "FBS")
+(in-package #:moto)
+
+(define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
+    ;; (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
+    (dbg "   - already exists"))
+;; )
+(in-package #:moto)
+
+(define-rule (set-tags t)
+    ;; Превращаем описание вакансии в plain-text с минимумом знаков препринания, а потом разбиваем по пробелам,
+    ;; чтобы получить список слов, отсортированный по частоте встречаемости
+    ;; Из этого списка слов мы хотим найти все термины. Терминами могут быть:
+    ;; - аббревитуры технологий
+    ;; - названия технологий и продуктов, известные нам.
+    ;; Мы считаем интересными те слова, которые содержат только английские буквы (пусть даже и в нижнем регистре)
+    ;; Можно еще выявлять наиболее часто встречающиеся элементы (https://habrahabr.ru/post/167177/)
+    ;; Найденные абревиатуры кладем в поле tags
+    (let ((hash (make-hash-table :test #'equal))
+          (result))
+      (mapcar #'(lambda (trm)
+                  (multiple-value-bind (result exist)
+                      (gethash trm hash)
+                    (if (null exist)
+                        (setf (gethash trm hash) 1)
+                        (setf (gethash trm hash) (+ 1 result)))))
+              (ppcre:split "\\s+"
+                           (ppcre:regex-replace-all
+                            "\\s+" (->  (replace-all (bprint (getf vacancy :descr)) "(:P)" "")
+                                        (replace-all "(:B)" "")
+                                        (replace-all "(:LI)" "")
+                                        (replace-all "(:UL)" "")
+                                        (replace-all "(" "")
+                                        (replace-all ")" "")
+                                        (replace-all "\"" "")
+                                        (replace-all "/" " ")
+                                        (replace-all "," "")
+                                        (replace-all ":" "")
+                                        (replace-all ";" "")
+                                        (replace-all "-" ""))
+                            " ")))
+      (maphash #'(lambda (k v)
+                   (setf result (append result (list (list v k)))))
+               hash)
+      ;; (dbg "~A" (bprint result))
+      (setf result (remove-if #'(lambda (x)
+                                  (block the-filter
+                                    ;; Известные нам слова
+                                    (if (or (equal "1С" (cadr x))
+                                            ;; need more ...
+                                            )
+                                        (return-from the-filter nil))
+                                    (loop :for char :across (cadr x) :do
+                                       (if (< 1 (length (subseq (bprint char) 2)))
+                                           (return-from the-filter t)))
+                                    nil))
+                              result))
+      (sort result #'(lambda (a b)
+                       (< (car a) (car b))))
+      (setf (getf vacancy :tags)
+            (bprint result))
+      ))
+(in-package #:moto)
 
 (in-package #:moto)
 
@@ -211,70 +272,105 @@
        (getf vacancy :id))
   (format t "~%~A" (getf vacancy :emp-name))
   (format t "~A" (show-descr (getf vacancy :descr))))
+(in-package #:moto)
 
-(define-drop-all-vacancy-when-already-worked "Webdom" "Semrush" "Пулково-Сервис" "FBS")
+(defun show-descr (tree)
+  (let ((output (make-string-output-stream))
+        (indent 2)
+        (prefix ""))
+    (labels ((out (format tree)
+               (format output "~A~A" (make-string indent :initial-element #\Space)
+                       (format nil format tree)))
+             (rec (tree)
+               (cond ((consp tree) (cond ((and (equal 2 (length tree))
+                                               (equal :L (car tree))
+                                               (stringp (cadr tree))) (prog1 nil
+                                                                        (format output "~A-> ~A~%" prefix (cadr tree))))
+                                         ((equal :U (car tree)) (prog1 nil
+                                                                  (setf prefix (concatenate 'string (make-string indent :initial-element #\Space) prefix))
+                                                                  (rec (cdr tree))
+                                                                  (setf prefix (subseq prefix indent))))
+                                         ((and (equal 2 (length tree))
+                                               (equal :B (car tree))
+                                               (stringp (cadr tree))) (format output "~A[~A]~%" prefix (cadr tree)))
+                                         (t (cons (rec (car tree))
+                                                  (rec (cdr tree))))))
+                     (t (cond ((stringp tree) (format output "~A~A~%" prefix tree)))))))
+      (rec tree))
+    (get-output-stream-string output)))
 
-(define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
-  ;; (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
-    (dbg "   - already exists"))
-  ;; )
-
-(define-rule (set-tags t)
-  ;; Превращаем описание вакансии в plain-text с минимумом знаков препринания, а потом разбиваем по пробелам,
-  ;; чтобы получить список слов, отсортированный по частоте встречаемости
-  ;; Из этого списка слов мы хотим найти все термины. Терминами могут быть:
-  ;; - аббревитуры технологий
-  ;; - названия технологий и продуктов, известные нам.
-  ;; Мы считаем интересными те слова, которые содержат только английские буквы (пусть даже и в нижнем регистре)
-  ;; Можно еще выявлять наиболее часто встречающиеся элементы (https://habrahabr.ru/post/167177/)
-  ;; Найденные абревиатуры кладем в поле tags
-  (let ((hash (make-hash-table :test #'equal))
-        (result))
-    (mapcar #'(lambda (trm)
-                (multiple-value-bind (result exist)
-                    (gethash trm hash)
-                  (if (null exist)
-                      (setf (gethash trm hash) 1)
-                      (setf (gethash trm hash) (+ 1 result)))))
-            (ppcre:split "\\s+"
-                         (ppcre:regex-replace-all
-                          "\\s+" (->  (replace-all (bprint (getf vacancy :descr)) "(:P)" "")
-                                      (replace-all "(:B)" "")
-                                      (replace-all "(:LI)" "")
-                                      (replace-all "(:UL)" "")
-                                      (replace-all "(" "")
-                                      (replace-all ")" "")
-                                      (replace-all "\"" "")
-                                      (replace-all "/" " ")
-                                      (replace-all "," "")
-                                      (replace-all ":" "")
-                                      (replace-all ";" "")
-                                      (replace-all "-" ""))
-                          " ")))
-    (maphash #'(lambda (k v)
-                 (setf result (append result (list (list v k)))))
-             hash)
-    ;; (dbg "~A" (bprint result))
-    (setf result (remove-if #'(lambda (x)
-                                (block the-filter
-                                  ;; Известные нам слова
-                                  (if (or (equal "1С" (cadr x))
-                                          ;; need more ...
-                                          )
-                                      (return-from the-filter nil))
-                                  (loop :for char :across (cadr x) :do
-                                     (if (< 1 (length (subseq (bprint char) 2)))
-                                         (return-from the-filter t)))
-                                  nil))
-                            result))
-    (sort result #'(lambda (a b)
-                     (< (car a) (car b))))
-    (setf (getf vacancy :tags)
-          (bprint result))
-  ))
+(defmethod show-vacancy (vacancy)
+  (format t "~%")
+  (format t "~%~A :~A: ~A [~A]"
+       (getf vacancy :salary-text)
+       (getf vacancy :currency)
+       (getf vacancy :name)
+       (getf vacancy :id))
+  (format t "~%~A" (getf vacancy :emp-name))
+  (format t "~A" (show-descr (getf vacancy :descr))))
 
 (define-rule (z-print t)
   (show-vacancy vacancy))
+(in-package #:moto)
+
+(in-package #:moto)
+
+(defparameter *saved-vacancy* nil)
+
+(defmethod save-vacancy (vacancy)
+  (setf *saved-vacancy*
+        (append *saved-vacancy*
+                (list (make-vacancy
+                       :src-id (getf vacancy :id)
+                       :name (getf vacancy :name)
+                       :currency (getf vacancy :currency)
+                       :salary (aif (getf vacancy :salary) it 0)
+                       :base-salary (aif (getf vacancy :base-salary) it 0)
+                       :salary-text (getf vacancy :salary-text)
+                       :salary-max (getf vacancy :salary-max)
+                       :salary-min (getf vacancy :salary-min)
+                       :emp-id (aif (getf vacancy :emp-id) it 0)
+                       :emp-name (getf vacancy :emp-name)
+                       :city (getf vacancy :city)
+                       :metro (getf vacancy :metro)
+                       :experience (getf vacancy :exp)
+                       :archive (getf vacancy :archive)
+                       :date (getf vacancy :date)
+                       :respond (aif (getf vacancy :respond) it "")
+                       :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+                       :descr (bprint (getf vacancy :descr))
+                       :notes ""
+                       :tags (aif (getf vacancy :tags) it "")
+                       :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
+(in-package #:moto)
+
+(defparameter *saved-vacancy* nil)
+
+(defmethod save-vacancy (vacancy)
+  (setf *saved-vacancy*
+        (append *saved-vacancy*
+                (list (make-vacancy
+                       :src-id (getf vacancy :id)
+                       :name (getf vacancy :name)
+                       :currency (getf vacancy :currency)
+                       :salary (aif (getf vacancy :salary) it 0)
+                       :base-salary (aif (getf vacancy :base-salary) it 0)
+                       :salary-text (getf vacancy :salary-text)
+                       :salary-max (getf vacancy :salary-max)
+                       :salary-min (getf vacancy :salary-min)
+                       :emp-id (aif (getf vacancy :emp-id) it 0)
+                       :emp-name (getf vacancy :emp-name)
+                       :city (getf vacancy :city)
+                       :metro (getf vacancy :metro)
+                       :experience (getf vacancy :exp)
+                       :archive (getf vacancy :archive)
+                       :date (getf vacancy :date)
+                       :respond (aif (getf vacancy :respond) it "")
+                       :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+                       :descr (bprint (getf vacancy :descr))
+                       :notes ""
+                       :tags (aif (getf vacancy :tags) it "")
+                       :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
 
 (define-rule (z-save t)
   (save-vacancy vacancy)
@@ -384,7 +480,7 @@
     "C#" ".NET" ".Net"
     "Unity" "Unity3D"
     "Flash"
-    ;; "Java"
+    "Java"
     "Android"
     "ASP"
     "Objective-C"
@@ -1208,35 +1304,64 @@
 ;;        (when (null vacancy)
 ;;          (return))))))
 
-(in-package #:moto)
-
-(defparameter *saved-vacancy* nil)
-
-(defmethod save-vacancy (vacancy)
-  (setf *saved-vacancy*
-        (append *saved-vacancy*
-                (list (make-vacancy
-                       :src-id (getf vacancy :id)
-                       :name (getf vacancy :name)
-                       :currency (getf vacancy :currency)
-                       :salary (aif (getf vacancy :salary) it 0)
-                       :base-salary (aif (getf vacancy :base-salary) it 0)
-                       :salary-text (getf vacancy :salary-text)
-                       :salary-max (getf vacancy :salary-max)
-                       :salary-min (getf vacancy :salary-min)
-                       :emp-id (aif (getf vacancy :emp-id) it 0)
-                       :emp-name (getf vacancy :emp-name)
-                       :city (getf vacancy :city)
-                       :metro (getf vacancy :metro)
-                       :experience (getf vacancy :exp)
-                       :archive (getf vacancy :archive)
-                       :date (getf vacancy :date)
-                       :respond (aif (getf vacancy :respond) it "")
-                       :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
-                       :descr (bprint (getf vacancy :descr))
-                       :notes ""
-                       :tags (aif (getf vacancy :tags) it "")
-                       :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
+;; moved (in-package #:moto)
+;; moved 
+;; moved (defparameter *saved-vacancy* nil)
+;; moved 
+;; moved (defmethod save-vacancy (vacancy)
+;; moved   (setf *saved-vacancy*
+;; moved         (append *saved-vacancy*
+;; moved                 (list (make-vacancy
+;; moved                        :src-id (getf vacancy :id)
+;; moved                        :name (getf vacancy :name)
+;; moved                        :currency (getf vacancy :currency)
+;; moved                        :salary (aif (getf vacancy :salary) it 0)
+;; moved                        :base-salary (aif (getf vacancy :base-salary) it 0)
+;; moved                        :salary-text (getf vacancy :salary-text)
+;; moved                        :salary-max (getf vacancy :salary-max)
+;; moved                        :salary-min (getf vacancy :salary-min)
+;; moved                        :emp-id (aif (getf vacancy :emp-id) it 0)
+;; moved                        :emp-name (getf vacancy :emp-name)
+;; moved                        :city (getf vacancy :city)
+;; moved                        :metro (getf vacancy :metro)
+;; moved                        :experience (getf vacancy :exp)
+;; moved                        :archive (getf vacancy :archive)
+;; moved                        :date (getf vacancy :date)
+;; moved                        :respond (aif (getf vacancy :respond) it "")
+;; moved                        :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+;; moved                        :descr (bprint (getf vacancy :descr))
+;; moved                        :notes ""
+;; moved                        :tags (aif (getf vacancy :tags) it "")
+;; moved                        :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
+;; moved (in-package #:moto)
+;; moved 
+;; moved (defparameter *saved-vacancy* nil)
+;; moved 
+;; moved (defmethod save-vacancy (vacancy)
+;; moved   (setf *saved-vacancy*
+;; moved         (append *saved-vacancy*
+;; moved                 (list (make-vacancy
+;; moved                        :src-id (getf vacancy :id)
+;; moved                        :name (getf vacancy :name)
+;; moved                        :currency (getf vacancy :currency)
+;; moved                        :salary (aif (getf vacancy :salary) it 0)
+;; moved                        :base-salary (aif (getf vacancy :base-salary) it 0)
+;; moved                        :salary-text (getf vacancy :salary-text)
+;; moved                        :salary-max (getf vacancy :salary-max)
+;; moved                        :salary-min (getf vacancy :salary-min)
+;; moved                        :emp-id (aif (getf vacancy :emp-id) it 0)
+;; moved                        :emp-name (getf vacancy :emp-name)
+;; moved                        :city (getf vacancy :city)
+;; moved                        :metro (getf vacancy :metro)
+;; moved                        :experience (getf vacancy :exp)
+;; moved                        :archive (getf vacancy :archive)
+;; moved                        :date (getf vacancy :date)
+;; moved                        :respond (aif (getf vacancy :respond) it "")
+;; moved                        :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+;; moved                        :descr (bprint (getf vacancy :descr))
+;; moved                        :notes ""
+;; moved                        :tags (aif (getf vacancy :tags) it "")
+;; moved                        :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
 
 (in-package #:moto)
 
