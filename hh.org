@@ -4455,3 +4455,97 @@
        (push ")\n" result)
        (mapconcat 'identity (reverse result) ""))
    #+END_SRC
+* Crypto
+
+  #+BEGIN_SRC lisp
+    (in-package :moto)
+
+    (ql:quickload "bit-smasher")
+    (use-package :bit-smasher)
+
+    (defparameter *msg* "слава роботам")
+    (defparameter *key* "нашсуперключ.")
+
+    (defconstant +size-of-char+ 16)
+
+    (defun bit-list->integer (bits)
+      (reduce #'(lambda (first-bit second-bit)
+                  (+ (ash first-bit 1) second-bit))
+              bits))
+
+
+    (defun integer->bit-list (int &optional acc)
+      (cond ((> int 0) (multiple-value-bind (i r)
+                           (truncate int 2)
+                         (integer->bit-list i (push r acc))))
+            ((null acc) (push 0 acc))
+            (t acc)))
+
+    (defun string->bit-list (string)
+      (->> string
+           (map 'list #'identity)
+           (mapcar #'char-code)
+           (mapcar #'integer->bit-list)
+           (mapcar #'(lambda (x)
+                       (append (loop :repeat (- +size-of-char+  (length x)) :collect 0)
+                               x)))
+           (reduce #'append)
+           ))
+
+    (defun bit-list->string (string)
+      (coerce
+       (->> string
+            (string->bit-list)
+            (splitter +size-of-char+)
+            (mapcar #'bit-list->integer)
+            (mapcar #'code-char))
+       'string))
+
+    (defun splitter (size param &optional acc)
+      (cond ((>= (length param) size)
+             (splitter size (subseq param size) (append acc (list (subseq param 0 size)))))
+            ((= 0 (length param)) acc)
+            (t (err param))))
+
+    (defparameter *hex-chars* "0123456789ABCDEF")
+
+    (defparameter *hex-to-char*
+      (loop
+         :for char :across *hex-chars*
+         :for idx  :to 16
+         :collect (let ((x (integer->bit-list idx)))
+                    (cons (append (loop :repeat (- 4 (length x)) :collect 0)
+                                  x)
+                          char))))
+
+    (defparameter *char-to-hex*
+      (loop :for (idx . char) :in *hex-to-char* :collect `(,char . ,idx)))
+
+    (defun hex-to-char-lookup (lst)
+      (cdr (assoc lst *hex-to-char* :test #'equal)))
+
+    (defun char-to-hex-lookup (lst)
+      (cdr (assoc lst *char-to-hex* :test #'equal)))
+
+    (defparameter *crypt* (coerce
+                           (mapcar #'hex-to-char-lookup
+                                   (splitter 4 (mapcar #'(lambda (a b)
+                                                           (logxor a b))
+                                                       (string->bit-list *msg*)
+                                                       (string->bit-list *key*))))
+                           'string))
+
+    (defparameter *decrypt* (coerce
+                             (->> (map 'list #'identity *crypt*)
+                                  (mapcar #'char-to-hex-lookup)
+                                  (reduce #'append)
+                                  (mapcar #'(lambda (a b)
+                                              (logxor a b))
+                                          (string->bit-list *key*))
+                                  (splitter +size-of-char+)
+                                  (mapcar #'bits->char)
+                                  (mapcar #'code-char))
+                             'string))
+
+    (assert (equal *msg* *decrypt*))
+  #+END_SRC
