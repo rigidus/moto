@@ -4543,9 +4543,41 @@
                                               (logxor a b))
                                           (string->bit-list *key*))
                                   (splitter +size-of-char+)
-                                  (mapcar #'bits->char)
+                                  (mapcar #'bit-list->integer)
                                   (mapcar #'code-char))
                              'string))
 
     (assert (equal *msg* *decrypt*))
+  #+END_SRC
+
+
+  #+BEGIN_SRC lisp
+
+    (ql:quickload "ltk")
+    (in-package :ltk)
+
+    (defparameter *msg* "слава роботам")
+
+    (defun my-nbtest ()
+      (with-ltk ()
+        (let* ((nb (make-instance 'notebook))
+               (f1 (make-instance 'frame :master nb))
+               (f2 (make-instance 'frame :master nb))
+               (t1 (make-instance 'text :master f1 :width 40 :height 10))
+               (t2 (make-instance 'text :master f2 :width 40 :height 10))
+               (b1 (make-instance 'button :master f1 :text "CryptMe"
+                                  :command (lambda ()
+                                             (format t "the index is:~a~%" (notebook-index nb f1))
+                                             (finish-output))))
+               )
+          (pack nb :fill :both :expand t)
+          (pack t1 :fill :both :expand t)
+          (pack t2 :fill :both :expand t)
+          (pack b1 :side :top)
+          (notebook-add nb f1 :text "OpenText")
+          (notebook-add nb f2 :text "CrypText")
+          (append-text t1 *msg*)
+          )))
+
+    (my-nbtest)
   #+END_SRC
