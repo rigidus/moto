@@ -1,0 +1,43 @@
+#!/usr/bin/wish
+
+set key "358123571235"
+
+proc encrypt {param key} {
+      .nb.t2 insert 1.0 $param
+
+      set a 60  ;# 60 = 0011 1100
+      set b 13  ;# 13 = 0000 1101
+
+      set c [expr $a ^ $b;] ;# 49 = 0011 0001
+
+      .nb.t2 insert 1.0 $c
+
+      set in  [.nb.t1 get 1.0 end]
+      set out ""
+
+      # string->bit-list(param) ^ string->bit-list(key)
+      # hex-to-char-lookup
+
+      for {set i 0} {$i < [string length $in]} {incr i} {
+          set char [string index $in $i]
+          scan $char %c ascii
+          puts "char: $char (code: $ascii)"
+          append out "$ascii "
+      }
+}
+
+ttk::notebook .nb  -width 600 -height 400
+
+text .nb.t1 -width 40 -height 10
+text .nb.t2 -width 40 -height 10
+
+button .nb.b1 -text "Encrupt" -command {encrypt [.nb.t1 get 1.0 end] $key}
+button .nb.b2 -text "Decrypt" -command {decrypt}
+
+pack .nb -fill both -expand true
+pack .nb.t1 -fill both -expand true
+pack .nb.t2 -fill both -expand true
+pack .nb.b1 -side left
+pack .nb.b2 -side right
+
+.nb.t1 insert 1.0 "qwertyuiopцуа"

@@ -4458,9 +4458,20 @@
 * Crypto
 
   #+BEGIN_SRC lisp
-    (in-package :moto)
-
+    (ql:quickload "restas")
+    (ql:quickload "postmodern")
+    (ql:quickload "anaphora")
+    (ql:quickload "cl-who")
+    (ql:quickload "parenscript")
+    (ql:quickload "optima")
+    (ql:quickload"fare-quasiquote-extras")
+    (ql:quickload"fare-quasiquote-optima")
     (ql:quickload "bit-smasher")
+
+    (load "~/repo/moto/src/package.lisp")
+    (load "~/repo/moto/src/mod/hh/m-util.lisp")
+
+    (in-package :moto)
     (use-package :bit-smasher)
 
     (defparameter *msg* "слава роботам")
@@ -4468,11 +4479,16 @@
 
     (defconstant +size-of-char+ 16)
 
+    (defun splitter (size param &optional acc)
+      (cond ((>= (length param) size)
+             (splitter size (subseq param size) (append acc (list (subseq param 0 size)))))
+            ((= 0 (length param)) acc)
+            (t (error param))))
+
     (defun bit-list->integer (bits)
       (reduce #'(lambda (first-bit second-bit)
                   (+ (ash first-bit 1) second-bit))
               bits))
-
 
     (defun integer->bit-list (int &optional acc)
       (cond ((> int 0) (multiple-value-bind (i r)
@@ -4501,11 +4517,6 @@
             (mapcar #'code-char))
        'string))
 
-    (defun splitter (size param &optional acc)
-      (cond ((>= (length param) size)
-             (splitter size (subseq param size) (append acc (list (subseq param 0 size)))))
-            ((= 0 (length param)) acc)
-            (t (err param))))
 
     (defparameter *hex-chars* "0123456789ABCDEF")
 
@@ -4548,36 +4559,61 @@
                              'string))
 
     (assert (equal *msg* *decrypt*))
-  #+END_SRC
-
-
-  #+BEGIN_SRC lisp
 
     (ql:quickload "ltk")
-    (in-package :ltk)
-
+    (use-package :ltk)
     (defparameter *msg* "слава роботам")
 
     (defun my-nbtest ()
       (with-ltk ()
-        (let* ((nb (make-instance 'notebook))
-               (f1 (make-instance 'frame :master nb))
-               (f2 (make-instance 'frame :master nb))
-               (t1 (make-instance 'text :master f1 :width 40 :height 10))
-               (t2 (make-instance 'text :master f2 :width 40 :height 10))
-               (b1 (make-instance 'button :master f1 :text "CryptMe"
+        (let* ((nb (make-instance 'notebook :width 600 :height 400))
+               (t1 (make-instance 'text :master nb :width 40 :height 10))
+               (t2 (make-instance 'text :master nb :width 40 :height 10))
+               (b1 (make-instance 'button :master nb :text "Encrypt"
                                   :command (lambda ()
-                                             (format t "the index is:~a~%" (notebook-index nb f1))
+                                             (setf (text t2)
+                                                   (coerce
+                                                    (mapcar #'hex-to-char-lookup
+                                                            (splitter 4 (mapcar #'(lambda (a b)
+                                                                                    (logxor a b))
+                                                                                (string->bit-list *msg*)
+                                                                                (string->bit-list *key*))))
+                                                    'string)
+                                                   ;; (format nil "the text is:~a~%" (text t1))
+                                                   ))))
+               (b2 (make-instance 'button :master nb :text "Decrypt"
+                                  :command (lambda ()
+                                             (format t "the index is:~%" )
                                              (finish-output))))
                )
           (pack nb :fill :both :expand t)
           (pack t1 :fill :both :expand t)
           (pack t2 :fill :both :expand t)
-          (pack b1 :side :top)
-          (notebook-add nb f1 :text "OpenText")
-          (notebook-add nb f2 :text "CrypText")
+          (pack b1 :side :left)
+          (pack b2 :side :right)
           (append-text t1 *msg*)
           )))
 
     (my-nbtest)
+
+    ;; (defparameter *nb* (make-instance 'notebook :width 600 :height 400))
+
+    ;; (defparameter *z* (make-instance 'text :master *nb* :width 40 :height 10))
+
+    ;; ttk::notebook .nb  -width 600 -height 400
+
+    ;; text .nb.t1 -width 40 -height 10
+    ;; text .nb.t2 -width 40 -height 10
+
+    ;; button .nb.b1 -text "Encrupt" -command {encrypt [.nb.t1 get 1.0 end] $key}
+    ;; button .nb.b2 -text "Decrypt" -command {decrypt}
+
+    ;; pack .nb -fill both -expand true
+    ;; pack .nb.t1 -fill both -expand true
+    ;; pack .nb.t2 -fill both -expand true
+    ;; pack .nb.b1 -side left
+    ;; pack .nb.b2 -side right
+
+    ;; .nb.t1 insert 1.0 "qwertyuiopцуа"
+
   #+END_SRC
