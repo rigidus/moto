@@ -4480,10 +4480,19 @@
     (defconstant +size-of-char+ 16)
 
     (defun splitter (size param &optional acc)
+      "Разбивает входную последовательность =param=
+       на подпоследовательности размером =size=.
+       Если остается хвост, размером меньше size
+       - сигнализирует ошибку"
       (cond ((>= (length param) size)
-             (splitter size (subseq param size) (append acc (list (subseq param 0 size)))))
+             (splitter size (subseq param size)
+                       (append acc
+                               (list (subseq param 0 size)))))
             ((= 0 (length param)) acc)
             (t (error param))))
+
+    ;; (splitter 2 "010203040506") ;; => ("01" "02" "03" "04" "05" "06")
+
 
     (defun bit-list->integer (bits)
       (reduce #'(lambda (first-bit second-bit)
@@ -4491,11 +4500,14 @@
               bits))
 
     (defun integer->bit-list (int &optional acc)
+      "Преобразует входное число в список битов"
       (cond ((> int 0) (multiple-value-bind (i r)
                            (truncate int 2)
                          (integer->bit-list i (push r acc))))
             ((null acc) (push 0 acc))
             (t acc)))
+
+    ;; (integer->bit-list 8) ;; => (1 0 0 0)
 
     (defun string->bit-list (string)
       (->> string
@@ -4508,6 +4520,9 @@
            (reduce #'append)
            ))
 
+    ;; (string->bit-list "hi") ;; => (0 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 0 0 1)
+
+
     (defun bit-list->string (string)
       (coerce
        (->> string
@@ -4516,6 +4531,8 @@
             (mapcar #'bit-list->integer)
             (mapcar #'code-char))
        'string))
+
+    (bit-list->string '(0 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 0 0 1))
 
 
     (defparameter *hex-chars* "0123456789ABCDEF")
@@ -4616,4 +4633,8 @@
 
     ;; .nb.t1 insert 1.0 "qwertyuiopцуа"
 
+  #+END_SRC
+
+  #+BEGIN_SRC tcl
+    puts "zz"
   #+END_SRC
