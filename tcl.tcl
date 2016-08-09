@@ -167,3 +167,45 @@ proc bit-list->string { bit_list } {
 }
 
 puts "decrypted \n [bit-list->string [crypt [unshow [show [crypt [string->bit-list $msg] [string->bit-list $key]]]] [string->bit-list $key]]]"
+
+
+# ttk::notebook .nb  -width 600 -height 400
+
+# text .nb.t1 -width 40 -height 10
+# text .nb.t2 -width 40 -height 10
+
+# button .nb.b1 -text "Encrupt" -command {encrypt [.nb.t1 get 1.0 end] $key}
+# button .nb.b2 -text "Decrypt" -command {decrypt}
+
+# pack .nb -fill both -expand true
+# pack .nb.t1 -fill both -expand true
+# pack .nb.t2 -fill both -expand true
+# pack .nb.b1 -side left
+# pack .nb.b2 -side right
+
+# .nb.t1 insert 1.0 "qwertyuiopцуа"
+
+# package require ttk
+
+# pack [ttk::notebook .nb]
+# .nb add [frame .nb.f1] -text "First tab"
+# .nb add [frame .nb.f2] -text "Second tab"
+# .nb select .nb.f2
+# ttk::notebook::enableTraversal .nb
+
+# button .btn -text "Ok" -command {set res [expr 2+2]; puts "Результат = $res";}
+# pack .btn
+
+proc btn {} {
+    puts "btn pressed"
+}
+
+package require Tk
+ttk::notebook .n  -width 600 -height 400
+text .n.t1  -width 600 -height 10
+text .n.t2  -width 600 -height 10
+button .n.b -text "Encrypt" -command btn
+pack .n
+pack .n.t1 -fill both -expand t
+pack .n.t2 -fill both -expand t
+pack .n.b -fill both -expand t
