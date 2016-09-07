@@ -3,6 +3,13 @@
 (ql:quickload "ltk")
 (use-package :ltk)
 
+(defun ltk::create-rectangle (canvas x0 y0 x1 y1 &key (fill "#e0e0e0") (outline "black"))
+  (ltk::format-wish "senddata [~a create rectangle ~a ~a ~a ~a -fill ~A -outline ~A]"
+               (ltk::widget-path canvas)
+               (ltk::tk-number x0) (ltk::tk-number y0) (ltk::tk-number x1) (ltk::tk-number y1)
+               fill outline)
+  (ltk::read-data))
+
 (defmacro bprint (var)
   `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
 
@@ -579,16 +586,16 @@
 ;; (defparameter *input-2* (make-instance 'wire :name '|b|))
 ;; (defparameter *sum* (make-instance 'wire :name '|sum|))
 ;; (defparameter *carry* (make-instance 'wire :name '|cf|))
-;; 
+;;
 ;; (probe 'sum *sum*)
 ;; (probe 'carry *carry*)
 ;; (half-adder *input-1* *input-2* *sum* *carry*)
 ;; (set-signal *input-1* 1)
 ;; (propagate *the-agenda*)
-;; 
+;;
 ;; (set-signal *input-2* 1)
 ;; (propagate *the-agenda*)
-;; 
+;;
 ;; ;; (mapcar #'(lambda (x)
 ;; ;;             (list (timepoint x) (front-ptr (queue x))))
 ;; ;;         (segments *the-agenda*))
