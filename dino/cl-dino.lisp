@@ -38,8 +38,7 @@
 (defun first-pixel->color (snap-data)
   (cl-autogui::pixel->color snap-data 0 0))
 
-(defun points-exists? (points
-                       &key color (test #'(lambda (a b) (not (equal a b)))))
+(defun points-exists? (points &key color (test #'(lambda (a b) (not (equal a b)))))
   (let* ((all-points
           (if color
               points
