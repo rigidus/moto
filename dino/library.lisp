@@ -18,7 +18,17 @@
      (floor (+ default-width default-height) 6))
    *full-coefficient*))
 
-(defun image-plot (image x y &key red green blue)
+(defun image-get-pnt (image x y)
+  (multiple-value-bind (default-width default-height)
+      (x-size)
+    (if (and (< x default-width) (< y default-height))
+        (list
+         (aref (zpng:data-array image) y x 0)
+         (aref (zpng:data-array image) y x 1)
+         (aref (zpng:data-array image) y x 2))
+        nil)))
+
+(defun image-set-pnt (image x y &key red green blue)
   (multiple-value-bind (default-width default-height)
       (x-size)
     (when (and (< x default-width) (< y default-height))
@@ -48,8 +58,8 @@
       (loop
          :for x :upfrom x1 :to x2
          :do (if steep
-                 (image-plot image y x :red red :green green :blue blue)
-                 (image-plot image x y :red red :green green :blue blue)
+                 (image-set-pnt image y x :red red :green green :blue blue)
+                 (image-set-pnt image x y :red red :green green :blue blue)
                  )
          (setf var-error (- var-error delta-y))
          (when (< var-error 0)
@@ -70,17 +80,17 @@
          (unless (null nearest-y)
            (setf nearest-points (append nearest-points (list (list item-x nearest-y))))
            ))
-       (when image ;; dbg out img
-         (loop :for item-y :from pnt-y :to (+ (surround) pnt-y) :do
-            (image-plot image item-x item-y :blue 255)))
+       ;; (when image ;; dbg out img
+       ;;   (loop :for item-y :from pnt-y :to (+ (surround) pnt-y) :do
+       ;;      (image-set-pnt image item-x item-y :blue 255)))
        )
     (setf nearest-points (cdr nearest-points))
     (setf nearest-points (loop :for (nearest-x nearest-y) :in nearest-points :collect
                             (let* ((dist-x  (- nearest-x pnt-x))
                                    (dist-y  (- nearest-y pnt-y))
                                    (quattro (+ (* dist-x dist-x) (* dist-y dist-y))))
-                              (when image
-                                (image-draw-line image pnt-x pnt-y nearest-x nearest-y :green 255))
+                              ;; (when image
+                              ;;   (image-draw-line image pnt-x pnt-y nearest-x nearest-y :green 255))
                               (list nearest-x nearest-y quattro))))
     (car (sort nearest-points #'(lambda (a b) (< (nth 2 a) (nth 2 b)))))))
 
@@ -107,15 +117,29 @@
           ;; (maphash #'(lambda (k v)
           ;;              (print (list k v)))
           ;;          h-x)
-          (loop :for (pnt-x pnt-y) :in starters :do
-             (image-plot image pnt-x pnt-y :red 255 :green 0 :blue 0))
+          ;; (loop :for (pnt-x pnt-y) :in starters :do
+          ;;    (image-set-pnt image pnt-x pnt-y :red 255 :green 0 :blue 0))
           ;; get random point
           (loop :repeat 200 :do
-             (destructuring-bind (pnt-x pnt-y)
-                 (nth (random (length starters)) starters)
-               (print (list :random-point pnt-x pnt-y))
-               (image-plot image pnt-x pnt-y :red 255 :green 255 :blue 255)
-               (print (get-nearest-point h-x pnt-x pnt-y :image image))
-               )))
+             (tagbody
+                (destructuring-bind (pnt-x pnt-y)
+                    (nth (random (length starters)) starters)
+                  (let* ((nearest (get-nearest-point h-x pnt-x pnt-y :image image))
+                         (nearest-x (car nearest))
+                         (nearest-y (cadr nearest)))
+                    (when (and nearest-x nearest-y)
+                      (let ((test-pnt-color)
+                            (tested-points))
+                        (loop :for test-pnt-x :from pnt-x :to nearest-x :do
+                           (loop :for test-pnt-y :from pnt-y :to nearest-y :do
+                              (let ((cur-pnt (image-get-pnt image test-pnt-x test-pnt-y)))
+                                (if (null test-pnt-color)
+                                    (setf test-pnt-color cur-pnt)
+                                    (if (not (equal test-pnt-color cur-pnt))
+                                        (go end-entry))))))
+                        (loop :for test-pnt-x :from pnt-x :to nearest-x :do
+                           (loop :for test-pnt-y :from pnt-y :to nearest-y :do
+                              (image-set-pnt image test-pnt-x test-pnt-y :blue 255)))))))
+              end-entry)))
         ;; write png
         (zpng:write-png image "cell.png")))))
