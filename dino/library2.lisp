@@ -67,17 +67,18 @@
 (defun img-get-pnt (img x y)
   (multiple-value-bind (default-width default-height)
       (x-size)
-    (if (and (< x default-width) (< y default-height))
+    (if (and (> x 0) (> y 0) (< x default-width) (< y default-height))
         (list
          (aref (zpng:data-array img) y x 0)
          (aref (zpng:data-array img) y x 1)
-         (aref (zpng:data-array img) y x 2))
+         (aref (zpng:data-array img) y x 2)
+         (aref (zpng:data-array img) y x 3))
         nil)))
 
 (defun img-set-pnt (img x y &key red green blue transparency)
   (multiple-value-bind (default-width default-height)
       (x-size)
-    (when (and (< x default-width) (< y default-height))
+    (when (and (> x 0) (> y 0) (< x default-width) (< y default-height))
       (when red
         (setf (aref (zpng:data-array img) y x 0) red))
       (when green
@@ -163,12 +164,25 @@
     (eval `(values ,@(mapcar #'(lambda (x) `(quote ,x))
                              (sort nearest-points #'(lambda (a b) (> (nth 2 a) (nth 2 b)))))))))
 
+(defclass pnt ()
+  ((x-↖  :initarg :x-↖  :accessor x-↖ )
+   (y-↖  :initarg :y-↖  :accessor y-↖ )
+   (x-↘  :initarg :x-↘  :accessor x-↘ )
+   (y-↘  :initarg :y-↘  :accessor y-↘ )
+   (expander   :initarg :expander  :accessor expander)
+   (rgb-color  :initarg :rgb-color  :accessor rgb-color)
+   (blocked-width  :initarg :blocked-width   :accessor blocked-width)
+   (blocked-height :initarg :blocked-height  :accessor blocked-height)))
+
+(define-condition no-pnt () ())
+
 (multiple-value-bind (default-width default-height)
     (x-size)
   (let* ((img (get-screenshoot 0 0 default-width default-height))
          (img2 (make-instance 'zpng:png :width default-width :height default-height :color-type :truecolor-alpha))
          (random-points (get-random-points 0 0 default-width default-height))
-         (h-x (make-hash-table)))
+         (h-x (make-hash-table))
+         (objects))
     ;; make h-x
     (loop :for (x y) :in random-points :do
        (if (null (gethash x h-x))
@@ -178,41 +192,95 @@
     ;; (maphash #'(lambda (k v)
     ;;              (print (list k v)))
     ;;          h-x)
-    ;; dbg (если показывать эти точки алгоритм создания блоков не может найти равнозаполненные области)
     (loop :for (pnt-x pnt-y) :in random-points :do
-       (img-set-pnt img pnt-x pnt-y :transparency 0))
-    (loop
-       :repeat 1
-       :for (pnt-x pnt-y) :in random-points :do
-       (print (multiple-value-list (get-nearest-points h-x 100 100 :img img)))
-       ;; (tagbody
-       ;;    ;; Ищем области, залитые одним цветом
-       ;;    ;; (loop :for near-pnt :in (multiple-value-list (get-nearest-points h-x pnt-x pnt-y :img img)) :do
-       ;;    (let ((near-pnt (get-nearest-points h-x pnt-x pnt-y :img img)))
-       ;;      (when near-pnt
-       ;;        (destructuring-bind (near-x near-y quattro)
-       ;;            near-pnt
-       ;;          (declare (ignore quattro))
-       ;;          (when (and near-x near-y)
-       ;;            (let ((test-pnt-color))
-       ;;              (loop :for test-pnt-x :from pnt-x :to near-x :do
-       ;;                 (loop :for test-pnt-y :from pnt-y :to near-y :do
-       ;;                    (let ((cur-pnt (img-get-pnt img test-pnt-x test-pnt-y)))
-       ;;                      (if (null test-pnt-color)
-       ;;                          (setf test-pnt-color cur-pnt)
-       ;;                          (if (not (equal test-pnt-color cur-pnt))
-       ;;                              (go end-entry))
-       ;;                          ))))
-       ;;              ;; Нашли, теперь надо
-       ;;              (loop :for test-pnt-x :from pnt-x :to near-x :do
-       ;;                 (loop :for test-pnt-y :from pnt-y :to near-y :do
-       ;;                    (img-set-pnt img test-pnt-x test-pnt-y :transparency 0)))
-       ;;              ;; (img-draw-line img pnt-x pnt-y pnt-x near-y :red 255)
-       ;;              ;; (img-draw-line img pnt-x pnt-y near-x pnt-y :red 255)
-       ;;              ;; (img-draw-line img near-x pnt-y near-x near-y :red 255)
-       ;;              ;; (img-draw-line img pnt-x near-y near-x near-y :red 255)
-       ;;              )))))
-       ;;  end-entry)
+
+       (labels ((get-rgb (img x y)
+                  (let ((pnt (img-get-pnt img x y)))
+                    (when (null pnt)
+                      (error 'no-pnt))
+                    pnt))
+                (get-coords (x y)
+                  `((,x ,y)        (,(+ x 1) ,y)
+                    (,x ,(+ y 1))  (,(+ x 1) ,(+ y 1))))
+                (get-rgb-list (img coords)
+                  (mapcar #'(lambda (coord-elt)
+                              (destructuring-bind (x y)
+                                  coord-elt
+                                (get-rgb img x y)))
+                          coords)))
+         ;; expand is possible?
+         (let* ((exp-coords (get-coords pnt-x pnt-y))
+                (exp-test   (handler-case
+                                (reduce #'(lambda (a b)
+                                            (if (and
+                                                 (equal a b)
+                                                 (equal '(255) (subseq a 3 4))
+                                                 )
+                                                a
+                                                nil))
+                                        (get-rgb-list img exp-coords))
+                              (no-pnt () nil))))
+           (if (null exp-test)
+               ;; no, expand not possible - remove pnt from h-y & set transparency 255
+               (setf (gethash pnt-x h-x) (remove pnt-y (gethash pnt-x h-x)))
+               ;; yes expand not possible - make object
+               (push (destructuring-bind (↖  ↗  ↙  ↘ )
+                         (get-coords pnt-x pnt-y)
+                       (destructuring-bind (x-↖  y-↖) ↖
+                           (destructuring-bind (x-↘  y-↘ ) ↘
+                               (make-instance 'pnt :x-↖  x-↖  :y-↖  y-↖  :x-↘  x-↘  :y-↘  y-↘
+                                              :rgb-color (img-get-pnt img x-↖  y-↖ )))))
+                     objects))
+           ))
        )
+    ;;
+    (mapcar #'(lambda (obj)
+                (img-set-pnt img (x-↖  obj) (y-↖  obj) :transparency 0)
+                (img-set-pnt img (x-↖  obj) (y-↘  obj) :transparency 0)
+                (img-set-pnt img (x-↘  obj) (y-↘  obj) :transparency 0)
+                (img-set-pnt img (x-↘  obj) (y-↖  obj) :transparency 0))
+            objects)
+    ;;
+    (labels ((get-rgb (img x y)
+               (let ((pnt (img-get-pnt img x y)))
+                 (when (null pnt)
+                   (error 'no-pnt))
+                 pnt))
+             (get-rgb-list (img coords)
+               (mapcar #'(lambda (coord-elt)
+                           (destructuring-bind (x y)
+                               coord-elt
+                             (get-rgb img x y)))
+                       coords))
+             (tester (a b)
+               (if (and (equal a b)
+                        (equal '(255) (subseq a 3 4)))
+                   a
+                   nil)))
+      (mapcar #'(lambda (obj)
+                  ;; Пытаемся расширяться по горизонтали, если это возможно
+                  (unless (blocked-width obj)
+                    (let ((height (+ 1 (- (y-↘  obj) (y-↖  obj)))))
+                      ;; Вычисляем координаты точек расширения
+                      (let ((coords (loop :for y :from (y-↖  obj) :to (y-↘  obj) :collect
+                                       `(,(+ 1 (x-↘  obj)) ,y))))
+                        ;; Для каждой из них проверяем возможность занять
+                        (let ((test (handler-case
+                                        (reduce #'tester (get-rgb-list img coords))
+                                      (no-pnt () nil))))
+                          (if (null test)
+                              (setf (blocked-width obj) t)
+                              (progn
+                                (incf (x-↘  obj))
+                                (mapcar #'(lambda (coord-elt)
+                                            (destructuring-bind (x y)
+                                                coord-elt
+                                              (img-set-pnt img x y :transparency 0)))
+                                        coords))))))))
+              objects))
     ;; write png
-    (zpng:write-png img "cell.png")))
+    (zpng:write-png img "cell.png")
+    ))
+
+
+;; (width  (+ 1 (- (x-↘  obj) (x-↖  obj))))
