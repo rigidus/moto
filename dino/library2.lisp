@@ -171,10 +171,29 @@
    (y-↘  :initarg :y-↘  :accessor y-↘ )
    (expander   :initarg :expander  :accessor expander)
    (rgb-color  :initarg :rgb-color  :accessor rgb-color)
-   (blocked-width  :initarg :blocked-width   :accessor blocked-width)
-   (blocked-height :initarg :blocked-height  :accessor blocked-height)))
+   (blocked-width  :initarg :blocked-width   :accessor blocked-width  :initform nil)
+   (blocked-height :initarg :blocked-height  :accessor blocked-height :initform nil)))
 
 (define-condition no-pnt () ())
+
+(defun get-rgb (img x y)
+  (let ((pnt (img-get-pnt img x y)))
+    (when (null pnt)
+      (error 'no-pnt))
+    pnt))
+
+(defun get-rgb-list (img coords)
+  (mapcar #'(lambda (coord-elt)
+              (destructuring-bind (x y)
+                  coord-elt
+                (get-rgb img x y)))
+          coords))
+
+(defun tester (a b)
+  (if (and (equal a b)
+           (equal '(255) (subseq a 3 4)))
+      a
+      nil))
 
 (multiple-value-bind (default-width default-height)
     (x-size)
@@ -193,94 +212,55 @@
     ;;              (print (list k v)))
     ;;          h-x)
     (loop :for (pnt-x pnt-y) :in random-points :do
-
-       (labels ((get-rgb (img x y)
-                  (let ((pnt (img-get-pnt img x y)))
-                    (when (null pnt)
-                      (error 'no-pnt))
-                    pnt))
-                (get-coords (x y)
-                  `((,x ,y)        (,(+ x 1) ,y)
-                    (,x ,(+ y 1))  (,(+ x 1) ,(+ y 1))))
-                (get-rgb-list (img coords)
-                  (mapcar #'(lambda (coord-elt)
-                              (destructuring-bind (x y)
-                                  coord-elt
-                                (get-rgb img x y)))
-                          coords)))
-         ;; expand is possible?
-         (let* ((exp-coords (get-coords pnt-x pnt-y))
-                (exp-test   (handler-case
-                                (reduce #'(lambda (a b)
-                                            (if (and
-                                                 (equal a b)
-                                                 (equal '(255) (subseq a 3 4))
-                                                 )
-                                                a
-                                                nil))
-                                        (get-rgb-list img exp-coords))
-                              (no-pnt () nil))))
-           (if (null exp-test)
-               ;; no, expand not possible - remove pnt from h-y & set transparency 255
-               (setf (gethash pnt-x h-x) (remove pnt-y (gethash pnt-x h-x)))
-               ;; yes expand not possible - make object
-               (push (destructuring-bind (↖  ↗  ↙  ↘ )
-                         (get-coords pnt-x pnt-y)
-                       (destructuring-bind (x-↖  y-↖) ↖
-                           (destructuring-bind (x-↘  y-↘ ) ↘
-                               (make-instance 'pnt :x-↖  x-↖  :y-↖  y-↖  :x-↘  x-↘  :y-↘  y-↘
-                                              :rgb-color (img-get-pnt img x-↖  y-↖ )))))
-                     objects))
-           ))
-       )
-    ;;
-    (mapcar #'(lambda (obj)
-                (img-set-pnt img (x-↖  obj) (y-↖  obj) :transparency 0)
-                (img-set-pnt img (x-↖  obj) (y-↘  obj) :transparency 0)
-                (img-set-pnt img (x-↘  obj) (y-↘  obj) :transparency 0)
-                (img-set-pnt img (x-↘  obj) (y-↖  obj) :transparency 0))
-            objects)
-    ;;
-    (labels ((get-rgb (img x y)
-               (let ((pnt (img-get-pnt img x y)))
-                 (when (null pnt)
-                   (error 'no-pnt))
-                 pnt))
-             (get-rgb-list (img coords)
-               (mapcar #'(lambda (coord-elt)
-                           (destructuring-bind (x y)
-                               coord-elt
-                             (get-rgb img x y)))
-                       coords))
-             (tester (a b)
-               (if (and (equal a b)
-                        (equal '(255) (subseq a 3 4)))
-                   a
-                   nil)))
-      (mapcar #'(lambda (obj)
-                  ;; Пытаемся расширяться по горизонтали, если это возможно
-                  (unless (blocked-width obj)
-                    (let ((height (+ 1 (- (y-↘  obj) (y-↖  obj)))))
-                      ;; Вычисляем координаты точек расширения
-                      (let ((coords (loop :for y :from (y-↖  obj) :to (y-↘  obj) :collect
-                                       `(,(+ 1 (x-↘  obj)) ,y))))
-                        ;; Для каждой из них проверяем возможность занять
-                        (let ((test (handler-case
-                                        (reduce #'tester (get-rgb-list img coords))
-                                      (no-pnt () nil))))
-                          (if (null test)
-                              (setf (blocked-width obj) t)
-                              (progn
-                                (incf (x-↘  obj))
-                                (mapcar #'(lambda (coord-elt)
-                                            (destructuring-bind (x y)
-                                                coord-elt
-                                              (img-set-pnt img x y :transparency 0)))
-                                        coords))))))))
-              objects))
+       (push
+        (make-instance 'pnt :x-↖  pnt-x  :y-↖  pnt-y  :x-↘  pnt-x :y-↘  pnt-y
+                       :rgb-color (img-get-pnt img pnt-x pnt-y))
+        objects)
+       (img-set-pnt img pnt-x pnt-y :transparency 0))
+    ;; Для всех известных объектов
+    (loop :repeat 50 :do
+       (mapcar #'(lambda (obj)
+                   (print (rgb-color obj))
+                   ;; Пытаемся расширяться по горизонтали, если это возможно
+                   (unless (blocked-width obj)
+                     (let ((height (+ 1 (- (y-↘  obj) (y-↖  obj)))))
+                       ;; Вычисляем координаты точек расширения
+                       (let ((coords (loop :for y :from (y-↖  obj) :to (y-↘  obj) :collect
+                                        `(,(+ 1 (x-↘  obj)) ,y))))
+                         ;; Для каждой из них проверяем возможность занять
+                         (let ((test (handler-case
+                                         (reduce #'tester (get-rgb-list img coords) :initial-value (rgb-color obj))
+                                       (no-pnt () nil))))
+                           (if (null test)
+                               (setf (blocked-width obj) t)
+                               (progn
+                                 (incf (x-↘  obj))
+                                 (mapcar #'(lambda (coord-elt)
+                                             (destructuring-bind (x y)
+                                                 coord-elt
+                                               (img-set-pnt img x y :transparency 0)))
+                                         coords)))))))
+                   ;; Пытаемся расширяться по вертикали, если это возможно
+                   (unless (blocked-height obj)
+                     (let ((width (+ 1 (- (x-↘  obj) (x-↖  obj)))))
+                       ;; Вычисляем координаты точек расширения
+                       (let ((coords (loop :for x :from (x-↖  obj) :to (x-↘  obj) :collect
+                                        `(,x ,(+ 1 (y-↘  obj))))))
+                         ;; Для каждой из них проверяем возможность занять
+                         (let ((test (handler-case
+                                         (reduce #'tester (get-rgb-list img coords) :initial-value (rgb-color obj))
+                                       (no-pnt () nil))))
+                           (if (null test)
+                               (setf (blocked-height obj) t)
+                               (progn
+                                 (incf (y-↘  obj))
+                                 (mapcar #'(lambda (coord-elt)
+                                             (destructuring-bind (x y)
+                                                 coord-elt
+                                               (img-set-pnt img x y :transparency 0)))
+                                         coords)))))))
+                   )
+               objects))
     ;; write png
     (zpng:write-png img "cell.png")
     ))
-
-
-;; (width  (+ 1 (- (x-↘  obj) (x-↖  obj))))
