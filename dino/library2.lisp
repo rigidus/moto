@@ -89,7 +89,7 @@
         (setf (aref (zpng:data-array img) y x 3) transparency))
       )))
 
-(defun img-draw-line (img x1 y1 x2 y2 &key red green blue)
+(defun img-draw-line (img x1 y1 x2 y2 &key red green blue transparency)
   "Алгоритм Брезенхема для рисования линии"
   (declare (type integer x1 y1 x2 y2))
   (let* ((dist-x (abs (- x1 x2)))
@@ -109,8 +109,8 @@
       (loop
          :for x :upfrom x1 :to x2
          :do (if steep
-                 (img-set-pnt img y x :red red :green green :blue blue)
-                 (img-set-pnt img x y :red red :green green :blue blue))
+                 (img-set-pnt img y x :red red :green green :blue blue :transparency transparency)
+                 (img-set-pnt img x y :red red :green green :blue blue :transparency transparency))
          (setf var-error (- var-error delta-y))
          (when (< var-error 0)
            (incf y y-step)
@@ -218,7 +218,7 @@
         objects)
        (img-set-pnt img pnt-x pnt-y :transparency 0))
     ;; Для всех известных объектов
-    (loop :repeat 50 :do
+    (loop :repeat 10 :do
        (mapcar #'(lambda (obj)
                    (print (rgb-color obj))
                    ;; Пытаемся расширяться по горизонтали, если это возможно
@@ -261,6 +261,15 @@
                                          coords)))))))
                    )
                objects))
+    (mapcar #'(lambda (obj)
+                (let* ((all-blocked (and (blocked-width obj) (blocked-height obj)))
+                       (color (if all-blocked "RED" (if (or (blocked-width obj) (blocked-height obj)) "BLUE" "GREEN")))
+                  (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↖  obj) (y-↘  obj) (intern color :keyword) 255 :transparency 255)
+                  (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↘  obj) (y-↖ obj)  (intern color :keyword) 255 :transparency 255)
+                  (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↘  obj) (y-↖ obj)  (intern color :keyword) 255 :transparency 255)
+                  (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↖  obj) (y-↘  obj) (intern color :keyword) 255 :transparency 255)
+                  ))
+            objects)
     ;; write png
     (zpng:write-png img "cell.png")
     ))
