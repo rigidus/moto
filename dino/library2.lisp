@@ -75,7 +75,7 @@
          (aref (zpng:data-array img) y x 3))
         nil)))
 
-(defun img-set-pnt (img x y &key red green blue transparency)
+(defun img-set-pnt (img x y &key red green blue trans)
   (multiple-value-bind (default-width default-height)
       (x-size)
     (when (and (> x 0) (> y 0) (< x default-width) (< y default-height))
@@ -85,11 +85,11 @@
         (setf (aref (zpng:data-array img) y x 1) green))
       (when blue
         (setf (aref (zpng:data-array img) y x 2) blue))
-      (when transparency
-        (setf (aref (zpng:data-array img) y x 3) transparency))
+      (when trans
+        (setf (aref (zpng:data-array img) y x 3) trans))
       )))
 
-(defun img-draw-line (img x1 y1 x2 y2 &key red green blue transparency)
+(defun img-draw-line (img x1 y1 x2 y2 &key red green blue trans)
   "Алгоритм Брезенхема для рисования линии"
   (declare (type integer x1 y1 x2 y2))
   (let* ((dist-x (abs (- x1 x2)))
@@ -109,8 +109,8 @@
       (loop
          :for x :upfrom x1 :to x2
          :do (if steep
-                 (img-set-pnt img y x :red red :green green :blue blue :transparency transparency)
-                 (img-set-pnt img x y :red red :green green :blue blue :transparency transparency))
+                 (img-set-pnt img y x :red red :green green :blue blue :trans trans)
+                 (img-set-pnt img x y :red red :green green :blue blue :trans trans))
          (setf var-error (- var-error delta-y))
          (when (< var-error 0)
            (incf y y-step)
@@ -132,7 +132,7 @@
           (let ((random-y (+ start-y (random end-y)))
                 (random-x (+ start-x (random end-x))))
             (push (list random-x random-y) points))))
-    points))
+    (remove-duplicates points)))
 
 (defun get-nearest-points (h-x pnt-x pnt-y &key img)
   "Ищем в хеш-таблице h-x ближайшую точку справа внизу от заданной,
@@ -172,7 +172,8 @@
    (expander   :initarg :expander  :accessor expander)
    (rgb-color  :initarg :rgb-color  :accessor rgb-color)
    (blocked-width  :initarg :blocked-width   :accessor blocked-width  :initform nil)
-   (blocked-height :initarg :blocked-height  :accessor blocked-height :initform nil)))
+   (blocked-height :initarg :blocked-height  :accessor blocked-height :initform nil)
+   (merged         :initarg :merged          :accessor merged         :initform nil)))
 
 (define-condition no-pnt () ())
 
@@ -195,81 +196,145 @@
       a
       nil))
 
-(multiple-value-bind (default-width default-height)
-    (x-size)
-  (let* ((img (get-screenshoot 0 0 default-width default-height))
-         (img2 (make-instance 'zpng:png :width default-width :height default-height :color-type :truecolor-alpha))
-         (random-points (get-random-points 0 0 default-width default-height))
-         (h-x (make-hash-table))
-         (objects))
-    ;; make h-x
-    (loop :for (x y) :in random-points :do
-       (if (null (gethash x h-x))
-           (setf (gethash x h-x) (list y))
-           (setf (gethash x h-x) (append (list y) (gethash x h-x)))))
-    ;; dbg out h-x
-    ;; (maphash #'(lambda (k v)
-    ;;              (print (list k v)))
-    ;;          h-x)
-    (loop :for (pnt-x pnt-y) :in random-points :do
-       (push
-        (make-instance 'pnt :x-↖  pnt-x  :y-↖  pnt-y  :x-↘  pnt-x :y-↘  pnt-y
-                       :rgb-color (img-get-pnt img pnt-x pnt-y))
-        objects)
-       (img-set-pnt img pnt-x pnt-y :transparency 0))
-    ;; Для всех известных объектов
-    (loop :repeat 10 :do
-       (mapcar #'(lambda (obj)
-                   (print (rgb-color obj))
-                   ;; Пытаемся расширяться по горизонтали, если это возможно
-                   (unless (blocked-width obj)
-                     (let ((height (+ 1 (- (y-↘  obj) (y-↖  obj)))))
-                       ;; Вычисляем координаты точек расширения
-                       (let ((coords (loop :for y :from (y-↖  obj) :to (y-↘  obj) :collect
-                                        `(,(+ 1 (x-↘  obj)) ,y))))
-                         ;; Для каждой из них проверяем возможность занять
-                         (let ((test (handler-case
-                                         (reduce #'tester (get-rgb-list img coords) :initial-value (rgb-color obj))
-                                       (no-pnt () nil))))
-                           (if (null test)
-                               (setf (blocked-width obj) t)
-                               (progn
-                                 (incf (x-↘  obj))
-                                 (mapcar #'(lambda (coord-elt)
-                                             (destructuring-bind (x y)
-                                                 coord-elt
-                                               (img-set-pnt img x y :transparency 0)))
-                                         coords)))))))
-                   ;; Пытаемся расширяться по вертикали, если это возможно
-                   (unless (blocked-height obj)
-                     (let ((width (+ 1 (- (x-↘  obj) (x-↖  obj)))))
-                       ;; Вычисляем координаты точек расширения
-                       (let ((coords (loop :for x :from (x-↖  obj) :to (x-↘  obj) :collect
-                                        `(,x ,(+ 1 (y-↘  obj))))))
-                         ;; Для каждой из них проверяем возможность занять
-                         (let ((test (handler-case
-                                         (reduce #'tester (get-rgb-list img coords) :initial-value (rgb-color obj))
-                                       (no-pnt () nil))))
-                           (if (null test)
-                               (setf (blocked-height obj) t)
-                               (progn
-                                 (incf (y-↘  obj))
-                                 (mapcar #'(lambda (coord-elt)
-                                             (destructuring-bind (x y)
-                                                 coord-elt
-                                               (img-set-pnt img x y :transparency 0)))
-                                         coords)))))))
-                   )
-               objects))
-    (mapcar #'(lambda (obj)
-                (let* ((all-blocked (and (blocked-width obj) (blocked-height obj)))
-                       (color (if all-blocked "RED" (if (or (blocked-width obj) (blocked-height obj)) "BLUE" "GREEN")))
-                  (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↖  obj) (y-↘  obj) (intern color :keyword) 255 :transparency 255)
-                  (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↘  obj) (y-↖ obj)  (intern color :keyword) 255 :transparency 255)
-                  (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↘  obj) (y-↖ obj)  (intern color :keyword) 255 :transparency 255)
-                  (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↖  obj) (y-↘  obj) (intern color :keyword) 255 :transparency 255)
-                  ))
-            objects)
-    ;; write png
-    (zpng:write-png img "cell.png")
-    ))
+(defun test-pnt (img obj coords)
+  (handler-case
+      (reduce #'tester (get-rgb-list img coords) :initial-value (rgb-color obj))
+    (no-pnt () nil)))
+
+(defun hit-pnt (img coords)
+  (mapcar #'(lambda (coord-elt)
+              (destructuring-bind (x y)
+                  coord-elt
+                (img-set-pnt img x y :trans 0)))
+          coords))
+
+(defmacro find-near-obj (primary-coord secondary-coord base-name test-name container)
+  ;; Мы должны найти все объекты, у которых:
+  ;; (and
+  ;;   x-↖  на единицу больше чем наш x-↘  и
+  ;;   y-↖  верхний/левый меньше чем наш  y-↘ верхний/левый
+  ;;   у-↘  нижний/правый больше чем наш y-↖ нижний/правый
+  ;;   и rgb-color совпадает c нашим
+  ;; Пока ищем неоптимально, просматривая весь список объектов, потом надо будет индексировать объекты по их координатам (TODO)
+  ;; (format t  "~%---BASE: x = ~A | y-↑ = ~A | y-↓ = ~A" (x-↘  ,base-name) (y-↖  ,base-name) (y-↘  ,base-name))
+  (let ((primary-coord-↘  (intern (concatenate 'string (symbol-name primary-coord) "-↘")))
+        (primary-coord-↖  (intern (concatenate 'string (symbol-name primary-coord) "-↖")))
+        (secondary-coord-↘  (intern (concatenate 'string (symbol-name secondary-coord) "-↘")))
+        (secondary-coord-↖  (intern (concatenate 'string (symbol-name secondary-coord) "-↖")))
+        )
+    `(remove-if-not #'(lambda (,test-name)
+                        (and
+                         (equal (+ 1 (,primary-coord-↘  ,base-name)) (,primary-coord-↖  ,test-name))
+                         (<= (,secondary-coord-↖  ,base-name) (,secondary-coord-↘  ,test-name))
+                         (>= (,secondary-coord-↘  ,base-name) (,secondary-coord-↖  ,test-name))
+                         (equal (rgb-color ,base-name) (rgb-color ,test-name))
+                         ))
+                    ,container)))
+
+(defun run ()
+  (multiple-value-bind (default-width default-height)
+      (x-size)
+    (let* ((img (get-screenshoot 0 0 default-width default-height))
+           (img2 (make-instance 'zpng:png :width default-width :height default-height :color-type :truecolor-alpha))
+           (random-points (get-random-points 0 0 default-width default-height))
+           (h-x (make-hash-table))
+           (objects))
+      ;; make h-x
+      (loop :for (x y) :in random-points :do
+         (if (null (gethash x h-x))
+             (setf (gethash x h-x) (list y))
+             (setf (gethash x h-x) (append (list y) (gethash x h-x)))))
+      ;; dbg out h-x
+      ;; (maphash #'(lambda (k v)
+      ;;              (print (list k v)))
+      ;;          h-x)
+      (loop :for (pnt-x pnt-y) :in random-points :do
+         (push
+          (make-instance 'pnt :x-↖  pnt-x  :y-↖  pnt-y  :x-↘  pnt-x :y-↘  pnt-y
+                         :rgb-color (img-get-pnt img pnt-x pnt-y))
+          objects)
+         (img-set-pnt img pnt-x pnt-y :trans 0))
+      ;; Выполняем итерации для увеличения всех объектов
+      (print (length objects))
+      (loop :for iteration :from 0 :to 20 :do
+         (format t "~%----------------------------~%iteration: ~A" iteration)
+         (tagbody start-iteration
+            ;; Для всех известных объектов
+            (loop :for obj :in objects :do
+               ;; Пытаемся расширяться по горизонтали, если это возможно
+               (unless (blocked-width obj)
+                 (let ((height (+ 1 (- (y-↘  obj) (y-↖  obj)))))
+                   ;; Вычисляем координаты точек расширения
+                   (let ((coords (loop :for y :from (y-↖  obj) :to (y-↘  obj) :collect `(,(+ 1 (x-↘  obj)) ,y))))
+                     ;; Для каждой из них проверяем возможность занять эту точку
+                     (if (not (null (test-pnt img obj coords)))
+                         ;; Занять можно - расширяем горизонталь и помечаем точки на картинке
+                         (progn (incf (x-↘  obj)) (hit-pnt img coords))
+                         ;; Занять нельзя - но это еще не конец - попробуем выполнить слияние, если размер точки больше единицы
+                         (progn
+                           ;;
+                           ;; SCIPPED by BUGS
+                           ;;
+                           ;; Если мы оказались здесь, значит слияния невозможны - блокируем расширение вправо
+                           ;; Строго говоря в будущем ситуация может и измениться поэтому может и не стоит
+                           (setf (blocked-width obj) t)
+                           )))))
+               ;; Пытаемся расширяться по вертикали, если это возможно
+               (unless (blocked-height obj)
+                 (let ((width (+ 1 (- (x-↘  obj) (x-↖  obj)))))
+                   ;; Вычисляем координаты точек расширения
+                   (let ((coords (loop :for x :from (x-↖  obj) :to (x-↘  obj) :collect `(,x ,(+ 1 (y-↘  obj))))))
+                     ;; Для каждой из них проверяем возможность занять эту точку
+                     (if (not (null (test-pnt img obj coords)))
+                         ;; Занять можно - расширяем вертикаль и помечаем точки на картинке
+                         (progn (incf (y-↘  obj)) (hit-pnt img coords))
+                         ;; Занять нельзя - но это еще не конец - попробуем выполнить слияние, если размер точки больше единицы
+                         (progn
+                           (when (and (>  (- (y-↘  obj)  (y-↖  obj)) 1)
+                                      (<  (- (x-↘  obj)  (x-↖  obj)) 1))
+                             (loop :for test-obj :in (find-near-obj x y obj test-obj objects) :do
+                                (cond ((> (y-↖  obj) (y-↖  test-obj))
+                                       'todo)
+                                      ((< (y-↖  obj) (y-↖  test-obj))
+                                       'todo)
+                                      (t
+                                       (cond ((> (y-↘  obj) (y-↘  test-obj))
+                                              'todo)
+                                             ((< (y-↘  obj) (y-↘  test-obj))
+                                              'todo)
+                                             (t
+                                              (progn
+                                                ;; У этих объектов совпадают y-координаты - сливаем их и заносим к остальным объектам
+                                                (push (make-instance 'pnt :x-↖  (x-↖  obj)  :y-↖  (y-↖  obj)  :x-↘  (x-↘  test-obj) :y-↘  (y-↘  test-obj)
+                                                                     :rgb-color (rgb-color obj) :merged t)
+                                                      objects)
+                                                (print 'merged-vertical)
+                                                ;; Исходные объекты удаляем
+                                                (setf objects (remove-if #'(lambda (z)
+                                                                             (or (equal z obj)
+                                                                                 (equal z test-obj)))
+                                                                         objects))
+                                                )))))))
+                           ;; Если мы оказались здесь, значит слияния невозможны - блокируем расширение вниз
+                           (setf (blocked-height obj) t)
+                           ))))))))
+      ;; Выводим в картинку
+      (mapcar #'(lambda (obj)
+                  (let ((red) (green) (blue) (trans 255))
+                    (cond ((merged obj) (progn
+                                          (setf red 255)
+                                          (setf green 255)
+                                          (setf blue 255)
+                                          (setf trans 255)))
+                          ((and (blocked-width obj) (blocked-height obj)) (progn
+                                                                            (setf red 255)))
+                          ((or (blocked-width obj) (blocked-height obj))  (progn
+                                                                            (setf blue 255)))
+                          (t (setf green 255)))
+                    (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↖  obj) (y-↘  obj) :red red :green green :blue blue :trans trans)
+                    (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↘  obj) (y-↖  obj) :red red :green green :blue blue :trans trans)
+                    (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↘  obj) (y-↖  obj) :red red :green green :blue blue :trans trans)
+                    (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↖  obj) (y-↘  obj) :red red :green green :blue blue :trans trans)))
+              objects)
+      ;; Записываем картинку
+      (zpng:write-png img "cell.png"))))
