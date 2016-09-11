@@ -282,20 +282,58 @@
                             (progn
                               (when (and (> (- (x-↘  obj) (x-↖  obj))  1)     (> (- (y-↘  obj) (y-↖  obj))  1))
                                 (loop :for test-obj :in (find-near-obj x y obj test-obj objects) :do
-                                   (cond ((= (y-↖  obj) (y-↖  test-obj))
-                                          (cond ((= (y-↘  obj) (y-↘  test-obj))
-                                                 (progn
-                                                   ;; У этих объектов совпадают y-координаты - сливаем их и заносим к остальным объектам
-                                                   (push (make-instance 'pnt :x-↖  (x-↖  obj)  :y-↖  (y-↖  obj)  :x-↘  (x-↘  test-obj) :y-↘  (y-↘  test-obj)
-                                                                        :rgb-color (rgb-color obj) :merged t)
-                                                         objects)
-                                                   (print 'merged-horizontal)
-                                                   ;; Исходные объекты помечаем для удаляения
-                                                   (setf (deleted obj) t)
-                                                   (setf (deleted test-obj) t)
-                                                   ;; Переходим напрямую к следующему объекту
-                                                   (go end-object)
-                                                   )))))))
+                                   (let ((yy (sort (list (y-↖  obj) (y-↖  test-obj) (y-↘  obj) (y-↘  test-obj)) #'<))
+                                         (xx (sort (list (x-↖  obj) (x-↖  test-obj) (x-↘  obj) (x-↘  test-obj)) #'<))
+                                         (union-coords))
+                                     ;; Собираем координаты точкек, которые нужно заполнить для слияния
+                                     (loop :for y :from (car yy) :to (car (last yy)) :do
+                                        (loop :for x :from (car xx) :to (car (last xx)) :do
+                                           (unless (or (and (< y (y-↘  obj))  (> y (y-↖  obj))  (< x (x-↘  obj))  (> x (x-↖  obj)))
+                                                       (and (< y (y-↘  test-obj))  (> y (y-↖  test-obj))  (< x (x-↘  test-obj))  (> x (x-↖  test-obj))))
+                                             (push (list x y) union-coords))))
+                                     (print union-coords)
+                                     (mapcar #'(lambda (coord-elt)
+                                                 (destructuring-bind (x y)
+                                                     coord-elt
+                                                   (img-set-pnt img x y :red 127 :green 127 :blue 127 :trans 255)))
+                                             union-coords)
+                                     (setf (merged obj) t)
+                                     (setf (merged test-obj) t)
+                                     ;; Проверяем, можно ли их занть
+                                     (if (not (null (test-pnt img obj union-coords)))
+                                         ;; Занять можно
+                                         (progn
+                                           ;; Заполняем точки
+                                           (hit-pnt img union-coords)
+                                           ;; Сливаем общие координаты их и заносим новый объект к остальным объектам
+                                           (push (make-instance 'pnt :x-↖  (car xx)  :y-↖  (car yy)  :x-↘  (car (last xx)) :y-↘  (car (last yy))
+                                                                :rgb-color (rgb-color obj) :merged t)
+                                                 objects)
+                                         ;; Исходные объекты помечаем для удаляения
+                                         (setf (deleted obj) t)
+                                         (setf (deleted test-obj) t)
+                                         ;; Отладочный вывод в консоль
+                                         (print 'merged-horizontal)
+                                         ;; Переходим напрямую к следующему объекту
+                                         (go end-object))
+                                         ;; Занять нельзя - тут можно еще скорректировать попавшие под руку блоки но пока ничего не делаем
+                                         (print 'todo))
+                                     )
+                                   ;; (cond ((= (y-↖  obj) (y-↖  test-obj))
+                                   ;;        (cond ((= (y-↘  obj) (y-↘  test-obj))
+                                   ;;               (progn
+                                   ;;                 ;; У этих объектов совпадают y-координаты - сливаем их и заносим к остальным объектам
+                                   ;;                 (push (make-instance 'pnt :x-↖  (x-↖  obj)  :y-↖  (y-↖  obj)  :x-↘  (x-↘  test-obj) :y-↘  (y-↘  test-obj)
+                                   ;;                                      :rgb-color (rgb-color obj) #|:merged t|#)
+                                   ;;                       objects)
+                                   ;;                 (print 'merged-horizontal)
+                                   ;;                 ;; Исходные объекты помечаем для удаляения
+                                   ;;                 (setf (deleted obj) t)
+                                   ;;                 (setf (deleted test-obj) t)
+                                   ;;                 ;; Переходим напрямую к следующему объекту
+                                   ;;                 (go end-object)
+                                   ;;                 )))))
+                                   ))
                               ;; Если мы оказались здесь, значит слияния невозможны - блокируем расширение вправо
                               ;; Строго говоря в будущем ситуация может и измениться поэтому может и не стоит
                               (setf (blocked-width obj) t)
@@ -330,11 +368,10 @@
                           ((or (blocked-width obj) (blocked-height obj))  (progn
                                                                             (setf blue 255)))
                           (t (setf green 255)))
-                    (when (merged obj)
-                      (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↖  obj) (y-↘  obj) :red red :green green :blue blue :trans trans)
-                      (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↘  obj) (y-↖  obj) :red red :green green :blue blue :trans trans)
-                      (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↘  obj) (y-↖  obj) :red red :green green :blue blue :trans trans)
-                      (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↖  obj) (y-↘  obj) :red red :green green :blue blue :trans trans))))
+                    (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↖  obj) (y-↘  obj) :red red :green green :blue blue :trans trans)
+                    (img-draw-line img (x-↖ obj) (y-↖  obj) (x-↘  obj) (y-↖  obj) :red red :green green :blue blue :trans trans)
+                    (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↘  obj) (y-↖  obj) :red red :green green :blue blue :trans trans)
+                    (img-draw-line img (x-↘ obj) (y-↘  obj) (x-↖  obj) (y-↘  obj) :red red :green green :blue blue :trans trans)))
               objects)
       ;; Записываем картинку
       (zpng:write-png img "cell.png"))))
