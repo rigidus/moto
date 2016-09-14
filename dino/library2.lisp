@@ -67,7 +67,7 @@
 (defun img-get-pnt (img x y)
   (multiple-value-bind (default-width default-height)
       (x-size)
-    (if (and (> x 0) (> y 0) (< x default-width) (< y default-height))
+    (if (and (>= x 0) (>= y 0) (< x default-width) (< y default-height))
         (list
          (aref (zpng:data-array img) y x 0)
          (aref (zpng:data-array img) y x 1)
@@ -78,7 +78,7 @@
 (defun img-set-pnt (img x y &key red green blue trans)
   (multiple-value-bind (default-width default-height)
       (x-size)
-    (when (and (> x 0) (> y 0) (< x default-width) (< y default-height))
+    (when (and (>= x 0) (>= y 0) (< x default-width) (< y default-height))
       (when red
         (setf (aref (zpng:data-array img) y x 0) red))
       (when green
@@ -399,3 +399,228 @@
 (run)
 
 ;; Нужен диффер кода
+
+
+;;;; sexp-diff.scm - stolen from Racket/unstable
+
+
+;;; diff-sexp.lisp -- diffs s-expressions based on Levenshtein-like edit distance.
+
+;; Author:Michael Weber <michaelw@foldr.org>
+;; Date:2005-09-03
+;; Modified:2005-09-04
+;; Modified:2005-09-07
+;; Modified:2005-09-15
+;; Modified:    2010-06-22 (Ported to racket by Vincent St-Amour)
+;;
+;; This code is in the Public Domain.
+
+;;; Description:
+
+;; DIFF-SEXP computes a diff between two s-expressions which minimizes
+;; the number of atoms in the result tree, also counting edit
+;; conditionals #:new, #:old.
+
+;;; Examples:
+
+;; > (sexp-diff
+;;    '(DEFUN F (X) (+ (* X 2) 1))
+;;    '(DEFUN F (X) (- (* X 2) 3 1)))
+;; ((DEFUN F (X) (#:new - #:old + (* X 2) #:new 3 1)))
+;; > (sexp-diff
+;;    '(DEFUN F (X) (+ (* X 2) 4 1))
+;;    '(DEFUN F (X) (- (* X 2) 5 3 1)))
+;; ((DEFUN F (X) (#:new - #:old + (* X 2) #:new 5 #:new 3 #:old 4 1)))
+;; > (sexp-diff
+;;    '(DEFUN F (X) (+ (* X 2) 4 4 1))
+;;    '(DEFUN F (X) (- (* X 2) 5 5 3 1)))
+;; ((DEFUN F (X) #:new (- (* X 2) 5 5 3 1) #:old (+ (* X 2) 4 4 1)))
+
+;;; Todo:
+
+;; * Support for moved subtrees
+;; * The algorithm treats vectors, arrays, etc. as opaque objects
+;; * This article might describe a better method (unchecked):
+;;   HÃ©lÃ¨ne Touzet: "A linear tree edit distance algorithm for similar ordered trees"
+;;   LIFL - UMR CNRS 8022 - UniversitÃ© Lille 1
+;;   59 655 Villeneuve d'Ascq cedex, France
+;;   Helene.Touzet@lifl.fr
+
+
+;; (module sexp-diff (sexp-diff)
+;;         (import scheme chicken)
+;;         (use srfi-1)
+
+
+;;         ;; Computes the number of atoms contained in TREE.
+;;         (define (tree-size tree)
+;;             (if (pair? tree)
+;;                 (apply + 1 (map tree-size tree))
+;;                 1))
+
+
+;;         (define-record edit-record
+;;             type   ; 'unchanged | 'deletion | 'insertion | 'update | 'compound
+;;           edit-distance
+;;           change); CHANGE | (OLD . NEW) | (CHANGE ...)
+
+;;         (define (make-unchanged-record change)
+;;             (make-edit-record 'unchanged (tree-size change) change))
+
+;;         (define (make-deletion-record change)
+;;             (make-edit-record 'deletion (add1 (tree-size change)) change))
+
+;;         (define (make-insertion-record change)
+;;             (make-edit-record 'insertion (add1 (tree-size change)) change))
+
+;;         (define (make-update-record old new)
+;;             (make-edit-record 'update
+;;                               (+ 1 (tree-size old)
+;;                                  1 (tree-size new))
+;;                               (cons old new)))
+
+;;         (define (make-compound-record changes)
+;;             (make-edit-record
+;;              'compound
+;;              (apply + (map edit-record-edit-distance changes))
+;;              changes))
+
+;;         (define (make-empty-compound-record)
+;;             (make-compound-record '()))
+
+;;         (define (make-extend-compound-record r0 record)
+;;             (make-compound-record (cons record (get-change r0))))
+
+;;         (define (unchanged-record? r) (eq? (edit-record-type r) 'unchanged))
+;;         (define (deletion-record? r) (eq? (edit-record-type r) 'deletion))
+;;         (define (insertion-record? r) (eq? (edit-record-type r) 'insertion))
+;;         (define (compound-record? r) (eq? (edit-record-type r) 'compound))
+;;         (define (update-record? r) (eq? (edit-record-type r) 'update))
+
+;;         (define (get-change record) (edit-record-change record))
+
+;;         (define (render-difference record)
+;;             (cond [(insertion-record? record)
+;;                   (list '#:new (edit-record-change record))]
+;;                   [(deletion-record? record)
+;;                   (list '#:old (edit-record-change record))]
+;;                   [(update-record? record)
+;;                   (let ((change (edit-record-change record)))
+;;                     (list '#:old (car change)
+;;                           '#:new (cdr change)))]
+;;                           [(unchanged-record? record)
+;;                           (list (edit-record-change record))]
+;;                           [(compound-record? record)
+;;                           (list (fold (lambda (r res)
+;;                                         (append res (render-difference r)))
+;;                                       '()
+;;                                       (reverse (edit-record-change record))))]))
+
+;;         ;; Returns record with minimum edit distance.
+;;         (define (min/edit record . records)
+;;             (fold-right (lambda (a b)
+;;                           (if (<= (edit-record-edit-distance a)
+;;                                   (edit-record-edit-distance b))
+;;                               a
+;;                               b))
+;;                         record
+;;                         records))
+
+;;         ;; Prepares initial data vectors for Levenshtein algorithm from LIST.
+;;         (define (initial-distance function lst)
+;;             (let ((seq (make-vector (add1 (length lst)) (make-empty-compound-record))))
+;;               (do ((i 0 (add1 i))
+;;                    (elt lst (cdr elt)))
+;;                   ((null? elt))
+;;                 (vector-set! seq (add1 i)
+;;                              (make-extend-compound-record (vector-ref seq i)
+;;                                                           (function (car elt)))))
+;;               seq))
+
+;;         ;; Calculates the minimal edits needed to transform OLD-TREE into NEW-TREE.
+;;         ;; It minimizes the number of atoms in the result tree, also counting
+;;         ;; edit conditionals.
+;;         (define (levenshtein-tree-edit old-tree new-tree)
+;;             (cond
+;;               ((equal? old-tree new-tree)
+;;                (make-unchanged-record old-tree))
+;;               ((not (and (pair? old-tree) (pair? new-tree)))
+;;                (make-update-record old-tree new-tree))
+;;               (else
+;;                (min/edit
+;;                 (make-update-record old-tree new-tree)
+;;                 (let* ((best-edit #f)
+;;                        (row (initial-distance make-deletion-record old-tree))
+;;                        (col (initial-distance make-insertion-record new-tree)))
+;;                   (do ((new-part new-tree (cdr new-part))
+;;                        (currentlist (cdr (vector->list col)) (cdr currentlist)))
+;;                       ((or (null? new-part) (null? currentlist)))
+;;                     (let ((current (car currentlist)))
+;;                       (do ((old-part old-tree (cdr old-part))
+;;                            (row-idx 0 (add1 row-idx)))
+;;                           ((null? old-part))
+;;                         (set! best-edit
+;;                               (min/edit
+;;                                (make-extend-compound-record
+;;                                 (vector-ref row (add1 row-idx))
+;;                                 (make-insertion-record (car new-part)))
+;;                                (make-extend-compound-record
+;;                                 current
+;;                                 (make-deletion-record (car old-part)))
+;;                                (make-extend-compound-record
+;;                                 (vector-ref row row-idx)
+;;                                 (levenshtein-tree-edit (car old-part) (car new-part)))))
+;;                         (vector-set! row row-idx current)
+;;                         (set! current best-edit)))
+;;                     (vector-set! row (sub1 (vector-length row)) best-edit))
+;;                   best-edit)))))
+
+;;         ;; Computes a diff between OLD-TREE and NEW-TREE which minimizes the
+;;         ;; number of atoms in the result tree, also counting inserted edit conditionals
+;;         ;; #:new, #:old.
+;;         (define (sexp-diff old-tree new-tree)
+;;             (render-difference (levenshtein-tree-edit old-tree new-tree)))
+
+;;         )
+
+(defun x-size ()
+  (values 20 10))
+
+(defun get-pnt-hlp (img x y)
+  (let ((rs (img-get-pnt img x y)))
+    (if (null rs)
+      nil
+      (equal 255 (car rs)))))
+
+(defmacro rule (src dst)
+  (let ((and-statement `(and ,@(loop
+                                 :for idx :from -1 :to 1
+                                 :for rul :in (mapcar #'(lambda (x) (equal #\1 x)) (coerce src 'list))
+                                 :collect (let ((payload `(get-pnt-hlp img2 (+ x ,idx) y)))
+                                            (if rul payload `(not ,payload)))))))
+    `(when ,and-statement
+       ,(if (equal 1 dst)
+            `(img-set-pnt img2 x (+ 1 y) :red 255)
+            `(img-set-pnt img2 x (+ 1 y) :red 0)))))
+
+(multiple-value-bind (default-width default-height)
+    (x-size)
+  (let* ((img2 (make-instance 'zpng:png :width default-width :height default-height
+                              :color-type :truecolor-alpha)))
+    (loop :for y :from 0 :to default-height :do
+       (loop :for x :from 0 :to default-width :do
+          (img-set-pnt img2 x y :red 0 :green 0 :blue 0 :trans 255)))
+    (img-set-pnt img2 (floor default-width 2) 0 :red 255 :green 0 :blue 0 :trans 255)
+    (loop :for y :from 0 :to default-height :do
+       (loop :for x :from 0 :to default-width :do
+          (rule "111" 0)
+          (rule "110" 0)
+          (rule "101" 0)
+          (rule "100" 1)
+          (rule "011" 1)
+          (rule "010" 1)
+          (rule "001" 1)
+          (rule "000" 0)
+          ))
+    ;; write png
+    (zpng:write-png img2 "cell.png")))

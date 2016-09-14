@@ -67,25 +67,26 @@
 (defun img-get-pnt (img x y)
   (multiple-value-bind (default-width default-height)
       (x-size)
-    (if (and (< x default-width) (< y default-height))
+    (if (and (> x 0) (> y 0) (< x default-width) (< y default-height))
         (list
          (aref (zpng:data-array img) y x 0)
          (aref (zpng:data-array img) y x 1)
-         (aref (zpng:data-array img) y x 2))
+         (aref (zpng:data-array img) y x 2)
+         (aref (zpng:data-array img) y x 3))
         nil)))
 
-(defun img-set-pnt (img x y &key red green blue transparency)
+(defun img-set-pnt (img x y &key red green blue trans)
   (multiple-value-bind (default-width default-height)
       (x-size)
-    (when (and (< x default-width) (< y default-height))
+    (when (and (> x 0) (> y 0) (< x default-width) (< y default-height))
       (when red
         (setf (aref (zpng:data-array img) y x 0) red))
       (when green
         (setf (aref (zpng:data-array img) y x 1) green))
       (when blue
         (setf (aref (zpng:data-array img) y x 2) blue))
-      (when transparency
-        (setf (aref (zpng:data-array img) y x 3) transparency))
+      (when trans
+        (setf (aref (zpng:data-array img) y x 3) trans))
       )))
 
 (defun img-draw-line (img x1 y1 x2 y2 &key red green blue)
@@ -180,7 +181,7 @@
     ;;          h-x)
     ;; dbg (если показывать эти точки алгоритм создания блоков не может найти равнозаполненные области)
     (loop :for (pnt-x pnt-y) :in random-points :do
-       (img-set-pnt img pnt-x pnt-y :transparency 0))
+       (img-set-pnt img pnt-x pnt-y :trans 0))
     (loop
        :repeat 1
        :for (pnt-x pnt-y) :in random-points :do
@@ -206,7 +207,7 @@
        ;;              ;; Нашли, теперь надо
        ;;              (loop :for test-pnt-x :from pnt-x :to near-x :do
        ;;                 (loop :for test-pnt-y :from pnt-y :to near-y :do
-       ;;                    (img-set-pnt img test-pnt-x test-pnt-y :transparency 0)))
+       ;;                    (img-set-pnt img test-pnt-x test-pnt-y :trans 0)))
        ;;              ;; (img-draw-line img pnt-x pnt-y pnt-x near-y :red 255)
        ;;              ;; (img-draw-line img pnt-x pnt-y near-x pnt-y :red 255)
        ;;              ;; (img-draw-line img near-x pnt-y near-x near-y :red 255)
@@ -216,3 +217,18 @@
        )
     ;; write png
     (zpng:write-png img "cell.png")))
+
+
+(multiple-value-bind (default-width default-height)
+    (x-size)
+  (let ((default-width 200)
+        (default-height 100))
+  (let* (;; (img (get-screenshoot 0 0 default-width default-height))
+         (img2 (make-instance 'zpng:png :width default-width :height default-height
+                              :color-type :truecolor-alpha)))
+    (loop :for y :from 0 :to default-height :do
+       (loop :for x :from 0 :to default-width :do
+          (img-set-pnt img2 x y :red 0 :green 0 :blue 0 :trans 255)))
+    (img-set-pnt img2 (floor default-width 2) 0 :green 255 :blue 255 :trans 255)
+    ;; write png
+    (zpng:write-png img2 "cell.png"))))
