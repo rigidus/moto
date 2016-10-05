@@ -1559,6 +1559,15 @@
        (if (search pattern string)
            t))
 
+     ;; contains in words
+     (defun contains-in-words (string pattern)
+       (reduce #'(lambda (a b)
+                   (or a b))
+               (mapcar #'(lambda (x)
+                           (contains x pattern))
+                       (ppcre:split "\\W+" string))
+               :initial-value nil))
+
      ;; empty
      (defun empty (string)
        (if (or (null string)

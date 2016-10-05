@@ -117,6 +117,15 @@
             (declaim #+sbcl(sb-ext:unmuffle-conditions style-warning)))))
     vacancy))
 
+;; example for verify rules
+(defun dbg-rule-vac (vac-id rule-id)
+  (let ((vacancy      (car (find-vacancy vac-id)))
+        (antecedent   (read-from-string (format nil "(lambda (vacancy) ~A)" (antecedent (get-rule rule-id))))))
+    (values
+     (funcall (eval antecedent) (get-obj-data vacancy))
+     (getf (get-obj-data vacancy) :name)
+     antecedent)))
+
 (in-package #:moto)
 
 (in-package #:moto)
@@ -409,7 +418,7 @@
 (defmacro define-drop-teaser-by-name-rule (str &body consequent)
   `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
                               (contains (getf vacancy :name) ,str))
-     (dbg "  - name contains ~A" ,str)
+     (dbg "  - name contains \"~A\"" ,str)
      ,@consequent))
 
 ;; expand
@@ -468,16 +477,30 @@
                                         ))
   (dbg "  - low salary"))
 
+(define-drop-teaser-rule (iOS (contains-in-words (string-downcase (getf vacancy :name)) "ios"))
+  (dbg "  - name contains iOS"))
+
+(define-drop-teaser-rule (FrontEnd (contains-in-words (string-downcase (getf vacancy :name)) "front"))
+  (dbg "  - name contains FrontEnd"))
+
+(define-drop-teaser-rule (Manager (contains-in-words (string-downcase (getf vacancy :name)) "менеджер"))
+  (dbg "  - name contains менеджер"))
+
+(define-drop-teaser-rule (Saler (contains-in-words (string-downcase (getf vacancy :name)) "продаж"))
+  (dbg "  - name contains продаж"))
+
+(define-drop-teaser-rule (DotNet (contains-in-words (string-downcase (getf vacancy :name)) ".net"))
+  (dbg "  - name contains .net"))
+
+
 (define-drop-all-teaser-when-name-contains-rule
     "Python" "Django"
-    "IOS" "iOS" "IOS-разработчик" "IOS developer"
     "1C" "1С"
     "C++" "С++"
     "Ruby" "Ruby on Rails"
-    "Frontend" "Front End" "Front-end" "Front-End"
     "Go"
     "Q/A" "QA"
-    "C#" ".NET" ".Net"
+    "C#"
     "Unity" "Unity3D"
     "Flash"
     "Java"
@@ -493,18 +516,17 @@
     "Системный администратор"
     "Трафик-менеджер"
     "Traffic" "Трафик"
-    "Медиабайер" "Media Buyer"
-    "менеджер по продажам" "Менеджер по продажам"
-    "Менеджер"
-    "по продажам"
+    "Медиабайер" "Media Buyer" "Медиабаер"
     "SAP"
     "маркетолог"
+    "SMM"
     "DevOps"
     "Axapta"
     "designer"
     "Дизайнер"
     "Designer"
     "UX"
+    "по ремонту"
     "Помощник"
     "Верстальщик"
     "Smolensk" "Львов")
