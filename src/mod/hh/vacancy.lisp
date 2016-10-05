@@ -470,7 +470,7 @@
 
 (define-drop-all-teaser-when-name-contains-rule
     "Python" "Django"
-    "IOS" "iOS"
+    "IOS" "iOS" "IOS-разработчик" "IOS developer"
     "1C" "1С"
     "C++" "С++"
     "Ruby" "Ruby on Rails"
@@ -495,12 +495,16 @@
     "Traffic" "Трафик"
     "Медиабайер" "Media Buyer"
     "менеджер по продажам" "Менеджер по продажам"
+    "Менеджер"
+    "по продажам"
     "SAP"
     "маркетолог"
     "DevOps"
     "Axapta"
     "designer"
     "Дизайнер"
+    "Designer"
+    "UX"
     "Помощник"
     "Верстальщик"
     "Smolensk" "Львов")
@@ -863,7 +867,7 @@
            ("a" (("class" ,(or "search-result-item__name search-result-item__name_standard"
                                "search-result-item__name search-result-item__name_standard_plus"
                                "search-result-item__name search-result-item__name_premium"))
-                 ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name))
+                 ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name) ,@rest)
     (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name)))
 
 (make-detect (description)
