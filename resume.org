@@ -645,72 +645,176 @@
   осуществлять построение и пермутацию резюме как кода, представленного в виде AST.
 
   #+BEGIN_SRC lisp
+    (in-package :moto)
 
-    Опыт работы 10 лет 10 месяцев
+    (defun hh-post-resume (cookie-jar &rest plist &key resume-id &allow-other-keys)
+      ;; Если идентификатор резюме не указан - то используем пустую строку
+      (unless resume-id
+        (setf resume-id ""))
+      ;; Сначала запросим основную страницу всех резюме
+      (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
+        (multiple-value-bind (response cookie-jar url)
+            (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
+          ;; Теперь запросим страницу personal
+          (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/personal?resume=~A" resume-id)))
+            (multiple-value-bind (response cookie-jar url)
+                (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
+              (with-cookie-alist (cookie-jar)
+                (send-post-multiple-values
+                    (section-url
+                     cookie-jar
+                     cookie-alist
+                     `(("lastName.string" . ,(drakma:url-encode (getf plist :last-name) :utf-8))
+                       ("firstName.string" . ,(drakma:url-encode (getf plist :first-name) :utf-8))
+                       ("middleName.string" . ,(drakma:url-encode (getf plist :middle-name) :utf-8))
+                       ("birthday.date" . ,(drakma:url-encode (getf plist :birthday) :utf-8))
+                       ("gender.string" . ,(drakma:url-encode (getf plist :gender) :utf-8))
+                       ("area.string" . ,(drakma:url-encode (getf plist :area) :utf-8))
+                       ("metro.string" . ,(drakma:url-encode (getf plist :metro) :utf-8))
+                       ("relocation.string" . ,(drakma:url-encode (getf plist :relocation) :utf-8))
+                       ("relocationArea.string" . ,(drakma:url-encode (getf plist :relocation-area) :utf-8))
+                       ("businessTripReadiness.string" . ,(drakma:url-encode (getf plist :business-trip-readiness) :utf-8))
+                       ("citizenship" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
+                       ("citizenship.string" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
+                       ("workTicket" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
+                       ("workTicket.string" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
+                       ("travelTime.string" . ,(drakma:url-encode (getf plist :travel-time) :utf-8)))
+                     )
+                  (values
+                   uri
+                   headers
+                   (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))))))))
 
-    (exp
-     :company "AIS"
-     :site "aintsys.com"
-     :position "Lisp/Erlang-разработчик"
-     :description "Разрабатываю решения в сфере электронных валют"
-     :start-date "Январь 2012"
-     :end-date  "Апрель 2012"
-     :stage "4 месяца")
-    (exp
-     :company "ООО РАВТА"
-     :region "Санкт-Петербург,"
-     :site "ravta.ru"
-     :industries "Автомобильный бизнес.."
-     :position "Директор по IT"
-     :description "Осуществлял руководство разработкой информационной системы предприятия, занимался
-    постановкой задач и контролем выполнения работ. Организовывал договорную работу с
-    подрядчиками."
-     :start-date "Май 2011"
-     :end-date  "Январь 2012"
-     :stage "9 месяцев")
-    (exp
-     :company "WizardSoft"
-     :region "Санкт-Петербург"
-     :site "wizardsoft.ru"
-     :position "Ведущий разработчик, архитектор"
-     :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип
-    реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по
-    кадровым соображениям."
-     :start-date "Сентябрь 2009"
-     :end-date "Апрель 2011"
-     :stage "1 год 8 месяцев")
-    (exp
-     :company "ЦиFры"
-     :region "Санкт-Петербург,"
-     :site "www.320-8080.ru"
-     :industries "Электроника, приборостроение, бытовая техника, компьютеры и оргтехника... "
-     :position "Архитектор-проектировщик, веб-программист"
-     :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин"
-     :start-date "Январь 2007"
-     :end-date "Сентябрь 2009"
-     :stage "2 года 9 месяцев")
-    (exp
-     :company "ООО Вебдом"
-     :site  "webdom.net"
-     :position "Ведущий веб-разработчик"
-     :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает
-    компания. CMS на его основе поставляется клиентам."
-     :start-date "Сентябрь 2005"
-     :end-date "Январь 2007"
-     :stage "1 год 5 месяцев")
-    (exp
-     :company "Почин"
-     :site "pochin.ru"
-     :position "Программист"
-     :descruption "Спроектировал и разработал интернет-магазин")
+    ;; (progn
+    ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+    ;;   (hh-post-resume cookie-jar
+    ;;                   :last-name "Глухов"
+    ;;                   :first-name "Михаил"
+    ;;                   :middle-name "Михайлович"
+    ;;                   :birthday "1982-12-15"
+    ;;                   :gender "male"
+    ;;                   :area "2"
+    ;;                   :metro ""
+    ;;                   :relocation "relocation_possible"
+    ;;                   :relocation-area "1"
+    ;;                   :business-trip-readiness "ready"
+    ;;                   :citizen-ship "113"
+    ;;                   :work-ticket "113"
+    ;;                   :travel-time "any"
+    ;;                   )))
 
-    company
-    region
-    site
-    industries
-    position
-    start-date
-    end-date
-    description
 
-#+END_SRC
+    ;; :title "Senior Programmer"
+    ;; (personal
+    ;;  :last-name "Глухов"
+    ;;  :first-name "Михаил"
+    ;;  :middle-name "Михайлович"
+    ;;  :birthday "1982-12-15"
+    ;;  :gender "male"
+    ;;  :area "2"
+    ;;  :metro ""
+    ;;  :relocation "relocation_possible"
+    ;;  :relocation-area "1"
+    ;;  :business-trip-readiness "ready"
+    ;;  :citizen-ship "113"
+    ;;  :work-ticket "113"
+    ;;  :travel-time "any")
+    ;; (contacts
+    ;;  :cell-phone "7 911 2869290 В любое время"
+    ;;  :home-phone "7"
+    ;;  :work-phone "7"
+    ;;  :email"avenger-f@yandex.ru"
+    ;;  :preferred-contact "email"
+    ;;  :icq ""
+    ;;  :skype "i.am.rigidus"
+    ;;  :freelance ""
+    ;;  :moi_krug ""
+    ;;  :linkedin ""
+    ;;  :facebook ""
+    ;;  :livejournal "rigidus"
+    ;;  :personal-site "https://rigidus.ru")
+
+
+
+    ;; (exp
+    ;;  :company "AIS"
+    ;;  :site "aintsys.com"
+    ;;  :position "Lisp/Erlang-разработчик"
+    ;;  :description "Разрабатываю решения в сфере электронных валют"
+    ;;  :start-date "Январь 2012"
+    ;;  :end-date  "Апрель 2012"
+    ;;  :stage "4 месяца")
+    ;; (exp
+    ;;  :company "ООО РАВТА"
+    ;;  :region "Санкт-Петербург,"
+    ;;  :site "ravta.ru"
+    ;;  :industries "Автомобильный бизнес.."
+    ;;  :position "Директор по IT"
+    ;;  :description "Осуществлял руководство разработкой информационной системы предприятия, занимался
+    ;;     постановкой задач и контролем выполнения работ. Организовывал договорную работу с
+    ;;     подрядчиками."
+    ;;  :start-date "Май 2011"
+    ;;  :end-date  "Январь 2012"
+    ;;  :stage "9 месяцев")
+    ;; (exp
+    ;;  :company "WizardSoft"
+    ;;  :region "Санкт-Петербург"
+    ;;  :site "wizardsoft.ru"
+    ;;  :position "Ведущий разработчик, архитектор"
+    ;;  :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип
+    ;;     реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по
+    ;;     кадровым соображениям."
+    ;;  :start-date "Сентябрь 2009"
+    ;;  :end-date "Апрель 2011"
+    ;;  :stage "1 год 8 месяцев")
+    ;; (exp
+    ;;  :company "ЦиFры"
+    ;;  :region "Санкт-Петербург,"
+    ;;  :site "www.320-8080.ru"
+    ;;  :industries "Электроника, приборостроение, бытовая техника, компьютеры и оргтехника... "
+    ;;  :position "Архитектор-проектировщик, веб-программист"
+    ;;  :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин"
+    ;;  :start-date "Январь 2007"
+    ;;  :end-date "Сентябрь 2009"
+    ;;  :stage "2 года 9 месяцев")
+    ;; (exp
+    ;;  :company "ООО Вебдом"
+    ;;  :site  "webdom.net"
+    ;;  :position "Ведущий веб-разработчик"
+    ;;  :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает
+    ;;     компания. CMS на его основе поставляется клиентам."
+    ;;  :start-date "Сентябрь 2005"
+    ;;  :end-date "Январь 2007"
+    ;;  :stage "1 год 5 месяцев")
+    ;; (exp
+    ;;  :company "Почин"
+    ;;  :site "pochin.ru"
+    ;;  :position "Программист"
+    ;;  :descruption "Спроектировал и разработал интернет-магазин")
+
+    ;; company
+    ;; region
+    ;; site
+    ;; industries
+    ;; position
+    ;; start-date
+    ;; end-date
+    ;; description
+
+
+    ;; last-name
+    ;; first-name
+    ;; middle-name
+    ;; birthday
+    ;; gender
+    ;; area
+    ;; metro
+    ;; relocation
+    ;; relocation-area
+    ;; business-trip-readiness
+    ;; citizen-ship
+    ;; citizen-ship
+    ;; work-ticket
+    ;; work-ticket
+    ;; travel-time
+  #+END_SRC
