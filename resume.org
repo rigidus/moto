@@ -781,49 +781,23 @@
                      cookie-jar
                      cookie-alist
                      (append
-                      (loop :for exp :in `((:Name "Ростелеком"
-                                                  :company-Id "2748"
-                                                  :company-Area-Id "113"
-                                                  :Url ""
-                                                  :Industry-Id ""
-                                                  :Industries "399"
-                                                  :Industries ""
-                                                  :id "257556674"
-                                                  :position "Программист"
-                                                  :start-Date "2005-01-01"
-                                                  :end-Date "2010-01-01"
-                                                  :description "123123")
-                                           (:Name "Водоканал ГУП СПб"
-                                                  :company-Id "27231"
-                                                  :company-Area-Id "2"
-                                                  :Url ""
-                                                  :Industry-Id ""
-                                                  :Industries "403"
-                                                  :Industries "668"
-                                                  :Industries ""
-                                                  :id ""
-                                                  :position "Водолаз"
-                                                  :start-Date "1999-06-01"
-                                                  :end-Date "2000-01-01"
-                                                  :description "123"))
-                         :append
-                         `(("experience.companyName" . ,(url-enc (getf exp :name)))
-                           ("experience.companyId" . ,(url-enc (getf exp :company-id)))
-                           ("experience.companyAreaId" . ,(url-enc (getf exp :company-area-id)))
-                           ("experience.companyUrl" . ,(url-enc (getf exp :url)))
-                           ("experience.companyIndustryId" . ,(url-enc (getf exp :industry-id)))
-                           ("experience.companyIndustries" . "403")
-                           ("experience.companyIndustries" . "668")
-                           ("experience.companyIndustries" . "")
-                           ("experience.id" . "")
-                           ("experience.position" . ,(url-enc (getf exp :position)))
-                           ("experience.startDate" . ,(url-enc (getf exp :start-date)))
-                           ("experience.endDate" . ,(url-enc (getf exp :end-date)))
-                           ("experience.description" . ,(url-enc (getf exp :description)))
-                           )
-                         )
-                      `(
-                        ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
+                      (loop :for exp :in (getf plist :expiriences) :append
+                         (append
+                          `(("experience.companyName" . ,(url-enc (getf exp :name)))
+                            ("experience.companyId" . ,(url-enc (getf exp :company-id)))
+                            ("experience.companyAreaId" . ,(url-enc (getf exp :company-area-id)))
+                            ("experience.companyUrl" . ,(url-enc (getf exp :url)))
+                            ("experience.companyIndustryId" . ,(url-enc (getf exp :industry-id))))
+                          (loop :for indstr-id :in `("403" "668") ;; (getf exp :industries)
+                             :append
+                             `(("experience.companyIndustries" . ,(format nil "~A" indstr-id))))
+                          `(("experience.companyIndustries" . "")
+                            ("experience.id" . "")
+                            ("experience.position" . ,(url-enc (getf exp :position)))
+                            ("experience.startDate" . ,(url-enc (getf exp :start-date)))
+                            ("experience.endDate" . ,(url-enc (getf exp :end-date)))
+                            ("experience.description" . ,(url-enc (getf exp :description))))))
+                      `(("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
                   (split-sequence:split-sequence #\= (puri:uri-query uri))
           )))))))
 
@@ -867,6 +841,10 @@
                       :attestation-education-organization ""
                       :attestation-education-result ""
                       :attestation-education-year ""
+                      :expiriences `((:Name "Ростелеком" :company-Id "2748" :company-Area-Id "113" :Url "" :Industry-Id "" :Industries `("399") :Industries "" :id "257556674" :position "Программист"
+                                            :start-Date "2005-01-01" :end-Date "2010-01-01" :description "123123")
+                                     (:Name "Водоканал ГУП СПб" :company-Id "27231" :company-Area-Id "2" :Url "" :Industry-Id "" :Industries `("403" "668") :id "" :position "Водолаз" :start-Date "1999-06-01"
+                                            :end-Date "2000-01-01" :description "123"))
                       :languages `((:lang-id "34" :lang-degree "native")
                                    (:lang-id "57" :lang-degree "can_read")
                                    (:lang-id "58" :lang-degree "basic")
