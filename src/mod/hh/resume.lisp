@@ -176,11 +176,11 @@
      headers
      (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))
 
-(print
- (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-   (set-resume-position cookie-jar (car (all-resume))
-                        ;; "8eb43271ff030a44e00039ed1f735871443047"
-                        )))
+;; (print
+;;  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+;;    (set-resume-position cookie-jar (car (all-resume))
+;;                         ;; "8eb43271ff030a44e00039ed1f735871443047"
+;;                         )))
 
 (in-package #:moto)
 

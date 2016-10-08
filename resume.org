@@ -470,11 +470,11 @@
            headers
            (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))
 
-      (print
-       (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-         (set-resume-education cookie-jar (car (all-resume))
-                           ;; "8eb43271ff030a44e00039ed1f735871443047"
-                           )))
+      ;; (print
+      ;;  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+      ;;    (set-resume-education cookie-jar (car (all-resume))
+      ;;                      ;; "8eb43271ff030a44e00039ed1f735871443047"
+      ;;                      )))
    #+END_SRC
 
 *** START Опыт работы (=experience=)
@@ -645,283 +645,245 @@
   осуществлять построение и пермутацию резюме как кода, представленного в виде AST.
 
   #+BEGIN_SRC lisp
-        (in-package :moto)
+    (in-package :moto)
 
-        (defun hh-post-resume (cookie-jar &rest plist &key resume-id &allow-other-keys)
-          ;; Если идентификатор резюме не указан - то используем пустую строку
-          (unless resume-id
-            (setf resume-id ""))
-          ;; Сначала запросим основную страницу всех резюме
-          (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
+    (defun hh-post-resume (cookie-jar &rest plist &key resume-id &allow-other-keys)
+      ;; Если идентификатор резюме не указан - то используем пустую строку
+      (unless resume-id
+        (setf resume-id ""))
+      ;; Сначала запросим основную страницу всех резюме
+      (let ((main-url (format nil "http://spb.hh.ru/applicant/resumes/view?resume=~A" resume-id)))
+        (multiple-value-bind (response cookie-jar url)
+            (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
+          ;; Теперь запросим страницу personal
+          (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/personal?resume=~A" resume-id)))
             (multiple-value-bind (response cookie-jar url)
-                (hh-get-page main-url cookie-jar *hh_account* "http://spb.hh.ru")
-              ;; Теперь запросим страницу personal
-              (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/personal?resume=~A" resume-id)))
-                (multiple-value-bind (response cookie-jar url)
-                    (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
-                  (with-cookie-alist (cookie-jar)
-                    (send-post-multiple-values
-                        (section-url
-                         cookie-jar
-                         cookie-alist
-                         `(("lastName.string" . ,(drakma:url-encode (getf plist :last-name) :utf-8))
-                           ("firstName.string" . ,(drakma:url-encode (getf plist :first-name) :utf-8))
-                           ("middleName.string" . ,(drakma:url-encode (getf plist :middle-name) :utf-8))
-                           ("birthday.date" . ,(drakma:url-encode (getf plist :birthday) :utf-8))
-                           ("gender.string" . ,(drakma:url-encode (getf plist :gender) :utf-8))
-                           ("area.string" . ,(drakma:url-encode (getf plist :area) :utf-8))
-                           ("metro.string" . ,(drakma:url-encode (getf plist :metro) :utf-8))
-                           ("relocation.string" . ,(drakma:url-encode (getf plist :relocation) :utf-8))
-                           ("relocationArea.string" . ,(drakma:url-encode (getf plist :relocation-area) :utf-8))
-                           ("businessTripReadiness.string" . ,(drakma:url-encode (getf plist :business-trip-readiness) :utf-8))
-                           ("citizenship" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
-                           ("citizenship.string" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
-                           ("workTicket" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
-                           ("workTicket.string" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
-                           ("travelTime.string" . ,(drakma:url-encode (getf plist :travel-time) :utf-8)))
-                         )
-                      ;; Получаем идентификатор резюме
-                      (setf resume-id (cadr (split-sequence:split-sequence #\= (puri:uri-query uri))))))))
-              ;; Теперь запросим страницу education
-              (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/education?resume=~A" resume-id)))
-                (multiple-value-bind (response cookie-jar url)
-                    (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
-                  (with-cookie-alist (cookie-jar)
-                    (send-post-multiple-values
-                        (section-url
-                         cookie-jar
-                         cookie-alist
-                         (append
-                          `(("educationLevel.string" . ,(drakma:url-encode (getf plist :education-level-string) :utf-8)))
-                          (let ((primary-education-id (car (split-sequence:split-sequence #\Space (educations resume)))))
-                            (if (null primary-education-id)
-                                (err "error education-id")
-                                (let ((education (get-education (parse-integer primary-education-id))))
-                                  `(("primaryEducation.id"            . ,(if-zero-then-empty (getf plist education)))
-                                    ("primaryEducation.name"          . ,(drakma:url-encode (name education) :utf-8))
-                                    ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" (university-id education)) :utf-8))
-                                    ("primaryEducation.facultyId"     . ,(if-zero-then-empty (faculty-id education)))
-                                    ("primaryEducation.organization"  . ,(drakma:url-encode (organization education) :utf-8))
-                                    ("primaryEducation.result"        . ,(drakma:url-encode (result education) :utf-8))
-                                    ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" (specialty-id education)) :utf-8))
-                                    ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" (year education)) :utf-8))))))
-                          `(("primaryEducation.id" . "")
-                            ("primaryEducation.name" . "")
-                            ("primaryEducation.universityId" . "")
-                            ("primaryEducation.facultyId" . "")
-                            ("primaryEducation.organization" . "")
-                            ("primaryEducation.result" . "")
-                            ("primaryEducation.specialtyId" . "")
-                            ("primaryEducation.year" . "")
-                            ("additionalEducation.id" . ,(drakma:url-encode (additional-education-id resume) :utf-8))
-                            ("additionalEducation.name" . ,(drakma:url-encode (additional-education-name resume) :utf-8))
-                            ("additionalEducation.organization" . ,(drakma:url-encode (additional-education-organization resume) :utf-8))
-                            ("additionalEducation.result" . ,(drakma:url-encode (additional-education-result resume) :utf-8))
-                            ("additionalEducation.year" . ,(drakma:url-encode (additional-education-year resume) :utf-8))
-                            ("certificate.id" . ,(drakma:url-encode (certificate-id resume) :utf-8))
-                            ("certificate.type" . ,(drakma:url-encode (certificate-type resume) :utf-8))
-                            ("certificate.selected" . ,(drakma:url-encode (certificate-selected resume) :utf-8))
-                            ("certificate.ownerName" . ,(drakma:url-encode (certificate-ownerName resume) :utf-8))
-                            ("certificate.transcriptionId" . ,(drakma:url-encode (certificate-transcription-id resume) :utf-8))
-                            ("certificate.password" . ,(drakma:url-encode (certificate-password resume) :utf-8))
-                            ("certificate.title" . ,(drakma:url-encode (certificate-title resume) :utf-8))
-                            ("certificate.achievementDate" . ,(drakma:url-encode (certificate-achievementDate resume) :utf-8))
-                            ("certificate.url" . ,(drakma:url-encode (certificate-url resume) :utf-8))
-                            ("attestationEducation.id" . ,(drakma:url-encode (attestation-education-id resume) :utf-8))
-                            ("attestationEducation.name" . ,(drakma:url-encode (attestation-education-name resume) :utf-8))
-                            ("attestationEducation.organization" . ,(drakma:url-encode (attestation-education-organization resume) :utf-8))
-                            ("attestationEducation.result" . ,(drakma:url-encode (attestation-education-result resume) :utf-8))
-                            ("attestationEducation.year" . ,(drakma:url-encode (attestation-education-year resume) :utf-8)))
-                          (let ((langs))
-                            (mapcar #'(lambda (x)
-                                        (let ((lang (get-lang (parse-integer x))))
-                                          (push `("language.id"     . ,(drakma:url-encode (format nil "~A"(lang-id lang))     :utf-8)) langs)
-                                          (push `("language.degree" . ,(drakma:url-encode (format nil "~A" (lang-degree lang)) :utf-8)) langs)
-                                          ))
-                                    (split-sequence:split-sequence #\Space (languages resume)))
-                            (reverse langs))
-                          `(
-                            ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
-                          )
-                         )
-        (values
-         uri
-         headers
-         (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))))
+                (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
+              (with-cookie-alist (cookie-jar)
+                (send-post-multiple-values
+                    (section-url
+                     cookie-jar
+                     cookie-alist
+                     `(("lastName.string" . ,(drakma:url-encode (getf plist :last-name) :utf-8))
+                       ("firstName.string" . ,(drakma:url-encode (getf plist :first-name) :utf-8))
+                       ("middleName.string" . ,(drakma:url-encode (getf plist :middle-name) :utf-8))
+                       ("birthday.date" . ,(drakma:url-encode (getf plist :birthday) :utf-8))
+                       ("gender.string" . ,(drakma:url-encode (getf plist :gender) :utf-8))
+                       ("area.string" . ,(drakma:url-encode (getf plist :area) :utf-8))
+                       ("metro.string" . ,(drakma:url-encode (getf plist :metro) :utf-8))
+                       ("relocation.string" . ,(drakma:url-encode (getf plist :relocation) :utf-8))
+                       ("relocationArea.string" . ,(drakma:url-encode (getf plist :relocation-area) :utf-8))
+                       ("businessTripReadiness.string" . ,(drakma:url-encode (getf plist :business-trip-readiness) :utf-8))
+                       ("citizenship" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
+                       ("citizenship.string" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
+                       ("workTicket" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
+                       ("workTicket.string" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
+                       ("travelTime.string" . ,(drakma:url-encode (getf plist :travel-time) :utf-8)))
+                     )
+                  ;; Получаем идентификатор резюме
+                  (setf resume-id (cadr (split-sequence:split-sequence #\= (puri:uri-query uri))))))))
+          (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/education?resume=~A" resume-id)))
+            (multiple-value-bind (response cookie-jar url)
+                (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
+              (with-cookie-alist (cookie-jar)
+                (send-post-multiple-values
+                    (section-url
+                     cookie-jar
+                     cookie-alist
+                     (append
+                      `(("educationLevel.string" . ,(drakma:url-encode "higher" :utf-8)))
+                      (let ((edu (getf plist :primary-educations)))
+                        `(("primaryEducation.id"            . "")
+                          ("primaryEducation.name"          . ,(drakma:url-encode (getf edu :name) :utf-8))
+                          ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" 39864) :utf-8))
+                          ("primaryEducation.facultyId"     . ,(if-zero-then-empty 0))
+                          ("primaryEducation.organization"  . ,(drakma:url-encode "Режиссуры" :utf-8))
+                          ("primaryEducation.result"        . ,(drakma:url-encode "Режиссура мультимедиа программ" :utf-8))
+                          ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" 224) :utf-8))
+                          ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" 2005) :utf-8))))
+                      `(("additionalEducation.id" . ,(drakma:url-encode (getf plist :additional-education-id) :utf-8))
+                        ("additionalEducation.name" . ,(drakma:url-encode (getf plist :additional-education-name) :utf-8))
+                        ("additionalEducation.organization" . ,(drakma:url-encode (getf plist :additional-education-organization) :utf-8))
+                        ("additionalEducation.result" . ,(drakma:url-encode (getf plist :additional-education-result) :utf-8))
+                        ("additionalEducation.year" . ,(drakma:url-encode (getf plist :additional-education-year) :utf-8))
+                        ("certificate.id" . ,(drakma:url-encode (getf plist :certificate-id) :utf-8))
+                        ("certificate.type" . ,(drakma:url-encode (getf plist :certificate-type) :utf-8))
+                        ("certificate.selected" . ,(drakma:url-encode (getf plist :certificate-selected) :utf-8))
+                        ("certificate.ownerName" . ,(drakma:url-encode (getf plist :certificate-ownerName) :utf-8))
+                        ("certificate.transcriptionId" . ,(drakma:url-encode (getf plist :certificate-transcription-id) :utf-8))
+                        ("certificate.password" . ,(drakma:url-encode (getf plist :certificate-password) :utf-8))
+                        ("certificate.title" . ,(drakma:url-encode (getf plist :certificate-title) :utf-8))
+                        ("certificate.achievementDate" . ,(drakma:url-encode (getf plist :certificate-achievementDate) :utf-8))
+                        ("certificate.url" . ,(drakma:url-encode (getf plist :certificate-url) :utf-8))
+                        ("attestationEducation.id" . ,(drakma:url-encode (getf plist :attestation-education-id) :utf-8))
+                        ("attestationEducation.name" . ,(drakma:url-encode (getf plist :attestation-education-name) :utf-8))
+                        ("attestationEducation.organization" . ,(drakma:url-encode (getf plist :attestation-education-organization) :utf-8))
+                        ("attestationEducation.result" . ,(drakma:url-encode (getf plist :attestation-education-result) :utf-8))
+                        ("attestationEducation.year" . ,(drakma:url-encode (getf plist :attestation-education-year) :utf-8)))
+                      `(
+                        ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
+                      ))))))
+          resume-id
+          )))
+
+    (progn
+    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+      (print
+      (hh-post-resume cookie-jar
+                      :last-name "Глухов"
+                      :first-name "Михаил"
+                      :middle-name "Михайлович"
+                      :birthday "1982-12-15"
+                      :gender "male"
+                      :area "2"
+                      :metro ""
+                      :relocation "relocation_possible"
+                      :relocation-area "1"
+                      :business-trip-readiness "ready"
+                      :citizen-ship "113"
+                      :work-ticket "113"
+                      :travel-time "any"
+                      :education-level-string "higher"
+                      :primary-educations `(:education-id "0" :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+                                                           :university-id "39864" :faculty-id "0" :organization "Режиссуры" :result "Режиссура мультимедиа программ"
+                                                           :specialty-id "224" :year "2005")
+                      :additional-education-id ""
+                      :additional-education-name ""
+                      :additional-education-organization ""
+                      :additional-education-result ""
+                      :additional-education-year ""
+                      :certificate-id ""
+                      :certificate-type ""
+                      :certificate-selected ""
+                      :certificate-ownerName ""
+                      :certificate-transcription-id ""
+                      :certificate-password ""
+                      :certificate-title ""
+                      :certificate-achievementDate ""
+                      :certificate-url ""
+                      :attestation-education-id ""
+                      :attestation-education-name ""
+                      :attestation-education-organization ""
+                      :attestation-education-result ""
+                      :attestation-education-year ""
+                      :languages `((:lang-id "34" :lang-degree "native")
+                                   (:lang-id "57" :lang-degree "can_read")
+                                   (:lang-id "58" :lang-degree "basic")
+                                   (:lang-id "59" :lang-degree "none"))
+                      ))))
 
 
-                       ;; headers
-                       ;; (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)
-                       ))))))))
-
-        (progn
-        (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-          (print
-          (hh-post-resume cookie-jar
-                          :last-name "Глухов"
-                          :first-name "Михаил"
-                          :middle-name "Михайлович"
-                          :birthday "1982-12-15"
-                          :gender "male"
-                          :area "2"
-                          :metro ""
-                          :relocation "relocation_possible"
-                          :relocation-area "1"
-                          :business-trip-readiness "ready"
-                          :citizen-ship "113"
-                          :work-ticket "113"
-                          :travel-time "any"
-
-                          :education-level-string "higher"
-
-                          :educations `((:education-id "0" :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-                                                       :university-id "39864" :faculty-id "0" :organization "Режиссуры" :result "Режиссура мультимедиа программ"
-                                                       :specialty-id "224" :year "2005")
-                                        (:education-id "0" :name "" :university-id "0" :faculty-id "0" :organization "" :result "" :specialty-id "0" :year "0"))
-                          :additional-education-id ""
-                          :additional-education-name ""
-                          :additional-education-organization ""
-                          :additional-education-result ""
-                          :additional-education-year ""
-                          :certificate-id ""
-                          :certificate-type ""
-                          :certificate-selected ""
-                          :certificate-ownerName ""
-                          :certificate-transcription-id ""
-                          :certificate-password ""
-                          :certificate-title ""
-                          :certificate-achievementDate ""
-                          :certificate-url ""
-                          :attestation-education-id ""
-                          :attestation-education-name ""
-                          :attestation-education-organization ""
-                          :attestation-education-result ""
-                          :attestation-education-year ""
-                          :languages (reduce #'(lambda (a b)
-                                                 (format nil "~A ~A" a b))
-                                             (mapcar #'id
-                                                     (list
-                                                      (make-lang :lang-id "34" :lang-degree "native")
-                                                      (make-lang :lang-id "57" :lang-degree "can_read")
-                                                      (make-lang :lang-id "58" :lang-degree "basic")
-                                                      (make-lang :lang-id "59" :lang-degree "none"))))
+    ;; :title "Senior Programmer"
+    ;; (personal
+    ;;  :last-name "Глухов"
+    ;;  :first-name "Михаил"
+    ;;  :middle-name "Михайлович"
+    ;;  :birthday "1982-12-15"
+    ;;  :gender "male"
+    ;;  :area "2"
+    ;;  :metro ""
+    ;;  :relocation "relocation_possible"
+    ;;  :relocation-area "1"
+    ;;  :business-trip-readiness "ready"
+    ;;  :citizen-ship "113"
+    ;;  :work-ticket "113"
+    ;;  :travel-time "any")
+    ;; (contacts
+    ;;  :cell-phone "7 911 2869290 В любое время"
+    ;;  :home-phone "7"
+    ;;  :work-phone "7"
+    ;;  :email"avenger-f@yandex.ru"
+    ;;  :preferred-contact "email"
+    ;;  :icq ""
+    ;;  :skype "i.am.rigidus"
+    ;;  :freelance ""
+    ;;  :moi_krug ""
+    ;;  :linkedin ""
+    ;;  :facebook ""
+    ;;  :livejournal "rigidus"
+    ;;  :personal-site "https://rigidus.ru")
 
 
 
-                          ))))
+    ;; (exp
+    ;;  :company "AIS"
+    ;;  :site "aintsys.com"
+    ;;  :position "Lisp/Erlang-разработчик"
+    ;;  :description "Разрабатываю решения в сфере электронных валют"
+    ;;  :start-date "Январь 2012"
+    ;;  :end-date  "Апрель 2012"
+    ;;  :stage "4 месяца")
+    ;; (exp
+    ;;  :company "ООО РАВТА"
+    ;;  :region "Санкт-Петербург,"
+    ;;  :site "ravta.ru"
+    ;;  :industries "Автомобильный бизнес.."
+    ;;  :position "Директор по IT"
+    ;;  :description "Осуществлял руководство разработкой информационной системы предприятия, занимался
+    ;;     постановкой задач и контролем выполнения работ. Организовывал договорную работу с
+    ;;     подрядчиками."
+    ;;  :start-date "Май 2011"
+    ;;  :end-date  "Январь 2012"
+    ;;  :stage "9 месяцев")
+    ;; (exp
+    ;;  :company "WizardSoft"
+    ;;  :region "Санкт-Петербург"
+    ;;  :site "wizardsoft.ru"
+    ;;  :position "Ведущий разработчик, архитектор"
+    ;;  :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип
+    ;;     реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по
+    ;;     кадровым соображениям."
+    ;;  :start-date "Сентябрь 2009"
+    ;;  :end-date "Апрель 2011"
+    ;;  :stage "1 год 8 месяцев")
+    ;; (exp
+    ;;  :company "ЦиFры"
+    ;;  :region "Санкт-Петербург,"
+    ;;  :site "www.320-8080.ru"
+    ;;  :industries "Электроника, приборостроение, бытовая техника, компьютеры и оргтехника... "
+    ;;  :position "Архитектор-проектировщик, веб-программист"
+    ;;  :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин"
+    ;;  :start-date "Январь 2007"
+    ;;  :end-date "Сентябрь 2009"
+    ;;  :stage "2 года 9 месяцев")
+    ;; (exp
+    ;;  :company "ООО Вебдом"
+    ;;  :site  "webdom.net"
+    ;;  :position "Ведущий веб-разработчик"
+    ;;  :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает
+    ;;     компания. CMS на его основе поставляется клиентам."
+    ;;  :start-date "Сентябрь 2005"
+    ;;  :end-date "Январь 2007"
+    ;;  :stage "1 год 5 месяцев")
+    ;; (exp
+    ;;  :company "Почин"
+    ;;  :site "pochin.ru"
+    ;;  :position "Программист"
+    ;;  :descruption "Спроектировал и разработал интернет-магазин")
+
+    ;; company
+    ;; region
+    ;; site
+    ;; industries
+    ;; position
+    ;; start-date
+    ;; end-date
+    ;; description
 
 
-        ;; :title "Senior Programmer"
-        ;; (personal
-        ;;  :last-name "Глухов"
-        ;;  :first-name "Михаил"
-        ;;  :middle-name "Михайлович"
-        ;;  :birthday "1982-12-15"
-        ;;  :gender "male"
-        ;;  :area "2"
-        ;;  :metro ""
-        ;;  :relocation "relocation_possible"
-        ;;  :relocation-area "1"
-        ;;  :business-trip-readiness "ready"
-        ;;  :citizen-ship "113"
-        ;;  :work-ticket "113"
-        ;;  :travel-time "any")
-        ;; (contacts
-        ;;  :cell-phone "7 911 2869290 В любое время"
-        ;;  :home-phone "7"
-        ;;  :work-phone "7"
-        ;;  :email"avenger-f@yandex.ru"
-        ;;  :preferred-contact "email"
-        ;;  :icq ""
-        ;;  :skype "i.am.rigidus"
-        ;;  :freelance ""
-        ;;  :moi_krug ""
-        ;;  :linkedin ""
-        ;;  :facebook ""
-        ;;  :livejournal "rigidus"
-        ;;  :personal-site "https://rigidus.ru")
-
-
-
-        ;; (exp
-        ;;  :company "AIS"
-        ;;  :site "aintsys.com"
-        ;;  :position "Lisp/Erlang-разработчик"
-        ;;  :description "Разрабатываю решения в сфере электронных валют"
-        ;;  :start-date "Январь 2012"
-        ;;  :end-date  "Апрель 2012"
-        ;;  :stage "4 месяца")
-        ;; (exp
-        ;;  :company "ООО РАВТА"
-        ;;  :region "Санкт-Петербург,"
-        ;;  :site "ravta.ru"
-        ;;  :industries "Автомобильный бизнес.."
-        ;;  :position "Директор по IT"
-        ;;  :description "Осуществлял руководство разработкой информационной системы предприятия, занимался
-        ;;     постановкой задач и контролем выполнения работ. Организовывал договорную работу с
-        ;;     подрядчиками."
-        ;;  :start-date "Май 2011"
-        ;;  :end-date  "Январь 2012"
-        ;;  :stage "9 месяцев")
-        ;; (exp
-        ;;  :company "WizardSoft"
-        ;;  :region "Санкт-Петербург"
-        ;;  :site "wizardsoft.ru"
-        ;;  :position "Ведущий разработчик, архитектор"
-        ;;  :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип
-        ;;     реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по
-        ;;     кадровым соображениям."
-        ;;  :start-date "Сентябрь 2009"
-        ;;  :end-date "Апрель 2011"
-        ;;  :stage "1 год 8 месяцев")
-        ;; (exp
-        ;;  :company "ЦиFры"
-        ;;  :region "Санкт-Петербург,"
-        ;;  :site "www.320-8080.ru"
-        ;;  :industries "Электроника, приборостроение, бытовая техника, компьютеры и оргтехника... "
-        ;;  :position "Архитектор-проектировщик, веб-программист"
-        ;;  :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин"
-        ;;  :start-date "Январь 2007"
-        ;;  :end-date "Сентябрь 2009"
-        ;;  :stage "2 года 9 месяцев")
-        ;; (exp
-        ;;  :company "ООО Вебдом"
-        ;;  :site  "webdom.net"
-        ;;  :position "Ведущий веб-разработчик"
-        ;;  :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает
-        ;;     компания. CMS на его основе поставляется клиентам."
-        ;;  :start-date "Сентябрь 2005"
-        ;;  :end-date "Январь 2007"
-        ;;  :stage "1 год 5 месяцев")
-        ;; (exp
-        ;;  :company "Почин"
-        ;;  :site "pochin.ru"
-        ;;  :position "Программист"
-        ;;  :descruption "Спроектировал и разработал интернет-магазин")
-
-        ;; company
-        ;; region
-        ;; site
-        ;; industries
-        ;; position
-        ;; start-date
-        ;; end-date
-        ;; description
-
-
-        ;; last-name
-        ;; first-name
-        ;; middle-name
-        ;; birthday
-        ;; gender
-        ;; area
-        ;; metro
-        ;; relocation
-        ;; relocation-area
-        ;; business-trip-readiness
-        ;; citizen-ship
-        ;; citizen-ship
-        ;; work-ticket
-        ;; work-ticket
-        ;; travel-time
+    ;; last-name
+    ;; first-name
+    ;; middle-name
+    ;; birthday
+    ;; gender
+    ;; area
+    ;; metro
+    ;; relocation
+    ;; relocation-area
+    ;; business-trip-readiness
+    ;; citizen-ship
+    ;; citizen-ship
+    ;; work-ticket
+    ;; work-ticket
+    ;; travel-time
   #+END_SRC
