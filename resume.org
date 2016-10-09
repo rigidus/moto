@@ -644,6 +644,11 @@
   составные элементы (такие как опыт работы, например) таким образом, чтобы
   осуществлять построение и пермутацию резюме как кода, представленного в виде AST.
 
+  Как оказалось при исследовании hh - обработчик POST-запроса там по видимому единый,
+  поэтому можно отправлять POST соответствующей странице /edit/experience в
+  /edit/personal. Думаю можно было бы отправить все данные одним пакетом, но пока мы
+  стараемся быть похожими на обычный клиентский броузер.
+
   #+BEGIN_SRC lisp
     (in-package :moto)
 
@@ -682,6 +687,7 @@
                      )
                   ;; Получаем идентификатор резюме
                   (setf resume-id (cadr (split-sequence:split-sequence #\= (puri:uri-query uri))))))))
+          ;; EDUCATION
           (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/education?resume=~A" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
@@ -723,6 +729,7 @@
                       `(
                         ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
                       ))))))
+          ;; POSITION
           (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/position?resume=~A" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
@@ -772,7 +779,8 @@
                         ("workSchedule.string" . ,(drakma:url-encode (work-schedule (car (all-resume))) :utf-8)))
                       `(
                         ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))))))
-          (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/position?resume=~A" resume-id)))
+          ;; EXPIRIENCE
+          (let ((section-url (format nil "https://spb.hh.ru/applicant/resumes/edit/experience?resume=~A&field=experience" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
               (with-cookie-alist (cookie-jar)
@@ -799,7 +807,24 @@
                             ("experience.description" . ,(url-enc (getf exp :description))))))
                       `(("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
                   (split-sequence:split-sequence #\= (puri:uri-query uri))
-          )))))))
+          ))))
+          ;; LANGUAGES
+          (let ((section-url (format nil "https://spb.hh.ru/applicant/resumes/edit/education?resume=~A&field=language" resume-id)))
+            (multiple-value-bind (response cookie-jar url)
+                (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
+              (with-cookie-alist (cookie-jar)
+                (send-post-multiple-values
+                    (section-url
+                     cookie-jar
+                     cookie-alist
+                     (append
+                      (loop :for lang :in (getf plist :languages) :append
+                         `(("language.id"     . ,(drakma:url-encode (format nil "~A" (getf lang :lang-id)) :utf-8))
+                           ("language.degree" . ,(drakma:url-encode (format nil "~A" (getf lang :lang-degree)) :utf-8))))
+                      `(("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
+                  (split-sequence:split-sequence #\= (puri:uri-query uri))
+                  ))))
+          )))
 
     (progn
     (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
