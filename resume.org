@@ -637,7 +637,7 @@
 
     <<set_resume_expirience>>
    #+END_SRC
-* Язык описания резюме
+* COMMENT Язык описания резюме
 
   Общая идея этого раздела в том, чтобы спроектировать язык описание резюме и написать
   его интерпретатор, который был бы способен создавать и модифицировать резюме и его
@@ -824,6 +824,47 @@
                       `(("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
                   (split-sequence:split-sequence #\= (puri:uri-query uri))
                   ))))
+          ;; CONTACTS
+          (let ((section-url (format nil "https://spb.hh.ru/applicant/resumes/edit/contacts?resume=~A" resume-id)))
+            (multiple-value-bind (response cookie-jar url)
+                (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
+              (with-cookie-alist (cookie-jar)
+                (send-post-multiple-values
+                    (section-url
+                     cookie-jar
+                     cookie-alist
+                     (append
+                      (let ((contacts (getf plist :contacts)))
+                        `(("phone.type" . "cell")
+                          ("phone.formatted" . ,(drakma:url-encode (getf contacts :cell-phone) :utf-8))
+                          ("phone.comment" . ,(drakma:url-encode (getf contacts :cell-phone-comment) :utf-8))
+                          ("phone.type" . "home")
+                          ("phone.formatted" . ,(drakma:url-encode (getf contacts :home-phone) :utf-8))
+                          ("phone.comment" . ,(drakma:url-encode (getf contacts :home-phone-comment) :utf-8))
+                          ("phone.type" . "work")
+                          ("phone.formatted" . ,(drakma:url-encode (getf contacts :work-phone) :utf-8))
+                          ("phone.comment" . ,(drakma:url-encode (getf contacts :work-phone-comment) :utf-8))
+                          ("email.string" . ,(drakma:url-encode (getf contacts :email-string) :utf-8))
+                          ("preferredContact.string" . "email")
+                          ("personalSite.type" . "icq")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :icq) :utf-8))
+                          ("personalSite.type" . "skype")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :skype) :utf-8))
+                          ("personalSite.type" . "freelance")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :freelance) :utf-8))
+                          ("personalSite.type" . "moi_krug")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :moi_krug) :utf-8))
+                          ("personalSite.type" . "linkedin")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :linkedin) :utf-8))
+                          ("personalSite.type" . "facebook")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :facebook) :utf-8))
+                          ("personalSite.type" . "personal")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :personal) :utf-8))
+                          ("personalSite.type" . "livejournal")
+                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :livejournal) :utf-8))))
+                      `(("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
+                  (split-sequence:split-sequence #\= (puri:uri-query uri))
+                  ))))
           )))
 
     (progn
@@ -874,39 +915,23 @@
                                    (:lang-id "57" :lang-degree "can_read")
                                    (:lang-id "58" :lang-degree "basic")
                                    (:lang-id "59" :lang-degree "none"))
+                      :contacts `(:cell-phone "+79112869290"
+                                              :cell-phone-comment "С 9 до 5"
+                                              :home-phone "+78127410289"
+                                              :home-phone-comment "ночью не звонить"
+                                              :work-phone "+78129932323"
+                                              :work-phone-comment "по рабочим вопросам"
+                                              :email-string "avenger-f@yandex.ru"
+                                              :preferred-contact "email"
+                                              :icq ""
+                                              :skype "i.am.rigidus"
+                                              :freelance ""
+                                              :moi_krug ""
+                                              :linkedin ""
+                                              :facebook ""
+                                              :livejournal "http://rigidus.livejournal.com"
+                                              :personal-site "http://rigidus.ru")
                       ))))
-
-
-    ;; :title "Senior Programmer"
-    ;; (personal
-    ;;  :last-name "Глухов"
-    ;;  :first-name "Михаил"
-    ;;  :middle-name "Михайлович"
-    ;;  :birthday "1982-12-15"
-    ;;  :gender "male"
-    ;;  :area "2"
-    ;;  :metro ""
-    ;;  :relocation "relocation_possible"
-    ;;  :relocation-area "1"
-    ;;  :business-trip-readiness "ready"
-    ;;  :citizen-ship "113"
-    ;;  :work-ticket "113"
-    ;;  :travel-time "any")
-    ;; (contacts
-    ;;  :cell-phone "7 911 2869290 В любое время"
-    ;;  :home-phone "7"
-    ;;  :work-phone "7"
-    ;;  :email"avenger-f@yandex.ru"
-    ;;  :preferred-contact "email"
-    ;;  :icq ""
-    ;;  :skype "i.am.rigidus"
-    ;;  :freelance ""
-    ;;  :moi_krug ""
-    ;;  :linkedin ""
-    ;;  :facebook ""
-    ;;  :livejournal "rigidus"
-    ;;  :personal-site "https://rigidus.ru")
-
 
 
     ;; (exp
