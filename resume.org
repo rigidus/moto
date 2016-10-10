@@ -796,7 +796,7 @@
                             ("experience.companyAreaId" . ,(url-enc (getf exp :company-area-id)))
                             ("experience.companyUrl" . ,(url-enc (getf exp :url)))
                             ("experience.companyIndustryId" . ,(url-enc (getf exp :industry-id))))
-                          (loop :for indstr-id :in `("403" "668") ;; (getf exp :industries)
+                          (loop :for indstr-id :in (getf exp :industries)
                              :append
                              `(("experience.companyIndustries" . ,(format nil "~A" indstr-id))))
                           `(("experience.companyIndustries" . "")
@@ -805,6 +805,7 @@
                             ("experience.startDate" . ,(url-enc (getf exp :start-date)))
                             ("experience.endDate" . ,(url-enc (getf exp :end-date)))
                             ("experience.description" . ,(url-enc (getf exp :description))))))
+                      `(("skills.string"  . ,(url-enc (getf plist :skills-string))))
                       `(("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
                   (split-sequence:split-sequence #\= (puri:uri-query uri))
           ))))
@@ -907,10 +908,70 @@
                       :attestation-education-organization ""
                       :attestation-education-result ""
                       :attestation-education-year ""
-                      :expiriences `((:Name "Ростелеком" :company-Id "2748" :company-Area-Id "113" :Url "" :Industry-Id "" :Industries `("399") :Industries "" :id "257556674" :position "Программист"
-                                            :start-Date "2005-01-01" :end-Date "2010-01-01" :description "123123")
-                                     (:Name "Водоканал ГУП СПб" :company-Id "27231" :company-Area-Id "2" :Url "" :Industry-Id "" :Industries `("403" "668") :id "" :position "Водолаз" :start-Date "1999-06-01"
-                                            :end-Date "2000-01-01" :description "123"))
+                      :expiriences `((:name "AIS"
+                                            :company-id ""
+                                            :company-area-id "2"
+                                            :url "http://aintsys.com"
+                                            :industry-id ""
+                                            :industries nil
+                                            :id ""
+                                            :position  "Lisp/Erlang-разработчик"
+                                            :start-date "2012-01-01"
+                                            :end-date  "2012-04-01"
+                                            :description "Разрабатывал решения в сфере электронных валют")
+                                     (:name "ООО РАВТА"
+                                            :company-id ""
+                                            :company-area-id "2"
+                                            :url "http://ravta.ru"
+                                            :industry-id ""
+                                            :industries nil
+                                            :id ""
+                                            :position "Директор по IT"
+                                            :start-date "2012-01-01"
+                                            :end-date  "2012-04-01"
+                                            :description "Осуществлял руководство разработкой информационной системы предприятия, занимался постановкой задач и контролем выполнения работ. Организовывал договорную работу с подрядчиками.")
+                                     (:name "WizardSoft"
+                                            :company-id ""
+                                            :company-area-id "2"
+                                            :url "http://wizardsoft.ru"
+                                            :industry-id ""
+                                            :industries nil
+                                            :position "Ведущий разработчик, архитектор"
+                                            :start-date "2009-09-01"
+                                            :end-date "2011-04-01"
+                                            :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по кадровым соображениям.")
+                                     (:name "ЦиFры"
+                                            :company-id ""
+                                            :company-area-id "2"
+                                            :site "http://www.320-8080.ru"
+                                            :industry-id ""
+                                            :industries nil
+                                            :position "Архитектор-проектировщик, веб-программист"
+                                            :start-date "2007-01-01"
+                                            :end-date "2009-09-01"
+                                            :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин")
+                                     (:name "ООО Вебдом"
+                                            :company-id ""
+                                            :company-area-id "2"
+                                            :url  "http://webdom.net"
+                                            :industry-id ""
+                                            :industries nil
+                                            :position "Ведущий веб-разработчик"
+                                            :start-date "2005-09-01"
+                                            :end-date "2007-01-01"
+                                            :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает компания. CMS на его основе поставляется клиентам.")
+                                     (:name "Почин"
+                                            :company-id ""
+                                            :company-area-id "2"
+                                            :url "http://pochin.ru"
+                                            :industry-id ""
+                                            :industries nil
+                                            :position "Программист"
+                                            :start-date "2005-09-01"
+                                            :end-date "2007-01-01"
+                                            :descruption "Спроектировал и разработал интернет-магазин")
+                                     )
+                      :skills-string "123 098"
                       :languages `((:lang-id "34" :lang-degree "native")
                                    (:lang-id "57" :lang-degree "can_read")
                                    (:lang-id "58" :lang-degree "basic")
@@ -934,61 +995,61 @@
                       ))))
 
 
-    ;; (exp
-    ;;  :company "AIS"
-    ;;  :site "aintsys.com"
-    ;;  :position "Lisp/Erlang-разработчик"
-    ;;  :description "Разрабатываю решения в сфере электронных валют"
-    ;;  :start-date "Январь 2012"
-    ;;  :end-date  "Апрель 2012"
-    ;;  :stage "4 месяца")
-    ;; (exp
-    ;;  :company "ООО РАВТА"
-    ;;  :region "Санкт-Петербург,"
-    ;;  :site "ravta.ru"
-    ;;  :industries "Автомобильный бизнес.."
-    ;;  :position "Директор по IT"
-    ;;  :description "Осуществлял руководство разработкой информационной системы предприятия, занимался
-    ;;     постановкой задач и контролем выполнения работ. Организовывал договорную работу с
-    ;;     подрядчиками."
-    ;;  :start-date "Май 2011"
-    ;;  :end-date  "Январь 2012"
-    ;;  :stage "9 месяцев")
-    ;; (exp
-    ;;  :company "WizardSoft"
-    ;;  :region "Санкт-Петербург"
-    ;;  :site "wizardsoft.ru"
-    ;;  :position "Ведущий разработчик, архитектор"
-    ;;  :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип
-    ;;     реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по
-    ;;     кадровым соображениям."
-    ;;  :start-date "Сентябрь 2009"
-    ;;  :end-date "Апрель 2011"
-    ;;  :stage "1 год 8 месяцев")
-    ;; (exp
-    ;;  :company "ЦиFры"
-    ;;  :region "Санкт-Петербург,"
-    ;;  :site "www.320-8080.ru"
-    ;;  :industries "Электроника, приборостроение, бытовая техника, компьютеры и оргтехника... "
-    ;;  :position "Архитектор-проектировщик, веб-программист"
-    ;;  :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин"
-    ;;  :start-date "Январь 2007"
-    ;;  :end-date "Сентябрь 2009"
-    ;;  :stage "2 года 9 месяцев")
-    ;; (exp
-    ;;  :company "ООО Вебдом"
-    ;;  :site  "webdom.net"
-    ;;  :position "Ведущий веб-разработчик"
-    ;;  :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает
-    ;;     компания. CMS на его основе поставляется клиентам."
-    ;;  :start-date "Сентябрь 2005"
-    ;;  :end-date "Январь 2007"
-    ;;  :stage "1 год 5 месяцев")
-    ;; (exp
-    ;;  :company "Почин"
-    ;;  :site "pochin.ru"
-    ;;  :position "Программист"
-    ;;  :descruption "Спроектировал и разработал интернет-магазин")
+    (exp
+     :company "AIS"
+     :site "aintsys.com"
+     :position "Lisp/Erlang-разработчик"
+     :description "Разрабатываю решения в сфере электронных валют"
+     :start-date "Январь 2012"
+     :end-date  "Апрель 2012"
+     :stage "4 месяца")
+    (exp
+     :company "ООО РАВТА"
+     :region "Санкт-Петербург,"
+     :site "ravta.ru"
+     :industries "Автомобильный бизнес.."
+     :position "Директор по IT"
+     :description "Осуществлял руководство разработкой информационной системы предприятия, занимался
+        постановкой задач и контролем выполнения работ. Организовывал договорную работу с
+        подрядчиками."
+     :start-date "Май 2011"
+     :end-date  "Январь 2012"
+     :stage "9 месяцев")
+    (exp
+     :company "WizardSoft"
+     :region "Санкт-Петербург"
+     :site "wizardsoft.ru"
+     :position "Ведущий разработчик, архитектор"
+     :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип
+        реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по
+        кадровым соображениям."
+     :start-date "Сентябрь 2009"
+     :end-date "Апрель 2011"
+     :stage "1 год 8 месяцев")
+    (exp
+     :company "ЦиFры"
+     :region "Санкт-Петербург,"
+     :site "www.320-8080.ru"
+     :industries "Электроника, приборостроение, бытовая техника, компьютеры и оргтехника... "
+     :position "Архитектор-проектировщик, веб-программист"
+     :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин"
+     :start-date "Январь 2007"
+     :end-date "Сентябрь 2009"
+     :stage "2 года 9 месяцев")
+    (exp
+     :company "ООО Вебдом"
+     :site  "webdom.net"
+     :position "Ведущий веб-разработчик"
+     :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает
+        компания. CMS на его основе поставляется клиентам."
+     :start-date "Сентябрь 2005"
+     :end-date "Январь 2007"
+     :stage "1 год 5 месяцев")
+    (exp
+     :company "Почин"
+     :site "pochin.ru"
+     :position "Программист"
+     :descruption "Спроектировал и разработал интернет-магазин")
 
     ;; company
     ;; region
