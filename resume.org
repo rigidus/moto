@@ -805,7 +805,7 @@
                             ("experience.startDate" . ,(url-enc (getf exp :start-date)))
                             ("experience.endDate" . ,(url-enc (getf exp :end-date)))
                             ("experience.description" . ,(url-enc (getf exp :description))))))
-                      `(("skills.string"  . ,(url-enc (getf plist :skills-string))))
+                      `(("skills.string"  . ,(url-enc (getf plist :about))))
                       `(("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
                   (split-sequence:split-sequence #\= (puri:uri-query uri))
           ))))
@@ -971,7 +971,7 @@
                                             :end-date "2007-01-01"
                                             :descruption "Спроектировал и разработал интернет-магазин")
                                      )
-                      :skills-string "123 098"
+                      :about "123 098"
                       :languages `((:lang-id "34" :lang-degree "native")
                                    (:lang-id "57" :lang-degree "can_read")
                                    (:lang-id "58" :lang-degree "basic")
