@@ -652,6 +652,9 @@
   #+BEGIN_SRC lisp
     (in-package :moto)
 
+    (defun job (&key name (company-id "") (company-area-id "2") site (industry-id "") (industries nil) (id "") position start-date end-date description)
+      (list :name name :company-id company-id :company-area-id company-area-id :site site :industry-id industry-id :industries industries :id id :position position :start-date start-date :end-date end-date :description description))
+
     (defun hh-post-resume (cookie-jar &rest plist &key resume-id &allow-other-keys)
       ;; Если идентификатор резюме не указан - то используем пустую строку
       (unless resume-id
@@ -794,7 +797,7 @@
                           `(("experience.companyName" . ,(url-enc (getf exp :name)))
                             ("experience.companyId" . ,(url-enc (getf exp :company-id)))
                             ("experience.companyAreaId" . ,(url-enc (getf exp :company-area-id)))
-                            ("experience.companyUrl" . ,(url-enc (getf exp :url)))
+                            ("experience.companyUrl" . ,(url-enc (getf exp :site)))
                             ("experience.companyIndustryId" . ,(url-enc (getf exp :industry-id))))
                           (loop :for indstr-id :in (getf exp :industries)
                              :append
@@ -908,80 +911,150 @@
                       :attestation-education-organization ""
                       :attestation-education-result ""
                       :attestation-education-year ""
-                      :expiriences `((:name "AIS"
-                                            :company-id ""
-                                            :company-area-id "2"
-                                            :url "http://aintsys.com"
-                                            :industry-id ""
-                                            :industries nil
-                                            :id ""
-                                            :position  "Lisp/Erlang-разработчик"
-                                            :start-date "2012-01-01"
-                                            :end-date  "2012-04-01"
-                                            :description "Разрабатывал решения в сфере электронных валют")
-                                     (:name "ООО РАВТА"
-                                            :company-id ""
-                                            :company-area-id "2"
-                                            :url "http://ravta.ru"
-                                            :industry-id ""
-                                            :industries nil
-                                            :id ""
-                                            :position "Директор по IT"
-                                            :start-date "2012-01-01"
-                                            :end-date  "2012-04-01"
-                                            :description "Осуществлял руководство разработкой информационной системы предприятия, занимался постановкой задач и контролем выполнения работ. Организовывал договорную работу с подрядчиками.")
-                                     (:name "WizardSoft"
-                                            :company-id ""
-                                            :company-area-id "2"
-                                            :url "http://wizardsoft.ru"
-                                            :industry-id ""
-                                            :industries nil
-                                            :position "Ведущий разработчик, архитектор"
-                                            :start-date "2009-09-01"
-                                            :end-date "2011-04-01"
-                                            :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по кадровым соображениям.")
-                                     (:name "ЦиFры"
-                                            :company-id ""
-                                            :company-area-id "2"
-                                            :site "http://www.320-8080.ru"
-                                            :industry-id ""
-                                            :industries nil
-                                            :position "Архитектор-проектировщик, веб-программист"
-                                            :start-date "2007-01-01"
-                                            :end-date "2009-09-01"
-                                            :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин")
-                                     (:name "ООО Вебдом"
-                                            :company-id ""
-                                            :company-area-id "2"
-                                            :url  "http://webdom.net"
-                                            :industry-id ""
-                                            :industries nil
-                                            :position "Ведущий веб-разработчик"
-                                            :start-date "2005-09-01"
-                                            :end-date "2007-01-01"
-                                            :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает компания. CMS на его основе поставляется клиентам.")
-                                     (:name "Почин"
-                                            :company-id ""
-                                            :company-area-id "2"
-                                            :url "http://pochin.ru"
-                                            :industry-id ""
-                                            :industries nil
-                                            :position "Программист"
-                                            :start-date "2005-09-01"
-                                            :end-date "2007-01-01"
-                                            :descruption "Спроектировал и разработал интернет-магазин")
-                                     )
-                      :about "123 098"
+                      :expiriences (list
+                                    ;; (job :name "ООО КОМПО ГРУПП"
+                                    ;;      :site "http://componentality.com"
+                                    ;;      :position  "Системный архитектор"
+                                    ;;      :start-date "2016-07-01"
+                                    ;;      :end-date  ""
+                                    ;;      :description "123")
+                                    (job :name "ООО Автоматон"
+                                         :site ""
+                                         :position  "Руководитель разработки ПО, Системный архитектор"
+                                         :start-date "2015-12-01"
+                                         :end-date  "" ;; "2016-07-01"
+                                         :description "- Спроектировал программно-аппаратную архитектуру системы автоматизации платных парковок.
+    - Спланировал и организовал работы по разработке ПО и аппаратной части, включая подбор электронных компонентов и схемотехническое проектирование.
+    - Самостоятельно реализовал бизнес-логику и уровень представления (АРМ Оператора)
+    - Руководил работами по реализации транспортного уровня и уровня абстракции оборудования, выполненными удаленными разработчиками.
+    - Внедрил Continuous Integration и процесс управления жизненным циклом (релизы, исправление ошибок, добавление возможностей, технический контроль качества, автоматизированное тестирование)
+    - Реализовал безопасное (цифровая подпись) и отказоустойчивое (откат на предыдующую версию при провале тестов) обновление прошивок через интернет.
+    - Автоматизировал создание и хранение документации, с использованием версионирования на базе GIT и \"executable specifications\".")
+                                    (job :name "ООО БКН"
+                                         :site "http://bkn.ru"
+                                         :position  "ИТ-директор"
+                                         :start-date "2015-04-01"
+                                         :end-date  "2015-12-01"
+                                         :description "Руководил разработкой информационных решений автоматизации бизнеса агентств недвижимости (b2b и b2c). C# и ASP.NET")
+                                    (job :name "Тренд"
+                                         :site "http://trend-spb.ru"
+                                         :position  "Ведущий инженер-программист"
+                                         :start-date "2014-08-01"
+                                         :end-date  "2015-03-01"
+                                         :description "Автоматизировал бизнес-процесс агенства по продажам недвижимости (новостройки)")
+                                    (job :name "Частная компания (алготрейдинг)"
+                                         :site "http://aintsys.com"
+                                         :position  "Lisp/Erlang-разработчик"
+                                         :start-date "2012-04-01"
+                                         :end-date  "2014-08-01"
+                                         :description "Разрабатывал решения в сфере электронных валют")
+                                    (job :name "ООО РАВТА"
+                                         :site "http://ravta.ru"
+                                         :position "Директор по IT"
+                                         :start-date "2012-01-01"
+                                         :end-date  "2012-04-01"
+                                         :description "Осуществлял руководство разработкой информационной системы предприятия, занимался постановкой задач и контролем выполнения работ. Организовывал договорную работу с подрядчиками.")
+                                    (job :name "WizardSoft"
+                                         :site "http://wizardsoft.ru"
+                                         :position "Ведущий разработчик, архитектор"
+                                         :start-date "2011-05-01"
+                                         :end-date "2012-01-01"
+                                         :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип реализовал на Common Lisp, Postmodern и PostgreSQL. После приемки прототип был существенно расширен и переписан на PHP")
+                                    (job :name "ЦиFры"
+                                         :site "http://www.320-8080.ru"
+                                         :position "Архитектор-проектировщик, веб-программист"
+                                         :start-date "2009-09-01"
+                                         :end-date "2011-04-01"
+                                         :description "Перепроектировал и реализовал на высоконагрузочный интернет-магазин.
+    Стек технологий: PHP, MySql, Jquery, Common Lisp, Memcached")
+                                    (job :name "ООО Вебдом"
+                                         :site  "http://webdom.net"
+                                         :position "Ведущий веб-разработчик"
+                                         :start-date "2007-01-01"
+                                         :end-date "2009-09-01"
+                                         :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает компания. CMS на его основе поставляются клиентам.")
+                                    (job :name "Почин"
+                                         :site "http://pochin.ru"
+                                         :position "Программист"
+                                         :start-date "2005-09-01"
+                                         :end-date "2007-01-01"
+                                         :description "Спроектировал и разработал интернет-магазин на стеке технологий LAMP"))
+                      :about "
+    Умею программировать в одиночку и управлять командой, нанимать технических специалистов, отвечать за результат, формализовывать бизнес-процессы, обучать разработчиков, следить за качеством кода и распределять нагрузку на людей.
+
+    Разрабатываю все, что автоматизирует бизнес и помогает зарабатывать деньги: интернет-магазины, ПО для железа, распределенные платежные системы, внутренний документооборот, CRM, ERP. Интегрирую все это с 1С, SAP, картографическими сервисами и биллингами.
+
+    Умею \"думать вперед\", формализовывать требования и предвидеть возможные будущие проблемы. Умею планировать архитектуру проекта, учитывая возможное масштабирование в будущем в т.ч. под высокие нагрузки.
+
+    Специализируюсь на сложных проектах с неопределенными техническими требованиями (\"безнадежные\" проекты).
+
+    Постоянный докладчик семинаров по функциональному программированию в Санкт-Петербурге (https://plus.google.com/communities/106931692847918217517) и IT Global Meetup (http://piter-united.ru/)
+
+    Используемые технологии:
+
+    Linux, FreeBSD
+
+    PHP, Python, C/C++, Java, Common Lisp, Erlang
+
+    Nginx, Apache, Memcache, Redis, RabbitMQ
+
+    MySQL, PostgreSQL
+
+    Git, Svn
+
+    JavaSсript, JQuery, ExtJS
+
+    JSON, OpenID, XML, XML+RPC, closure-template, Sphinx, PHPUnit
+
+    Также знаком с: Delphi/Pascal, Assembler80x86, Forth
+
+    Использую ООП, шаблонизацию и другие паттерны. Могу написать расширение к веб-серверу на компилируемом языке, если скрипт упирается в производительность. Умею сниффать сниффером и профайлить профайлером. Не боюсь регулярных выражений. Знаю в чем разница между венгерской нотацией и обратной польской записью. Умею управлять машиной Тьюринга и стрелять из конечного автомата. Грамотно выражаю свои мысли на бумаге, устно, на пальцах; и с первого раза воспринимаю чужие с тех же носителей.
+
+    Целиком (в одиночку) спроектировал и реализовал:
+    http://320-8080.ru
+    http://pochin.ru
+    http://rigidus.ru
+    http://izverg.ru
+
+    На базе разработанных мной продуктов работают:
+    http://toursfera.ru
+    http://chembalt.ru
+    http://parus-ltd.ru
+    http://www.3-trans.ru
+    http://spsstroy.ru
+    http://gtmorstroy.com
+    http://villa-plus.ru
+    http://galars.spb.ru
+    http://lasershow.ru
+    http://www.mva-group.ru
+    http://www.designuspeha.ru/
+    "
+
+    #|
+    "Плотно сижу на Common Lisp с сентября 2009 года, неоднократно был замечен в употреблении Common Lisp-а в продакшене, в т.ч. на находясь на рабочем месте . Периодов ремисии не было, проходил комплексную терапию у доктора Д.Э. Кнута (EmacsLisp в качестве заместительной + literate programming). В анамнезе несколько обострений - попытка написать лисп на форте, а форт - на пхп, тяжелая наследственность: в юности (до 1998 года) изучал технологии самоходного программного обеспечения, но на стационарном лечении не находился ввиду либерального законодательства и по малолетству.
+
+    Разрабатываю коммерческие проекты на Common Lisp c 2009 года. Понимаю макросы, conditions-restarts, использую основные распространенные библиотеки - postmodern, parenscript, closer-mop, cl-fad и.т.п.
+
+    Широко использую CLOS и метаобьектный протокол. В разработке предпочитаю сначала спроектировать расширяемый domain specific language, а потом написать его реализацию с помощью макросов и CLOS.
+
+    С 2010-го года все проекты, реализованные мной на других языках, сначала были спрототипированы на Common Lisp для быстрого анализа и разработки идей. Предпочитаю при любых затруднениях (например в использовании библиотеки) взглянуть на исходный код, иногда даже прежде обращения к документации. Как правило многое становится понятно сразу.
+
+    В собственных проектах стараюсь применять методы искусственного интеллекта (главным образом из Artifical Intelligence - A Modern Approach - S.J. Russel, P. Norvig)
+
+    Также обладаю хорошим пониманием языков, близких к лиспу (Scheme, Clojure, Racket), довольно хорошим - других функциональных, логических и объектных языков (Haskell, Prolog, Smalltalk) и основанных на них технологиях."
+    |#
+
+
                       :languages `((:lang-id "34" :lang-degree "native")
                                    (:lang-id "57" :lang-degree "can_read")
                                    (:lang-id "58" :lang-degree "basic")
                                    (:lang-id "59" :lang-degree "none"))
                       :contacts `(:cell-phone "+79112869290"
-                                              :cell-phone-comment "С 9 до 5"
-                                              :home-phone "+78127410289"
-                                              :home-phone-comment "ночью не звонить"
-                                              :work-phone "+78129932323"
-                                              :work-phone-comment "по рабочим вопросам"
+                                              :cell-phone-comment ""
+                                              :home-phone ""
+                                              :home-phone-comment ""
+                                              :work-phone ""
+                                              :work-phone-comment ""
                                               :email-string "avenger-f@yandex.ru"
                                               :preferred-contact "email"
                                               :icq ""
@@ -995,85 +1068,22 @@
                       ))))
 
 
-    (exp
-     :company "AIS"
-     :site "aintsys.com"
-     :position "Lisp/Erlang-разработчик"
-     :description "Разрабатываю решения в сфере электронных валют"
-     :start-date "Январь 2012"
-     :end-date  "Апрель 2012"
-     :stage "4 месяца")
-    (exp
-     :company "ООО РАВТА"
-     :region "Санкт-Петербург,"
-     :site "ravta.ru"
-     :industries "Автомобильный бизнес.."
-     :position "Директор по IT"
-     :description "Осуществлял руководство разработкой информационной системы предприятия, занимался
-        постановкой задач и контролем выполнения работ. Организовывал договорную работу с
-        подрядчиками."
-     :start-date "Май 2011"
-     :end-date  "Январь 2012"
-     :stage "9 месяцев")
-    (exp
-     :company "WizardSoft"
-     :region "Санкт-Петербург"
-     :site "wizardsoft.ru"
-     :position "Ведущий разработчик, архитектор"
-     :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип
-        реализован на Common Lisp, Postmodern и PostgreSQL, был переписан на PHP+Jquery по
-        кадровым соображениям."
-     :start-date "Сентябрь 2009"
-     :end-date "Апрель 2011"
-     :stage "1 год 8 месяцев")
-    (exp
-     :company "ЦиFры"
-     :region "Санкт-Петербург,"
-     :site "www.320-8080.ru"
-     :industries "Электроника, приборостроение, бытовая техника, компьютеры и оргтехника... "
-     :position "Архитектор-проектировщик, веб-программист"
-     :description "Перепроектировал и реализовал на Common Lisp высоконагрузочный интернет-магазин"
-     :start-date "Январь 2007"
-     :end-date "Сентябрь 2009"
-     :stage "2 года 9 месяцев")
-    (exp
-     :company "ООО Вебдом"
-     :site  "webdom.net"
-     :position "Ведущий веб-разработчик"
-     :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает
-        компания. CMS на его основе поставляется клиентам."
-     :start-date "Сентябрь 2005"
-     :end-date "Январь 2007"
-     :stage "1 год 5 месяцев")
-    (exp
-     :company "Почин"
-     :site "pochin.ru"
-     :position "Программист"
-     :descruption "Спроектировал и разработал интернет-магазин")
+    ;; КЛЮЧЕВЫЕ НАВЫКИ
 
-    ;; company
-    ;; region
-    ;; site
-    ;; industries
-    ;; position
-    ;; start-date
-    ;; end-date
-    ;; description
+    ;; Java JavaScript jQuery Lisp PHP5 PostgreSQL RabbitMQ Symphony2 Yii Zend Framework
 
+    ;; https://spb.hh.ru/applicant/resumes/edit/experience?resume=1036680cff007465bc0039ed1f736563726574&field=keySkills
+    ;; keySkills.string=Java
+    ;; keySkills.string=JavaScript
+    ;; keySkills.string=jQuery
+    ;; keySkills.string=Lisp
+    ;; keySkills.string=PHP5
+    ;; keySkills.string=PostgreSQL
+    ;; keySkills.string=RabbitMQ
+    ;; keySkills.string=Symphony2
+    ;; keySkills.string=Yii
+    ;; keySkills.string=Zend+Framework
+    ;; keySkills.string=MS+Visio
+    ;; keySkills.string=Nginx
 
-    ;; last-name
-    ;; first-name
-    ;; middle-name
-    ;; birthday
-    ;; gender
-    ;; area
-    ;; metro
-    ;; relocation
-    ;; relocation-area
-    ;; business-trip-readiness
-    ;; citizen-ship
-    ;; citizen-ship
-    ;; work-ticket
-    ;; work-ticket
-    ;; travel-time
   #+END_SRC
