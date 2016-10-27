@@ -1,6 +1,6 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   #-clautogui
-  (load "cl-autogui.lisp")
+  (load "~/repo/moto/dino/cl-autogui.lisp")
   #-clppcre
   (ql:quickload 'cl-ppcre))
 
@@ -162,3 +162,5 @@
          ((= block-distance 0) nil)
          (should-jump (dino-jump))))
      (sleep *scan-interval*)))
+
+(dino-play)
