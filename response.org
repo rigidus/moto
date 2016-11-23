@@ -297,3 +297,25 @@
 
     <<run_response>>
   #+END_SRC
+* Убираем вакансии в архиве
+
+#+BEGIN_SRC lisp
+  (in-package :moto)
+
+  (mapcar #'(lambda (x)
+              (print (src-id x))
+              (upd-vacancy :state ":UNINTERESTING"))
+          (remove-if-not #'(lambda (x)
+                             (search "Вакансия в архиве"
+                                     (hh-get-page (format nil "https://hh.ru/vacancy/~A" (src-id x))
+                                                  (make-instance 'drakma:cookie-jar)
+                                                  ,*hh_account*
+                                                  "https://spb.hh.ru/")))
+                         (find-vacancy :state ":INTERESTING")))
+
+  ;;  (del-vacancy (id (car (find-vacancy :src-id "18564402"))))
+
+  ;; (mapcar #'(lambda (x)
+  ;;             (del-vacancy (id x)))
+  ;;         (find-vacancy :state ":----INTERESTING"))
+#+END_SRC

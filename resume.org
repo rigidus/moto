@@ -637,7 +637,7 @@
 
     <<set_resume_expirience>>
    #+END_SRC
-* COMMENT Язык описания резюме
+* Язык описания резюме
 
   Общая идея этого раздела в том, чтобы спроектировать язык описание резюме и написать
   его интерпретатор, который был бы способен создавать и модифицировать резюме и его
@@ -706,10 +706,10 @@
                           ("primaryEducation.name"          . ,(drakma:url-encode (getf edu :name) :utf-8))
                           ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" 39864) :utf-8))
                           ("primaryEducation.facultyId"     . ,(if-zero-then-empty 0))
-                          ("primaryEducation.organization"  . ,(drakma:url-encode "Режиссуры" :utf-8))
-                          ("primaryEducation.result"        . ,(drakma:url-encode "Режиссура мультимедиа программ" :utf-8))
-                          ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" 224) :utf-8))
-                          ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" 2005) :utf-8))))
+                          ("primaryEducation.organization"  . ,(drakma:url-encode (getf edu :organization) :utf-8))
+                          ("primaryEducation.result"        . ,(drakma:url-encode (getf edu :result) :utf-8))
+                          ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" (getf edu :specialty-id)) :utf-8))
+                          ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" (getf edu :year)) :utf-8))))
                       `(("additionalEducation.id" . ,(drakma:url-encode (getf plist :additional-education-id) :utf-8))
                         ("additionalEducation.name" . ,(drakma:url-encode (getf plist :additional-education-name) :utf-8))
                         ("additionalEducation.organization" . ,(drakma:url-encode (getf plist :additional-education-organization) :utf-8))
@@ -742,11 +742,11 @@
                      cookie-jar
                      cookie-alist
                      (append
-                      `(("title.string" . ,(drakma:url-encode (concatenate 'string "Программист" (symbol-name (gensym))) :utf-8))
+                      `(("title.string" . ,(drakma:url-encode (getf plist :title) :utf-8))
                         ("profArea"     . ,(drakma:url-encode "1" :utf-8)))
                       (mapcar #'(lambda (x)
                                   `("specialization.string" . ,(drakma:url-encode x :utf-8)))
-                              (split-sequence:split-sequence #\Space (specializations (car (all-resume)))))
+                              (split-sequence:split-sequence #\Space (getf plist :specalizations)))
                       `(("profarea" . "")
                         ("profarea" . "1")
                         ("profarea" . "2")
@@ -776,10 +776,10 @@
                         ("profarea" . "15")
                         ("profarea" . "27")
                         ("profarea" . "29")
-                        ("salary.amount" . ,(drakma:url-encode (salary-amount (car (all-resume))) :utf-8))
-                        ("salary.currency" . ,(drakma:url-encode (salary-currency (car (all-resume))) :utf-8))
-                        ("employment.string" . ,(drakma:url-encode (employment (car (all-resume))) :utf-8))
-                        ("workSchedule.string" . ,(drakma:url-encode (work-schedule (car (all-resume))) :utf-8)))
+                        ("salary.amount" . ,(drakma:url-encode (getf plist :salary-amount) :utf-8))
+                        ("salary.currency" . ,(drakma:url-encode "RUR" :utf-8))
+                        ("employment.string" . ,(drakma:url-encode "full" :utf-8))
+                        ("workSchedule.string" . ,(drakma:url-encode "full_day" :utf-8)))
                       `(
                         ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))))))
           ;; EXPIRIENCE
@@ -871,10 +871,16 @@
                   ))))
           )))
 
+    ;; title.string=IT-%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%BE%D1%80+%2F+%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C+%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B8+%D0%9F%D0%9EG2450&
+    ;; profArea=1&specialization.string=221&specialization.string=3&salary.amount=160000&salary.currency=RUR&employment.string=full&workSchedule.string=full_day&_xsrf=5e9fb9ec46e64214f25085132e141e7e
+
     (progn
     (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
       (print
       (hh-post-resume cookie-jar
+                      :title (concatenate 'string "IT-директор / Руководитель разработки ПО " (symbol-name (gensym)))
+                      :specalizations "3 221"
+                      :salary-amount "200000"
                       :last-name "Глухов"
                       :first-name "Михаил"
                       :middle-name "Михайлович"
@@ -889,9 +895,17 @@
                       :work-ticket "113"
                       :travel-time "any"
                       :education-level-string "higher"
-                      :primary-educations `(:education-id "0" :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-                                                           :university-id "39864" :faculty-id "0" :organization "Режиссуры" :result "Режиссура мультимедиа программ"
-                                                           :specialty-id "224" :year "2005")
+                      :primary-educations `(:education-id "0"
+                                                          ;; :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+                                                          :name "Санкт-Петербургский национальный исследовательский университет информационных технологий, механики и оптики, Санкт-Петербург"
+                                                           ;; :university-id "39864"
+                                                          :university-id "39872"
+                                                          :faculty-id "0"
+                                                          ;; :organization "Режиссуры"
+                                                          :organization "Прикладная математика и информатика"
+                                                          ;; :result "Режиссура мультимедиа программ"
+                                                          :result "Математические модели и алгоритмы в разработке программного обеспечения"
+                                                          :specialty-id "" :year "2020")
                       :additional-education-id ""
                       :additional-education-name ""
                       :additional-education-organization ""
@@ -935,19 +949,20 @@
                                          :position  "ИТ-директор"
                                          :start-date "2015-04-01"
                                          :end-date  "2015-12-01"
-                                         :description "Руководил разработкой информационных решений автоматизации бизнеса агентств недвижимости (b2b и b2c). C# и ASP.NET")
+                                         :description "Руководил разработкой и продвижением информационных решений автоматизации бизнеса агентств недвижимости (b2b и b2c). C# и ASP.NET
+    Реализовал на сайте bkn.ru раздел поиска и подбора квартир, комнат и жилых домов первичного и вторичного рынка, интегрировал его с межагентской базой данных объектов недвижимости.")
                                     (job :name "Тренд"
                                          :site "http://trend-spb.ru"
                                          :position  "Ведущий инженер-программист"
                                          :start-date "2014-08-01"
                                          :end-date  "2015-03-01"
-                                         :description "Автоматизировал бизнес-процесс агенства по продажам недвижимости (новостройки)")
+                                         :description "Автоматизировал бизнес-процесс агенства по продажам недвижимости (новостройки). Php / Nginx / Mysql / PostgreSql")
                                     (job :name "Частная компания (алготрейдинг)"
                                          :site "http://aintsys.com"
                                          :position  "Lisp/Erlang-разработчик"
                                          :start-date "2012-04-01"
                                          :end-date  "2014-08-01"
-                                         :description "Разрабатывал решения в сфере электронных валют")
+                                         :description "Разрабатывал решения в сфере электронных валют на базе технологии BlockChain. Стек технологий: Erlang / Common Lisp / C++")
                                     (job :name "ООО РАВТА"
                                          :site "http://ravta.ru"
                                          :position "Директор по IT"
@@ -959,7 +974,7 @@
                                          :position "Ведущий разработчик, архитектор"
                                          :start-date "2011-05-01"
                                          :end-date "2012-01-01"
-                                         :description "Разработка высоконагрузочного портала для проведения строительных тендеров. Прототип реализовал на Common Lisp, Postmodern и PostgreSQL. После приемки прототип был существенно расширен и переписан на PHP")
+                                         :description "Разработал высоконагрузочный портал для проведения строительных тендеров. Прототип реализовал на Common Lisp, Postmodern и PostgreSQL. После приемки прототип был существенно расширен и переписан на PHP")
                                     (job :name "ЦиFры"
                                          :site "http://www.320-8080.ru"
                                          :position "Архитектор-проектировщик, веб-программист"
@@ -980,56 +995,69 @@
                                          :end-date "2007-01-01"
                                          :description "Спроектировал и разработал интернет-магазин на стеке технологий LAMP"))
                       :about "
-    Умею программировать в одиночку и управлять командой, нанимать технических специалистов, отвечать за результат, формализовывать бизнес-процессы, обучать разработчиков, следить за качеством кода и распределять нагрузку на людей.
+    Умею:
+    - программировать в одиночку и управлять командой
+    - нанимать технических специалистов
+    - отвечать за результат
+    - формализовывать бизнес-процессы
+    - обучать разработчиков
+    - следить за качеством кода
+    - распределять нагрузку на людей
+    - укладываться в сроки
 
-    Разрабатываю все, что автоматизирует бизнес и помогает зарабатывать деньги: интернет-магазины, ПО для железа, распределенные платежные системы, внутренний документооборот, CRM, ERP. Интегрирую все это с 1С, SAP, картографическими сервисами и биллингами.
+    Разрабатываю все, что автоматизирует бизнес и помогает зарабатывать деньги:
+    - интернет-магазины,
+    - ПО для железа,
+    - распределенные платежные системы,
+    - внутренний документооборот,
+    - CRM и ERP.
 
-    Умею \"думать вперед\", формализовывать требования и предвидеть возможные будущие проблемы. Умею планировать архитектуру проекта, учитывая возможное масштабирование в будущем в т.ч. под высокие нагрузки.
+    Интегрирую все это с 1С, SAP, картографическими сервисами, биллингами и другими внешними системами через протоколы взаимодействия и API
 
-    Специализируюсь на сложных проектах с неопределенными техническими требованиями (\"безнадежные\" проекты).
+    Умею \"думать вперед\", формализовывать требования и предвидеть возможные будущие проблемы.
 
-    Постоянный докладчик семинаров по функциональному программированию в Санкт-Петербурге (https://plus.google.com/communities/106931692847918217517) и IT Global Meetup (http://piter-united.ru/)
+    Умею планировать архитектуру проекта, учитывая возможное масштабирование в будущем в т.ч. под высокие нагрузки.
+
+    Постоянный докладчик семинаров по функциональному программированию в Санкт-Петербурге (https://plus.google.com/communities/106931692847918217517) и IT Global Meetup (http://piter-united.ru/). Исследую современные подходы в области \"искусственного интеллекта\", нейросетей и machine learning.
 
     Используемые технологии:
-
-    Linux, FreeBSD
-
-    PHP, Python, C/C++, Java, Common Lisp, Erlang
-
-    Nginx, Apache, Memcache, Redis, RabbitMQ
-
-    MySQL, PostgreSQL
-
-    Git, Svn
-
-    JavaSсript, JQuery, ExtJS
-
-    JSON, OpenID, XML, XML+RPC, closure-template, Sphinx, PHPUnit
+    - Linux, FreeBSD
+    - PHP, JavaScript, Python, C/C++, Java, Common Lisp, Erlang
+    - Nginx, Apache, Memcache, Redis, RabbitMQ
+    - MySQL, PostgreSQL
+    - Git, Svn
+    - JavaSсript, JQuery, ExtJS
+    - JSON, OpenID, XML, XML+RPC, closure-template, Sphinx, PHPUnit
 
     Также знаком с: Delphi/Pascal, Assembler80x86, Forth
 
-    Использую ООП, шаблонизацию и другие паттерны. Могу написать расширение к веб-серверу на компилируемом языке, если скрипт упирается в производительность. Умею сниффать сниффером и профайлить профайлером. Не боюсь регулярных выражений. Знаю в чем разница между венгерской нотацией и обратной польской записью. Умею управлять машиной Тьюринга и стрелять из конечного автомата. Грамотно выражаю свои мысли на бумаге, устно, на пальцах; и с первого раза воспринимаю чужие с тех же носителей.
+    Умею сниффать сниффером и профайлить профайлером.
 
-    Целиком (в одиночку) спроектировал и реализовал:
-    http://320-8080.ru
-    http://pochin.ru
-    http://rigidus.ru
-    http://izverg.ru
+    Не боюсь регулярных выражений.
 
-    На базе разработанных мной продуктов работают:
-    http://toursfera.ru
-    http://chembalt.ru
-    http://parus-ltd.ru
-    http://www.3-trans.ru
-    http://spsstroy.ru
-    http://gtmorstroy.com
-    http://villa-plus.ru
-    http://galars.spb.ru
-    http://lasershow.ru
-    http://www.mva-group.ru
-    http://www.designuspeha.ru/
+    Знаю в чем разница между венгерской нотацией и обратной польской записью.
+
+    Умею управлять машиной Тьюринга и стрелять из конечного автомата.
+
+    Грамотно выражаю свои мысли на бумаге, устно, на пальцах; и с первого раза воспринимаю чужие с тех же носителей.
+
+    Целиком спроектировал и реализовал:
+    - http://320-8080.ru
+    - http://pochin.ru
+    - http://rigidus.ru
+    - http://izverg.ru
+
+    Мой код работает в:
+    - http://bkn.ru
+    - https://trend-spb.ru/
+    - http://toursfera.ru
+    - http://chembalt.ru
+    - http://parus-ltd.ru
+    - http://www.3-trans.ru
+    - http://spsstroy.ru
+    - http://gtmorstroy.com
+    - http://www.mva-group.ru
     "
-
     #|
     "Плотно сижу на Common Lisp с сентября 2009 года, неоднократно был замечен в употреблении Common Lisp-а в продакшене, в т.ч. на находясь на рабочем месте . Периодов ремисии не было, проходил комплексную терапию у доктора Д.Э. Кнута (EmacsLisp в качестве заместительной + literate programming). В анамнезе несколько обострений - попытка написать лисп на форте, а форт - на пхп, тяжелая наследственность: в юности (до 1998 года) изучал технологии самоходного программного обеспечения, но на стационарном лечении не находился ввиду либерального законодательства и по малолетству.
 
@@ -1043,8 +1071,6 @@
 
     Также обладаю хорошим пониманием языков, близких к лиспу (Scheme, Clojure, Racket), довольно хорошим - других функциональных, логических и объектных языков (Haskell, Prolog, Smalltalk) и основанных на них технологиях."
     |#
-
-
                       :languages `((:lang-id "34" :lang-degree "native")
                                    (:lang-id "57" :lang-degree "can_read")
                                    (:lang-id "58" :lang-degree "basic")
