@@ -669,429 +669,455 @@
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
               (with-cookie-alist (cookie-jar)
                 (send-post-multiple-values
-                    (section-url
-                     cookie-jar
-                     cookie-alist
-                     `(("lastName.string" . ,(drakma:url-encode (getf plist :last-name) :utf-8))
-                       ("firstName.string" . ,(drakma:url-encode (getf plist :first-name) :utf-8))
-                       ("middleName.string" . ,(drakma:url-encode (getf plist :middle-name) :utf-8))
-                       ("birthday.date" . ,(drakma:url-encode (getf plist :birthday) :utf-8))
-                       ("gender.string" . ,(drakma:url-encode (getf plist :gender) :utf-8))
-                       ("area.string" . ,(drakma:url-encode (getf plist :area) :utf-8))
-                       ("metro.string" . ,(drakma:url-encode (getf plist :metro) :utf-8))
-                       ("relocation.string" . ,(drakma:url-encode (getf plist :relocation) :utf-8))
-                       ("relocationArea.string" . ,(drakma:url-encode (getf plist :relocation-area) :utf-8))
-                       ("businessTripReadiness.string" . ,(drakma:url-encode (getf plist :business-trip-readiness) :utf-8))
-                       ("citizenship" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
-                       ("citizenship.string" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
-                       ("workTicket" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
-                       ("workTicket.string" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
-                       ("travelTime.string" . ,(drakma:url-encode (getf plist :travel-time) :utf-8)))
-                     )
-                  ;; Получаем идентификатор резюме
-                  (setf resume-id (cadr (split-sequence:split-sequence #\= (puri:uri-query uri))))))))
+                 (section-url
+                  cookie-jar
+                  cookie-alist
+                  `(("lastName.string" . ,(drakma:url-encode (getf plist :last-name) :utf-8))
+                    ("firstName.string" . ,(drakma:url-encode (getf plist :first-name) :utf-8))
+                    ("middleName.string" . ,(drakma:url-encode (getf plist :middle-name) :utf-8))
+                    ("birthday.date" . ,(drakma:url-encode (getf plist :birthday) :utf-8))
+                    ("gender.string" . ,(drakma:url-encode (getf plist :gender) :utf-8))
+                    ("area.string" . ,(drakma:url-encode (getf plist :area) :utf-8))
+                    ("metro.string" . ,(drakma:url-encode (getf plist :metro) :utf-8))
+                    ("relocation.string" . ,(drakma:url-encode (getf plist :relocation) :utf-8))
+                    ("relocationArea.string" . ,(drakma:url-encode (getf plist :relocation-area) :utf-8))
+                    ("businessTripReadiness.string" . ,(drakma:url-encode (getf plist :business-trip-readiness) :utf-8))
+                    ("citizenship" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
+                    ("citizenship.string" . ,(drakma:url-encode (getf plist :citizen-ship) :utf-8))
+                    ("workTicket" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
+                    ("workTicket.string" . ,(drakma:url-encode (getf plist :work-ticket) :utf-8))
+                    ("travelTime.string" . ,(drakma:url-encode (getf plist :travel-time) :utf-8)))
+                  )
+                 ;; Получаем идентификатор резюме
+                 (setf resume-id (cadr (split-sequence:split-sequence #\= (puri:uri-query uri))))))))
           ;; EDUCATION
           (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/education?resume=~A" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
               (with-cookie-alist (cookie-jar)
                 (send-post-multiple-values
-                    (section-url
-                     cookie-jar
-                     cookie-alist
-                     (append
-                      `(("educationLevel.string" . ,(drakma:url-encode "higher" :utf-8)))
-                      (let ((edu (getf plist :primary-educations)))
-                        `(("primaryEducation.id"            . "")
-                          ("primaryEducation.name"          . ,(drakma:url-encode (getf edu :name) :utf-8))
-                          ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" 39864) :utf-8))
-                          ("primaryEducation.facultyId"     . ,(if-zero-then-empty 0))
-                          ("primaryEducation.organization"  . ,(drakma:url-encode (getf edu :organization) :utf-8))
-                          ("primaryEducation.result"        . ,(drakma:url-encode (getf edu :result) :utf-8))
-                          ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" (getf edu :specialty-id)) :utf-8))
-                          ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" (getf edu :year)) :utf-8))))
-                      `(("additionalEducation.id" . ,(drakma:url-encode (getf plist :additional-education-id) :utf-8))
-                        ("additionalEducation.name" . ,(drakma:url-encode (getf plist :additional-education-name) :utf-8))
-                        ("additionalEducation.organization" . ,(drakma:url-encode (getf plist :additional-education-organization) :utf-8))
-                        ("additionalEducation.result" . ,(drakma:url-encode (getf plist :additional-education-result) :utf-8))
-                        ("additionalEducation.year" . ,(drakma:url-encode (getf plist :additional-education-year) :utf-8))
-                        ("certificate.id" . ,(drakma:url-encode (getf plist :certificate-id) :utf-8))
-                        ("certificate.type" . ,(drakma:url-encode (getf plist :certificate-type) :utf-8))
-                        ("certificate.selected" . ,(drakma:url-encode (getf plist :certificate-selected) :utf-8))
-                        ("certificate.ownerName" . ,(drakma:url-encode (getf plist :certificate-ownerName) :utf-8))
-                        ("certificate.transcriptionId" . ,(drakma:url-encode (getf plist :certificate-transcription-id) :utf-8))
-                        ("certificate.password" . ,(drakma:url-encode (getf plist :certificate-password) :utf-8))
-                        ("certificate.title" . ,(drakma:url-encode (getf plist :certificate-title) :utf-8))
-                        ("certificate.achievementDate" . ,(drakma:url-encode (getf plist :certificate-achievementDate) :utf-8))
-                        ("certificate.url" . ,(drakma:url-encode (getf plist :certificate-url) :utf-8))
-                        ("attestationEducation.id" . ,(drakma:url-encode (getf plist :attestation-education-id) :utf-8))
-                        ("attestationEducation.name" . ,(drakma:url-encode (getf plist :attestation-education-name) :utf-8))
-                        ("attestationEducation.organization" . ,(drakma:url-encode (getf plist :attestation-education-organization) :utf-8))
-                        ("attestationEducation.result" . ,(drakma:url-encode (getf plist :attestation-education-result) :utf-8))
-                        ("attestationEducation.year" . ,(drakma:url-encode (getf plist :attestation-education-year) :utf-8)))
-                      `(
-                        ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
-                      ))))))
+                 (section-url
+                  cookie-jar
+                  cookie-alist
+                  (append
+                   `(("educationLevel.string" . ,(drakma:url-encode "higher" :utf-8)))
+                   (let ((edu (getf plist :primary-educations)))
+                     `(("primaryEducation.id"            . "")
+                       ("primaryEducation.name"          . ,(drakma:url-encode (getf edu :name) :utf-8))
+                       ("primaryEducation.universityId"  . ,(drakma:url-encode (format nil "~A" 39864) :utf-8))
+                       ("primaryEducation.facultyId"     . ,(if-zero-then-empty 0))
+                       ("primaryEducation.organization"  . ,(drakma:url-encode (getf edu :organization) :utf-8))
+                       ("primaryEducation.result"        . ,(drakma:url-encode (getf edu :result) :utf-8))
+                       ("primaryEducation.specialtyId"   . ,(drakma:url-encode (format nil "~A" (getf edu :specialty-id)) :utf-8))
+                       ("primaryEducation.year"          . ,(drakma:url-encode (format nil "~A" (getf edu :year)) :utf-8))))
+                   `(("additionalEducation.id" . ,(drakma:url-encode (getf plist :additional-education-id) :utf-8))
+                     ("additionalEducation.name" . ,(drakma:url-encode (getf plist :additional-education-name) :utf-8))
+                     ("additionalEducation.organization" . ,(drakma:url-encode (getf plist :additional-education-organization) :utf-8))
+                     ("additionalEducation.result" . ,(drakma:url-encode (getf plist :additional-education-result) :utf-8))
+                     ("additionalEducation.year" . ,(drakma:url-encode (getf plist :additional-education-year) :utf-8))
+                     ("certificate.id" . ,(drakma:url-encode (getf plist :certificate-id) :utf-8))
+                     ("certificate.type" . ,(drakma:url-encode (getf plist :certificate-type) :utf-8))
+                     ("certificate.selected" . ,(drakma:url-encode (getf plist :certificate-selected) :utf-8))
+                     ("certificate.ownerName" . ,(drakma:url-encode (getf plist :certificate-ownerName) :utf-8))
+                     ("certificate.transcriptionId" . ,(drakma:url-encode (getf plist :certificate-transcription-id) :utf-8))
+                     ("certificate.password" . ,(drakma:url-encode (getf plist :certificate-password) :utf-8))
+                     ("certificate.title" . ,(drakma:url-encode (getf plist :certificate-title) :utf-8))
+                     ("certificate.achievementDate" . ,(drakma:url-encode (getf plist :certificate-achievementDate) :utf-8))
+                     ("certificate.url" . ,(drakma:url-encode (getf plist :certificate-url) :utf-8))
+                     ("attestationEducation.id" . ,(drakma:url-encode (getf plist :attestation-education-id) :utf-8))
+                     ("attestationEducation.name" . ,(drakma:url-encode (getf plist :attestation-education-name) :utf-8))
+                     ("attestationEducation.organization" . ,(drakma:url-encode (getf plist :attestation-education-organization) :utf-8))
+                     ("attestationEducation.result" . ,(drakma:url-encode (getf plist :attestation-education-result) :utf-8))
+                     ("attestationEducation.year" . ,(drakma:url-encode (getf plist :attestation-education-year) :utf-8)))
+                   `(
+                     ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))
+                   ))))))
           ;; POSITION
           (let ((section-url (format nil "http://spb.hh.ru/applicant/resumes/edit/position?resume=~A" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
               (with-cookie-alist (cookie-jar)
                 (send-post-multiple-values
-                    (section-url
-                     cookie-jar
-                     cookie-alist
-                     (append
-                      `(("title.string" . ,(drakma:url-encode (getf plist :title) :utf-8))
-                        ("profArea"     . ,(drakma:url-encode "1" :utf-8)))
-                      (mapcar #'(lambda (x)
-                                  `("specialization.string" . ,(drakma:url-encode x :utf-8)))
-                              (split-sequence:split-sequence #\Space (getf plist :specalizations)))
-                      `(("profarea" . "")
-                        ("profarea" . "1")
-                        ("profarea" . "2")
-                        ("profarea" . "3")
-                        ("profarea" . "4")
-                        ("profarea" . "5")
-                        ("profarea" . "6")
-                        ("profarea" . "7")
-                        ("profarea" . "8")
-                        ("profarea" . "9")
-                        ("profarea" . "10")
-                        ("profarea" . "11")
-                        ("profarea" . "12")
-                        ("profarea" . "13")
-                        ("profarea" . "14")
-                        ("profarea" . "16")
-                        ("profarea" . "17")
-                        ("profarea" . "18")
-                        ("profarea" . "19")
-                        ("profarea" . "20")
-                        ("profarea" . "21")
-                        ("profarea" . "22")
-                        ("profarea" . "23")
-                        ("profarea" . "24")
-                        ("profarea" . "25")
-                        ("profarea" . "26")
-                        ("profarea" . "15")
-                        ("profarea" . "27")
-                        ("profarea" . "29")
-                        ("salary.amount" . ,(drakma:url-encode (getf plist :salary-amount) :utf-8))
-                        ("salary.currency" . ,(drakma:url-encode "RUR" :utf-8))
-                        ("employment.string" . ,(drakma:url-encode "full" :utf-8))
-                        ("workSchedule.string" . ,(drakma:url-encode "full_day" :utf-8)))
-                      `(
-                        ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))))))
+                 (section-url
+                  cookie-jar
+                  cookie-alist
+                  (append
+                   `(("title.string" . ,(drakma:url-encode (getf plist :title) :utf-8))
+                     ("profArea"     . ,(drakma:url-encode "1" :utf-8)))
+                   (mapcar #'(lambda (x)
+                               `("specialization.string" . ,(drakma:url-encode x :utf-8)))
+                           (split-sequence:split-sequence #\Space (getf plist :specalizations)))
+                   `(("profarea" . "")
+                     ("profarea" . "1")
+                     ("profarea" . "2")
+                     ("profarea" . "3")
+                     ("profarea" . "4")
+                     ("profarea" . "5")
+                     ("profarea" . "6")
+                     ("profarea" . "7")
+                     ("profarea" . "8")
+                     ("profarea" . "9")
+                     ("profarea" . "10")
+                     ("profarea" . "11")
+                     ("profarea" . "12")
+                     ("profarea" . "13")
+                     ("profarea" . "14")
+                     ("profarea" . "16")
+                     ("profarea" . "17")
+                     ("profarea" . "18")
+                     ("profarea" . "19")
+                     ("profarea" . "20")
+                     ("profarea" . "21")
+                     ("profarea" . "22")
+                     ("profarea" . "23")
+                     ("profarea" . "24")
+                     ("profarea" . "25")
+                     ("profarea" . "26")
+                     ("profarea" . "15")
+                     ("profarea" . "27")
+                     ("profarea" . "29")
+                     ("salary.amount" . ,(drakma:url-encode (getf plist :salary-amount) :utf-8))
+                     ("salary.currency" . ,(drakma:url-encode "RUR" :utf-8))
+                     ("employment.string" . ,(drakma:url-encode "full" :utf-8))
+                     ("workSchedule.string" . ,(drakma:url-encode "full_day" :utf-8)))
+                   `(
+                     ("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))))))
           ;; EXPIRIENCE
           (let ((section-url (format nil "https://spb.hh.ru/applicant/resumes/edit/experience?resume=~A&field=experience" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
               (with-cookie-alist (cookie-jar)
                 (send-post-multiple-values
-                    (section-url
-                     cookie-jar
-                     cookie-alist
-                     (append
-                      (loop :for exp :in (getf plist :expiriences) :append
-                         (append
-                          `(("experience.companyName" . ,(url-enc (getf exp :name)))
-                            ("experience.companyId" . ,(url-enc (getf exp :company-id)))
-                            ("experience.companyAreaId" . ,(url-enc (getf exp :company-area-id)))
-                            ("experience.companyUrl" . ,(url-enc (getf exp :site)))
-                            ("experience.companyIndustryId" . ,(url-enc (getf exp :industry-id))))
-                          (loop :for indstr-id :in (getf exp :industries)
-                             :append
-                             `(("experience.companyIndustries" . ,(format nil "~A" indstr-id))))
-                          `(("experience.companyIndustries" . "")
-                            ("experience.id" . "")
-                            ("experience.position" . ,(url-enc (getf exp :position)))
-                            ("experience.startDate" . ,(url-enc (getf exp :start-date)))
-                            ("experience.endDate" . ,(url-enc (getf exp :end-date)))
-                            ("experience.description" . ,(url-enc (getf exp :description))))))
-                      `(("skills.string"  . ,(url-enc (getf plist :about))))
-                      `(("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
-                  (split-sequence:split-sequence #\= (puri:uri-query uri))
-          ))))
+                 (section-url
+                  cookie-jar
+                  cookie-alist
+                  (append
+                   (loop :for exp :in (getf plist :expiriences) :append
+                      (append
+                       `(("experience.companyName" . ,(url-enc (getf exp :name)))
+                         ("experience.companyId" . ,(url-enc (getf exp :company-id)))
+                         ("experience.companyAreaId" . ,(url-enc (getf exp :company-area-id)))
+                         ("experience.companyUrl" . ,(url-enc (getf exp :site)))
+                         ("experience.companyIndustryId" . ,(url-enc (getf exp :industry-id))))
+                       (loop :for indstr-id :in (getf exp :industries)
+                          :append
+                          `(("experience.companyIndustries" . ,(format nil "~A" indstr-id))))
+                       `(("experience.companyIndustries" . "")
+                         ("experience.id" . "")
+                         ("experience.position" . ,(url-enc (getf exp :position)))
+                         ("experience.startDate" . ,(url-enc (getf exp :start-date)))
+                         ("experience.endDate" . ,(url-enc (getf exp :end-date)))
+                         ("experience.description" . ,(url-enc (getf exp :description))))))
+                   `(("skills.string"  . ,(url-enc (getf plist :about))))
+                   `(("_xsrf"                          . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
+                 (split-sequence:split-sequence #\= (puri:uri-query uri))
+                 ))))
           ;; LANGUAGES
           (let ((section-url (format nil "https://spb.hh.ru/applicant/resumes/edit/education?resume=~A&field=language" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
               (with-cookie-alist (cookie-jar)
                 (send-post-multiple-values
-                    (section-url
-                     cookie-jar
-                     cookie-alist
-                     (append
-                      (loop :for lang :in (getf plist :languages) :append
-                         `(("language.id"     . ,(drakma:url-encode (format nil "~A" (getf lang :lang-id)) :utf-8))
-                           ("language.degree" . ,(drakma:url-encode (format nil "~A" (getf lang :lang-degree)) :utf-8))))
-                      `(("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
-                  (split-sequence:split-sequence #\= (puri:uri-query uri))
-                  ))))
+                 (section-url
+                  cookie-jar
+                  cookie-alist
+                  (append
+                   (loop :for lang :in (getf plist :languages) :append
+                      `(("language.id"     . ,(drakma:url-encode (format nil "~A" (getf lang :lang-id)) :utf-8))
+                        ("language.degree" . ,(drakma:url-encode (format nil "~A" (getf lang :lang-degree)) :utf-8))))
+                   `(("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
+                 (split-sequence:split-sequence #\= (puri:uri-query uri))
+                 ))))
           ;; CONTACTS
           (let ((section-url (format nil "https://spb.hh.ru/applicant/resumes/edit/contacts?resume=~A" resume-id)))
             (multiple-value-bind (response cookie-jar url)
                 (hh-get-page section-url cookie-jar *hh_account* "http://spb.hh.ru")
               (with-cookie-alist (cookie-jar)
                 (send-post-multiple-values
-                    (section-url
-                     cookie-jar
-                     cookie-alist
-                     (append
-                      (let ((contacts (getf plist :contacts)))
-                        `(("phone.type" . "cell")
-                          ("phone.formatted" . ,(drakma:url-encode (getf contacts :cell-phone) :utf-8))
-                          ("phone.comment" . ,(drakma:url-encode (getf contacts :cell-phone-comment) :utf-8))
-                          ("phone.type" . "home")
-                          ("phone.formatted" . ,(drakma:url-encode (getf contacts :home-phone) :utf-8))
-                          ("phone.comment" . ,(drakma:url-encode (getf contacts :home-phone-comment) :utf-8))
-                          ("phone.type" . "work")
-                          ("phone.formatted" . ,(drakma:url-encode (getf contacts :work-phone) :utf-8))
-                          ("phone.comment" . ,(drakma:url-encode (getf contacts :work-phone-comment) :utf-8))
-                          ("email.string" . ,(drakma:url-encode (getf contacts :email-string) :utf-8))
-                          ("preferredContact.string" . "email")
-                          ("personalSite.type" . "icq")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :icq) :utf-8))
-                          ("personalSite.type" . "skype")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :skype) :utf-8))
-                          ("personalSite.type" . "freelance")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :freelance) :utf-8))
-                          ("personalSite.type" . "moi_krug")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :moi_krug) :utf-8))
-                          ("personalSite.type" . "linkedin")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :linkedin) :utf-8))
-                          ("personalSite.type" . "facebook")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :facebook) :utf-8))
-                          ("personalSite.type" . "personal")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :personal) :utf-8))
-                          ("personalSite.type" . "livejournal")
-                          ("personalSite.url" . ,(drakma:url-encode (getf contacts :livejournal) :utf-8))))
-                      `(("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
-                  (split-sequence:split-sequence #\= (puri:uri-query uri))
-                  ))))
+                 (section-url
+                  cookie-jar
+                  cookie-alist
+                  (append
+                   (let ((contacts (getf plist :contacts)))
+                     `(("phone.type" . "cell")
+                       ("phone.formatted" . ,(drakma:url-encode (getf contacts :cell-phone) :utf-8))
+                       ("phone.comment" . ,(drakma:url-encode (getf contacts :cell-phone-comment) :utf-8))
+                       ("phone.type" . "home")
+                       ("phone.formatted" . ,(drakma:url-encode (getf contacts :home-phone) :utf-8))
+                       ("phone.comment" . ,(drakma:url-encode (getf contacts :home-phone-comment) :utf-8))
+                       ("phone.type" . "work")
+                       ("phone.formatted" . ,(drakma:url-encode (getf contacts :work-phone) :utf-8))
+                       ("phone.comment" . ,(drakma:url-encode (getf contacts :work-phone-comment) :utf-8))
+                       ("email.string" . ,(drakma:url-encode (getf contacts :email-string) :utf-8))
+                       ("preferredContact.string" . "email")
+                       ("personalSite.type" . "icq")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :icq) :utf-8))
+                       ("personalSite.type" . "skype")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :skype) :utf-8))
+                       ("personalSite.type" . "freelance")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :freelance) :utf-8))
+                       ("personalSite.type" . "moi_krug")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :moi_krug) :utf-8))
+                       ("personalSite.type" . "linkedin")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :linkedin) :utf-8))
+                       ("personalSite.type" . "facebook")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :facebook) :utf-8))
+                       ("personalSite.type" . "personal")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :personal) :utf-8))
+                       ("personalSite.type" . "livejournal")
+                       ("personalSite.url" . ,(drakma:url-encode (getf contacts :livejournal) :utf-8))))
+                   `(("_xsrf" . ,(cdr (assoc "_xsrf" cookie-alist :test #'equal))))))
+                 (split-sequence:split-sequence #\= (puri:uri-query uri))
+                 ))))
           )))
 
     ;; title.string=IT-%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%BE%D1%80+%2F+%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C+%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B8+%D0%9F%D0%9EG2450&
     ;; profArea=1&specialization.string=221&specialization.string=3&salary.amount=160000&salary.currency=RUR&employment.string=full&workSchedule.string=full_day&_xsrf=5e9fb9ec46e64214f25085132e141e7e
 
     (progn
-    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-      (print
-      (hh-post-resume cookie-jar
-                      :title (concatenate 'string "IT-директор / Руководитель разработки ПО " (symbol-name (gensym)))
-                      :specalizations "3 221"
-                      :salary-amount "200000"
-                      :last-name "Глухов"
-                      :first-name "Михаил"
-                      :middle-name "Михайлович"
-                      :birthday "1982-12-15"
-                      :gender "male"
-                      :area "2"
-                      :metro ""
-                      :relocation "relocation_possible"
-                      :relocation-area "1"
-                      :business-trip-readiness "ready"
-                      :citizen-ship "113"
-                      :work-ticket "113"
-                      :travel-time "any"
-                      :education-level-string "higher"
-                      :primary-educations `(:education-id "0"
-                                                          ;; :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
-                                                          :name "Санкт-Петербургский национальный исследовательский университет информационных технологий, механики и оптики, Санкт-Петербург"
-                                                           ;; :university-id "39864"
-                                                          :university-id "39872"
-                                                          :faculty-id "0"
-                                                          ;; :organization "Режиссуры"
-                                                          :organization "Прикладная математика и информатика"
-                                                          ;; :result "Режиссура мультимедиа программ"
-                                                          :result "Математические модели и алгоритмы в разработке программного обеспечения"
-                                                          :specialty-id "" :year "2020")
-                      :additional-education-id ""
-                      :additional-education-name ""
-                      :additional-education-organization ""
-                      :additional-education-result ""
-                      :additional-education-year ""
-                      :certificate-id ""
-                      :certificate-type ""
-                      :certificate-selected ""
-                      :certificate-ownerName ""
-                      :certificate-transcription-id ""
-                      :certificate-password ""
-                      :certificate-title ""
-                      :certificate-achievementDate ""
-                      :certificate-url ""
-                      :attestation-education-id ""
-                      :attestation-education-name ""
-                      :attestation-education-organization ""
-                      :attestation-education-result ""
-                      :attestation-education-year ""
-                      :expiriences (list
-                                    ;; (job :name "ООО КОМПО ГРУПП"
-                                    ;;      :site "http://componentality.com"
-                                    ;;      :position  "Системный архитектор"
-                                    ;;      :start-date "2016-07-01"
-                                    ;;      :end-date  ""
-                                    ;;      :description "123")
-                                    (job :name "ООО Автоматон"
-                                         :site ""
-                                         :position  "Руководитель разработки ПО, Системный архитектор"
-                                         :start-date "2015-12-01"
-                                         :end-date  "" ;; "2016-07-01"
-                                         :description "- Спроектировал программно-аппаратную архитектуру системы автоматизации платных парковок.
+      (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+        (print
+         (hh-post-resume cookie-jar
+                         :title (concatenate 'string "IT-директор / Руководитель разработки ПО " (symbol-name (gensym)))
+                         :specalizations "3 221"
+                         :salary-amount "200000"
+                         :last-name "Глухов"
+                         :first-name "Михаил"
+                         :middle-name "Михайлович"
+                         :birthday "1982-12-15"
+                         :gender "male"
+                         :area "2"
+                         :metro ""
+                         :relocation "relocation_possible"
+                         :relocation-area "1"
+                         :business-trip-readiness "ready"
+                         :citizen-ship "113"
+                         :work-ticket "113"
+                         :travel-time "any"
+                         :education-level-string "higher"
+                         :primary-educations `(:education-id "0"
+                                                             ;; :name "Санкт-Петербургский государственный университет культуры и искусств, Санкт-Петербург"
+                                                             :name "Санкт-Петербургский национальный исследовательский университет информационных технологий, механики и оптики, Санкт-Петербург"
+                                                             ;; :university-id "39864"
+                                                             :university-id "39872"
+                                                             :faculty-id "0"
+                                                             ;; :organization "Режиссуры"
+                                                             :organization "Прикладная математика и информатика"
+                                                             ;; :result "Режиссура мультимедиа программ"
+                                                             :result "Математические модели и алгоритмы в разработке программного обеспечения"
+                                                             :specialty-id "" :year "2020")
+                         :additional-education-id ""
+                         :additional-education-name ""
+                         :additional-education-organization ""
+                         :additional-education-result ""
+                         :additional-education-year ""
+                         :certificate-id ""
+                         :certificate-type ""
+                         :certificate-selected ""
+                         :certificate-ownerName ""
+                         :certificate-transcription-id ""
+                         :certificate-password ""
+                         :certificate-title ""
+                         :certificate-achievementDate ""
+                         :certificate-url ""
+                         :attestation-education-id ""
+                         :attestation-education-name ""
+                         :attestation-education-organization ""
+                         :attestation-education-result ""
+                         :attestation-education-year ""
+                         :expiriences (list
+                                       ;; (job :name "ООО КОМПО ГРУПП"
+                                       ;;      :site "http://componentality.com"
+                                       ;;      :position  "Системный архитектор"
+                                       ;;      :start-date "2016-07-01"
+                                       ;;      :end-date  ""
+                                       ;;      :description "123")
+                                       (job :name "ООО Автоматон"
+                                            :site ""
+                                            :position  "Руководитель разработки ПО, Системный архитектор"
+                                            :start-date "2015-12-01"
+                                            :end-date  "" ;; "2016-07-01"
+                                            :description "Компания занимается разработкой и эксплуатацией автоматизированных парковок.
+
+    Я возглавил исследовательский проект по разработке новой парковочной системы: аппаратной и программной части.
+
+    Технологии:
+    - Проектирование печатных плат - Kikad, Altium Designer
+    - Программирование: С/С++, Assembler, Erlang (телефония), PHP/JS: Yii+React (веб-интерфейс), EmacsLisp - кодогенерация для \"исполняемых спецификаций\" и утилиты для совместной удаленной работы в команде
+    - Архитектурный стек - Linux on ARM Cortex A8
+
+    Разработку проводил с нуля, по этапам:
+    - Найм сотрудников
+    - Выбор электронных компонентов,
+    - Создание печатных плат,
+    - Написание низкоуровневого кода, управляющего шлагбаумами и опрашивающего датчики
+    - Написание бизнес-логики и веб-интерфейсов, через которые можно управлять парковкой удаленно,
+    - Подключение интернет-телефонии, для общения с клиентом в нестандартных ситуациях
+
+    Первое внедрение состоялось через полгода от начала разработки, разработка полностью окупилась через год. Технологически разработанное решение опережает конкурирующие, в том числе по соотношению цена/качество (но правда не в отношении дизайна) - опережает даже большинство зарубежных конкурентов.
+
+    Мои достижения:
+
+    - Спроектировал программно-аппаратную архитектуру системы автоматизации платных парковок.
     - Спланировал и организовал работы по разработке ПО и аппаратной части, включая подбор электронных компонентов и схемотехническое проектирование.
     - Самостоятельно реализовал бизнес-логику и уровень представления (АРМ Оператора)
     - Руководил работами по реализации транспортного уровня и уровня абстракции оборудования, выполненными удаленными разработчиками.
+    - Организовал паралельную разработку по модульному принципу (чтобы ускорить создание продукта) и методологии kanban
     - Внедрил Continuous Integration и процесс управления жизненным циклом (релизы, исправление ошибок, добавление возможностей, технический контроль качества, автоматизированное тестирование)
     - Реализовал безопасное (цифровая подпись) и отказоустойчивое (откат на предыдующую версию при провале тестов) обновление прошивок через интернет.
     - Автоматизировал создание и хранение документации, с использованием версионирования на базе GIT и \"executable specifications\".")
-                                    (job :name "ООО БКН"
-                                         :site "http://bkn.ru"
-                                         :position  "ИТ-директор"
-                                         :start-date "2015-04-01"
-                                         :end-date  "2015-12-01"
-                                         :description "Руководил разработкой и продвижением информационных решений автоматизации бизнеса агентств недвижимости (b2b и b2c). C# и ASP.NET
-    Реализовал на сайте bkn.ru раздел поиска и подбора квартир, комнат и жилых домов первичного и вторичного рынка, интегрировал его с межагентской базой данных объектов недвижимости.")
-                                    (job :name "Тренд"
-                                         :site "http://trend-spb.ru"
-                                         :position  "Ведущий инженер-программист"
-                                         :start-date "2014-08-01"
-                                         :end-date  "2015-03-01"
-                                         :description "Автоматизировал бизнес-процесс агенства по продажам недвижимости (новостройки). Php / Nginx / Mysql / PostgreSql")
-                                    (job :name "Частная компания (алготрейдинг)"
-                                         :site "http://aintsys.com"
-                                         :position  "Lisp/Erlang-разработчик"
-                                         :start-date "2012-04-01"
-                                         :end-date  "2014-08-01"
-                                         :description "Разрабатывал решения в сфере электронных валют на базе технологии BlockChain. Стек технологий: Erlang / Common Lisp / C++")
-                                    (job :name "ООО РАВТА"
-                                         :site "http://ravta.ru"
-                                         :position "Директор по IT"
-                                         :start-date "2012-01-01"
-                                         :end-date  "2012-04-01"
-                                         :description "Осуществлял руководство разработкой информационной системы предприятия, занимался постановкой задач и контролем выполнения работ. Организовывал договорную работу с подрядчиками.")
-                                    (job :name "WizardSoft"
-                                         :site "http://wizardsoft.ru"
-                                         :position "Ведущий разработчик, архитектор"
-                                         :start-date "2011-05-01"
-                                         :end-date "2012-01-01"
-                                         :description "Разработал высоконагрузочный портал для проведения строительных тендеров. Прототип реализовал на Common Lisp, Postmodern и PostgreSQL. После приемки прототип был существенно расширен и переписан на PHP")
-                                    (job :name "ЦиFры"
-                                         :site "http://www.320-8080.ru"
-                                         :position "Архитектор-проектировщик, веб-программист"
-                                         :start-date "2009-09-01"
-                                         :end-date "2011-04-01"
-                                         :description "Перепроектировал и реализовал на высоконагрузочный интернет-магазин.
-    Стек технологий: PHP, MySql, Jquery, Common Lisp, Memcached")
-                                    (job :name "ООО Вебдом"
-                                         :site  "http://webdom.net"
-                                         :position "Ведущий веб-разработчик"
-                                         :start-date "2007-01-01"
-                                         :end-date "2009-09-01"
-                                         :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает компания. CMS на его основе поставляются клиентам.")
-                                    (job :name "Почин"
-                                         :site "http://pochin.ru"
-                                         :position "Программист"
-                                         :start-date "2005-09-01"
-                                         :end-date "2007-01-01"
-                                         :description "Спроектировал и разработал интернет-магазин на стеке технологий LAMP"))
-                      :about "
-    Умею:
-    - программировать в одиночку и управлять командой
-    - нанимать технических специалистов
-    - отвечать за результат
-    - формализовывать бизнес-процессы
-    - обучать разработчиков
-    - следить за качеством кода
-    - распределять нагрузку на людей
-    - укладываться в сроки
+                                       (job :name "ООО БКН"
+                                            :site "http://bkn.ru"
+                                            :position  "ИТ-директор"
+                                            :start-date "2015-04-01"
+                                            :end-date  "2015-12-01"
+                                            :description "Компания - второй после \"Бюллетеня недвижимости\" информационный источник в области недвижимости по С-Пб и ЛО
 
-    Разрабатываю все, что автоматизирует бизнес и помогает зарабатывать деньги:
-    - интернет-магазины,
-    - ПО для железа,
-    - распределенные платежные системы,
-    - внутренний документооборот,
-    - CRM и ERP.
+    Используя данные межагентской
 
-    Интегрирую все это с 1С, SAP, картографическими сервисами, биллингами и другими внешними системами через протоколы взаимодействия и API
+    Руководил разработкой и продвижением информационных решений автоматизации бизнеса агентств недвижимости (b2b и b2c). C# и ASP.NET
+        Реализовал на сайте bkn.ru раздел поиска и подбора квартир, комнат и жилых домов первичного и вторичного рынка, интегрировал его с межагентской базой данных объектов недвижимости.")
+                                       (job :name "Тренд"
+                                            :site "http://trend-spb.ru"
+                                            :position  "Ведущий инженер-программист"
+                                            :start-date "2014-08-01"
+                                            :end-date  "2015-03-01"
+                                            :description "Автоматизировал бизнес-процесс агенства по продажам недвижимости (новостройки). Php / Nginx / Mysql / PostgreSql")
+                                       (job :name "Частная компания (алготрейдинг)"
+                                            :site "http://aintsys.com"
+                                            :position  "Lisp/Erlang-разработчик"
+                                            :start-date "2012-04-01"
+                                            :end-date  "2014-08-01"
+                                            :description "Разрабатывал решения в сфере электронных валют на базе технологии BlockChain. Стек технологий: Erlang / Common Lisp / C++")
+                                       (job :name "ООО РАВТА"
+                                            :site "http://ravta.ru"
+                                            :position "Директор по IT"
+                                            :start-date "2012-01-01"
+                                            :end-date  "2012-04-01"
+                                            :description "Осуществлял руководство разработкой информационной системы предприятия, занимался постановкой задач и контролем выполнения работ. Организовывал договорную работу с подрядчиками.")
+                                       (job :name "WizardSoft"
+                                            :site "http://wizardsoft.ru"
+                                            :position "Ведущий разработчик, архитектор"
+                                            :start-date "2011-05-01"
+                                            :end-date "2012-01-01"
+                                            :description "Разработал высоконагрузочный портал для проведения строительных тендеров. Прототип реализовал на Common Lisp, Postmodern и PostgreSQL. После приемки прототип был существенно расширен и переписан на PHP")
+                                       (job :name "ЦиFры"
+                                            :site "http://www.320-8080.ru"
+                                            :position "Архитектор-проектировщик, веб-программист"
+                                            :start-date "2009-09-01"
+                                            :end-date "2011-04-01"
+                                            :description "Перепроектировал и реализовал на высоконагрузочный интернет-магазин.
+        Стек технологий: PHP, MySql, Jquery, Common Lisp, Memcached")
+                                       (job :name "ООО Вебдом"
+                                            :site  "http://webdom.net"
+                                            :position "Ведущий веб-разработчик"
+                                            :start-date "2007-01-01"
+                                            :end-date "2009-09-01"
+                                            :description "Cпроектировал и разработал масштабируемый фреймворк, на котором теперь работает компания. CMS на его основе поставляются клиентам.")
+                                       (job :name "Почин"
+                                            :site "http://pochin.ru"
+                                            :position "Программист"
+                                            :start-date "2005-09-01"
+                                            :end-date "2007-01-01"
+                                            :description "Спроектировал и разработал интернет-магазин на стеке технологий LAMP"))
+                         :about "
+        Умею:
+        - программировать в одиночку и управлять командой
+        - нанимать технических специалистов
+        - отвечать за результат
+        - формализовывать бизнес-процессы
+        - обучать разработчиков
+        - следить за качеством кода
+        - распределять нагрузку на людей
+        - укладываться в сроки
 
-    Умею \"думать вперед\", формализовывать требования и предвидеть возможные будущие проблемы.
+        Разрабатываю все, что автоматизирует бизнес и помогает зарабатывать деньги:
+        - интернет-магазины,
+        - ПО для железа,
+        - распределенные платежные системы,
+        - внутренний документооборот,
+        - CRM и ERP.
 
-    Умею планировать архитектуру проекта, учитывая возможное масштабирование в будущем в т.ч. под высокие нагрузки.
+        Интегрирую все это с 1С, SAP, картографическими сервисами, биллингами и другими внешними системами через протоколы взаимодействия и API
 
-    Постоянный докладчик семинаров по функциональному программированию в Санкт-Петербурге (https://plus.google.com/communities/106931692847918217517) и IT Global Meetup (http://piter-united.ru/). Исследую современные подходы в области \"искусственного интеллекта\", нейросетей и machine learning.
+        Умею \"думать вперед\", формализовывать требования и предвидеть возможные будущие проблемы.
 
-    Используемые технологии:
-    - Linux, FreeBSD
-    - PHP, JavaScript, Python, C/C++, Java, Common Lisp, Erlang
-    - Nginx, Apache, Memcache, Redis, RabbitMQ
-    - MySQL, PostgreSQL
-    - Git, Svn
-    - JavaSсript, JQuery, ExtJS
-    - JSON, OpenID, XML, XML+RPC, closure-template, Sphinx, PHPUnit
+        Умею планировать архитектуру проекта, учитывая возможное масштабирование в будущем в т.ч. под высокие нагрузки.
 
-    Также знаком с: Delphi/Pascal, Assembler80x86, Forth
+        Постоянный докладчик семинаров по функциональному программированию в Санкт-Петербурге (https://plus.google.com/communities/106931692847918217517) и IT Global Meetup (http://piter-united.ru/). Исследую современные подходы в области \"искусственного интеллекта\", нейросетей и machine learning.
 
-    Умею сниффать сниффером и профайлить профайлером.
+        Используемые технологии:
+        - Linux, FreeBSD
+        - PHP, JavaScript, Python, C/C++, Java, Common Lisp, Erlang
+        - Nginx, Apache, Memcache, Redis, RabbitMQ
+        - MySQL, PostgreSQL
+        - Git, Svn
+        - JavaSсript, JQuery, ExtJS
+        - JSON, OpenID, XML, XML+RPC, closure-template, Sphinx, PHPUnit
 
-    Не боюсь регулярных выражений.
+        Также знаком с: Delphi/Pascal, Assembler80x86, Forth
 
-    Знаю в чем разница между венгерской нотацией и обратной польской записью.
+        Умею сниффать сниффером и профайлить профайлером.
 
-    Умею управлять машиной Тьюринга и стрелять из конечного автомата.
+        Не боюсь регулярных выражений.
 
-    Грамотно выражаю свои мысли на бумаге, устно, на пальцах; и с первого раза воспринимаю чужие с тех же носителей.
+        Знаю в чем разница между венгерской нотацией и обратной польской записью.
 
-    Целиком спроектировал и реализовал:
-    - http://320-8080.ru
-    - http://pochin.ru
-    - http://rigidus.ru
-    - http://izverg.ru
+        Умею управлять машиной Тьюринга и стрелять из конечного автомата.
 
-    Мой код работает в:
-    - http://bkn.ru
-    - https://trend-spb.ru/
-    - http://toursfera.ru
-    - http://chembalt.ru
-    - http://parus-ltd.ru
-    - http://www.3-trans.ru
-    - http://spsstroy.ru
-    - http://gtmorstroy.com
-    - http://www.mva-group.ru
-    "
-    #|
-    "Плотно сижу на Common Lisp с сентября 2009 года, неоднократно был замечен в употреблении Common Lisp-а в продакшене, в т.ч. на находясь на рабочем месте . Периодов ремисии не было, проходил комплексную терапию у доктора Д.Э. Кнута (EmacsLisp в качестве заместительной + literate programming). В анамнезе несколько обострений - попытка написать лисп на форте, а форт - на пхп, тяжелая наследственность: в юности (до 1998 года) изучал технологии самоходного программного обеспечения, но на стационарном лечении не находился ввиду либерального законодательства и по малолетству.
+        Грамотно выражаю свои мысли на бумаге, устно, на пальцах; и с первого раза воспринимаю чужие с тех же носителей.
 
-    Разрабатываю коммерческие проекты на Common Lisp c 2009 года. Понимаю макросы, conditions-restarts, использую основные распространенные библиотеки - postmodern, parenscript, closer-mop, cl-fad и.т.п.
+        Целиком спроектировал и реализовал:
+        - http://320-8080.ru
+        - http://pochin.ru
+        - http://rigidus.ru
+        - http://izverg.ru
 
-    Широко использую CLOS и метаобьектный протокол. В разработке предпочитаю сначала спроектировать расширяемый domain specific language, а потом написать его реализацию с помощью макросов и CLOS.
+        Мой код работает в:
+        - http://bkn.ru
+        - https://trend-spb.ru/
+        - http://toursfera.ru
+        - http://chembalt.ru
+        - http://parus-ltd.ru
+        - http://www.3-trans.ru
+        - http://spsstroy.ru
+        - http://gtmorstroy.com
+        - http://www.mva-group.ru
+        "
+                         #|
+                         "Плотно сижу на Common Lisp с сентября 2009 года, неоднократно был замечен в употреблении Common Lisp-а в продакшене, в т.ч. на находясь на рабочем месте . Периодов ремисии не было, проходил комплексную терапию у доктора Д.Э. Кнута (EmacsLisp в качестве заместительной + literate programming). В анамнезе несколько обострений - попытка написать лисп на форте, а форт - на пхп, тяжелая наследственность: в юности (до 1998 года) изучал технологии самоходного программного обеспечения, но на стационарном лечении не находился ввиду либерального законодательства и по малолетству.
 
-    С 2010-го года все проекты, реализованные мной на других языках, сначала были спрототипированы на Common Lisp для быстрого анализа и разработки идей. Предпочитаю при любых затруднениях (например в использовании библиотеки) взглянуть на исходный код, иногда даже прежде обращения к документации. Как правило многое становится понятно сразу.
+                         Разрабатываю коммерческие проекты на Common Lisp c 2009 года. Понимаю макросы, conditions-restarts, использую основные распространенные библиотеки - postmodern, parenscript, closer-mop, cl-fad и.т.п.
 
-    В собственных проектах стараюсь применять методы искусственного интеллекта (главным образом из Artifical Intelligence - A Modern Approach - S.J. Russel, P. Norvig)
+                         Широко использую CLOS и метаобьектный протокол. В разработке предпочитаю сначала спроектировать расширяемый domain specific language, а потом написать его реализацию с помощью макросов и CLOS.
 
-    Также обладаю хорошим пониманием языков, близких к лиспу (Scheme, Clojure, Racket), довольно хорошим - других функциональных, логических и объектных языков (Haskell, Prolog, Smalltalk) и основанных на них технологиях."
-    |#
-                      :languages `((:lang-id "34" :lang-degree "native")
-                                   (:lang-id "57" :lang-degree "can_read")
-                                   (:lang-id "58" :lang-degree "basic")
-                                   (:lang-id "59" :lang-degree "none"))
-                      :contacts `(:cell-phone "+79112869290"
-                                              :cell-phone-comment ""
-                                              :home-phone ""
-                                              :home-phone-comment ""
-                                              :work-phone ""
-                                              :work-phone-comment ""
-                                              :email-string "avenger-f@yandex.ru"
-                                              :preferred-contact "email"
-                                              :icq ""
-                                              :skype "i.am.rigidus"
-                                              :freelance ""
-                                              :moi_krug ""
-                                              :linkedin ""
-                                              :facebook ""
-                                              :livejournal "http://rigidus.livejournal.com"
-                                              :personal-site "http://rigidus.ru")
-                      ))))
+                         С 2010-го года все проекты, реализованные мной на других языках, сначала были спрототипированы на Common Lisp для быстрого анализа и разработки идей. Предпочитаю при любых затруднениях (например в использовании библиотеки) взглянуть на исходный код, иногда даже прежде обращения к документации. Как правило многое становится понятно сразу.
+
+                         В собственных проектах стараюсь применять методы искусственного интеллекта (главным образом из Artifical Intelligence - A Modern Approach - S.J. Russel, P. Norvig)
+
+                         Также обладаю хорошим пониманием языков, близких к лиспу (Scheme, Clojure, Racket), довольно хорошим - других функциональных, логических и объектных языков (Haskell, Prolog, Smalltalk) и основанных на них технологиях."
+                         |#
+                         :languages `((:lang-id "34" :lang-degree "native")
+                                      (:lang-id "57" :lang-degree "can_read")
+                                      (:lang-id "58" :lang-degree "basic")
+                                      (:lang-id "59" :lang-degree "none"))
+                         :contacts `(:cell-phone "+79112869290"
+                                                 :cell-phone-comment ""
+                                                 :home-phone ""
+                                                 :home-phone-comment ""
+                                                 :work-phone ""
+                                                 :work-phone-comment ""
+                                                 :email-string "avenger-f@yandex.ru"
+                                                 :preferred-contact "email"
+                                                 :icq ""
+                                                 :skype "i.am.rigidus"
+                                                 :freelance ""
+                                                 :moi_krug ""
+                                                 :linkedin ""
+                                                 :facebook ""
+                                                 :livejournal "http://rigidus.livejournal.com"
+                                                 :personal-site "http://rigidus.ru")
+                         ))))
 
 
     ;; КЛЮЧЕВЫЕ НАВЫКИ
