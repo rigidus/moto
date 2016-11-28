@@ -1,0 +1,3473 @@
+* Code
+
+Это эксперимент по генерации кода из дерева, полученного разбором
+orgmode-файла.
+
+#+BEGIN_SRC elisp :results value verbatim
+  (defun walk-org-tree (tree)
+    ;; (message "IN:::: %s" tree)
+    (cond ((null tree)   nil)
+          ((listp tree)  (let ((lead (car tree)))
+                           ;; (message "LEAD:: %s" lead)
+                           (cond ((equal lead 'org-data) (progn
+                                                           ;; (message "-ORG-DATA")
+                                                           (walk-org-tree (cddr tree))))
+                                 ((equal lead 'section)  (progn
+                                                           ;; (message "-SECTION")
+                                                           (walk-org-tree (cddr tree))))
+                                 ((equal lead 'keyword)  (progn
+                                                           ;; (message "-KEYWORD")
+                                                           (let ((attr (cadr tree)))
+                                                             ;; (message "-ATTR: %s" attr)
+                                                             ;; (message "-KEY: %s" (type-of (plist-get attr :key)))
+                                                             (when (equal "TITLE" (plist-get attr :key))
+                                                               (let ((ret (plist-get attr :value)))
+                                                                 ;; (message "RET::: %s" ret)
+                                                                 ret)))))
+                                 ((listp lead)           (progn
+                                                           ;; (message "-LIST")
+                                                           (let ((fst (walk-org-tree (car tree))))
+                                                             (if (null fst)
+                                                                 (walk-org-tree (cdr tree))
+                                                               fst))))
+                                 ((memq lead '(paragraph)) nil)
+                                 (t (message "= error1: %s" lead)))
+                           ))
+          (t (message "= error2: %s" tree))))
+
+  (let ((filename "~/repo/moto/resume2.org"))
+    (with-temp-buffer
+      (insert-file-contents filename)
+      (org-mode)
+      (let* ((tree (org-element-parse-buffer))
+             (title (walk-org-tree tree)))
+        tree)))
+#+END_SRC
+
+#+begin_src elisp
+  '(org-data nil
+             (section (:begin 1 :end 70 :contents-begin 1 :contents-end 69 :post-blank 1 :post-affiliated 1 :parent #0)
+                      (keyword (:key "TITLE" :value "IT-директор / TeamLead" :begin 1 :end 33 :post-blank 0 :post-affiliated 1 :parent #1))
+                      (keyword (:key "STARTUP" :value "showall indent hidestars" :begin 33 :end 69 :post-blank 0 :post-affiliated 33 :parent #1)))
+             (headline (:raw-value "Info" :begin 70 :end 2214 :pre-blank 1 :contents-begin 78 :contents-end 2213 :level 1 :priority nil  :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 70 :title (# ("Info" 0 4 (:parent #1))) :parent #0)
+                       (section (:begin 78 :end 2214 :contents-begin 78 :contents-end 2213 :post-blank 1 :post-affiliated 78 :parent #1)
+                       (table
+                        (:begin 78 :end 2213 :type org :tblfm nil :contents-begin 78 :contents-end 2213 :value nil :post-blank 0 :post-affiliated 78 :parent #2)
+                        (table-row (:type standard :begin 78 :end 139 :contents-begin 79 :contents-end 138 :post-blank 0 :post-affiliated 78 :parent #3)
+                                   (table-cell (:begin 79 :end 116 :contents-begin 80 :contents-end 94 :post-blank 0 :parent #4)
+                                               # ("specalizations" 0 14 (:parent #5)))
+                                   (table-cell (:begin 116 :end 138 :contents-begin 117 :contents-end 122 :post-blank 0 :parent #4)
+                                               # ("3 221" 0 5 (:parent #5))))
+                        (table-row (:type standard :begin 627 :end 688 :contents-begin 628 :contents-end 687 :post-blank 0 :post-affiliated 627 :parent #3)
+                                   (table-cell (:begin 628 :end 665 :contents-begin 629 :contents-end 639 :post-blank 0 :parent #4)
+                                               # ("relocation" 0 10 (:parent #5)))
+                                   (table-cell (:begin 665 :end 687 :contents-begin 666 :contents-end 685 :post-blank 0 :parent #4)
+                                               # ("relocation" 0 10 (:parent #5))
+                                                 (subscript
+                                                  (:begin 676 :end 685 :use-brackets-p nil :contents-begin 677 :contents-end 685 :post-blank 0 :parent #5) #
+                                                  ("possible" 0 8
+                                                   (:parent #6)))))
+                        (table-row (:type standard :begin 2152 :end 2213 :contents-begin 2153 :contents-end 2212 :post-blank 0 :post-affiliated 2152 :parent #3)
+                                   (table-cell (:begin 2153 :end 2190 :contents-begin 2154 :contents-end 2180 :post-blank 0 :parent #4)
+                                               # ("attestation-education-year" 0 26 (:parent #5)))
+                                   (table-cell (:begin 2190 :end 2212 :contents-begin 2211 :contents-end 2211 :post-blank 0 :parent #4))))))
+             (headline (:raw-value "Educations" :begin 2214 :end 3389 :pre-blank 1 :contents-begin 2228 :contents-end 3388 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 2214 :title
+                                   (#
+                                    ("Educations" 0 10
+                                     (:parent #1))) :parent #0)
+                       (section (:begin 2228 :end 3389 :contents-begin 2228 :contents-end 3388 :post-blank 1 :post-affiliated 2228 :parent #1)
+                                (table (:begin 2228 :end 3388 :type org :tblfm nil :contents-begin 2228 :contents-end 3388 :value nil :post-blank 0 :post-affiliated 2228 :parent #2)
+                                       (table-row (:type standard :begin 2228 :end 2373 :contents-begin 2229 :contents-end 2372 :post-blank 0 :post-affiliated 2228 :parent #3)
+                                                  (table-cell (:begin 2229 :end 2245 :contents-begin 2230 :contents-end 2242 :post-blank 0 :parent #4) #
+                                                              ("education-id" 0 12 (:parent #5)))
+                                                  (table-cell (:begin 2245 :end 2372 :contents-begin 2369 :contents-end 2370 :post-blank 0 :parent #4) #
+                                                              ("0" 0 1 (:parent #5)))))))
+             (headline (:raw-value "Expiriences" :begin 3389 :end 10582 :pre-blank 1 :contents-begin 3404 :contents-end 10581 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 3389 :title (# ("Expiriences" 0 11 (:parent #1))) :parent #0)
+                       (headline (:raw-value "ООО Автоматон" :begin 3404 :end 5966 :pre-blank 1 :contents-begin 3422 :contents-end 5965 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 3404 :title (# ("ООО Автоматон" 0 13 (:parent #2))) :parent #1)
+                                 (section (:begin 3422 :end 5966 :contents-begin 3422 :contents-end 5965 :post-blank 1 :post-affiliated 3422 :parent #2)
+                                          (table (:begin 3422 :end 3703 :type org :tblfm nil :contents-begin 3438 :contents-end 3702 :value nil :post-blank 1 :post-affiliated 3438 :caption (((# ("info" 0 4 (:parent #8))))) :parent #3)
+                                                 (table-row (:type standard :begin 3438 :end 3504 :contents-begin 3439 :contents-end 3503 :post-blank 0 :post-affiliated 3438 :parent #4)
+                                                            (table-cell (:begin 3439 :end 3452 :contents-begin 3440 :contents-end 3444 :post-blank 0 :parent #5) #
+                                                                        ("site" 0 4 (:parent #6)))
+                                                            (table-cell (:begin 3452 :end 3503 :contents-begin 3502 :contents-end 3502 :post-blank 0 :parent #5)))
+                                                 (table-row (:type standard :begin 3504 :end 3570 :contents-begin 3505 :contents-end 3569 :post-blank 0 :post-affiliated 3504 :parent #4)
+                                                            (table-cell (:begin 3505 :end 3518 :contents-begin 3506 :contents-end 3514 :post-blank 0 :parent #5) #
+                                                                        ("position" 0 8 (:parent #6)))
+                                                            (table-cell (:begin 3518 :end 3569 :contents-begin 3519 :contents-end 3567 :post-blank 0 :parent #5) #
+                                                                        ("Руководитель разработки ПО, Системный архитектор" 0 48 (:parent #6))))
+                                                 (table-row (:type standard :begin 3570 :end 3636 :contents-begin 3571 :contents-end 3635 :post-blank 0 :post-affiliated 3570 :parent #4)
+                                                            (table-cell (:begin 3571 :end 3584 :contents-begin 3572 :contents-end 3582 :post-blank 0 :parent #5) #
+                                                                        ("start-date" 0 10 (:parent #6)))
+                                                            (table-cell (:begin 3584 :end 3635 :contents-begin 3585 :contents-end 3595 :post-blank 0 :parent #5) #
+                                                                        ("2015-12-01" 0 10 (:parent #6))))
+                                                 (table-row (:type standard :begin 3636 :end 3702 :contents-begin 3637 :contents-end 3701 :post-blank 0 :post-affiliated 3636 :parent #4)
+                                                            (table-cell (:begin 3637 :end 3650 :contents-begin 3638 :contents-end 3646 :post-blank 0 :parent #5) #
+                                                                        ("end-date" 0 8 (:parent #6)))
+                                                            (table-cell (:begin 3650 :end 3701 :contents-begin 3651 :contents-end 3667 :post-blank 0 :parent #5) #
+                                                                        ("\" ;; \"2016-07-01" 0 16 (:parent #6)))))
+                                          (paragraph (:begin 3703 :end 3781 :contents-begin 3703 :contents-end 3780 :post-blank 1 :post-affiliated 3703 :parent #3) #
+                                                     ("Компания занимается разработкой и эксплуатацией автоматизированных парковок." 0 77 (:parent #4)))
+                                          (paragraph (:begin 3781 :end 3892 :contents-begin 3781 :contents-end 3891 :post-blank 1 :post-affiliated 3781 :parent #3) #
+                                                     ("Я возглавил исследовательский проект по разработке новой парковочной системы: аппаратной и программной части." 0 110 (:parent #4)))
+                                          (paragraph (:begin 3892 :end 3904 :contents-begin 3892 :contents-end 3904 :post-blank 0 :post-affiliated 3892 :parent #3) #
+                                                     ("Технологии:" 0 12 (:parent #4)))
+                                          (plain-list (:type unordered :begin 3904 :end 4211 :contents-begin 3904 :contents-end 4210
+                                                             :structure ((3904 0 "- " nil nil nil 3960)
+                                                                         (3960 0 "- " nil nil nil 4164)
+                                                                         (4164 0 "- " nil nil nil 4210))
+                                                             :post-blank 1 :post-affiliated 3904 :parent #3)
+                                                      (item (:bullet "- " :begin 3904 :end 3960 :contents-begin 3906 :contents-end 3960 :checkbox nil :counter nil
+                                                                     :structure ((3904 0 "- " nil nil nil 3960)
+                                                                                 (3960 0 "- " nil nil nil 4164)
+                                                                                 (4164 0 "- " nil nil nil 4210))
+                                                                     :post-blank 0 :post-affiliated 3904 :tag nil :parent #4)
+                                                            (paragraph (:begin 3906 :end 3960 :contents-begin 3906 :contents-end 3960 :post-blank 0 :post-affiliated 3906 :parent #5) #
+                                                                       ("Проектирование печатных плат - Kikad, Altium Designer" 0 54 (:parent #6))))
+                                                      (item (:bullet "- " :begin 3960 :end 4164 :contents-begin 3962 :contents-end 4164 :checkbox nil :counter nil
+                                                                     :structure ((3904 0 "- " nil nil nil 3960)
+                                                                                 (3960 0 "- " nil nil nil 4164)
+                                                                                 (4164 0 "- " nil nil nil 4210))
+                                                                     :post-blank 0 :post-affiliated 3960 :tag nil :parent #4)
+                                                            (paragraph (:begin 3962 :end 4164 :contents-begin 3962 :contents-end 4164 :post-blank 0 :post-affiliated 3962 :parent #5) #
+                                                                       ("Программирование: С/С++, Assembler, Erlang (телефония), PHP/JS: Yii+React (веб-интерфейс), EmacsLisp - кодогенерация для \\\"исполняемых спецификаций\\\" и утилиты для совместной удаленной работы в команде" 0 202 (:parent #6))))
+                                                      (item
+                                                       (:bullet "- " :begin 4164 :end 4210 :contents-begin 4166 :contents-end 4210 :checkbox nil :counter nil
+                                                                :structure ((3904 0 "- " nil nil nil 3960)
+                                                                            (3960 0 "- " nil nil nil 4164)
+                                                                            (4164 0 "- " nil nil nil 4210))
+                                                                :post-blank 0 :post-affiliated 4164 :tag nil :parent #4)
+                                                       (paragraph
+                                                        (:begin 4166 :end 4210 :contents-begin 4166 :contents-end 4210 :post-blank 0 :post-affiliated 4166 :parent #5) #
+                                                        ("Архитектурный стек - Linux on ARM Cortex A8" 0 44 (:parent #6)))))
+                                          (paragraph (:begin 4211 :end 4250 :contents-begin 4211 :contents-end 4250 :post-blank 0 :post-affiliated 4211 :parent #3) #
+                                                     ("Разработку проводил с нуля, по этапам:" 0 39 (:parent #4)))
+                                          (plain-list (:type unordered :begin 4250 :end 4590 :contents-begin 4250 :contents-end 4589
+                                                             :structure ((4250 0 "- " nil nil nil 4269)
+                                                                         (4269 0 "- " nil nil nil 4302)
+                                                                         (4302 0 "- " nil nil nil 4328)
+                                                                         (4328 0 "- " nil nil nil 4411)
+                                                                         (4411 0 "- " nil nil nil 4506)
+                                                                         (4506 0 "- " nil nil nil 4589))
+                                                             :post-blank 1 :post-affiliated 4250 :parent #3)
+                                                      (item
+                                                       (:bullet "- " :begin 4250 :end 4269 :contents-begin 4252 :contents-end 4269 :checkbox nil :counter nil
+                                                                :structure ((4250 0 "- " nil nil nil 4269)
+                                                                            (4269 0 "- " nil nil nil 4302)
+                                                                            (4302 0 "- " nil nil nil 4328)
+                                                                            (4328 0 "- " nil nil nil 4411)
+                                                                            (4411 0 "- " nil nil nil 4506)
+                                                                            (4506 0 "- " nil nil nil 4589))
+                                                                :post-blank 0 :post-affiliated 4250 :tag nil :parent #4)
+                                                       (paragraph
+                                                        (:begin 4252 :end 4269 :contents-begin 4252 :contents-end 4269 :post-blank 0 :post-affiliated 4252 :parent #5) #
+                                                        ("Найм сотрудников" 0 17 (:parent #6))))
+                                                      (item (:bullet "- " :begin 4269 :end 4302 :contents-begin 4271 :contents-end 4302 :checkbox nil :counter nil
+                                                                     :structure ((4250 0 "- " nil nil nil 4269)
+                                                                                 (4269 0 "- " nil nil nil 4302)
+                                                                                 (4302 0 "- " nil nil nil 4328)
+                                                                                 (4328 0 "- " nil nil nil 4411)
+                                                                                 (4411 0 "- " nil nil nil 4506)
+                                                                                 (4506 0 "- " nil nil nil 4589))
+                                                                     :post-blank 0 :post-affiliated 4269 :tag nil :parent #4)
+                                                            (paragraph (:begin 4271 :end 4302 :contents-begin 4271 :contents-end 4302 :post-blank 0 :post-affiliated 4271 :parent #5) #
+                                                                       ("Выбор электронных компонентов," 0 31 (:parent #6))))
+                                                      (item
+                                                       (:bullet "- " :begin 4302 :end 4328 :contents-begin 4304 :contents-end 4328 :checkbox nil :counter nil :structure
+                                                                ((4250 0 "- " nil nil nil 4269)
+                                                                 (4269 0 "- " nil nil nil 4302)
+                                                                 (4302 0 "- " nil nil nil 4328)
+                                                                 (4328 0 "- " nil nil nil 4411)
+                                                                 (4411 0 "- " nil nil nil 4506)
+                                                                 (4506 0 "- " nil nil nil 4589))
+                                                                :post-blank 0 :post-affiliated 4302 :tag nil :parent #4)
+                                                       (paragraph
+                                                        (:begin 4304 :end 4328 :contents-begin 4304 :contents-end 4328 :post-blank 0 :post-affiliated 4304 :parent #5) #
+                                                        ("Создание печатных плат," 0 24
+                                                         (:parent #6))))
+                                                      (item (:bullet "- " :begin 4328 :end 4411 :contents-begin 4330 :contents-end 4411 :checkbox nil :counter nil
+                                                                     :structure ((4250 0 "- " nil nil nil 4269)
+                                                                                 (4269 0 "- " nil nil nil 4302)
+                                                                                 (4302 0 "- " nil nil nil 4328)
+                                                                                 (4328 0 "- " nil nil nil 4411)
+                                                                                 (4411 0 "- " nil nil nil 4506)
+                                                                                 (4506 0 "- " nil nil nil 4589))
+                                                                     :post-blank 0 :post-affiliated 4328 :tag nil :parent #4)
+                                                            (paragraph
+                                                             (:begin 4330 :end 4411 :contents-begin 4330 :contents-end 4411 :post-blank 0 :post-affiliated 4330 :parent #5) #
+                                                             ("Написание низкоуровневого кода, управляющего шлагбаумами и опрашивающего датчики" 0 81 (:parent #6))))
+                                                      (item (:bullet "- " :begin 4411 :end 4506 :contents-begin 4413 :contents-end 4506 :checkbox nil :counter nil
+                                                                     :structure ((4250 0 "- " nil nil nil 4269)
+                                                                                 (4269 0 "- " nil nil nil 4302)
+                                                                                 (4302 0 "- " nil nil nil 4328)
+                                                                                 (4328 0 "- " nil nil nil 4411)
+                                                                                 (4411 0 "- " nil nil nil 4506)
+                                                                                 (4506 0 "- " nil nil nil 4589))
+                                                                     :post-blank 0 :post-affiliated 4411 :tag nil :parent #4)
+                                                            (paragraph (:begin 4413 :end 4506 :contents-begin 4413 :contents-end 4506 :post-blank 0 :post-affiliated 4413 :parent #5) #
+                                                                       ("Написание бизнес-логики и веб-интерфейсов, через которые можно управлять парковкой удаленно," 0 93 (:parent #6))))
+                                                      (item (:bullet "- " :begin 4506 :end 4589 :contents-begin 4508 :contents-end 4589 :checkbox nil :counter nil
+                                                                     :structure ((4250 0 "- " nil nil nil 4269)
+                                                                                 (4269 0 "- " nil nil nil 4302)
+                                                                                 (4302 0 "- " nil nil nil 4328)
+                                                                                 (4328 0 "- " nil nil nil 4411)
+                                                                                 (4411 0 "- " nil nil nil 4506)
+                                                                                 (4506 0 "- " nil nil nil 4589))
+                                                                     :post-blank 0 :post-affiliated 4506 :tag nil :parent #4)
+                                                            (paragraph (:begin 4508 :end 4589 :contents-begin 4508 :contents-end 4589 :post-blank 0 :post-affiliated 4508 :parent #5) #
+                                                                       ("Подключение интернет-телефонии, для общения с клиентом в нестандартных ситуациях" 0 81 (:parent #6)))))
+                                          (paragraph (:begin 4590 :end 4886 :contents-begin 4590 :contents-end 4885 :post-blank 1 :post-affiliated 4590 :parent #3) #
+                                                     ("Первое внедрение состоялось через полгода от начала разработки, разработка полностью окупилась через год. Технологически разработанное решение опережает конкурирующие. В том числе по соотношению цена/качество (но не в отношении пром-дизайна) - опережает даже большинство зарубежных конкурентов." 0 295 (:parent #4)))
+                                          (paragraph (:begin 4886 :end 4902 :contents-begin 4886 :contents-end 4902 :post-blank 0 :post-affiliated 4886 :parent #3) #
+                                                     ("Мои достижения:" 0 16 (:parent #4)))
+                                          (plain-list (:type unordered :begin 4902 :end 5965 :contents-begin 4902 :contents-end 5965 :structure
+                                                             ((4902 0 "- " nil nil nil 4994)
+                                                              (4994 0 "- " nil nil nil 5144)
+                                                              (5144 0 "- " nil nil nil 5238)
+                                                              (5238 0 "- " nil nil nil 5370)
+                                                              (5370 0 "- " nil nil nil 5488)
+                                                              (5488 0 "- " nil nil nil 5681)
+                                                              (5681 0 "- " nil nil nil 5832)
+                                                              (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 4902 :parent #3)
+                                                      (item
+                                                       (:bullet "- " :begin 4902 :end 4994 :contents-begin 4904 :contents-end 4994 :checkbox nil :counter nil :structure
+                                                                (
+                                                                 (4902 0 "- " nil nil nil 4994)
+                                                                 (4994 0 "- " nil nil nil 5144)
+                                                                 (5144 0 "- " nil nil nil 5238)
+                                                                 (5238 0 "- " nil nil nil 5370)
+                                                                 (5370 0 "- " nil nil nil 5488)
+                                                                 (5488 0 "- " nil nil nil 5681)
+                                                                 (5681 0 "- " nil nil nil 5832)
+                                                                 (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 4902 :tag nil :parent #4)
+                                                       (paragraph
+                                                        (:begin 4904 :end 4994 :contents-begin 4904 :contents-end 4994 :post-blank 0 :post-affiliated 4904 :parent #5) #
+                                                        ("Спроектировал программно-аппаратную архитектуру системы автоматизации платных парковок." 0 90
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 4994 :end 5144 :contents-begin 4996 :contents-end 5144 :checkbox nil :counter nil :structure
+            (
+             (4902 0 "- " nil nil nil 4994)
+             (4994 0 "- " nil nil nil 5144)
+             (5144 0 "- " nil nil nil 5238)
+             (5238 0 "- " nil nil nil 5370)
+             (5370 0 "- " nil nil nil 5488)
+             (5488 0 "- " nil nil nil 5681)
+             (5681 0 "- " nil nil nil 5832)
+             (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 4994 :tag nil :parent #4)
+   (paragraph
+    (:begin 4996 :end 5144 :contents-begin 4996 :contents-end 5144 :post-blank 0 :post-affiliated 4996 :parent #5) #
+    ("Спланировал и организовал работы по разработке ПО и аппаратной
+  части, включая подбор электронных компонентов и схемотехническое
+  проектирование.
+  " 0 148
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 5144 :end 5238 :contents-begin 5146 :contents-end 5238 :checkbox nil :counter nil :structure
+            (
+             (4902 0 "- " nil nil nil 4994)
+             (4994 0 "- " nil nil nil 5144)
+             (5144 0 "- " nil nil nil 5238)
+             (5238 0 "- " nil nil nil 5370)
+             (5370 0 "- " nil nil nil 5488)
+             (5488 0 "- " nil nil nil 5681)
+             (5681 0 "- " nil nil nil 5832)
+             (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 5144 :tag nil :parent #4)
+   (paragraph
+    (:begin 5146 :end 5238 :contents-begin 5146 :contents-end 5238 :post-blank 0 :post-affiliated 5146 :parent #5) #
+    ("Самостоятельно реализовал бизнес-логику и уровень представления
+
+  (Рабочее Место Оператора)
+  " 0 92
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 5238 :end 5370 :contents-begin 5240 :contents-end 5370 :checkbox nil :counter nil :structure
+            (
+             (4902 0 "- " nil nil nil 4994)
+             (4994 0 "- " nil nil nil 5144)
+             (5144 0 "- " nil nil nil 5238)
+             (5238 0 "- " nil nil nil 5370)
+             (5370 0 "- " nil nil nil 5488)
+             (5488 0 "- " nil nil nil 5681)
+             (5681 0 "- " nil nil nil 5832)
+             (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 5238 :tag nil :parent #4)
+   (paragraph
+    (:begin 5240 :end 5370 :contents-begin 5240 :contents-end 5370 :post-blank 0 :post-affiliated 5240 :parent #5) #
+    ("Руководил работами по реализации транспортного уровня и уровня
+  абстракции оборудования, выполненными удаленными разработчиками.
+  " 0 130
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 5370 :end 5488 :contents-begin 5372 :contents-end 5488 :checkbox nil :counter nil :structure
+            (
+             (4902 0 "- " nil nil nil 4994)
+             (4994 0 "- " nil nil nil 5144)
+             (5144 0 "- " nil nil nil 5238)
+             (5238 0 "- " nil nil nil 5370)
+             (5370 0 "- " nil nil nil 5488)
+             (5488 0 "- " nil nil nil 5681)
+             (5681 0 "- " nil nil nil 5832)
+             (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 5370 :tag nil :parent #4)
+   (paragraph
+    (:begin 5372 :end 5488 :contents-begin 5372 :contents-end 5488 :post-blank 0 :post-affiliated 5372 :parent #5) #
+    ("Организовал паралельную разработку по модульному принципу
+  (чтобы
+   ускорить создание продукта) и методологии kanban
+  " 0 116
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 5488 :end 5681 :contents-begin 5490 :contents-end 5681 :checkbox nil :counter nil :structure
+            (
+             (4902 0 "- " nil nil nil 4994)
+             (4994 0 "- " nil nil nil 5144)
+             (5144 0 "- " nil nil nil 5238)
+             (5238 0 "- " nil nil nil 5370)
+             (5370 0 "- " nil nil nil 5488)
+             (5488 0 "- " nil nil nil 5681)
+             (5681 0 "- " nil nil nil 5832)
+             (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 5488 :tag nil :parent #4)
+   (paragraph
+    (:begin 5490 :end 5681 :contents-begin 5490 :contents-end 5681 :post-blank 0 :post-affiliated 5490 :parent #5) #
+    ("Внедрил Continuous Integration и процесс управления жизненным циклом
+
+  (релизы, исправление ошибок, добавление возможностей, технический
+           контроль качества, автоматизированное тестирование)
+  " 0 191
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 5681 :end 5832 :contents-begin 5683 :contents-end 5832 :checkbox nil :counter nil :structure
+            (
+             (4902 0 "- " nil nil nil 4994)
+             (4994 0 "- " nil nil nil 5144)
+             (5144 0 "- " nil nil nil 5238)
+             (5238 0 "- " nil nil nil 5370)
+             (5370 0 "- " nil nil nil 5488)
+             (5488 0 "- " nil nil nil 5681)
+             (5681 0 "- " nil nil nil 5832)
+             (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 5681 :tag nil :parent #4)
+   (paragraph
+    (:begin 5683 :end 5832 :contents-begin 5683 :contents-end 5832 :post-blank 0 :post-affiliated 5683 :parent #5) #
+    ("Реализовал безопасное
+  (цифровая подпись) и отказоустойчивое
+  (откат
+   на предыдующую версию при провале тестов) обновление прошивок через
+  интернет.
+  " 0 149
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 5832 :end 5965 :contents-begin 5834 :contents-end 5965 :checkbox nil :counter nil :structure
+            (
+             (4902 0 "- " nil nil nil 4994)
+             (4994 0 "- " nil nil nil 5144)
+             (5144 0 "- " nil nil nil 5238)
+             (5238 0 "- " nil nil nil 5370)
+             (5370 0 "- " nil nil nil 5488)
+             (5488 0 "- " nil nil nil 5681)
+             (5681 0 "- " nil nil nil 5832)
+             (5832 0 "- " nil nil nil 5965)) :post-blank 0 :post-affiliated 5832 :tag nil :parent #4)
+   (paragraph
+    (:begin 5834 :end 5965 :contents-begin 5834 :contents-end 5965 :post-blank 0 :post-affiliated 5834 :parent #5) #
+    ("Автоматизировал создание и хранение документации, с использованием
+  версионирования на базе GIT и \\\"executable specifications\\\".\"
+  " 0 131
+  (:parent #6)))))))
+  (headline
+   (:raw-value "ООО БКН" :begin 5966 :end 6801 :pre-blank 1 :contents-begin 5978 :contents-end 6800 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 5966 :title
+               (#
+                ("ООО БКН" 0 7
+                 (:parent #2))) :parent #1)
+   (section
+    (:begin 5978 :end 6801 :contents-begin 5978 :contents-end 6800 :post-blank 1 :post-affiliated 5978 :parent #2)
+    (table
+     (:begin 5978 :end 6119 :type org :tblfm nil :contents-begin 5994 :contents-end 6118 :value nil :post-blank 1 :post-affiliated 5994 :caption
+             (
+              (
+               (#
+                ("info" 0 4
+                 (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :begin 5994 :end 6025 :contents-begin 5995 :contents-end 6024 :post-blank 0 :post-affiliated 5994 :parent #4)
+      (table-cell
+       (:begin 5995 :end 6008 :contents-begin 5996 :contents-end 6000 :post-blank 0 :parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:begin 6008 :end 6024 :contents-begin 6009 :contents-end 6022 :post-blank 0 :parent #5)
+       (link
+        (:type "http" :path "//bkn.ru" :raw-link "http://bkn.ru" :application nil :search-option nil :begin 6009 :end 6022 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+     (table-row
+      (:type standard :begin 6025 :end 6056 :contents-begin 6026 :contents-end 6055 :post-blank 0 :post-affiliated 6025 :parent #4)
+      (table-cell
+       (:begin 6026 :end 6039 :contents-begin 6027 :contents-end 6035 :post-blank 0 :parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 6039 :end 6055 :contents-begin 6042 :contents-end 6053 :post-blank 0 :parent #5) #
+       ("ИТ-директор" 0 11
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 6056 :end 6087 :contents-begin 6057 :contents-end 6086 :post-blank 0 :post-affiliated 6056 :parent #4)
+      (table-cell
+       (:begin 6057 :end 6070 :contents-begin 6058 :contents-end 6068 :post-blank 0 :parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:begin 6070 :end 6086 :contents-begin 6074 :contents-end 6084 :post-blank 0 :parent #5) #
+       ("2015-04-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 6087 :end 6118 :contents-begin 6088 :contents-end 6117 :post-blank 0 :post-affiliated 6087 :parent #4)
+      (table-cell
+       (:begin 6088 :end 6101 :contents-begin 6089 :contents-end 6097 :post-blank 0 :parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 6101 :end 6117 :contents-begin 6105 :contents-end 6115 :post-blank 0 :parent #5) #
+       ("2015-12-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:begin 6119 :end 6232 :contents-begin 6119 :contents-end 6231 :post-blank 1 :post-affiliated 6119 :parent #3) #
+     ("Компания - второй после \\\"Бюллетеня недвижимости\\\" информационный
+  источник в области недвижимости по С-Пб и ЛО.
+  " 0 112
+  (:parent #4)))
+  (paragraph
+   (:begin 6232 :end 6350 :contents-begin 6232 :contents-end 6349 :post-blank 1 :post-affiliated 6232 :parent #3) #
+   ("Руководил разработкой и продвижением информационных решений
+  автоматизации бизнеса агентств недвижимости
+  (b2b и b2c).
+  " 0 117
+  (:parent #4)))
+  (paragraph
+   (:begin 6350 :end 6388 :contents-begin 6350 :contents-end 6387 :post-blank 1 :post-affiliated 6350 :parent #3) #
+   ("Стек технологий: C# и ASP.NET, ExtJs
+  " 0 37
+  (:parent #4)))
+  (paragraph
+   (:begin 6388 :end 6400 :contents-begin 6388 :contents-end 6400 :post-blank 0 :post-affiliated 6388 :parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (plain-list
+   (:type unordered :begin 6400 :end 6800 :contents-begin 6400 :contents-end 6800 :structure
+          (
+           (6400 0 "- " nil nil nil 6622)
+           (6622 0 "- " nil nil nil 6800)) :post-blank 0 :post-affiliated 6400 :parent #3)
+   (item
+    (:bullet "- " :begin 6400 :end 6622 :contents-begin 6402 :contents-end 6622 :checkbox nil :counter nil :structure
+             (
+              (6400 0 "- " nil nil nil 6622)
+              (6622 0 "- " nil nil nil 6800)) :post-blank 0 :post-affiliated 6400 :tag nil :parent #4)
+    (paragraph
+     (:begin 6402 :end 6622 :contents-begin 6402 :contents-end 6622 :post-blank 0 :post-affiliated 6402 :parent #5) #
+     ("Используя данные \\\"межагентской БД bkn-profi\\\" в короткие сроки
+  создал раздел о жилых комплексах и новостройках, который по обьему
+  вскоре достиг 60% сайта, что позволило резко увеличить доходы от
+  рекламы на сайте.
+  " 0 220
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 6622 :end 6800 :contents-begin 6624 :contents-end 6800 :checkbox nil :counter nil :structure
+            (
+             (6400 0 "- " nil nil nil 6622)
+             (6622 0 "- " nil nil nil 6800)) :post-blank 0 :post-affiliated 6622 :tag nil :parent #4)
+   (paragraph
+    (:begin 6624 :end 6800 :contents-begin 6624 :contents-end 6800 :post-blank 0 :post-affiliated 6624 :parent #5) #
+    ("Реализовал на сайте bkn.ru раздел поиска и подбора квартир, комнат и
+  жилых домов первичного и вторичного рынка, интегрировал его с
+  межагентской БД объектов недвижимости.\")
+  " 0 176
+  (:parent #6)))))))
+  (headline
+   (:raw-value "Тренд" :begin 6801 :end 7613 :pre-blank 1 :contents-begin 6811 :contents-end 7611 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 2 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 6801 :title
+               (#
+                ("Тренд" 0 5
+                 (:parent #2))) :parent #1)
+   (section
+    (:begin 6811 :end 7613 :contents-begin 6811 :contents-end 7611 :post-blank 2 :post-affiliated 6811 :parent #2)
+    (table
+     (:begin 6811 :end 6958 :type org :tblfm nil :contents-begin 6827 :contents-end 6957 :value nil :post-blank 1 :post-affiliated 6827 :caption
+             (
+              (
+               (#
+                ("info" 0 4
+                 (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :begin 6827 :end 6858 :contents-begin 6828 :contents-end 6857 :post-blank 0 :post-affiliated 6827 :parent #4)
+      (table-cell
+       (:begin 6828 :end 6835 :contents-begin 6829 :contents-end 6833 :post-blank 0 :parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:begin 6835 :end 6857 :contents-begin 6836 :contents-end 6855 :post-blank 0 :parent #5)
+       (link
+        (:type "http" :path "//trend-spb.ru" :raw-link "http://trend-spb.ru" :application nil :search-option nil :begin 6836 :end 6855 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+     (table-row
+      (:type standard :begin 6858 :end 6902 :contents-begin 6859 :contents-end 6901 :post-blank 0 :post-affiliated 6858 :parent #4)
+      (table-cell
+       (:begin 6859 :end 6871 :contents-begin 6860 :contents-end 6868 :post-blank 0 :parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 6871 :end 6901 :contents-begin 6872 :contents-end 6899 :post-blank 0 :parent #5) #
+       ("Ведущий инженер-программист" 0 27
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 6902 :end 6930 :contents-begin 6903 :contents-end 6929 :post-blank 0 :post-affiliated 6902 :parent #4)
+      (table-cell
+       (:begin 6903 :end 6916 :contents-begin 6904 :contents-end 6914 :post-blank 0 :parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:begin 6916 :end 6929 :contents-begin 6917 :contents-end 6927 :post-blank 0 :parent #5) #
+       ("2014-08-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 6930 :end 6957 :contents-begin 6931 :contents-end 6956 :post-blank 0 :post-affiliated 6930 :parent #4)
+      (table-cell
+       (:begin 6931 :end 6943 :contents-begin 6932 :contents-end 6940 :post-blank 0 :parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 6943 :end 6956 :contents-begin 6944 :contents-end 6954 :post-blank 0 :parent #5) #
+       ("2015-03-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:begin 6958 :end 7068 :contents-begin 6958 :contents-end 7067 :post-blank 1 :post-affiliated 6958 :parent #3) #
+     ("Компания - молодое быстрорастущее агенство недвижимости,
+  специализирующееся на первичном рынке
+  (новостройки)
+  " 0 109
+  (:parent #4)))
+  (paragraph
+   (:begin 7068 :end 7149 :contents-begin 7068 :contents-end 7148 :post-blank 1 :post-affiliated 7068 :parent #3) #
+   ("Автоматизировал бизнес-процесс агенства по продажам недвижимости
+
+  (новостройки).
+  " 0 80
+  (:parent #4)))
+  (paragraph
+   (:begin 7149 :end 7197 :contents-begin 7149 :contents-end 7196 :post-blank 1 :post-affiliated 7149 :parent #3) #
+   ("Стек технологий: Php, Nginx, Mysql, PostgreSql
+  " 0 47
+  (:parent #4)))
+  (paragraph
+   (:begin 7197 :end 7210 :contents-begin 7197 :contents-end 7209 :post-blank 1 :post-affiliated 7197 :parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:begin 7210 :end 7532 :contents-begin 7210 :contents-end 7531 :post-blank 1 :post-affiliated 7210 :parent #3) #
+   ("До моего прихода агенты и риэлторы использовали skype и google docs
+  для выполнения задач, но после увеличения численности в 4 раза эти
+  инструменты стали неэффективны. Я внедрил CRM собственной разработки,
+  модули которой
+  (экспертная система выставления цен, интерактивный
+              подбор объектов) освободили работников от рутины.
+  " 0 321
+  (:parent #4)))
+  (paragraph
+   (:begin 7532 :end 7611 :contents-begin 7532 :contents-end 7611 :post-blank 0 :post-affiliated 7532 :parent #3) #
+   ("Также был реорганизован сайт компании с использованием современных технологий.
+  " 0 79
+  (:parent #4)))))
+  (headline
+   (:raw-value "Частная компания
+  (алготрейдинг)" :begin 7613 :end 8109 :pre-blank 1 :contents-begin 7649 :contents-end 8108 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 7613 :title
+  (#
+   ("Частная компания
+  (алготрейдинг)" 0 31
+  (:parent #2))) :parent #1)
+  (section
+   (:begin 7649 :end 8109 :contents-begin 7649 :contents-end 8108 :post-blank 1 :post-affiliated 7649 :parent #2)
+   (table
+    (:begin 7649 :end 7862 :type org :tblfm nil :contents-begin 7665 :contents-end 7861 :value nil :post-blank 1 :post-affiliated 7665 :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+    (table-row
+     (:type standard :begin 7665 :end 7714 :contents-begin 7666 :contents-end 7713 :post-blank 0 :post-affiliated 7665 :parent #4)
+     (table-cell
+      (:begin 7666 :end 7679 :contents-begin 7667 :contents-end 7671 :post-blank 0 :parent #5) #
+      ("site" 0 4
+       (:parent #6)))
+     (table-cell
+      (:begin 7679 :end 7713 :contents-begin 7680 :contents-end 7698 :post-blank 0 :parent #5)
+      (link
+       (:type "http" :path "//aintsys.com" :raw-link "http://aintsys.com" :application nil :search-option nil :begin 7680 :end 7698 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+    (table-row
+     (:type standard :begin 7714 :end 7763 :contents-begin 7715 :contents-end 7762 :post-blank 0 :post-affiliated 7714 :parent #4)
+     (table-cell
+      (:begin 7715 :end 7728 :contents-begin 7716 :contents-end 7724 :post-blank 0 :parent #5) #
+      ("position" 0 8
+       (:parent #6)))
+     (table-cell
+      (:begin 7728 :end 7762 :contents-begin 7729 :contents-end 7752 :post-blank 0 :parent #5) #
+      ("Lisp/Erlang-разработчик" 0 23
+       (:parent #6))))
+    (table-row
+     (:type standard :begin 7763 :end 7812 :contents-begin 7764 :contents-end 7811 :post-blank 0 :post-affiliated 7763 :parent #4)
+     (table-cell
+      (:begin 7764 :end 7777 :contents-begin 7765 :contents-end 7775 :post-blank 0 :parent #5) #
+      ("start-date" 0 10
+       (:parent #6)))
+     (table-cell
+      (:begin 7777 :end 7811 :contents-begin 7778 :contents-end 7788 :post-blank 0 :parent #5) #
+      ("2012-04-01" 0 10
+       (:parent #6))))
+    (table-row
+     (:type standard :begin 7812 :end 7861 :contents-begin 7813 :contents-end 7860 :post-blank 0 :post-affiliated 7812 :parent #4)
+     (table-cell
+      (:begin 7813 :end 7826 :contents-begin 7814 :contents-end 7822 :post-blank 0 :parent #5) #
+      ("end-date" 0 8
+       (:parent #6)))
+     (table-cell
+      (:begin 7826 :end 7860 :contents-begin 7827 :contents-end 7837 :post-blank 0 :parent #5) #
+      ("2014-08-01" 0 10
+       (:parent #6)))))
+   (paragraph
+    (:begin 7862 :end 7941 :contents-begin 7862 :contents-end 7940 :post-blank 1 :post-affiliated 7862 :parent #3) #
+    ("Разрабатывал решения в сфере электронных валют на базе технологии
+  BlockChain.
+  " 0 78
+  (:parent #4)))
+  (paragraph
+   (:begin 7941 :end 7984 :contents-begin 7941 :contents-end 7983 :post-blank 1 :post-affiliated 7941 :parent #3) #
+   ("Стек технологий: Erlang, Common Lisp, C++
+  " 0 42
+  (:parent #4)))
+  (paragraph
+   (:begin 7984 :end 8108 :contents-begin 7984 :contents-end 8108 :post-blank 0 :post-affiliated 7984 :parent #3) #
+   ("К сожалению, по условиям NDA я не имею права распространять в сети
+  информацию о деятельности компании и моих разработках :
+  (
+   " 0 124
+  (:parent #4)))))
+  (headline
+   (:raw-value "ООО РАВТА" :begin 8109 :end 8649 :pre-blank 1 :contents-begin 8123 :contents-end 8648 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 8109 :title
+               (#
+                ("ООО РАВТА" 0 9
+                 (:parent #2))) :parent #1)
+   (section
+    (:begin 8123 :end 8649 :contents-begin 8123 :contents-end 8648 :post-blank 1 :post-affiliated 8123 :parent #2)
+    (table
+     (:begin 8123 :end 8272 :type org :tblfm nil :contents-begin 8139 :contents-end 8271 :value nil :post-blank 1 :post-affiliated 8139 :caption
+             (
+              (
+               (#
+                ("info" 0 4
+                 (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :begin 8139 :end 8172 :contents-begin 8140 :contents-end 8171 :post-blank 0 :post-affiliated 8139 :parent #4)
+      (table-cell
+       (:begin 8140 :end 8153 :contents-begin 8141 :contents-end 8145 :post-blank 0 :parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:begin 8153 :end 8171 :contents-begin 8154 :contents-end 8169 :post-blank 0 :parent #5)
+       (link
+        (:type "http" :path "//ravta.ru" :raw-link "http://ravta.ru" :application nil :search-option nil :begin 8154 :end 8169 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+     (table-row
+      (:type standard :begin 8172 :end 8205 :contents-begin 8173 :contents-end 8204 :post-blank 0 :post-affiliated 8172 :parent #4)
+      (table-cell
+       (:begin 8173 :end 8186 :contents-begin 8174 :contents-end 8182 :post-blank 0 :parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 8186 :end 8204 :contents-begin 8188 :contents-end 8202 :post-blank 0 :parent #5) #
+       ("Директор по IT" 0 14
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 8205 :end 8238 :contents-begin 8206 :contents-end 8237 :post-blank 0 :post-affiliated 8205 :parent #4)
+      (table-cell
+       (:begin 8206 :end 8219 :contents-begin 8207 :contents-end 8217 :post-blank 0 :parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:begin 8219 :end 8237 :contents-begin 8225 :contents-end 8235 :post-blank 0 :parent #5) #
+       ("2012-01-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 8238 :end 8271 :contents-begin 8239 :contents-end 8270 :post-blank 0 :post-affiliated 8238 :parent #4)
+      (table-cell
+       (:begin 8239 :end 8252 :contents-begin 8240 :contents-end 8248 :post-blank 0 :parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 8252 :end 8270 :contents-begin 8258 :contents-end 8268 :post-blank 0 :parent #5) #
+       ("2012-04-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:begin 8272 :end 8366 :contents-begin 8272 :contents-end 8365 :post-blank 1 :post-affiliated 8272 :parent #3) #
+     ("Компания - интернет-магазин запчастей, комплектующих и расходных
+  материалов для автомобилей.
+  " 0 93
+  (:parent #4)))
+  (paragraph
+   (:begin 8366 :end 8545 :contents-begin 8366 :contents-end 8544 :post-blank 1 :post-affiliated 8366 :parent #3) #
+   ("Осуществлял руководство разработкой информационной системы
+  предприятия, занимался постановкой задач и контролем выполнения
+  работ. Организовывал договорную работу с подрядчиками.
+  " 0 178
+  (:parent #4)))
+  (paragraph
+   (:begin 8545 :end 8558 :contents-begin 8545 :contents-end 8557 :post-blank 1 :post-affiliated 8545 :parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:begin 8558 :end 8648 :contents-begin 8558 :contents-end 8648 :post-blank 0 :post-affiliated 8558 :parent #3) #
+   ("Внедрил на фирме 1-С Предприятие и 1С-Склад и обеспечил ее интеграцию с системой TechDoc.
+  " 0 90
+  (:parent #4)))))
+  (headline
+   (:raw-value "WizardSoft" :begin 8649 :end 9166 :pre-blank 1 :contents-begin 8664 :contents-end 9165 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 8649 :title
+               (#
+                ("WizardSoft" 0 10
+                 (:parent #2))) :parent #1)
+   (section
+    (:begin 8664 :end 9166 :contents-begin 8664 :contents-end 9165 :post-blank 1 :post-affiliated 8664 :parent #2)
+    (table
+     (:begin 8664 :end 8877 :type org :tblfm nil :contents-begin 8680 :contents-end 8876 :value nil :post-blank 1 :post-affiliated 8680 :caption
+             (
+              (
+               (#
+                ("info" 0 4
+                 (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :begin 8680 :end 8729 :contents-begin 8681 :contents-end 8728 :post-blank 0 :post-affiliated 8680 :parent #4)
+      (table-cell
+       (:begin 8681 :end 8694 :contents-begin 8682 :contents-end 8686 :post-blank 0 :parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:begin 8694 :end 8728 :contents-begin 8706 :contents-end 8726 :post-blank 0 :parent #5)
+       (link
+        (:type "http" :path "//wizardsoft.ru" :raw-link "http://wizardsoft.ru" :application nil :search-option nil :begin 8706 :end 8726 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+     (table-row
+      (:type standard :begin 8729 :end 8778 :contents-begin 8730 :contents-end 8777 :post-blank 0 :post-affiliated 8729 :parent #4)
+      (table-cell
+       (:begin 8730 :end 8743 :contents-begin 8731 :contents-end 8739 :post-blank 0 :parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 8743 :end 8777 :contents-begin 8744 :contents-end 8775 :post-blank 0 :parent #5) #
+       ("Ведущий разработчик, архитектор" 0 31
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 8778 :end 8827 :contents-begin 8779 :contents-end 8826 :post-blank 0 :post-affiliated 8778 :parent #4)
+      (table-cell
+       (:begin 8779 :end 8792 :contents-begin 8780 :contents-end 8790 :post-blank 0 :parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:begin 8792 :end 8826 :contents-begin 8814 :contents-end 8824 :post-blank 0 :parent #5) #
+       ("2011-05-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 8827 :end 8876 :contents-begin 8828 :contents-end 8875 :post-blank 0 :post-affiliated 8827 :parent #4)
+      (table-cell
+       (:begin 8828 :end 8841 :contents-begin 8829 :contents-end 8837 :post-blank 0 :parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 8841 :end 8875 :contents-begin 8863 :contents-end 8873 :post-blank 0 :parent #5) #
+       ("2012-01-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:begin 8877 :end 8950 :contents-begin 8877 :contents-end 8949 :post-blank 1 :post-affiliated 8877 :parent #3) #
+     ("Компания занимается автоматизацией управления затратами в
+  стоительстве.
+  " 0 72
+  (:parent #4)))
+  (paragraph
+   (:begin 8950 :end 8963 :contents-begin 8950 :contents-end 8962 :post-blank 1 :post-affiliated 8950 :parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:begin 8963 :end 9165 :contents-begin 8963 :contents-end 9165 :post-blank 0 :post-affiliated 8963 :parent #3) #
+   ("Разработал высоконагрузочный портал для проведения строительных
+  тендеров. Прототип реализовал на Common Lisp, Postmodern и
+  PostgreSQL. После приемки прототип был существенно расширен и
+  переписан на PHP
+  " 0 202
+  (:parent #4)))))
+  (headline
+   (:raw-value "ЦиFры" :begin 9166 :end 9754 :pre-blank 1 :contents-begin 9176 :contents-end 9753 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 9166 :title
+               (#
+                ("ЦиFры" 0 5
+                 (:parent #2))) :parent #1)
+   (section
+    (:begin 9176 :end 9754 :contents-begin 9176 :contents-end 9753 :post-blank 1 :post-affiliated 9176 :parent #2)
+    (table
+     (:begin 9176 :end 9429 :type org :tblfm nil :contents-begin 9192 :contents-end 9428 :value nil :post-blank 1 :post-affiliated 9192 :caption
+             (
+              (
+               (#
+                ("info" 0 4
+                 (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :begin 9192 :end 9251 :contents-begin 9193 :contents-end 9250 :post-blank 0 :post-affiliated 9192 :parent #4)
+      (table-cell
+       (:begin 9193 :end 9206 :contents-begin 9194 :contents-end 9198 :post-blank 0 :parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:begin 9206 :end 9250 :contents-begin 9207 :contents-end 9229 :post-blank 0 :parent #5)
+       (link
+        (:type "http" :path "//www.320-8080.ru" :raw-link "http://www.320-8080.ru" :application nil :search-option nil :begin 9207 :end 9229 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+     (table-row
+      (:type standard :begin 9251 :end 9310 :contents-begin 9252 :contents-end 9309 :post-blank 0 :post-affiliated 9251 :parent #4)
+      (table-cell
+       (:begin 9252 :end 9265 :contents-begin 9253 :contents-end 9261 :post-blank 0 :parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 9265 :end 9309 :contents-begin 9266 :contents-end 9307 :post-blank 0 :parent #5) #
+       ("Архитектор-проектировщик, веб-программист" 0 41
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 9310 :end 9369 :contents-begin 9311 :contents-end 9368 :post-blank 0 :post-affiliated 9310 :parent #4)
+      (table-cell
+       (:begin 9311 :end 9324 :contents-begin 9312 :contents-end 9322 :post-blank 0 :parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:begin 9324 :end 9368 :contents-begin 9325 :contents-end 9335 :post-blank 0 :parent #5) #
+       ("2009-09-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 9369 :end 9428 :contents-begin 9370 :contents-end 9427 :post-blank 0 :post-affiliated 9369 :parent #4)
+      (table-cell
+       (:begin 9370 :end 9383 :contents-begin 9371 :contents-end 9379 :post-blank 0 :parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 9383 :end 9427 :contents-begin 9384 :contents-end 9394 :post-blank 0 :parent #5) #
+       ("2011-04-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:begin 9429 :end 9476 :contents-begin 9429 :contents-end 9475 :post-blank 1 :post-affiliated 9429 :parent #3) #
+     ("Компания - интернет-магазин цифровой техники.
+  " 0 46
+  (:parent #4)))
+  (paragraph
+   (:begin 9476 :end 9537 :contents-begin 9476 :contents-end 9536 :post-blank 1 :post-affiliated 9476 :parent #3) #
+   ("Стек технологий: PHP, MySql, Jquery, Common Lisp, Memcached
+  " 0 60
+  (:parent #4)))
+  (paragraph
+   (:begin 9537 :end 9550 :contents-begin 9537 :contents-end 9549 :post-blank 1 :post-affiliated 9537 :parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (plain-list
+   (:type unordered :begin 9550 :end 9753 :contents-begin 9550 :contents-end 9753 :structure
+          (
+           (9550 0 "- " nil nil nil 9663)
+           (9663 0 "- " nil nil nil 9753)) :post-blank 0 :post-affiliated 9550 :parent #3)
+   (item
+    (:bullet "- " :begin 9550 :end 9663 :contents-begin 9552 :contents-end 9663 :checkbox nil :counter nil :structure
+             (
+              (9550 0 "- " nil nil nil 9663)
+              (9663 0 "- " nil nil nil 9753)) :post-blank 0 :post-affiliated 9550 :tag nil :parent #4)
+    (paragraph
+     (:begin 9552 :end 9663 :contents-begin 9552 :contents-end 9663 :post-blank 0 :post-affiliated 9552 :parent #5) #
+     ("На первом этапе в кратчайшие сроки подготовил legacy-код к
+  новогодним нагрузкам путем внедрения кэширования.
+  " 0 111
+  (:parent #6))))
+  (item
+   (:bullet "- " :begin 9663 :end 9753 :contents-begin 9665 :contents-end 9753 :checkbox nil :counter nil :structure
+            (
+             (9550 0 "- " nil nil nil 9663)
+             (9663 0 "- " nil nil nil 9753)) :post-blank 0 :post-affiliated 9663 :tag nil :parent #4)
+   (paragraph
+    (:begin 9665 :end 9753 :contents-begin 9665 :contents-end 9753 :post-blank 0 :post-affiliated 9665 :parent #5) #
+    ("Затема полностью перепроектировал и реализовал на высоконагрузочный
+  интернет-магазин.
+  " 0 88
+  (:parent #6)))))))
+  (headline
+   (:raw-value "ООО Вебдом" :begin 9754 :end 10143 :pre-blank 1 :contents-begin 9769 :contents-end 10142 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 9754 :title
+               (#
+                ("ООО Вебдом" 0 10
+                 (:parent #2))) :parent #1)
+   (section
+    (:begin 9769 :end 10143 :contents-begin 9769 :contents-end 10142 :post-blank 1 :post-affiliated 9769 :parent #2)
+    (table
+     (:begin 9769 :end 9950 :type org :tblfm nil :contents-begin 9785 :contents-end 9949 :value nil :post-blank 1 :post-affiliated 9785 :caption
+             (
+              (
+               (#
+                ("info" 0 4
+                 (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :begin 9785 :end 9826 :contents-begin 9786 :contents-end 9825 :post-blank 0 :post-affiliated 9785 :parent #4)
+      (table-cell
+       (:begin 9786 :end 9799 :contents-begin 9787 :contents-end 9791 :post-blank 0 :parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:begin 9799 :end 9825 :contents-begin 9806 :contents-end 9823 :post-blank 0 :parent #5)
+       (link
+        (:type "http" :path "//webdom.net" :raw-link "http://webdom.net" :application nil :search-option nil :begin 9806 :end 9823 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+     (table-row
+      (:type standard :begin 9826 :end 9867 :contents-begin 9827 :contents-end 9866 :post-blank 0 :post-affiliated 9826 :parent #4)
+      (table-cell
+       (:begin 9827 :end 9840 :contents-begin 9828 :contents-end 9836 :post-blank 0 :parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 9840 :end 9866 :contents-begin 9841 :contents-end 9864 :post-blank 0 :parent #5) #
+       ("Ведущий веб-разработчик" 0 23
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 9867 :end 9908 :contents-begin 9868 :contents-end 9907 :post-blank 0 :post-affiliated 9867 :parent #4)
+      (table-cell
+       (:begin 9868 :end 9881 :contents-begin 9869 :contents-end 9879 :post-blank 0 :parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:begin 9881 :end 9907 :contents-begin 9895 :contents-end 9905 :post-blank 0 :parent #5) #
+       ("2007-01-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 9908 :end 9949 :contents-begin 9909 :contents-end 9948 :post-blank 0 :post-affiliated 9908 :parent #4)
+      (table-cell
+       (:begin 9909 :end 9922 :contents-begin 9910 :contents-end 9918 :post-blank 0 :parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 9922 :end 9948 :contents-begin 9936 :contents-end 9946 :post-blank 0 :parent #5) #
+       ("2009-09-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:begin 9950 :end 9962 :contents-begin 9950 :contents-end 9961 :post-blank 1 :post-affiliated 9950 :parent #3) #
+     ("Веб-студия
+  " 0 11
+  (:parent #4)))
+  (paragraph
+   (:begin 9962 :end 9998 :contents-begin 9962 :contents-end 9997 :post-blank 1 :post-affiliated 9962 :parent #3) #
+   ("Стек технологий: Php, Nginx, MySql
+  " 0 35
+  (:parent #4)))
+  (paragraph
+   (:begin 9998 :end 10011 :contents-begin 9998 :contents-end 10010 :post-blank 1 :post-affiliated 9998 :parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:begin 10011 :end 10142 :contents-begin 10011 :contents-end 10142 :post-blank 0 :post-affiliated 10011 :parent #3) #
+   ("Cпроектировал и разработал масштабируемый фреймворк, на котором теперь
+  работает компания. CMS на его основе поставляются клиентам.
+  " 0 131
+  (:parent #4)))))
+  (headline
+   (:raw-value "\"Почин\"" :begin 10143 :end 10581 :pre-blank 1 :contents-begin 10155 :contents-end 10581 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 10143 :title
+               (#
+                ("\"Почин\"" 0 7
+                 (:parent #2))) :parent #1)
+   (section
+    (:begin 10155 :end 10582 :contents-begin 10155 :contents-end 10581 :post-blank 1 :post-affiliated 10155 :parent #2)
+    (table
+     (:begin 10155 :end 10308 :type org :tblfm nil :contents-begin 10171 :contents-end 10307 :value nil :post-blank 1 :post-affiliated 10171 :caption
+             (
+              (
+               (#
+                ("info" 0 4
+                 (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :begin 10171 :end 10205 :contents-begin 10172 :contents-end 10204 :post-blank 0 :post-affiliated 10171 :parent #4)
+      (table-cell
+       (:begin 10172 :end 10185 :contents-begin 10173 :contents-end 10177 :post-blank 0 :parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:begin 10185 :end 10204 :contents-begin 10186 :contents-end 10202 :post-blank 0 :parent #5)
+       (link
+        (:type "http" :path "//pochin.ru" :raw-link "http://pochin.ru" :application nil :search-option nil :begin 10186 :end 10202 :contents-begin nil :contents-end nil :post-blank 0 :parent #6))))
+     (table-row
+      (:type standard :begin 10205 :end 10239 :contents-begin 10206 :contents-end 10238 :post-blank 0 :post-affiliated 10205 :parent #4)
+      (table-cell
+       (:begin 10206 :end 10219 :contents-begin 10207 :contents-end 10215 :post-blank 0 :parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 10219 :end 10238 :contents-begin 10225 :contents-end 10236 :post-blank 0 :parent #5) #
+       ("Программист" 0 11
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 10239 :end 10273 :contents-begin 10240 :contents-end 10272 :post-blank 0 :post-affiliated 10239 :parent #4)
+      (table-cell
+       (:begin 10240 :end 10253 :contents-begin 10241 :contents-end 10251 :post-blank 0 :parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:begin 10253 :end 10272 :contents-begin 10260 :contents-end 10270 :post-blank 0 :parent #5) #
+       ("2005-09-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :begin 10273 :end 10307 :contents-begin 10274 :contents-end 10306 :post-blank 0 :post-affiliated 10273 :parent #4)
+      (table-cell
+       (:begin 10274 :end 10287 :contents-begin 10275 :contents-end 10283 :post-blank 0 :parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:begin 10287 :end 10306 :contents-begin 10294 :contents-end 10304 :post-blank 0 :parent #5) #
+       ("2007-01-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:begin 10308 :end 10382 :contents-begin 10308 :contents-end 10381 :post-blank 1 :post-affiliated 10308 :parent #3) #
+     ("Компания - интернет-магазин авточехлов, автозапчастей и
+  автоинструмента.
+  " 0 73
+  (:parent #4)))
+  (paragraph
+   (:begin 10382 :end 10405 :contents-begin 10382 :contents-end 10404 :post-blank 1 :post-affiliated 10382 :parent #3) #
+   ("Стек технологий: LAMP
+  " 0 22
+  (:parent #4)))
+  (paragraph
+   (:begin 10405 :end 10495 :contents-begin 10405 :contents-end 10494 :post-blank 1 :post-affiliated 10405 :parent #3) #
+   ("Первоначально начинал как фриланс-программист, но скоро сотрудничество
+  стало постоянным.
+  " 0 89
+  (:parent #4)))
+  (paragraph
+   (:begin 10495 :end 10508 :contents-begin 10495 :contents-end 10507 :post-blank 1 :post-affiliated 10495 :parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:begin 10508 :end 10581 :contents-begin 10508 :contents-end 10581 :post-blank 0 :post-affiliated 10508 :parent #3) #
+   ("Спроектировал и разработал интернет-магазин
+  (три версии за полтора года)
+  " 0 73
+  (:parent #4))))))
+  (headline
+   (:raw-value "Languages" :begin 10582 :end 10693 :pre-blank 1 :contents-begin 10595 :contents-end 10692 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 10582 :title
+               (#
+                ("Languages" 0 9
+                 (:parent #1))) :parent #0)
+   (section
+    (:begin 10595 :end 10693 :contents-begin 10595 :contents-end 10692 :post-blank 1 :post-affiliated 10595 :parent #1)
+    (table
+     (:begin 10595 :end 10692 :type org :tblfm nil :contents-begin 10616 :contents-end 10692 :value nil :post-blank 0 :post-affiliated 10616 :caption
+             (
+              (
+               (#
+                ("Languages" 0 9
+                 (:parent #7))))) :parent #2)
+     (table-row
+      (:type standard :begin 10616 :end 10635 :contents-begin 10617 :contents-end 10634 :post-blank 0 :post-affiliated 10616 :parent #3)
+      (table-cell
+       (:begin 10617 :end 10623 :contents-begin 10618 :contents-end 10621 :post-blank 0 :parent #4) #
+       ("34\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:begin 10623 :end 10634 :contents-begin 10624 :contents-end 10630 :post-blank 0 :parent #4) #
+       ("native" 0 6
+        (:parent #5))))
+     (table-row
+      (:type standard :begin 10635 :end 10654 :contents-begin 10636 :contents-end 10653 :post-blank 0 :post-affiliated 10635 :parent #3)
+      (table-cell
+       (:begin 10636 :end 10642 :contents-begin 10637 :contents-end 10640 :post-blank 0 :parent #4) #
+       ("57\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:begin 10642 :end 10653 :contents-begin 10643 :contents-end 10651 :post-blank 0 :parent #4) #
+       ("can" 0 3
+        (:parent #5))
+       (subscript
+        (:begin 10646 :end 10651 :use-brackets-p nil :contents-begin 10647 :contents-end 10651 :post-blank 0 :parent #5) #
+        ("read" 0 4
+         (:parent #6)))))
+     (table-row
+      (:type standard :begin 10654 :end 10673 :contents-begin 10655 :contents-end 10672 :post-blank 0 :post-affiliated 10654 :parent #3)
+      (table-cell
+       (:begin 10655 :end 10661 :contents-begin 10656 :contents-end 10659 :post-blank 0 :parent #4) #
+       ("58\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:begin 10661 :end 10672 :contents-begin 10662 :contents-end 10667 :post-blank 0 :parent #4) #
+       ("basic" 0 5
+        (:parent #5))))
+     (table-row
+      (:type standard :begin 10673 :end 10692 :contents-begin 10674 :contents-end 10691 :post-blank 0 :post-affiliated 10673 :parent #3)
+      (table-cell
+       (:begin 10674 :end 10680 :contents-begin 10675 :contents-end 10678 :post-blank 0 :parent #4) #
+       ("59\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:begin 10680 :end 10691 :contents-begin 10681 :contents-end 10685 :post-blank 0 :parent #4) #
+       ("none" 0 4
+        (:parent #5)))))))
+  (headline
+   (:raw-value "Contacts" :begin 10693 :end 11622 :pre-blank 1 :contents-begin 10705 :contents-end 11621 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 10693 :title
+               (#
+                ("Contacts" 0 8
+                 (:parent #1))) :parent #0)
+   (section
+    (:begin 10705 :end 11622 :contents-begin 10705 :contents-end 11621 :post-blank 1 :post-affiliated 10705 :parent #1)
+    (table
+     (:begin 10705 :end 11621 :type org :tblfm nil :contents-begin 10725 :contents-end 11621 :value nil :post-blank 0 :post-affiliated 10725 :caption
+             (
+              (
+               (#
+                ("Contacts" 0 8
+                 (:parent #7))))) :parent #2)
+     (table-row
+      (:type standard :begin 10725 :end 10781 :contents-begin 10726 :contents-end 10780 :post-blank 0 :post-affiliated 10725 :parent #3)
+      (table-cell
+       (:begin 10726 :end 10747 :contents-begin 10727 :contents-end 10737 :post-blank 0 :parent #4) #
+       ("cell-phone" 0 10
+        (:parent #5)))
+      (table-cell
+       (:begin 10747 :end 10780 :contents-begin 10748 :contents-end 10760 :post-blank 0 :parent #4) #
+       ("+79112869290" 0 12
+        (:parent #5))))
+     (table-row
+      (:type standard :begin 10781 :end 10837 :contents-begin 10782 :contents-end 10836 :post-blank 0 :post-affiliated 10781 :parent #3)
+      (table-cell
+       (:begin 10782 :end 10803 :contents-begin 10783 :contents-end 10801 :post-blank 0 :parent #4) #
+       ("cell-phone-comment" 0 18
+        (:parent #5)))
+      (table-cell
+       (:begin 10803 :end 10836 :contents-begin 10835 :contents-end 10835 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 10837 :end 10893 :contents-begin 10838 :contents-end 10892 :post-blank 0 :post-affiliated 10837 :parent #3)
+      (table-cell
+       (:begin 10838 :end 10859 :contents-begin 10839 :contents-end 10849 :post-blank 0 :parent #4) #
+       ("home-phone" 0 10
+        (:parent #5)))
+      (table-cell
+       (:begin 10859 :end 10892 :contents-begin 10891 :contents-end 10891 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 10893 :end 10949 :contents-begin 10894 :contents-end 10948 :post-blank 0 :post-affiliated 10893 :parent #3)
+      (table-cell
+       (:begin 10894 :end 10915 :contents-begin 10895 :contents-end 10913 :post-blank 0 :parent #4) #
+       ("home-phone-comment" 0 18
+        (:parent #5)))
+      (table-cell
+       (:begin 10915 :end 10948 :contents-begin 10947 :contents-end 10947 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 10949 :end 11005 :contents-begin 10950 :contents-end 11004 :post-blank 0 :post-affiliated 10949 :parent #3)
+      (table-cell
+       (:begin 10950 :end 10971 :contents-begin 10951 :contents-end 10961 :post-blank 0 :parent #4) #
+       ("work-phone" 0 10
+        (:parent #5)))
+      (table-cell
+       (:begin 10971 :end 11004 :contents-begin 11003 :contents-end 11003 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 11005 :end 11061 :contents-begin 11006 :contents-end 11060 :post-blank 0 :post-affiliated 11005 :parent #3)
+      (table-cell
+       (:begin 11006 :end 11027 :contents-begin 11007 :contents-end 11025 :post-blank 0 :parent #4) #
+       ("work-phone-comment" 0 18
+        (:parent #5)))
+      (table-cell
+       (:begin 11027 :end 11060 :contents-begin 11059 :contents-end 11059 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 11061 :end 11117 :contents-begin 11062 :contents-end 11116 :post-blank 0 :post-affiliated 11061 :parent #3)
+      (table-cell
+       (:begin 11062 :end 11083 :contents-begin 11063 :contents-end 11075 :post-blank 0 :parent #4) #
+       ("email-string" 0 12
+        (:parent #5)))
+      (table-cell
+       (:begin 11083 :end 11116 :contents-begin 11084 :contents-end 11103 :post-blank 0 :parent #4) #
+       ("avenger-f@yandex.ru" 0 19
+        (:parent #5))))
+     (table-row
+      (:type standard :begin 11117 :end 11173 :contents-begin 11118 :contents-end 11172 :post-blank 0 :post-affiliated 11117 :parent #3)
+      (table-cell
+       (:begin 11118 :end 11139 :contents-begin 11119 :contents-end 11136 :post-blank 0 :parent #4) #
+       ("preferred-contact" 0 17
+        (:parent #5)))
+      (table-cell
+       (:begin 11139 :end 11172 :contents-begin 11140 :contents-end 11145 :post-blank 0 :parent #4) #
+       ("email" 0 5
+        (:parent #5))))
+     (table-row
+      (:type standard :begin 11173 :end 11229 :contents-begin 11174 :contents-end 11228 :post-blank 0 :post-affiliated 11173 :parent #3)
+      (table-cell
+       (:begin 11174 :end 11195 :contents-begin 11175 :contents-end 11178 :post-blank 0 :parent #4) #
+       ("icq" 0 3
+        (:parent #5)))
+      (table-cell
+       (:begin 11195 :end 11228 :contents-begin 11227 :contents-end 11227 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 11229 :end 11285 :contents-begin 11230 :contents-end 11284 :post-blank 0 :post-affiliated 11229 :parent #3)
+      (table-cell
+       (:begin 11230 :end 11251 :contents-begin 11231 :contents-end 11236 :post-blank 0 :parent #4) #
+       ("skype" 0 5
+        (:parent #5)))
+      (table-cell
+       (:begin 11251 :end 11284 :contents-begin 11252 :contents-end 11264 :post-blank 0 :parent #4) #
+       ("i.am.rigidus" 0 12
+        (:parent #5))))
+     (table-row
+      (:type standard :begin 11285 :end 11341 :contents-begin 11286 :contents-end 11340 :post-blank 0 :post-affiliated 11285 :parent #3)
+      (table-cell
+       (:begin 11286 :end 11307 :contents-begin 11287 :contents-end 11296 :post-blank 0 :parent #4) #
+       ("freelance" 0 9
+        (:parent #5)))
+      (table-cell
+       (:begin 11307 :end 11340 :contents-begin 11339 :contents-end 11339 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 11341 :end 11397 :contents-begin 11342 :contents-end 11396 :post-blank 0 :post-affiliated 11341 :parent #3)
+      (table-cell
+       (:begin 11342 :end 11363 :contents-begin 11343 :contents-end 11351 :post-blank 0 :parent #4) #
+       ("moi" 0 3
+        (:parent #5))
+       (subscript
+        (:begin 11346 :end 11351 :use-brackets-p nil :contents-begin 11347 :contents-end 11351 :post-blank 0 :parent #5) #
+        ("krug" 0 4
+         (:parent #6))))
+      (table-cell
+       (:begin 11363 :end 11396 :contents-begin 11395 :contents-end 11395 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 11397 :end 11453 :contents-begin 11398 :contents-end 11452 :post-blank 0 :post-affiliated 11397 :parent #3)
+      (table-cell
+       (:begin 11398 :end 11419 :contents-begin 11399 :contents-end 11407 :post-blank 0 :parent #4) #
+       ("linkedin" 0 8
+        (:parent #5)))
+      (table-cell
+       (:begin 11419 :end 11452 :contents-begin 11451 :contents-end 11451 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 11453 :end 11509 :contents-begin 11454 :contents-end 11508 :post-blank 0 :post-affiliated 11453 :parent #3)
+      (table-cell
+       (:begin 11454 :end 11475 :contents-begin 11455 :contents-end 11463 :post-blank 0 :parent #4) #
+       ("facebook" 0 8
+        (:parent #5)))
+      (table-cell
+       (:begin 11475 :end 11508 :contents-begin 11507 :contents-end 11507 :post-blank 0 :parent #4)))
+     (table-row
+      (:type standard :begin 11509 :end 11565 :contents-begin 11510 :contents-end 11564 :post-blank 0 :post-affiliated 11509 :parent #3)
+      (table-cell
+       (:begin 11510 :end 11531 :contents-begin 11511 :contents-end 11522 :post-blank 0 :parent #4) #
+       ("livejournal" 0 11
+        (:parent #5)))
+      (table-cell
+       (:begin 11531 :end 11564 :contents-begin 11532 :contents-end 11562 :post-blank 0 :parent #4)
+       (link
+        (:type "http" :path "//rigidus.livejournal.com" :raw-link "http://rigidus.livejournal.com" :application nil :search-option nil :begin 11532 :end 11562 :contents-begin nil :contents-end nil :post-blank 0 :parent #5))))
+     (table-row
+      (:type standard :begin 11565 :end 11621 :contents-begin 11566 :contents-end 11620 :post-blank 0 :post-affiliated 11565 :parent #3)
+      (table-cell
+       (:begin 11566 :end 11587 :contents-begin 11567 :contents-end 11580 :post-blank 0 :parent #4) #
+       ("personal-site" 0 13
+        (:parent #5)))
+      (table-cell
+       (:begin 11587 :end 11620 :contents-begin 11588 :contents-end 11606 :post-blank 0 :parent #4)
+       (link
+        (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :begin 11588 :end 11605 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+       ("\"" 0 1
+        (:parent #5)))))))
+  (headline
+   (:raw-value "About" :begin 11622 :end 22634 :pre-blank 1 :contents-begin 11631 :contents-end 22634 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 11622 :title
+               (#
+                ("About" 0 5
+                 (:parent #1))) :parent #0)
+   (section
+    (:begin 11631 :end 22634 :contents-begin 11631 :contents-end 22634 :post-blank 0 :post-affiliated 11631 :parent #1)
+    (paragraph
+     (:begin 11631 :end 11954 :contents-begin 11631 :contents-end 11953 :post-blank 1 :post-affiliated 11631 :parent #2) #
+     ("На самом деле, я не настоящий ИТ-директор :) По большей части я
+  высококвалифицированный программист, который \"программирует процесс
+
+  (своего) программирования\" и любит решать сложные задачи. Особенность
+  в том, что я часто создаю инструменты для решения таких задач и это
+  позволяет команде достигать выдающихся результатов.
+  " 0 322
+  (:parent #3)))
+  (paragraph
+   (:begin 11954 :end 12463 :contents-begin 11954 :contents-end 12462 :post-blank 1 :post-affiliated 11954 :parent #2) #
+   ("Как тимлид, я весьма озабочен тем, чтобы быть возможно более сильным с
+  точки зрения программистких навыков и компетенций. Я активный участник
+  и регулярный докладчик в fprog-комьюнити и на ITGM. Это важно,
+  т.к. никакой хороший программист не хотел бы работать с кем-то, кто
+  слабее, чем он - исправлять чужие ошибки и терять время, которое мог
+  бы потратить на обучение у более сильного. Еще мне проще нанимать. Да
+  и в процессе работы тоже проще: профессиональное уважение значит
+  больше чем денежная мотивация.
+  " 0 508
+  (:parent #3)))
+  (paragraph
+   (:begin 12463 :end 13024 :contents-begin 12463 :contents-end 13023 :post-blank 1 :post-affiliated 12463 :parent #2) #
+   ("Часто команда вообще не нужна. Один человек с хорошими инструментами
+  может многое и экономит время на коммуникацию. Однако редко можно
+  встретить человека, который может похвастаться тем, что в одиночку
+  разработал что-нибудь крупное - CRM, фреймворк, систему продажи
+  авиабилетов или компилятор. Я думаю, это происходит по двум основным
+  причинам. Одна из них - инвесторы не верят одиночкам. Вторая же -
+  типично организационная проблема, суть которой в том, что любой
+  начальник заинтересован в росте количества своих подчиненных, ведь это
+  показатель его влияния.
+  " 0 560
+  (:parent #3)))
+  (paragraph
+   (:begin 13024 :end 13244 :contents-begin 13024 :contents-end 13243 :post-blank 1 :post-affiliated 13024 :parent #2) #
+   ("Я стараюсь, чтобы команда была минимальной по количеству и
+  максимальной по уровню. Хороший программист приносит в десятки и сотни
+  раз больше пользы чем средний, а платить ему нужно всего лишь в два
+  или три раза больше.
+  " 0 219
+  (:parent #3)))
+  (paragraph
+   (:begin 13244 :end 13825 :contents-begin 13244 :contents-end 13824 :post-blank 1 :post-affiliated 13244 :parent #2) #
+   ("Когда вы нанимаете программиста, перед вами стоят три вопроса. Умный
+  ли он? Способен ли выполнить то, что нужно? Сможете ли вы с ним
+  работать? Тот, кто умён, но неспособен выполнить задание, может быть
+  вашим другом, но не работником. Вы можете обсуждать с ним свои
+  проблемы, тогда как он будет тянуть с выполнением важной работы. Тот,
+  кто способен выполнять задания, но неумён — тот неэффективен: неумные
+  люди выполняют работу трудоёмким способом, работа с ними продвигается
+  медленно и полна разочарований. Ну а с тем, с кем вы не можете
+  работать - вы просто не сможете работать.
+  " 0 580
+  (:parent #3)))
+  (paragraph
+   (:begin 13825 :end 13874 :contents-begin 13825 :contents-end 13874 :post-blank 0 :post-affiliated 13825 :parent #2) #
+   ("Обычная процедура найма программиста состоит из:
+  " 0 49
+  (:parent #3)))
+  (plain-list
+   (:type unordered :begin 13874 :end 14011 :contents-begin 13874 :contents-end 14010 :structure
+          (
+           (13874 0 "- " nil nil nil 13890)
+           (13890 0 "- " nil nil nil 13940)
+           (13940 0 "- " nil nil nil 14010)) :post-blank 1 :post-affiliated 13874 :parent #2)
+   (item
+    (:bullet "- " :begin 13874 :end 13890 :contents-begin 13876 :contents-end 13890 :checkbox nil :counter nil :structure
+             (
+              (13874 0 "- " nil nil nil 13890)
+              (13890 0 "- " nil nil nil 13940)
+              (13940 0 "- " nil nil nil 14010)) :post-blank 0 :post-affiliated 13874 :tag nil :parent #3)
+    (paragraph
+     (:begin 13876 :end 13890 :contents-begin 13876 :contents-end 13890 :post-blank 0 :post-affiliated 13876 :parent #4) #
+     ("чтения резюме
+  " 0 14
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 13890 :end 13940 :contents-begin 13892 :contents-end 13940 :checkbox nil :counter nil :structure
+            (
+             (13874 0 "- " nil nil nil 13890)
+             (13890 0 "- " nil nil nil 13940)
+             (13940 0 "- " nil nil nil 14010)) :post-blank 0 :post-affiliated 13890 :tag nil :parent #3)
+   (paragraph
+    (:begin 13892 :end 13940 :contents-begin 13892 :contents-end 13940 :post-blank 0 :post-affiliated 13892 :parent #4) #
+    ("задавания каких-то трудных вопросов по телефону
+  " 0 48
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 13940 :end 14010 :contents-begin 13942 :contents-end 14010 :checkbox nil :counter nil :structure
+            (
+             (13874 0 "- " nil nil nil 13890)
+             (13890 0 "- " nil nil nil 13940)
+             (13940 0 "- " nil nil nil 14010)) :post-blank 0 :post-affiliated 13940 :tag nil :parent #3)
+   (paragraph
+    (:begin 13942 :end 14010 :contents-begin 13942 :contents-end 14010 :post-blank 0 :post-affiliated 13942 :parent #4) #
+    ("постановки перед ними задачи по программированию при личном общении
+  " 0 68
+  (:parent #5)))))
+  (paragraph
+   (:begin 14011 :end 14490 :contents-begin 14011 :contents-end 14489 :post-blank 1 :post-affiliated 14011 :parent #2) #
+   ("Я думаю, что такая система найма людей ужасна. Из резюме можно узнать
+  очень мало, а трудные вопросы во время интервью очень нервируют
+  людей. Программирование — это не та работа, которая выполняется под
+  давлением, поэтому наблюдать за действиями людей, которые нервничают,
+  довольно бессмысленно. А вопросы для интервью обычно подбираются по
+  принципу «чем тяжёлее, тем лучше». Я хороший программист, но я никогда
+  не чувствую себя уверенно на таких интервью, и думаю, я не одинок.
+  " 0 478
+  (:parent #3)))
+  (paragraph
+   (:begin 14490 :end 15383 :contents-begin 14490 :contents-end 15382 :post-blank 1 :post-affiliated 14490 :parent #2) #
+   ("Поэтому, когда я нанимаю кого-то, я просто пытаюсь ответить на эти три
+  вопроса. Чтобы выяснить, способен ли человек делать нужные вещи, я
+  просто спрашиваю, что он уже сделал. Если человек действительно
+  способен выполнять работу, к этому моменту он уже должен был что-то
+  сделать. Трудно быть хорошим программистом без какого-то опыта работы,
+  а сейчас любой может набраться опыта, приняв участие в каком-то
+  проекте по созданию свободного программного обеспечения. Поэтому я
+  просто прошу у человека ссылку на репозиторий на гитхабе и ссылку на
+  работающий продукт
+  (сайт) и смотрю, хорошо ли это устроено. Так
+  действительно можно узнать очень много, потому что я не наблюдаю за
+  тем, как он отвечает на надуманный вопрос во время интервью — я смотрю
+  на код, который он выдаёт на самом деле. Является ли он лаконичным?
+  понятным? элегантным? практичным? Хочу ли я иметь что-то такое в своём
+  проекте?
+  " 0 892
+  (:parent #3)))
+  (paragraph
+   (:begin 15383 :end 15951 :contents-begin 15383 :contents-end 15950 :post-blank 1 :post-affiliated 15383 :parent #2) #
+   ("Чтобы выяснить, является ли человек умным, я просто веду с ним
+  неформальную беседу. Я стараюсь сделать всё, чтобы снять любое
+  напряжение — назначаю встречу в кафе, поясняю, что это не интервью,
+  делаю всё, чтобы быть неофициальным и дружественным. Ни при каких
+  обстоятельствах я не задаю ему стандартных вопросов из интервью — я
+  просто болтаю с ним, как болтал бы с кем-то на вечеринке. Думаю, в
+  непринуждённой беседе довольно легко выяснить, умён ли человек. Я
+  постоянно оцениваю ум людей, которых встречаю, точно так же, как
+  постоянно оцениваю их привлекательность.
+  " 0 567
+  (:parent #3)))
+  (paragraph
+   (:begin 15951 :end 16381 :contents-begin 15951 :contents-end 16380 :post-blank 1 :post-affiliated 15951 :parent #2) #
+   ("Но если бы пришлось записать признаки того, почему некто кажется мне
+  умным, я бы сделал акцент на трёх моментах. Во-первых, насколько
+  глубоки его познания? Спросите, о чём он думал в последнее время, и
+  \"прощупайте\" его на эту тему. Похоже ли на то, что у него есть
+  детальное понимание предмета? Может ли он понятно объяснить его?
+
+  (Понятные объяснения — признак подлинного понимания) Знает ли он о
+  предмете то, чего не знаете вы?
+  " 0 429
+  (:parent #3)))
+  (paragraph
+   (:begin 16381 :end 16619 :contents-begin 16381 :contents-end 16618 :post-blank 1 :post-affiliated 16381 :parent #2) #
+   ("Во-вторых, любопытен ли он? Задаёт ли он в ответ вопросы о вас?
+  Действительно ли он заинтересован или просто старается быть вежливым?
+  Задаёт ли он дополнительные вопросы к тому, что вы говорите?
+  Заставляют ли его вопросы вас задуматься?
+  " 0 237
+  (:parent #3)))
+  (paragraph
+   (:begin 16619 :end 17076 :contents-begin 16619 :contents-end 17075 :post-blank 1 :post-affiliated 16619 :parent #2) #
+   ("В-третьих, учится ли он? В какой-то момент разговора вы, возможно,
+  будете что-то ему объяснять. Действительно ли он понимает, что вы
+  говорите, или же просто улыбается и кивает? Существуют люди, которые
+  обладают знаниями в какой-то небольшой области, но не интересуются
+  другими вопросами. И существуют люди, которые любопытны, но не учатся,
+  они задают множество вопросов, но на самом деле не слушают. Мне нужен
+  тот, кто является и тем, и другим, и третьим.
+  " 0 456
+  (:parent #3)))
+  (paragraph
+   (:begin 17076 :end 17358 :contents-begin 17076 :contents-end 17357 :post-blank 1 :post-affiliated 17076 :parent #2) #
+   ("Наконец, я определяю, смогу ли я работать с человеком, просто проведя
+  с ним какое-то время. Многие выдающиеся люди кажутся восхитительными в
+  первый час общения, но через пару часов их эксцентричность начинает
+  раздражать. Цель — просто понять, будет ли он действовать вам на
+  нервы.
+  " 0 281
+  (:parent #3)))
+  (paragraph
+   (:begin 17358 :end 18067 :contents-begin 17358 :contents-end 18066 :post-blank 1 :post-affiliated 17358 :parent #2) #
+   ("Если всё выглядит неплохо, и я готов нанять человека, здравый смысл
+  говорит о необходимости последней проверки, чтобы убедиться, что меня
+  каким-то образом не надули: я прошу его сделать часть работы. Обычно
+  это означает, что ему следует написать какой-то более-менее
+  независимый кусок кода, который нам нужен. Если необходимо, можно
+  предложить ему оплатить эту работу — хотя я заметил, что большинство
+  программистов не прочь выполнить небольшую задачу, если потом они
+  смогут сделать полученные исходники открытыми. Этот тест не работает
+  сам по себе, но если кто-то прошёл первые три испытания, его должно
+  быть достаточно, чтобы доказать, что человек не надул вас, что он в
+  самом деле может выполнять работу.
+  " 0 708
+  (:parent #3)))
+  (paragraph
+   (:begin 18067 :end 18503 :contents-begin 18067 :contents-end 18502 :post-blank 1 :post-affiliated 18067 :parent #2) #
+   ("Меня вполне устраивает такой метод. Когда я придерживался его лишь
+  частично, это заканчивалось приёмом на работу неподходящих людей,
+  которым со временем приходилось уйти. Но когда я действовал по этому
+  плану, то получал людей, которые настолько мне нравились, что я на
+  самом деле очень сожалею, если мне приходится расставаться с
+  ними. Удивительно, как много компаний вместо этого пользуются другими,
+  глупыми методами найма на работу.
+  " 0 435
+  (:parent #3)))
+  (paragraph
+   (:begin 18503 :end 19601 :contents-begin 18503 :contents-end 19600 :post-blank 1 :post-affiliated 18503 :parent #2) #
+   ("Теперь, если вы действительно дочитали до этого места - резонно было
+  бы спросить: \"А сам то ты, Миша, отвечаешь поставленным тобой
+  критериям?\". Чтобы определить могу ли я делать нужные вещи взгляните
+  на мое резюме. Последнее из того, что я делал - это система,
+  управляющая сетью парковок. В парковках много всего интересного:
+  датчики положения машины, шлагбаумы, навигация и тарифы в разное время
+  суток - организовать это в коде совсем не тривиально. Я занимался
+  созданием печатных плат, подбором компонентов, разработкой
+  бизнес-логики и написанием низкоуровневых программ - и это показывает,
+  что я могу делать сложные вещи. Показателем качества работы может быть
+  тот факт, что за полгода нам ни разу не приходилось делать рефакторинг
+  и выбрасывать большое количество кода - вы можете убедиться в этом
+  посмотрев в мой репозиторий: " 0 831
+  (:parent #3))
+  (link
+   (:type "https" :path "//github.com/rigidus/aspp" :raw-link "https://github.com/rigidus/aspp" :application nil :search-option nil :begin 19334 :end 19366 :contents-begin nil :contents-end nil :post-blank 1 :parent #3)) #
+  ("
+  (ASPP
+   значит \"Автоматизированная Система Платной Парковки\"). По соглашению с
+  фирмой я не могу выложить последнюю версию кода, но и прототипа
+  достаточно, чтобы, к примеру, оценить вклад, просто посмотрев на долю
+  и содержание коммитов.
+  " 0 234
+  (:parent #3)))
+  (paragraph
+   (:begin 19601 :end 19869 :contents-begin 19601 :contents-end 19868 :post-blank 1 :post-affiliated 19601 :parent #2) #
+   ("До этого я несколько лет работал в сфере недвижимости, разрабатывая
+  сайты и информационные системы, на PHP и C#, но так как для меня
+  веб-программирование - это привычная среда - все эти достижения не
+  ощущаются мной как выдающиеся. Впрочем, заказчики не жаловались :)
+  " 0 267
+  (:parent #3)))
+  (paragraph
+   (:begin 19869 :end 20044 :contents-begin 19869 :contents-end 20043 :post-blank 1 :post-affiliated 19869 :parent #2) #
+   ("Несколько ранее я работал программистом-исследователем и имел дело с
+  технологией BlockChain. Это была очень интересная работа, но я
+  довольно мало могу о ней рассказать
+  (NDA)
+  " 0 174
+  (:parent #3)))
+  (paragraph
+   (:begin 20044 :end 20151 :contents-begin 20044 :contents-end 20150 :post-blank 1 :post-affiliated 20044 :parent #2) #
+   ("А еще раньше я делал розничные интернет-магазины, пока мне не
+  захотелось более наукоемкой деятельности :)
+  " 0 106
+  (:parent #3)))
+  (paragraph
+   (:begin 20151 :end 20656 :contents-begin 20151 :contents-end 20655 :post-blank 1 :post-affiliated 20151 :parent #2) #
+   ("Еще у меня довольно много проектов, которые я делаю в свободное
+  время. Я делаю их, чтобы расслабиться после работы. Некоторые люди
+  смотрят фильмы, чтобы расслабиться, кто-то читает книги. Я
+  расслабляюсь, когда программирую. Один из этих проектов, посвящен
+  автоматизации процесса найма и поиска работы, а второй - моделированию
+  процессов, происходящих в электрических цепях. В свободное время я
+  собираю роботов и решение, которое можно назвать \"умный гараж\". Если
+  хотите - можете меня об этом распросить.
+  " 0 504
+  (:parent #3)))
+  (paragraph
+   (:begin 20656 :end 21123 :contents-begin 20656 :contents-end 21122 :post-blank 1 :post-affiliated 20656 :parent #2) #
+   ("Если я убедил вас в первом пункте, вероятно вы захотите оценить, умен
+  ли я. Взгляните на мой сайт
+  (" 0 99
+  (:parent #3))
+  (link
+   (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :begin 20755 :end 20772 :contents-begin nil :contents-end nil :post-blank 0 :parent #3)) #
+  ("), куда я помещаю все
+  вещи, которые меня интересуют. Вполне возможно, что вы крайне далеки
+  от робототехники, функционального программирования и нейронных сетей,
+  но вы вполне можете оценить, внятно ли я объясняю все эти сложные
+  вещи. Насколько глубоко я готов погрузиться? Если ли значимые
+  результаты в этих областях, которые могли бы быть полезными?
+  " 0 350
+  (:parent #3)))
+  (paragraph
+   (:begin 21123 :end 21591 :contents-begin 21123 :contents-end 21590 :post-blank 1 :post-affiliated 21123 :parent #2) #
+   ("Ну и наконец, чтобы определить, сможете ли вы со мной работать, вам
+  стоит пригласить меня на собеседование. Я был бы вам признателен, если
+  бы это было skype-собеседование, по крайней мере в первый раз,
+  т.к. таким образом, мы смогли бы сэкономить кучу времени на
+  дороге. Впрочем, если вы хотите показать мне офис или тестовый стенд
+  вашей технологии, я с удовольствием приеду к вам в удобное
+  время. Почему бы не позвонить мне прямо сейчас? Мой телефон:
+  8
+  (911)286-92-90
+  " 0 467
+  (:parent #3)))
+  (paragraph
+   (:begin 21591 :end 21661 :contents-begin 21591 :contents-end 21661 :post-blank 0 :post-affiliated 21591 :parent #2) #
+   ("Ну а пока вы раздумываете, я оставлю тут список ключевых компетенций:
+  " 0 70
+  (:parent #3)))
+  (plain-list
+   (:type unordered :begin 21661 :end 21905 :contents-begin 21661 :contents-end 21904 :structure
+          (
+           (21661 0 "- " nil nil nil 21678)
+           (21678 0 "- " nil nil nil 21738)
+           (21738 0 "- " nil nil nil 21781)
+           (21781 0 "- " nil nil nil 21801)
+           (21801 0 "- " nil nil nil 21812)
+           (21812 0 "- " nil nil nil 21840)
+           (21840 0 "- " nil nil nil 21904)) :post-blank 1 :post-affiliated 21661 :parent #2)
+   (item
+    (:bullet "- " :begin 21661 :end 21678 :contents-begin 21663 :contents-end 21678 :checkbox nil :counter nil :structure
+             (
+              (21661 0 "- " nil nil nil 21678)
+              (21678 0 "- " nil nil nil 21738)
+              (21738 0 "- " nil nil nil 21781)
+              (21781 0 "- " nil nil nil 21801)
+              (21801 0 "- " nil nil nil 21812)
+              (21812 0 "- " nil nil nil 21840)
+              (21840 0 "- " nil nil nil 21904)) :post-blank 0 :post-affiliated 21661 :tag nil :parent #3)
+    (paragraph
+     (:begin 21663 :end 21678 :contents-begin 21663 :contents-end 21678 :post-blank 0 :post-affiliated 21663 :parent #4) #
+     ("Linux, FreeBSD
+  " 0 15
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 21678 :end 21738 :contents-begin 21680 :contents-end 21738 :checkbox nil :counter nil :structure
+            (
+             (21661 0 "- " nil nil nil 21678)
+             (21678 0 "- " nil nil nil 21738)
+             (21738 0 "- " nil nil nil 21781)
+             (21781 0 "- " nil nil nil 21801)
+             (21801 0 "- " nil nil nil 21812)
+             (21812 0 "- " nil nil nil 21840)
+             (21840 0 "- " nil nil nil 21904)) :post-blank 0 :post-affiliated 21678 :tag nil :parent #3)
+   (paragraph
+    (:begin 21680 :end 21738 :contents-begin 21680 :contents-end 21738 :post-blank 0 :post-affiliated 21680 :parent #4) #
+    ("PHP, JavaScript, Python, C/C++, Java, Common Lisp, Erlang
+  " 0 58
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 21738 :end 21781 :contents-begin 21740 :contents-end 21781 :checkbox nil :counter nil :structure
+            (
+             (21661 0 "- " nil nil nil 21678)
+             (21678 0 "- " nil nil nil 21738)
+             (21738 0 "- " nil nil nil 21781)
+             (21781 0 "- " nil nil nil 21801)
+             (21801 0 "- " nil nil nil 21812)
+             (21812 0 "- " nil nil nil 21840)
+             (21840 0 "- " nil nil nil 21904)) :post-blank 0 :post-affiliated 21738 :tag nil :parent #3)
+   (paragraph
+    (:begin 21740 :end 21781 :contents-begin 21740 :contents-end 21781 :post-blank 0 :post-affiliated 21740 :parent #4) #
+    ("Nginx, Apache, Memcache, Redis, RabbitMQ
+  " 0 41
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 21781 :end 21801 :contents-begin 21783 :contents-end 21801 :checkbox nil :counter nil :structure
+            (
+             (21661 0 "- " nil nil nil 21678)
+             (21678 0 "- " nil nil nil 21738)
+             (21738 0 "- " nil nil nil 21781)
+             (21781 0 "- " nil nil nil 21801)
+             (21801 0 "- " nil nil nil 21812)
+             (21812 0 "- " nil nil nil 21840)
+             (21840 0 "- " nil nil nil 21904)) :post-blank 0 :post-affiliated 21781 :tag nil :parent #3)
+   (paragraph
+    (:begin 21783 :end 21801 :contents-begin 21783 :contents-end 21801 :post-blank 0 :post-affiliated 21783 :parent #4) #
+    ("MySQL, PostgreSQL
+  " 0 18
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 21801 :end 21812 :contents-begin 21803 :contents-end 21812 :checkbox nil :counter nil :structure
+            (
+             (21661 0 "- " nil nil nil 21678)
+             (21678 0 "- " nil nil nil 21738)
+             (21738 0 "- " nil nil nil 21781)
+             (21781 0 "- " nil nil nil 21801)
+             (21801 0 "- " nil nil nil 21812)
+             (21812 0 "- " nil nil nil 21840)
+             (21840 0 "- " nil nil nil 21904)) :post-blank 0 :post-affiliated 21801 :tag nil :parent #3)
+   (paragraph
+    (:begin 21803 :end 21812 :contents-begin 21803 :contents-end 21812 :post-blank 0 :post-affiliated 21803 :parent #4) #
+    ("Git, Svn
+  " 0 9
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 21812 :end 21840 :contents-begin 21814 :contents-end 21840 :checkbox nil :counter nil :structure
+            (
+             (21661 0 "- " nil nil nil 21678)
+             (21678 0 "- " nil nil nil 21738)
+             (21738 0 "- " nil nil nil 21781)
+             (21781 0 "- " nil nil nil 21801)
+             (21801 0 "- " nil nil nil 21812)
+             (21812 0 "- " nil nil nil 21840)
+             (21840 0 "- " nil nil nil 21904)) :post-blank 0 :post-affiliated 21812 :tag nil :parent #3)
+   (paragraph
+    (:begin 21814 :end 21840 :contents-begin 21814 :contents-end 21840 :post-blank 0 :post-affiliated 21814 :parent #4) #
+    ("JavaSсript, JQuery, ExtJS
+  " 0 26
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 21840 :end 21904 :contents-begin 21842 :contents-end 21904 :checkbox nil :counter nil :structure
+            (
+             (21661 0 "- " nil nil nil 21678)
+             (21678 0 "- " nil nil nil 21738)
+             (21738 0 "- " nil nil nil 21781)
+             (21781 0 "- " nil nil nil 21801)
+             (21801 0 "- " nil nil nil 21812)
+             (21812 0 "- " nil nil nil 21840)
+             (21840 0 "- " nil nil nil 21904)) :post-blank 0 :post-affiliated 21840 :tag nil :parent #3)
+   (paragraph
+    (:begin 21842 :end 21904 :contents-begin 21842 :contents-end 21904 :post-blank 0 :post-affiliated 21842 :parent #4) #
+    ("JSON, OpenID, XML, XML+RPC, closure-template, Sphinx, PHPUnit
+  " 0 62
+  (:parent #5)))))
+  (paragraph
+   (:begin 21905 :end 21959 :contents-begin 21905 :contents-end 21958 :post-blank 1 :post-affiliated 21905 :parent #2) #
+   ("Также знаком с: Delphi/Pascal, Assembler80x86, Forth
+  " 0 53
+  (:parent #3)))
+  (paragraph
+   (:begin 21959 :end 22010 :contents-begin 21959 :contents-end 22009 :post-blank 1 :post-affiliated 21959 :parent #2) #
+   ("Умею сниффать сниффером и профайлить профайлером.
+  " 0 50
+  (:parent #3)))
+  (paragraph
+   (:begin 22010 :end 22042 :contents-begin 22010 :contents-end 22041 :post-blank 1 :post-affiliated 22010 :parent #2) #
+   ("Не боюсь регулярных выражений.
+  " 0 31
+  (:parent #3)))
+  (paragraph
+   (:begin 22042 :end 22117 :contents-begin 22042 :contents-end 22116 :post-blank 1 :post-affiliated 22042 :parent #2) #
+   ("Знаю в чем разница между венгерской нотацией и обратной польской
+  записью.
+  " 0 74
+  (:parent #3)))
+  (paragraph
+   (:begin 22117 :end 22184 :contents-begin 22117 :contents-end 22183 :post-blank 1 :post-affiliated 22117 :parent #2) #
+   ("Умею управлять машиной Тьюринга и стрелять из конечного автомата.
+  " 0 66
+  (:parent #3)))
+  (paragraph
+   (:begin 22184 :end 22298 :contents-begin 22184 :contents-end 22297 :post-blank 1 :post-affiliated 22184 :parent #2) #
+   ("Грамотно выражаю свои мысли на бумаге, устно, на пальцах; и с первого
+  раза воспринимаю чужие с тех же носителей.
+  " 0 113
+  (:parent #3)))
+  (paragraph
+   (:begin 22298 :end 22334 :contents-begin 22298 :contents-end 22334 :post-blank 0 :post-affiliated 22298 :parent #2) #
+   ("Целиком спроектировал и реализовал:
+  " 0 36
+  (:parent #3)))
+  (plain-list
+   (:type unordered :begin 22334 :end 22414 :contents-begin 22334 :contents-end 22413 :structure
+          (
+           (22334 0 "- " nil nil nil 22355)
+           (22355 0 "- " nil nil nil 22374)
+           (22374 0 "- " nil nil nil 22394)
+           (22394 0 "- " nil nil nil 22413)) :post-blank 1 :post-affiliated 22334 :parent #2)
+   (item
+    (:bullet "- " :begin 22334 :end 22355 :contents-begin 22336 :contents-end 22355 :checkbox nil :counter nil :structure
+             (
+              (22334 0 "- " nil nil nil 22355)
+              (22355 0 "- " nil nil nil 22374)
+              (22374 0 "- " nil nil nil 22394)
+              (22394 0 "- " nil nil nil 22413)) :post-blank 0 :post-affiliated 22334 :tag nil :parent #3)
+    (paragraph
+     (:begin 22336 :end 22355 :contents-begin 22336 :contents-end 22355 :post-blank 0 :post-affiliated 22336 :parent #4)
+     (link
+      (:type "http" :path "//320-8080.ru" :raw-link "http://320-8080.ru" :application nil :search-option nil :begin 22336 :end 22354 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+     ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22355 :end 22374 :contents-begin 22357 :contents-end 22374 :checkbox nil :counter nil :structure
+            (
+             (22334 0 "- " nil nil nil 22355)
+             (22355 0 "- " nil nil nil 22374)
+             (22374 0 "- " nil nil nil 22394)
+             (22394 0 "- " nil nil nil 22413)) :post-blank 0 :post-affiliated 22355 :tag nil :parent #3)
+   (paragraph
+    (:begin 22357 :end 22374 :contents-begin 22357 :contents-end 22374 :post-blank 0 :post-affiliated 22357 :parent #4)
+    (link
+     (:type "http" :path "//pochin.ru" :raw-link "http://pochin.ru" :application nil :search-option nil :begin 22357 :end 22373 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22374 :end 22394 :contents-begin 22376 :contents-end 22394 :checkbox nil :counter nil :structure
+            (
+             (22334 0 "- " nil nil nil 22355)
+             (22355 0 "- " nil nil nil 22374)
+             (22374 0 "- " nil nil nil 22394)
+             (22394 0 "- " nil nil nil 22413)) :post-blank 0 :post-affiliated 22374 :tag nil :parent #3)
+   (paragraph
+    (:begin 22376 :end 22394 :contents-begin 22376 :contents-end 22394 :post-blank 0 :post-affiliated 22376 :parent #4)
+    (link
+     (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :begin 22376 :end 22393 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22394 :end 22413 :contents-begin 22396 :contents-end 22413 :checkbox nil :counter nil :structure
+            (
+             (22334 0 "- " nil nil nil 22355)
+             (22355 0 "- " nil nil nil 22374)
+             (22374 0 "- " nil nil nil 22394)
+             (22394 0 "- " nil nil nil 22413)) :post-blank 0 :post-affiliated 22394 :tag nil :parent #3)
+   (paragraph
+    (:begin 22396 :end 22413 :contents-begin 22396 :contents-end 22413 :post-blank 0 :post-affiliated 22396 :parent #4)
+    (link
+     (:type "http" :path "//izverg.ru" :raw-link "http://izverg.ru" :application nil :search-option nil :begin 22396 :end 22412 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5)))))
+  (paragraph
+   (:begin 22414 :end 22434 :contents-begin 22414 :contents-end 22434 :post-blank 0 :post-affiliated 22414 :parent #2) #
+   ("Мой код работает в:
+  " 0 20
+  (:parent #3)))
+  (plain-list
+   (:type unordered :begin 22434 :end 22634 :contents-begin 22434 :contents-end 22634 :structure
+          (
+           (22434 0 "- " nil nil nil 22450)
+           (22450 0 "- " nil nil nil 22474)
+           (22474 0 "- " nil nil nil 22496)
+           (22496 0 "- " nil nil nil 22517)
+           (22517 0 "- " nil nil nil 22539)
+           (22539 0 "- " nil nil nil 22563)
+           (22563 0 "- " nil nil nil 22584)
+           (22584 0 "- " nil nil nil 22608)
+           (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22434 :parent #2)
+   (item
+    (:bullet "- " :begin 22434 :end 22450 :contents-begin 22436 :contents-end 22450 :checkbox nil :counter nil :structure
+             (
+              (22434 0 "- " nil nil nil 22450)
+              (22450 0 "- " nil nil nil 22474)
+              (22474 0 "- " nil nil nil 22496)
+              (22496 0 "- " nil nil nil 22517)
+              (22517 0 "- " nil nil nil 22539)
+              (22539 0 "- " nil nil nil 22563)
+              (22563 0 "- " nil nil nil 22584)
+              (22584 0 "- " nil nil nil 22608)
+              (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22434 :tag nil :parent #3)
+    (paragraph
+     (:begin 22436 :end 22450 :contents-begin 22436 :contents-end 22450 :post-blank 0 :post-affiliated 22436 :parent #4)
+     (link
+      (:type "http" :path "//bkn.ru" :raw-link "http://bkn.ru" :application nil :search-option nil :begin 22436 :end 22449 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+     ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22450 :end 22474 :contents-begin 22452 :contents-end 22474 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22450 :tag nil :parent #3)
+   (paragraph
+    (:begin 22452 :end 22474 :contents-begin 22452 :contents-end 22474 :post-blank 0 :post-affiliated 22452 :parent #4)
+    (link
+     (:type "https" :path "//trend-spb.ru/" :raw-link "https://trend-spb.ru/" :application nil :search-option nil :begin 22452 :end 22473 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22474 :end 22496 :contents-begin 22476 :contents-end 22496 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22474 :tag nil :parent #3)
+   (paragraph
+    (:begin 22476 :end 22496 :contents-begin 22476 :contents-end 22496 :post-blank 0 :post-affiliated 22476 :parent #4)
+    (link
+     (:type "http" :path "//toursfera.ru" :raw-link "http://toursfera.ru" :application nil :search-option nil :begin 22476 :end 22495 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22496 :end 22517 :contents-begin 22498 :contents-end 22517 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22496 :tag nil :parent #3)
+   (paragraph
+    (:begin 22498 :end 22517 :contents-begin 22498 :contents-end 22517 :post-blank 0 :post-affiliated 22498 :parent #4)
+    (link
+     (:type "http" :path "//chembalt.ru" :raw-link "http://chembalt.ru" :application nil :search-option nil :begin 22498 :end 22516 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22517 :end 22539 :contents-begin 22519 :contents-end 22539 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22517 :tag nil :parent #3)
+   (paragraph
+    (:begin 22519 :end 22539 :contents-begin 22519 :contents-end 22539 :post-blank 0 :post-affiliated 22519 :parent #4)
+    (link
+     (:type "http" :path "//parus-ltd.ru" :raw-link "http://parus-ltd.ru" :application nil :search-option nil :begin 22519 :end 22538 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22539 :end 22563 :contents-begin 22541 :contents-end 22563 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22539 :tag nil :parent #3)
+   (paragraph
+    (:begin 22541 :end 22563 :contents-begin 22541 :contents-end 22563 :post-blank 0 :post-affiliated 22541 :parent #4)
+    (link
+     (:type "http" :path "//www.3-trans.ru" :raw-link "http://www.3-trans.ru" :application nil :search-option nil :begin 22541 :end 22562 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22563 :end 22584 :contents-begin 22565 :contents-end 22584 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22563 :tag nil :parent #3)
+   (paragraph
+    (:begin 22565 :end 22584 :contents-begin 22565 :contents-end 22584 :post-blank 0 :post-affiliated 22565 :parent #4)
+    (link
+     (:type "http" :path "//spsstroy.ru" :raw-link "http://spsstroy.ru" :application nil :search-option nil :begin 22565 :end 22583 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22584 :end 22608 :contents-begin 22586 :contents-end 22608 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22584 :tag nil :parent #3)
+   (paragraph
+    (:begin 22586 :end 22608 :contents-begin 22586 :contents-end 22608 :post-blank 0 :post-affiliated 22586 :parent #4)
+    (link
+     (:type "http" :path "//gtmorstroy.com" :raw-link "http://gtmorstroy.com" :application nil :search-option nil :begin 22586 :end 22607 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :begin 22608 :end 22634 :contents-begin 22610 :contents-end 22634 :checkbox nil :counter nil :structure
+            (
+             (22434 0 "- " nil nil nil 22450)
+             (22450 0 "- " nil nil nil 22474)
+             (22474 0 "- " nil nil nil 22496)
+             (22496 0 "- " nil nil nil 22517)
+             (22517 0 "- " nil nil nil 22539)
+             (22539 0 "- " nil nil nil 22563)
+             (22563 0 "- " nil nil nil 22584)
+             (22584 0 "- " nil nil nil 22608)
+             (22608 0 "- " nil nil nil 22634)) :post-blank 0 :post-affiliated 22608 :tag nil :parent #3)
+   (paragraph
+    (:begin 22610 :end 22634 :contents-begin 22610 :contents-end 22634 :post-blank 0 :post-affiliated 22610 :parent #4)
+    (link
+     (:type "http" :path "//www.mva-group.ru" :raw-link "http://www.mva-group.ru" :application nil :search-option nil :begin 22610 :end 22633 :contents-begin nil :contents-end nil :post-blank 0 :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))))))
+#+end_src
+
+#+begin_src elisp
+  '(org-data nil
+             (section (:parent #0)
+                      (keyword (:key "TITLE" :value "IT-директор / TeamLead" :parent #1))
+                      (keyword (:key "STARTUP" :value "showall indent hidestars" :parent #1)))
+             (headline (:raw-value "Info" :pre-blank 1 :level 1 :priority nil  :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title (# ("Info" 0 4 (:parent #1))) :parent #0)
+                       (section (:parent #1)
+                                (table (:type org :tblfm nil :value nil :parent #2)
+                                       (table-row (:type standard :parent #3)
+                                                  (table-cell (:parent #4) # ("specalizations" 0 14 (:parent #5)))
+                                                  (table-cell (:parent #4) # ("3 221" 0 5 (:parent #5))))
+                                       (table-row (:type standard :parent #3)
+                                                  (table-cell (:parent #4) # ("relocation" 0 10 (:parent #5)))
+                                                  (table-cell (:parent #4) # ("relocation" 0 10 (:parent #5))
+                                                              (subscript (:use-brackets-p nil :parent #5) # ("possible" 0 8 (:parent #6)))))
+                                       (table-row (:type standard :parent #3)
+                                                  (table-cell (:parent #4) # ("attestation-education-year" 0 26 (:parent #5)))
+                                                  (table-cell (:parent #4))))))
+             (headline (:raw-value "Educations" :pre-blank 1 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title (# ("Educations" 0 10 (:parent #1))) :parent #0)
+                       (section (:parent #1)
+                                (table (:type org :tblfm nil :value nil :parent #2)
+                                       (table-row (:type standard :parent #3)
+                                                  (table-cell (:parent #4) # ("education-id" 0 12 (:parent #5)))
+                                                  (table-cell (:parent #4) # ("0" 0 1 (:parent #5)))))))
+             (headline (:raw-value "Expiriences" :pre-blank 1 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title (# ("Expiriences" 0 11 (:parent #1))) :parent #0)
+                       (headline (:raw-value "ООО Автоматон" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title (# ("ООО Автоматон" 0 13 (:parent #2))) :parent #1)
+                                 (section (:parent #2)
+                                          (table (:type org :tblfm nil :value nil :caption (((# ("info" 0 4 (:parent #8))))) :parent #3)
+                                                 (table-row (:type standard :parent #4)
+                                                            (table-cell (:parent #5) # ("site" 0 4 (:parent #6)))
+                                                            (table-cell (:parent #5)))
+                                                 (table-row (:type standard :parent #4)
+                                                            (table-cell (:parent #5) # ("position" 0 8 (:parent #6)))
+                                                            (table-cell (:parent #5) # ("Руководитель разработки ПО, Системный архитектор" 0 48 (:parent #6))))
+                                                 (table-row (:type standard :parent #4)
+                                                            (table-cell (:parent #5) # ("start-date" 0 10 (:parent #6)))
+                                                            (table-cell (:parent #5) # ("2015-12-01" 0 10 (:parent #6))))
+                                                 (table-row (:type standard :parent #4)
+                                                            (table-cell (:parent #5) # ("end-date" 0 8 (:parent #6)))
+                                                            (table-cell (:parent #5) # ("" 0 16 (:parent #6)))))
+                                          (paragraph (:parent #3) # ("Компания занимается разработкой и эксплуатацией автоматизированных парковок." 0 77 (:parent #4)))
+                                          (paragraph (:parent #3) # ("Я возглавил исследовательский проект по разработке новой парковочной системы: аппаратной и программной части." 0 110 (:parent #4)))
+                                          (paragraph (:parent #3) # ("Технологии:" 0 12 (:parent #4)))
+                                          (plain-list (:type unordered
+                                                             :parent #3)
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Проектирование печатных плат - Kikad, Altium Designer" 0 54 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Программирование: С/С++, Assembler, Erlang (телефония), PHP/JS: Yii+React (веб-интерфейс), EmacsLisp - кодогенерация для \\\"исполняемых спецификаций\\\" и утилиты для совместной удаленной работы в команде" 0 202 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Архитектурный стек - Linux on ARM Cortex A8" 0 44 (:parent #6)))))
+                                          (paragraph (:parent #3) # ("Разработку проводил с нуля, по этапам:" 0 39 (:parent #4)))
+                                          (plain-list (:type unordered  :parent #3)
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Найм сотрудников" 0 17 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Выбор электронных компонентов," 0 31 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Создание печатных плат," 0 24 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Написание низкоуровневого кода, управляющего шлагбаумами и опрашивающего датчики" 0 81 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Написание бизнес-логики и веб-интерфейсов, через которые можно управлять парковкой удаленно," 0 93 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Подключение интернет-телефонии, для общения с клиентом в нестандартных ситуациях" 0 81 (:parent #6)))))
+                                          (paragraph (:parent #3) # ("Первое внедрение состоялось через полгода от начала разработки, разработка полностью окупилась через год. Технологически разработанное решение опережает конкурирующие. В том числе по соотношению цена/качество (но не в отношении пром-дизайна) - опережает даже большинство зарубежных конкурентов." 0 295 (:parent #4)))
+                                          (paragraph (:parent #3) # ("Мои достижения:" 0 16 (:parent #4)))
+                                          (plain-list (:type unordered  :parent #3)
+                                                      (item (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+                                                       (paragraph (:parent #5) # ("Спроектировал программно-аппаратную архитектуру системы автоматизации платных парковок." 0 90 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Спланировал и организовал работы по разработке ПО и аппаратной части, включая подбор электронных компонентов и схемотехническое проектирование." 0 148 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Самостоятельно реализовал бизнес-логику и уровень представления (Рабочее Место Оператора)" 0 92 (:parent #6))))
+                                                      (item (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+                                                            (paragraph (:parent #5) # ("Руководил работами по реализации транспортного уровня и уровня абстракции оборудования, выполненными удаленными разработчиками." 0 130 (:parent #6))))
+                                                      (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+   (paragraph
+    (:parent #5) #
+    ("Организовал паралельную разработку по модульному принципу
+  (чтобы
+   ускорить создание продукта) и методологии kanban" 0 116
+  (:parent #6))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+   (paragraph
+    (:parent #5) #
+    ("Внедрил Continuous Integration и процесс управления жизненным циклом
+
+  (релизы, исправление ошибок, добавление возможностей, технический
+           контроль качества, автоматизированное тестирование)" 0 191
+  (:parent #6))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+   (paragraph
+    (:parent #5) # ("Реализовал безопасное (цифровая подпись) и отказоустойчивое (откат на предыдующую версию при провале тестов) обновление прошивок через интернет." 0 149 (:parent #6))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+   (paragraph
+    (:parent #5) #
+    ("Автоматизировал создание и хранение документации, с использованием
+  версионирования на базе GIT и \\\"executable specifications\\\".\"
+  " 0 131
+  (:parent #6)))))))
+  (headline
+   (:raw-value "ООО БКН" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("ООО БКН" 0 7
+                 (:parent #2))) :parent #1)
+   (section
+    (:parent #2)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:parent #5)
+       (link
+        (:type "http" :path "//bkn.ru" :raw-link "http://bkn.ru" :application nil :search-option nil :parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("ИТ-директор" 0 11
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2015-04-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2015-12-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:parent #3) #
+     ("Компания - второй после \\\"Бюллетеня недвижимости\\\" информационный
+  источник в области недвижимости по С-Пб и ЛО.
+  " 0 112
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Руководил разработкой и продвижением информационных решений
+  автоматизации бизнеса агентств недвижимости
+  (b2b и b2c).
+  " 0 117
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Стек технологий: C# и ASP.NET, ExtJs
+  " 0 37
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (plain-list
+   (:type unordered  :parent #3)
+   (item
+    (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+    (paragraph
+     (:parent #5) #
+     ("Используя данные \\\"межагентской БД bkn-profi\\\" в короткие сроки
+  создал раздел о жилых комплексах и новостройках, который по обьему
+  вскоре достиг 60% сайта, что позволило резко увеличить доходы от
+  рекламы на сайте.
+  " 0 220
+  (:parent #6))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+   (paragraph
+    (:parent #5) #
+    ("Реализовал на сайте bkn.ru раздел поиска и подбора квартир, комнат и
+  жилых домов первичного и вторичного рынка, интегрировал его с
+  межагентской БД объектов недвижимости.\")
+  " 0 176
+  (:parent #6)))))))
+  (headline
+   (:raw-value "Тренд" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("Тренд" 0 5
+                 (:parent #2))) :parent #1)
+   (section
+    (:parent #2)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:parent #5)
+       (link
+        (:type "http" :path "//trend-spb.ru" :raw-link "http://trend-spb.ru" :application nil :search-option nil :parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("Ведущий инженер-программист" 0 27
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2014-08-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2015-03-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:parent #3) #
+     ("Компания - молодое быстрорастущее агенство недвижимости,
+  специализирующееся на первичном рынке
+  (новостройки)
+  " 0 109
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Автоматизировал бизнес-процесс агенства по продажам недвижимости
+
+  (новостройки).
+  " 0 80
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Стек технологий: Php, Nginx, Mysql, PostgreSql
+  " 0 47
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("До моего прихода агенты и риэлторы использовали skype и google docs
+  для выполнения задач, но после увеличения численности в 4 раза эти
+  инструменты стали неэффективны. Я внедрил CRM собственной разработки,
+  модули которой
+  (экспертная система выставления цен, интерактивный
+              подбор объектов) освободили работников от рутины.
+  " 0 321
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Также был реорганизован сайт компании с использованием современных технологий.
+  " 0 79
+  (:parent #4)))))
+  (headline
+   (:raw-value "Частная компания
+  (алготрейдинг)" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+  (#
+   ("Частная компания
+  (алготрейдинг)" 0 31
+  (:parent #2))) :parent #1)
+  (section
+   (:parent #2)
+   (table
+    (:type org :tblfm nil :value nil :caption
+           (
+            (
+             (#
+              ("info" 0 4
+               (:parent #8))))) :parent #3)
+    (table-row
+     (:type standard :parent #4)
+     (table-cell
+      (:parent #5) #
+      ("site" 0 4
+       (:parent #6)))
+     (table-cell
+      (:parent #5)
+      (link
+       (:type "http" :path "//aintsys.com" :raw-link "http://aintsys.com" :application nil :search-option nil :parent #6))))
+    (table-row
+     (:type standard :parent #4)
+     (table-cell
+      (:parent #5) #
+      ("position" 0 8
+       (:parent #6)))
+     (table-cell
+      (:parent #5) #
+      ("Lisp/Erlang-разработчик" 0 23
+       (:parent #6))))
+    (table-row
+     (:type standard :parent #4)
+     (table-cell
+      (:parent #5) #
+      ("start-date" 0 10
+       (:parent #6)))
+     (table-cell
+      (:parent #5) #
+      ("2012-04-01" 0 10
+       (:parent #6))))
+    (table-row
+     (:type standard :parent #4)
+     (table-cell
+      (:parent #5) #
+      ("end-date" 0 8
+       (:parent #6)))
+     (table-cell
+      (:parent #5) #
+      ("2014-08-01" 0 10
+       (:parent #6)))))
+   (paragraph
+    (:parent #3) #
+    ("Разрабатывал решения в сфере электронных валют на базе технологии
+  BlockChain.
+  " 0 78
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Стек технологий: Erlang, Common Lisp, C++
+  " 0 42
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("К сожалению, по условиям NDA я не имею права распространять в сети
+  информацию о деятельности компании и моих разработках :
+  (
+   " 0 124
+  (:parent #4)))))
+  (headline
+   (:raw-value "ООО РАВТА" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("ООО РАВТА" 0 9
+                 (:parent #2))) :parent #1)
+   (section
+    (:parent #2)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:parent #5)
+       (link
+        (:type "http" :path "//ravta.ru" :raw-link "http://ravta.ru" :application nil :search-option nil :parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("Директор по IT" 0 14
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2012-01-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2012-04-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:parent #3) #
+     ("Компания - интернет-магазин запчастей, комплектующих и расходных
+  материалов для автомобилей.
+  " 0 93
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Осуществлял руководство разработкой информационной системы
+  предприятия, занимался постановкой задач и контролем выполнения
+  работ. Организовывал договорную работу с подрядчиками.
+  " 0 178
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Внедрил на фирме 1-С Предприятие и 1С-Склад и обеспечил ее интеграцию с системой TechDoc.
+  " 0 90
+  (:parent #4)))))
+  (headline
+   (:raw-value "WizardSoft" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("WizardSoft" 0 10
+                 (:parent #2))) :parent #1)
+   (section
+    (:parent #2)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:parent #5)
+       (link
+        (:type "http" :path "//wizardsoft.ru" :raw-link "http://wizardsoft.ru" :application nil :search-option nil :parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("Ведущий разработчик, архитектор" 0 31
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2011-05-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2012-01-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:parent #3) #
+     ("Компания занимается автоматизацией управления затратами в
+  стоительстве.
+  " 0 72
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Разработал высоконагрузочный портал для проведения строительных
+  тендеров. Прототип реализовал на Common Lisp, Postmodern и
+  PostgreSQL. После приемки прототип был существенно расширен и
+  переписан на PHP
+  " 0 202
+  (:parent #4)))))
+  (headline
+   (:raw-value "ЦиFры" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("ЦиFры" 0 5
+                 (:parent #2))) :parent #1)
+   (section
+    (:parent #2)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:parent #5)
+       (link
+        (:type "http" :path "//www.320-8080.ru" :raw-link "http://www.320-8080.ru" :application nil :search-option nil :parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("Архитектор-проектировщик, веб-программист" 0 41
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2009-09-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2011-04-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:parent #3) #
+     ("Компания - интернет-магазин цифровой техники.
+  " 0 46
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Стек технологий: PHP, MySql, Jquery, Common Lisp, Memcached
+  " 0 60
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (plain-list
+   (:type unordered  :parent #3)
+   (item
+    (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+    (paragraph
+     (:parent #5) #
+     ("На первом этапе в кратчайшие сроки подготовил legacy-код к
+  новогодним нагрузкам путем внедрения кэширования.
+  " 0 111
+  (:parent #6))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #4)
+   (paragraph
+    (:parent #5) #
+    ("Затема полностью перепроектировал и реализовал на высоконагрузочный
+  интернет-магазин.
+  " 0 88
+  (:parent #6)))))))
+  (headline
+   (:raw-value "ООО Вебдом" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("ООО Вебдом" 0 10
+                 (:parent #2))) :parent #1)
+   (section
+    (:parent #2)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:parent #5)
+       (link
+        (:type "http" :path "//webdom.net" :raw-link "http://webdom.net" :application nil :search-option nil :parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("Ведущий веб-разработчик" 0 23
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2007-01-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2009-09-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:parent #3) #
+     ("Веб-студия
+  " 0 11
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Стек технологий: Php, Nginx, MySql
+  " 0 35
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Cпроектировал и разработал масштабируемый фреймворк, на котором теперь
+  работает компания. CMS на его основе поставляются клиентам.
+  " 0 131
+  (:parent #4)))))
+  (headline
+   (:raw-value "\"Почин\"" :pre-blank 1 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("\"Почин\"" 0 7
+                 (:parent #2))) :parent #1)
+   (section
+    (:parent #2)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("info" 0 4
+                (:parent #8))))) :parent #3)
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("site" 0 4
+        (:parent #6)))
+      (table-cell
+       (:parent #5)
+       (link
+        (:type "http" :path "//pochin.ru" :raw-link "http://pochin.ru" :application nil :search-option nil :parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("position" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("Программист" 0 11
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("start-date" 0 10
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2005-09-01" 0 10
+        (:parent #6))))
+     (table-row
+      (:type standard :parent #4)
+      (table-cell
+       (:parent #5) #
+       ("end-date" 0 8
+        (:parent #6)))
+      (table-cell
+       (:parent #5) #
+       ("2007-01-01" 0 10
+        (:parent #6)))))
+    (paragraph
+     (:parent #3) #
+     ("Компания - интернет-магазин авточехлов, автозапчастей и
+  автоинструмента.
+  " 0 73
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Стек технологий: LAMP
+  " 0 22
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Первоначально начинал как фриланс-программист, но скоро сотрудничество
+  стало постоянным.
+  " 0 89
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Достижения:
+  " 0 12
+  (:parent #4)))
+  (paragraph
+   (:parent #3) #
+   ("Спроектировал и разработал интернет-магазин
+  (три версии за полтора года)
+  " 0 73
+  (:parent #4))))))
+  (headline
+   (:raw-value "Languages" :pre-blank 1 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("Languages" 0 9
+                 (:parent #1))) :parent #0)
+   (section
+    (:parent #1)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("Languages" 0 9
+                (:parent #7))))) :parent #2)
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("34\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("native" 0 6
+        (:parent #5))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("57\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("can" 0 3
+        (:parent #5))
+       (subscript
+        (:use-brackets-p nil :parent #5) #
+        ("read" 0 4
+         (:parent #6)))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("58\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("basic" 0 5
+        (:parent #5))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("59\"" 0 3
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("none" 0 4
+        (:parent #5)))))))
+  (headline
+   (:raw-value "Contacts" :pre-blank 1 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("Contacts" 0 8
+                 (:parent #1))) :parent #0)
+   (section
+    (:parent #1)
+    (table
+     (:type org :tblfm nil :value nil :caption
+            (
+             (
+              (#
+               ("Contacts" 0 8
+                (:parent #7))))) :parent #2)
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("cell-phone" 0 10
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("+79112869290" 0 12
+        (:parent #5))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("cell-phone-comment" 0 18
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("home-phone" 0 10
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("home-phone-comment" 0 18
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("work-phone" 0 10
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("work-phone-comment" 0 18
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("email-string" 0 12
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("avenger-f@yandex.ru" 0 19
+        (:parent #5))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("preferred-contact" 0 17
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("email" 0 5
+        (:parent #5))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("icq" 0 3
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("skype" 0 5
+        (:parent #5)))
+      (table-cell
+       (:parent #4) #
+       ("i.am.rigidus" 0 12
+        (:parent #5))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("freelance" 0 9
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("moi" 0 3
+        (:parent #5))
+       (subscript
+        (:use-brackets-p nil :parent #5) #
+        ("krug" 0 4
+         (:parent #6))))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("linkedin" 0 8
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("facebook" 0 8
+        (:parent #5)))
+      (table-cell
+       (:parent #4)))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("livejournal" 0 11
+        (:parent #5)))
+      (table-cell
+       (:parent #4)
+       (link
+        (:type "http" :path "//rigidus.livejournal.com" :raw-link "http://rigidus.livejournal.com" :application nil :search-option nil :parent #5))))
+     (table-row
+      (:type standard :parent #3)
+      (table-cell
+       (:parent #4) #
+       ("personal-site" 0 13
+        (:parent #5)))
+      (table-cell
+       (:parent #4)
+       (link
+        (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :parent #5)) #
+       ("\"" 0 1
+        (:parent #5)))))))
+  (headline
+   (:raw-value "About" :pre-blank 1 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
+               (#
+                ("About" 0 5
+                 (:parent #1))) :parent #0)
+   (section
+    (:parent #1)
+    (paragraph
+     (:parent #2) #
+     ("На самом деле, я не настоящий ИТ-директор :) По большей части я
+  высококвалифицированный программист, который \"программирует процесс
+
+  (своего) программирования\" и любит решать сложные задачи. Особенность
+  в том, что я часто создаю инструменты для решения таких задач и это
+  позволяет команде достигать выдающихся результатов.
+  " 0 322
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Как тимлид, я весьма озабочен тем, чтобы быть возможно более сильным с
+  точки зрения программистких навыков и компетенций. Я активный участник
+  и регулярный докладчик в fprog-комьюнити и на ITGM. Это важно,
+  т.к. никакой хороший программист не хотел бы работать с кем-то, кто
+  слабее, чем он - исправлять чужие ошибки и терять время, которое мог
+  бы потратить на обучение у более сильного. Еще мне проще нанимать. Да
+  и в процессе работы тоже проще: профессиональное уважение значит
+  больше чем денежная мотивация.
+  " 0 508
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Часто команда вообще не нужна. Один человек с хорошими инструментами
+  может многое и экономит время на коммуникацию. Однако редко можно
+  встретить человека, который может похвастаться тем, что в одиночку
+  разработал что-нибудь крупное - CRM, фреймворк, систему продажи
+  авиабилетов или компилятор. Я думаю, это происходит по двум основным
+  причинам. Одна из них - инвесторы не верят одиночкам. Вторая же -
+  типично организационная проблема, суть которой в том, что любой
+  начальник заинтересован в росте количества своих подчиненных, ведь это
+  показатель его влияния.
+  " 0 560
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Я стараюсь, чтобы команда была минимальной по количеству и
+  максимальной по уровню. Хороший программист приносит в десятки и сотни
+  раз больше пользы чем средний, а платить ему нужно всего лишь в два
+  или три раза больше.
+  " 0 219
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Когда вы нанимаете программиста, перед вами стоят три вопроса. Умный
+  ли он? Способен ли выполнить то, что нужно? Сможете ли вы с ним
+  работать? Тот, кто умён, но неспособен выполнить задание, может быть
+  вашим другом, но не работником. Вы можете обсуждать с ним свои
+  проблемы, тогда как он будет тянуть с выполнением важной работы. Тот,
+  кто способен выполнять задания, но неумён — тот неэффективен: неумные
+  люди выполняют работу трудоёмким способом, работа с ними продвигается
+  медленно и полна разочарований. Ну а с тем, с кем вы не можете
+  работать - вы просто не сможете работать.
+  " 0 580
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Обычная процедура найма программиста состоит из:
+  " 0 49
+  (:parent #3)))
+  (plain-list
+   (:type unordered  :parent #2)
+   (item
+    (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+    (paragraph
+     (:parent #4) #
+     ("чтения резюме
+  " 0 14
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("задавания каких-то трудных вопросов по телефону
+  " 0 48
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("постановки перед ними задачи по программированию при личном общении
+  " 0 68
+  (:parent #5)))))
+  (paragraph
+   (:parent #2) #
+   ("Я думаю, что такая система найма людей ужасна. Из резюме можно узнать
+  очень мало, а трудные вопросы во время интервью очень нервируют
+  людей. Программирование — это не та работа, которая выполняется под
+  давлением, поэтому наблюдать за действиями людей, которые нервничают,
+  довольно бессмысленно. А вопросы для интервью обычно подбираются по
+  принципу «чем тяжёлее, тем лучше». Я хороший программист, но я никогда
+  не чувствую себя уверенно на таких интервью, и думаю, я не одинок.
+  " 0 478
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Поэтому, когда я нанимаю кого-то, я просто пытаюсь ответить на эти три
+  вопроса. Чтобы выяснить, способен ли человек делать нужные вещи, я
+  просто спрашиваю, что он уже сделал. Если человек действительно
+  способен выполнять работу, к этому моменту он уже должен был что-то
+  сделать. Трудно быть хорошим программистом без какого-то опыта работы,
+  а сейчас любой может набраться опыта, приняв участие в каком-то
+  проекте по созданию свободного программного обеспечения. Поэтому я
+  просто прошу у человека ссылку на репозиторий на гитхабе и ссылку на
+  работающий продукт
+  (сайт) и смотрю, хорошо ли это устроено. Так
+  действительно можно узнать очень много, потому что я не наблюдаю за
+  тем, как он отвечает на надуманный вопрос во время интервью — я смотрю
+  на код, который он выдаёт на самом деле. Является ли он лаконичным?
+  понятным? элегантным? практичным? Хочу ли я иметь что-то такое в своём
+  проекте?
+  " 0 892
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Чтобы выяснить, является ли человек умным, я просто веду с ним
+  неформальную беседу. Я стараюсь сделать всё, чтобы снять любое
+  напряжение — назначаю встречу в кафе, поясняю, что это не интервью,
+  делаю всё, чтобы быть неофициальным и дружественным. Ни при каких
+  обстоятельствах я не задаю ему стандартных вопросов из интервью — я
+  просто болтаю с ним, как болтал бы с кем-то на вечеринке. Думаю, в
+  непринуждённой беседе довольно легко выяснить, умён ли человек. Я
+  постоянно оцениваю ум людей, которых встречаю, точно так же, как
+  постоянно оцениваю их привлекательность.
+  " 0 567
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Но если бы пришлось записать признаки того, почему некто кажется мне
+  умным, я бы сделал акцент на трёх моментах. Во-первых, насколько
+  глубоки его познания? Спросите, о чём он думал в последнее время, и
+  \"прощупайте\" его на эту тему. Похоже ли на то, что у него есть
+  детальное понимание предмета? Может ли он понятно объяснить его?
+
+  (Понятные объяснения — признак подлинного понимания) Знает ли он о
+  предмете то, чего не знаете вы?
+  " 0 429
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Во-вторых, любопытен ли он? Задаёт ли он в ответ вопросы о вас?
+  Действительно ли он заинтересован или просто старается быть вежливым?
+  Задаёт ли он дополнительные вопросы к тому, что вы говорите?
+  Заставляют ли его вопросы вас задуматься?
+  " 0 237
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("В-третьих, учится ли он? В какой-то момент разговора вы, возможно,
+  будете что-то ему объяснять. Действительно ли он понимает, что вы
+  говорите, или же просто улыбается и кивает? Существуют люди, которые
+  обладают знаниями в какой-то небольшой области, но не интересуются
+  другими вопросами. И существуют люди, которые любопытны, но не учатся,
+  они задают множество вопросов, но на самом деле не слушают. Мне нужен
+  тот, кто является и тем, и другим, и третьим.
+  " 0 456
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Наконец, я определяю, смогу ли я работать с человеком, просто проведя
+  с ним какое-то время. Многие выдающиеся люди кажутся восхитительными в
+  первый час общения, но через пару часов их эксцентричность начинает
+  раздражать. Цель — просто понять, будет ли он действовать вам на
+  нервы.
+  " 0 281
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Если всё выглядит неплохо, и я готов нанять человека, здравый смысл
+  говорит о необходимости последней проверки, чтобы убедиться, что меня
+  каким-то образом не надули: я прошу его сделать часть работы. Обычно
+  это означает, что ему следует написать какой-то более-менее
+  независимый кусок кода, который нам нужен. Если необходимо, можно
+  предложить ему оплатить эту работу — хотя я заметил, что большинство
+  программистов не прочь выполнить небольшую задачу, если потом они
+  смогут сделать полученные исходники открытыми. Этот тест не работает
+  сам по себе, но если кто-то прошёл первые три испытания, его должно
+  быть достаточно, чтобы доказать, что человек не надул вас, что он в
+  самом деле может выполнять работу.
+  " 0 708
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Меня вполне устраивает такой метод. Когда я придерживался его лишь
+  частично, это заканчивалось приёмом на работу неподходящих людей,
+  которым со временем приходилось уйти. Но когда я действовал по этому
+  плану, то получал людей, которые настолько мне нравились, что я на
+  самом деле очень сожалею, если мне приходится расставаться с
+  ними. Удивительно, как много компаний вместо этого пользуются другими,
+  глупыми методами найма на работу.
+  " 0 435
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Теперь, если вы действительно дочитали до этого места - резонно было
+  бы спросить: \"А сам то ты, Миша, отвечаешь поставленным тобой
+  критериям?\". Чтобы определить могу ли я делать нужные вещи взгляните
+  на мое резюме. Последнее из того, что я делал - это система,
+  управляющая сетью парковок. В парковках много всего интересного:
+  датчики положения машины, шлагбаумы, навигация и тарифы в разное время
+  суток - организовать это в коде совсем не тривиально. Я занимался
+  созданием печатных плат, подбором компонентов, разработкой
+  бизнес-логики и написанием низкоуровневых программ - и это показывает,
+  что я могу делать сложные вещи. Показателем качества работы может быть
+  тот факт, что за полгода нам ни разу не приходилось делать рефакторинг
+  и выбрасывать большое количество кода - вы можете убедиться в этом
+  посмотрев в мой репозиторий: " 0 831
+  (:parent #3))
+  (link
+   (:type "https" :path "//github.com/rigidus/aspp" :raw-link "https://github.com/rigidus/aspp" :application nil :search-option nil :parent #3)) #
+  ("
+  (ASPP
+   значит \"Автоматизированная Система Платной Парковки\"). По соглашению с
+  фирмой я не могу выложить последнюю версию кода, но и прототипа
+  достаточно, чтобы, к примеру, оценить вклад, просто посмотрев на долю
+  и содержание коммитов.
+  " 0 234
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("До этого я несколько лет работал в сфере недвижимости, разрабатывая
+  сайты и информационные системы, на PHP и C#, но так как для меня
+  веб-программирование - это привычная среда - все эти достижения не
+  ощущаются мной как выдающиеся. Впрочем, заказчики не жаловались :)
+  " 0 267
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Несколько ранее я работал программистом-исследователем и имел дело с
+  технологией BlockChain. Это была очень интересная работа, но я
+  довольно мало могу о ней рассказать
+  (NDA)
+  " 0 174
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("А еще раньше я делал розничные интернет-магазины, пока мне не
+  захотелось более наукоемкой деятельности :)
+  " 0 106
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Еще у меня довольно много проектов, которые я делаю в свободное
+  время. Я делаю их, чтобы расслабиться после работы. Некоторые люди
+  смотрят фильмы, чтобы расслабиться, кто-то читает книги. Я
+  расслабляюсь, когда программирую. Один из этих проектов, посвящен
+  автоматизации процесса найма и поиска работы, а второй - моделированию
+  процессов, происходящих в электрических цепях. В свободное время я
+  собираю роботов и решение, которое можно назвать \"умный гараж\". Если
+  хотите - можете меня об этом распросить.
+  " 0 504
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Если я убедил вас в первом пункте, вероятно вы захотите оценить, умен
+  ли я. Взгляните на мой сайт
+  (" 0 99
+  (:parent #3))
+  (link
+   (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :parent #3)) #
+  ("), куда я помещаю все
+  вещи, которые меня интересуют. Вполне возможно, что вы крайне далеки
+  от робототехники, функционального программирования и нейронных сетей,
+  но вы вполне можете оценить, внятно ли я объясняю все эти сложные
+  вещи. Насколько глубоко я готов погрузиться? Если ли значимые
+  результаты в этих областях, которые могли бы быть полезными?
+  " 0 350
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Ну и наконец, чтобы определить, сможете ли вы со мной работать, вам
+  стоит пригласить меня на собеседование. Я был бы вам признателен, если
+  бы это было skype-собеседование, по крайней мере в первый раз,
+  т.к. таким образом, мы смогли бы сэкономить кучу времени на
+  дороге. Впрочем, если вы хотите показать мне офис или тестовый стенд
+  вашей технологии, я с удовольствием приеду к вам в удобное
+  время. Почему бы не позвонить мне прямо сейчас? Мой телефон:
+  8
+  (911)286-92-90
+  " 0 467
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Ну а пока вы раздумываете, я оставлю тут список ключевых компетенций:
+  " 0 70
+  (:parent #3)))
+  (plain-list
+   (:type unordered  :parent #2)
+   (item
+    (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+    (paragraph
+     (:parent #4) #
+     ("Linux, FreeBSD
+  " 0 15
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("PHP, JavaScript, Python, C/C++, Java, Common Lisp, Erlang
+  " 0 58
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("Nginx, Apache, Memcache, Redis, RabbitMQ
+  " 0 41
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("MySQL, PostgreSQL
+  " 0 18
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("Git, Svn
+  " 0 9
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("JavaSсript, JQuery, ExtJS
+  " 0 26
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4) #
+    ("JSON, OpenID, XML, XML+RPC, closure-template, Sphinx, PHPUnit
+  " 0 62
+  (:parent #5)))))
+  (paragraph
+   (:parent #2) #
+   ("Также знаком с: Delphi/Pascal, Assembler80x86, Forth
+  " 0 53
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Умею сниффать сниффером и профайлить профайлером.
+  " 0 50
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Не боюсь регулярных выражений.
+  " 0 31
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Знаю в чем разница между венгерской нотацией и обратной польской
+  записью.
+  " 0 74
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Умею управлять машиной Тьюринга и стрелять из конечного автомата.
+  " 0 66
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Грамотно выражаю свои мысли на бумаге, устно, на пальцах; и с первого
+  раза воспринимаю чужие с тех же носителей.
+  " 0 113
+  (:parent #3)))
+  (paragraph
+   (:parent #2) #
+   ("Целиком спроектировал и реализовал:
+  " 0 36
+  (:parent #3)))
+  (plain-list
+   (:type unordered  :parent #2)
+   (item
+    (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+    (paragraph
+     (:parent #4)
+     (link
+      (:type "http" :path "//320-8080.ru" :raw-link "http://320-8080.ru" :application nil :search-option nil :parent #5)) #
+     ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//pochin.ru" :raw-link "http://pochin.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//izverg.ru" :raw-link "http://izverg.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5)))))
+  (paragraph
+   (:parent #2) #
+   ("Мой код работает в:
+  " 0 20
+  (:parent #3)))
+  (plain-list
+   (:type unordered  :parent #2)
+   (item
+    (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+    (paragraph
+     (:parent #4)
+     (link
+      (:type "http" :path "//bkn.ru" :raw-link "http://bkn.ru" :application nil :search-option nil :parent #5)) #
+     ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "https" :path "//trend-spb.ru/" :raw-link "https://trend-spb.ru/" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//toursfera.ru" :raw-link "http://toursfera.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//chembalt.ru" :raw-link "http://chembalt.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//parus-ltd.ru" :raw-link "http://parus-ltd.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//www.3-trans.ru" :raw-link "http://www.3-trans.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//spsstroy.ru" :raw-link "http://spsstroy.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//gtmorstroy.com" :raw-link "http://gtmorstroy.com" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))
+  (item
+   (:bullet "- " :checkbox nil :counter nil  :tag nil :parent #3)
+   (paragraph
+    (:parent #4)
+    (link
+     (:type "http" :path "//www.mva-group.ru" :raw-link "http://www.mva-group.ru" :application nil :search-option nil :parent #5)) #
+    ("
+  " 0 1
+  (:parent #5))))))))
+#+end_src
