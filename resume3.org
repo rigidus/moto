@@ -3,7 +3,7 @@
 Это эксперимент по генерации кода из дерева, полученного разбором
 orgmode-файла.
 
-#+BEGIN_SRC elisp :results value verbatim
+#+BEGIN_SRC elisp :results value verbatim raw
   (defun traverse (tree predicate action)
     (cond ((null tree)  nil)
           ((listp tree) (if (funcall predicate tree)
@@ -47,44 +47,22 @@ orgmode-файла.
     (message "--> about %s" (car (car param)))
     (process-about-section (cddar param)))
 
-  (let ((filename "~/repo/moto/resume4.org"))
-    (let ((result ""))
-      (with-temp-buffer
-        (insert-file-contents filename)
-        (org-mode)
-        (let* ((tree
-                (org-element-parse-buffer)
-                ))
-          (traverse tree
-                    #'(lambda (x)
-                        (let ((lead (car tree)))
-                          (cond ((equal lead 'headline)
-                                 (process-headline (cdr tree)))
-                                ((listp lead)
-                                 (let ((fst (traverse (car tree) predicate action)))
-                                   (if (null fst)
-                                       (traverse (cdr tree) predicate action)
-                                     fst)))
-                                (t (traverse (cddr tree) predicate action)))))
-                    #'(lambda (x)))
-          tree))
-      (message "%s" result)
-      nil))
-
   (defun process-about-section (param)
-    (mapcar #'(lambda (par)
-                (let ((lead (car par)))
-                  (cond ((equal lead 'paragraph)   (process-paragraph  (cdr par)))
-                        ((equal lead 'plain-list)  (process-plain-list (cdr par)))
-                        (t (message "process-about-section [unknown lead] %s" lead)))))
-            param))
+    (let ((tail))
+      (mapcar #'(lambda (par)
+                  (let ((lead (car par)))
+                    (cond ((equal lead 'paragraph)   (process-paragraph  (cdr par) tail))
+                          ((equal lead 'plain-list)  (process-plain-list (cdr par) tail))
+                          (t (message "process-about-section [unknown lead] %s" lead)))))
+              param)))
 
-  (defun process-paragraph (param)
+  (defun process-paragraph (param tail)
     (let ((meta (car param))
           (data (cdr param)))
       (mapcar #'(lambda (par)
                   (if (stringp par)
-                      (setf result (format "%s%s" result par))
+                      (let ((format-str (if (null tail) "%s\n%s" "%s%s")))
+                        (setf result (format format-str result par)))
                     (let ((lead (car par)))
                       (cond ((equal lead 'link)  (process-link (cdr par)))
                             (t (message "process-paragraph [unknown lead] %s" lead))))))
@@ -95,27 +73,53 @@ orgmode-файла.
           (data (cdr param)))
       (setf result (format "%s%s" result (getf meta :raw-link)))))
 
-  (defun process-plain-list (param)
+  (defun process-plain-list (param tail)
     (let ((meta (car param))
           (data (cdr param)))
       (mapcar #'(lambda (par)
                   (let ((lead (car par)))
                     (cond ((equal lead 'item)
                            (progn
-                             (process-plain-list-item (cdr par))))
+                             (push 'plain-list tail)
+                             (process-plain-list-item (cdr par) tail)
+                             (pop tail)))
                           (t (message "process-plain-list [unknown lead] %s" lead)))))
               data)))
 
-  (defun process-plain-list-item (param)
+  (defun process-plain-list-item (param tail)
     (let ((meta (car param))
           (data (cdr param)))
       (setf result (format "%s%s" result (getf meta :bullet)))
       (mapcar #'(lambda (par)
                   (let ((lead (car par)))
-                    (cond ((equal lead 'paragraph)  (process-paragraph (cdr par)))
+                    (cond ((equal lead 'paragraph)  (process-paragraph (cdr par) tail))
                           (t (message "process-plain-list-item [unknown lead] %s" lead)))))
               data)))
+
+  (let ((filename "~/repo/moto/resume2.org"))
+    (let ((result ""))
+      (with-temp-buffer
+        (insert-file-contents filename)
+        (org-mode)
+        (let ((tree (org-element-parse-buffer)))
+          (traverse tree #'(lambda (x)
+                             (let ((lead (car tree)))
+                               (cond ((equal lead 'headline)
+                                      (process-headline (cdr tree)))
+                                     ((listp lead)
+                                      (let ((fst (traverse (car tree) predicate action)))
+                                        (if (null fst)
+                                            (traverse (cdr tree) predicate action)
+                                          fst)))
+                                     (t (traverse (cddr tree) predicate action)))))
+                    #'(lambda (x)))
+          tree))
+      (with-temp-buffer
+        (insert-string result)
+        (buffer-substring-no-properties 1 (point-max)))))
+
 #+END_SRC
+
 
 #+begin_src elisp
   '(org-data nil
