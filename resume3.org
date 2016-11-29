@@ -1,60 +1,61 @@
-* Code
+* COMMENT Code
 
 Это эксперимент по генерации кода из дерева, полученного разбором
 orgmode-файла.
 
 #+BEGIN_SRC elisp :results value verbatim raw
-  (defun traverse (tree predicate action)
+  (defun traverse (tree predicate-action)
     (cond ((null tree)  nil)
-          ((listp tree) (if (funcall predicate tree)
-                            (funcall action tree)))
+          ((listp tree) (funcall predicate-action tree))
           (t (message "= error2: %s" tree))))
+
+  (defun process-keyword (param &optional tail)
+    (let ((meta (car param)))
+      (list :keyword (getf meta :key)
+            :value   (getf meta :value))))
 
   (defun process-headline (param)
     (let ((name (getf (car param) :raw-value)))
-      (cond ((equal name "Info")
-             (process-info (cdr param)))
-            ((equal name "Educations")
-             (process-educations (cdr param)))
-            ((equal name "Expiriences")
-             (process-expiriences (cdr param)))
-            ((equal name "Languages")
-             (process-languages (cdr param)))
-            ((equal name "Contacts")
-             (process-contacts (cdr param)))
-            ((equal name "About")
-             (process-about (cdr param)))
-      (message ">> unknown header: %s - %s"
-               (getf (car param) :raw-value)
-               (length (cdr param))))))
+      (cond ((equal name "Info")         (process-info (cdr param)))
+            ((equal name "Educations")   (process-educations (cdr param)))
+            ((equal name "Expiriences")  (process-expiriences (cdr param)))
+            ((equal name "Languages")    (process-languages (cdr param)))
+            ((equal name "Contacts")     (process-contacts (cdr param)))
+            ((equal name "About")        (process-about (cdr param)))
+            (t (message ">> unknown header: %s - %s"
+                        (getf (car param) :raw-value)
+                        (length (cdr param)))))))
 
   (defun process-info (param)
-    (message "-> info"))
+    (list :info "-> info"))
 
   (defun process-educations (param)
-    (message "-> educations"))
+    (list :educations "-> educations"))
 
   (defun process-expiriences (param)
-    (message "-> expiriences"))
+    (list :expiriences "-> expiriences"))
 
   (defun process-languages (param)
-    (message "-> languages"))
+    (list :languages "-> languages"))
 
   (defun process-contacts (param)
-    (message "-> contacts"))
+    (list :contacts "-> contacts"))
 
   (defun process-about (param)
-    (message "--> about %s" (car (car param)))
-    (process-about-section (cddar param)))
+    (list :about (process-about-section (cddar param))))
 
   (defun process-about-section (param)
-    (let ((tail))
+    (let ((result "")
+          (tail))
       (mapcar #'(lambda (par)
                   (let ((lead (car par)))
                     (cond ((equal lead 'paragraph)   (process-paragraph  (cdr par) tail))
                           ((equal lead 'plain-list)  (process-plain-list (cdr par) tail))
                           (t (message "process-about-section [unknown lead] %s" lead)))))
-              param)))
+              param)
+      (with-temp-buffer
+                     (insert-string result)
+                     (buffer-substring-no-properties 1 (point-max)))))
 
   (defun process-paragraph (param tail)
     (let ((meta (car param))
@@ -96,29 +97,62 @@ orgmode-файла.
                           (t (message "process-plain-list-item [unknown lead] %s" lead)))))
               data)))
 
+  (defun traverse (x)
+    (cond ((numberp x)
+           (+ x 1))
+          ((listp x)
+           (mapcar #'(lambda (x)
+                       (traverse x))
+                   x))
+          (t x)))
+
+  (traverse '(1 2 (3 4) 5))
+
+
+  (let ((filename "~/repo/moto/resume2.org"))
+    (with-temp-buffer
+      (insert-file-contents filename)
+      (org-mode)
+      (let ((tree (org-element-parse-buffer)))
+        (traverse tree #'(lambda (x)
+                           (let ((lead (car tree)))
+                             (cond ((equal lead 'headline)
+                                    (process-headline (cdr tree)))
+                                   ((listp lead)
+                                    (let ((fst (traverse (car tree) predicate)))
+                                      (if (null fst)
+                                          (traverse (cdr tree) predicate)
+                                        fst)))
+                                   (t (traverse (cddr tree) predicate)))))
+                  ))))
+
+
+  (defun processor (tree)
+    (mapcar #'(lambda (param)
+                (cond ((symbolp param) (cond ((equal param 'org-data) (processor (cddr tree)))))
+                      ((listp   param) (let ((lead (car param)))
+                                         (cond ((equal lead 'section)  (processor (cddr param)))
+                                               ((equal lead 'keyword)  (process-keyword (cdr param)))
+                                               ((equal lead 'headline) (process-headline (cdr param)))
+                                               ;; ((listp lead)
+                                               ;;  (let ((fst (traverse (car tree) predicate)))
+                                               ;;    (if (null fst)
+                                               ;;        (traverse (cdr tree) predicate)
+                                               ;;      fst)))
+                                               (t (message "[unknown lead] %s" lead)))))
+                      (t (message "[unknown param] %s" param))))
+            tree))
+
   (let ((filename "~/repo/moto/resume2.org"))
     (let ((result ""))
       (with-temp-buffer
         (insert-file-contents filename)
         (org-mode)
         (let ((tree (org-element-parse-buffer)))
-          (traverse tree #'(lambda (x)
-                             (let ((lead (car tree)))
-                               (cond ((equal lead 'headline)
-                                      (process-headline (cdr tree)))
-                                     ((listp lead)
-                                      (let ((fst (traverse (car tree) predicate action)))
-                                        (if (null fst)
-                                            (traverse (cdr tree) predicate action)
-                                          fst)))
-                                     (t (traverse (cddr tree) predicate action)))))
-                    #'(lambda (x)))
-          tree))
-      (with-temp-buffer
-        (insert-string result)
-        (buffer-substring-no-properties 1 (point-max)))))
-
+          (traverse tree #'processor)))))
 #+END_SRC
+
+
 
 
 #+begin_src elisp
@@ -2744,69 +2778,62 @@ orgmode-файла.
                (#
                 ("\"Почин\"" 0 7
                  (:parent #2))) :parent #1)
-   (section
-    (:parent #2)
-    (table
-     (:type org :tblfm nil :value nil :caption
-            (
-             (
-              (#
-               ("info" 0 4
-                (:parent #8))))) :parent #3)
-     (table-row
-      (:type standard :parent #4)
-      (table-cell
-       (:parent #5) #
-       ("site" 0 4
-        (:parent #6)))
-      (table-cell
-       (:parent #5)
-       (link
-        (:type "http" :path "//pochin.ru" :raw-link "http://pochin.ru" :application nil :search-option nil :parent #6))))
-     (table-row
-      (:type standard :parent #4)
-      (table-cell
-       (:parent #5) #
-       ("position" 0 8
-        (:parent #6)))
-      (table-cell
-       (:parent #5) #
-       ("Программист" 0 11
-        (:parent #6))))
-     (table-row
-      (:type standard :parent #4)
-      (table-cell
-       (:parent #5) #
-       ("start-date" 0 10
-        (:parent #6)))
-      (table-cell
-       (:parent #5) #
-       ("2005-09-01" 0 10
-        (:parent #6))))
-     (table-row
-      (:type standard :parent #4)
-      (table-cell
-       (:parent #5) #
-       ("end-date" 0 8
-        (:parent #6)))
-      (table-cell
-       (:parent #5) #
-       ("2007-01-01" 0 10
-        (:parent #6)))))
-    (paragraph
-     (:parent #3) #
-     ("Компания - интернет-магазин авточехлов, автозапчастей и
-  автоинструмента.
-  " 0 73
-  (:parent #4)))
-  (paragraph
-   (:parent #3) #
-   ("Стек технологий: LAMP
-  " 0 22
-  (:parent #4)))
-  (paragraph
-   (:parent #3) #
-   ("Первоначально начинал как фриланс-программист, но скоро сотрудничество
+   (section (:parent #2)
+            (table
+             (:type org :tblfm nil :value nil :caption
+                    (
+                     (
+                      (#
+                       ("info" 0 4
+                        (:parent #8))))) :parent #3)
+             (table-row
+              (:type standard :parent #4)
+              (table-cell
+               (:parent #5) #
+               ("site" 0 4
+                (:parent #6)))
+              (table-cell
+               (:parent #5)
+               (link
+                (:type "http" :path "//pochin.ru" :raw-link "http://pochin.ru" :application nil :search-option nil :parent #6))))
+             (table-row
+              (:type standard :parent #4)
+              (table-cell
+               (:parent #5) #
+               ("position" 0 8
+                (:parent #6)))
+              (table-cell
+               (:parent #5) #
+               ("Программист" 0 11
+                (:parent #6))))
+             (table-row
+              (:type standard :parent #4)
+              (table-cell
+               (:parent #5) #
+               ("start-date" 0 10
+                (:parent #6)))
+              (table-cell
+               (:parent #5) #
+               ("2005-09-01" 0 10
+                (:parent #6))))
+             (table-row
+              (:type standard :parent #4)
+              (table-cell
+               (:parent #5) #
+               ("end-date" 0 8
+                (:parent #6)))
+              (table-cell
+               (:parent #5) #
+               ("2007-01-01" 0 10
+                (:parent #6)))))
+            (paragraph
+             (:parent #3) #
+             ("Компания - интернет-магазин авточехлов, автозапчастей и автоинструмента." 0 73 (:parent #4)))
+            (paragraph (:parent #3) #
+                       ("Стек технологий: LAMP" 0 22 (:parent #4)))
+            (paragraph
+             (:parent #3) #
+             ("Первоначально начинал как фриланс-программист, но скоро сотрудничество
   стало постоянным.
   " 0 89
   (:parent #4)))
@@ -2821,13 +2848,13 @@ orgmode-файла.
   (три версии за полтора года)
   " 0 73
   (:parent #4))))))
+
   (headline
    (:raw-value "Languages" :pre-blank 1 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
                (#
                 ("Languages" 0 9
                  (:parent #1))) :parent #0)
-   (section
-    (:parent #1)
+   (section (:parent #1)
     (table
      (:type org :tblfm nil :value nil :caption
             (
@@ -2879,166 +2906,69 @@ orgmode-файла.
        (:parent #4) #
        ("none" 0 4
         (:parent #5)))))))
+
   (headline
    (:raw-value "Contacts" :pre-blank 1 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :footnote-section-p nil :archivedp nil :commentedp nil :title
                (#
                 ("Contacts" 0 8
                  (:parent #1))) :parent #0)
-   (section
-    (:parent #1)
-    (table
-     (:type org :tblfm nil :value nil :caption
-            (
-             (
-              (#
-               ("Contacts" 0 8
-                (:parent #7))))) :parent #2)
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("cell-phone" 0 10
-        (:parent #5)))
-      (table-cell
-       (:parent #4) #
-       ("+79112869290" 0 12
-        (:parent #5))))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("cell-phone-comment" 0 18
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("home-phone" 0 10
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("home-phone-comment" 0 18
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("work-phone" 0 10
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("work-phone-comment" 0 18
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("email-string" 0 12
-        (:parent #5)))
-      (table-cell
-       (:parent #4) #
-       ("avenger-f@yandex.ru" 0 19
-        (:parent #5))))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("preferred-contact" 0 17
-        (:parent #5)))
-      (table-cell
-       (:parent #4) #
-       ("email" 0 5
-        (:parent #5))))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("icq" 0 3
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("skype" 0 5
-        (:parent #5)))
-      (table-cell
-       (:parent #4) #
-       ("i.am.rigidus" 0 12
-        (:parent #5))))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("freelance" 0 9
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("moi" 0 3
-        (:parent #5))
-       (subscript
-        (:use-brackets-p nil :parent #5) #
-        ("krug" 0 4
-         (:parent #6))))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("linkedin" 0 8
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("facebook" 0 8
-        (:parent #5)))
-      (table-cell
-       (:parent #4)))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("livejournal" 0 11
-        (:parent #5)))
-      (table-cell
-       (:parent #4)
-       (link
-        (:type "http" :path "//rigidus.livejournal.com" :raw-link "http://rigidus.livejournal.com" :application nil :search-option nil :parent #5))))
-     (table-row
-      (:type standard :parent #3)
-      (table-cell
-       (:parent #4) #
-       ("personal-site" 0 13
-        (:parent #5)))
-      (table-cell
-       (:parent #4)
-       (link
-        (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :parent #5)) #
-       ("\"" 0 1
-        (:parent #5)))))))
+   (section (:parent #1)
+            (table (:type org :tblfm nil :value nil :caption (((# ("Contacts" 0 8 (:parent #7))))) :parent #2)
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("cell-phone" 0 10 (:parent #5)))
+                              (table-cell (:parent #4) # ("+79112869290" 0 12 (:parent #5))))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("cell-phone-comment" 0 18 (:parent #5)))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("home-phone" 0 10 (:parent #5)))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("home-phone-comment" 0 18 (:parent #5)))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("work-phone" 0 10 (:parent #5)))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("work-phone-comment" 0 18 (:parent #5)))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("email-string" 0 12 (:parent #5)))
+                              (table-cell (:parent #4) # ("avenger-f@yandex.ru" 0 19 (:parent #5))))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("preferred-contact" 0 17 (:parent #5)))
+                              (table-cell (:parent #4) # ("email" 0 5 (:parent #5))))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("icq" 0 3 (:parent #5)))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("skype" 0 5 (:parent #5)))
+                              (table-cell (:parent #4) # ("i.am.rigidus" 0 12 (:parent #5))))
+                   (table-row (:type standard :parent #3)
+                    (table-cell (:parent #4) # ("freelance" 0 9 (:parent #5)))
+                    (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) #
+                                          ("moi" 0 3 (:parent #5))
+                                          (subscript
+                                           (:use-brackets-p nil :parent #5) #
+                                           ("krug" 0 4 (:parent #6))))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                    (table-cell (:parent #4) # ("linkedin" 0 8 (:parent #5)))
+                    (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("facebook" 0 8 (:parent #5)))
+                              (table-cell (:parent #4)))
+                   (table-row (:type standard :parent #3)
+                              (table-cell (:parent #4) # ("livejournal" 0 11 (:parent #5)))
+                              (table-cell (:parent #4)
+                                          (link (:type "http" :path "//rigidus.livejournal.com" :raw-link "http://rigidus.livejournal.com" :application nil :search-option nil :parent #5))))
+                   (table-row (:type standard :parent #3)
+                    (table-cell (:parent #4) # ("personal-site" 0 13 (:parent #5)))
+                    (table-cell (:parent #4)
+                                (link (:type "http" :path "//rigidus.ru" :raw-link "http://rigidus.ru" :application nil :search-option nil :parent #5)) #
+                                ("\"" 0 1 (:parent #5)))))))
 
 
   (headline
