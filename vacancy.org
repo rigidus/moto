@@ -572,7 +572,7 @@
       (make-detect (emp)
         (`("div" (("class" "search-result-item__company"))
                  ("a" (("href" ,emp-id)
-                       ("class" "link-secondary")
+                       ("class" "bloko-link bloko-link_secondary") ;; ("class" "link-secondary")
                        ("data-qa" "vacancy-serp__vacancy-employer"))
                       ,emp-name) ,@rest)
           (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-id)))
