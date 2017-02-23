@@ -471,9 +471,9 @@
                                         (and (equal (getf vacancy :currency) "RUR")
                                              (< (getf vacancy :salary-max) 90000))
                                         (and (equal (getf vacancy :currency) "USD")
-                                             (< (getf vacancy :salary-max) (floor 90000 73)))
+                                             (< (getf vacancy :salary-max) (floor 90000 58)))
                                         (and (equal (getf vacancy :currency) "EUR")
-                                             (< (getf vacancy :salary-max) (floor 90000 80)))
+                                             (< (getf vacancy :salary-max) (floor 90000 61)))
                                         ))
   (dbg "  - low salary"))
 
