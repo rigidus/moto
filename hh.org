@@ -586,7 +586,7 @@
    | field name  | field type           | default | meta      | note                                            |
    |-------------+----------------------+---------+-----------+-------------------------------------------------|
    | id          | serial               |         | (primary) | идентификатор                                   |
-   | src-id      | integer              |         | (unique)  | идентификатор вакансии в источнике              |
+   | src-id      | integer              |         |           | идентификатор вакансии в источнике              |
    | archive     | boolean              |         |           | признак, что вакансия в архиве                  |
    | name        | varchar              |         |           | название вакансии                               |
    | currency    | (or db-null varchar) |         |           | валюта зарплаты                                 |
@@ -791,86 +791,86 @@
 
    #+CAPTION: Данные резюме
    #+NAME: resume_flds
-   | field name                         | field type           | note                                                                                |
-   |------------------------------------+----------------------+-------------------------------------------------------------------------------------|
-   | id                                 | serial               | идентификатор                                                                       |
-   | hh-id                              | (or db-null varchar) | идентификатор резюме на hh.ru                                                       |
-   | title                              | (or db-null varchar) | заголовок резюме                                                                    |
-   | last-name                          | (or db-null varchar) | фамилия                                                                             |
-   | first-name                         | (or db-null varchar) | имя                                                                                 |
-   | middle-name                        | (or db-null varchar) | отчество                                                                            |
-   | birthday                           | (or db-null varchar) | Дата рождения (по умолчанию: "")                                                    |
-   | gender                             | (or db-null varchar) | пол (по умолчанию: "male")                                                          |
-   | area                               | (or db-null varchar) | город проживания (спб: "2", москва: "1")                                            |
-   | metro                              | (or db-null varchar) | метро                                                                               |
-   | relocation                         | (or db-null varchar) | отношение к переезду ("no_relocation"/"relocation_possible"/"relocation_desirable") |
-   | relocation-area                    | (or db-null varchar) | куда переезжать (отправляется несколько полей с одним именем но разными значениями) |
-   | business-trip-readiness            | (or db-null varchar) | командировки ("never"/"ready"/"sometimes")                                          |
-   | citizen-ship                       | (or db-null varchar) | гражданство (Россия: 113)                                                           |
-   | work-ticket                        | (or db-null varchar) | разрешение на работу (Россия: 113)                                                  |
-   | travel-time                        | (or db-null varchar) | время в пути ("any"/"from_hour_to_one_and_half"/"less_than_hour")                   |
-   | cell-phone-country                 | (or db-null varchar) | 7                                                                                   |
-   | cell-phone-city                    | (or db-null varchar) | 911                                                                                 |
-   | cell-phone-number                  | (or db-null varchar) | 2869290                                                                             |
-   | cell-phone-comment                 | (or db-null varchar) |                                                                                     |
-   | home-phone-country                 | (or db-null varchar) | 7                                                                                   |
-   | home-phone-city                    | (or db-null varchar) |                                                                                     |
-   | home-phone-number                  | (or db-null varchar) |                                                                                     |
-   | home-phone-comment                 | (or db-null varchar) |                                                                                     |
-   | work-phone-country                 | (or db-null varchar) | 7                                                                                   |
-   | work-phone-city                    | (or db-null varchar) |                                                                                     |
-   | work-phone-number                  | (or db-null varchar) |                                                                                     |
-   | work-phone-comment                 | (or db-null varchar) |                                                                                     |
-   | email-string                       | (or db-null varchar) | avenger-f%40yandex-ru                                                               |
-   | preferred-contact                  | (or db-null varchar) | email/cell-phone/home-phone/work-phone                                              |
-   | icq                                | (or db-null varchar) | icq                                                                                 |
-   | skype                              | (or db-null varchar) | skype                                                                               |
-   | freelance                          | (or db-null varchar) | freelance                                                                           |
-   | moi_krug                           | (or db-null varchar) | moi_krug                                                                            |
-   | linkedin                           | (or db-null varchar) | linkedin                                                                            |
-   | facebook                           | (or db-null varchar) | facebook                                                                            |
-   | livejournal                        | (or db-null varchar) | livejournal                                                                         |
-   | personal-site                      | (or db-null varchar) | personal                                                                            |
-   | prof-area                          | (or db-null varchar) | 1                                                                                   |
-   | specializations                    | (or db-null varchar) | 82 221                                                                              |
-   | salary-amount                      | (or db-null varchar) | 100000                                                                              |
-   | salary-currency                    | (or db-null varchar) | RUR                                                                                 |
-   | employment                         | (or db-null varchar) | full                                                                                |
-   | work-schedule                      | (or db-null varchar) | full_day                                                                            |
-   | education-level-string             | (or db-null varchar) | higher                                                                              |
-   | educations                         | (or db-null varchar) |                                                                                     |
-   | primary-education-id               | (or db-null varchar) |                                                                                     |
-   | primary-education-name             | (or db-null varchar) |                                                                                     |
-   | primary-education-university-id    | (or db-null varchar) | 39864                                                                               |
-   | primary-education-faculty-id       | (or db-null varchar) |                                                                                     |
-   | primary-education-organization     | (or db-null varchar) |                                                                                     |
-   | primary-education-result           | (or db-null varchar) |                                                                                     |
-   | primary-education-specialty-id     | (or db-null varchar) | 224                                                                                 |
-   | primary-education-year             | (or db-null varchar) | 2005                                                                                |
-   | additional-education-id            | (or db-null varchar) |                                                                                     |
-   | additional-education-name          | (or db-null varchar) |                                                                                     |
-   | additional-education-organization  | (or db-null varchar) |                                                                                     |
-   | additional-education-result        | (or db-null varchar) |                                                                                     |
-   | additional-education-year          | (or db-null varchar) |                                                                                     |
-   | certificate-id                     | (or db-null varchar) |                                                                                     |
-   | certificate-type                   | (or db-null varchar) |                                                                                     |
-   | certificate-selected               | (or db-null varchar) |                                                                                     |
-   | certificate-ownerName              | (or db-null varchar) |                                                                                     |
-   | certificate-transcription-id       | (or db-null varchar) |                                                                                     |
-   | certificate-password               | (or db-null varchar) |                                                                                     |
-   | certificate-title                  | (or db-null varchar) |                                                                                     |
-   | certificate-achievementDate        | (or db-null varchar) |                                                                                     |
-   | certificate-url                    | (or db-null varchar) |                                                                                     |
-   | attestation-education-id           | (or db-null varchar) |                                                                                     |
-   | attestation-education-name         | (or db-null varchar) |                                                                                     |
-   | attestation-education-organization | (or db-null varchar) |                                                                                     |
-   | attestation-education-result       | (or db-null varchar) |                                                                                     |
-   | attestation-education-year         | (or db-null varchar) |                                                                                     |
-   | languages                          | (or db-null varchar) | Владение языками                                                                    |
-   | expiriences                        | (or db-null varchar) | Опыт работы                                                                         |
-   | skills                             | (or db-null varchar) | Ключевые навыки                                                                     |
-   | recommendations                    | (or db-null varchar) | Рекомендации                                                                        |
-   | portfolio                          | (or db-null varchar) | Портфолио                                                                           |
+   | field name                         | field type           | default | meta | note                                                                                |
+   |------------------------------------+----------------------+---------+------+-------------------------------------------------------------------------------------|
+   | id                                 | serial               |         |      | идентификатор                                                                       |
+   | hh-id                              | (or db-null varchar) |         |      | идентификатор резюме на hh.ru                                                       |
+   | title                              | (or db-null varchar) |         |      | заголовок резюме                                                                    |
+   | last-name                          | (or db-null varchar) |         |      | фамилия                                                                             |
+   | first-name                         | (or db-null varchar) |         |      | имя                                                                                 |
+   | middle-name                        | (or db-null varchar) |         |      | отчество                                                                            |
+   | birthday                           | (or db-null varchar) |         |      | Дата рождения (по умолчанию: "")                                                    |
+   | gender                             | (or db-null varchar) |         |      | пол (по умолчанию: "male")                                                          |
+   | area                               | (or db-null varchar) |         |      | город проживания (спб: "2", москва: "1")                                            |
+   | metro                              | (or db-null varchar) |         |      | метро                                                                               |
+   | relocation                         | (or db-null varchar) |         |      | отношение к переезду ("no_relocation"/"relocation_possible"/"relocation_desirable") |
+   | relocation-area                    | (or db-null varchar) |         |      | куда переезжать (отправляется несколько полей с одним именем но разными значениями) |
+   | business-trip-readiness            | (or db-null varchar) |         |      | командировки ("never"/"ready"/"sometimes")                                          |
+   | citizen-ship                       | (or db-null varchar) |         |      | гражданство (Россия: 113)                                                           |
+   | work-ticket                        | (or db-null varchar) |         |      | разрешение на работу (Россия: 113)                                                  |
+   | travel-time                        | (or db-null varchar) |         |      | время в пути ("any"/"from_hour_to_one_and_half"/"less_than_hour")                   |
+   | cell-phone-country                 | (or db-null varchar) |         |      | 7                                                                                   |
+   | cell-phone-city                    | (or db-null varchar) |         |      | 911                                                                                 |
+   | cell-phone-number                  | (or db-null varchar) |         |      | 2869290                                                                             |
+   | cell-phone-comment                 | (or db-null varchar) |         |      |                                                                                     |
+   | home-phone-country                 | (or db-null varchar) |         |      | 7                                                                                   |
+   | home-phone-city                    | (or db-null varchar) |         |      |                                                                                     |
+   | home-phone-number                  | (or db-null varchar) |         |      |                                                                                     |
+   | home-phone-comment                 | (or db-null varchar) |         |      |                                                                                     |
+   | work-phone-country                 | (or db-null varchar) |         |      | 7                                                                                   |
+   | work-phone-city                    | (or db-null varchar) |         |      |                                                                                     |
+   | work-phone-number                  | (or db-null varchar) |         |      |                                                                                     |
+   | work-phone-comment                 | (or db-null varchar) |         |      |                                                                                     |
+   | email-string                       | (or db-null varchar) |         |      | avenger-f%40yandex-ru                                                               |
+   | preferred-contact                  | (or db-null varchar) |         |      | email/cell-phone/home-phone/work-phone                                              |
+   | icq                                | (or db-null varchar) |         |      | icq                                                                                 |
+   | skype                              | (or db-null varchar) |         |      | skype                                                                               |
+   | freelance                          | (or db-null varchar) |         |      | freelance                                                                           |
+   | moi_krug                           | (or db-null varchar) |         |      | moi_krug                                                                            |
+   | linkedin                           | (or db-null varchar) |         |      | linkedin                                                                            |
+   | facebook                           | (or db-null varchar) |         |      | facebook                                                                            |
+   | livejournal                        | (or db-null varchar) |         |      | livejournal                                                                         |
+   | personal-site                      | (or db-null varchar) |         |      | personal                                                                            |
+   | prof-area                          | (or db-null varchar) |         |      | 1                                                                                   |
+   | specializations                    | (or db-null varchar) |         |      | 82 221                                                                              |
+   | salary-amount                      | (or db-null varchar) |         |      | 100000                                                                              |
+   | salary-currency                    | (or db-null varchar) |         |      | RUR                                                                                 |
+   | employment                         | (or db-null varchar) |         |      | full                                                                                |
+   | work-schedule                      | (or db-null varchar) |         |      | full_day                                                                            |
+   | education-level-string             | (or db-null varchar) |         |      | higher                                                                              |
+   | educations                         | (or db-null varchar) |         |      |                                                                                     |
+   | primary-education-id               | (or db-null varchar) |         |      |                                                                                     |
+   | primary-education-name             | (or db-null varchar) |         |      |                                                                                     |
+   | primary-education-university-id    | (or db-null varchar) |         |      | 39864                                                                               |
+   | primary-education-faculty-id       | (or db-null varchar) |         |      |                                                                                     |
+   | primary-education-organization     | (or db-null varchar) |         |      |                                                                                     |
+   | primary-education-result           | (or db-null varchar) |         |      |                                                                                     |
+   | primary-education-specialty-id     | (or db-null varchar) |         |      | 224                                                                                 |
+   | primary-education-year             | (or db-null varchar) |         |      | 2005                                                                                |
+   | additional-education-id            | (or db-null varchar) |         |      |                                                                                     |
+   | additional-education-name          | (or db-null varchar) |         |      |                                                                                     |
+   | additional-education-organization  | (or db-null varchar) |         |      |                                                                                     |
+   | additional-education-result        | (or db-null varchar) |         |      |                                                                                     |
+   | additional-education-year          | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-id                     | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-type                   | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-selected               | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-ownerName              | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-transcription-id       | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-password               | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-title                  | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-achievementDate        | (or db-null varchar) |         |      |                                                                                     |
+   | certificate-url                    | (or db-null varchar) |         |      |                                                                                     |
+   | attestation-education-id           | (or db-null varchar) |         |      |                                                                                     |
+   | attestation-education-name         | (or db-null varchar) |         |      |                                                                                     |
+   | attestation-education-organization | (or db-null varchar) |         |      |                                                                                     |
+   | attestation-education-result       | (or db-null varchar) |         |      |                                                                                     |
+   | attestation-education-year         | (or db-null varchar) |         |      |                                                                                     |
+   | languages                          | (or db-null varchar) |         |      | Владение языками                                                                    |
+   | expiriences                        | (or db-null varchar) |         |      | Опыт работы                                                                         |
+   | skills                             | (or db-null varchar) |         |      | Ключевые навыки                                                                     |
+   | recommendations                    | (or db-null varchar) |         |      | Рекомендации                                                                        |
+   | portfolio                          | (or db-null varchar) |         |      | Портфолио                                                                           |
 
    Резюме может быть активным или неактивным:
 
@@ -1131,17 +1131,17 @@
 
     #+CAPTION: Данные основного образования
     #+NAME: education_flds
-      | field name    | field type           | note                                                       |
-      |---------------+----------------------+------------------------------------------------------------|
-      | id            | serial               | идентификатор                                              |
-      | education-id  | (or db-null varchar) | идентификатор обучалки на hh (как правило пустой)          |
-      | name          | varchar              | название учебного заведения                                |
-      | university-id | (or db-null varchar) | идентификатор учебного заведения (если оно есть в базе hh) |
-      | faculty-id    | (or db-null varchar) | идентификатор факультета                                   |
-      | organization  | varchar              | факультет                                                  |
-      | result        | varchar              | специальность                                              |
-      | specialty-id  | (or db-null varchar) | идентификатор специальности                                |
-      | year          | (or db-null varchar) | год окончания                                              |
+      | field name    | field type           | default | meta | note                                                       |
+      |---------------+----------------------+---------+------+------------------------------------------------------------|
+      | id            | serial               |         |      | идентификатор                                              |
+      | education-id  | (or db-null varchar) |         |      | идентификатор обучалки на hh (как правило пустой)          |
+      | name          | varchar              |         |      | название учебного заведения                                |
+      | university-id | (or db-null varchar) |         |      | идентификатор учебного заведения (если оно есть в базе hh) |
+      | faculty-id    | (or db-null varchar) |         |      | идентификатор факультета                                   |
+      | organization  | varchar              |         |      | факультет                                                  |
+      | result        | varchar              |         |      | специальность                                              |
+      | specialty-id  | (or db-null varchar) |         |      | идентификатор специальности                                |
+      | year          | (or db-null varchar) |         |      | год окончания                                              |
 
 *** Иностранные языки
 
@@ -1149,12 +1149,12 @@
 
     #+CAPTION: Данные иностранного языка
     #+NAME: lang_flds
-      | field name  | field type           | note                |
-      |-------------+----------------------+---------------------|
-      | id          | serial               | идентификатор       |
-      | name        | (or db-null varchar) | язык                |
-      | lang-id     | (or db-null varchar) | идентификатор на hh |
-      | lang-degree | varchar              | уровень владения    |
+      | field name  | field type           | default | meta | note                |
+      |-------------+----------------------+---------+------+---------------------|
+      | id          | serial               |         |      | идентификатор       |
+      | name        | (or db-null varchar) |         |      | язык                |
+      | lang-id     | (or db-null varchar) |         |      | идентификатор на hh |
+      | lang-degree | varchar              |         |      | уровень владения    |
 
 *** Опыт работы
 
@@ -1162,52 +1162,52 @@
 
     #+CAPTION: Данные опыта работы
     #+NAME: expirience_flds
-      | field name      | field type           | note                                                  |
-      |-----------------+----------------------+-------------------------------------------------------|
-      | id              | serial               | идентификатор                                         |
-      | name            | varchar              | название компании                                     |
-      | company-id      | (or db-null varchar) | идентификатор компании на hh                          |
-      | company-area-id | (or db-null varchar) | идентикатор города компании?                          |
-      | url             | varchar              | сайт компании                                         |
-      | industry-id     | (or db-null varchar) | предположительно отрасль компании (как правило пуста) |
-      | industries      | varchar              | предположительно направления деятельности             |
-      | exp-id          | varchar              | не знаю что это такое                                 |
-      | job-position    | varchar              | должность                                             |
-      | start-date      | varchar              | начало работы                                         |
-      | end-date        | varchar              | окончание работы                                      |
-      | description     | (or db-null varchar) | описание достижений                                   |
+      | field name      | field type           | default | meta | note                                                  |
+      |-----------------+----------------------+---------+------+-------------------------------------------------------|
+      | id              | serial               |         |      | идентификатор                                         |
+      | name            | varchar              |         |      | название компании                                     |
+      | company-id      | (or db-null varchar) |         |      | идентификатор компании на hh                          |
+      | company-area-id | (or db-null varchar) |         |      | идентикатор города компании?                          |
+      | url             | varchar              |         |      | сайт компании                                         |
+      | industry-id     | (or db-null varchar) |         |      | предположительно отрасль компании (как правило пуста) |
+      | industries      | varchar              |         |      | предположительно направления деятельности             |
+      | exp-id          | varchar              |         |      | не знаю что это такое                                 |
+      | job-position    | varchar              |         |      | должность                                             |
+      | start-date      | varchar              |         |      | начало работы                                         |
+      | end-date        | varchar              |         |      | окончание работы                                      |
+      | description     | (or db-null varchar) |         |      | описание достижений                                   |
 
 *** Ключевые навыки
 
     #+CAPTION: Данные ключевых навыков
     #+NAME: skill_flds
-      | field name | field type | note            |
-      |------------+------------+-----------------|
-      | id         | serial     | идентификатор   |
-      | name       | varchar    | название навыка |
+      | field name | field type | default | meta | note            |
+      |------------+------------+---------+------+-----------------|
+      | id         | serial     |         |      | идентификатор   |
+      | name       | varchar    |         |      | название навыка |
 
 *** Рекоммендации
 
     #+CAPTION: Данные ключевых навыков
     #+NAME: recommendation_flds
-      | field name        | field type | note                             |
-      |-------------------+------------+----------------------------------|
-      | id                | serial     | идентификатор                    |
-      | recommendation-id | integer    | идентификатор рекомендации на hh |
-      | name              | varchar    | имя рекомендателя                |
-      | job-position          | varchar    | позиция рекомендателя            |
-      | organization      | varchar    | организация рекоммендателя       |
-      | contact-info      | varchar    | контактная информация            |
+      | field name        | field type | default | meta | note                             |
+      |-------------------+------------+---------+------+----------------------------------|
+      | id                | serial     |         |      | идентификатор                    |
+      | recommendation-id | integer    |         |      | идентификатор рекомендации на hh |
+      | name              | varchar    |         |      | имя рекомендателя                |
+      | job-position      | varchar    |         |      | позиция рекомендателя            |
+      | organization      | varchar    |         |      | организация рекоммендателя       |
+      | contact-info      | varchar    |         |      | контактная информация            |
 
 *** Портфолио
 
     #+CAPTION: Данные портфолио
     #+NAME: portfolio_flds
-      | field name   | field type | note                       |
-      |--------------+------------+----------------------------|
-      | id           | serial     | идентификатор              |
-      | descr        | varchar    | описание файла             |
-      | file         | varchar    | файл                       |
+      | field name | field type | default | meta | note           |
+      |------------+------------+---------+------+----------------|
+      | id         | serial     |         |      | идентификатор  |
+      | descr      | varchar    |         |      | описание файла |
+      | file       | varchar    |         |      | файл           |
 
 ** Сущность правила (=entity:rule=)
 
@@ -1217,16 +1217,16 @@
 
    #+CAPTION: Данные правила
    #+NAME: rule_flds
-     | field name | field type           | note                                                   |
-     |------------+----------------------+--------------------------------------------------------|
-     | id         | serial               | идентификатор                                          |
-     | name       | varchar              | имя                                                    |
-     | user-id    | integer              | владелец правила                                       |
-     | rank       | integer              | приоритет правила                                      |
-     | ruletype   | varchar              | :teaser - правило для тизеров, :vacancy - для вакансий |
-     | antecedent | varchar              | условие срабатывания правила                           |
-     | consequent | varchar              | код правила                                            |
-     | notes      | (or db-null varchar) | заметки к правилу                                      |
+     | field name | field type           | default | meta | note                                                   |
+     |------------+----------------------+---------+------+--------------------------------------------------------|
+     | id         | serial               |         |      | идентификатор                                          |
+     | name       | varchar              |         |      | имя                                                    |
+     | user-id    | integer              |         |      | владелец правила                                       |
+     | rank       | integer              |         |      | приоритет правила                                      |
+     | ruletype   | varchar              |         |      | :teaser - правило для тизеров, :vacancy - для вакансий |
+     | antecedent | varchar              |         |      | условие срабатывания правила                           |
+     | consequent | varchar              |         |      | код правила                                            |
+     | notes      | (or db-null varchar) |         |      | заметки к правилу                                      |
 
    Правило может быть активным и неактивным
 
@@ -1268,14 +1268,14 @@
 
    #+CAPTION: Данные таблицы аккаунтов
    #+NAME: srcaccount_flds
-     | field name   | field type | note                                                          |
-     |--------------+------------+---------------------------------------------------------------|
-     | id           | serial     | идентификатор                                                 |
-     | user_id      | integer    | идентификатор пользователя, владеющего логином                |
-     | src_source   | varchar    | идентификатор источника ("hh" - для headhunter.ru)            |
-     | src_login    | varchar    | логин пользователя на источнике                               |
-     | src_password | varchar    | пароль пользователя на источнике                              |
-     | src_fio      | varchar    | ФИО пользователя, чтобы определить что вход в профиль успешен |
+     | field name   | field type | default | meta | note                                                          |
+     |--------------+------------+---------+------+---------------------------------------------------------------|
+     | id           | serial     |         |      | идентификатор                                                 |
+     | user_id      | integer    |         |      | идентификатор пользователя, владеющего логином                |
+     | src_source   | varchar    |         |      | идентификатор источника ("hh" - для headhunter.ru)            |
+     | src_login    | varchar    |         |      | логин пользователя на источнике                               |
+     | src_password | varchar    |         |      | пароль пользователя на источнике                              |
+     | src_fio      | varchar    |         |      | ФИО пользователя, чтобы определить что вход в профиль успешен |
 
    Аккаунты могут быть активные и неактивные. С неактивными аккаунтами никаких
    действий (сбор вакансий, проверка отзывов) не производится.
@@ -4555,27 +4555,44 @@
      <<gen_entity("portfolio", "портфолио", portfolio_flds)>>
    #+END_SRC
 
+   Здесь придется повторить тот код, который собирает сущности и автоматы, несмотря на
+   то, что он есть в doc.org. Это может вызвать проблемы при обновлении в двух местах,
+   но я пока не нашел адекватного решения этой проблемы
+
    #+NAME: gen_entity
    #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
      (let ((result))
-       (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
-       (push (gen-fields flds) result)
-       (push ")\n" result)
-       (push "\n" result)
-       (push (format "(make-%s-table)\n" name) result)
-       (mapconcat 'identity (reverse result) ""))
+       (push (format "(define-entity %s \"Сущность %s\"\n" name docstring) result)
+       (cl-multiple-value-bind (fields primary foreign unique)
+           (gen-fields flds)
+         (setq result (append fields result))
+         (push "\n" result)
+         (push (format "  %s\n" (or (reverse primary) "()")) result)
+         (setq result (append foreign result))
+         (push (format "\n  %s" (or (reverse unique) "()")) result)
+         (push ")\n\n" result)
+         (push (format "(make-%s-table)\n" name) result)
+         (mapconcat 'identity (reverse result) "")))
    #+END_SRC
 
    #+NAME: gen_automat
    #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() states='() :exports none
      (let ((result))
-       (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
-       (push (gen-fields flds) result)
-       (push (gen-states states) result)
-       (push (gen-actions states) result)
-       (push ")\n" result)
-       (mapconcat 'identity (reverse result) ""))
+       (push (format "(define-automat %s \"Автомат %s\"\n" name docstring) result)
+       (cl-multiple-value-bind (fields primary foreign unique)
+           (gen-fields flds)
+         (setq result (append fields result))
+         (push "\n" result)
+         (push (format "  %s\n" (or (reverse primary) "()")) result)
+         (setq result (append foreign result))
+         (push (format "\n  %s" (or (reverse unique) "()")) result)
+         (push (gen-states states) result)
+         (push (gen-actions states) result)
+         (push ")\n\n" result)
+         (push (format "(make-%s-table)\n" name) result)
+         (mapconcat 'identity (reverse result) "")))
    #+END_SRC
+
 * Crypto
 
   #+BEGIN_SRC lisp

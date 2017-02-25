@@ -70,10 +70,10 @@
                ;;                       (:file "trend")
                ;;                       (:file "iface")))
                ;; Модуль мотобратан
-               ;; (:module "bratan"
-               ;;          :serial t
-               ;;          :pathname "mod/bratan"
-               ;;          :components ((:file "bratan")))
+               ;; ;; (:module "bratan"
+               ;; ;;          :serial t
+               ;; ;;          :pathname "mod/bratan"
+               ;; ;;          :components ((:file "bratan")))
                ;; Модуль HeadHunter
                (:module "hh"
                         :serial t

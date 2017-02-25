@@ -22,6 +22,9 @@
    (notes (or db-null varchar))
    (tags (or db-null varchar))
    (response (or db-null varchar)))
+  (id)
+  ()
+  ()
   (:accept :discard :offer :interview :testjob :invite :reject :beenviewed :responded :interesting :uninteresting :unsort)
   ((:unsort :uninteresting :uns-uni)
    (:unsort :interesting :uns-int)
@@ -68,6 +71,8 @@
    (:offer :offer :off-off)
    (:offer :accept :off-onj)
    (:accept :accept :acc-acc)))
+
+(make-vacancy-table)
 
 (define-automat resume "Автомат резюме"
   ((id serial)
@@ -148,6 +153,9 @@
    (skills (or db-null varchar))
    (recommendations (or db-null varchar))
    (portfolio (or db-null varchar)))
+  ()
+  ()
+  ()
   (:accept :discard :offer :interview :testjob :invite :reject :beenviewed :responded :interesting :uninteresting :unsort)
   ((:unsort :uninteresting :uns-uni)
    (:unsort :interesting :uns-int)
@@ -195,6 +203,8 @@
    (:offer :accept :off-onj)
    (:accept :accept :acc-acc)))
 
+(make-resume-table)
+
 (define-automat rule "Автомат правила"
   ((id serial)
    (name varchar)
@@ -204,9 +214,14 @@
    (antecedent varchar)
    (consequent varchar)
    (notes (or db-null varchar)))
+  ()
+  ()
+  ()
   (:inactive :active)
   ((:active :inactive :rule-activation)
    (:inactive :active :rule-deactivation)))
+
+(make-rule-table)
 
 (define-automat srcaccount "Автомат аккаунта"
   ((id serial)
@@ -215,12 +230,17 @@
    (src_login varchar)
    (src_password varchar)
    (src_fio varchar))
+  ()
+  ()
+  ()
   (:wrong :logged :inactive :active)
   ((:active :inactive :account-activation)
    (:inactive :active :account-deactivation)
    (:active :logged :account-login)
    (:logged :active :account-logout)
    (:active :wrong :account-wrong)))
+
+(make-srcaccount-table)
 
 ;; Вспомогательные сущности резюме
 (define-entity education "Сущность основного образования"
@@ -232,7 +252,10 @@
    (organization varchar)
    (result varchar)
    (specialty-id (or db-null varchar))
-   (year (or db-null varchar))))
+   (year (or db-null varchar)))
+  ()
+  ()
+  ())
 
 (make-education-table)
 
@@ -240,7 +263,10 @@
   ((id serial)
    (name (or db-null varchar))
    (lang-id (or db-null varchar))
-   (lang-degree varchar)))
+   (lang-degree varchar))
+  ()
+  ()
+  ())
 
 (make-lang-table)
 
@@ -256,13 +282,19 @@
    (job-position varchar)
    (start-date varchar)
    (end-date varchar)
-   (description (or db-null varchar))))
+   (description (or db-null varchar)))
+  ()
+  ()
+  ())
 
 (make-expirience-table)
 
 (define-entity skill "Сущность ключевых навыков"
   ((id serial)
-   (name varchar)))
+   (name varchar))
+  ()
+  ()
+  ())
 
 (make-skill-table)
 
@@ -272,14 +304,20 @@
    (name varchar)
    (job-position varchar)
    (organization varchar)
-   (contact-info varchar)))
+   (contact-info varchar))
+  ()
+  ()
+  ())
 
 (make-recommendation-table)
 
 (define-entity portfolio "Сущность портфолио"
   ((id serial)
    (descr varchar)
-   (file varchar)))
+   (file varchar))
+  ()
+  ()
+  ())
 
 (make-portfolio-table)
 ;; entity_and_automates ends here

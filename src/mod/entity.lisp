@@ -2,7 +2,7 @@
 
 (in-package #:moto)
 
-(defmacro define-entity (name desc &rest tail)
+(defmacro define-entity (name desc flds primaryes foreigns uniques)
   (let ((*package* (symbol-package name)))
     `(progn
        
@@ -15,10 +15,10 @@
                          :col-type (cadr x)
                          :initarg  (intern (symbol-name (car x)) :keyword)
                          :accessor (car x)))
-                    (car tail))
+                    flds)
            (:metaclass dao-class)
            (:table-name ,table)
-           (:keys ,(caaar tail))))
+           (:keys ,(caar flds))))
        
        ;; make-entity-table
        ,(let ((table (intern (symbol-name name))))
@@ -36,7 +36,7 @@
        ;; upd-entity
        (defmethod ,(intern (concatenate 'string "UPD-" (symbol-name name))) ((obj ,name) &optional args)
          (progn
-           ,@(loop for accessor in (car tail) :collect
+           ,@(loop :for accessor :in flds :collect
                   `(setf (,(car accessor) obj)
                          (or (getf args ,(intern (symbol-name (car accessor)) :keyword))
                              (,(car accessor) obj))))
@@ -93,7 +93,7 @@
                         "<form id='"
                         ,(string-downcase (symbol-name name))
                         "-form'>"
-                        ,@(loop :for (fld-name fld-type) :in (car tail) :collect
+                        ,@(loop :for (fld-name fld-type) :in flds :collect
                              (list
                               (intern (concatenate 'string
                                                    "SHOW-FLD-"
@@ -107,20 +107,20 @@
                         "</form>")))
        )))
 
-(defmacro define-automat (name desc &rest tail)
+(defmacro define-automat (name desc flds primaryes foreigns uniques states acts)
   (let ((package (symbol-package name)))
     (let ((upd-entity (intern (concatenate 'string "UPD-" (symbol-name name))))
-          (fields (append (car tail) '((state (or db-null varchar)))))
+          (fields (append flds '((state (or db-null varchar)))))
           (state  (intern "STATE" package))
           (trans  (intern "TRANS" package))
           (takt   (intern "TAKT" package))
           (make-table (intern (concatenate 'string "MAKE-"  (symbol-name name) "-TABLE"))))
       `(progn
-         (define-entity ,name ,desc ,fields)
+         (define-entity ,name ,desc ,fields ,primaryes ,foreigns ,uniques)
          (,make-table)
-         ,(let ((all-states (cadr tail)))
+         ,(let ((all-states states))
                `(progn
-                  ,@(loop :for (from-state to-state event) :in (caddr tail) :collect
+                  ,@(loop :for (from-state to-state event) :in acts :collect
                        (if (or (null (find from-state all-states))
                                (null (find to-state all-states)))
                            (err (format nil "unknown state: ~A -> ~A" from-state to-state))
@@ -146,7 +146,10 @@
   (define-entity entity123 "Тестовая сущность"
     ((id serial)
      (email varchar)
-     (name (or db-null varchar))))
+     (name (or db-null varchar)))
+    (id)
+    ()
+    ())
   
   (make-entity123-table)
   
@@ -204,6 +207,9 @@
     ((id serial)
      (email varchar)
      (name (or db-null varchar)))
+    (id)
+    ()
+    ()
     (:on :off :broken)
     ((:on      :off     :switch-off)
      (:off     :on      :switch-on)

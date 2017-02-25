@@ -36,24 +36,22 @@
 
 * Сущности
 
-  Этот макрос генерирует код, который обслуживает все сущности. Мне
-  хотелось, чтобы когда я определяю сущность, автоматически
-  создавались функции, которые ее обслуживают:
-
-    + ={entity}-class=: Определение класса
-    + =make-{entity}-table=: функция создания таблицы в бд, если она еще не создана
-    + =make-{entity}=: конструктор сущности, который создает ее и записывает в базу данных
-    + =upd-{entity}=: метод, который обновляет поля сущности (в т.ч. в базе данных)
-    + =del-{entity}=: деструктор, который удаляет сущность, в т.ч. и из базы данных
-    + =all-{entity}=: функция для получения коллекции сущностей
-    + =get-{entity}=: функция для получения сущности по ее идентификтору
-    + =find-{entity}=: функция для получения сущности по ее идентификтору
-    + =show-{entity}=: функция для показа сущности (переопределить при необходимости)
+  Этот макрос генерирует код, который обслуживает все сущности. Я хочу, чтобы когда я
+  определяю сущность, автоматически создавались функции, которые ее обслуживают:
+  - ={entity}-class=       определение класса
+  - =make-{entity}-table=  функция создания таблицы в бд, если она еще не создана
+  - =make-{entity}=        конструктор сущности, который создает ее и записывает в базу данных
+  - =upd-{entity}=         метод, который обновляет поля сущности (в т.ч. в базе данных)
+  - =del-{entity}=         деструктор, который удаляет сущность, в т.ч. и из базы данных
+  - =all-{entity}=         функция для получения коллекции сущностей
+  - =get-{entity}=         функция для получения сущности по ее идентификтору
+  - =find-{entity}=        функция для получения сущности по ее идентификтору
+  - =show-{entity}=        функция для показа сущности (переопределить при необходимости)
 
   Нижеследующий код создает таблицы в базе данных, но не предполагает, что они будут
   изменяться в процессе работы, поэтому не обрабатывает последствия, требующие рассмотрения:
-  - что будет, если ты переопределишь класс с добавлением/удалением слотов?
-  - что будет, если ты запустил новый образ лиспа - должна ли к каждому образу прилагаться
+  - что будет, если переопределить класс с добавлением/удалением слотов?
+  - что будет, если запустить новый образ лиспа - должна ли к каждому образу прилагаться
     своя БД?
   При реализации этой недостающей функциональности следует помнить, что классы - это
   экземпляры класса STANDARD-CLASS, и прицепив что угодно на initialize-instance :after для
@@ -64,7 +62,7 @@
 
   #+NAME: entity
   #+BEGIN_SRC lisp
-    (defmacro define-entity (name desc &rest tail)
+    (defmacro define-entity (name desc flds primaryes foreigns uniques)
       (let ((*package* (symbol-package name)))
         `(progn
            <<entity_class>>
@@ -93,10 +91,10 @@
                       :col-type (cadr x)
                       :initarg  (intern (symbol-name (car x)) :keyword)
                       :accessor (car x)))
-                 (car tail))
+                 flds)
         (:metaclass dao-class)
         (:table-name ,table)
-        (:keys ,(caaar tail))))
+        (:keys ,(caar flds))))
   #+END_SRC
 
   Генерируем =make_entity-table=:
@@ -132,7 +130,7 @@
     ;; upd-entity
     (defmethod ,(intern (concatenate 'string "UPD-" (symbol-name name))) ((obj ,name) &optional args)
       (progn
-        ,@(loop for accessor in (car tail) :collect
+        ,@(loop :for accessor :in flds :collect
                `(setf (,(car accessor) obj)
                       (or (getf args ,(intern (symbol-name (car accessor)) :keyword))
                           (,(car accessor) obj))))
@@ -219,7 +217,7 @@
                      "<form id='"
                      ,(string-downcase (symbol-name name))
                      "-form'>"
-                     ,@(loop :for (fld-name fld-type) :in (car tail) :collect
+                     ,@(loop :for (fld-name fld-type) :in flds :collect
                           (list
                            (intern (concatenate 'string
                                                 "SHOW-FLD-"
@@ -273,7 +271,10 @@
     (define-entity entity123 "Тестовая сущность"
       ((id serial)
        (email varchar)
-       (name (or db-null varchar))))
+       (name (or db-null varchar)))
+      (id)
+      ()
+      ())
 
     (make-entity123-table)
 
@@ -369,20 +370,20 @@
 
   #+NAME: automat
   #+BEGIN_SRC lisp
-    (defmacro define-automat (name desc &rest tail)
+    (defmacro define-automat (name desc flds primaryes foreigns uniques states acts)
       (let ((package (symbol-package name)))
         (let ((upd-entity (intern (concatenate 'string "UPD-" (symbol-name name))))
-              (fields (append (car tail) '((state (or db-null varchar)))))
+              (fields (append flds '((state (or db-null varchar)))))
               (state  (intern "STATE" package))
               (trans  (intern "TRANS" package))
               (takt   (intern "TAKT" package))
               (make-table (intern (concatenate 'string "MAKE-"  (symbol-name name) "-TABLE"))))
           `(progn
-             (define-entity ,name ,desc ,fields)
+             (define-entity ,name ,desc ,fields ,primaryes ,foreigns ,uniques)
              (,make-table)
-             ,(let ((all-states (cadr tail)))
+             ,(let ((all-states states))
                    `(progn
-                      ,@(loop :for (from-state to-state event) :in (caddr tail) :collect
+                      ,@(loop :for (from-state to-state event) :in acts :collect
                            (if (or (null (find from-state all-states))
                                    (null (find to-state all-states)))
                                (err (format nil "unknown state: ~A -> ~A" from-state to-state))
@@ -435,6 +436,9 @@
       ((id serial)
        (email varchar)
        (name (or db-null varchar)))
+      (id)
+      ()
+      ()
       (:on :off :broken)
       ((:on      :off     :switch-off)
        (:off     :on      :switch-on)
