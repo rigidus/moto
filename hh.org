@@ -583,29 +583,29 @@
 
    #+CAPTION: Данные вакансии
    #+NAME: vacancy_flds
-   | field name  | field type           | note                                            |
-   |-------------+----------------------+-------------------------------------------------|
-   | id          | serial               | идентификатор                                   |
-   | src-id      | integer              | идентификатор вакансии в источнике              |
-   | archive     | boolean              | признак, что вакансия в архиве                  |
-   | name        | varchar              | название вакансии                               |
-   | currency    | (or db-null varchar) | валюта зарплаты                                 |
-   | base-salary | (or db-null integer) | размер компенсации в тизере                     |
-   | salary      | (or db-null integer) | размер компенсации                              |
-   | salary-text | (or db-null varchar) | размер компенсации                              |
-   | salary-max  | (or db-null integer) | максимальный уровень зарплаты                   |
-   | salary-min  | (or db-null integer) | минимальный уровень зарплаты                    |
-   | emp-id      | (or db-null integer) | идентификатор работодателя на удаленном ресурсе |
-   | emp-name    | varchar              | имя работодателя на удаленном ресурсе           |
-   | city        | varchar              | город                                           |
-   | metro       | varchar              | метро                                           |
-   | experience  | varchar              | требуемый опыт работы                           |
-   | date        | varchar              | дата опубликования в источнике                  |
-   | respond     | varchar              | ссылка на отклик                                |
-   | descr       | varchar              | описание вакансии                               |
-   | notes       | (or db-null varchar) | заметки по вакансии                             |
-   | tags        | (or db-null varchar) | Тэги вакансии                                   |
-   | response    | (or db-null varchar) | текст отклика на вакансию                       |
+   | field name  | field type           | default | meta      | note                                            |
+   |-------------+----------------------+---------+-----------+-------------------------------------------------|
+   | id          | serial               |         | (primary) | идентификатор                                   |
+   | src-id      | integer              |         | (unique)  | идентификатор вакансии в источнике              |
+   | archive     | boolean              |         |           | признак, что вакансия в архиве                  |
+   | name        | varchar              |         |           | название вакансии                               |
+   | currency    | (or db-null varchar) |         |           | валюта зарплаты                                 |
+   | base-salary | (or db-null integer) |         |           | размер компенсации в тизере                     |
+   | salary      | (or db-null integer) |         |           | размер компенсации                              |
+   | salary-text | (or db-null varchar) |         |           | размер компенсации                              |
+   | salary-max  | (or db-null integer) |         |           | максимальный уровень зарплаты                   |
+   | salary-min  | (or db-null integer) |         |           | минимальный уровень зарплаты                    |
+   | emp-id      | (or db-null integer) |         |           | идентификатор работодателя на удаленном ресурсе |
+   | emp-name    | varchar              |         |           | имя работодателя на удаленном ресурсе           |
+   | city        | varchar              |         |           | город                                           |
+   | metro       | varchar              |         |           | метро                                           |
+   | experience  | varchar              |         |           | требуемый опыт работы                           |
+   | date        | varchar              |         |           | дата опубликования в источнике                  |
+   | respond     | varchar              |         |           | ссылка на отклик                                |
+   | descr       | varchar              |         |           | описание вакансии                               |
+   | notes       | (or db-null varchar) |         |           | заметки по вакансии                             |
+   | tags        | (or db-null varchar) |         |           | Тэги вакансии                                   |
+   | response    | (or db-null varchar) |         |           | текст отклика на вакансию                       |
 
 ** Состояния вакансий
 

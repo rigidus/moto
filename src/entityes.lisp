@@ -10,7 +10,10 @@
    (tag (or db-null varchar))
    (msg (or db-null varchar))
    (author-id (or db-null varchar))
-   (ts-create bigint)))
+   (ts-create bigint))
+  (id)
+  ()
+  ())
 
 (make-event-table)
 ;; event_entity ends here
@@ -19,7 +22,10 @@
 (define-entity role "Сущность роли"
   ((id serial)
    (name varchar)
-   (descr (or db-null varchar))))
+   (descr (or db-null varchar)))
+  (id)
+  ()
+  ())
 
 (make-role-table)
 
@@ -52,7 +58,11 @@
    (birth-year (or db-null varchar))
    (ts-create bigint)
    (ts-last bigint)
-   (role-id (or db-null integer)))
+   (role-id (or db-null integer))
+   ())
+  (id)
+  ()
+  ()
   (:sended :unlogged :logged :unregistred)
   ((:unregistred :logged :registration)
    (:logged :unregistred :unregistration)
@@ -60,6 +70,8 @@
    (:logged :unlogged :leave)
    (:unlogged :sended :forgot)
    (:sended :logged :remember)))
+
+(make-user-table)
 
 (with-connection *db-spec*
   (unless (table-exists-p "user")
@@ -87,7 +99,10 @@
    (name varchar)
    (descr (or db-null varchar))
    (ts-create bigint)
-   (author-id (or db-null integer))))
+   (author-id (or db-null integer)))
+  (id)
+  ()
+  ())
 
 (make-group-table)
 
@@ -121,7 +136,10 @@
 (define-entity user2group "Сущность связи пользователя и группы"
   ((id serial)
    (user-id integer)
-   (group-id integer)))
+   (group-id integer))
+  (id)
+  ()
+  ())
 
 (make-user2group-table)
 
@@ -138,8 +156,13 @@
    (msg varchar)
    (ts-create bigint)
    (ts-delivery bigint))
+  (id)
+  ()
+  ()
   (:delivered :undelivered)
   ((:undelivered :delivered :delivery)))
+
+(make-msg-table)
 
 (defun delivery ()
   "undelivered -> delivered")
@@ -152,6 +175,9 @@
    (owner-id (or db-null integer))
    (exec-id (or db-null integer))
    (ts-create bigint))
+  (id)
+  ()
+  ()
   (:terminated :cancelled :standby :inaction :new)
   ((:new :inaction :starttask)
    (:inaction :standby :stoptask)
@@ -161,6 +187,8 @@
    (:standby :cancelled :cancelstandbytask)
    (:inaction :terminated :terminateactiontask)
    (:standby :terminated :terminatestandbytask)))
+
+(make-task-table)
 
 (with-connection *db-spec*
   (unless (table-exists-p "task")
@@ -195,7 +223,10 @@
    (address varchar)
    (url varchar)
    (phone varchar)
-   (note text)))
+   (note text))
+  (id)
+  ()
+  ())
 
 (make-developer-table)
 ;; developer_entity ends here
@@ -221,7 +252,10 @@
    (latitude varchar)
    (dateUpdate (or db-null timestamp))
    (isPrivate integer)
-   (bknId varchar)))
+   (bknId varchar))
+  (id)
+  ()
+  ())
 
 (make-cmpx-table)
 ;; cmpx_entity ends here
@@ -241,21 +275,30 @@
    (year_end (or db-null integer))
    (house_typeId (or db-null integer))
    (bknId (or db-null varchar))
-   (dateUpdate (or db-null timestamp))))
+   (dateUpdate (or db-null timestamp)))
+  (id)
+  ()
+  ())
 
 (make-blk-table)
 ;; blk_entity ends here
 ;; [[file:doc.org::*Очереди (que, quelt)][que_entity]]
 (define-entity que "Сущность очереди"
   ((id serial)
-   (name varchar)))
+   (name varchar))
+  (id)
+  ()
+  ())
 
 (make-que-table)
 
 (define-entity quelt "Сущность элемента очереди"
   ((id serial)
    (que-id integer)
-   (text varchar)))
+   (text varchar))
+  (id)
+  ()
+  ())
 
 (make-quelt-table)
 
@@ -270,9 +313,14 @@
    (user-id integer)
    (origin varchar)
    (ts-create bigint))
+  (id)
+  ()
+  ()
   (:inactive :active)
   ((:active :inactive :avatar-off)
    (:inactive :active :avatar-on)))
+
+(make-avatar-table)
 
 (defun avatar-off ()
   "active -> inactive")
@@ -314,6 +362,10 @@
    (pts-data (or db-null varchar))
    (desc (or db-null varchar))
    (tuning (or db-null varchar)))
+  (id)
+  ((one-to-many vendor-id (vendor id))
+   (one-to-many color-id (color id)))
+  ()
   (:куплен :продан :чинится :угнан :хлам :сломан :продается :используется)
   ((:используется :продается :выставление.на.продажу)
    (:используется :сломан :сломался)
@@ -331,6 +383,8 @@
    (:продан :куплен :покупка)
    (:куплен :используется :ввод.в.эксплуатацию)
    (:угнан :используется :возврат.с.угона)))
+
+(make-moto-table)
 
 (defun |выставление.на.продажу| ()
   "используется -> продается")
@@ -368,14 +422,20 @@
 ;; [[file:doc.org::*Цвет (color)][color_entity]]
 (define-entity color "Сущность цвета"
   ((id serial)
-   (name varchar)))
+   (name varchar))
+  (id)
+  ()
+  ())
 
 (make-color-table)
 ;; color_entity ends here
 ;; [[file:doc.org::*Производитель (vendor)][vendor_entity]]
 (define-entity vendor "Сущность производителя"
   ((id serial)
-   (name varchar)))
+   (name varchar))
+  (id)
+  ()
+  ())
 
 (make-vendor-table)
 ;; vendor_entity ends here
@@ -398,7 +458,10 @@
    (interests (or db-null varchar))
    (photos (or db-null varchar))
    (avatar (or db-null varchar))
-   (motos (or db-null varchar))))
+   (motos (or db-null varchar)))
+  (id)
+  ()
+  ())
 
 (make-bratan-table)
 ;; bratan_entity ends here

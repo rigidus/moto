@@ -1,3 +1,4 @@
+#+STARTUP: showall indent hidestars
 #+TITLE: moto
 #+HTML_HEAD: <!-- -*- fill-column: 86 -*- -->
 
@@ -201,159 +202,616 @@
 
 ** Функции для кодогенерации сущностей
 
-   Эти функции будут кодогенерировать сущности и автоматы из таблиц с наименованием и
-   типами полей внутри этого файла.
+Эти функции будут кодогенерировать сущности и автоматы из таблиц с наименованием и
+типами полей внутри этого файла.
 
-   Чтобы емакс не запрашивал подтверждение на каждое исполнение кода, установим эту
-   настройку:
+Чтобы emacs не запрашивал подтверждение на каждое исполнение кода,
+установим эту настройку:
 
-   #+NAME: gen_org_confirm
-   #+BEGIN_SRC emacs-lisp
-     (setq org-confirm-babel-evaluate nil)
-   #+END_SRC
+#+NAME: gen_org_confirm
+#+BEGIN_SRC emacs-lisp
+  (setq org-confirm-babel-evaluate nil)
+#+END_SRC
 
-   Начнем с генерации кода из таблицы полей:
+Функция =outlist= нужна для форматирования лисповых списков при генерации в
+s-выражения для entity:
 
-   #+NAME: gen_fields
-   #+BEGIN_SRC emacs-lisp
-     (defun gen-fields (rows)
-       (let ((result))
-         (push "\n" result)
-         (push (format "  (%s\n" (butlast (car rows))) result)
-         (mapcar #'(lambda (x)
-                     (push (format "   %s\n" (butlast x)) result))
-                 (butlast (cdr rows)))
-         (push (format "   %s)" (butlast (car (last rows)))) result)
-         (mapconcat 'identity (reverse result) "")))
-   #+END_SRC
-
-   Теперь напишем код, который генерирует код для состояний конечного автомата:
-
-   #+NAME: gen_states
-   #+BEGIN_SRC emacs-lisp
-     (defun gen-states (rows)
-       (let ((result)
-             (hash (make-hash-table :test #'equal))
-             (states))
-         (dolist (elt rows nil)
-           (puthash (cadr elt) nil hash)
-           (puthash (cadr (cdr elt))  nil hash))
-         (maphash (lambda (k v)
-                    (push k states))
-                  hash)
-         (push "\n" result)
-         (push "  (" result)
-         (dolist (elt (butlast states))
-           (push (format ":%s " elt) result))
-         (push (format ":%s)" (car (last states))) result)
-         (mapconcat 'identity (reverse result) "")))
-   #+END_SRC
-
-   И добавим к этом генератор действий - т.е. переходов между состояниями:
-
-   #+NAME: gen_actions
-   #+BEGIN_SRC emacs-lisp
-     (defun gen-actions (rows)
-       (let ((result))
-         (push "\n" result)
-         (let ((x (car rows)))
-           (push (format "  ((:%s :%s :%s)" (cadr x) (cadr (cdr x)) (car x)) result))
-         (if (equal 1 (length rows))
-             (push ")" result)
-           (progn
-             (push "\n" result)
+#+NAME: outlist
+#+BEGIN_SRC emacs-lisp
+  (defun outlist (lst ident fn)
+    (let ((outlist-result '())
+          (first  (car lst))
+          (middle (butlast (cdr lst)))
+          (last   (car (last lst))))
+      (cond ((equal 0 (length lst))
+             (push (concat ident "()") outlist-result))
+            ((equal 1 (length lst))
+             (push (funcall fn (concat ident "(%s)") first) outlist-result))
+            ((< 1 (length lst))
+             (push (funcall fn (concat ident "(%s") first) outlist-result)
              (mapcar #'(lambda (x)
-                         (push (format "   (:%s :%s :%s)\n" (cadr x) (cadr (cdr x)) (car x)) result))
-                     (cdr (butlast rows)))
-             (let ((x (car (last rows))))
-               (push (format "   (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x)) result))))
-         (mapconcat 'identity (reverse result) "")))
-   #+END_SRC
+                         (push (funcall fn (concat "\n" ident " %s") x) outlist-result))
+                     middle)
+             (push (funcall fn (concat "\n" ident " %s)") last) outlist-result)))
+     outlist-result))
+#+END_SRC
 
-   Аналогичным образом напишем генератор, который собирает
-   POST-запрос из таблицы с двумя столбцами, в первом из которых лежит
-   ключ, а во втором - значение. Если значение начинается с символа
-   двоеточия - то мы отправляем его "как есть" (но без двоеточия), а
-   противном случае мы считаем его accessor-ом и кодируем в url-encode.
+Начнем с генерации кода из таблицы полей:
 
-   #+NAME: gen_post
-   #+BEGIN_SRC emacs-lisp
-     (defun gen-post (rows var)
-       (flet ((rval (val var)
-                    (let ((match-result (string-match ":" val)))
-                      (if (and (not (null match-result))
-                               (= 0 (string-match ":" val)))
-                          (concat "\"" (substring val 1) "\"")
-                        (format ",(drakma:url-encode (%s %s) :utf-8)" val var)))))
-         (let ((result))
-           (push (format "`((\"%s\" . %s)"
-                         (caar rows)
-                         (rval (cadar rows) var)
-                         var)
-                 result)
-           (mapcar #'(lambda (x)
-                       (push (format "\n  (\"%s\" . %s)"
-                                     (car x)
-                                     (rval (cadr x) var)
-                                     var)
-                             result))
-                   (butlast (cdr rows)))
-           (push (format "\n  (\"%s\" . %s))"
-                         (caar (last rows))
-                         (rval (cadar (last rows)) var)
-                         var)
-                 result)
-           (mapconcat 'identity (reverse result) ""))))
-   #+END_SRC
+Это старая версия =gen_fields=:
 
-   Соберем все это в один файл, чтобы загружать перед кодогенерацией проекта:
+#+NAME: gen_fields_old
+#+BEGIN_SRC emacs-lisp
+  (defun gen-fields (rows)
+    (let ((result))
+      (push "\n" result)
+      (push (format "  (%s\n" (butlast (car rows))) result)
+      (mapcar #'(lambda (x)
+                  (push (format "   %s\n" (butlast x)) result))
+              (butlast (cdr rows)))
+      (push (format "   %s)" (butlast (car (last rows)))) result)
+      (mapconcat 'identity (reverse result) "")))
+#+END_SRC
 
-   #+NAME: generators
-   #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code :padline no :comments link
-     ;; <<copyright>>
+А теперь новая версия:
 
-     <<gen_org_confirm>>
+При генерации полей из таблиц описания сущностей некоторые поля имеют
+имя, но не имеют типа. Это нормально, т.к. они нужны для создания
+полей one-to-many при генерации поля для ORM. Такие поля мы выводим
+без указания типа.
 
-     <<gen_fields>>
+#+NAME: gen_fields
+#+BEGIN_SRC emacs-lisp
+  (defun gen-fields (rows)
+    (let ((fields) (primary) (foreign) (unique))
+      (mapcar #'(lambda (val)
+                  (unless (string= "" (nth 3 val))
+                    (mapcar #'(lambda (addon-key)
+                                (let (meta-key)
+                                  (if (listp addon-key)
+                                      (setq meta-key (car addon-key))
+                                    (setq meta-key addon-key))
+                                  (cond
+                                   ((string= meta-key 'primary)
+                                    (push (car val) primary))
+                                   ((string= meta-key 'one-to-many)
+                                    (push (list 'one-to-many (car val) (nth 1 addon-key)) foreign))
+                                   ((string= meta-key 'many-to-one)
+                                    (push (list 'many-to-one (car val) (nth 1 addon-key)) foreign))
+                                   ((string= meta-key 'unique)
+                                    (push (car val) unique)))))
+                            (read (nth 3 val)))))
+              rows)
+    (values
+       (outlist rows "  "
+                (function (lambda (tpl val)
+                            (if (not (string= "" (nth 1 val)))
+                                 (if (string= "" (nth 2 val))
+                                    (format tpl (subseq val 0 2))
+                                    (format tpl (subseq val 0 3)))
+                              (format tpl (list (car val)))))))
+       primary
+       (outlist (reverse foreign) "  "
+                (function (lambda (tpl val)
+                            (format tpl val))))
+       unique)))
+#+END_SRC
 
-     <<gen_states>>
+Теперь напишем код, который генерирует код для состояний конечного автомата:
 
-     <<gen_actions>>
+Это его старая версия:
 
-     <<gen_post>>
-   #+END_SRC
+#+NAME: gen_states_old
+#+BEGIN_SRC emacs-lisp
+  (defun gen-states (rows)
+    (let ((result)
+          (hash (make-hash-table :test #'equal))
+          (states))
+      (dolist (elt rows nil)
+        (puthash (cadr elt) nil hash)
+        (puthash (cadr (cdr elt))  nil hash))
+      (maphash (lambda (k v)
+                 (push k states))
+               hash)
+      (push "\n" result)
+      (push "  (" result)
+      (dolist (elt (butlast states))
+        (push (format ":%s " elt) result))
+      (push (format ":%s)" (car (last states))) result)
+      (mapconcat 'identity (reverse result) "")))
+#+END_SRC
 
-   И загрузим его:
+А это - новая:
 
-   #+NAME: generators
-   #+BEGIN_SRC emacs-lisp
-     (load-file "generators.el")
-   #+END_SRC
+#+NAME: gen_states
+#+BEGIN_SRC emacs-lisp
+  (defun gen-states (rows)
+    (let ((result)
+          (hash (make-hash-table :test #'equal))
+          (states))
+      (dolist (elt rows nil)
+        (puthash (cadr elt) nil hash)
+        (puthash (cadr (cdr elt))  nil hash))
+      (maphash (lambda (k v)
+                 (push k states))
+               hash)
+      (push "\n" result)
+      (push "  (" result)
+      (dolist (elt (butlast states))
+        (push (format ":%s " elt) result))
+      (push (format ":%s)" (car (last states))) result)
+      (mapconcat 'identity (reverse result) "")))
+#+END_SRC
 
-   Теперь у нас есть все необходимое, чтобы написать вызываемые при
-   tangle генераторы сущностей и автоматов:
+И добавим к этом генератор действий - т.е. переходов между состояниями:
 
-   #+NAME: gen_entity
-   #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
-     (let ((result))
-       (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
-       (push (gen-fields flds) result)
-       (push ")\n" result)
-       (push "\n" result)
-       (push (format "(make-%s-table)\n" name) result)
-       (mapconcat 'identity (reverse result) ""))
-   #+END_SRC
+Это старая версия:
 
-   #+NAME: gen_automat
-   #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() states='() :exports none
-     (let ((result))
-       (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
-       (push (gen-fields flds) result)
-       (push (gen-states states) result)
-       (push (gen-actions states) result)
-       (push ")\n" result)
-       (mapconcat 'identity (reverse result) ""))
-   #+END_SRC
+#+NAME: gen_actions_old
+#+BEGIN_SRC emacs-lisp
+  (defun gen-actions (rows)
+    (let ((result))
+      (push "\n" result)
+      (let ((x (car rows)))
+        (push (format "  ((:%s :%s :%s)" (cadr x) (cadr (cdr x)) (car x)) result))
+      (if (equal 1 (length rows))
+          (push ")" result)
+        (progn
+          (push "\n" result)
+          (mapcar #'(lambda (x)
+                      (push (format "   (:%s :%s :%s)\n" (cadr x) (cadr (cdr x)) (car x)) result))
+                  (cdr (butlast rows)))
+          (let ((x (car (last rows))))
+            (push (format "   (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x)) result))))
+      (mapconcat 'identity (reverse result) "")))
+#+END_SRC
+
+Это новая:
+
+#+NAME: gen_actions
+#+BEGIN_SRC emacs-lisp
+  (defun gen-actions (rows)
+    (let ((result))
+      (push "\n" result)
+      (let ((x (car rows)))
+        (push (format "  ((:%s :%s :%s)" (cadr x) (cadr (cdr x)) (car x)) result))
+      (if (equal 1 (length rows))
+          (push ")" result)
+        (progn
+          (push "\n" result)
+          (mapcar #'(lambda (x)
+                      (push (format "   (:%s :%s :%s)\n" (cadr x) (cadr (cdr x)) (car x)) result))
+                  (cdr (butlast rows)))
+          (let ((x (car (last rows))))
+            (push (format "   (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x)) result))))
+      (mapconcat 'identity (reverse result) "")))
+#+END_SRC
+
+Плюс к этому нам нужны функции, которые меняют стиль написания идентификаторов:
+
+#+NAME: change_case
+#+BEGIN_SRC emacs-lisp
+  (defun split-name (s)
+    (split-string
+     (let ((case-fold-search nil))
+       (downcase
+        (replace-regexp-in-string "\\([a-z]\\)\\([A-Z]\\)" "\\1 \\2" s)))
+     "[^A-Za-z0-9]+"))
+
+  (defun camelcase  (s) (mapconcat 'capitalize (split-name s) ""))
+  (defun underscore (s) (mapconcat 'downcase   (split-name s) "_"))
+  (defun dasherize  (s) (mapconcat 'downcase   (split-name s) "-"))
+  (defun colonize   (s) (mapconcat 'capitalize (split-name s) "::"))
+
+  (defun camelscore (s)
+    (cond ((string-match-p "\\(?:[a-z]+_\\)+[a-z]+" s)(dasherize  s))
+          ((string-match-p "\\(?:[a-z]+-\\)+[a-z]+" s)(camelcase  s))
+          ((string-match-p "\\(?:[A-Z][a-z]+\\)+$"  s)(colonize   s))
+          (t(underscore s)) ))
+
+  (defun camelscore-word-at-point ()
+    (interactive)
+    (let* ((case-fold-search nil)
+           (beg (and (skip-chars-backward "[:alnum:]:_-") (point)))
+           (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
+           (txt (buffer-substring beg end))
+           (cml (camelscore txt)) )
+      (if cml (progn (delete-region beg end) (insert cml)))))
+#+END_SRC
+
+Аналогичным образом напишем генератор, который собирает
+POST-запрос из таблицы с двумя столбцами, в первом из которых лежит
+ключ, а во втором - значение. Если значение начинается с символа
+двоеточия - то мы отправляем его "как есть" (но без двоеточия), а
+противном случае мы считаем его accessor-ом и кодируем в url-encode.
+
+#+NAME: gen_post
+#+BEGIN_SRC emacs-lisp
+  (defun gen-post (rows var)
+    (flet ((rval (val var)
+                 (let ((match-result (string-match ":" val)))
+                   (if (and (not (null match-result))
+                            (= 0 (string-match ":" val)))
+                       (concat "\"" (substring val 1) "\"")
+                     (format ",(drakma:url-encode (%s %s) :utf-8)" val var)))))
+      (let ((result))
+        (push (format "`((\"%s\" . %s)"
+                      (caar rows)
+                      (rval (cadar rows) var)
+                      var)
+              result)
+        (mapcar #'(lambda (x)
+                    (push (format "\n  (\"%s\" . %s)"
+                                  (car x)
+                                  (rval (cadr x) var)
+                                  var)
+                          result))
+                (butlast (cdr rows)))
+        (push (format "\n  (\"%s\" . %s))"
+                      (caar (last rows))
+                      (rval (cadar (last rows)) var)
+                      var)
+              result)
+        (mapconcat 'identity (reverse result) ""))))
+#+END_SRC
+
+Соберем все это в один файл, чтобы загружать перед кодогенерацией проекта:
+
+#+NAME: generators
+#+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code :padline no :comments link
+  ;; <<copyright>>
+
+  <<gen_org_confirm>>
+
+  <<outlist>>
+
+  <<change_case>>
+
+  <<gen_fields>>
+
+  <<gen_states>>
+
+  <<gen_actions>>
+
+  <<define-entity>>
+
+  <<with-entity>>
+
+  <<gen_post>>
+#+END_SRC
+
+И загрузим его:
+
+#+NAME: generators
+#+BEGIN_SRC emacs-lisp
+  (load-file "generators.el")
+#+END_SRC
+
+Теперь у нас есть все необходимое, чтобы написать вызываемые при
+tangle генераторы сущностей и автоматов:
+
+Это старый вариант генератора сущностей, который не учитывает
+реляционные связи:
+
+#+NAME: gen_entity_old
+#+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
+  (let ((result))
+    (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
+    (push (gen-fields flds) result)
+    (push ")\n" result)
+    (push "\n" result)
+    (push (format "(make-%s-table)\n" name) result)
+    (mapconcat 'identity (reverse result) ""))
+#+END_SRC
+
+А это новый вариант генератора сущностей:
+
+#+NAME: gen_entity
+#+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
+  (let ((result))
+    (push (format "(define-entity %s \"Сущность %s\"\n" name docstring) result)
+    (cl-multiple-value-bind (fields primary foreign unique)
+        (gen-fields flds)
+      (setq result (append fields result))
+      (push "\n" result)
+      (push (format "  %s\n" (or (reverse primary) "()")) result)
+      (setq result (append foreign result))
+      (push (format "\n  %s" (or (reverse unique) "()")) result)
+      (push ")\n\n" result)
+      (push (format "(make-%s-table)\n" name) result)
+      (mapconcat 'identity (reverse result) "")))
+#+END_SRC
+
+Это старый вариант генератора автоматов, который не учитывает
+реляционные связи:
+
+#+NAME: gen_automat_old
+#+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() states='() :exports none
+  (let ((result))
+    (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
+    (push (gen-fields flds) result)
+    (push (gen-states states) result)
+    (push (gen-actions states) result)
+    (push ")\n" result)
+    (mapconcat 'identity (reverse result) ""))
+#+END_SRC
+
+А это новый вариант генератора сущностей:
+
+#+NAME: gen_automat
+#+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() states='() :exports none
+  (let ((result))
+    (push (format "(define-automat %s \"Автомат %s\"\n" name docstring) result)
+    (cl-multiple-value-bind (fields primary foreign unique)
+        (gen-fields flds)
+      (setq result (append fields result))
+      (push "\n" result)
+      (push (format "  %s\n" (or (reverse primary) "()")) result)
+      (setq result (append foreign result))
+      (push (format "\n  %s" (or (reverse unique) "()")) result)
+      (push (gen-states states) result)
+      (push (gen-actions states) result)
+      (push ")\n\n" result)
+      (push (format "(make-%s-table)\n" name) result)
+      (mapconcat 'identity (reverse result) "")))
+#+END_SRC
+
+** Функции для работы с lisp-сущностями
+
+Главный макрос, разворачивающий промежуточное представление сущности в
+набор property list с удобным доступом к каждому полю
+
+#+NAME: define-entity
+#+BEGIN_SRC elisp
+  (defmacro define-entity (name desc slot-descriptions primary foreign unique &rest class-options)
+    (let ((fields))
+      ;; full initial hash with pair 'field-name' => 'slot-description'
+      (mapcar #'(lambda(slot)
+                  (let ((base-data)
+                        (name (car (subseq slot 0 1)))
+                        (common-type)
+                        (default)
+                        (nullable)
+                        (type)
+                        (type-attrs)
+                        (attrs))
+
+                    (if (< 1 (length slot))
+                        (setq common-type  (car (subseq slot 1 2))))
+
+                    (if (< 2 (length slot))
+                        (setq default (car (subseq slot 2 3))))
+
+                    ;; преобразование типа из списка
+                    (when (and (listp common-type) (string= "or" (car common-type)))
+                      (setq type (car (last common-type)))
+                      (setq type-attrs (cdr (last common-type)))
+                      (setq nullable t))
+                    (when (and (listp common-type) (not (string= "or" (car common-type))))
+                      (setq type (car common-type))
+                      (setq type-attrs (cdr common-type)))
+                    (if (listp common-type)
+                        (setq type (car common-type))
+                      (setq type common-type))
+
+                    (cond
+                     ((string= "numeric" type)
+                      (setq attrs (plist-put attrs :precision (nth 0 type-attrs)))
+                      (setq attrs (plist-put attrs :scale (nth 1 type-attrs))))
+                     ((string= "string" type)
+                      (setq attrs (plist-put attrs :max (nth 0 type-attrs)))))
+
+                    (setq fields
+                          (plist-put fields (car slot)
+                                     (list :name name
+                                           :type type
+                                           :attrs attrs
+                                           :default default
+                                           :nullable nullable)))))
+              slot-descriptions)
+
+      ;; let's parse type in more usable format
+
+      ;;primary
+      (mapcar #'(lambda (primary-field)
+                  (let ((field-value (plist-get fields primary-field)))
+                    (when field-value
+                      (plist-put fields primary-field (plist-put field-value :primary t)))))
+              primary)
+
+      ;;foreign
+      (mapcar #'(lambda (foreign)
+                  (let ((foreign-field (nth 1 foreign))
+                        (field-value (plist-get fields (nth 1 foreign))))
+                    (when field-value
+                      (plist-put fields foreign-field (plist-put field-value
+                                                                 (intern (concat ":" (symbol-name (nth 0 foreign))))
+                                                                 (nth 2 foreign)))))
+                  )
+              foreign)
+
+      ;;unique
+      (mapcar #'(lambda (unique-field)
+                  (let ((field-value (plist-get fields unique-field)))
+                    (when field-value
+                      (plist-put fields unique-field (plist-put field-value :unique t)))))
+              unique)
+
+      ;; plist to normal list
+      (setq fields (cl-loop for (key value) on fields by 'cddr
+                            collect value
+                            ))
+      `',fields))
+
+  ;; ;; пример
+  ;; (define-entity message "Сущность сообщений"
+  ;;   ((id serial)
+  ;;    (type integer)
+  ;;    (author integer)
+  ;;    (target_user integer)
+  ;;    (target_holder integer)
+  ;;    (datetime datetime)
+  ;;    (subject (string 127))
+  ;;    (text text)
+  ;;    (is_read boolean))
+  ;;   (id)
+  ;;   ((many-to-one type (message-type id))
+  ;;    (many-to-one author (user id))
+  ;;    (many-to-one target_user (user id))
+  ;;    (many-to-one target_holder (holder id)))
+  ;;   ())
+
+  (defmacro define-automat (name desc slot-descriptions primary foreign unique &rest class-options)
+    (let
+        ((fields))
+      ;; full initial hash with pair 'field-name' => 'slot-description'
+      (mapcar #'(lambda(slot)
+                  (let ((base-data)
+                        (name (car (subseq slot 0 1)))
+                        (common-type)
+                        (default)
+                        (nullable)
+                        (type)
+                        (type-attrs)
+                        (attrs))
+
+                    (if (< 1 (length slot))
+                        (setq common-type (car (subseq slot 1 2))))
+                    (if (< 2 (length slot))
+                        (setq default (car (subseq slot 2 3))))
+
+                    ;; преобразование типа из списка
+                    (when (and (listp common-type) (string= "or" (car common-type)))
+                      (setq type (car (last common-type)))
+                      (setq type-attrs (cdr (last common-type)))
+                      (setq nullable t))
+                    (when (and (listp common-type) (not (string= "or" (car common-type))))
+                      (setq type (car common-type))
+                      (setq type-attrs (cdr common-type)))
+                    (if (listp common-type)
+                        (setq type (car common-type))
+                      (setq type common-type))
+
+                    (cond
+                     ((string= "numeric" type)
+                      (setq attrs (plist-put attrs :precision (nth 0 type-attrs)))
+                      (setq attrs (plist-put attrs :scale (nth 1 type-attrs))))
+                     ((string= "string" type)
+                      (setq attrs (plist-put attrs :max (nth 0 type-attrs)))))
+
+                    (setq fields
+                          (plist-put fields (car slot)
+                                     (list :name name
+                                           :type type
+                                           :attrs attrs
+                                           :default default
+                                           :nullable nullable)))))
+              slot-descriptions)
+
+      ;; let's parse type in more usable format
+
+      ;;primary
+      (mapcar #'(lambda (primary-field)
+                  (let ((field-value (plist-get fields primary-field)))
+                    (when field-value
+                      (plist-put fields primary-field (plist-put field-value :primary t)))))
+              primary)
+
+      ;;foreign
+      (mapcar #'(lambda (foreign)
+                  (let ((foreign-field (nth 1 foreign))
+                        (field-value (plist-get fields (nth 1 foreign))))
+                    (when field-value
+                      (plist-put fields foreign-field (plist-put field-value
+                                                                 (intern (concat ":" (symbol-name (nth 0 foreign))))
+                                                                 (nth 2 foreign)))))
+                  )
+              foreign)
+
+      ;;unique
+      (mapcar #'(lambda (unique-field)
+                  (let ((field-value (plist-get fields unique-field)))
+                    (when field-value
+                      (plist-put fields unique-field (plist-put field-value :unique t)))))
+              unique)
+
+      ;; plist to normal list
+      (setq fields (cl-loop for (key value) on fields by 'cddr
+                            collect value
+                            ))
+      `',fields))
+#+END_SRC
+
+
+Теперь необходимо определить функцию, что будет вытягивать
+сгенерированное представление сущности из ее файла и отдавать
+запрошенные дополнительным параметром поля. Если список полей
+отсутствует или пустой, будет возвращен полный список полей сущности.
+
+
+#+NAME: with-entity
+#+BEGIN_SRC elisp
+  (defmacro with-entity (entity &optional fields)
+    (let ((entity-data)
+          (result-fields)
+          (need-fields))
+      ;; достаем сущность из сгенерированного файла
+      (setq entity-data
+            (eval (read
+                   (with-temp-buffer
+                     (insert-file-contents
+                      (concat "./src/" (symbol-name entity) "-entity.lisp"))
+                     (buffer-string)))))
+      ;; фильтр по запрошенным полям
+      (when fields
+        (mapcar #'(lambda (field)
+                    (if (listp field)
+                        (setq need-fields (plist-put need-fields (car field) (cdr field)))
+                      (setq need-fields (plist-put need-fields field nil))))
+                fields))
+      (if need-fields
+          (setq result-fields
+                (apply #'append
+                       (mapcar #'(lambda (entity-field)
+                                   (setq field-name (plist-get entity-field :name))
+                                   (if (not (plist-member need-fields field-name))
+                                       nil
+                                     (setq result-field
+                                           (if (plist-get need-fields field-name)
+                                               (append entity-field
+                                                       (plist-get need-fields field-name))
+                                             entity-field))
+                                     (setq result-field (plist-put result-field :entity entity))
+                                     (list result-field)))
+                               entity-data)))
+
+        ;;[TODO:bgg] этот блок можно переписать лучше, избежав дублирования кода
+        (setq result-fields
+              (apply #'append
+                     (mapcar #'(lambda (entity-field)
+                                 (setq result-field (plist-put entity-field :entity entity))
+                                 (list result-field))
+                             entity-data))))
+      `',result-fields))
+
+  ;; ;; пример для message-entity без списка необходимых полей
+  ;; (message "%s"
+  ;;          (with-entity message))
+
+  ;; ;; пример для message-entity со списком необходимых полей
+  ;; (message "%s"
+  ;;          (with-entity message
+  ;;                       (id target_user target_holder)))
+
+  ;; (print
+  ;;  (pp
+  ;;   (macroexpand-all
+  ;;    '(with-entity message
+  ;;                  (id
+  ;;                   target_user
+  ;;                   target_holder
+  ;;                   (text :label "Your message"))))))
+#+END_SRC
 
 ** DONE События
 
@@ -366,14 +824,14 @@
 
    #+CAPTION: Данные события
    #+NAME: event_flds
-     | field name | field type           | note                   |
-     |------------+----------------------+------------------------|
-     | id         | serial               | идентификатор          |
-     | name       | (or db-null varchar) | имя события            |
-     | tag        | (or db-null varchar) | тег события            |
-     | msg        | (or db-null varchar) | сообщение или описание |
-     | author-id  | (or db-null varchar) | инициатор события      |
-     | ts-create  | bigint               | время события          |
+     | field name | field type           | default | meta      | note                   |
+     |------------+----------------------+---------+-----------+------------------------|
+     | id         | serial               |         | (primary) | идентификатор          |
+     | name       | (or db-null varchar) |         |           | имя события            |
+     | tag        | (or db-null varchar) |         |           | тег события            |
+     | msg        | (or db-null varchar) |         |           | сообщение или описание |
+     | author-id  | (or db-null varchar) |         |           | инициатор события      |
+     | ts-create  | bigint               |         |           | время события          |
 
    Теперь сгенерируем код:
 
@@ -394,11 +852,11 @@
 
    #+CAPTION: Данные роли
    #+NAME: role_flds
-     | field name | field type           | note          |
-     |------------+----------------------+---------------|
-     | id         | serial               | идентификатор |
-     | name       | varchar              | имя           |
-     | descr      | (or db-null varchar) | описание      |
+     | field name | field type           | default | meta      | note          |
+     |------------+----------------------+---------+-----------+---------------|
+     | id         | serial               |         | (primary) | идентификатор |
+     | name       | varchar              |         |           | имя           |
+     | descr      | (or db-null varchar) |         |           | описание      |
 
    Теперь сгенерируем код и cоздадим необходимые роли:
 
@@ -428,23 +886,24 @@
 
    #+CAPTION: Данные пользователя
    #+NAME: user_flds
-     | field name  | field type           | note                      |
-     |-------------+----------------------+---------------------------|
-     | id          | serial               | идентификатор             |
-     | name        | varchar              | никнейм пользователя      |
-     | password    | varchar              | пароль                    |
-     | email       | varchar              | емейл                     |
-     | firstname   | (or db-null varchar) | имя                       |
-     | lastname    | (or db-null varchar) | фамилия                   |
-     | phone       | (or db-null varchar) | телефон                   |
-     | mobilephone | (or db-null varchar) | мобильный телефон         |
-     | sex         | (or db-null varchar) | пол                       |
-     | birth-day   | (or db-null varchar) | день рождения             |
-     | birth-month | (or db-null varchar) | месяц рождения            |
-     | birth-year  | (or db-null varchar) | год рождения              |
-     | ts-create   | bigint               | время регистрации         |
-     | ts-last     | bigint               | время последнего действия |
-     | role-id     | (or db-null integer) | идентификатор роли        |
+     | field name  | field type           | default | meta      | note                      |
+     |-------------+----------------------+---------+-----------+---------------------------|
+     | id          | serial               |         | (primary) | идентификатор             |
+     | name        | varchar              |         |           | никнейм пользователя      |
+     | password    | varchar              |         |           | пароль                    |
+     | email       | varchar              |         |           | емейл                     |
+     | firstname   | (or db-null varchar) |         |           | имя                       |
+     | lastname    | (or db-null varchar) |         |           | фамилия                   |
+     | phone       | (or db-null varchar) |         |           | телефон                   |
+     | mobilephone | (or db-null varchar) |         |           | мобильный телефон         |
+     | sex         | (or db-null varchar) |         |           | пол                       |
+     | birth-day   | (or db-null varchar) |         |           | день рождения             |
+     | birth-month | (or db-null varchar) |         |           | месяц рождения            |
+     | birth-year  | (or db-null varchar) |         |           | год рождения              |
+     | ts-create   | bigint               |         |           | время регистрации         |
+     | ts-last     | bigint               |         |           | время последнего действия |
+     | role-id     | (or db-null integer) |         |           | идентификатор роли        |
+     |             |                      |         |           |                           |
 
    В нашей системе пользователь может существовать (или не существовать) в одном из
    нескольких состояний:
@@ -542,13 +1001,13 @@
 
    #+CAPTION: Данные группы
    #+NAME: group_flds
-     | field name | field type           | note                           |
-     |------------+----------------------+--------------------------------|
-     | id         | serial               | идентификатор                  |
-     | name       | varchar              | имя группы                     |
-     | descr      | (or db-null varchar) | описание группы                |
-     | ts-create  | bigint               | время создания группы          |
-     | author-id  | (or db-null integer) | идентификатор создателя группы |
+     | field name | field type           | default | meta      | note                           |
+     |------------+----------------------+---------+-----------+--------------------------------|
+     | id         | serial               |         | (primary) | идентификатор                  |
+     | name       | varchar              |         |           | имя группы                     |
+     | descr      | (or db-null varchar) |         |           | описание группы                |
+     | ts-create  | bigint               |         |           | время создания группы          |
+     | author-id  | (or db-null integer) |         |           | идентификатор создателя группы |
 
    Сгенерируем код и создадим необходимые группы:
 
@@ -586,11 +1045,11 @@
 
    #+CAPTION: Данные таблицы связи пользователя и группы
    #+NAME: user2group_flds
-     | field name | field type | note                       |
-     |------------+------------+----------------------------|
-     | id         | serial     | идентификатор              |
-     | user-id    | integer    | идентификатор пользователя |
-     | group-id   | integer    | идентификатор группы       |
+     | field name | field type | default | meta      | note                       |
+     |------------+------------+---------+-----------+----------------------------|
+     | id         | serial     |         | (primary) | идентификатор              |
+     | user-id    | integer    |         |           | идентификатор пользователя |
+     | group-id   | integer    |         |           | идентификатор группы       |
 
    Чтобы пары в таблице связи удалялись при удалении связанных групп и
    пользователей следует установить on-delete foreigh keys.
@@ -621,14 +1080,14 @@
 
    #+CAPTION: Данные сообщения
    #+NAME: msg_flds
-     | field name  | field type | note                                     |
-     |-------------+------------+------------------------------------------|
-     | id          | serial     | идентификатор                            |
-     | snd-id      | integer    | пользователь, который послал сообщение   |
-     | rcv-id      | integer    | пользователь, который получает сообщение |
-     | msg         | varchar    | сообщение                                |
-     | ts-create   | bigint     | время создания                           |
-     | ts-delivery | bigint     | время доставки                           |
+     | field name  | field type | default | meta      | note                                     |
+     |-------------+------------+---------+-----------+------------------------------------------|
+     | id          | serial     |         | (primary) | идентификатор                            |
+     | snd-id      | integer    |         |           | пользователь, который послал сообщение   |
+     | rcv-id      | integer    |         |           | пользователь, который получает сообщение |
+     | msg         | varchar    |         |           | сообщение                                |
+     | ts-create   | bigint     |         |           | время создания                           |
+     | ts-delivery | bigint     |         |           | время доставки                           |
 
    Еще сообщение может быть доставлено или недоставлено.
 
@@ -651,14 +1110,14 @@
 
    #+CAPTION: Данные задачи
    #+NAME: task_flds
-     | field name | field type           | note                      |
-     |------------+----------------------+---------------------------|
-     | id         | serial               | идентификатор             |
-     | name       | varchar              | название                  |
-     | blockdata  | varchar              | суть задачи или данные    |
-     | owner-id   | (or db-null integer) | идентификатор владельца   |
-     | exec-id    | (or db-null integer) | идентификатор исполнителя |
-     | ts-create  | bigint               | время регистрации         |
+     | field name | field type           | default | meta      | note                      |
+     |------------+----------------------+---------+-----------+---------------------------|
+     | id         | serial               |         | (primary) | идентификатор             |
+     | name       | varchar              |         |           | название                  |
+     | blockdata  | varchar              |         |           | суть задачи или данные    |
+     | owner-id   | (or db-null integer) |         |           | идентификатор владельца   |
+     | exec-id    | (or db-null integer) |         |           | идентификатор исполнителя |
+     | ts-create  | bigint               |         |           | время регистрации         |
 
    В нашей системе задача может существовать  в одном из
    нескольких состояний:
@@ -754,15 +1213,15 @@
 
    #+CAPTION: Данные застройщиков
    #+NAME: developer_flds
-     | field   | field type | note                        |
-     |---------+------------+-----------------------------|
-     | id      | serial     | Идентификатор               |
-     | guid    | varchar    | Идентификатор в виде GUID-а |
-     | name    | varchar    | Название компании           |
-     | address | varchar    | Адрес компании              |
-     | url     | varchar    | Адрес сайта                 |
-     | phone   | varchar    | Телефон                     |
-     | note    | text       | Описание застройщика        |
+     | field   | field type | default | meta      | note                        |
+     |---------+------------+---------+-----------+-----------------------------|
+     | id      | serial     |         | (primary) | Идентификатор               |
+     | guid    | varchar    |         |           | Идентификатор в виде GUID-а |
+     | name    | varchar    |         |           | Название компании           |
+     | address | varchar    |         |           | Адрес компании              |
+     | url     | varchar    |         |           | Адрес сайта                 |
+     | phone   | varchar    |         |           | Телефон                     |
+     | note    | text       |         |           | Описание застройщика        |
 
    #+NAME: developer_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
@@ -783,29 +1242,29 @@
 
    #+CAPTION: Жилые комплексы - схема данных
    #+NAME: cmpx_flds
-     | field         | field type             | note                                                                 |
-     |---------------+------------------------+----------------------------------------------------------------------|
-     | id            | serial                 | Идентификатор                                                        |
-     | guid          | varchar                | Идентификатор в виде GUID-а                                          |
-     | nb_sourceId   | integer                | Идентификатор источника данных reftbl:nb_source                      |
-     | statusId      | integer                | Статус объекта reftbl:status                                         |
-     | developerId   | varchar                | Идентификатор застройщика reftbl:developer                           |
-     | date_insert   | (or db-null timestamp) | Дата вставки                                                         |
-     | regionId      | integer                | Идентификтор региона reftbl:status                                   |
-     | districtId    | integer                | Идентификтор района reftbk:district                                  |
-     | district_name | varchar                | Район (и город, или область) строкой                                 |
-     | city_name     | varchar                | Город или населенный пункт строкой                                   |
-     | street_name   | varchar                | Улица                                                                |
-     | subway1Id     | (or db-null integer)   | Идентификатор ближайшено метро №1 reftbl:subway                      |
-     | subway2Id     | (or db-null integer)   | Идентификатор ближайшено метро №2 reftbl:subway                      |
-     | subway3Id     | (or db-null integer)   | Идентификатор ближайшено метро №3 reftbl:subway                      |
-     | name          | varchar                | Наименование комплекса                                               |
-     | note          | text                   | Описание комплекса                                                   |
-     | longitude     | varchar                | Долгота                                                              |
-     | latitude      | varchar                | Широта                                                               |
-     | dateUpdate    | (or db-null timestamp) | Дата обновления                                                      |
-     | isPrivate     | integer                | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
-     | bknId         | varchar                | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
+     | field         | field type             | default | meta      | note                                                                 |
+     |---------------+------------------------+---------+-----------+----------------------------------------------------------------------|
+     | id            | serial                 |         | (primary) | Идентификатор                                                        |
+     | guid          | varchar                |         |           | Идентификатор в виде GUID-а                                          |
+     | nb_sourceId   | integer                |         |           | Идентификатор источника данных reftbl:nb_source                      |
+     | statusId      | integer                |         |           | Статус объекта reftbl:status                                         |
+     | developerId   | varchar                |         |           | Идентификатор застройщика reftbl:developer                           |
+     | date_insert   | (or db-null timestamp) |         |           | Дата вставки                                                         |
+     | regionId      | integer                |         |           | Идентификтор региона reftbl:status                                   |
+     | districtId    | integer                |         |           | Идентификтор района reftbk:district                                  |
+     | district_name | varchar                |         |           | Район (и город, или область) строкой                                 |
+     | city_name     | varchar                |         |           | Город или населенный пункт строкой                                   |
+     | street_name   | varchar                |         |           | Улица                                                                |
+     | subway1Id     | (or db-null integer)   |         |           | Идентификатор ближайшено метро №1 reftbl:subway                      |
+     | subway2Id     | (or db-null integer)   |         |           | Идентификатор ближайшено метро №2 reftbl:subway                      |
+     | subway3Id     | (or db-null integer)   |         |           | Идентификатор ближайшено метро №3 reftbl:subway                      |
+     | name          | varchar                |         |           | Наименование комплекса                                               |
+     | note          | text                   |         |           | Описание комплекса                                                   |
+     | longitude     | varchar                |         |           | Долгота                                                              |
+     | latitude      | varchar                |         |           | Широта                                                               |
+     | dateUpdate    | (or db-null timestamp) |         |           | Дата обновления                                                      |
+     | isPrivate     | integer                |         |           | Признак приватности - если равен 1, то нельзя показывать ЖК на сайте |
+     | bknId         | varchar                |         |           | Привязка к БКН-овскому комплексу откуда мы забираем описания         |
 
    #+NAME: cmpx_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
@@ -816,23 +1275,23 @@
 
    #+CAPTION: Корпуса жилых комплексов - схема данных
    #+NAME: blk_flds
-     | field        | field type             | note                                                             |
-     |--------------+------------------------+------------------------------------------------------------------|
-     | id           | serial                 | Идентификатор                                                    |
-     | guid         | varchar                | Идентификатор в виде GUID-а                                      |
-     | nb_sourceId  | integer                | Идентификатор источника данных reftbl:nb_source                  |
-     | nb_cmpxId    | varchar                | Идентификатор жилого комплекса, которому принадлежит этот корпус |
-     | statusId     | integer                | Статус корпуса reftbl:status                                     |
-     | street       | (or db-null varchar)   | Улица                                                            |
-     | house        | (or db-null varchar)   | Дом                                                              |
-     | corpus       | (or db-null varchar)   | Корпус (в смысле адреса)                                         |
-     | litera       | (or db-null varchar)   | Литера                                                           |
-     | floors       | (or db-null varchar)   | Этажность                                                        |
-     | quarter_end  | (or db-null integer)   | Квартал завершения строительства                                 |
-     | year_end     | (or db-null integer)   | Год завершения строительства                                     |
-     | house_typeId | (or db-null integer)   | Тип дома reftbl:?                                                |
-     | bknId        | (or db-null varchar)   | Привязка к БКН-овскому корпусу                                   |
-     | dateUpdate   | (or db-null timestamp) | Дата обновления                                                  |
+     | field        | field type             | default | meta      | note                                                             |
+     |--------------+------------------------+---------+-----------+------------------------------------------------------------------|
+     | id           | serial                 |         | (primary) | Идентификатор                                                    |
+     | guid         | varchar                |         |           | Идентификатор в виде GUID-а                                      |
+     | nb_sourceId  | integer                |         |           | Идентификатор источника данных reftbl:nb_source                  |
+     | nb_cmpxId    | varchar                |         |           | Идентификатор жилого комплекса, которому принадлежит этот корпус |
+     | statusId     | integer                |         |           | Статус корпуса reftbl:status                                     |
+     | street       | (or db-null varchar)   |         |           | Улица                                                            |
+     | house        | (or db-null varchar)   |         |           | Дом                                                              |
+     | corpus       | (or db-null varchar)   |         |           | Корпус (в смысле адреса)                                         |
+     | litera       | (or db-null varchar)   |         |           | Литера                                                           |
+     | floors       | (or db-null varchar)   |         |           | Этажность                                                        |
+     | quarter_end  | (or db-null integer)   |         |           | Квартал завершения строительства                                 |
+     | year_end     | (or db-null integer)   |         |           | Год завершения строительства                                     |
+     | house_typeId | (or db-null integer)   |         |           | Тип дома reftbl:?                                                |
+     | bknId        | (or db-null varchar)   |         |           | Привязка к БКН-овскому корпусу                                   |
+     | dateUpdate   | (or db-null timestamp) |         |           | Дата обновления                                                  |
 
    #+NAME: blk_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
@@ -851,21 +1310,21 @@
 
    #+CAPTION: Данные очереди
    #+NAME: que_flds
-     | field name | field type | note          |
-     |------------+------------+---------------|
-     | id         | serial     | идентификатор |
-     | name       | varchar    | имя очереди   |
+     | field name | field type | default | meta      | note          |
+     |------------+------------+---------+-----------+---------------|
+     | id         | serial     |         | (primary) | идентификатор |
+     | name       | varchar    |         |           | имя очереди   |
 
    Нам понадобится сущность элемента очереди, назовем его =quelt=. Элемент очереди является
    простой сущностью и не имеет состояния.
 
    #+CAPTION: Данные элемента очереди
    #+NAME: quelt_flds
-     | field name | field type | note                  |
-     |------------+------------+-----------------------|
-     | id         | serial     | идентификатор         |
-     | que-id     | integer    | идентификатор очереди |
-     | text       | varchar    | содержимое            |
+     | field name | field type | default | meta      | note                  |
+     |------------+------------+---------+-----------+-----------------------|
+     | id         | serial     |         | (primary) | идентификатор         |
+     | que-id     | integer    |         |           | идентификатор очереди |
+     | text       | varchar    |         |           | содержимое            |
 
    Сгенерируем код и создадим необходимые очереди:
 
@@ -887,12 +1346,12 @@
 
    #+CAPTION: Данные аватарки
    #+NAME: avatar_flds
-     | field name | field type | note                               |
-     |------------+------------+------------------------------------|
-     | id         | serial     | идентификатор                      |
-     | user-id    | integer    | идентификатор пользователя         |
-     | origin     | varchar    | путь к файлу оригинального размера |
-     | ts-create  | bigint     | время создания                     |
+     | field name | field type | default | meta      | note                               |
+     |------------+------------+---------+-----------+------------------------------------|
+     | id         | serial     |         | (primary) | идентификатор                      |
+     | user-id    | integer    |         |           | идентификатор пользователя         |
+     | origin     | varchar    |         |           | путь к файлу оригинального размера |
+     | ts-create  | bigint     |         |           | время создания                     |
 
    Одна из автарок может быть активной в данный момент.
 
@@ -964,21 +1423,21 @@
 
    #+CAPTION: Данные мотоцикла
    #+NAME: moto_flds
-     | field name | field type           | note                             |
-     |------------+----------------------+----------------------------------|
-     | id         | serial               | идентификатор                    |
-     | vendor-id  | (or db-null integer) | идентификтор фирмы-производителя |
-     | model-id   | (or db-null integer) | идентификтор модели              |
-     | color-id   | (or db-null integer) | идентификтор цвета               |
-     | year       | (or db-null integer) | год выпуска                      |
-     | price      | (or db-null integer) | цена                             |
-     | plate      | (or db-null varchar) | номерной знак                    |
-     | vin        | (or db-null varchar) | vin-номер                        |
-     | frame-num  | (or db-null varchar) | номер рамы                       |
-     | engine-num | (or db-null varchar) | номер двигателя                  |
-     | pts-data   | (or db-null varchar) | данные птс (раскрыть)            |
-     | desc       | (or db-null varchar) | описание мотоцикла               |
-     | tuning     | (or db-null varchar) | описание тюнинга                 |
+     | field name | field type           | default | meta                        | note                             |
+     |------------+----------------------+---------+-----------------------------+----------------------------------|
+     | id         | serial               |         | (primary)                   | идентификатор                    |
+     | vendor-id  | (or db-null integer) |         | ((one-to-many (vendor id))) | идентификтор фирмы-производителя |
+     | model-id   | (or db-null integer) |         |                             | идентификтор модели              |
+     | color-id   | (or db-null integer) |         | ((one-to-many (color id)))  | идентификтор цвета               |
+     | year       | (or db-null integer) |         |                             | год выпуска                      |
+     | price      | (or db-null integer) |         |                             | цена                             |
+     | plate      | (or db-null varchar) |         |                             | номерной знак                    |
+     | vin        | (or db-null varchar) |         |                             | vin-номер                        |
+     | frame-num  | (or db-null varchar) |         |                             | номер рамы                       |
+     | engine-num | (or db-null varchar) |         |                             | номер двигателя                  |
+     | pts-data   | (or db-null varchar) |         |                             | данные птс (раскрыть)            |
+     | desc       | (or db-null varchar) |         |                             | описание мотоцикла               |
+     | tuning     | (or db-null varchar) |         |                             | описание тюнинга                 |
 
    В нашей системе мотоцикл может существовать (или не существовать) в одном их
    нескольких состояний:
@@ -1121,10 +1580,10 @@
 
    #+CAPTION: Данные цвета
    #+NAME: color_flds
-     | field name | field type | note          |
-     |------------+------------+---------------|
-     | id         | serial     | идентификатор |
-     | name       | varchar    | имя цвета     |
+     | field name | field type | default | meta      | note          |
+     |------------+------------+---------+-----------+---------------|
+     | id         | serial     |         | (primary) | идентификатор |
+     | name       | varchar    |         |           | имя цвета     |
 
    #+NAME: color_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
@@ -1137,10 +1596,10 @@
 
    #+CAPTION: Данные производителя
    #+NAME: vendor_flds
-     | field name | field type | note              |
-     |------------+------------+-------------------|
-     | id         | serial     | идентификатор     |
-     | name       | varchar    | имя производителя |
+     | field name | field type | default | meta      | note              |
+     |------------+------------+---------+-----------+-------------------|
+     | id         | serial     |         | (primary) | идентификатор     |
+     | name       | varchar    |         |           | имя производителя |
 
    #+NAME: vendor_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
@@ -1159,26 +1618,26 @@
 
    #+CAPTION: Данные роли
    #+NAME: bratan_flds
-     | field name  | field type           | note                               |
-     |-------------+----------------------+------------------------------------|
-     | id          | serial               | идентификатор                      |
-     | bratan-id   | (or db-null integer) | идентификтор на мотобратане        |
-     | ts-last-upd | (or db-null bigint)  | время последнего обновления данных |
-     | name        | varchar              | имя                                |
-     | fio         | (or db-null varchar) | ФИО                                |
-     | last-seen   | (or db-null varchar) | последнее посещение мотобратана    |
-     | addr        | (or db-null varchar) | район и город                      |
-     | ts_reg      | (or db-null varchar) | время регистрации                  |
-     | age         | (or db-null varchar) | возраст                            |
-     | birthday    | (or db-null varchar) | день рождения                      |
-     | blood       | (or db-null varchar) | группа крови                       |
-     | moto-exp    | (or db-null varchar) | стаж мотовождения                  |
-     | phone       | (or db-null varchar) | телефон                            |
-     | activityes  | (or db-null varchar) | активность                         |
-     | interests   | (or db-null varchar) | интересы                           |
-     | photos      | (or db-null varchar) | фотографии                         |
-     | avatar      | (or db-null varchar) | аватар                             |
-     | motos       | (or db-null varchar) | мотоциклы                          |
+     | field name  | field type           | default | meta      | note                               |
+     |-------------+----------------------+---------+-----------+------------------------------------|
+     | id          | serial               |         | (primary) | идентификатор                      |
+     | bratan-id   | (or db-null integer) |         |           | идентификтор на мотобратане        |
+     | ts-last-upd | (or db-null bigint)  |         |           | время последнего обновления данных |
+     | name        | varchar              |         |           | имя                                |
+     | fio         | (or db-null varchar) |         |           | ФИО                                |
+     | last-seen   | (or db-null varchar) |         |           | последнее посещение мотобратана    |
+     | addr        | (or db-null varchar) |         |           | район и город                      |
+     | ts_reg      | (or db-null varchar) |         |           | время регистрации                  |
+     | age         | (or db-null varchar) |         |           | возраст                            |
+     | birthday    | (or db-null varchar) |         |           | день рождения                      |
+     | blood       | (or db-null varchar) |         |           | группа крови                       |
+     | moto-exp    | (or db-null varchar) |         |           | стаж мотовождения                  |
+     | phone       | (or db-null varchar) |         |           | телефон                            |
+     | activityes  | (or db-null varchar) |         |           | активность                         |
+     | interests   | (or db-null varchar) |         |           | интересы                           |
+     | photos      | (or db-null varchar) |         |           | фотографии                         |
+     | avatar      | (or db-null varchar) |         |           | аватар                             |
+     | motos       | (or db-null varchar) |         |           | мотоциклы                          |
 
    #+NAME: bratan_entity
    #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
