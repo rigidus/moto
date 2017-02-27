@@ -458,7 +458,9 @@
       - Требования
       - Условия
     - Ключевые навыки
-    - Опыт работы
+    - Опыт работы. Здесь у hh все сделано
+      довольно по идиотски, т.к. выбор производится радиокнопкой, и я
+      не могу, например, выбрать от 3 лет до бесконечности.
       - Нет опыта
       - От 1 года до 3 лет
       - От 3 до 6 лет
@@ -536,6 +538,12 @@
       - Пригласить на встречу
     - Отклики
       - Не получил ответа
+
+    Важный момент - для вакансий, срок публикации которых истек, должна быть явная и
+    заметная возможность опубликовать вакансию снова.
+
+    Еще одна недоработка hh - неудобно искать отклики для тех вакансий, срок которых
+    продлевается. А я бы хотел видеть историю по каждому откликнувшемуся.
 
 *** Автоматический поиск резюме, создание правил отбора резюме и автоматических действий над ними
 *** Ручной поиск и просмотр резюме, отсев, ранжирование, внесение заметок по соискателям
@@ -686,44 +694,32 @@
 
 * TODO Сущности
 
-  [TODO:gmm] - Здесь нужно составить схему данных и визуализировать ее через graphviz
+  Попробуем визуализировать схему БД через graphviz, опираясь на
   http://graphviz.org/content/datastruct
 
-   #+CAPTION: Данные студента
-   #+NAME: student_flds
-   | field name | field type           | default | meta      | note             |
-   |------------+----------------------+---------+-----------+------------------|
-   | id         | serial               |         | (primary) | идентификатор    |
-   | name       | (or db-null varchar) |         |           |                  |
-   | teacher-id | integer              |         |           | связь с преподом |
+  Простейший пример - реляционные отношения ученика и учителя (здесь мы считаем, что на
+  каждого учителя приходится некоторое кол-во учеников и у каждого ученика есть только
+  один учитель)
 
-   #+CAPTION: Данные препода
-   #+NAME: teacher_flds
-   | field name | field type           | default | meta      | note          |
-   |------------+----------------------+---------+-----------+---------------|
-   | id         | serial               |         | (primary) | идентификатор |
-   | name       | (or db-null varchar) |         |           |               |
+  #+CAPTION: Данные ученика
+  #+NAME: student_flds
+  | field name | field type           | default | meta                         | note             |
+  |------------+----------------------+---------+------------------------------+------------------|
+  | id         | serial               |         | (primary)                    | идентификатор    |
+  | name       | (or db-null varchar) |         |                              |                  |
+  | teacher-id | integer              |         | ((one-to-many (teacher id))) | связь с преподом |
 
-  #+NAME: teacher_node
-  #+BEGIN_SRC emacs-lisp :var tbl="teacher" flds=teacher_flds :results output
-    (princ
-     (concat "    \"" (underscore tbl) "\" [\n      label = \" [" (underscore tbl) "] |"
-             (mapconcat #'(lambda (x)
-                            (format " <%s_%s> %s " (underscore tbl) (underscore x) x))
-                        (remove-if-not #'(lambda (x)
-                                           (string-match "id" x))
-                                       (mapcar #'car flds))
-                        "|")
-             "\"\n      shape = \"record\"\n    ];\n"))
-  #+END_SRC
+  #+CAPTION: Данные учителя
+  #+NAME: teacher_flds
+  | field name | field type           | default | meta      | note          |
+  |------------+----------------------+---------+-----------+---------------|
+  | id         | serial               |         | (primary) | идентификатор |
+  | name       | (or db-null varchar) |         |           |               |
 
-  #+results: teacher_node
-  :     "teacher" [
-  :       label = " [teacher] | <teacher_id> id "
-  :       shape = "record"
-  :     ];
+  Таким образом мы пытаемся построить узел для учителя так, чтобы иметь возможность
+  ссылаться на поля записи (требует загрузки generators.el)
 
-  #+NAME: student_node
+  #+NAME: make_node
   #+BEGIN_SRC emacs-lisp :var tbl="student" flds=student_flds :results output
     (princ
      (concat "    \"" (underscore tbl) "\" [\n      label = \" [" (underscore tbl) "] |"
@@ -736,22 +732,25 @@
              "\"\n      shape = \"record\"\n    ];\n"))
   #+END_SRC
 
-  #+results: student_node
+  #+results: make_node
   :     "student" [
   :       label = " [student] | <student_id> id | <student_teacher_id> teacher-id "
   :       shape = "record"
   :     ];
 
+  Добавляем к этом связь (пока вручную):
+
   #+NAME: node_connections
   #+BEGIN_SRC
-    "student":teacher_id -> "teacher":teacher_id [
+    "student":student_teacher_id -> "teacher": teacher_id [
       id = 1000
     ];
   #+END_SRC
 
-  #+BEGIN_SRC dot :file img/test_graph.png :var teacher=teacher_node student=student_node connections=node_connections :exports results
+  И собираем, чтобы отрисовать граф:
+  #+BEGIN_SRC dot :file img/test_graph2.png :var teacher=make_node("teacher", teacher_flds) student=make_node("student", student_flds) connections=node_connections :exports results
     digraph G  {
-      viewport = "1000,300,0.6,800,100";
+      viewport = "1000,200,0.6,800,0";
       rankdir = LR;
       node [
         fontsize = "16"
@@ -766,7 +765,7 @@
   #+END_SRC
 
   #+results:
-  [[file:img/test_graph.png]]
+  [[file:img/test_graph2.png]]
 
 ** Сущность вакансии
 
