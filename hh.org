@@ -580,6 +580,23 @@
   [TODO:gmm] - Здесь нужно составить схему данных и визуализировать ее через graphviz
   http://graphviz.org/content/datastruct
 
+  #+NAME: test_graph_2
+  #+BEGIN_SRC emacs-lisp :var tbl="vacancy" flds=vacancy_flds :results output
+    (princ
+     (concat "label = \" " tbl " |"
+             (mapconcat #'(lambda (x)
+                            (format " <%s> %s " (underscore x) x))
+                        (remove-if-not #'(lambda (x)
+                                           (string-match "id" x))
+                                       (mapcar #'car flds))
+                        "|")
+             "\"\n"))
+  #+END_SRC
+
+  #+results: test_graph_2
+  : label = " vacancy | id | src_id | emp_id "
+
+
   #+NAME: test_graph
   #+BEGIN_SRC
     "node0" [
@@ -599,7 +616,7 @@
       shape = "record"
     ];
     "node4" [
-      label = "<f0> node fourth | <f1> | <f2> | 4"
+      label = "<f0> node fourth | <id> id | <f2>fld2 | fld3"
       shape = "record"
     ];
     "node0":f0 -> "node1":f0 [
@@ -614,17 +631,24 @@
     "node3":f1 -> "node4":f2 [
       id = 6
     ];
+    "vacancy":src_id -> "node4":id [
+      id = 1000
+    ];
   #+END_SRC
 
-  #+BEGIN_SRC dot :file img/test_graph.png :var input=test_graph :exports results
+  #+BEGIN_SRC dot :file img/test_graph.png :var test=test_graph_2 input=test_graph :exports results
     digraph G  {
-      viewport = "1000,350,0.6,800,0";
+      viewport = "1000,300,0.6,800,100";
       rankdir = LR;
       node [
         fontsize = "16"
         shape = "ellipse"
       ];
       edge [
+      ];
+      "vacancy" [
+        $test
+        shape = "record"
       ];
       $input
     }
