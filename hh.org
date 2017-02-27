@@ -580,63 +580,67 @@
   [TODO:gmm] - Здесь нужно составить схему данных и визуализировать ее через graphviz
   http://graphviz.org/content/datastruct
 
-  #+NAME: test_graph_2
-  #+BEGIN_SRC emacs-lisp :var tbl="vacancy" flds=vacancy_flds :results output
+   #+CAPTION: Данные студента
+   #+NAME: student_flds
+   | field name | field type           | default | meta      | note             |
+   |------------+----------------------+---------+-----------+------------------|
+   | id         | serial               |         | (primary) | идентификатор    |
+   | name       | (or db-null varchar) |         |           |                  |
+   | teacher-id | integer              |         |           | связь с преподом |
+
+   #+CAPTION: Данные препода
+   #+NAME: teacher_flds
+   | field name | field type           | default | meta      | note          |
+   |------------+----------------------+---------+-----------+---------------|
+   | id         | serial               |         | (primary) | идентификатор |
+   | name       | (or db-null varchar) |         |           |               |
+
+  #+NAME: teacher_node
+  #+BEGIN_SRC emacs-lisp :var tbl="teacher" flds=teacher_flds :results output
     (princ
-     (concat "label = \" " tbl " |"
+     (concat "    \"" (underscore tbl) "\" [\n      label = \" [" (underscore tbl) "] |"
              (mapconcat #'(lambda (x)
-                            (format " <%s> %s " (underscore x) x))
+                            (format " <%s_%s> %s " (underscore tbl) (underscore x) x))
                         (remove-if-not #'(lambda (x)
                                            (string-match "id" x))
                                        (mapcar #'car flds))
                         "|")
-             "\"\n"))
+             "\"\n      shape = \"record\"\n    ];\n"))
   #+END_SRC
 
-  #+results: test_graph_2
-  : label = " vacancy | id | src_id | emp_id "
+  #+results: teacher_node
+  :     "teacher" [
+  :       label = " [teacher] | <teacher_id> id "
+  :       shape = "record"
+  :     ];
 
+  #+NAME: student_node
+  #+BEGIN_SRC emacs-lisp :var tbl="student" flds=student_flds :results output
+    (princ
+     (concat "    \"" (underscore tbl) "\" [\n      label = \" [" (underscore tbl) "] |"
+             (mapconcat #'(lambda (x)
+                            (format " <%s_%s> %s " (underscore tbl) (underscore x) x))
+                        (remove-if-not #'(lambda (x)
+                                           (string-match "id" x))
+                                       (mapcar #'car flds))
+                        "|")
+             "\"\n      shape = \"record\"\n    ];\n"))
+  #+END_SRC
 
-  #+NAME: test_graph
+  #+results: student_node
+  :     "student" [
+  :       label = " [student] | <student_id> id | <student_teacher_id> teacher-id "
+  :       shape = "record"
+  :     ];
+
+  #+NAME: node_connections
   #+BEGIN_SRC
-    "node0" [
-      label = "<f0> zero node | <f1>"
-      shape = "record"
-    ];
-    "node1" [
-      label = "<f0> node one | <f1> | <f2> | 1"
-      shape = "record"
-    ];
-    "node2" [
-      label = "<f0> node two | <f2> | <f3> | 2"
-      shape = "record"
-    ];
-    "node3" [
-      label = "<f0> node three | <f1> | <f2> | 3"
-      shape = "record"
-    ];
-    "node4" [
-      label = "<f0> node fourth | <id> id | <f2>fld2 | fld3"
-      shape = "record"
-    ];
-    "node0":f0 -> "node1":f0 [
-      id = 0
-    ];
-    "node0":f1 -> "node2":f3 [
-      id = 1
-    ];
-    "node1":f1 -> "node3":f0 [
-      id = 3
-    ];
-    "node3":f1 -> "node4":f2 [
-      id = 6
-    ];
-    "vacancy":src_id -> "node4":id [
+    "student":teacher_id -> "teacher":teacher_id [
       id = 1000
     ];
   #+END_SRC
 
-  #+BEGIN_SRC dot :file img/test_graph.png :var test=test_graph_2 input=test_graph :exports results
+  #+BEGIN_SRC dot :file img/test_graph.png :var teacher=teacher_node student=student_node connections=node_connections :exports results
     digraph G  {
       viewport = "1000,300,0.6,800,100";
       rankdir = LR;
@@ -646,18 +650,14 @@
       ];
       edge [
       ];
-      "vacancy" [
-        $test
-        shape = "record"
-      ];
-      $input
+      $student
+      $teacher
+      $connections
     }
   #+END_SRC
 
   #+results:
   [[file:img/test_graph.png]]
-
-
 
 ** Сущность вакансии
 
