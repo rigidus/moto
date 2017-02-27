@@ -580,6 +580,61 @@
   [TODO:gmm] - Здесь нужно составить схему данных и визуализировать ее через graphviz
   http://graphviz.org/content/datastruct
 
+  #+NAME: test_graph
+  #+BEGIN_SRC
+    "node0" [
+      label = "<f0> zero node | <f1>"
+      shape = "record"
+    ];
+    "node1" [
+      label = "<f0> node one | <f1> | <f2> | 1"
+      shape = "record"
+    ];
+    "node2" [
+      label = "<f0> node two | <f2> | <f3> | 2"
+      shape = "record"
+    ];
+    "node3" [
+      label = "<f0> node three | <f1> | <f2> | 3"
+      shape = "record"
+    ];
+    "node4" [
+      label = "<f0> node fourth | <f1> | <f2> | 4"
+      shape = "record"
+    ];
+    "node0":f0 -> "node1":f0 [
+      id = 0
+    ];
+    "node0":f1 -> "node2":f3 [
+      id = 1
+    ];
+    "node1":f1 -> "node3":f0 [
+      id = 3
+    ];
+    "node3":f1 -> "node4":f2 [
+      id = 6
+    ];
+  #+END_SRC
+
+  #+BEGIN_SRC dot :file img/test_graph.png :var input=test_graph :exports results
+    digraph G  {
+      viewport = "1000,350,0.6,800,0";
+      rankdir = LR;
+      node [
+        fontsize = "16"
+        shape = "ellipse"
+      ];
+      edge [
+      ];
+      $input
+    }
+  #+END_SRC
+
+  #+results:
+  [[file:img/test_graph.png]]
+
+
+
 ** Сущность вакансии
 
    #+CAPTION: Данные вакансии
