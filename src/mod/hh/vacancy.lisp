@@ -1019,9 +1019,6 @@
            "/noindex")
     "noindex"))
 
-(make-detect (script)
-  (`("script" ,@rest) "script"))
-
 (make-detect (bloko-icon-initial-action)
   (`(("class" "bloko-icon bloko-icon_done bloko-icon_initial-action")) "bloko-icon-initial-action"))
 
