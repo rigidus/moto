@@ -805,7 +805,7 @@
                                  "response-popup-link" "vacancy-response-popup-script" "emp-logo"
                                  "search-result-description" "search-result-description-with-garbage" "search-result-description-empty"
                                  "search-result-description-primary" "hrbrand" "noindex" "script"
-                                 "bloko-icon-phone" "bloko-contact" "bloko-icon-initial-action" "bloko-icon-done-initial-action" "span"))
+                                 "bloko-icon-phone" "bloko-contact" "bloko-icon-initial-action" "bloko-icon-done-initial-action" "span" "remote" "script"))
 
 
 (defmacro make-detect ((name) &body body)
@@ -820,12 +820,16 @@
        (mtm ,@body
             ,param))))
 
-(make-detect (date)
-  (`("span" (("class" "b-vacancy-list-date")
-             ("data-qa" "vacancy-serp__vacancy-date")) ,date)
-    (list :date (progn
-                  ;; (print date)
-                  (if (null date) "" date)))))
+(make-detect (script)
+  (`("script"
+     (("data-name" ,name)
+      ("data-params" ,_)))
+    "script"))
+
+(make-detect (vacancy-responded)
+  (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
+          ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись")
+    "vacancy-responded"))
 
 (make-detect (platform)
   (`("span"
@@ -833,7 +837,14 @@
       ("data-qa" "vacancy-serp__vacancy_career"))
      "  •  " ("span" (("class" "vacancy-list-platform__name"))
                      "CAREER.RU"))
-    (list :platform 'career.ru)))
+    "platform"))
+
+(make-detect (date)
+  (`("span" (("class" "b-vacancy-list-date")
+             ("data-qa" "vacancy-serp__vacancy-date")) ,date)
+    (list :date (progn
+                  ;; (print date)
+                  (if (null date) "" date)))))
 
 (make-detect (metro)
   (`("span" (("class" "metro-station"))
@@ -892,8 +903,18 @@
                                "search-result-item__name search-result-item__name_premium HH-LinkModifier"
                                "search-result-item__name search-result-item__name_standard HH-LinkModifier"
                                "search-result-item__name search-result-item__name_standard_plus HH-LinkModifier"))
-                 ("data-qa" "vacancy-serp__vacancy-title") ("href" ,id) ("target" "_blank")) ,name) ,@rest)
+                 ("data-qa" "vacancy-serp__vacancy-title")
+                 ("href" ,id)
+                 ,@restin)
+                ,name) ,@rest)
     (list :id (parse-integer (car (last (split-sequence:split-sequence #\/ id)))) :name name)))
+
+(make-detect (remote)
+  (`("div"
+     (("class" "vacancy-list-work-schedule HH-Vacancy-Work-Schedule")
+      ("data-qa" "vacancy-serp__vacancy-work-schedule"))
+     "Можно работать из дома")
+    "remote"))
 
 (make-detect (description)
   (`("div" (("class" "search-result-item__description")) ,@rest)
@@ -929,10 +950,6 @@
 (make-detect (response-trigger)
   (`("script" (("data-name" "HH/VacancyResponseTrigger") ("data-params" ""))) "response-trigger"))
 
-(make-detect (vacancy-responded)
-  (`("a" (("href" ,_) ("target" "_blank") ("class" ,_)
-          ("data-qa" "vacancy-serp__vacancy_responded")) "Вы откликнулись") "vacancy-responded"))
-
 (make-detect (search-result-description)
   (`(("class" "search-result-description")) "search-result-description"))
 
@@ -957,7 +974,7 @@
                  ("data-qa" "vacancy-serp__vacancy_response"))
                 "Откликнуться")) "response-popup-link"))
 
-(make-detect (response-popup-script )
+(make-detect (response-popup-script)
   (`("script"
      (("data-name" "HH/VacancyResponsePopup")
       ("data-params" ,_))) "vacancy-response-popup-script"))
@@ -1089,6 +1106,8 @@
   (setf *last-parse-data* html)
   (->> (html-to-tree html)
        (extract-search-results)
+       (detect-script)
+       (detect-vacancy-responded)
        (detect-platform)
        (detect-date)
        (detect-metro)
@@ -1105,7 +1124,6 @@
        (detect-standart-plus)
        (detect-response-trigger)
        (detect-garbage-elts)
-       (detect-vacancy-responded)
        (detect-search-result-description)
        (detect-search-result-description-with-garbage)
        (detect-star)
@@ -1126,6 +1144,7 @@
        (detect-bloko-contact)
        (detect-search-result-description-non-empty)
        (detect-bloko-button-rest)
+       (detect-remote)
        ;; filter garbage data
        (maptree-if #'consp
                    #'(lambda (x)
