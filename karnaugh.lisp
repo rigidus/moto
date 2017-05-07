@@ -586,16 +586,16 @@
 ;; (defparameter *input-2* (make-instance 'wire :name '|b|))
 ;; (defparameter *sum* (make-instance 'wire :name '|sum|))
 ;; (defparameter *carry* (make-instance 'wire :name '|cf|))
-;; 
+;;
 ;; (probe 'sum *sum*)
 ;; (probe 'carry *carry*)
 ;; (half-adder *input-1* *input-2* *sum* *carry*)
 ;; (set-signal *input-1* 1)
 ;; (propagate *the-agenda*)
-;; 
+;;
 ;; (set-signal *input-2* 1)
 ;; (propagate *the-agenda*)
-;; 
+;;
 ;; ;; (mapcar #'(lambda (x)
 ;; ;;             (list (timepoint x) (front-ptr (queue x))))
 ;; ;;         (segments *the-agenda*))

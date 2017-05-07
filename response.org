@@ -186,7 +186,7 @@
          `((:topic-id ,topic-id) ,rest)))
 
 
-     (defparameter *detect-trash* '("responses-trash" "cell_nowrap" "responses-bubble" "prosper-table__cell"))
+     (defparameter *detect-trash* '("responses-trash" "cell_nowrap" "responses-bubble" "prosper-table__cell" "cell_print_hidden"))
 
 
      (make-detect (responses-trash)
@@ -200,6 +200,12 @@
 
      (make-detect (prosper-table__cell)
        (`("td" (("class" "prosper-table__cell")) ,@rest) "prosper-table__cell"))
+
+
+     (make-detect (cell_print_hidden)
+       (`("td" (("class" "prosper-table__cell prosper-table__cell_print-hidden"))
+               ,@rest) "cell_print_hidden"))
+
 
      (defun hh-parse-responds (html)
        "Получение списка вакансий из html"
@@ -224,6 +230,7 @@
             (detect-cell_nowrap)
             (detect-responses-bubble)
             (detect-prosper-table__cell)
+            (detect-cell_print_hidden)
             ;; filter trash data
             (maptree-if #'consp
                         #'(lambda (x)
