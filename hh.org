@@ -4509,6 +4509,20 @@
          (t (cons (maptree f (car tree))
                   (maptree f (cdr tree))))))
 
+     (defun maptreenode (f tree)
+       (cond
+         ((null tree) nil)
+         ((atom tree) tree)
+         (t (progn
+              (funcall f tree)
+              (cons (maptreenode f (car tree))
+                    (maptreenode f (cdr tree)))))))
+
+     (defun flat-list-p (param)
+       (mapcar #'(lambda (x) (unless (atom x) (return-from flat-list-p nil)))
+               param)
+       t)
+
      (defmethod diff ((l list))
        "Return list of the 1st differences of given list: l(1)-l(0),...,l(n)-l(n-1)"
          (loop for i below (1- (length l))

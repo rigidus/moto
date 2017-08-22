@@ -777,7 +777,75 @@
 
       (defparameter *last-parse-data* nil)
 
-      ;; (print *last-parse-data*)
+
+      (defun get-attr (name attrs)
+        (getf (mapcan #'(lambda (x)
+                          (list (intern (string-upcase (car x)) :keyword) (cadr x)))
+                      attrs)
+              name))
+
+      (get-attr :href '(("href" "/employer/3127") ("class" "bloko-link bloko-link_secondary")
+                        ("data-qa" "vacancy-serp__vacancy-employer")))
+
+
+      (defun maptreefilter (tree)
+        (cond ((listp tree)
+               (cond ((listp (car tree))
+                      (cond ((equal '("target" "_blank") (car tree))    (setf tree (cdr tree))))
+                      (cond ((equal "script" (caar tree))               (setf tree (cdr tree))))
+                      (cond ((or (equal "div" (caar tree))
+                                 (equal "span" (caar tree)))
+                             (let ((attrs (cadar tree))
+                                   (rest  (cddar tree)))
+                               (let ((name (or (get-attr :data-qa attrs)
+                                               (get-attr :class attrs))))
+                                 (if name
+                                     (cond ((or (equal name "search-result-description__item")
+                                                (equal name "search-result-item__control"))
+                                            (setf (car tree) name))
+                                           (t (progn
+                                                (setf (caar tree) name)
+                                                (setf (cdar tree) rest))))
+                                     (setf tree (cdr tree)))))))))))
+        (cond
+          ((null tree) nil)
+          ((atom tree) tree)
+          (t (cons (maptreefilter (car tree))
+                   (maptreefilter (cdr tree))))))
+
+
+      ;; test repeatly elts
+      (defun add-ht (ht elt)
+        (multiple-value-bind (value present)
+            (gethash elt ht)
+          (if present
+              (setf (gethash elt ht) (incf value))
+              (setf (gethash elt ht) 1)))
+        ht)
+
+      (let ((workcopy (->> (html-to-tree *last-parse-data*)
+                           (extract-search-results)
+                           (maptreefilter)
+                           ))
+            (ht (make-hash-table :test #'equal)))
+        (maptreenode #'(lambda (x)
+                         (add-ht ht x)
+                         x)
+                     workcopy)
+        (let ((result))
+          (maphash #'(lambda (key val) (push (list val key) result))
+                   ht)
+          (setf result (remove-if   #'(lambda (x) (< (car x) 100)) result))
+          (setf result (sort result #'(lambda (a b) (> (car a) (car b)))))
+          (print (subseq result 0 10)))
+        (print workcopy))
+
+
+      ;; (print
+      ;;  (->> (html-to-tree *last-parse-data*)
+      ;;       (extract-search-results)))
+
+
 
       ;; (print
       ;;  (hh-parse-vacancy-teasers *last-parse-data*)
