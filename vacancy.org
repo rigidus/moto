@@ -599,9 +599,11 @@
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
-      <<html-to-tree>>
+      <<html_to_tree>>
 
-      <<extract-search-results>>
+      <<extract_search_results>>
+
+      <<maptreefilter>>
 
       (defun teasers-prepare (html)
         (->> (html-to-tree html)
@@ -612,11 +614,34 @@
     Используя сопоставление с образцом, которое мы определим ниже, внутри подраздела
     [[*Maptree-transform][Maptree-transform]], мы раз за разом преобразуем это дерево до тех пор, пока там
     не остануться только интересующие нас данные:
-    - название вакансии
-    - идентификатор (ссылку)
-    - дата размещения
-    - название работодателя
-    - идентификатор работодателя
+    - название вакансии (:name)
+    - идентификатор (ссылку) (:href)
+    - дата размещения (:date)
+    - название работодателя (:emp)
+    - идентификатор работодателя (:emp-id)
+
+    Типичная вакансия после обработки должна выглядеть примерно так:
+
+    #+BEGIN_SRC lisp
+       (:VACANCY
+        (:DATE "18 августа"
+         :ID 22403675
+         :HREF "https://spb.hh.ru/vacancy/22403675"
+         :NAME "Senior JavaScript/React разработчик")
+        :COMPENSATION
+        (:SALARY-MAX 230000
+         :SALARY-MIN 230000
+         :CURRENCY "RUR"
+         :SALARY "230000"
+         :SALARY-TEXT "от 230 000 руб.")
+        :SHORT-DESCR
+        (:REQUIREMENT "Опыт Frontend разработки от 3 лет. Опыт разработки SPA на React. Опыт работы с Redux и другими модулями экосистемы React..."
+         :RESPONSIBILITY "Разработка большого SPA приложения на React. Участие в архитектурных и технологических решениях. Оценка сложностей и сроков реализации задач. ")
+        :COMPANY
+        (:ADDR "Санкт-Петербург"
+         :EMP "ООО Смарт-Сервис"
+         :HREF "/employer/2959988"))
+    #+END_SRC
 
     Технические подробности о трансформации дерева - далее в этом разделе:
     [[*Трансформация дерева][Трансформация дерева]]
@@ -637,6 +662,8 @@
 
       <<parse_salary>>
 
+      <<teasers_prepare>>
+
       (defmacro make-detect ((name) &body body)
         (let ((param   (gensym))
               ;; (carlast (car (last (car body))))
@@ -650,55 +677,63 @@
                   ,param))))
 
       (make-detect (responder)
-        (`("vacancy-serp__vacancy_responded"                                                                    (("href" ,_)) "Вы откликнулись")
-          "responder"))
+        (`("vacancy-serp__vacancy_responded"
+           (("href" ,_)) "Вы откликнулись")
+          `(:vacancy (:status "responded"))))
+
+      (make-detect (rejecter)
+        (`("vacancy-serp__vacancy_rejected"
+           (("href" "/negotiations/gotopic?vacancy_id=20255184")) "Вам отказали")
+          `( :vacancy (:status "rejected"))))
 
       (make-detect (title)
         (`("search-result-item__head"
            ()
            ("vacancy-serp__vacancy-title"
             (("href" ,href) ,@rest)
-           ,title))
-          (list :title title :href href)))
+            ,title))
+          `(:vacancy (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
+                          :href ,href
+                          :name ,title))))
 
       (make-detect (schedule)
         (`("vacancy-serp__vacancy-work-schedule"
            NIL ,schedule)
-          (list :schedule schedule)))
+          `(:conditions (:schedule schedule))))
 
       (make-detect (responsibility)
         (`("vacancy-serp__vacancy_snippet_responsibility"
            NIL
            ,responsibility)
-          (list :responsibility responsibility)))
+          `(:short-descr (:responsibility ,responsibility))))
 
       (make-detect (requirement)
         (`("vacancy-serp__vacancy_snippet_requirement"
            NIL
            ,requirement)
-          (list :requirement requirement)))
+          `(:short-descr (:requirement ,requirement))))
 
       (make-detect (insider)
         (`("vacancy-serp__vacancy-interview-insider"
            (("href" ,insider))
            "Посмотреть интервью о жизни в компании")
-          (list :insider insider)))
+          `(:short-descr (:insider ,insider))))
 
       (make-detect (company)
         (`("search-result-item__company"
            NIL
            ("vacancy-serp__vacancy-employer"
             (("href" ,href))
-            ,company)
+            ,emp)
            ,@rest)
-          (list :company company :company-href href)))
+          `(:company (:emp ,emp :href ,href))))
 
       (make-detect (company-anon)
         (`("search-result-item__company"
            NIL
            ,anon
            ,@rest)
-          (list :company-anon anon)))
+          `(:company (:emp ,anon :anon t))))
 
       (make-detect (addr)
         (`("search-result-item__info"
@@ -706,7 +741,8 @@
            ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
            ("vacancy-serp__vacancy-date" NIL ,date)
            ,@rest)
-          (list :addr address :date date)))
+          `(:company (:addr ,address)
+            :vacancy (:date ,date))))
 
       (make-detect (compensation)
         (`("vacancy-serp__vacancy-compensation"
@@ -714,12 +750,12 @@
            ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
            ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
            ,value)
-          (list :currency currency :salary salary :salary-text value)))
+          `(:compensation (:currency ,currency :salary ,salary :salary-text ,value))))
 
       (make-detect (vacancy-finalizer)
-        (`("vacancy-serp__vacancy"
+        (`(,_
            NIL
-           "responder"
+           ,status
            ("search-result-description"
             NIL
             "search-result-description__item"
@@ -729,6 +765,24 @@
             ,@rest))
           contents))
 
+
+      (defun plistp (list)
+        "Test wheather LIST is a properly formed plist."
+        (when (listp list)
+          (loop :for rest :on list :by #'cddr
+             :unless (and (keywordp (car rest))
+                          (cdr rest))
+             :do (return nil)
+             :finally (return list))))
+
+      (defun merge-plist (p1 p2)
+        (loop with notfound = '#:notfound
+           for (indicator value) on p1 by #'cddr
+           when (eq (getf p2 indicator notfound) notfound)
+           do (progn
+                (push value p2)
+                (push indicator p2)))
+        p2)
 
       (defun tree-plist-p (pl)
         "Returns T if L is a plist (list with alternating keyword elements). "
@@ -770,6 +824,7 @@
         (let ((prepared-teasers (teasers-prepare html)))
           (->> prepared-teasers
                (detect-responder)
+               (detect-rejecter)
                (detect-title)
                (detect-schedule)
                (detect-responsibility)
@@ -780,32 +835,49 @@
                (detect-addr)
                (detect-compensation)
                (detect-vacancy-finalizer)
-               ;; error if malformed plist
-               (mapcar #'(lambda (x)
-                           (if (not (tree-plist-p x))
+               (mapcar #'(lambda (vacancy)
+                           (if (not (tree-plist-p vacancy))
                                (progn
-                                 (dbg "[~A]" (bprint x))
+                                 (dbg "[~A]" (bprint vacancy))
+                                 ;; error if malformed plist
                                  (error 'malformed-vacancy :text))
-                               x)))
-                ;; linearize for each elt
-                (mapcar #'(lambda (tree)
-                            (let ((linearize))
-                              (maptree #'(lambda (x)
-                                           (setf linearize
-                                                 (append linearize (list x))))
-                                       tree)
-                              linearize)))
-                ;; parse-salary
-                (mapcar #'parse-salary))))
+                               ;; else
+                               (let ((ht  (make-hash-table :test #'equal))
+                                     (result-vacancy))
+                                 (mapcar #'(lambda (section)
+                                             (assert (equal (logand (length section) 1) 0)) ;; even length
+                                             (loop :for key :in section :by #'cddr :do
+                                                (assert (equal (type-of key) 'keyword))
+                                                (let ((new-val (getf section key)))
+                                                  (assert (plistp new-val))
+                                                  (multiple-value-bind (old-val present)
+                                                      (gethash key ht)
+                                                    (setf (gethash key ht)
+                                                          (if (not present)
+                                                              new-val
+                                                              (merge-plists old-val new-val)))))))
+                                         vacancy)
+                                 (maphash #'(lambda (k v) (push (list k v) result-vacancy)) ht)
+                                 (mapcan #'identity (reverse result-vacancy))))))
+               ;; parse-salary
+               (mapcar #'(lambda (vac)
+                           (awhen (getf vac :compensation)
+                             (setf (getf vac :compensation)
+                                   (funcall #'parse-salary it)))
+                           vac))
+               (print)
+               ;; linearize for each elt
+               ;; (mapcar #'(lambda (tree)
+               ;;             (let ((linearize))
+               ;;               (maptree #'(lambda (x)
+               ;;                            (setf linearize
+               ;;                                  (append linearize (list x))))
+               ;;                        tree)
+               ;;               linearize)))
+               )))
 
 
       ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
-
-
-
-
-
-
 
       ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
       ;;   (hh-parse-vacancy-teasers
