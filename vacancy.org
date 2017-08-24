@@ -58,7 +58,8 @@
        ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
        (defmethod process-teaser (current-teaser src-account referer)
          (dbg "process-teaser")
-         (let ((vacancy-page (format nil "https://spb.hh.ru/vacancy/~A" (getf current-teaser :id))))
+         (let ((vacancy-page (format nil "https://spb.hh.ru/vacancy/~A"
+                                     (getf (getf current-teaser :vacancy) :id))))
            (multiple-value-bind (vacancy new-cookies ref-url)
                (hh-get-page vacancy-page cookie-jar src-account referer)
              (setf cookie-jar new-cookies)
@@ -77,7 +78,7 @@
              (labels ((load-next-teasers-page ()
                         (dbg "load-next-teasers-page (page=~A)" page)
                         (let* ((next-teasers-page-url (format nil url page))
-                               (referer (if (= page 0) "https://spb.hh.ru"(format nil url (- page 1)))))
+                               (referer (if (= page 0) "https://spb.hh.ru" (format nil url (- page 1)))))
                           (handler-case
                               (multiple-value-bind (next-teasers-page new-cookies ref-url)
                                   (hh-get-page next-teasers-page-url cookie-jar src-account referer)
@@ -470,155 +471,19 @@
 
 *** Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
 
-    Чтобы получить вакансии со страниц поисковой выдачи - напишем парсер,
-    который переведет полученный html в более удобное лисп-дерево (=html-to-tree=)
-
-    #+NAME: html_to_tree
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (defun html-to-tree (html)
-        ;; (html5-parser:node-to-xmls
-        (html5-parser:parse-html5-fragment html :dom :xmls
-                                           ))
-    #+END_SRC
-
-    Затем нам понадобится отделить собственно поисковые результаты, с которыми будем
-    работать:
-
-    #+NAME: extract_search_results
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (defun extract-search-results (tree)
-        (block subtree-extract
-          (mtm (`("div"
-                  (("class" "search-result")
-                   ("data-qa" "vacancy-serp__results"))
-                  ,@rest)
-                 (return-from subtree-extract rest))
-               tree)))
-    #+END_SRC
-
-    Поисковые результаты представляют собой список деревьев, внутри которых много кода,
-    относящегося к разметке. Из-за этого их сложно читать и анализировать. Но можно
-    преобразовать эти деревья в более удобные для анализа, следуя следующему алгоритму:
-
-    - Проходя по каждому элементу дерева
-      - Если элемент является списком
-        - Если элемент - это '("target" "_blank"), то удаляем его, записывая остаток
-          списка (cdr) на его место, потому что этот элемент не несет никакой нужной
-          нам информации.
-        - Если элемент начинается с "script" (т.е. мы обоснованно предполагаем, что это
-          тег <script>, потому что нигде не употребляется атрибут "script"), то
-          поступаем аналогично, удаляя его
-        - Если элемент начинается с "div" "span" или "a", то для начала отделим
-          атрибуты от его содержимого.
-          - Если существует атрибут "data-qa", то он станет новым именем элемента, в
-            противном случае
-            - Если существует атрибут "class", то он будет новым именем элемента.
-          - Если есть новое имя элемента:
-            - Существуют блоки с именами, которые нам полностью неинтересны, поэтому мы
-              можем прямо здесь заменить их на их строковые имена, чтобы сделать все более
-              читаемым. Если мы нашли такой блок - то сделаем это. В противном случае:
-              - Удалим атрибуты "data-qa" и "class" из списка атрибутов
-              - Запишем новое имя элемента на место "div" или "span"
-              - Запишем обновленные атрибуты на место старых
-
-    Реализуем этот алгоритм. Для поиска атрибутов будем использовать функцию
-    =get-attr=, которая превращает атрибуты в plist и ищет в нем.
-
-    #+NAME: maptreefilter
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      (defun attrs-to-plist (attrs)
-        (mapcan #'(lambda (x)
-                    (list (intern (string-upcase (car x)) :keyword) (cadr x)))
-                attrs))
-
-      ;; (attrs-to-plist '(("href" "/employer/3127") ("class" "bloko-link bloko-link_secondary")
-      ;;                   ("data-qa" "vacancy-serp__vacancy-employer")))
-      ;; => (:HREF "/employer/3127" :CLASS "bloko-link bloko-link_secondary" :DATA-QA
-      ;;           "vacancy-serp__vacancy-employer")
-
-      (defun plist-to-attrs (attrs)
-        (loop :for attr :in attrs :by #'cddr :collect
-           (list (string-downcase (symbol-name attr)) (getf attrs attr))))
-
-      ;; (plist-to-attrs '(:HREF "/employer/3127" :CLASS "bloko-link bloko-link_secondary" :DATA-QA
-      ;;                   "vacancy-serp__vacancy-employer"))
-      ;; => (("href" "/employer/3127") ("class" "bloko-link bloko-link_secondary")
-      ;;         ("data-qa" "vacancy-serp__vacancy-employer"))
-
-      (defun maptreefilter (tree)
-        (when (listp tree)
-          (when (listp (car tree))
-            (when (equal '("target" "_blank") (car tree))  (setf tree (cdr tree)))
-            (when (equal "script" (caar tree))             (setf tree (cdr tree)))
-            (when (or (equal "div" (caar tree))
-                      (equal "span" (caar tree))
-                      (equal "a" (caar tree)))
-              (let ((attrs (attrs-to-plist (cadar tree)))
-                    (rest  (cddar tree))
-                    (name   nil))
-                ;; data-qa is primary target for new name
-                (aif (getf attrs :data-qa)
-                     (setf name it)
-                     ;; else: class is secondary target for new name
-                     (aif (getf attrs :class)
-                          (setf name it)))
-                (when name
-                  (if (or (equal name "search-result-description__item")
-                          (equal name "search-result-item__control"))
-                      ;; Убиваем ненужное, если оно есть
-                      (setf (car tree) name)
-                      ;; else
-                      (progn
-                        (remf attrs :data-qa)
-                        (remf attrs :class)
-                        (setf (caar tree) name) ;; new name
-                        (setf (cadar tree) (plist-to-attrs attrs)) ;; new attrs
-                        )))))))
-        (cond
-          ((null tree) nil)
-          ((atom tree) tree)
-          (t (cons (maptreefilter (car tree))
-                   (maptreefilter (cdr tree))))))
-    #+END_SRC
-
-    На этом этапе чтобы осуществить разбор вакансий, мы должны выполнить цепочку
-    действий:
-    - Превратить html в дерево s-выражений
-    - Извлечь результаты поиска
-    - Преобразовать их к более удобному для чтения и обработки виду
-    Для того чтобы сделать это будем использовать макрос =->>=, определенный в
-    утилитах, который изменяет поток управления, чтобы создать цепочку выполнения
-
-    #+NAME: teasers_prepare
-    #+BEGIN_SRC lisp
-      (in-package #:moto)
-
-      <<html_to_tree>>
-
-      <<extract_search_results>>
-
-      <<maptreefilter>>
-
-      (defun teasers-prepare (html)
-        (->> (html-to-tree html)
-             (extract-search-results)
-             (maptreefilter)))
-    #+END_SRC
-
-    Используя сопоставление с образцом, которое мы определим ниже, внутри подраздела
-    [[*Maptree-transform][Maptree-transform]], мы раз за разом преобразуем это дерево до тех пор, пока там
-    не остануться только интересующие нас данные:
-    - название вакансии (:name)
-    - идентификатор (ссылку) (:href)
-    - дата размещения (:date)
-    - название работодателя (:emp)
-    - идентификатор работодателя (:emp-id)
+    Функция =hh-parse-vacancy-teasers= получает на вход html страницы поисковой выдачи
+    и превращает его в список вакансий. Для этого она выполняет ряд операций, которые
+    можно поделить не несколько классов:
+    - Преобразование html-кода в дерево s-выражений
+    - Извлечение из этого дерева части, которая содержит поисковую выдачу
+    - Преобразование элементов форматирования, таких как div и span в "говорящие"
+      элементы дерева для повышения читаемости (названия для преобразования извлекаются
+      из атрибутов =class= и =data-qa=
+    - Преобразование содержимого вакансий в plists, с отнесением отдельных элементов к
+      разным разделам информации о вакансии (sections)
+    - Слияние разделов из разных plists и формирование вакансии, которая предавляет
+      собой 2-х уровневое plist-дерево, в котором первый уровень - ключи разделов, а из
+      значения представляют собой второй уровень и являются plist-ами
 
     Типичная вакансия после обработки должна выглядеть примерно так:
 
@@ -654,117 +519,24 @@
     Иногда HeadHunter синдицирует вакансии с других платформ, к примеру с CAREER.RU, тогда в
     вакансии может отсутствовать работодатель.
 
+    Вот код преобразования, все вещи, от которых он зависит будут раскрыты в
+    подразделах этого раздела.
+
     #+NAME: hh_parse_vacancy_teasers
     #+BEGIN_SRC lisp
       (in-package #:moto)
 
       <<maptree_transform>>
 
-      <<parse_salary>>
+      <<html_to_tree>>
 
-      <<teasers_prepare>>
+      <<extract_search_results>>
 
-      (defmacro make-detect ((name) &body body)
-        (let ((param   (gensym))
-              ;; (carlast (car (last (car body))))
-              )
-          ;; (awhen (stringp carlast)
-          ;;   (setf *detect-garbage*
-          ;;         (remove-duplicates (append *detect-garbage*
-          ;;                                    (list carlast)) :test #'string=)))
-          `(defun ,(intern (format nil "DETECT-~A" (string-upcase (symbol-name name)))) (,param)
-             (mtm ,@body
-                  ,param))))
+      <<maptreefilter>>
 
-      (make-detect (responder)
-        (`("vacancy-serp__vacancy_responded"
-           (("href" ,_)) "Вы откликнулись")
-          `(:vacancy (:status "responded"))))
+      <<make_detect>>
 
-      (make-detect (rejecter)
-        (`("vacancy-serp__vacancy_rejected"
-           (("href" "/negotiations/gotopic?vacancy_id=20255184")) "Вам отказали")
-          `( :vacancy (:status "rejected"))))
-
-      (make-detect (title)
-        (`("search-result-item__head"
-           ()
-           ("vacancy-serp__vacancy-title"
-            (("href" ,href) ,@rest)
-            ,title))
-          `(:vacancy (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
-                          :href ,href
-                          :name ,title))))
-
-      (make-detect (schedule)
-        (`("vacancy-serp__vacancy-work-schedule"
-           NIL ,schedule)
-          `(:conditions (:schedule schedule))))
-
-      (make-detect (responsibility)
-        (`("vacancy-serp__vacancy_snippet_responsibility"
-           NIL
-           ,responsibility)
-          `(:short-descr (:responsibility ,responsibility))))
-
-      (make-detect (requirement)
-        (`("vacancy-serp__vacancy_snippet_requirement"
-           NIL
-           ,requirement)
-          `(:short-descr (:requirement ,requirement))))
-
-      (make-detect (insider)
-        (`("vacancy-serp__vacancy-interview-insider"
-           (("href" ,insider))
-           "Посмотреть интервью о жизни в компании")
-          `(:short-descr (:insider ,insider))))
-
-      (make-detect (company)
-        (`("search-result-item__company"
-           NIL
-           ("vacancy-serp__vacancy-employer"
-            (("href" ,href))
-            ,emp)
-           ,@rest)
-          `(:company (:emp ,emp :href ,href))))
-
-      (make-detect (company-anon)
-        (`("search-result-item__company"
-           NIL
-           ,anon
-           ,@rest)
-          `(:company (:emp ,anon :anon t))))
-
-      (make-detect (addr)
-        (`("search-result-item__info"
-           NIL
-           ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
-           ("vacancy-serp__vacancy-date" NIL ,date)
-           ,@rest)
-          `(:company (:addr ,address)
-            :vacancy (:date ,date))))
-
-      (make-detect (compensation)
-        (`("vacancy-serp__vacancy-compensation"
-           NIL
-           ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-           ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
-           ,value)
-          `(:compensation (:currency ,currency :salary ,salary :salary-text ,value))))
-
-      (make-detect (vacancy-finalizer)
-        (`(,_
-           NIL
-           ,status
-           ("search-result-description"
-            NIL
-            "search-result-description__item"
-            ("search-result-description__item search-result-description__item_primary"
-             NIL
-             ,@contents)
-            ,@rest))
-          contents))
-
+      <<detectors>>
 
       (defun plistp (list)
         "Test wheather LIST is a properly formed plist."
@@ -797,21 +569,6 @@
                                            ;; (print pl)
                                            nil))))
 
-      ;; (untrace tree-plist-p)
-
-      ;; (tree-plist-p
-      ;;  '("div" "premium" "response-trigger" "vacancy-responded"
-      ;;    ("star"
-      ;;     ("div" "search-result-description-primary"
-      ;;      (:ID 12359860 :NAME "ASP.NET MVC Developer")
-      ;;      (:SNIPPET_RESPONSIBILITY ("resp" NIL))
-      ;;      (:SNIPPET
-      ;;       "Опыт коммерческой разработки на платформе .NET with C# - не менее 2 лет. ASP.NET MVC. HTML, CSS, JavaScript. SQL Server. ")
-      ;;      (:EMP-ID 208902 :EMP-NAME "ЗАО Аркадия")
-      ;;      (:CITY "Санкт-Петербург" (:METRO "" :DATE "6 апреля")))
-      ;;     "emp-logo" "search-result-description")))
-
-
       (define-condition malformed-vacancy (error)
         ((text :initarg :text :reader text)))
 
@@ -821,61 +578,45 @@
         "Получение списка вакансий из html"
         (dbg "hh-parse-vacancy-teasers")
         (setf *last-parse-data* html)
-        (let ((prepared-teasers (teasers-prepare html)))
-          (->> prepared-teasers
-               (detect-responder)
-               (detect-rejecter)
-               (detect-title)
-               (detect-schedule)
-               (detect-responsibility)
-               (detect-requirement)
-               (detect-insider)
-               (detect-company)
-               (detect-company-anon)
-               (detect-addr)
-               (detect-compensation)
-               (detect-vacancy-finalizer)
-               (mapcar #'(lambda (vacancy)
-                           (if (not (tree-plist-p vacancy))
-                               (progn
-                                 (dbg "[~A]" (bprint vacancy))
-                                 ;; error if malformed plist
-                                 (error 'malformed-vacancy :text))
-                               ;; else
-                               (let ((ht  (make-hash-table :test #'equal))
-                                     (result-vacancy))
-                                 (mapcar #'(lambda (section)
-                                             (assert (equal (logand (length section) 1) 0)) ;; even length
-                                             (loop :for key :in section :by #'cddr :do
-                                                (assert (equal (type-of key) 'keyword))
-                                                (let ((new-val (getf section key)))
-                                                  (assert (plistp new-val))
-                                                  (multiple-value-bind (old-val present)
-                                                      (gethash key ht)
-                                                    (setf (gethash key ht)
-                                                          (if (not present)
-                                                              new-val
-                                                              (merge-plists old-val new-val)))))))
-                                         vacancy)
-                                 (maphash #'(lambda (k v) (push (list k v) result-vacancy)) ht)
-                                 (mapcan #'identity (reverse result-vacancy))))))
-               ;; parse-salary
-               (mapcar #'(lambda (vac)
-                           (awhen (getf vac :compensation)
-                             (setf (getf vac :compensation)
-                                   (funcall #'parse-salary it)))
-                           vac))
-               (print)
-               ;; linearize for each elt
-               ;; (mapcar #'(lambda (tree)
-               ;;             (let ((linearize))
-               ;;               (maptree #'(lambda (x)
-               ;;                            (setf linearize
-               ;;                                  (append linearize (list x))))
-               ;;                        tree)
-               ;;               linearize)))
-               )))
-
+        (->> (html-to-tree html)
+             (extract-search-results)
+             (maptreefilter)
+             (detect-responder)
+             (detect-rejecter)
+             (detect-title)
+             (detect-schedule)
+             (detect-responsibility)
+             (detect-requirement)
+             (detect-insider)
+             (detect-company)
+             (detect-company-anon)
+             (detect-addr)
+             (detect-compensation)
+             (detect-vacancy-finalizer)
+             (mapcar #'(lambda (vacancy)
+                         (if (not (tree-plist-p vacancy))
+                             (progn
+                               (dbg "[~A]" (bprint vacancy))
+                               ;; error if malformed plist
+                               (error 'malformed-vacancy :text))
+                             ;; else
+                             (let ((ht  (make-hash-table :test #'equal))
+                                   (result-vacancy))
+                               (mapcar #'(lambda (section)
+                                           (assert (equal (logand (length section) 1) 0)) ;; even length
+                                           (loop :for key :in section :by #'cddr :do
+                                              (assert (equal (type-of key) 'keyword))
+                                              (let ((new-val (getf section key)))
+                                                (assert (plistp new-val))
+                                                (multiple-value-bind (old-val present)
+                                                    (gethash key ht)
+                                                  (setf (gethash key ht)
+                                                        (if (not present)
+                                                            new-val
+                                                            (merge-plists old-val new-val)))))))
+                                       vacancy)
+                               (maphash #'(lambda (k v) (push (list k v) result-vacancy)) ht)
+                               (mapcan #'identity (reverse result-vacancy))))))))
 
       ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
 
@@ -888,6 +629,277 @@
       ;;             (del-vacancy (id x)))
       ;;         (find-vacancy :state ":UNINTERESTING"))
     #+END_SRC
+
+**** Парсер html-to-tree
+
+     Чтобы получить вакансии со страниц поисковой выдачи - напишем парсер,
+     который переведет полученный html в более удобное лисп-дерево (=html-to-tree=)
+
+     #+NAME: html_to_tree
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defun html-to-tree (html)
+         ;; (html5-parser:node-to-xmls
+         (html5-parser:parse-html5-fragment html :dom :xmls
+                                            ))
+     #+END_SRC
+
+**** Экстрактор поисковых результатов extract_search_results
+
+    Затем нам понадобится отделить собственно поисковые результаты, с которыми будем
+    работать:
+
+    #+NAME: extract_search_results
+    #+BEGIN_SRC lisp
+      (in-package #:moto)
+
+      (defun extract-search-results (tree)
+        (block subtree-extract
+          (mtm (`("div"
+                  (("class" "search-result")
+                   ("data-qa" "vacancy-serp__results"))
+                  ,@rest)
+                 (return-from subtree-extract rest))
+               tree)))
+    #+END_SRC
+
+**** Фильтр-преобразователь дерева maptreefilter
+
+     Поисковые результаты представляют собой список деревьев, внутри которых много кода,
+     относящегося к разметке. Из-за этого их сложно читать и анализировать. Но можно
+     преобразовать эти деревья в более удобные для анализа, следуя следующему алгоритму:
+
+     - Проходя по каждому элементу дерева
+       - Если элемент является списком
+         - Если элемент - это '("target" "_blank"), то удаляем его, записывая остаток
+           списка (cdr) на его место, потому что этот элемент не несет никакой нужной
+           нам информации.
+         - Если элемент начинается с "script" (т.е. мы обоснованно предполагаем, что это
+           тег <script>, потому что нигде не употребляется атрибут "script"), то
+           поступаем аналогично, удаляя его
+         - Если элемент начинается с "div" "span" или "a", то для начала отделим
+           атрибуты от его содержимого.
+           - Если существует атрибут "data-qa", то он станет новым именем элемента, в
+             противном случае
+             - Если существует атрибут "class", то он будет новым именем элемента.
+           - Если есть новое имя элемента:
+             - Существуют блоки с именами, которые нам полностью неинтересны, поэтому мы
+               можем прямо здесь заменить их на их строковые имена, чтобы сделать все более
+               читаемым. Если мы нашли такой блок - то сделаем это. В противном случае:
+               - Удалим атрибуты "data-qa" и "class" из списка атрибутов
+               - Запишем новое имя элемента на место "div" или "span"
+               - Запишем обновленные атрибуты на место старых
+
+     Реализуем этот алгоритм. Для поиска атрибутов будем использовать функцию
+     =get-attr=, которая превращает атрибуты в plist и ищет в нем.
+
+     #+NAME: maptreefilter
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defun attrs-to-plist (attrs)
+         (mapcan #'(lambda (x)
+                     (list (intern (string-upcase (car x)) :keyword) (cadr x)))
+                 attrs))
+
+       ;; (attrs-to-plist '(("href" "/employer/3127") ("class" "bloko-link bloko-link_secondary")
+       ;;                   ("data-qa" "vacancy-serp__vacancy-employer")))
+       ;; => (:HREF "/employer/3127" :CLASS "bloko-link bloko-link_secondary" :DATA-QA
+       ;;           "vacancy-serp__vacancy-employer")
+
+       (defun plist-to-attrs (attrs)
+         (loop :for attr :in attrs :by #'cddr :collect
+            (list (string-downcase (symbol-name attr)) (getf attrs attr))))
+
+       ;; (plist-to-attrs '(:HREF "/employer/3127" :CLASS "bloko-link bloko-link_secondary" :DATA-QA
+       ;;                   "vacancy-serp__vacancy-employer"))
+       ;; => (("href" "/employer/3127") ("class" "bloko-link bloko-link_secondary")
+       ;;         ("data-qa" "vacancy-serp__vacancy-employer"))
+
+       (defun maptreefilter (tree)
+         (when (listp tree)
+           (when (listp (car tree))
+             (when (equal '("target" "_blank") (car tree))  (setf tree (cdr tree)))
+             (when (equal "script" (caar tree))             (setf tree (cdr tree)))
+             (when (or (equal "div" (caar tree))
+                       (equal "span" (caar tree))
+                       (equal "a" (caar tree)))
+               (let ((attrs (attrs-to-plist (cadar tree)))
+                     (rest  (cddar tree))
+                     (name   nil))
+                 ;; data-qa is primary target for new name
+                 (aif (getf attrs :data-qa)
+                      (setf name it)
+                      ;; else: class is secondary target for new name
+                      (aif (getf attrs :class)
+                           (setf name it)))
+                 (when name
+                   (if (or (equal name "search-result-description__item")
+                           (equal name "search-result-item__control"))
+                       ;; Убиваем ненужное, если оно есть
+                       (setf (car tree) name)
+                       ;; else
+                       (progn
+                         (remf attrs :data-qa)
+                         (remf attrs :class)
+                         (setf (caar tree) name) ;; new name
+                         (setf (cadar tree) (plist-to-attrs attrs)) ;; new attrs
+                         )))))))
+         (cond
+           ((null tree) nil)
+           ((atom tree) tree)
+           (t (cons (maptreefilter (car tree))
+                    (maptreefilter (cdr tree))))))
+     #+END_SRC
+
+**** Макрос для создания шаблонных преобразователей make-detect
+
+     Этот макрос формирует функции вида detect-* которые осуществляют преобразование
+     дерева в соответствии с шаблоном, переданным в body
+
+     #+NAME: make_detect
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (defmacro make-detect ((name) &body body)
+         (let ((param   (gensym)))
+           `(defun ,(intern (format nil "DETECT-~A" (string-upcase (symbol-name name)))) (,param)
+              (mtm ,@body
+                   ,param))))
+     #+END_SRC
+
+**** Набор шаблонных макросов-преобразователей
+
+     Эти макросы по шаблону преобразуют вакансии в plist
+
+     #+NAME: detectors
+     #+BEGIN_SRC lisp
+       (in-package #:moto)
+
+       (make-detect (responder)
+         (`("vacancy-serp__vacancy_responded"
+            (("href" ,_)) "Вы откликнулись")
+           `(:vacancy (:status "responded"))))
+
+       (make-detect (rejecter)
+         (`("vacancy-serp__vacancy_rejected"
+            (("href" "/negotiations/gotopic?vacancy_id=20255184")) "Вам отказали")
+           `( :vacancy (:status "rejected"))))
+
+       (make-detect (title)
+         (`("search-result-item__head"
+            ()
+            ("vacancy-serp__vacancy-title"
+             (("href" ,href) ,@rest)
+             ,title))
+           `(:vacancy (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
+                           :href ,href
+                           :name ,title))))
+
+       (make-detect (schedule)
+         (`("vacancy-serp__vacancy-work-schedule"
+            NIL ,schedule)
+           `(:conditions (:schedule schedule))))
+
+       (make-detect (responsibility)
+         (`("vacancy-serp__vacancy_snippet_responsibility"
+            NIL
+            ,responsibility)
+           `(:short-descr (:responsibility ,responsibility))))
+
+       (make-detect (requirement)
+         (`("vacancy-serp__vacancy_snippet_requirement"
+            NIL
+            ,requirement)
+           `(:short-descr (:requirement ,requirement))))
+
+       (make-detect (insider)
+         (`("vacancy-serp__vacancy-interview-insider"
+            (("href" ,insider))
+            "Посмотреть интервью о жизни в компании")
+           `(:short-descr (:insider ,insider))))
+
+       (make-detect (company)
+         (`("search-result-item__company"
+            NIL
+            ("vacancy-serp__vacancy-employer"
+             (("href" ,href))
+             ,emp)
+            ,@rest)
+           `(:company (:emp ,emp :href ,href))))
+
+       (make-detect (company-anon)
+         (`("search-result-item__company"
+            NIL
+            ,anon
+            ,@rest)
+           `(:company (:emp ,anon :anon t))))
+
+       (make-detect (addr)
+         (`("search-result-item__info"
+            NIL
+            ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
+            ("vacancy-serp__vacancy-date" NIL ,date)
+            ,@rest)
+           `(:company (:addr ,address)
+             :vacancy (:date ,date))))
+
+       (make-detect (compensation)
+         (`("vacancy-serp__vacancy-compensation"
+            NIL
+            ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+            ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
+            ,salary-text)
+           (let ((currency currency)
+                 (salary-text (ppcre:regex-replace-all " " salary-text ""))
+                 (salary-min nil)
+                 (salary-max nil))
+             (cond ((equal currency "RUR")
+                    (setf salary-text (ppcre:regex-replace-all " руб." salary-text "")))
+                   ((equal currency "USD")
+                    (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
+                   ((equal currency "EUR")
+                    (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
+                   ((equal currency "UAH")
+                    (setf salary-text (ppcre:regex-replace-all " грн." salary-text "")))
+                   ((equal currency nil)
+                    'nil)
+                   (t (progn
+                        (print currency)
+                        (err 'unk-currency))))
+             (cond ((search "от " salary-text)
+                    (setf salary-min (parse-integer (ppcre:regex-replace-all "от " salary-text ""))))
+                   ((search "до " salary-text)
+                    (setf salary-max (parse-integer (ppcre:regex-replace-all "до " salary-text ""))))
+                   ((search "–" salary-text)
+                    (let ((splt (ppcre:split "–" salary-text)))
+                      (setf salary-min (parse-integer (car splt)))
+                      (setf salary-max (parse-integer (cadr splt)))))
+                   ((search "-" salary-text)
+                    (let ((splt (ppcre:split "-" salary-text)))
+                      (setf salary-min (parse-integer (car splt)))
+                      (setf salary-max (parse-integer (cadr splt))))))
+             (when (null salary-min)
+               (setf salary-min salary-max))
+             (when (null salary-max)
+               (setf salary-max salary-min))
+             `(:compensation (:currency ,currency :salary ,salary :salary-text ,salary-text
+                                        :salary-min ,salary-min :salary-max ,salary-max)))))
+
+       (make-detect (vacancy-finalizer)
+         (`(,_
+            NIL
+            ,_
+            ("search-result-description"
+             NIL
+             "search-result-description__item"
+             ("search-result-description__item search-result-description__item_primary"
+              NIL
+              ,@contents)
+             ,@rest))
+           contents))
+     #+END_SRC
 
 **** Трансформация дерева
 
@@ -1298,54 +1310,6 @@
                                 ,tree)))
       #+END_SRC
 
-**** Определение минимальной и максимальной зарплаты
-
-     #+NAME: parse_salary
-     #+BEGIN_SRC lisp
-       (in-package #:moto)
-
-       (defun parse-salary (vacancy)
-         (let ((currency (getf vacancy :CURRENCY))
-               (salary-text (ppcre:regex-replace-all " " (getf vacancy :salary-text) ""))
-               (salary-min nil)
-               (salary-max nil))
-           (cond ((equal currency "RUR")
-                  (setf salary-text (ppcre:regex-replace-all " руб." salary-text "")))
-                 ((equal currency "USD")
-                  (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
-                 ((equal currency "EUR")
-                  (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
-                 ((equal currency "UAH")
-                  (setf salary-text (ppcre:regex-replace-all " грн." salary-text "")))
-                 ((equal currency nil)
-                  'nil)
-                 (t (progn
-                      (print (getf vacancy :currency))
-                      (err 'unk-currency))))
-           (cond ((search "от " salary-text)
-                  (setf salary-min (parse-integer (ppcre:regex-replace-all "от " salary-text ""))))
-                 ((search "до " salary-text)
-                  (setf salary-max (parse-integer (ppcre:regex-replace-all "до " salary-text ""))))
-                 ((search "–" salary-text)
-                  (let ((splt (ppcre:split "–" salary-text)))
-                    (setf salary-min (parse-integer (car splt)))
-                    (setf salary-max (parse-integer (cadr splt)))))
-                 ((search "-" salary-text)
-                  (let ((splt (ppcre:split "-" salary-text)))
-                    (setf salary-min (parse-integer (car splt)))
-                    (setf salary-max (parse-integer (cadr splt))))))
-           (when (null salary-min)
-             (setf salary-min salary-max))
-           (when (null salary-max)
-             (setf salary-max salary-min))
-           (setf (getf vacancy :salary-min) salary-min)
-           (setf (getf vacancy :salary-max) salary-max)
-           vacancy))
-
-       ;; (hh-parse-vacancy-teasers
-       ;;  (hh-get-page "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&salary=&currency_code=RUR&only_with_salary=true&experience=doesNotMatter&order_by=salary_desc&search_period=30&items_on_page=100&no_magic=true"))
-     #+END_SRC
-
 *** Разбор вакансий (=hh-parse-vacancy=)
 
     Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
@@ -1470,7 +1434,7 @@
    Пусть у нас есть возможность создавать именованные =правила=, которые получают на
    вход список, представляющий собой тизер или вакансию, анализируют его, и выполняют
    какие-то действия. В качестве примера, мы могли бы создать правило, которое
-   увеличивает =ранг= вакансии если зарплата устраивает.
+   увеличивает =ранг= вакансии если упомянуты какие-то технологии.
 
    Создавая правило, нам необходимо передать конструктору правила:
    - условие срабатывания (назовем его =antecedent=)
@@ -1501,7 +1465,7 @@
 
       <<sugar_for_teaser_rules>>
 
-      (define-drop-teaser-rule (salary-1-no (null (getf vacancy :salary)))
+      (define-drop-teaser-rule (salary-1-no (null (getf vacancy :compensation)))
         (dbg "  - no salary"))
 
       (define-drop-teaser-rule (salary-2-low (or
@@ -1514,59 +1478,59 @@
                                               ))
         (dbg "  - low salary"))
 
-      (define-drop-teaser-rule (iOS (contains-in-words (string-downcase (getf vacancy :name)) "ios"))
-        (dbg "  - name contains iOS"))
+      ;; (define-drop-teaser-rule (iOS (contains-in-words (string-downcase (getf vacancy :name)) "ios"))
+      ;;   (dbg "  - name contains iOS"))
 
-      (define-drop-teaser-rule (FrontEnd (contains-in-words (string-downcase (getf vacancy :name)) "front"))
-        (dbg "  - name contains FrontEnd"))
+      ;; (define-drop-teaser-rule (FrontEnd (contains-in-words (string-downcase (getf vacancy :name)) "front"))
+      ;;   (dbg "  - name contains FrontEnd"))
 
-      (define-drop-teaser-rule (Manager (contains-in-words (string-downcase (getf vacancy :name)) "менеджер"))
-        (dbg "  - name contains менеджер"))
+      ;; (define-drop-teaser-rule (Manager (contains-in-words (string-downcase (getf vacancy :name)) "менеджер"))
+      ;;   (dbg "  - name contains менеджер"))
 
-      (define-drop-teaser-rule (Saler (contains-in-words (string-downcase (getf vacancy :name)) "продаж"))
-        (dbg "  - name contains продаж"))
+      ;; (define-drop-teaser-rule (Saler (contains-in-words (string-downcase (getf vacancy :name)) "продаж"))
+      ;;   (dbg "  - name contains продаж"))
 
-      (define-drop-teaser-rule (DotNet (contains-in-words (string-downcase (getf vacancy :name)) ".net"))
-        (dbg "  - name contains .net"))
+      ;; (define-drop-teaser-rule (DotNet (contains-in-words (string-downcase (getf vacancy :name)) ".net"))
+      ;;   (dbg "  - name contains .net"))
 
 
-      (define-drop-all-teaser-when-name-contains-rule
-          "Python" "Django"
-          "1C" "1С"
-          "C++" "С++"
-          "Ruby" "Ruby on Rails"
-          "Go"
-          "Q/A" "QA"
-          "C#"
-          "Unity" "Unity3D"
-          "Flash"
-          "Java"
-          "Android"
-          "ASP"
-          "Objective-C"
-          "Delphi"
-          "Sharepoint"
-          "PL/SQL"
-          "Oracle"
-          "Node"
-          "тестировщик"
-          "Системный администратор"
-          "Трафик-менеджер"
-          "Traffic" "Трафик"
-          "Медиабайер" "Media Buyer" "Медиабаер"
-          "SAP"
-          "маркетолог"
-          "SMM"
-          "DevOps"
-          "Axapta"
-          "designer"
-          "Дизайнер"
-          "Designer"
-          "UX"
-          "по ремонту"
-          "Помощник"
-          "Верстальщик"
-          "Smolensk" "Львов")
+      ;; (define-drop-all-teaser-when-name-contains-rule
+      ;;     "Python" "Django"
+      ;;     "1C" "1С"
+      ;;     "C++" "С++"
+      ;;     "Ruby" "Ruby on Rails"
+      ;;     "Go"
+      ;;     "Q/A" "QA"
+      ;;     "C#"
+      ;;     "Unity" "Unity3D"
+      ;;     "Flash"
+      ;;     "Java"
+      ;;     "Android"
+      ;;     "ASP"
+      ;;     "Objective-C"
+      ;;     "Delphi"
+      ;;     "Sharepoint"
+      ;;     "PL/SQL"
+      ;;     "Oracle"
+      ;;     "Node"
+      ;;     "тестировщик"
+      ;;     "Системный администратор"
+      ;;     "Трафик-менеджер"
+      ;;     "Traffic" "Трафик"
+      ;;     "Медиабайер" "Media Buyer" "Медиабаер"
+      ;;     "SAP"
+      ;;     "маркетолог"
+      ;;     "SMM"
+      ;;     "DevOps"
+      ;;     "Axapta"
+      ;;     "designer"
+      ;;     "Дизайнер"
+      ;;     "Designer"
+      ;;     "UX"
+      ;;     "по ремонту"
+      ;;     "Помощник"
+      ;;     "Верстальщик"
+      ;;     "Smolensk" "Львов")
 
       ;; (mapcar #'(lambda (x)
       ;;             (del-vacancy (id x)))
@@ -1585,7 +1549,11 @@
        (defmacro define-drop-teaser-rule ((name antecedent) &body consequent)
          `(define-rule (,(intern (concatenate 'string "DROP-TEASER-IF-"(symbol-name name))) ,antecedent)
             ;; (dbg "v1: ~A" (bprint vacancy))
-            (dbg "drop teaser: ~A-~A (~A) ~A" (getf vacancy :salary-min) (getf vacancy :salary-max) (getf vacancy :currency) (getf vacancy :name))
+            (dbg "drop teaser: ~A-~A (~A) ~A"
+                 (getf (getf vacancy :compensation) :salary-min)
+                 (getf (getf vacancy :compensation) :salary-max)
+                 (getf (getf vacancy :compensation) :currency)
+                 (getf (getf vacancy :vacancy) :name))
             ,@consequent
             (setf vacancy nil)
             :stop))
@@ -1594,16 +1562,23 @@
 
        ;; (print
        ;;  (macroexpand-1
-       ;;   '(define-drop-teaser-rule (hi-salary-java (and (> (getf vacancy :salary) 70000)
-       ;;                                              (not (contains "Java" (getf vacancy :name)))))
-       ;;     (print (getf vacancy :name))
-       ;;     (print (getf vacancy :salary)))))
+       ;;   '(define-drop-teaser-rule
+       ;;     (hi-salary-java (and (> (getf (getf vacancy :compensation) :salary) 70000)
+       ;;                      (not (contains "Java" (getf (getf vacancy :vacancy) :name)))))
+       ;;     (print (getf vacancy :vacancy) :name)
+       ;;     (print (getf (getf vacancy :compensation) :salary)))))
 
        ;; (DEFINE-RULE (DROP-TEASER-IF-HI-SALARY-JAVA
-       ;;               (AND (> (GETF VACANCY :SALARY) 70000)
-       ;;                    (NOT (CONTAINS "Java" (GETF VACANCY :NAME)))))
-       ;;   (PRINT (GETF VACANCY :NAME))
-       ;;   (PRINT (GETF VACANCY :SALARY))
+       ;;               (AND (> (GETF (GETF VACANCY :COMPENSATION) :SALARY) 70000)
+       ;;                    (NOT
+       ;;                     (CONTAINS "Java" (GETF (GETF VACANCY :VACANCY) :NAME)))))
+       ;;   (DBG "drop teaser: ~A-~A (~A) ~A"
+       ;;        (GETF (GETF VACANCY :COMPENSATION) :SALARY-MIN)
+       ;;        (GETF (GETF VACANCY :COMPENSATION) :SALARY-MAX)
+       ;;        (GETF (GETF VACANCY :COMPENSATION) :CURRENCY)
+       ;;        (GETF (GETF VACANCY :VACANCY) :NAME))
+       ;;   (PRINT (GETF VACANCY :VACANCY) :NAME)
+       ;;   (PRINT (GETF (GETF VACANCY :COMPENSATION) :SALARY))
        ;;   (SETF VACANCY NIL)
        ;;   :STOP)
      #+END_SRC
@@ -1617,7 +1592,7 @@
 
        (defmacro define-drop-teaser-by-name-rule (str &body consequent)
          `(define-drop-teaser-rule (,(intern (concatenate 'string "NAME-CONTAINS-" (string-upcase (ppcre:regex-replace-all "\\s+" str "-"))))
-                                     (contains (getf vacancy :name) ,str))
+                                     (contains (getf (getf vacancy :vacancy) :name) ,str))
             (dbg "  - name contains \"~A\"" ,str)
             ,@consequent))
 
@@ -1627,18 +1602,20 @@
        ;;  (macroexpand-1
        ;;   '(define-drop-teaser-by-name-rule "Android")))
 
-       ;; (DEFINE-DROP-TEASER-RULE (IF-NAME-CONTAINS-ANDROID
-       ;;                           (CONTAINS (GETF VACANCY :NAME) "Android"))
-       ;;   (DBG "drop:")
-       ;;   (DBG "  name contains ~A" "Android"))
+       ;; (DEFINE-DROP-TEASER-RULE (NAME-CONTAINS-ANDROID
+       ;;                           (CONTAINS (GETF (GETF VACANCY :VACANCY) :NAME)
+       ;;                                     "Android"))
+       ;;   (DBG "  - name contains \"~A\"" "Android"))
 
        ;; test
 
        ;; (define-drop-teaser-by-name-rule "Android")
 
-       ;; ==> (DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-ANTECEDENT
-       ;;      DROP-TEASER-IF-IF-NAME-CONTAINS-ANDROID-CONSEQUENT)
-
+       ;; (#<FUNCTION (LABELS DROP-TEASER-IF-NAME-CONTAINS-ANDROID-ANTECEDENT-G2507)
+       ;;             {100455A44B}>
+       ;;             #<FUNCTION (LABELS DROP-TEASER-IF-NAME-CONTAINS-ANDROID-CONSEQUENT-G2508)
+       ;;             {10045E5C4B}>
+       ;;             #<RULE {10045FE523}>)
      #+END_SRC
 
      Теперь в соответствии с принципом DRY определем макрос, который создаст список правил,
@@ -1683,7 +1660,9 @@
 
        (defmacro define-drop-vacancy-rule ((name antecedent) &body consequent)
          `(define-rule (,(intern (concatenate 'string "DROP-VACANCY-IF-"(symbol-name name))) ,antecedent)
-            (dbg "drop vacancy: ~A : ~A" (getf vacancy :name) (getf vacancy :emp-name))
+            (dbg "drop vacancy: ~A : ~A"
+                 (getf (getf vacancy :vacancy) :name)
+                 (getf (getf vacancy :company) :emp-name))
             ,@consequent
             (setf vacancy nil)
             :stop))
@@ -1714,7 +1693,7 @@
 
        (defmacro define-drop-all-vacancy-when-already-worked (&rest employers)
          `(list ,@(loop :for emp :in employers :collect
-                     `(define-drop-vacancy-rule (already-worked (contains (getf vacancy :emp-name) ,emp))
+                     `(define-drop-vacancy-rule (already-worked (contains (getf (getf vacancy :company) :emp-name) ,emp))
                           (dbg "   - already worked")))))
 
        ;; expand
@@ -1745,7 +1724,7 @@
      #+BEGIN_SRC lisp
        (in-package #:moto)
 
-       (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf vacancy :id)))))
+       (define-drop-vacancy-rule (already-exists-in-db (not (null (find-vacancy :src-id (getf (getf vacancy :vacancy) :id)))))
            ;; (let ((exists (car (find-vacancy :src-id (getf vacancy :id)))))
            (dbg "   - already exists"))
        ;; )
@@ -1939,12 +1918,12 @@
         (defmethod show-vacancy (vacancy)
           (format t "~%")
           (format t "~%~A :~A: ~A [~A]"
-               (getf vacancy :salary-text)
-               (getf vacancy :currency)
-               (getf vacancy :name)
-               (getf vacancy :id))
+               (getf (getf vacancy :compensation) :salary-text)
+               (getf (getf vacancy :compensation) :currency)
+               (getf (getf vacancy :vacancy) :name)
+               (getf (getf vacancy :vacancy) :id))
           (format t "~%~A" (getf vacancy :emp-name))
-          (format t "~A" (show-descr (getf vacancy :descr))))
+          (format t "~A" (show-descr (getf (getf vacancy :description) :descr))))
       #+END_SRC
 
 **** Я хочу занести вакансию в базу.
@@ -1976,26 +1955,26 @@
           (setf *saved-vacancy*
                 (append *saved-vacancy*
                         (list (make-vacancy
-                               :src-id (getf vacancy :id)
-                               :name (getf vacancy :name)
-                               :currency (getf vacancy :currency)
-                               :salary (aif (getf vacancy :salary) it 0)
-                               :base-salary (aif (getf vacancy :base-salary) it 0)
-                               :salary-text (getf vacancy :salary-text)
-                               :salary-max (getf vacancy :salary-max)
-                               :salary-min (getf vacancy :salary-min)
-                               :emp-id (aif (getf vacancy :emp-id) it 0)
-                               :emp-name (getf vacancy :emp-name)
-                               :city (getf vacancy :city)
-                               :metro (getf vacancy :metro)
-                               :experience (getf vacancy :exp)
-                               :archive (getf vacancy :archive)
-                               :date (getf vacancy :date)
-                               :respond (aif (getf vacancy :respond) it "")
-                               :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
-                               :descr (bprint (getf vacancy :descr))
-                               :notes ""
-                               :tags (aif (getf vacancy :tags) it "")
+                               :src-id (getf (getf vacancy :vacancy) :id)
+                               :name (getf (getf vacancy :vacancy) :name)
+                               :currency "" ;;  (getf (getf vacancy :compensation) :currency)
+                               :salary 1 ;;  (aif (getf (getf vacancy :compensation) :salary) it 0)
+                               :base-salary 1 ;;  (aif (getf (getf vacancy :compensation) :base-salary) it 0)
+                               :salary-text "" ;;  (getf (getf vacancy :compensation) :salary-text)
+                               :salary-max 1 ;;  (getf (getf vacancy :compensation) :salary-max)
+                               :salary-min 1 ;;  (getf (getf vacancy :compensation) :salary-min)
+                               :emp-id 1 ;;  (aif (getf (getf vacancy :company) :emp-id) it 0)
+                               :emp-name "" ;;  (getf (getf vacancy :company) :emp-name)
+                               :city "" ;; (getf vacancy :city)
+                               :metro "" ;; (getf vacancy :metro)
+                               :experience "" ;; (getf vacancy :exp)
+                               :archive nil ;; (getf vacancy :archive)
+                               :date "" ;; (getf vacancy :date)
+                               :respond "" ;; (aif (getf vacancy :respond) it "")
+                               :state "" ;; (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+                               :descr "" ;; (bprint (getf vacancy :descr))
+                               :notes "" ;; ""
+                               :tags "" ;; (aif (getf vacancy :tags) it "")
                                :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
       #+END_SRC
 
