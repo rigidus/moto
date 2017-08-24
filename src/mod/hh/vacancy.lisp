@@ -332,23 +332,23 @@
   (setf *saved-vacancy*
         (append *saved-vacancy*
                 (list (make-vacancy
-                       :src-id (getf (getf vacancy :vacancy) :id)
-                       :name (getf (getf vacancy :vacancy) :name)
-                       :currency "" ;;  (getf (getf vacancy :compensation) :currency)
-                       :salary 1 ;;  (aif (getf (getf vacancy :compensation) :salary) it 0)
-                       :base-salary 1 ;;  (aif (getf (getf vacancy :compensation) :base-salary) it 0)
-                       :salary-text "" ;;  (getf (getf vacancy :compensation) :salary-text)
-                       :salary-max 1 ;;  (getf (getf vacancy :compensation) :salary-max)
-                       :salary-min 1 ;;  (getf (getf vacancy :compensation) :salary-min)
-                       :emp-id 1 ;;  (aif (getf (getf vacancy :company) :emp-id) it 0)
-                       :emp-name "" ;;  (getf (getf vacancy :company) :emp-name)
+                       :src-id      (getf (getf vacancy :vacancy) :id)
+                       :name        (getf (getf vacancy :vacancy) :name)
+                       :currency    (getf (getf vacancy :compensation) :currency)
+                       :salary      (aif (getf (getf vacancy :compensation) :salary) it 0)
+                       :base-salary (aif (getf (getf vacancy :compensation) :base-salary) it 0)
+                       :salary-text (getf (getf vacancy :compensation) :salary-text)
+                       :salary-max  (getf (getf vacancy :compensation) :salary-max)
+                       :salary-min  (getf (getf vacancy :compensation) :salary-min)
+                       :emp-id      (aif (getf (getf vacancy :company) :emp-id) it 0)
+                       :emp-name    (getf (getf vacancy :company) :emp-name)
                        :city "" ;; (getf vacancy :city)
                        :metro "" ;; (getf vacancy :metro)
                        :experience "" ;; (getf vacancy :exp)
                        :archive nil ;; (getf vacancy :archive)
                        :date "" ;; (getf vacancy :date)
                        :respond "" ;; (aif (getf vacancy :respond) it "")
-                       :state "" ;; (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+                       :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
                        :descr "" ;; (bprint (getf vacancy :descr))
                        :notes "" ;; ""
                        :tags "" ;; (aif (getf vacancy :tags) it "")
@@ -888,16 +888,16 @@
      NIL
      ("vacancy-serp__vacancy-employer"
       (("href" ,href))
-      ,emp)
+      ,emp-name)
      ,@rest)
-    `(:company (:emp ,emp :href ,href))))
+    `(:company (:emp-name ,emp-name :href ,href))))
 
 (make-detect (company-anon)
   (`("search-result-item__company"
      NIL
      ,anon
      ,@rest)
-    `(:company (:emp ,anon :anon t))))
+    `(:company (:emp-name ,anon :anon t))))
 
 (make-detect (addr)
   (`("search-result-item__info"
@@ -1225,23 +1225,23 @@
 ;; moved   (setf *saved-vacancy*
 ;; moved         (append *saved-vacancy*
 ;; moved                 (list (make-vacancy
-;; moved                        :src-id (getf (getf vacancy :vacancy) :id)
-;; moved                        :name (getf (getf vacancy :vacancy) :name)
-;; moved                        :currency "" ;;  (getf (getf vacancy :compensation) :currency)
-;; moved                        :salary 1 ;;  (aif (getf (getf vacancy :compensation) :salary) it 0)
-;; moved                        :base-salary 1 ;;  (aif (getf (getf vacancy :compensation) :base-salary) it 0)
-;; moved                        :salary-text "" ;;  (getf (getf vacancy :compensation) :salary-text)
-;; moved                        :salary-max 1 ;;  (getf (getf vacancy :compensation) :salary-max)
-;; moved                        :salary-min 1 ;;  (getf (getf vacancy :compensation) :salary-min)
-;; moved                        :emp-id 1 ;;  (aif (getf (getf vacancy :company) :emp-id) it 0)
-;; moved                        :emp-name "" ;;  (getf (getf vacancy :company) :emp-name)
+;; moved                        :src-id      (getf (getf vacancy :vacancy) :id)
+;; moved                        :name        (getf (getf vacancy :vacancy) :name)
+;; moved                        :currency    (getf (getf vacancy :compensation) :currency)
+;; moved                        :salary      (aif (getf (getf vacancy :compensation) :salary) it 0)
+;; moved                        :base-salary (aif (getf (getf vacancy :compensation) :base-salary) it 0)
+;; moved                        :salary-text (getf (getf vacancy :compensation) :salary-text)
+;; moved                        :salary-max  (getf (getf vacancy :compensation) :salary-max)
+;; moved                        :salary-min  (getf (getf vacancy :compensation) :salary-min)
+;; moved                        :emp-id      (aif (getf (getf vacancy :company) :emp-id) it 0)
+;; moved                        :emp-name    (getf (getf vacancy :company) :emp-name)
 ;; moved                        :city "" ;; (getf vacancy :city)
 ;; moved                        :metro "" ;; (getf vacancy :metro)
 ;; moved                        :experience "" ;; (getf vacancy :exp)
 ;; moved                        :archive nil ;; (getf vacancy :archive)
 ;; moved                        :date "" ;; (getf vacancy :date)
 ;; moved                        :respond "" ;; (aif (getf vacancy :respond) it "")
-;; moved                        :state "" ;; (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
+;; moved                        :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
 ;; moved                        :descr "" ;; (bprint (getf vacancy :descr))
 ;; moved                        :notes "" ;; ""
 ;; moved                        :tags "" ;; (aif (getf vacancy :tags) it "")
