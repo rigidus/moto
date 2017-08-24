@@ -971,16 +971,20 @@
       ,@rest))
     contents))
 
-(defun plistp (list)
-  "Test wheather LIST is a properly formed plist."
-  (when (listp list)
-    (loop :for rest :on list :by #'cddr
+(in-package #:moto)
+
+(defun plistp (param)
+  "Test wheather PARAM is a properly formed pparam."
+  (when (listp param)
+    (loop :for rest :on param :by #'cddr
        :unless (and (keywordp (car rest))
                     (cdr rest))
        :do (return nil)
-       :finally (return list))))
+       :finally (return param))))
 
-(defun merge-plist (p1 p2)
+(in-package #:moto)
+
+(defun my-merge-plists (p1 p2)
   (loop with notfound = '#:notfound
      for (indicator value) on p1 by #'cddr
      when (eq (getf p2 indicator notfound) notfound)
@@ -989,8 +993,10 @@
           (push indicator p2)))
   p2)
 
+(in-package #:moto)
+
 (defun tree-plist-p (pl)
-  "Returns T if L is a plist (list with alternating keyword elements). "
+  "Returns T if PL is a plist (list with alternating keyword elements). "
   (cond ((null pl)                 t)
         ((and (listp pl)
               (keywordp (car pl))
@@ -1001,6 +1007,27 @@
         (t                         (progn
                                      ;; (print pl)
                                      nil))))
+
+(in-package #:moto)
+
+(defun compactor (param)
+  (let ((ht  (make-hash-table :test #'equal))
+        (result-vacancy))
+    (mapcar #'(lambda (section)
+                (assert (equal (logand (length section) 1) 0)) ;; even length
+                (loop :for key :in section :by #'cddr :do
+                   (assert (equal (type-of key) 'keyword))
+                   (let ((new-val (getf section key)))
+                     (assert (plistp new-val))
+                     (multiple-value-bind (old-val present)
+                         (gethash key ht)
+                       (setf (gethash key ht)
+                             (if (not present)
+                                 new-val
+                                 (my-merge-plists old-val new-val)))))))
+            param)
+    (maphash #'(lambda (k v) (push (list k v) result-vacancy)) ht)
+    (mapcan #'identity (reverse result-vacancy))))
 
 (define-condition malformed-vacancy (error)
   ((text :initarg :text :reader text)))
@@ -1033,23 +1060,7 @@
                          ;; error if malformed plist
                          (error 'malformed-vacancy :text))
                        ;; else
-                       (let ((ht  (make-hash-table :test #'equal))
-                             (result-vacancy))
-                         (mapcar #'(lambda (section)
-                                     (assert (equal (logand (length section) 1) 0)) ;; even length
-                                     (loop :for key :in section :by #'cddr :do
-                                        (assert (equal (type-of key) 'keyword))
-                                        (let ((new-val (getf section key)))
-                                          (assert (plistp new-val))
-                                          (multiple-value-bind (old-val present)
-                                              (gethash key ht)
-                                            (setf (gethash key ht)
-                                                  (if (not present)
-                                                      new-val
-                                                      (merge-plists old-val new-val)))))))
-                                 vacancy)
-                         (maphash #'(lambda (k v) (push (list k v) result-vacancy)) ht)
-                         (mapcan #'identity (reverse result-vacancy))))))))
+                       (compactor vacancy))))))
 
 ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
 
@@ -1064,7 +1075,22 @@
 
 (in-package #:moto)
 
+(in-package #:moto)
 
+(defun transform-description (tree-descr)
+  (labels ((rem-space (tree)
+             (cond ((consp tree) (cons (rem-space (car tree))
+                                       (rem-space (remove-if #'(lambda (x) (equal x " "))
+                                                             (cdr tree)))))
+                   (t tree))))
+    (append `((:p))
+            (mtm (`("p" nil ,@in) `((:p) ,@in))
+                 (mtm (`("ul" nil ,@in) `((:ul) ,@in))
+                      (mtm (`("li" nil ,@in) `((:li) ,@in))
+                           (mtm (`("em" nil ,@in) `((:b) ,@in))
+                                (mtm (`("strong" nil ,@in) `((:b) ,@in))
+                                     (mtm (`("br") `((:br)))
+                                          (rem-space tree-descr))))))))))
 
 (defun extract-vacancy (tree)
   (block subtree-extract
@@ -1119,8 +1145,7 @@
 
 (make-detect (gap)
   (`("bloko-gap bloko-gap_bottom bloko-gap_left" NIL ,@rest)
-    `(:gap "controls")))
-
+    `(:empty (:gap "controls"))))
 
 (make-detect (meta)
   (`("meta" (("itemprop" ,prop) ("content" ,content)))
@@ -1128,7 +1153,7 @@
 
 (make-detect (script)
   (`("script" (("data-name" ,name) ("data-params" ,params)))
-    `(:script (:name ,name :params ,params))))
+    `(:empty (:name ,name :params ,params))))
 
 
 (make-detect (l)
@@ -1154,25 +1179,27 @@
      NIL
      ,meta-title
      ("h1" (("class" "title b-vacancy-title")) ,title) ,emp)
-    `(:title ,title ,@meta-title :emp ,emp)))
+    `(:meta (:vacancy-title ,title) ,@meta-title :emp ,emp)))
 
 (make-detect (exp)
   (`("l-content-colum-3 b-v-info-content"
      NIL
      ("l-paddings" (("itemprop" "experienceRequirements")) ,exp))
-    `(:exp ,exp)))
+    `(:exp (:required ,exp))))
 
 (make-detect (city)
   (`("l-content-colum-2 b-v-info-content" NIL ("l-paddings" NIL ,city))
-    `(:city ,city)))
+    `(:address (:city ,city))))
 
 (make-detect (salary)
   (`("l-content-colum-1 b-v-info-content"
      NIL
-     ("l-paddings" NIL ,currency
-                   ,base-salary
-                   ,salary-text))
-    `(:currency ,currency :base-salary ,base-salary :salary-text ,salary-text)))
+     ("l-paddings"
+      NIL
+      (:meta (:salarycurrency ,currency))
+      (:meta (:basesalary ,base-salary))
+      ,salary-text))
+    `(:compensation (:currency ,currency :base-salary ,base-salary :salary-text ,salary-text))))
 
 (make-detect (tr)
   (`("tr" NIL ,salary ,city ,exp)
@@ -1182,7 +1209,7 @@
   (`("b-vacancy-desc-wrapper"
      (("itemprop" "description"))
      ,@longdescr)
-    `(:longdescr ,(transform-description longdescr))))
+    `(:longdescr (:lst ,(transform-description longdescr)))))
 
 (make-detect (skill-element)
   (`("skills-element"
@@ -1194,18 +1221,18 @@
 
 (make-detect (skills)
   (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
-    `(:skills ,(mapcar #'cadadr rest))))
+    `(:skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
 
 (make-detect (joblocation)
   (`("span"
      (("itemprop" "jobLocation") ("itemscope" "itemscope")
       ("itemtype" "http://schema.org/Place"))
-     ,name
+     (:meta (:name ,name))
      ("span"
       (("itemprop" "address") ("itemscope" "itemscope")
        ("itemtype" "http://schema.org/PostalAddress"))
-      ,address))
-    `(:joblocation (:name ,name :address ,address))))
+      (:meta (:addresslocality ,addresslocality))))
+    `(:address (:location ,name :addresslocality ,addresslocality))))
 
 (make-detect (jobtype)
   (`("b-vacancy-employmentmode l-paddings"
@@ -1220,11 +1247,11 @@
 (make-detect (logo)
   (`("b-vacancy-companylogo"
      NIL
-     ("a" (("href" ,company-logo-href))
-          ("img" (("src" ,company-logo-img) ("border" "0") ("alt" ,company-logo-alt)))))
-    `(:company-logo-href ,company-logo-href
-                         :company-logo-img ,company-logo-img
-                         :company-logo-alt ,company-logo-alt)))
+     ("a" (("href" ,logo-href))
+          ("img" (("src" ,logo-img) ("border" "0") ("alt" ,logo-alt)))))
+    `(:logo (:logo-href ,logo-href
+                                :logo-img ,logo-img
+                                :logo-alt ,logo-alt))))
 
 (make-detect (date)
   (`("l-content-paddings"
@@ -1293,16 +1320,21 @@
                        (detect-logo)
                        (detect-content-column-2)
                        (detect-content-column-1))))
-    ;; (when (not (tree-plist-p candidat))
-    ;;   (progn
-    ;;     (dbg "~A" (bprint candidat))
-    ;;     (error 'malformed-vacancy :text)))
-    candidat))
+    (if (not (tree-plist-p candidat))
+        (progn
+          (dbg "~A" (bprint candidat))
+          (error 'malformed-vacancy :text))
+        (compactor candidat))))
 
-;; (print
-;;  (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;    (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/22477082" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
+;; (defparameter *last-vacancy-html*
+;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+;;     (hh-get-page "https://spb.hh.ru/vacancy/22477082" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
 
+;; (let ((sections (hh-parse-vacancy *last-vacancy-html*)))
+;;   (loop :for section-key :in sections by #'cddr  :do
+;;      (format t "~%_______~%~A" (bprint (list section-key (getf sections section-key))))))
+
+;; (print (hh-parse-vacancy *last-vacancy-html*))
 
 ;; (print
 ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
