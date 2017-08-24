@@ -797,33 +797,41 @@
 
 (defun maptreefilter (tree)
   (when (listp tree)
-    (when (listp (car tree))
-      (when (equal '("target" "_blank") (car tree))  (setf tree (cdr tree)))
-      (when (equal "script" (caar tree))             (setf tree (cdr tree)))
-      (when (or (equal "div" (caar tree))
-                (equal "span" (caar tree))
-                (equal "a" (caar tree)))
-        (let ((attrs (attrs-to-plist (cadar tree)))
-              (rest  (cddar tree))
-              (name   nil))
-          ;; data-qa is primary target for new name
-          (aif (getf attrs :data-qa)
-               (setf name it)
-               ;; else: class is secondary target for new name
-               (aif (getf attrs :class)
-                    (setf name it)))
-          (when name
-            (if (or (equal name "search-result-description__item")
-                    (equal name "search-result-item__control"))
-                ;; Убиваем ненужное, если оно есть
-                (setf (car tree) name)
-                ;; else
-                (progn
-                  (remf attrs :data-qa)
-                  (remf attrs :class)
-                  (setf (caar tree) name) ;; new name
-                  (setf (cadar tree) (plist-to-attrs attrs)) ;; new attrs
-                  )))))))
+    (when (and (listp (car tree)) (equal '("target" "_blank") (car tree)))
+      (setf tree (cdr tree)))
+    (when (and (listp (car tree)) (equal "script" (caar tree)))
+      (setf tree (cdr tree)))
+    (when (and (listp (car tree)) ;; fix error if car is not list
+               (or (equal "div" (caar tree))
+                   (equal "span" (caar tree))
+                   (equal "a" (caar tree))
+                   (equal "td" (caar tree))
+                   (equal "th" (caar tree))
+                   (equal "table" (caar tree))
+                   ))
+      (let ((attrs (attrs-to-plist (cadar tree)))
+            (rest  (cddar tree))
+            (name   nil))
+        ;; data-qa is primary target for new name
+        (aif (getf attrs :data-qa)
+             (progn
+               (setf name it))
+             ;; else: class is secondary target for new name
+             (aif (getf attrs :class)
+                  (progn
+                    (setf name it))))
+        (when name
+          (if (or (equal name "search-result-description__item")
+                  (equal name "search-result-item__control"))
+              ;; Убиваем ненужное, если оно есть
+              (setf (car tree) name)
+              ;; else
+              (progn
+                (remf attrs :data-qa)
+                (remf attrs :class)
+                (setf (caar tree) name) ;; new name
+                (setf (cadar tree) (plist-to-attrs attrs)) ;; new attrs
+                ))))))
   (cond
     ((null tree) nil)
     ((atom tree) tree)
@@ -1056,102 +1064,244 @@
 
 (in-package #:moto)
 
-(in-package #:moto)
 
-(defun transform-description (tree-descr)
-  (labels ((rem-space (tree)
-             (cond ((consp tree) (cons (rem-space (car tree))
-                                       (rem-space (remove-if #'(lambda (x) (equal x " "))
-                                                             (cdr tree)))))
-                   (t tree))))
-    (append `((:p))
-            (mtm (`("p" nil ,@in) `((:p) ,@in))
-                 (mtm (`("ul" nil ,@in) `((:ul) ,@in))
-                      (mtm (`("li" nil ,@in) `((:li) ,@in))
-                           (mtm (`("em" nil ,@in) `((:b) ,@in))
-                                (mtm (`("strong" nil ,@in) `((:b) ,@in))
-                                     (mtm (`("br") `((:br)))
-                                          (rem-space tree-descr))))))))))
 
-(defun header-extractor (tree)
-  (mtm (`("div" (("class" "b-vacancy-custom g-round")) ("meta" (("itemprop" "title") ("content" ,_)))
-                ("h1" (("class" "title b-vacancy-title")) ,name ,@archive) ,@rest)
-         (return-from header-extractor
-           (append (list :name name :archive (if archive t nil))
-                   ;; (block emp-block (mtm (`("div" (("class" "companyname")) ("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name))
-                   ;;                         (return-from emp-block
-                   ;;                           (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
-                   ;;                                 :emp-name emp-name)))
-                   ;;                       rest))
-                   )))
-       tree))
+(defun extract-vacancy (tree)
+  (block subtree-extract
+    (mtm (`("div" (("class" "g-col1 m-colspan3"))
+                  ("div" (("class" "nopaddings") ,@other)
+                         ,@rest))
+           (return-from subtree-extract rest))
+         tree)))
 
-(defun company-extractor (tree)
-  (let ((candidat (mtm (`("a" (("itemprop" "hiringOrganization") ("href" ,emp-lnk)) ,emp-name)
-                       (return-from company-extractor
-                         (list :emp-id (parse-integer (car (last (split-sequence:split-sequence #\/ emp-lnk))) :junk-allowed t)
-                               :emp-name emp-name)))
-                     tree)))
-    (if (not (tree-plist-p candidat))
-        (list :emp-id 0
-              :emp-name "")
-        candidat)))
+(make-detect (vacancy-response-block)
+  (`("vacancy-response-block HH-VacancyResponsePopup-ResponseBlock" NIL ,@rest)
+    `(:vacancy-response-block "empty")))
 
-(defun salary-extractor (tree)
-  (let ((salary-result (block salary-extract
-                         (mtm (`("div" (("class" "l-paddings"))
-                                       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-                                       ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
-                                       ,salary-text)
-                                (return-from salary-extract (list :currency currency :base-salary (parse-integer base-salary) :salary-text salary-text)))
-                              tree))))
-    (if (equal 6 (length salary-result))
-        salary-result
-        (list :currency nil :base-salary nil :salary-text nil))))
+(make-detect (vacancy-view-banners)
+  (`("vacancy-view-banners" NIL ,@rest)
+    `(:vacancy-view-banners "empty")))
 
-(defun city-extractor (tree)
-  (let ((city-result (block city-extract (mtm (`("td" (("class" "l-content-colum-2 b-v-info-content")) ("div" (("class" "l-paddings")) ,city))
-                                                (return-from city-extract (list :city city))) tree))))
-    (if (equal 2 (length city-result)) city-result (list :city nil))))
+(make-detect (outer-info)
+  (`("b-vacancy-info"
+     NIL
+     ("l-content-3colums"
+      NIL
+      ("tbody"
+       NIL
+       ("tr"
+        NIL
+        ("l-content-colum-1 b-v-info-title" NIL ("l-paddings" NIL "Уровень зарплаты"))
+        ("l-content-colum-2 b-v-info-title" NIL ("l-paddings" NIL "Город"))
+        ("l-content-colum-3 b-v-info-title" NIL ("l-paddings" NIL "Требуемый опыт работы")))
+       ,info
+       )))
+    info))
 
-(defun exp-extractor (tree)
-  (let ((exp-result (block exp-extract (mtm (`("td" (("class" "l-content-colum-3 b-v-info-content"))
-                                                    ("div" (("class" "l-paddings") ("itemprop" "experienceRequirements")) ,exp))
-                                              (return-from exp-extract (list :exp exp))) tree))))
-    (if (equal 2 (length exp-result)) exp-result (list :exp nil))))
+(make-detect (descr-outer-block)
+  (`("bloko-gap bloko-gap_bottom"
+      NIL
+      ("l-paddings b-vacancy-desc g-user-content"
+       NIL
+       ,descr))
+    descr))
 
-(defun respond-extractor (tree)
-  (let ((respond-result (block respond-extract (mtm (`("div" (("class" "g-attention m-attention_good b-vacancy-message"))
-                                                             "Вы уже откликались на эту вакансию. "
-                                                             ("a" (("href" ,resp)) "Посмотреть отклики."))
-                                                      (return-from respond-extract (list :respond resp))) tree))))
-    (if (equal 2 (length respond-result)) respond-result (list :respond nil))))
+(make-detect (vacancy-container)
+  (`("l-content-2colums b-vacancy-container"
+     NIL
+     ("tbody"
+      NIL
+      ("tr"
+       NIL
+       ,l-content-colum-1
+       ,l-content-colum-2)))
+    `(,@l-content-colum-1 ,@l-content-colum-2)))
 
-(defun descr-extractor (tree)
-  (block descr-extract
-    (mtm (`("div" (("class" "b-vacancy-desc-wrapper") ("itemprop" "description")) ,@descr)
-           (return-from descr-extract (list :descr (transform-description descr)))) tree)))
+(make-detect (gap)
+  (`("bloko-gap bloko-gap_bottom bloko-gap_left" NIL ,@rest)
+    `(:gap "controls")))
+
+
+(make-detect (meta)
+  (`("meta" (("itemprop" ,prop) ("content" ,content)))
+    `(:meta (,(intern (string-upcase prop) :keyword) ,content))))
+
+(make-detect (script)
+  (`("script" (("data-name" ,name) ("data-params" ,params)))
+    `(:script (:name ,name :params ,params))))
+
+
+(make-detect (l)
+  (`("l" NIL ("tbody" NIL ("tr" NIL
+                                ("l-cell" (("colspan" "2")) ,comp)
+                                ("l-cell" NIL))))
+    comp))
+
+(make-detect (companer)
+  (`("employer-marks g-clearfix"
+     NIL
+     ("companyname"
+      NIL
+      ("a" (("itemprop" "hiringOrganization") ("href" ,emp-href)) ,emp-name)
+      " "
+      ("bloko-link"
+       (("href" ,emp-feedback))
+       ("bloko-icon bloko-icon_done bloko-icon_initial-action" NIL))))
+    `(:emp-name ,emp-name :emp-href ,emp-href :emp-feedback ,emp-feedback)))
+
+(make-detect (vacancy-custom)
+  (`("b-vacancy-custom g-round"
+     NIL
+     ,meta-title
+     ("h1" (("class" "title b-vacancy-title")) ,title) ,emp)
+    `(:title ,title ,@meta-title :emp ,emp)))
+
+(make-detect (exp)
+  (`("l-content-colum-3 b-v-info-content"
+     NIL
+     ("l-paddings" (("itemprop" "experienceRequirements")) ,exp))
+    `(:exp ,exp)))
+
+(make-detect (city)
+  (`("l-content-colum-2 b-v-info-content" NIL ("l-paddings" NIL ,city))
+    `(:city ,city)))
+
+(make-detect (salary)
+  (`("l-content-colum-1 b-v-info-content"
+     NIL
+     ("l-paddings" NIL ,currency
+                   ,base-salary
+                   ,salary-text))
+    `(:currency ,currency :base-salary ,base-salary :salary-text ,salary-text)))
+
+(make-detect (tr)
+  (`("tr" NIL ,salary ,city ,exp)
+    `(,@salary ,@city ,@exp)))
+
+(make-detect (longdescr)
+  (`("b-vacancy-desc-wrapper"
+     (("itemprop" "description"))
+     ,@longdescr)
+    `(:longdescr ,(transform-description longdescr))))
+
+(make-detect (skill-element)
+  (`("skills-element"
+     (("data-tag-id" ,tag))
+     ("bloko-tag__section bloko-tag__section_text"
+      (("title" ,title))
+      ("bloko-tag__text" NIL ,tagtext)))
+    `(:skill (:tag ,tag :title ,title :tagtext ,tagtext))))
+
+(make-detect (skills)
+  (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
+    `(:skills ,(mapcar #'cadadr rest))))
+
+(make-detect (joblocation)
+  (`("span"
+     (("itemprop" "jobLocation") ("itemscope" "itemscope")
+      ("itemtype" "http://schema.org/Place"))
+     ,name
+     ("span"
+      (("itemprop" "address") ("itemscope" "itemscope")
+       ("itemtype" "http://schema.org/PostalAddress"))
+      ,address))
+    `(:joblocation (:name ,name :address ,address))))
+
+(make-detect (jobtype)
+  (`("b-vacancy-employmentmode l-paddings"
+     NIL
+     ("h3" (("class" "b-subtitle")) "Тип занятости")
+     ("l-content-paddings"
+      NIL
+      ("span" (("itemprop" "employmentType")) ,emptype) ", "
+      ("span" (("itemprop" "workHours")) ,workhours)))
+    `(:jobtype (:emptype ,emptype :workhours ,workhours))))
+
+(make-detect (logo)
+  (`("b-vacancy-companylogo"
+     NIL
+     ("a" (("href" ,company-logo-href))
+          ("img" (("src" ,company-logo-img) ("border" "0") ("alt" ,company-logo-alt)))))
+    `(:company-logo-href ,company-logo-href
+                         :company-logo-img ,company-logo-img
+                         :company-logo-alt ,company-logo-alt)))
+
+(make-detect (date)
+  (`("l-content-paddings"
+     NIL
+     ("vacancy-sidebar"
+      NIL
+      "Дата публикации вакансии "
+      ("time"
+       (("class" "vacancy-sidebar__publication-date")
+        ("itemprop" "datePosted")
+        ("datetime" ,datetime))
+       ,date)))
+    `(:datetime ,datetime :date ,date)))
+
+(make-detect (content-column-2)
+  (`("l-content-colum-2" NIL ,logo ,date ,@banners)
+    `(,@logo ,@date)))
+
+(make-detect (content-column-1)
+  (` ("l-content-colum-1"
+      (("colspan" "2"))
+      ("div"
+       (("id" "hypercontext"))
+       ("index"
+        NIL ,longdescr
+        ,skills
+        ,joblocation
+        ,jobtype))
+      ,vacancy-response-block
+      "l-content-colum-2"
+      NIL
+      ,logo
+      ,date
+      ,@banners)
+     `(,@longdescr ,@skills ,@joblocation ,@jobtype ,@logo)))
+
 
 (defun hh-parse-vacancy (html)
+  "Получение вакансии из html"
   (dbg "hh-parse-vacancy")
-  (let* ((tree (html-to-tree html))
-         (candidat (append (header-extractor tree)
-                           (company-extractor tree)
-                           (salary-extractor tree)
-                           (city-extractor tree)
-                           (exp-extractor tree)
-                           (respond-extractor tree)
-                           (descr-extractor tree))))
-    (if (not (tree-plist-p candidat))
-        (progn
-          (dbg "~A" (bprint candidat))
-          (error 'malformed-vacancy :text))
-        candidat)))
-
+  (setf *last-parse-data* html)
+  (let ((candidat (->> (html-to-tree html)
+                       (extract-vacancy)
+                       (maptreefilter)
+                       (detect-vacancy-response-block)
+                       (detect-vacancy-view-banners)
+                       (detect-outer-info)
+                       (detect-descr-outer-block)
+                       (detect-date)
+                       (detect-vacancy-container)
+                       (detect-gap)
+                       (detect-meta)
+                       (detect-script)
+                       (detect-companer)
+                       (detect-vacancy-custom)
+                       (detect-l)
+                       (detect-exp)
+                       (detect-city)
+                       (detect-salary)
+                       (detect-tr)
+                       (detect-longdescr)
+                       (detect-skill-element)
+                       (detect-skills)
+                       (detect-joblocation)
+                       (detect-jobtype)
+                       (detect-logo)
+                       (detect-content-column-2)
+                       (detect-content-column-1))))
+    ;; (when (not (tree-plist-p candidat))
+    ;;   (progn
+    ;;     (dbg "~A" (bprint candidat))
+    ;;     (error 'malformed-vacancy :text)))
+    candidat))
 
 ;; (print
 ;;  (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;    (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/12561525" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
+;;    (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/22477082" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
 
 
 ;; (print
