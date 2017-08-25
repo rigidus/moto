@@ -1077,6 +1077,16 @@
 
 (in-package #:moto)
 
+(defun extract-vacancy (tree)
+  (block subtree-extract
+    (mtm (`("div" (("class" "g-col1 m-colspan3"))
+                  ("div" (("class" "nopaddings") ,@other)
+                         ,@rest))
+           (return-from subtree-extract rest))
+         tree)))
+
+(in-package #:moto)
+
 (defun transform-description (tree-descr)
   (labels ((rem-space (tree)
              (cond ((consp tree) (cons (rem-space (car tree))
@@ -1092,13 +1102,7 @@
                                      (mtm (`("br") `((:br)))
                                           (rem-space tree-descr))))))))))
 
-(defun extract-vacancy (tree)
-  (block subtree-extract
-    (mtm (`("div" (("class" "g-col1 m-colspan3"))
-                  ("div" (("class" "nopaddings") ,@other)
-                         ,@rest))
-           (return-from subtree-extract rest))
-         tree)))
+(in-package #:moto)
 
 (make-detect (vacancy-response-block)
   (`("vacancy-response-block HH-VacancyResponsePopup-ResponseBlock" NIL ,@rest)
@@ -1126,10 +1130,10 @@
 
 (make-detect (descr-outer-block)
   (`("bloko-gap bloko-gap_bottom"
+     NIL
+     ("l-paddings b-vacancy-desc g-user-content"
       NIL
-      ("l-paddings b-vacancy-desc g-user-content"
-       NIL
-       ,descr))
+      ,descr))
     descr))
 
 (make-detect (vacancy-container)
@@ -1250,8 +1254,8 @@
      ("a" (("href" ,logo-href))
           ("img" (("src" ,logo-img) ("border" "0") ("alt" ,logo-alt)))))
     `(:logo (:logo-href ,logo-href
-                                :logo-img ,logo-img
-                                :logo-alt ,logo-alt))))
+                        :logo-img ,logo-img
+                        :logo-alt ,logo-alt))))
 
 (make-detect (date)
   (`("l-content-paddings"
@@ -1287,6 +1291,7 @@
       ,date
       ,@banners)
      `(,@longdescr ,@skills ,@joblocation ,@jobtype ,@logo)))
+
 
 
 (defun hh-parse-vacancy (html)
