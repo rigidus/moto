@@ -1376,7 +1376,7 @@
                                 ,tree)))
       #+END_SRC
 
-*** Разбор вакансий (=hh-parse-vacancy=)
+*** COMMENT Разбор вакансий (=hh-parse-vacancy=)
 
     Функция =hh-parse-vacancy= обрабатывает вакансии примерно так же как
     =hh-parse-vacancy-teaser= обрабатывает тизеры вакансий: получает на вход html и
@@ -1418,7 +1418,6 @@
                              (detect-vacancy-info)
                              (detect-vac-info-tr)
                              (detect-container)
-                             (detect-branded)
                              (detect-col-1)
                              (detect-hypercontext)
                              (detect-descr-outer-block)
@@ -1437,9 +1436,11 @@
                              (detect-vacancy-view-banners)
                              (detect-column-2)
                              (detect-meta)
-                             ;; (detect-skill-element)
-                             ;; (detect-skills)
+                             (detect-response-block)
+                             (detect-skill-element)
+                             (detect-skills)
                              ;; (detect-joblocation)
+                             (detect-handicap)
                              )))
           ;; (if (not (tree-plist-p candidat))
           ;;     (progn
@@ -1454,20 +1455,29 @@
           candidat
           ))
 
-      (defparameter *last-vacancy-html*
-        (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-          (hh-get-page "https://spb.hh.ru/vacancy/17527227" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
+      ;; (defparameter *last-vacancy-html*
+      ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+      ;;     (hh-get-page "https://spb.hh.ru/vacancy/17527227" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
 
-      (defparameter *last-vacancy-html*
-        (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-          (hh-get-page "https://spb.hh.ru/vacancy/18108178" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
+      ;; (defparameter *last-vacancy-html*
+      ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+      ;;     (hh-get-page "https://spb.hh.ru/vacancy/18108178" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
+
+      ;; (defparameter *last-vacancy-html*
+      ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+      ;;     (hh-get-page "https://spb.hh.ru/vacancy/17527227" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
+
+      ;; (defparameter *last-vacancy-html*
+      ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+      ;;     (hh-get-page "https://spb.hh.ru/vacancy/22262525" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
+
 
 
       ;; (let ((sections (hh-parse-vacancy *last-vacancy-html*)))
       ;;   (loop :for section-key :in sections by #'cddr  :do
       ;;      (format t "~%_______~%~A" (bprint (list section-key (getf sections section-key))))))
 
-      (print (hh-parse-vacancy *last-vacancy-html*))
+      ;; (print (hh-parse-vacancy *last-vacancy-html*))
 
       ;; (print
       ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
@@ -1516,7 +1526,7 @@
                                                 (rem-space tree-descr))))))))))
     #+END_SRC
 
-**** COMMENT Набор шаблонных макросов-преобразователей для вакансий
+**** Набор шаблонных макросов-преобразователей для вакансий
 
      Эти макросы по шаблону преобразуют вакансии в plist
 
@@ -1529,8 +1539,11 @@
            `(:empty (:script ,name :params ,params))))
 
        (make-detect (branded)
-         (`("vacancy-branded" NIL ,@_)
-           `(:empty (:branded ""))))
+         (`("vacancy-branded" NIL ,@data)
+           `(:branded ,(block subtree-extract
+                              (mtm (`("l-paddings b-vacancy-desc g-user-content" NIL ,payload)
+                                     (return-from subtree-extract payload))
+                                   data)))))
 
        (make-detect (gap)
          (`("bloko-gap bloko-gap_bottom bloko-gap_left" NIL ,@_)
@@ -1612,12 +1625,6 @@
               ,col-2)))
            `(:cols (:col-1 ,col-1 :col-2 ,col-2))))
 
-       (make-detect (branded)
-         (`("branded-vacancy" NIL
-                              ,hypercontext
-                              ,_) ;;response-block
-           `(:hypercontext ,hypercontext)))
-
        (make-detect (col-1)
          (`("l-content-colum-1"
             (("colspan" "2"))
@@ -1628,9 +1635,8 @@
        (make-detect (hypercontext)
          (`("div"
             (("id" "hypercontext"))
-            ("index" NIL ,text ,addr ,emp-mode ,emp-contacts))
-           `(:text ,text :addr ,addr :emp-mode ,emp-mode :emp-contacts ,emp-contacts)))
-
+            ("index" NIL ,@rest))
+           `(:hype ,rest)))
 
        (make-detect (descr-outer-block)
          (`("bloko-gap bloko-gap_bottom"
@@ -1721,8 +1727,64 @@
        (make-detect (contacts-tr)
          (`("tr" NIL
                  ("vacancy-contacts__list-title" NIL ,_)
+                 ("td" NIL ,@contacts-data))
+           `(:contacts-tr ,contacts-data)))
+
+       (make-detect (contacts-phone)
+         (`("vacancy-contacts__phone" NIL ,phone ("vacancy-contacts__comment" NIL ,phone-comment))
+           `(:phone ,phone :phone-comment ,phone-comment)))
+
+       (make-detect (contacts-mail)
+         (`("vacancy-contacts__email" (("href" ,mail-link) ("rel" "nofollow")) ,email)
+           `(:mail-link ,mail-link :email ,email)))
+
+       (make-detect (contacts-tr)
+         (`("tr" NIL
+                 ("vacancy-contacts__list-title" NIL ,_)
                  ("td" NIL ,contacts-data))
            `(:contacts-tr ,contacts-data)))
+
+       (make-detect (contacts-list)
+         (`("vacancy-contacts__list"
+            NIL
+            ("tbody" NIL ,@rest))
+           `(:contacts-list ,rest)))
+
+       (make-detect (contacts-fio)
+         (`("vacancy-contacts__fio" NIL ,fio)
+           `(:fio ,fio)))
+
+       (make-detect (contacts-body)
+         (`("vacancy-contacts__body"
+            NIL
+            ("l-content-paddings" NIL ,@rest))
+           `(:contacts ,rest
+             ;; ,@(let ((rs))
+             ;;        (mapcar #'(lambda (x)
+             ;;                    (if (keywordp (car x))
+             ;;                        (push x rs)
+             ;;                        (mapcar #'(lambda (x)
+             ;;                                    (push x rs))
+             ;;                                x)))
+             ;;                rest)
+             ;;        (reverse rs))
+             )))
+
+       (make-detect (closed-contacts)
+         (`("l-paddings"
+            NIL
+            ("noindex"
+             NIL
+             ("vacancy-contacts vacancy-contacts_closed"
+              NIL
+              (:EMPTY ,_)
+              (:EMPTY ,_)
+              ("h3" (("id" "expand-vacancy-contacts"))
+                    ("show-employer-contacts" (("data-toggle" ""))
+                                              ("bloko-link-switch" NIL "Показать контактную информацию"))
+                    ("vacancy-contacts__title-opened" NIL "Контактная информация"))
+              ,contacts)))
+           contacts))
 
        (make-detect (logo)
          (`("b-vacancy-companylogo"
@@ -1746,6 +1808,10 @@
               ,date-text)))
            `(:date (:datetime ,datetime :date-text ,date-text))))
 
+       (make-detect (response-block)
+         (`("vacancy-response-block HH-VacancyResponsePopup-ResponseBlock" NIL ,@_)
+           `(:response-block "empty")))
+
        (make-detect (vacancy-view-banners)
          (`("vacancy-view-banners" NIL ,@_)
            `(:empty (:vacancy-view-banners "empty"))))
@@ -1758,17 +1824,17 @@
          (`("meta" (("itemprop" ,prop) ("content" ,content)))
            `(:meta (,(intern (string-upcase prop) :keyword) ,content))))
 
-       ;; (make-detect (skill-element)
-       ;;   (`("skills-element"
-       ;;      (("data-tag-id" ,tag))
-       ;;      ("bloko-tag__section bloko-tag__section_text"
-       ;;       (("title" ,title))
-       ;;       ("bloko-tag__text" NIL ,tagtext)))
-       ;;     `(:skill (:tag ,tag :title ,title :tagtext ,tagtext))))
+       (make-detect (skill-element)
+         (`("skills-element"
+            (("data-tag-id" ,tag))
+            ("bloko-tag__section bloko-tag__section_text"
+             (("title" ,title))
+             ("bloko-tag__text" NIL ,tagtext)))
+           `(:skill (:tag ,tag :title ,title :tagtext ,tagtext))))
 
-       ;; (make-detect (skills)
-       ;;   (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
-       ;;     `(:skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
+       (make-detect (skills)
+         (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
+           `(:skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
 
        ;; (make-detect (joblocation)
        ;;   (`("span"
@@ -1780,6 +1846,16 @@
        ;;        ("itemtype" "http://schema.org/PostalAddress"))
        ;;       (:meta (:addresslocality ,addresslocality))))
        ;;     `(:address (:location ,name :addresslocality ,addresslocality))))
+
+
+       (make-detect (handicap)
+         (`("vacancy__info vacancy__info_handicapped vacancy__info_noprint"
+            NIL
+            ("bloko-link-switch bloko-link-switch_inherited" (("data-toggle" "")) ,handicap)
+            ("vacancy__info-expandable"
+             NIL
+             ("vacancy-info-tip" NIL"Это означает готовность компании рассматривать соискателей на равных на основании деловых качеств. Соискатель оценивает самостоятельно, насколько требования вакансии сопоставимы с его индивидуальными особенностями.")))
+           `(:handicap ,handicap)))
     #+END_SRC
 
 ** Правила обработки тизеров и вакансий
@@ -2685,7 +2761,7 @@
                             :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
    #+END_SRC
 
-** COMMENT Печать вакансий (=show-vacancy=)
+** Печать вакансий (=show-vacancy=)
 
    Создадим специальную функцию, которая будет выводить вакансии в консоль. Эта функция
    будет вызываться из правила, чтобы таким образом можно было реализовать отладочную
