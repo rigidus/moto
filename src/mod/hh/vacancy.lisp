@@ -308,7 +308,7 @@
 
 (defmethod show-vacancy (vacancy)
   (format t "~%")
-  (format t (bprint vacancy))
+  ;; (format t (bprint vacancy))           ;
   ;; (loop :for section-key :in vacancy by #'cddr  :do
   ;;    (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
   ;; (format t "~%~A :~A: ~A [~A]"
@@ -901,7 +901,7 @@
      ,requirement)
     `(:short-descr (:requirement ,requirement))))
 
-(make-detect (insider)
+(make-detect (insider-teaser)
   (`("vacancy-serp__vacancy-interview-insider"
      (("href" ,insider))
      "Посмотреть интервью о жизни в компании")
@@ -1064,7 +1064,7 @@
        (detect-schedule)
        (detect-responsibility)
        (detect-requirement)
-       (detect-insider)
+       (detect-insider-teaser)
        (detect-company)
        (detect-company-anon)
        (detect-addr)
@@ -1078,7 +1078,7 @@
                          (error 'malformed-vacancy :text))
                        ;; else
                        ;; (compactor vacancy)
-                       (print vacancy)
+                       vacancy
                        )))))
 
 ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
@@ -1127,6 +1127,15 @@
   (`("script" (("data-name" ,name) ("data-params" ,params)))
     `(:empty (:script ,name :params ,params))))
 
+(make-detect (insider-vacancy)
+  (`("bloko-gap bloko-gap_left"
+     (("xmlns:b" "http://hhru.github.com/bloko/"))
+     ("b-insider-interview"
+      NIL
+      ("a" (("href" ,insider-href))
+           "Посмотреть интервью о жизни в компании")))
+    `(:empty (:insider ,insider-href))))
+
 (make-detect (branded)
   (`("vacancy-branded" NIL ,@data)
     `(:branded ,(block subtree-extract
@@ -1139,7 +1148,7 @@
      NIL
      ,content
      ,@_)
-    `(:branded-vacancy2 ,content)))
+    `(:branded-vacancy ,content)))
 
 (make-detect (gap)
   (`("bloko-gap bloko-gap_bottom bloko-gap_left" NIL ,@_)
@@ -1187,7 +1196,7 @@
         ("l-content-colum-3 b-v-info-title" NIL ("l-paddings" NIL "Требуемый опыт работы")))
        ,info
        )))
-    `(:vac-info1 ,info)))
+    `(:vac-info ,info)))
 
 (make-detect (vac-info-tr)
   (`("tr"
@@ -1205,10 +1214,27 @@
      ("l-content-colum-3 b-v-info-content"
       NIL
       ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
-    `(:currency ,currency :base-salary ,base-salary :salary-text
-                ,salary-text :city ,city :exp ,exp
-                :metro ,(mapcar #'(lambda (x) (car (last x)))
-                                (remove-if-not #'listp metro)))))
+    `(:benef (:currency ,currency :base-salary ,base-salary :salary-text
+                        ,salary-text)
+             :placing (:city ,city)
+             :expa (:exp ,exp)
+             :placing (:metro ,(mapcar #'(lambda (x) (car (last x)))
+                                       (remove-if-not #'listp metro))))))
+
+(make-detect (or-vac-info-tr-no-salary)
+  (`("tr"
+     NIL
+     ("l-content-colum-1 b-v-info-content"
+      NIL
+      ("l-paddings" NIL " з/п не указана"))
+     ("l-content-colum-2 b-v-info-content" NIL ("l-paddings" NIL ,city ,@metro))
+     ("l-content-colum-3 b-v-info-content"
+      NIL
+      ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
+    `(:placing (:city ,city)
+               :expa (:exp ,exp)
+               :placing (:metro ,(mapcar #'(lambda (x) (car (last x)))
+                                       (remove-if-not #'listp metro))))))
 
 (make-detect (container)
   (`("l-content-2colums b-vacancy-container"
@@ -1296,19 +1322,8 @@
 (make-detect (contacts-body)
   (`("vacancy-contacts__body"
      NIL
-     ("l-content-paddings"
-      NIL
-      ,@rest))
+     ("l-content-paddings" NIL ,@rest))
     `(:contacts ,@rest)))
-      ;; ,@(let ((rs))
-      ;;        (mapcar #'(lambda (x)
-      ;;                    (if (keywordp (car x))
-      ;;                        (push x rs)
-      ;;                        (mapcar #'(lambda (x)
-      ;;                                    (push x rs))
-      ;;                                x)))
-      ;;                rest)
-      ;;        (reverse rs)))))
 
 (make-detect (contacts-fio)
   (`("vacancy-contacts__fio" NIL ,fio)
@@ -1346,26 +1361,6 @@
      ("tbody" NIL ,@rest))
     `(:contacts-list ,rest)))
 
-(make-detect (contacts-fio)
-  (`("vacancy-contacts__fio" NIL ,fio)
-    `(:fio ,fio)))
-
-(make-detect (contacts-body)
-  (`("vacancy-contacts__body"
-     NIL
-     ("l-content-paddings" NIL ,@rest))
-    `(:contacts ,rest
-      ;; ,@(let ((rs))
-      ;;        (mapcar #'(lambda (x)
-      ;;                    (if (keywordp (car x))
-      ;;                        (push x rs)
-      ;;                        (mapcar #'(lambda (x)
-      ;;                                    (push x rs))
-      ;;                                x)))
-      ;;                rest)
-      ;;        (reverse rs))
-      )))
-
 (make-detect (closed-contacts)
   (`("l-paddings"
      NIL
@@ -1402,7 +1397,24 @@
         ("itemprop" "datePosted")
         ("datetime" ,datetime))
        ,date-text)))
-    `(:datetime ,datetime :date-text ,date-text)))
+    `(:datetime ,datetime :date-text ,date-text :disabled nil)))
+
+(make-detect (or-date-with-disabled)
+  (`("l-content-paddings"
+     NIL
+     ("vacancy-sidebar"
+      NIL
+      "Дата публикации вакансии "
+      ("time"
+       (("class" "vacancy-sidebar__publication-date")
+        ("itemprop" "datePosted")
+        ("datetime" ,datetime))
+       ,date-text))
+     ("vacancy__print-info vacancy__print-info_noscreen"
+      NIL
+      "Вакансия доступна для соискателей с инвалидностью"))
+    `(:datetime ,datetime :date-text ,date-text :disabled t)))
+
 
 (make-detect (response-block)
   (`("vacancy-response-block HH-VacancyResponsePopup-ResponseBlock" NIL ,@_)
@@ -1450,7 +1462,7 @@
      ("vacancy__info-expandable"
       NIL
       ("vacancy-info-tip" NIL"Это означает готовность компании рассматривать соискателей на равных на основании деловых качеств. Соискатель оценивает самостоятельно, насколько требования вакансии сопоставимы с его индивидуальными особенностями.")))
-    `(:handicap ,handicap)))
+    `(:handicap (:msg ,handicap))))
 
 
 (make-detect (compact-l)
@@ -1458,39 +1470,38 @@
     `(:vacancy (:title ,title) :empl (:EMP-NAME ,emp-name :EMP-HREF ,emp-href))))
 
 (make-detect (compact-info)
-  (`(:VAC-INFO2 (:CURRENCY ,currency :BASE-SALARY ,base-salary  :SALARY-TEXT ,salary-text
-                          :CITY ,city :EXP ,exp :METRO ,metro))
-    `(:benefits (:currency ,currency :base-salary ,base-salary :salary-text ,salary-text)
-                :place (:city ,city :metro ,metro)
-                :expirience (:exp ,exp))))
+  (`(:VAC-INFO ,info)
+    `(,@info)))
 
-(make-detect (compact-column-2)
-  (`(:COLUMN-2 (:LOGO ,logo :DATE ,date))
-    `(:logo ,logo :date ,date)))
+(make-detect (compact-contacts)
+  (`(:CONTACTS (:FIO ,fio) (:CONTACTS-LIST ,contacts-trs))
+    `(:contacts (:trs ,(append `((:CONTACTS-TR
+                                  ((:FIO ,fio)))) contacts-trs)))))
 
-(make-detect (compact-col-1-2)
-  (`(:COL-1
-     (:HYPERCONTEXT
-      (:HYPE
-       (,@rest-1)))
-     :COL-2
-     ,@rest-2)
-    (append rest-1 rest-2)))
-
-(make-detect (compact-cols)
+(make-detect (columns)
   (`(:COLS
-     ((:LONG
-        ,descr)
-      ,@rest))
-    `,(append (list :d "descr") rest)))
+     (:COL-1
+      (:HYPERCONTEXT
+       (:HYPE
+        (,@rest-1)))
+      :COL-2
+      (:COLUMN-2
+       ,col-2)))
+    `(:infoblock-1 ,rest-1 :infoblock-2 ,col-2)))
 
-(make-detect (compact-branded)
-  (`(:BRANDED-VACANCY2
+(make-detect (branded-hype)
+  (`(:BRANDED-VACANCY
      (:HYPE
       ((:BRANDED
         ,descr)
        ,@rest)))
-    `,(append (list :d "descr") rest)))
+    (mapcan #'identity (append `((:long ,descr)) rest))))
+
+(make-detect (compact-infoblock)
+  (`(:INFOBLOCK-1 ,infoblock-1 :INFOBLOCK-2 ,infoblock-2)
+    (mapcan #'identity (append infoblock-1 (list infoblock-2)))))
+
+
 
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
@@ -1500,6 +1511,7 @@
                        (extract-vacancy)
                        (maptreefilter)
                        (detect-script)
+                       (detect-insider-vacancy)
                        (detect-branded)
                        (detect-branded2)
                        (detect-gap)
@@ -1508,6 +1520,7 @@
                        (detect-emp)
                        (detect-vacancy-info)
                        (detect-vac-info-tr)
+                       (detect-or-vac-info-tr-no-salary)
                        (detect-container)
                        (detect-col-1)
                        (detect-hypercontext)
@@ -1524,6 +1537,7 @@
                        (detect-contacts-mail)
                        (detect-logo)
                        (detect-date)
+                       (detect-or-date-with-disabled)
                        (detect-vacancy-view-banners)
                        (detect-column-2)
                        (detect-meta)
@@ -1533,12 +1547,12 @@
                        (detect-joblocation)
                        (detect-handicap)
                        (detect-compact-l)
+                       (detect-compact-contacts)
                        (detect-compact-info)
-                       (detect-compact-column-2)
-                       (detect-compact-col-1-2)
-                       (detect-compact-cols)
-                       (detect-compact-branded)
-                       ;; (compactor)
+                       (detect-columns)
+                       (detect-branded-hype)
+                       (detect-compact-infoblock)
+                       ;; compactor
                        )))
     ;; (if (not (tree-plist-p candidat))
     ;;     (progn
@@ -1550,8 +1564,13 @@
     ;;       non-compacted-vacancy
     ;;       ;; compacted-vacancy
     ;;     ))
+    (print candidat)
+    (print (compactor candidat))
     candidat
     ))
+
+;; (print (hh-parse-vacancy *last-vacancy-html*))
+
 
 ;; (defparameter *last-vacancy-html*
 ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
@@ -1568,6 +1587,12 @@
 ;; (defparameter *last-vacancy-html*
 ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;     (hh-get-page "https://spb.hh.ru/vacancy/22262525" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
+
+;; (defparameter *last-vacancy-html*
+;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
+;;     (hh-get-page "https://spb.hh.ru/vacancy/22518184" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
+
+
 
 ;; (let ((sections (hh-parse-vacancy *last-vacancy-html*)))
 ;;   (loop :for section-key :in sections by #'cddr  :do
