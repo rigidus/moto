@@ -308,8 +308,9 @@
 
 (defmethod show-vacancy (vacancy)
   (format t "~%")
-  (loop :for section-key :in vacancy by #'cddr  :do
-     (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
+  (format t (bprint vacancy))
+  ;; (loop :for section-key :in vacancy by #'cddr  :do
+  ;;    (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
   ;; (format t "~%~A :~A: ~A [~A]"
   ;;      (getf vacancy :salary-text)
   ;;      (getf vacancy :currency)
@@ -477,19 +478,19 @@
 ;;  (DROP-TEASER-IF-IF-NAME-CONTAINS-C++-ANTECEDENT
 ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
 
-(define-drop-teaser-rule
-    (salary-1-no (null (getf vacancy :compensation)))
-  (dbg "- no salary"))
+;; (define-drop-teaser-rule
+;;     (salary-1-no (null (getf vacancy :compensation)))
+;;   (dbg "- no salary"))
 
-(define-drop-teaser-rule (salary-2-low (or
-                                        (and (equal (getf vacancy :currency) "RUR")
-                                             (< (getf vacancy :salary-max) 90000))
-                                        (and (equal (getf vacancy :currency) "USD")
-                                             (< (getf vacancy :salary-max) (floor 90000 58)))
-                                        (and (equal (getf vacancy :currency) "EUR")
-                                             (< (getf vacancy :salary-max) (floor 90000 61)))
-                                        ))
-  (dbg "- low salary"))
+;; (define-drop-teaser-rule (salary-2-low (or
+;;                                         (and (equal (getf vacancy :currency) "RUR")
+;;                                              (< (getf vacancy :salary-max) 90000))
+;;                                         (and (equal (getf vacancy :currency) "USD")
+;;                                              (< (getf vacancy :salary-max) (floor 90000 58)))
+;;                                         (and (equal (getf vacancy :currency) "EUR")
+;;                                              (< (getf vacancy :salary-max) (floor 90000 61)))
+;;                                         ))
+;;   (dbg "- low salary"))
 
 ;; (define-drop-teaser-rule (iOS (contains-in-words (string-downcase (getf vacancy :name)) "ios"))
 ;;   (dbg "  - name contains iOS"))
@@ -859,13 +860,29 @@
 
 (make-detect (title)
   (`("search-result-item__head"
-     ()
+     NIL
      ("vacancy-serp__vacancy-title"
       (("href" ,href) ,@rest)
       ,title))
     `(:vacancy (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
                     :href ,href
-                    :name ,title))))
+                    :name ,title
+                    :archived nil))))
+
+(make-detect (or-title-archived)
+  (`("search-result-item__head"
+     NIL
+     ("vacancy-serp__vacancy-title"
+      (("href" ,href) ,@rest)
+      ,title)
+     " ("
+     ("strong" (("data-qa" "vacancy-serp__vacancy_archived"))
+               "Вакансия была перенесена в архив")
+     ")")
+    `(:vacancy (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
+                    :href ,href
+                    :name ,title
+                    :archived t))))
 
 (make-detect (schedule)
   (`("vacancy-serp__vacancy-work-schedule"
@@ -1043,6 +1060,7 @@
        (detect-responder)
        (detect-rejecter)
        (detect-title)
+       (detect-or-title-archived)
        (detect-schedule)
        (detect-responsibility)
        (detect-requirement)
@@ -1059,7 +1077,9 @@
                          ;; error if malformed plist
                          (error 'malformed-vacancy :text))
                        ;; else
-                       (compactor vacancy))))))
+                       ;; (compactor vacancy)
+                       (print vacancy)
+                       )))))
 
 ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
 
@@ -1114,6 +1134,13 @@
                               (return-from subtree-extract payload))
                             data)))))
 
+(make-detect (branded2)
+  (`("branded-vacancy"
+     NIL
+     ,content
+     ,@_)
+    `(:branded-vacancy2 ,content)))
+
 (make-detect (gap)
   (`("bloko-gap bloko-gap_bottom bloko-gap_left" NIL ,@_)
     `(:empty (:gap "controls"))))
@@ -1124,7 +1151,7 @@
      ("meta" (("itemprop" "title") ("content" ,_)))
      ("h1" (("class" "title b-vacancy-title")) ,title)
      ,@emp)
-    `(:title ,title :emp ,emp)))
+    `(:vacancy (:title ,title) :emp ,emp)))
 
 (make-detect (l)
   (`("l"
@@ -1160,7 +1187,7 @@
         ("l-content-colum-3 b-v-info-title" NIL ("l-paddings" NIL "Требуемый опыт работы")))
        ,info
        )))
-    `(:vac-info ,info)))
+    `(:vac-info1 ,info)))
 
 (make-detect (vac-info-tr)
   (`("tr"
@@ -1179,7 +1206,7 @@
       NIL
       ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
     `(:currency ,currency :base-salary ,base-salary :salary-text
-                ,salary-text :city city :exp ,exp
+                ,salary-text :city ,city :exp ,exp
                 :metro ,(mapcar #'(lambda (x) (car (last x)))
                                 (remove-if-not #'listp metro)))))
 
@@ -1222,7 +1249,7 @@
     `(:descr ,(transform-description descr))))
 
 (make-detect (vacancy-address)
-  (`("b-vacancy-address l-paddings"
+  (`(,(or "span" "b-vacancy-address l-paddings")
      (("itemprop" "jobLocation") ("itemscope" "itemscope")
       ("itemtype" "http://schema.org/Place"))
      ("meta" (("itemprop" "name") ("content" ,_)))
@@ -1238,7 +1265,7 @@
               NIL "Показать на карте")
              ("vacancy-address-map-wrapper g-hidden HH-Maps-ShowAddress-Map"
               NIL ("vacancy-address-map HH-Maps-ShowAddress-Map-View" NIL "­")))))
-    `(:street-addr ,street-addr :addr-with-map ,addr-with-map)))
+    `(:addr (:street-addr ,street-addr :addr-with-map ,addr-with-map))))
 
 (make-detect (jobtype)
   (`("b-vacancy-employmentmode l-paddings"
@@ -1360,9 +1387,9 @@
      NIL
      ("a" (("href" ,logo-href))
           ("img" (("src" ,logo-img) ("border" "0") ("alt" ,logo-alt)))))
-    `(:logo (:logo-href ,logo-href
-                        :logo-img ,logo-img
-                        :logo-alt ,logo-alt))))
+    `(:logo-href ,logo-href
+                 :logo-img ,logo-img
+                 :logo-alt ,logo-alt)))
 
 (make-detect (date)
   (`("l-content-paddings"
@@ -1375,7 +1402,7 @@
         ("itemprop" "datePosted")
         ("datetime" ,datetime))
        ,date-text)))
-    `(:date (:datetime ,datetime :date-text ,date-text))))
+    `(:datetime ,datetime :date-text ,date-text)))
 
 (make-detect (response-block)
   (`("vacancy-response-block HH-VacancyResponsePopup-ResponseBlock" NIL ,@_)
@@ -1405,17 +1432,16 @@
   (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
     `(:skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
 
-;; (make-detect (joblocation)
-;;   (`("span"
-;;      (("itemprop" "jobLocation") ("itemscope" "itemscope")
-;;       ("itemtype" "http://schema.org/Place"))
-;;      (:meta (:name ,name))
-;;      ("span"
-;;       (("itemprop" "address") ("itemscope" "itemscope")
-;;        ("itemtype" "http://schema.org/PostalAddress"))
-;;       (:meta (:addresslocality ,addresslocality))))
-;;     `(:address (:location ,name :addresslocality ,addresslocality))))
-
+(make-detect (joblocation)
+  (`("span"
+     (("itemprop" "jobLocation") ("itemscope" "itemscope")
+      ("itemtype" "http://schema.org/Place"))
+     (:meta (:name ,name))
+     ("span"
+      (("itemprop" "address") ("itemscope" "itemscope")
+       ("itemtype" "http://schema.org/PostalAddress"))
+      (:meta (:addresslocality ,addresslocality))))
+    `(:address (:location ,name :addresslocality ,addresslocality))))
 
 (make-detect (handicap)
   (`("vacancy__info vacancy__info_handicapped vacancy__info_noprint"
@@ -1426,6 +1452,46 @@
       ("vacancy-info-tip" NIL"Это означает готовность компании рассматривать соискателей на равных на основании деловых качеств. Соискатель оценивает самостоятельно, насколько требования вакансии сопоставимы с его индивидуальными особенностями.")))
     `(:handicap ,handicap)))
 
+
+(make-detect (compact-l)
+  (`(:VACANCY (:TITLE ,title) :EMP ((:L ((:EMP-NAME ,emp-name :EMP-HREF ,emp-href)))))
+    `(:vacancy (:title ,title) :empl (:EMP-NAME ,emp-name :EMP-HREF ,emp-href))))
+
+(make-detect (compact-info)
+  (`(:VAC-INFO2 (:CURRENCY ,currency :BASE-SALARY ,base-salary  :SALARY-TEXT ,salary-text
+                          :CITY ,city :EXP ,exp :METRO ,metro))
+    `(:benefits (:currency ,currency :base-salary ,base-salary :salary-text ,salary-text)
+                :place (:city ,city :metro ,metro)
+                :expirience (:exp ,exp))))
+
+(make-detect (compact-column-2)
+  (`(:COLUMN-2 (:LOGO ,logo :DATE ,date))
+    `(:logo ,logo :date ,date)))
+
+(make-detect (compact-col-1-2)
+  (`(:COL-1
+     (:HYPERCONTEXT
+      (:HYPE
+       (,@rest-1)))
+     :COL-2
+     ,@rest-2)
+    (append rest-1 rest-2)))
+
+(make-detect (compact-cols)
+  (`(:COLS
+     ((:LONG
+        ,descr)
+      ,@rest))
+    `,(append (list :d "descr") rest)))
+
+(make-detect (compact-branded)
+  (`(:BRANDED-VACANCY2
+     (:HYPE
+      ((:BRANDED
+        ,descr)
+       ,@rest)))
+    `,(append (list :d "descr") rest)))
+
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
   (dbg ":hh-parse-vacancy:")
@@ -1435,6 +1501,7 @@
                        (maptreefilter)
                        (detect-script)
                        (detect-branded)
+                       (detect-branded2)
                        (detect-gap)
                        (detect-vacancy-custom)
                        (detect-l)
@@ -1463,8 +1530,15 @@
                        (detect-response-block)
                        (detect-skill-element)
                        (detect-skills)
-                       ;; (detect-joblocation)
+                       (detect-joblocation)
                        (detect-handicap)
+                       (detect-compact-l)
+                       (detect-compact-info)
+                       (detect-compact-column-2)
+                       (detect-compact-col-1-2)
+                       (detect-compact-cols)
+                       (detect-compact-branded)
+                       ;; (compactor)
                        )))
     ;; (if (not (tree-plist-p candidat))
     ;;     (progn
@@ -1495,8 +1569,6 @@
 ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;     (hh-get-page "https://spb.hh.ru/vacancy/22262525" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
 
-
-
 ;; (let ((sections (hh-parse-vacancy *last-vacancy-html*)))
 ;;   (loop :for section-key :in sections by #'cddr  :do
 ;;      (format t "~%_______~%~A" (bprint (list section-key (getf sections section-key))))))
@@ -1511,8 +1583,11 @@
   ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
   (defmethod process-teaser (current-teaser src-account referer)
     (dbg ":process-teaser:")
-    (let ((vacancy-page (format nil "https://spb.hh.ru/vacancy/~A"
-                                (getf (getf current-teaser :vacancy) :id))))
+    (let* ((vac-plist (plistp current-teaser))
+           (vac-id (if vac-plist
+                       (getf (getf current-teaser :vacancy) :id)
+                       (getf (getf (car current-teaser) :vacancy) :id)))
+           (vacancy-page (format nil "https://spb.hh.ru/vacancy/~A" vac-id)))
       (multiple-value-bind (vacancy new-cookies ref-url)
           (hh-get-page vacancy-page cookie-jar src-account referer)
         (setf cookie-jar new-cookies)
