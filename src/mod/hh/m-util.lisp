@@ -87,6 +87,23 @@ last item in second form, etc."
 ;; (sb-cltl2:macroexpand-all '(->> 'first (cons 'second) (cons 'third)))
 ;; => (CONS 'THIRD (CONS 'SECOND 'FIRST))
 
+
+(defmacro .> (fn x chain &rest more)
+  "Chainer for accessors like getf and gethash"
+  `(,chain ,x ,@(mapcar #'(lambda (x) (list fn x)) more)))
+
+;; (macroexpand-1 '(.> getf y -> :second :third))
+;; ;; => (-> Y (GETF :SECOND) (GETF :THIRD))
+;; (sb-cltl2:macroexpand-all '(-> Y (GETF :SECOND) (GETF :THIRD)))
+;; ;; => (GETF (GETF Y :SECOND) :THIRD)
+
+;; (macroexpand-1 '(.> gethash y ->> :second :third))
+;; ;; => (->> Y (GETHASH :SECOND) (GETHASH :THIRD))
+;; (sb-cltl2:macroexpand-all '(->> Y (GETHASH :SECOND) (GETHASH :THIRD)))
+;; ;; => (GETHASH :THIRD (GETHASH :SECOND Y))
+
+
+
 (defmacro --> (x form &rest more)
   "Thread the expr through the forms. Insert X at the position
 signified by the token `it' in the first form. If there are more
@@ -97,6 +114,10 @@ in second form, etc."
           (--map-when (eq it 'it) x form)
           (list form x))
       `(--> (--> ,x ,form) ,@more)))
+
+;; (sb-cltl2:macroexpand-all
+;;  '(--> "test" (list* it '(:a)) reverse (getf it :a)))
+;; => (GETF (REVERSE (LIST* "test" '(:A))) :A)
 
 
 (defmacro -some-> (x &optional form &rest more)

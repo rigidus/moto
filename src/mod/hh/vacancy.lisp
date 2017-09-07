@@ -250,38 +250,6 @@
 (in-package #:moto)
 
 (defun show-descr (tree)
-  (error 'show-descr)
-  (let ((output (make-string-output-stream))
-        (indent 2)
-        (prefix ""))
-    (labels ((out (format tree)
-               (format output "~A~A" (make-string indent :initial-element #\Space)
-                       (format nil format tree)))
-             (rec (tree)
-               (cond ((consp tree) (cond ((and (equal 2 (length tree))
-                                               (equal :L (car tree))
-                                               (stringp (cadr tree))) (prog1 nil
-                                                                        (format output "~A-> ~A~%" prefix (cadr tree))))
-                                         ((equal :U (car tree)) (prog1 nil
-                                                                  (setf prefix (concatenate 'string (make-string indent :initial-element #\Space) prefix))
-                                                                  (rec (cdr tree))
-                                                                  (setf prefix (subseq prefix indent))))
-                                         ((and (equal 2 (length tree))
-                                               (equal :B (car tree))
-                                               (stringp (cadr tree))) (format output "~A[~A]~%" prefix (cadr tree)))
-                                         (t (cons (rec (car tree))
-                                                  (rec (cdr tree))))))
-                     (t (cond ((stringp tree) (format output "~A~A~%" prefix tree)))))))
-      (rec tree))
-    (get-output-stream-string output)))
-
-(defmethod show-vacancy (vacancy)
-  (format t "~%")
-  (dbg (bprint vacancy))
-  (format t "~%"))
-(in-package #:moto)
-
-(defun show-descr (tree)
   (let ((output (make-string-output-stream))
         (indent 2)
         (prefix ""))
@@ -328,65 +296,38 @@
 
 (defparameter *saved-vacancy* nil)
 
-(defmethod save-vacancy (vacancy)
-  ;; (setf *saved-vacancy*
-  ;;       (append *saved-vacancy*
-  ;;               (list (make-vacancy
-  ;;                      :src-id      (getf (getf vacancy :vacancy) :id)
-  ;;                      :name        (getf (getf vacancy :vacancy) :name)
-  ;;                      :currency    (getf (getf vacancy :compensation) :currency)
-  ;;                      :salary      (aif (getf (getf vacancy :compensation) :salary) it 0)
-  ;;                      :base-salary (aif (getf (getf vacancy :compensation) :base-salary) it 0)
-  ;;                      :salary-text (getf (getf vacancy :compensation) :salary-text)
-  ;;                      :salary-max  (getf (getf vacancy :compensation) :salary-max)
-  ;;                      :salary-min  (getf (getf vacancy :compensation) :salary-min)
-  ;;                      :emp-id      (aif (getf (getf vacancy :company) :emp-id) it 0)
-  ;;                      :emp-name    (getf (getf vacancy :company) :emp-name)
-  ;;                      :city "" ;; (getf vacancy :city)
-  ;;                      :metro "" ;; (getf vacancy :metro)
-  ;;                      :experience "" ;; (getf vacancy :exp)
-  ;;                      :archive nil ;; (getf vacancy :archive)
-  ;;                      :date "" ;; (getf vacancy :date)
-  ;;                      :respond "" ;; (aif (getf vacancy :respond) it "")
-  ;;                      :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
-  ;;                      :descr "" ;; (bprint (getf vacancy :descr))
-  ;;                      :notes "" ;; ""
-  ;;                      :tags "" ;; (aif (getf vacancy :tags) it "")
-  ;;                      :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"))))
-  )
-(in-package #:moto)
-
-(defparameter *saved-vacancy* nil)
-
-(defmethod save-vacancy (vacancy)
+(defmethod save-vacancy (vac)
   (setf *saved-vacancy*
         (append *saved-vacancy*
                 (list (make-vacancy
-                       :src-id (getf vacancy :id)
-                       :name (getf vacancy :name)
-                       :currency (getf vacancy :currency)
-                       :salary (aif (getf vacancy :salary) it 0)
-                       :base-salary (aif (getf vacancy :base-salary) it 0)
-                       :salary-text (getf vacancy :salary-text)
-                       :salary-max (getf vacancy :salary-max)
-                       :salary-min (getf vacancy :salary-min)
-                       :emp-id (aif (getf vacancy :emp-id) it 0)
-                       :emp-name (getf vacancy :emp-name)
-                       :city (getf vacancy :city)
-                       :metro (getf vacancy :metro)
-                       :experience (getf vacancy :exp)
-                       :archive (getf vacancy :archive)
-                       :date (getf vacancy :date)
-                       :respond (aif (getf vacancy :respond) it "")
-                       :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
-                       :descr (bprint (getf vacancy :descr))
-                       :notes ""
-                       :tags (aif (getf vacancy :tags) it "")
-                       :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
+                       :src-id      (.> getf vac -> :teaser :id)
+                       :name        (.> getf vac -> :teaser :name)
+                       ;; :currency    (.> getf vac -> :teaser-compensation :currency)
+                       ;; :salary      (aif (.> getf vac -> :teaser-compensation :salary) it "")
+                       ;; :base-salary (aif (.> getf vac -> :teaser-compensation :base-salary) it 0)
+                       ;; :salary-text (aif (.> getf vac -> :teaser-compensation :salary-text) it "")
+                       ;; :salary-max  (aif (.> getf vac -> :teaser-compensation :salary-max) it 0)
+                       ;; :salary-min  (aif (.> getf vac -> :teaser-compensation :salary-min) it 0)
+                       ;; :emp-id      (aif (.> getf vac -> :vacancy-emp :emp-id) it 0)
+                       :emp-name    (.> getf vac -> :teaser-emp :emp-name)
+                       :city        (.> getf vac -> :vacancy-place :city)
+                       :metro       ""
+                       :experience  (.> getf vac -> :vacancy-exp :exp)
+                       :archive     (.> getf vac -> :teaser :archived)
+                       :date        (aif (.> getf vac -> :teaser :date) it "")
+                       :respond     ""
+                       ;; :state       (if nil ":RESPONDED" ":UNSORT")
+                       :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
+                       ;; :notes       ""
+                       ;; :tags        "" ;; (aif (getf vac :tags) it "")
+                       ;; :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"
+                       ))
+                       ))
+  )
 
-;; (define-rule (z-save t)
-;;   (save-vacancy vacancy)
-;;   :stop)
+(define-rule (z-save t)
+  (save-vacancy vacancy)
+  :stop)
 
 (in-package #:moto)
 
@@ -914,7 +855,11 @@
       (("href" ,href))
       ,emp-name)
      ,@rest)
-    `(:teaser-emp (:emp-name ,emp-name :href ,href))))
+    `(:teaser-emp
+      (:emp-name ,emp-name
+       :href ,href
+       :emp-id ,(parse-integer
+                 (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t)))))
 
 (make-detect (company-anon)
   (`("search-result-item__company"
@@ -1214,12 +1159,11 @@
      ("l-content-colum-3 b-v-info-content"
       NIL
       ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
-    `(:benef (:currency ,currency :base-salary ,base-salary :salary-text
-                        ,salary-text)
-             :placing (:city ,city)
-             :expa (:exp ,exp)
-             :placing (:metro ,(mapcar #'(lambda (x) (car (last x)))
-                                       (remove-if-not #'listp metro))))))
+    `(:vacancy-compensation (:currency ,currency :base-salary ,base-salary :salary-text ,salary-text)
+                            :vacancy-place (:city ,city)
+                            :vacancy-exp (:exp ,exp)
+                            :vacancy-place (:metro ,(mapcar #'(lambda (x) (car (last x)))
+                                                            (remove-if-not #'listp metro))))))
 
 (make-detect (or-vac-info-tr-no-salary)
   (`("tr"
@@ -1231,9 +1175,9 @@
      ("l-content-colum-3 b-v-info-content"
       NIL
       ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
-    `(:placing (:city ,city)
-               :expa (:exp ,exp)
-               :placing (:metro ,(mapcar #'(lambda (x) (car (last x)))
+    `(:vacancy-place (:city ,city)
+                     :vacancy-exp (:exp ,exp)
+                     :vacancy-place (:metro ,(mapcar #'(lambda (x) (car (last x)))
                                        (remove-if-not #'listp metro))))))
 
 (make-detect (container)
@@ -1266,13 +1210,13 @@
      ("l-paddings b-vacancy-desc g-user-content"
       NIL
       ,descr))
-    `(:long ,descr)))
+    `(:vacancy-descr ,descr)))
 
 (make-detect (longdescr)
   (`("b-vacancy-desc-wrapper"
      (("itemprop" "description"))
      ,@descr)
-    `(:descr ,(transform-description descr))))
+    `(:long-descr ,(transform-description descr))))
 
 (make-detect (vacancy-address)
   (`(,(or "span" "b-vacancy-address l-paddings")
@@ -1298,7 +1242,7 @@
       NIL
       ("span" (("itemprop" "employmentType")) ,emptype) ", "
       ("span" (("itemprop" "workHours")) ,workhours)))
-    `(:jobtype (:emptype ,emptype :workhours ,workhours))))
+    `(:vacancy-jobtype (:emptype ,emptype :workhours ,workhours))))
 
 (make-detect (closed-contacts)
   (`("l-paddings"
@@ -1424,7 +1368,7 @@
 
 (make-detect (column-2)
   (`("l-content-colum-2" NIL ,logo ,date ,@_)
-    `(:column-2 (:logo ,logo :date ,date))))
+    `(:column-2 (:vacancy-logo ,logo :vacancy-date ,date))))
 
 (make-detect (meta)
   (`("meta" (("itemprop" ,prop) ("content" ,content)))
@@ -1440,7 +1384,7 @@
 
 (make-detect (skills)
   (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
-    `(:skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
+    `(:vacancy-skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
 
 (make-detect (joblocation)
   (`("span"
@@ -1451,7 +1395,7 @@
       (("itemprop" "address") ("itemscope" "itemscope")
        ("itemtype" "http://schema.org/PostalAddress"))
       ("meta" (("itemprop" "addressLocality") ("content" ,addresslocality)))))
-    `(:address (:location ,name :addresslocality ,addresslocality))))
+    `(:vacancy-address (:location ,name :addresslocality ,addresslocality))))
 
 (make-detect (handicap)
   (`("vacancy__info vacancy__info_handicapped vacancy__info_noprint"
@@ -1460,12 +1404,12 @@
      ("vacancy__info-expandable"
       NIL
       ("vacancy-info-tip" NIL"Это означает готовность компании рассматривать соискателей на равных на основании деловых качеств. Соискатель оценивает самостоятельно, насколько требования вакансии сопоставимы с его индивидуальными особенностями.")))
-    `(:handicap (:msg ,handicap))))
+    `(:vacancy-handicap (:msg ,handicap))))
 
 
 (make-detect (compact-l)
   (`(:VACANCY (:TITLE ,title) :EMP ((:L ((:EMP-NAME ,emp-name :EMP-HREF ,emp-href)))))
-    `(:vacancy (:title ,title) :empl (:EMP-NAME ,emp-name :EMP-HREF ,emp-href))))
+    `(:vacancy (:title ,title) :vacancy-emp (:EMP-NAME ,emp-name :EMP-HREF ,emp-href))))
 
 (make-detect (compact-info)
   (`(:VAC-INFO ,info)
@@ -1473,7 +1417,7 @@
 
 (make-detect (compact-contacts)
   (`(:CONTACTS (:FIO ,fio) (:CONTACTS-LIST ,contacts-trs))
-    `(:contacts (:trs ,(append `((:CONTACTS-TR
+    `(:vacancy-contacts (:trs ,(append `((:CONTACTS-TR
                                   ((:FIO ,fio)))) contacts-trs)))))
 
 (make-detect (columns)
@@ -1493,7 +1437,7 @@
       ((:BRANDED
         ,descr)
        ,@rest)))
-    (mapcan #'identity (append `((:long ,descr)) rest))))
+    (mapcan #'identity (append `((:vacancy-descr ,descr)) rest))))
 
 (make-detect (compact-infoblock)
   (`(:INFOBLOCK-1 ,infoblock-1 :INFOBLOCK-2 ,infoblock-2)
@@ -1673,61 +1617,34 @@
 ;; moved 
 ;; moved (defparameter *saved-vacancy* nil)
 ;; moved 
-;; moved (defmethod save-vacancy (vacancy)
-;; moved   ;; (setf *saved-vacancy*
-;; moved   ;;       (append *saved-vacancy*
-;; moved   ;;               (list (make-vacancy
-;; moved   ;;                      :src-id      (getf (getf vacancy :vacancy) :id)
-;; moved   ;;                      :name        (getf (getf vacancy :vacancy) :name)
-;; moved   ;;                      :currency    (getf (getf vacancy :compensation) :currency)
-;; moved   ;;                      :salary      (aif (getf (getf vacancy :compensation) :salary) it 0)
-;; moved   ;;                      :base-salary (aif (getf (getf vacancy :compensation) :base-salary) it 0)
-;; moved   ;;                      :salary-text (getf (getf vacancy :compensation) :salary-text)
-;; moved   ;;                      :salary-max  (getf (getf vacancy :compensation) :salary-max)
-;; moved   ;;                      :salary-min  (getf (getf vacancy :compensation) :salary-min)
-;; moved   ;;                      :emp-id      (aif (getf (getf vacancy :company) :emp-id) it 0)
-;; moved   ;;                      :emp-name    (getf (getf vacancy :company) :emp-name)
-;; moved   ;;                      :city "" ;; (getf vacancy :city)
-;; moved   ;;                      :metro "" ;; (getf vacancy :metro)
-;; moved   ;;                      :experience "" ;; (getf vacancy :exp)
-;; moved   ;;                      :archive nil ;; (getf vacancy :archive)
-;; moved   ;;                      :date "" ;; (getf vacancy :date)
-;; moved   ;;                      :respond "" ;; (aif (getf vacancy :respond) it "")
-;; moved   ;;                      :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
-;; moved   ;;                      :descr "" ;; (bprint (getf vacancy :descr))
-;; moved   ;;                      :notes "" ;; ""
-;; moved   ;;                      :tags "" ;; (aif (getf vacancy :tags) it "")
-;; moved   ;;                      :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"))))
-;; moved   )
-;; moved (in-package #:moto)
-;; moved 
-;; moved (defparameter *saved-vacancy* nil)
-;; moved 
-;; moved (defmethod save-vacancy (vacancy)
+;; moved (defmethod save-vacancy (vac)
 ;; moved   (setf *saved-vacancy*
 ;; moved         (append *saved-vacancy*
 ;; moved                 (list (make-vacancy
-;; moved                        :src-id (getf vacancy :id)
-;; moved                        :name (getf vacancy :name)
-;; moved                        :currency (getf vacancy :currency)
-;; moved                        :salary (aif (getf vacancy :salary) it 0)
-;; moved                        :base-salary (aif (getf vacancy :base-salary) it 0)
-;; moved                        :salary-text (getf vacancy :salary-text)
-;; moved                        :salary-max (getf vacancy :salary-max)
-;; moved                        :salary-min (getf vacancy :salary-min)
-;; moved                        :emp-id (aif (getf vacancy :emp-id) it 0)
-;; moved                        :emp-name (getf vacancy :emp-name)
-;; moved                        :city (getf vacancy :city)
-;; moved                        :metro (getf vacancy :metro)
-;; moved                        :experience (getf vacancy :exp)
-;; moved                        :archive (getf vacancy :archive)
-;; moved                        :date (getf vacancy :date)
-;; moved                        :respond (aif (getf vacancy :respond) it "")
-;; moved                        :state (if (getf vacancy :respond) ":RESPONDED" ":UNSORT")
-;; moved                        :descr (bprint (getf vacancy :descr))
-;; moved                        :notes ""
-;; moved                        :tags (aif (getf vacancy :tags) it "")
-;; moved                        :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90")))))
+;; moved                        :src-id      (.> getf vac -> :teaser :id)
+;; moved                        :name        (.> getf vac -> :teaser :name)
+;; moved                        ;; :currency    (.> getf vac -> :teaser-compensation :currency)
+;; moved                        ;; :salary      (aif (.> getf vac -> :teaser-compensation :salary) it "")
+;; moved                        ;; :base-salary (aif (.> getf vac -> :teaser-compensation :base-salary) it 0)
+;; moved                        ;; :salary-text (aif (.> getf vac -> :teaser-compensation :salary-text) it "")
+;; moved                        ;; :salary-max  (aif (.> getf vac -> :teaser-compensation :salary-max) it 0)
+;; moved                        ;; :salary-min  (aif (.> getf vac -> :teaser-compensation :salary-min) it 0)
+;; moved                        ;; :emp-id      (aif (.> getf vac -> :vacancy-emp :emp-id) it 0)
+;; moved                        :emp-name    (.> getf vac -> :teaser-emp :emp-name)
+;; moved                        :city        (.> getf vac -> :vacancy-place :city)
+;; moved                        :metro       ""
+;; moved                        :experience  (.> getf vac -> :vacancy-exp :exp)
+;; moved                        :archive     (.> getf vac -> :teaser :archived)
+;; moved                        :date        (aif (.> getf vac -> :teaser :date) it "")
+;; moved                        :respond     ""
+;; moved                        ;; :state       (if nil ":RESPONDED" ":UNSORT")
+;; moved                        :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
+;; moved                        ;; :notes       ""
+;; moved                        ;; :tags        "" ;; (aif (getf vac :tags) it "")
+;; moved                        ;; :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"
+;; moved                        ))
+;; moved                        ))
+;; moved   )
 
 (in-package #:moto)
 
