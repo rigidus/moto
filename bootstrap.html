@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/css/b.css" />
+    </head>
+    <body>
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script type="text/javascript" src="/js/jquery-v-1.10.2.js"></script>
+        <script type="text/javascript" src="/js/jquery-ui-v-1.10.3.js"></script>
+        <script type="text/javascript" src="/js/modernizr.js"></script />
+        <script type="text/javascript" src="/js/jquery.sortable.original.js"></script>
+        <script type="text/javascript" src="/js/frp.js"></script>
+        <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/js/b.js"></script>
+        <!-- Content -->
+        <div class="container-fluid">
+            <h1>"Модуль HeadHunter"</h1>
+            <div class="showlegend">
+                <button type="button" class="btn btn-primary showlegend" onclick="showlegend();">
+                    Показать легенду
+                </button>
+            </div>
+            <div class="hidelegend">
+                <button type="button" class="btn btn-primary" onclick="hidelegend();">
+                    Скрыть легенду
+                </button>
+            </div>
+            <div class="legend">
+                <div class="txt">
+                    В правой колонке - интересные вакансии, в левой -
+                    неинтересные.
+                </div>
+                <div class="txt">
+                    <span class="unsort">&nbsp;Желтым&nbsp;</span>
+                    выделены вакансии, которые появились в момент
+                    последнего сбора данных.По умолчанию они
+                    помещаются в правый столбик - к интересующим
+                    вакансиям. После сортировки следует сохранить
+                    состояния вакансий и тогда выделение исчезнет.
+                </div>
+                <div class="txt">
+                    <span class="responded">&nbsp;Голубым&nbsp;</span>
+                    выделены вакансии, на которые отправлен отзыв.
+                </div>
+                <div class="txt"><span class="beenviewed">&nbsp;Фиолетовым&nbsp;</span>
+                    выделены вакансии, отзыв на которые был
+                    просмотрен.
+                </div>
+                <div class="txt">
+                    <span class="reject">&nbsp;Красным&nbsp;</span> -
+                    если работодатель отказал. Можно попробовать
+                    откликнуться другим резюме или забить на вакансию
+                    и перенести ее в 'неинтересные'
+                </div>
+                <div class="txt">
+                    <span class="invite">&nbsp;Зеленым&nbsp;</span>
+                    - если работодатель пригласил на собеседование.
+                </div>
+                <div class="txt">
+                    <span class="interview">&nbsp;Серым&nbsp;</span>
+                    - если собеседование было пройдено.
+                </div>
+                <div class="txt">
+                    Вакансии, к которым есть заметки, выделяются
+                    зарплатой
+                    на <span class="notes">&nbsp;черном&nbsp;</span>
+                    фоне. При наведении на такую вакансию можно
+                    увидеть текст заметки.
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,90 @@
+/* Extra small devices (portrait phones, less than 576px) */
+/* No media query since this is the default in Bootstrap */
+
+.hidelegend { display: none;  }
+.showlegend { display: block; }
+.legend { display: none; }
+
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .hidelegend { display: none;  }
+    .showlegend { display: block; }
+    .legend { display: none; }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .hidelegend { display: block;  }
+    .showlegend { display: none; }
+    .legend { display: block; }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .hidelegend { display: block;  }
+    .showlegend { display: none; }
+    .legend { display: block; }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .hidelegend { display: block;  }
+    .showlegend { display: none; }
+    .legend { display: block; }
+}
+
+
+.uninteresting {
+    background: #F6F6F6;
+}
+.interesting {
+    background: #F6F6F6;
+}
+.unsort {
+    background: #FEE25F;
+}
+.responded {
+    background: #5FFEFE;
+}
+.beenviewed {
+    background: #E0BAF8;
+}
+.reject {
+    background: #FC2626;
+}
+.invite {
+    background: #5FFE61;
+}
+.interview {
+    background: #867A87;
+}
+.offer {
+    background: #FFFFFF;
+}
+.discard {
+    background: #000000;
+}
+.accept {
+    background: #000000;
+}
+.emptynotes {
+    background-color: #FFECEC;
+    color: #FF1E1E;
+}
+.notes {
+    background-color: #000000;
+    color: #FFECEC;
+}
+
+.legend {
+    border: 1px solid #E0E0E0;
+    background-color: #F0F0F0;
+}
+
+.txt {
+    background-color: #FFFFFF;
+    margin: 0.1em 0.1em 0.1em 0.1em;
+    padding: 0.1em 0.2em 0.1em 0.2em;
+    border: 1px solid #E0E0E0;
+}

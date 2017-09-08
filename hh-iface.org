@@ -148,6 +148,12 @@
                                 (takt vac :interesting))))
                         (split-sequence:split-sequence #\, (getf p :yep)))
                 (error 'ajax :output "window.location.href='/hh/vacs'"))))
+
+
+
+
+     (restas:define-route hhtest ("/hh/test")
+       (alexandria:read-file-into-string "~/repo/moto/bootstrap.html"))
    #+END_SRC
 
 ** Страница вакансии
