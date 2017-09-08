@@ -72,6 +72,7 @@
 
 (make-user-table)
 
+
 (with-connection *db-spec*
   (unless (table-exists-p "user")
     (query (:alter-table "user" :add-constraint "uniq_email" :unique "email"))

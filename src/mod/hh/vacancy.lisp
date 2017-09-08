@@ -1443,8 +1443,6 @@
   (`(:INFOBLOCK-1 ,infoblock-1 :INFOBLOCK-2 ,infoblock-2)
     (mapcan #'identity (append infoblock-1 (list infoblock-2)))))
 
-
-
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
   (dbg ":hh-parse-vacancy:")
