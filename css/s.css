@@ -1,0 +1,124 @@
+header, section {
+    display: block;
+}
+body {
+    font-family: 'Droid Serif';
+}
+h1, h2 {
+    text-align: center;
+    font-weight: normal;
+}
+#features {
+    margin: auto;
+    width: 460px;
+    font-size: 0.9em;
+}
+.connected, .sortable, .exclude, .handles {
+    margin: auto;
+    padding: 0;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.sortable.grid {
+    overflow: hidden;
+}
+.connected li, .sortable li, .exclude li, .handles li {
+    list-style: none;
+    border: 1px solid #CCC;
+    font-family: "Tahoma";
+    color: #1C94C4;
+    margin: 5px;
+    padding: 5px;
+}
+.handles span {
+    cursor: move;
+    width: 50px;
+    border: 1px solid #FF1E1E;
+    margin: 0 5px 0 0;
+    padding: 0 5px 0 5px;
+}
+.emptynotes {
+    background-color: #FFECEC;
+    color: #FF1E1E;
+}
+.notes {
+    background-color: #000000;
+    color: #FFECEC;
+}
+.handle span {
+    cursor: move;
+    background-color: #E12E2E;
+}
+li.disabled {
+    opacity: 0.5;
+}
+.sortable.grid li {
+    line-height: 80px;
+    float: left;
+    width: 80px;
+    height: 80px;
+    text-align: center;
+}
+.uninteresting {
+    background: #F6F6F6;
+}
+.interesting {
+    background: #F6F6F6;
+}
+.unsort {
+    background: #FEE25F;
+}
+.responded {
+    background: #5FFEFE;
+}
+.beenviewed {
+    background: #E0BAF8;
+}
+.reject {
+    background: #FC2626;
+}
+.invite {
+    background: #5FFE61;
+}
+.interview {
+    background: #867A87;
+}
+.offer {
+    background: #FFFFFF;
+}
+.discard {
+    background: #000000;
+}
+.accept {
+    background: #000000;
+}
+
+
+.connected {
+
+}
+li.sortable-placeholder {
+    border: 1px dashed #CCC;
+    background: none;
+}
+
+
+.vacancy-descr {
+    padding: 10px;
+}
+
+.vacancy-descr p {
+}
+
+.vacancy-descr ul {
+    padding: 5px;
+    margin-left: 20px;
+}
+
+.vacancy-descr ul li {
+    list-style-type: square;
+}

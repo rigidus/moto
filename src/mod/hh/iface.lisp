@@ -49,9 +49,11 @@
                                                 (name x)))))
                                  param)))))
     (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-           (sorted-vacs (sort vacs #'(lambda (a b) (> (salary-max a) (salary-max b)))))
+           (sorted-vacs vacs ;; (sort vacs #'(lambda (a b) (> (salary-max a) (salary-max b))))
+             )
            (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
-           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
+           )
       (base-page (:breadcrumb breadcrumb)
         ((:script)
          (ps
@@ -93,11 +95,13 @@
            ((:ul :class "connected handles list" :id "not")
             (mrg (remove-if-not #'(lambda (x)
                                     (equal ":UNINTERESTING" (state x)))
-                                sorted-vacs)))
+                                sorted-vacs))
+            )
            ((:ul :class "connected handles list no2" :id "yep")
             (mrg (remove-if #'(lambda (x)
                                 (equal ":UNINTERESTING" (state x)))
-                            sorted-vacs)))))
+                            sorted-vacs))
+            )))
         (ps-html ((:span :class "clear"))))))
   (:SAVE (ps-html
           ((:input :type "hidden" :name "act" :value "SAVE"))
@@ -115,6 +119,9 @@
                            (takt vac :interesting))))
                    (split-sequence:split-sequence #\, (getf p :yep)))
            (error 'ajax :output "window.location.href='/hh/vacs'"))))
+
+(restas:define-route hhtest ("/hh/test")
+  (alexandria:read-file-into-string "~/repo/moto/bootstrap.html"))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"

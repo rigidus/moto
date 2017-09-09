@@ -1448,6 +1448,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
                          (detect-vacancy-custom)
                          (detect-l)
                          (detect-emp)
+                         (detect-emp-anon)
                          (detect-vacancy-info)
                          (detect-vac-info-tr)
                          (detect-or-vac-info-tr-no-salary)
@@ -1641,6 +1642,16 @@ pattern-matchinga из пакета =optima= делает вышеприведе
        ("companyname" NIL
                       ("a" (("itemprop" "hiringOrganization") ("href" ,emp-href)) ,emp-name)
                       ,@_))
+      `(:emp-name ,emp-name :emp-href ,emp-href)))
+
+  (make-detect (emp-anon)
+    (`("employer-marks g-clearfix"
+       NIL
+       ("companyname" NIL
+                      ,emp-name
+                      ("bloko-link"
+                       (("href" ,emp-href))
+                       ,@_)))
       `(:emp-name ,emp-name :emp-href ,emp-href)))
 
   (make-detect (vacancy-info)

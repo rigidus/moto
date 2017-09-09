@@ -297,33 +297,39 @@
 (defparameter *saved-vacancy* nil)
 
 (defmethod save-vacancy (vac)
-  (setf *saved-vacancy*
-        (append *saved-vacancy*
-                (list (make-vacancy
-                       :src-id      (.> getf vac -> :teaser :id)
-                       :name        (.> getf vac -> :teaser :name)
-                       ;; :currency    (.> getf vac -> :teaser-compensation :currency)
-                       ;; :salary      (aif (.> getf vac -> :teaser-compensation :salary) it "")
-                       ;; :base-salary (aif (.> getf vac -> :teaser-compensation :base-salary) it 0)
-                       ;; :salary-text (aif (.> getf vac -> :teaser-compensation :salary-text) it "")
-                       ;; :salary-max  (aif (.> getf vac -> :teaser-compensation :salary-max) it 0)
-                       ;; :salary-min  (aif (.> getf vac -> :teaser-compensation :salary-min) it 0)
-                       ;; :emp-id      (aif (.> getf vac -> :vacancy-emp :emp-id) it 0)
-                       :emp-name    (.> getf vac -> :teaser-emp :emp-name)
-                       :city        (.> getf vac -> :vacancy-place :city)
-                       :metro       ""
-                       :experience  (.> getf vac -> :vacancy-exp :exp)
-                       :archive     (.> getf vac -> :teaser :archived)
-                       :date        (aif (.> getf vac -> :teaser :date) it "")
-                       :respond     ""
-                       ;; :state       (if nil ":RESPONDED" ":UNSORT")
-                       :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
-                       ;; :notes       ""
-                       ;; :tags        "" ;; (aif (getf vac :tags) it "")
-                       ;; :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"
-                       ))
-                       ))
-  )
+  (let* ((response  (concatenate 'string "Здравствуйте, я подхожу под ваши требования. "
+                                 "Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"))
+         (src-id    (.> getf vac -> :teaser :id))
+         (old-vac   (car (find-vacancy :src-id src-id)))
+         (*new-vac* (list
+                     :src-id      src-id
+                     :name        (.> getf vac -> :teaser :name)
+                     :currency    (aif (.> getf vac -> :teaser-compensation :currency) it "")
+                     :salary      (aif (.> getf vac -> :teaser-compensation :salary) it 0)
+                     :base-salary (aif (.> getf vac -> :teaser-compensation :salary) it 0)
+                     :salary-text (aif (.> getf vac -> :teaser-compensation :salary-text) it "")
+                     :salary-max  (aif (.> getf vac -> :teaser-compensation :salary-max) it 0)
+                     :salary-min  (aif (.> getf vac -> :teaser-compensation :salary-min) it 0)
+                     :emp-id      (aif (.> getf vac -> :vacancy-emp :emp-id) it 0)
+                     :emp-name    (.> getf vac -> :teaser-emp :emp-name)
+                     :city        (.> getf vac -> :vacancy-place :city)
+                     :metro       ""
+                     :experience  (.> getf vac -> :vacancy-exp :exp)
+                     :archive     (.> getf vac -> :teaser :archived)
+                     :date        (aif (.> getf vac -> :teaser :date) it "")
+                     :respond     ""
+                     :state       (if nil ":RESPONDED" ":UNSORT")
+                     :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
+                     :notes       ""
+                     :tags        "" ;; (aif (getf vac :tags) it "")
+                     :response    response)))
+    (declare (special *new-vac*))
+    (if (null old-vac)
+        (progn
+          (eval `(make-vacancy ,@*new-vac*)))
+        ;; else
+        (progn
+          (upd-vacancy old-vac *new-vac*)))))
 
 (define-rule (z-save t)
   (save-vacancy vacancy)
@@ -916,8 +922,11 @@
         (setf salary-min salary-max))
       (when (null salary-max)
         (setf salary-max salary-min))
-      `(:teaser-compensation (:currency ,currency :salary ,salary :salary-text ,salary-text
-                                        :salary-min ,salary-min :salary-max ,salary-max)))))
+      `(:teaser-compensation (:currency ,currency
+                                        :salary ,(parse-integer salary)
+                                        :salary-text ,salary-text
+                                        :salary-min ,salary-min
+                                        :salary-max ,salary-max)))))
 
 (make-detect (teaser-finalizer)
   (`(,_
@@ -1125,6 +1134,16 @@
      ("companyname" NIL
                     ("a" (("itemprop" "hiringOrganization") ("href" ,emp-href)) ,emp-name)
                     ,@_))
+    `(:emp-name ,emp-name :emp-href ,emp-href)))
+
+(make-detect (emp-anon)
+  (`("employer-marks g-clearfix"
+     NIL
+     ("companyname" NIL
+                    ,emp-name
+                    ("bloko-link"
+                     (("href" ,emp-href))
+                     ,@_)))
     `(:emp-name ,emp-name :emp-href ,emp-href)))
 
 (make-detect (vacancy-info)
@@ -1458,6 +1477,7 @@
                        (detect-vacancy-custom)
                        (detect-l)
                        (detect-emp)
+                       (detect-emp-anon)
                        (detect-vacancy-info)
                        (detect-vac-info-tr)
                        (detect-or-vac-info-tr-no-salary)
@@ -1616,33 +1636,39 @@
 ;; moved (defparameter *saved-vacancy* nil)
 ;; moved 
 ;; moved (defmethod save-vacancy (vac)
-;; moved   (setf *saved-vacancy*
-;; moved         (append *saved-vacancy*
-;; moved                 (list (make-vacancy
-;; moved                        :src-id      (.> getf vac -> :teaser :id)
-;; moved                        :name        (.> getf vac -> :teaser :name)
-;; moved                        ;; :currency    (.> getf vac -> :teaser-compensation :currency)
-;; moved                        ;; :salary      (aif (.> getf vac -> :teaser-compensation :salary) it "")
-;; moved                        ;; :base-salary (aif (.> getf vac -> :teaser-compensation :base-salary) it 0)
-;; moved                        ;; :salary-text (aif (.> getf vac -> :teaser-compensation :salary-text) it "")
-;; moved                        ;; :salary-max  (aif (.> getf vac -> :teaser-compensation :salary-max) it 0)
-;; moved                        ;; :salary-min  (aif (.> getf vac -> :teaser-compensation :salary-min) it 0)
-;; moved                        ;; :emp-id      (aif (.> getf vac -> :vacancy-emp :emp-id) it 0)
-;; moved                        :emp-name    (.> getf vac -> :teaser-emp :emp-name)
-;; moved                        :city        (.> getf vac -> :vacancy-place :city)
-;; moved                        :metro       ""
-;; moved                        :experience  (.> getf vac -> :vacancy-exp :exp)
-;; moved                        :archive     (.> getf vac -> :teaser :archived)
-;; moved                        :date        (aif (.> getf vac -> :teaser :date) it "")
-;; moved                        :respond     ""
-;; moved                        ;; :state       (if nil ":RESPONDED" ":UNSORT")
-;; moved                        :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
-;; moved                        ;; :notes       ""
-;; moved                        ;; :tags        "" ;; (aif (getf vac :tags) it "")
-;; moved                        ;; :response "Здравствуйте, я подхожу под ваши требования. Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"
-;; moved                        ))
-;; moved                        ))
-;; moved   )
+;; moved   (let* ((response  (concatenate 'string "Здравствуйте, я подхожу под ваши требования. "
+;; moved                                  "Когда можно договориться о собеседовании? Михаил 8(911)286-92-90"))
+;; moved          (src-id    (.> getf vac -> :teaser :id))
+;; moved          (old-vac   (car (find-vacancy :src-id src-id)))
+;; moved          (*new-vac* (list
+;; moved                      :src-id      src-id
+;; moved                      :name        (.> getf vac -> :teaser :name)
+;; moved                      :currency    (aif (.> getf vac -> :teaser-compensation :currency) it "")
+;; moved                      :salary      (aif (.> getf vac -> :teaser-compensation :salary) it 0)
+;; moved                      :base-salary (aif (.> getf vac -> :teaser-compensation :salary) it 0)
+;; moved                      :salary-text (aif (.> getf vac -> :teaser-compensation :salary-text) it "")
+;; moved                      :salary-max  (aif (.> getf vac -> :teaser-compensation :salary-max) it 0)
+;; moved                      :salary-min  (aif (.> getf vac -> :teaser-compensation :salary-min) it 0)
+;; moved                      :emp-id      (aif (.> getf vac -> :vacancy-emp :emp-id) it 0)
+;; moved                      :emp-name    (.> getf vac -> :teaser-emp :emp-name)
+;; moved                      :city        (.> getf vac -> :vacancy-place :city)
+;; moved                      :metro       ""
+;; moved                      :experience  (.> getf vac -> :vacancy-exp :exp)
+;; moved                      :archive     (.> getf vac -> :teaser :archived)
+;; moved                      :date        (aif (.> getf vac -> :teaser :date) it "")
+;; moved                      :respond     ""
+;; moved                      :state       (if nil ":RESPONDED" ":UNSORT")
+;; moved                      :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
+;; moved                      :notes       ""
+;; moved                      :tags        "" ;; (aif (getf vac :tags) it "")
+;; moved                      :response    response)))
+;; moved     (declare (special *new-vac*))
+;; moved     (if (null old-vac)
+;; moved         (progn
+;; moved           (eval `(make-vacancy ,@*new-vac*)))
+;; moved         ;; else
+;; moved         (progn
+;; moved           (upd-vacancy old-vac *new-vac*)))))
 
 (in-package #:moto)
 
