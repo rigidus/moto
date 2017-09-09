@@ -1,37 +1,32 @@
 /* Extra small devices (portrait phones, less than 576px) */
 /* No media query since this is the default in Bootstrap */
 
-.hidelegend { display: none;  }
-.showlegend { display: block; }
 .legend { display: none; }
+.graph  { display: none; }
 
 
 /* Small devices (landscape phones, 576px and up) */
 @media (min-width: 576px) {
-    .hidelegend { display: none;  }
-    .showlegend { display: block; }
     .legend { display: none; }
+    .graph  { display: none; }
 }
 
 /* Medium devices (tablets, 768px and up) */
 @media (min-width: 768px) {
-    .hidelegend { display: block;  }
-    .showlegend { display: none; }
     .legend { display: block; }
+    .graph  { display: block; }
 }
 
 /* Large devices (desktops, 992px and up) */
 @media (min-width: 992px) {
-    .hidelegend { display: block;  }
-    .showlegend { display: none; }
     .legend { display: block; }
+    .graph  { display: block; }
 }
 
 /* Extra large devices (large desktops, 1200px and up) */
 @media (min-width: 1200px) {
-    .hidelegend { display: block;  }
-    .showlegend { display: none; }
     .legend { display: block; }
+    .graph  { display: block; }
 }
 
 

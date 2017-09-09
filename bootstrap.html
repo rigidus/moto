@@ -20,29 +20,17 @@
         <script type="text/javascript" src="/js/b.js"></script>
         <!-- Content -->
         <div class="container-fluid">
-            <h1>"Модуль HeadHunter"</h1>
-            <div class="showlegend">
-                <button type="button" class="btn btn-primary showlegend" onclick="showlegend();">
-                    Показать легенду
-                </button>
-            </div>
-            <div class="hidelegend">
-                <button type="button" class="btn btn-primary" onclick="hidelegend();">
-                    Скрыть легенду
-                </button>
-            </div>
+
+            <!-- legend -->
+            <button type="button" class="btn btn-primary btn-legend"
+                    onclick="tggl('legend', 'legend', '.legend', '.btn-legend');">
+                legend
+            </button>
             <div class="legend">
                 <div class="txt">
-                    В правой колонке - интересные вакансии, в левой -
-                    неинтересные.
-                </div>
-                <div class="txt">
                     <span class="unsort">&nbsp;Желтым&nbsp;</span>
-                    выделены вакансии, которые появились в момент
-                    последнего сбора данных.По умолчанию они
-                    помещаются в правый столбик - к интересующим
-                    вакансиям. После сортировки следует сохранить
-                    состояния вакансий и тогда выделение исчезнет.
+                    выделены неотсортированные вакансии, которые
+                    появились в момент последнего сбора данных.
                 </div>
                 <div class="txt">
                     <span class="responded">&nbsp;Голубым&nbsp;</span>
@@ -55,8 +43,8 @@
                 <div class="txt">
                     <span class="reject">&nbsp;Красным&nbsp;</span> -
                     если работодатель отказал. Можно попробовать
-                    откликнуться другим резюме или забить на вакансию
-                    и перенести ее в 'неинтересные'
+                    откликнуться другим резюме или просто отправить её
+                    в 'неинтересные'
                 </div>
                 <div class="txt">
                     <span class="invite">&nbsp;Зеленым&nbsp;</span>
@@ -74,23 +62,63 @@
                     увидеть текст заметки.
                 </div>
             </div>
+
+            <!-- graph -->
+            <button type="button" class="btn btn-primary btn-graph"
+                    onclick="tggl('graph', 'graph', '.graph', '.btn-graph');">
+                graph
+            </button>
+            <div class="graph" style="text-align: center; overflow: auto;">
+                <img src="/img/vacancy-state.png"  />
+            </div>
+
+
+            <!-- vac-cols -->
+            <button type="button" class="btn btn-primary btn-uninteresting"
+                    onclick="tggl('uninteresting', 'uninteresting', '.col-uninteresting', '.btn-uninteresting');">
+                uninteresting
+            </button>
+            <button type="button" class="btn btn-primary btn-unsort"
+                    onclick="tggl('unsort', 'unsort', '.col-unsort', '.btn-unsort');">
+                unsort
+            </button>
+            <button type="button" class="btn btn-primary btn-interesting"
+                    onclick="tggl('unsort', 'unsort', '.col-interesting', '.btn-interesting');">
+                interesting
+            </button>
+
             <div class="row no-gutters">
-                <div class="col">
-                    <ul class="connected handles list" id="not" style="border: 1px solid red">
-                        <li id="22604660" class="unsort" title="NULL" draggable="true" style="display: list-item;">
-                            <span class="notes">NILNULL</span>
-                            <a href="/hh/vac/22604660">Team Lead C++/QT</a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col">
-                    <ul class="connected handles list no2" id="yep" style="border: 1px solid red">
-                        <li id="22616610" class="unsort" title="" draggable="true" style="display: list-item;">
+                <div class="col col-uninteresting">
+                    <div style="text-align: center">uninteresting</div>
+                    <ul class="connected handles list no2" id="yep">
+                        <li id="22616610" class="unsort" title="" draggable="true"
+                            style="display: list-item;">
                             <span class="emptynotes">NIL0</span>
                             <a href="/hh/vac/22616610">Специалист по продажам (Amazon)</a>
                         </li>
                     </ul>
                 </div>
+                <div class="col col-unsort">
+                    <div style="text-align: center">unsort</div>
+                    <ul class="connected handles list" id="not">
+                        <li id="22604660" class="unsort" title="NULL" draggable="true"
+                            style="display: list-item;">
+                            <span class="notes">NILNULL</span>
+                            <a href="/hh/vac/22604660">Team Lead C++/QT</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col col-interesting">
+                    <div style="text-align: center">uninteresting</div>
+                    <ul class="connected handles list no2" id="yep">
+                        <li id="22616610" class="unsort" title="" draggable="true"
+                            style="display: list-item;">
+                            <span class="emptynotes">NIL0</span>
+                            <a href="/hh/vac/22616610">Специалист по продажам (Amazon)</a>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
         </div>
     </body>
