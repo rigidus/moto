@@ -616,8 +616,71 @@
 
   (defun html-to-tree (html)
     ;; (html5-parser:node-to-xmls
-    (html5-parser:parse-html5-fragment html :dom :xmls
-                                       ))
+    (html5-parser:parse-html5-fragment html :dom :xmls))
+
+  (defun tree-to-html (tree &optional (step 0))
+    (macrolet ((indent () `(make-string (* 3 step) :initial-element #\Space)))
+      (cond ((stringp tree) (format nil "~A~A~%" (indent) tree))
+            ((listp   tree) (format nil "~A<~A~A>~%~A~4:*~A</~A>~%"
+                                    (indent)
+                                    (car tree)
+                                    (format nil "~:[~; ~1:*~{~A~^ ~}~]"
+                                            (mapcar #'(lambda (attr)
+                                                        (let ((key (car attr))
+                                                              (val (cadr attr)))
+                                                          (format nil "~A=\"~A\"" key val)))
+                                                    (cadr tree)))
+                                    (format nil "~{~A~}"
+                                            (progn
+                                              (incf step)
+                                              (let ((ret (mapcar #'(lambda (x)
+                                                                     (tree-to-html x step))
+                                                                 (cddr tree))))
+                                                (decf step)
+                                                ret)))))
+            (t              "[:err:]"))))
+
+
+  ;; (defparameter *t*
+  ;;   '(("fragment" (("b" "1") ("c" "2"))
+  ;;      ("section" ()
+  ;;       ("h3" () "Как проектируюттся IP-блоки и системы на кристалле")
+  ;;       ("p"  () "Юрий Панчул прочитал эту лекцию в Алма-Ате, а пока доступно"
+  ;;             ("a" (("href" "https://www.youtube.com/watch?v=sPaMiEunT_M"))
+  ;;                  "видео")
+  ;;             ", а также его"
+  ;;             ("a" (("href" "https://habrahabr.ru/post/309570/"))
+  ;;                  "отчетный пост")
+  ;;             "на хабре.")))))
+
+  ;; (print
+  ;;  (format nil "~{~A~}"
+  ;;          (mapcar #'tree-to-html
+  ;;                  *t*)))
+
+  ;; =>
+  ;; "
+  ;; <fragment b=\"1\" c=\"2\">
+  ;;    <section>
+  ;;       <h3>
+  ;;          Как проектируюттся IP-блоки и системы на кристалле
+  ;;       </h3>
+  ;;       <p>
+  ;;          Юрий Панчул прочитал эту лекцию в Алма-Ате, а пока доступно
+  ;;          <a href=\"https://www.youtube.com/watch?v=sPaMiEunT_M\">
+  ;;             видео
+  ;;          </a>
+  ;;          , а также его
+  ;;          <a href=\"https://habrahabr.ru/post/309570/\">
+  ;;             отчетный пост
+  ;;          </a>
+  ;;          на хабре.
+  ;;       </p>
+  ;;    </section>
+  ;; </fragment>
+  ;; "
+
+
 #+END_SRC
 
 **** Экстрактор поисковых результатов extract_search_results
