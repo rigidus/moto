@@ -707,8 +707,83 @@
 
 (defun html-to-tree (html)
   ;; (html5-parser:node-to-xmls
-  (html5-parser:parse-html5-fragment html :dom :xmls
-                                     ))
+  (html5-parser:parse-html5-fragment html :dom :xmls))
+
+(defun tree-to-html (tree &optional (step 0))
+  (macrolet ((indent () `(make-string (* 3 step) :initial-element #\Space)))
+    (labels ((paired (subtree)
+               (format nil "~A<~A~A>~%~A~4:*~A</~A>~%"
+                       (indent)
+                       (car subtree)
+                       (format nil "~:[~; ~1:*~{~A~^ ~}~]"
+                               (mapcar #'(lambda (attr)
+                                           (let ((key (car attr))
+                                                 (val (cadr attr)))
+                                             (format nil "~A=\"~A\"" key val)))
+                                       (cadr subtree)))
+                       (format nil "~{~A~}"
+                               (progn
+                                 (incf step)
+                                 (let ((ret (mapcar #'(lambda (x)
+                                                        (subtree-to-html x step))
+                                                    (cddr subtree))))
+                                   (decf step)
+                                   ret)))))
+             (singled (subtree)
+               (format nil "~A<~A~A />~%"
+                       (indent)
+                       (car subtree)
+                       (format nil "~:[~; ~1:*~{~A~^ ~}~]"
+                               (mapcar #'(lambda (attr)
+                                           (let ((key (car attr))
+                                                 (val (cadr attr)))
+                                             (format nil "~A=\"~A\"" key val)))
+                                       (cadr subtree)))))
+             (subtree-to-html (subtree &optional (step 0))
+               (cond ((stringp subtree) (format nil "~A~A~%" (indent) subtree))
+                     ((listp   subtree)
+                      (let ((tag (car subtree)))
+                        (cond ((or (equal tag "link")
+                                   (equal tag "meta"))  (singled subtree))
+                              (t (paired subtree)))))
+                     (t "[:err:]"))))
+      (reduce #'(lambda (a b) (concatenate 'string a b))
+              (mapcar #'(lambda (x) (subtree-to-html x step))
+                      tree)))))
+
+;; (print (tree-to-html '(("fragment" (("b" "1") ("c" "2"))
+;;                         ("link" (("rel" "stylesheet") ("href" "/css/bootstrap.min.css")))
+;;                         ("section" ()
+;;                          ("h3" () "Как проектируюттся IP-блоки и системы на кристалле")
+;;                          ("p"  () "Юрий Панчул прочитал эту лекцию в Алма-Ате, а пока доступно"
+;;                                ("a" (("href" "https://www.youtube.com/watch?v=sPaMiEunT_M"))
+;;                                     "видео")
+;;                                ", а также его"
+;;                                ("a" (("href" "https://habrahabr.ru/post/309570/"))
+;;                                     "отчетный пост")
+;;                                "на хабре."))))))
+
+;; =>
+;; "<fragment b=\"1\" c=\"2\">
+;;    <link rel=\"stylesheet\" href=\"/css/bootstrap.min.css\" />
+;;    <section>
+;;       <h3>
+;;          Как проектируюттся IP-блоки и системы на кристалле
+;;       </h3>
+;;       <p>
+;;          Юрий Панчул прочитал эту лекцию в Алма-Ате, а пока доступно
+;;          <a href=\"https://www.youtube.com/watch?v=sPaMiEunT_M\">
+;;             видео
+;;          </a>
+;;          , а также его
+;;          <a href=\"https://habrahabr.ru/post/309570/\">
+;;             отчетный пост
+;;          </a>
+;;          на хабре.
+;;       </p>
+;;    </section>
+;; </fragment>
+;; "
 
 (in-package #:moto)
 

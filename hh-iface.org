@@ -153,15 +153,135 @@
                         (split-sequence:split-sequence #\, (getf p :yep)))
                 (error 'ajax :output "window.location.href='/hh/vacs'"))))
 
+
+
+     (defun tgb (name on off &rest in)
+       `(("button" (("type" "button") ("class" ,(format nil "btn btn-primary btn-~A" name))
+                    ("onclick" ,(format nil "tggl('~A', '~A', '.~A', '.btn-~A');"
+                                        on off name name)))
+                   ,on)
+         ("div" (("class" ,name)) ,@(mapcan #'identity in))))
+
+
+     (defun txt (text &optional (class ""))
+       (let* ((start (position #\< text :test #'equal))
+              (end   (position #\> text :test #'equal)))
+         (if (or (null start)
+                 (null end))
+             text
+             ;; else
+             (let ((in (remove-if #'(lambda (x) (equal x ""))
+                                  `(,(subseq text 0 start)
+                                     ("span" (("class" ,class))
+                                             "&nbsp;"
+                                             ,(subseq text (+ 1 start) end)
+                                             "&nbsp;")
+                                     ,(subseq text (+ 1 end))))))
+               `(("div" (("class" "txt")) ,@in))
+               ))))
+
+
+     ;; (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
+
+     (defun legend ()
+       (tgb "legend" "legend-on" "legend-off"
+            (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
+            (txt "<Голубым> выделены вакансии, на которые отправлен отзыв." "responded")
+            (txt "<Фиолетовым> выделены вакансии, отзыв на которые был просмотрен." "beenviewed")
+            (txt "<Красным> - если работодатель отказал. Можно попробовать откликнуться другим резюме или просто отправить её в 'неинтересные'" "reject")
+            (txt "<Зеленым> - если работодатель пригласил на собеседование." "invite")
+            (txt "<Серым> - если собеседование было пройдено." "interview")
+            (txt  "Вакансии, к которым есть заметки, выделяются зарплатой на <черном> фоне. При наведении на такую вакансию можно увидеть текст заметки." "notes")))
+
+     ;; (print (legend))
+
+
      (restas:define-route hhtest ("/hh/test")
-       (alexandria:read-file-into-string "~/repo/moto/bootstrap.html"))
-
-
-     ;; (defun tgb (name on of)
-
-     ;; (body (h1 Hello world) (? php (if (== a 0) (ноль) (больше))))
-
-
+       (concatenate
+        'string
+        "<!DOCTYPE html>
+     "
+        (tree-to-html
+         `(("html"
+            (("lang" "en"))
+            ("head"
+             ()
+             ("meta" (("charset" "utf-8")))
+             ("meta" (("name" "viewport") ("content" "width=device-width, initial-scale=1, shrink-to-fit=no"))))
+            ("body"
+             ()
+             ("link" (("rel" "stylesheet") ("href" "/css/bootstrap.min.css")))
+             ("link" (("rel" "stylesheet") ("href" "/css/b.css")))
+             ("link" (("rel" "stylesheet") ("href" "/css/s.css")))
+             ("script" (("type" "text/javascript") ("src" "/js/jquery-v-1.10.2.js")))
+             ("script" (("type" "text/javascript") ("src" "/js/jquery-ui-v-1.10.3.js")))
+             ("script" (("type" "text/javascript") ("src" "/js/modernizr.js")))
+             ("script" (("type" "text/javascript") ("src" "/js/jquery.sortable.original.js")))
+             ("script" (("type" "text/javascript") ("src" "/js/frp.js")))
+             ("script" (("type" "text/javascript") ("src" "/js/bootstrap.min.js")))
+             ("script" (("type" "text/javascript") ("src" "/js/b.js")))
+             ("div"
+              (("class" "container-fluid"))
+              ,@(legend)
+              ("button"
+               (("type" "button") ("class" "btn btn-primary btn-graph")
+                ("onclick" "tggl('graph', 'graph', '.graph', '.btn-graph');"))
+               "graph")
+              ("div" (("class" "graph") ("style" "text-align: center; overflow: auto;"))
+                     ("img" (("src" "/img/vacancy-state.png"))))
+              ("button"
+               (("type" "button") ("class" "btn btn-primary btn-uninteresting")
+                ("onclick"
+                 "tggl('uninteresting', 'uninteresting', '.col-uninteresting', '.btn-uninteresting');"))
+               "uninteresting")
+              ("button"
+               (("type" "button") ("class" "btn btn-primary btn-unsort")
+                ("onclick" "tggl('unsort', 'unsort', '.col-unsort', '.btn-unsort');"))
+               "unsort")
+              ("button"
+               (("type" "button") ("class" "btn btn-primary btn-interesting")
+                ("onclick"
+                 "tggl('unsort', 'unsort', '.col-interesting', '.btn-interesting');"))
+               "interesting")
+              ("div"
+               (("class" "row no-gutters"))
+               ("div"
+                (("class" "col col-uninteresting"))
+                ("div"
+                 (("style" "text-align: center")) "uninteresting")
+                ("ul"
+                 (("class" "connected handles list no2") ("id" "yep"))
+                 ("li"
+                  (("id" "22616610") ("class" "unsort") ("title" "") ("draggable" "true")
+                   ("style" "display: list-item;"))
+                  ("span" (("class" "emptynotes")) "NIL0")
+                  ("a" (("href" "/hh/vac/22616610")) "Специалист по продажам (Amazon)"))))
+               ("div"
+                (("class" "col col-unsort"))
+                ("div"
+                 (("style" "text-align: center")) "unsort")
+                ("ul"
+                 (("class" "connected handles list") ("id" "not"))
+                 ("li"
+                  (("id" "22604660") ("class" "unsort") ("title" "NULL")
+                   ("draggable" "true") ("style" "display: list-item;"))
+                  ("span" (("class" "notes")) "NILNULL") "
+                         "
+                  ("a" (("href" "/hh/vac/22604660")) "Team Lead C++/QT"))))
+               ("div"
+                (("class" "col col-interesting"))
+                ("div"
+                 (("style" "text-align: center")) "uninteresting")
+                ("ul"
+                 (("class" "connected handles list no2") ("id" "yep"))
+                 ("li"
+                  (("id" "22616610") ("class" "unsort") ("title" "") ("draggable" "true")
+                   ("style" "display: list-item;"))
+                  ("span"
+                   (("class" "emptynotes")) "NIL0")
+                  ("a"
+                   (("href" "/hh/vac/22616610"))
+                   "Специалист по продажам (Amazon)"))))))))))))
    #+END_SRC
 
 ** Страница вакансии
