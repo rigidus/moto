@@ -652,7 +652,8 @@
                  (cond ((stringp subtree) (format nil "~A~A~%" (indent) subtree))
                        ((listp   subtree)
                         (let ((tag (car subtree)))
-                          (cond ((or (equal tag "link")
+                          (cond ((or (equal tag "img")
+                                     (equal tag "link")
                                      (equal tag "meta"))  (singled subtree))
                                 (t (paired subtree)))))
                        (t "[:err:]"))))
@@ -839,6 +840,14 @@
     (`("vacancy-serp__vacancy_responded"
        (("href" ,_)) "Вы откликнулись")
       `(:teaser (:status "responded"))))
+
+  (make-detect (respond-topic)
+    (`("g-attention m-attention_good b-vacancy-message"
+       NIL
+       "Вы уже откликались на эту вакансию. "
+       ("a" (("href" ,topic))
+            "Посмотреть отклики."))
+      `(:respond (:respond-topic ,topic))))
 
   (make-detect (rejecter)
     (`("vacancy-serp__vacancy_rejected"
@@ -1532,6 +1541,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
                          (detect-hypercontext)
                          (detect-descr-outer-block)
                          (detect-longdescr)
+                         (detect-respond-topic)
                          (detect-vacancy-address)
                          (detect-jobtype)
                          (detect-closed-contacts)

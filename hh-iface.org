@@ -196,6 +196,38 @@
      ;; (print (legend))
 
 
+     (defun link-css (&rest rest)
+       (mapcar #'(lambda (x)
+                   `("link" (("rel" "stylesheet") ("href" ,(format nil "/css/~A.css" x)))))
+               rest))
+
+     (defun script-js (&rest rest)
+       (mapcar #'(lambda (x)
+                   `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
+               rest))
+
+
+     (defun vac-elt (id class title noteclass notes href name)
+       `(("li"
+          (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
+           ("style" "display: list-item;"))
+          ("span" (("class" ,noteclass)) ,notes)
+          ("a" (("href" ,href)) ,name))))
+
+     (tree-to-html
+      (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "/hh/vac/22604660" "Team Lead C++/QT"))
+
+
+     (defun vac-col (col-class name &rest rest)
+       `(("div" (("class" ,(format nil "col ~A" col-class)))
+                ("div" (("style" "text-align: center")) ,name)
+                ("ul"  (("class" "connected handles list no2") ("id" "yep"))
+                       ,@(mapcar #'car rest)))))
+
+     (tree-to-html )
+
+
+
      (restas:define-route hhtest ("/hh/test")
        (concatenate
         'string
@@ -207,81 +239,40 @@
             ("head"
              ()
              ("meta" (("charset" "utf-8")))
-             ("meta" (("name" "viewport") ("content" "width=device-width, initial-scale=1, shrink-to-fit=no"))))
+             ("meta" (("name" "viewport")
+                      ("content" "width=device-width, initial-scale=1, shrink-to-fit=no"))))
             ("body"
              ()
-             ("link" (("rel" "stylesheet") ("href" "/css/bootstrap.min.css")))
-             ("link" (("rel" "stylesheet") ("href" "/css/b.css")))
-             ("link" (("rel" "stylesheet") ("href" "/css/s.css")))
-             ("script" (("type" "text/javascript") ("src" "/js/jquery-v-1.10.2.js")))
-             ("script" (("type" "text/javascript") ("src" "/js/jquery-ui-v-1.10.3.js")))
-             ("script" (("type" "text/javascript") ("src" "/js/modernizr.js")))
-             ("script" (("type" "text/javascript") ("src" "/js/jquery.sortable.original.js")))
-             ("script" (("type" "text/javascript") ("src" "/js/frp.js")))
-             ("script" (("type" "text/javascript") ("src" "/js/bootstrap.min.js")))
-             ("script" (("type" "text/javascript") ("src" "/js/b.js")))
+             ,@(link-css "bootstrap.min" "b" "s")
+             ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3"
+                          "modernizr"
+                          "jquery.sortable.original"
+                          "frp" "bootstrap.min" "b")
              ("div"
               (("class" "container-fluid"))
               ,@(legend)
-              ("button"
-               (("type" "button") ("class" "btn btn-primary btn-graph")
-                ("onclick" "tggl('graph', 'graph', '.graph', '.btn-graph');"))
-               "graph")
-              ("div" (("class" "graph") ("style" "text-align: center; overflow: auto;"))
-                     ("img" (("src" "/img/vacancy-state.png"))))
-              ("button"
-               (("type" "button") ("class" "btn btn-primary btn-uninteresting")
-                ("onclick"
-                 "tggl('uninteresting', 'uninteresting', '.col-uninteresting', '.btn-uninteresting');"))
-               "uninteresting")
-              ("button"
-               (("type" "button") ("class" "btn btn-primary btn-unsort")
-                ("onclick" "tggl('unsort', 'unsort', '.col-unsort', '.btn-unsort');"))
-               "unsort")
-              ("button"
-               (("type" "button") ("class" "btn btn-primary btn-interesting")
-                ("onclick"
-                 "tggl('unsort', 'unsort', '.col-interesting', '.btn-interesting');"))
-               "interesting")
-              ("div"
-               (("class" "row no-gutters"))
-               ("div"
-                (("class" "col col-uninteresting"))
-                ("div"
-                 (("style" "text-align: center")) "uninteresting")
-                ("ul"
-                 (("class" "connected handles list no2") ("id" "yep"))
-                 ("li"
-                  (("id" "22616610") ("class" "unsort") ("title" "") ("draggable" "true")
-                   ("style" "display: list-item;"))
-                  ("span" (("class" "emptynotes")) "NIL0")
-                  ("a" (("href" "/hh/vac/22616610")) "Специалист по продажам (Amazon)"))))
-               ("div"
-                (("class" "col col-unsort"))
-                ("div"
-                 (("style" "text-align: center")) "unsort")
-                ("ul"
-                 (("class" "connected handles list") ("id" "not"))
-                 ("li"
-                  (("id" "22604660") ("class" "unsort") ("title" "NULL")
-                   ("draggable" "true") ("style" "display: list-item;"))
-                  ("span" (("class" "notes")) "NILNULL") "
-                         "
-                  ("a" (("href" "/hh/vac/22604660")) "Team Lead C++/QT"))))
-               ("div"
-                (("class" "col col-interesting"))
-                ("div"
-                 (("style" "text-align: center")) "uninteresting")
-                ("ul"
-                 (("class" "connected handles list no2") ("id" "yep"))
-                 ("li"
-                  (("id" "22616610") ("class" "unsort") ("title" "") ("draggable" "true")
-                   ("style" "display: list-item;"))
-                  ("span"
-                   (("class" "emptynotes")) "NIL0")
-                  ("a"
-                   (("href" "/hh/vac/22616610"))
-                   "Специалист по продажам (Amazon)"))))))))))))
+              ,@(tgb "graph" "graph-on" "graph-off"
+                     `(("div" (("style" "text-align: center; overflow: auto;"))
+                              ("img" (("src" "/img/vacancy-state.png"))))))
+              ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
+              ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
+              ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
+              ("div" (("class" "row no-gutters"))
+                     ,@(vac-col "col-uninteresting" "uninteresting"
+                                (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
+                                         "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                                (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
+                                         "/hh/vac/22604660" "Team Lead C++/QT"))
+                     ,@(vac-col "col-unsort" "unsort"
+                                (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
+                                         "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                                (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
+                                         "/hh/vac/22604660" "Team Lead C++/QT"))
+                     ,@(vac-col "col-interesting" "interesting"
+                              (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
+                                       "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                              (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
+                                       "/hh/vac/22604660" "Team Lead C++/QT"))))))))))
    #+END_SRC
 
 ** Страница вакансии

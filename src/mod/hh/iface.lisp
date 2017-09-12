@@ -120,8 +120,126 @@
                    (split-sequence:split-sequence #\, (getf p :yep)))
            (error 'ajax :output "window.location.href='/hh/vacs'"))))
 
+
+
+(defun tgb (name on off &rest in)
+  `(("button" (("type" "button") ("class" ,(format nil "btn btn-primary btn-~A" name))
+               ("onclick" ,(format nil "tggl('~A', '~A', '.~A', '.btn-~A');"
+                                   on off name name)))
+              ,on)
+    ("div" (("class" ,name)) ,@(mapcan #'identity in))))
+
+
+(defun txt (text &optional (class ""))
+  (let* ((start (position #\< text :test #'equal))
+         (end   (position #\> text :test #'equal)))
+    (if (or (null start)
+            (null end))
+        text
+        ;; else
+        (let ((in (remove-if #'(lambda (x) (equal x ""))
+                             `(,(subseq text 0 start)
+                                ("span" (("class" ,class))
+                                        "&nbsp;"
+                                        ,(subseq text (+ 1 start) end)
+                                        "&nbsp;")
+                                ,(subseq text (+ 1 end))))))
+          `(("div" (("class" "txt")) ,@in))
+          ))))
+
+
+;; (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
+
+(defun legend ()
+  (tgb "legend" "legend-on" "legend-off"
+       (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
+       (txt "<Голубым> выделены вакансии, на которые отправлен отзыв." "responded")
+       (txt "<Фиолетовым> выделены вакансии, отзыв на которые был просмотрен." "beenviewed")
+       (txt "<Красным> - если работодатель отказал. Можно попробовать откликнуться другим резюме или просто отправить её в 'неинтересные'" "reject")
+       (txt "<Зеленым> - если работодатель пригласил на собеседование." "invite")
+       (txt "<Серым> - если собеседование было пройдено." "interview")
+       (txt  "Вакансии, к которым есть заметки, выделяются зарплатой на <черном> фоне. При наведении на такую вакансию можно увидеть текст заметки." "notes")))
+
+;; (print (legend))
+
+
+(defun link-css (&rest rest)
+  (mapcar #'(lambda (x)
+              `("link" (("rel" "stylesheet") ("href" ,(format nil "/css/~A.css" x)))))
+          rest))
+
+(defun script-js (&rest rest)
+  (mapcar #'(lambda (x)
+              `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
+          rest))
+
+
+(defun vac-elt (id class title noteclass notes href name)
+  `(("li"
+     (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
+      ("style" "display: list-item;"))
+     ("span" (("class" ,noteclass)) ,notes)
+     ("a" (("href" ,href)) ,name))))
+
+(tree-to-html
+ (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "/hh/vac/22604660" "Team Lead C++/QT"))
+
+
+(defun vac-col (col-class name &rest rest)
+  `(("div" (("class" ,(format nil "col ~A" col-class)))
+           ("div" (("style" "text-align: center")) ,name)
+           ("ul"  (("class" "connected handles list no2") ("id" "yep"))
+                  ,@(mapcar #'car rest)))))
+
+(tree-to-html )
+
+
+
 (restas:define-route hhtest ("/hh/test")
-  (alexandria:read-file-into-string "~/repo/moto/bootstrap.html"))
+  (concatenate
+   'string
+   "<!DOCTYPE html>
+"
+   (tree-to-html
+    `(("html"
+       (("lang" "en"))
+       ("head"
+        ()
+        ("meta" (("charset" "utf-8")))
+        ("meta" (("name" "viewport")
+                 ("content" "width=device-width, initial-scale=1, shrink-to-fit=no"))))
+       ("body"
+        ()
+        ,@(link-css "bootstrap.min" "b" "s")
+        ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3"
+                     "modernizr"
+                     "jquery.sortable.original"
+                     "frp" "bootstrap.min" "b")
+        ("div"
+         (("class" "container-fluid"))
+         ,@(legend)
+         ,@(tgb "graph" "graph-on" "graph-off"
+                `(("div" (("style" "text-align: center; overflow: auto;"))
+                         ("img" (("src" "/img/vacancy-state.png"))))))
+         ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
+         ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
+         ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
+         ("div" (("class" "row no-gutters"))
+                ,@(vac-col "col-uninteresting" "uninteresting"
+                           (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
+                                    "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                           (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
+                                    "/hh/vac/22604660" "Team Lead C++/QT"))
+                ,@(vac-col "col-unsort" "unsort"
+                           (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
+                                    "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                           (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
+                                    "/hh/vac/22604660" "Team Lead C++/QT"))
+                ,@(vac-col "col-interesting" "interesting"
+                         (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
+                                  "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                         (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
+                                  "/hh/vac/22604660" "Team Lead C++/QT"))))))))))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"

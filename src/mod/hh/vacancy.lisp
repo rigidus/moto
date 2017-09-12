@@ -875,6 +875,14 @@
      (("href" ,_)) "Вы откликнулись")
     `(:teaser (:status "responded"))))
 
+(make-detect (respond-topic)
+  (`("g-attention m-attention_good b-vacancy-message"
+     NIL
+     "Вы уже откликались на эту вакансию. "
+     ("a" (("href" ,topic))
+          "Посмотреть отклики."))
+    `(:respond (:respond-topic ,topic))))
+
 (make-detect (rejecter)
   (`("vacancy-serp__vacancy_rejected"
      (("href" "/negotiations/gotopic?vacancy_id=20255184")) "Вам отказали")
@@ -1561,6 +1569,7 @@
                        (detect-hypercontext)
                        (detect-descr-outer-block)
                        (detect-longdescr)
+                       (detect-respond-topic)
                        (detect-vacancy-address)
                        (detect-jobtype)
                        (detect-closed-contacts)
