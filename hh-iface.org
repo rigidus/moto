@@ -180,9 +180,6 @@
                `(("div" (("class" "txt")) ,@in))
                ))))
 
-
-     ;; (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
-
      (defun legend ()
        (tgb "legend" "legend-on" "legend-off"
             (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
@@ -192,9 +189,6 @@
             (txt "<Зеленым> - если работодатель пригласил на собеседование." "invite")
             (txt "<Серым> - если собеседование было пройдено." "interview")
             (txt  "Вакансии, к которым есть заметки, выделяются зарплатой на <черном> фоне. При наведении на такую вакансию можно увидеть текст заметки." "notes")))
-
-     ;; (print (legend))
-
 
      (defun link-css (&rest rest)
        (mapcar #'(lambda (x)
@@ -206,27 +200,18 @@
                    `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
                rest))
 
-
-     (defun vac-elt (id class title noteclass notes href name)
-       `(("li"
-          (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
-           ("style" "display: list-item;"))
-          ("span" (("class" ,noteclass)) ,notes)
-          ("a" (("href" ,href)) ,name))))
-
-     (tree-to-html
-      (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "/hh/vac/22604660" "Team Lead C++/QT"))
-
-
      (defun vac-col (col-class name &rest rest)
        `(("div" (("class" ,(format nil "col ~A" col-class)))
                 ("div" (("style" "text-align: center")) ,name)
                 ("ul"  (("class" "connected handles list no2") ("id" "yep"))
                        ,@(mapcar #'car rest)))))
 
-     (tree-to-html )
-
-
+     (defun vac-elt (id class title noteclass notes name)
+       `(("li"
+          (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
+           ("style" "display: list-item;"))
+          ("span" (("class" ,noteclass)) ,notes)
+          ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
 
      (restas:define-route hhtest ("/hh/test")
        (concatenate
@@ -260,19 +245,31 @@
               ("div" (("class" "row no-gutters"))
                      ,@(vac-col "col-uninteresting" "uninteresting"
                                 (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
-                                         "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                                         "Специалист по продажам (Amazon)")
                                 (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
-                                         "/hh/vac/22604660" "Team Lead C++/QT"))
-                     ,@(vac-col "col-unsort" "unsort"
-                                (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
-                                         "/hh/vac/22616610" "Специалист по продажам (Amazon)")
-                                (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
-                                         "/hh/vac/22604660" "Team Lead C++/QT"))
+                                         "Team Lead C++/QT"))
+                     ,@(apply
+                        #'vac-col
+                        (append (list "col-unsort" "unsort")
+                                (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+                                       (sorted-vacs
+                                        (sort vacs #'(lambda (a b)
+                                                       (let ((aa (salary-max a))
+                                                             (bb (salary-max b)))
+                                                         (unless (numberp aa) (setf aa 0))
+                                                         (unless (numberp bb) (setf bb 0))
+                                                         (> aa bb))))))
+                                  (mapcar #'(lambda (vac)
+                                              (print vac)
+                                              (vac-elt (src-id vac) "unsort" "" "emptynotes"
+                                                       (salary-max vac) (name vac)))
+                                          sorted-vacs))))
                      ,@(vac-col "col-interesting" "interesting"
                               (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
-                                       "/hh/vac/22616610" "Специалист по продажам (Amazon)")
+                                       "Специалист по продажам (Amazon)")
                               (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
-                                       "/hh/vac/22604660" "Team Lead C++/QT"))))))))))
+                                       "Team Lead C++/QT"))))))))))
+
    #+END_SRC
 
 ** Страница вакансии
