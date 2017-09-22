@@ -591,7 +591,8 @@
                          ;; else
                          (compactor vacancy)
                          ;; vacancy
-                         )))))
+                         )))
+         ))
 
   ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
 
@@ -709,8 +710,7 @@
   (defun extract-search-results (tree)
     (block subtree-extract
       (mtm (`("div"
-              (("class" "search-result")
-               ("data-qa" "vacancy-serp__results"))
+              (("data-qa" "vacancy-serp__results"))
               ,@rest)
              (return-from subtree-extract rest))
            tree)))
@@ -2739,7 +2739,8 @@ pattern-matchinga из пакета =optima= делает вышеприведе
 
 Чтобы дать возможность удобного создания правил непрофессиональному
 пользователю в интерфейсе, потребуется достаточно умный кодогенератор,
-способный из визуализации собрать код правила.
+способный из визуализации собрать код правила. В идеале он должен
+осуществить синтез правила имея его вход и выход.
 
 ** Процессор правил (=process=)
 

@@ -792,8 +792,7 @@
 (defun extract-search-results (tree)
   (block subtree-extract
     (mtm (`("div"
-            (("class" "search-result")
-             ("data-qa" "vacancy-serp__results"))
+            (("data-qa" "vacancy-serp__results"))
             ,@rest)
            (return-from subtree-extract rest))
          tree)))
@@ -1118,7 +1117,8 @@
                        ;; else
                        (compactor vacancy)
                        ;; vacancy
-                       )))))
+                       )))
+       ))
 
 ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
 
