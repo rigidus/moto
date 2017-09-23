@@ -63,6 +63,17 @@
 (defun trim (param)
   (string-trim '(#\Space #\Newline #\Tab) param))
 
+(defmacro abbrev (short long)
+  "Abbreviate a <_:arg long /> MACRO or FUNCTION name as <_:arg short />"
+  `(eval-always
+     (cond
+       ((macro-function ',long)       (setf (macro-function ',short) (macro-function ',long)))
+       ((special-operator-p ',long)   (error "Can't ABBREViate a special-operator ~a" ',long))
+       ((fboundp ',long)              (setf (fdefinition ',short) (fdefinition ',long)))
+       (t                             (error "Can't ABBREViate ~a" ',long)))
+     (setf (documentation ',short 'function) (documentation ',long 'function))
+     ',short))
+
 ;; Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
 ;; Если необходимо вывести ajax-данные, использует специальный тип ошибки
 
