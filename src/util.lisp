@@ -60,6 +60,9 @@
          :in alist
          :nconc (list (anything-to-keyword key) value))))
 
+(defun trim (param)
+  (string-trim '(#\Space #\Newline #\Tab) param))
+
 ;; Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
 ;; Если необходимо вывести ajax-данные, использует специальный тип ошибки
 
