@@ -271,6 +271,8 @@
 (defparameter *saved-vacancy* nil)
 
 (defmethod save-vacancy (vac)
+  (setf *saved-vacancy* vac)
+  (format t "~%->SAVE~%~A" (bprint vac))
   (let* ((src-id    (.> getf vac -> :teaser :id))
          (old-vac   (car (find-vacancy :src-id src-id)))
          (*new-vac*
@@ -286,7 +288,7 @@
            :emp-id      (aif (.> getf vac -> :teaser-emp :emp-id) it 0)
            :emp-name    (.> getf vac -> :teaser-emp :emp-name)
            :city        (trim (.> getf vac -> :vacancy-place :city))
-           :metro       ""
+           :metro       (trim (.> getf vac -> :vacancy-place :metro))
            :experience  (.> getf vac -> :vacancy-exp :exp)
            :archive     (.> getf vac -> :teaser :archived)
            :date        (aif (.> getf vac -> :teaser :date) it "")
@@ -296,21 +298,19 @@
            :notes       ""
            :tags        "" ;; (aif (getf vac :tags) it "")
            :response    ""
-
            :emptype     (aif (.> getf vac -> :vacancy-jobtype :emptype) it "")
            :workhours   (aif (.> getf vac -> :vacancy-jobtype :workhours) it "")
-           :skills      (aif (.> getf vac -> :vacancy-skills :list-of-skilss) (bprint it) "")
-           :datetime    (aif (.> getf vac -> :vacancy-date :datetime) it "")
-           :date-text   (aif (.> getf vac -> :vacancy-date :datetext) it "")
-           :responsibility (aif (.> getf vac -> :teaser-descr :responsibility)
-                                (if (stringp it) it "")
-                                "")
-           :requirement    (aif (.> getf vac -> :teaser-descr :requirement)
-                                (if (stringp it) it "")
-                                "")
-           :addr        (aif (.> getf vac -> :addr :addr-with-map) it "")
-           :street-addr (aif (.> getf vac -> :addr :street-addr) it "")
-
+           ;; :skills      (aif (.> getf vac -> :vacancy-skills :list-of-skilss) (bprint it) "") ;
+           ;; :datetime    (aif (.> getf vac -> :vacancy-date :datetime) it "")
+           ;; :date-text   (aif (.> getf vac -> :vacancy-date :datetext) it "")
+           ;; :responsibility (aif (.> getf vac -> :teaser-descr :responsibility)
+           ;;                      (if (stringp it) it "")
+           ;;                      "")
+           ;; :requirement    (aif (.> getf vac -> :teaser-descr :requirement)
+           ;;                      (if (stringp it) it "")
+           ;;                      "")
+           ;; :addr        (aif (.> getf vac -> :addr :addr-with-map) it "")
+           ;; :street-addr (aif (.> getf vac -> :addr :street-addr) it "")
            )))
     (declare (special *new-vac*))
     (if (null old-vac)
@@ -915,6 +915,31 @@
 
 (in-package #:moto)
 
+(make-transform (serp-vacancy)
+  (`("vacancy-serp__vacancy"
+     NIL (:TEASER (:STATUS "responded"))
+     ,contents)
+    contents))
+
+(make-transform (serp-premium)
+  (`("vacancy-serp__vacancy vacancy-serp__vacancy_premium"
+     NIL
+     (:TEASER (:STATUS "responded"))
+     ,contents)
+    contents))
+
+(make-transform (serp-descr)
+  (`("search-result-description"
+     NIL
+     ,contents
+     ,@rest)
+    contents))
+
+(make-transform (serp-primary)
+  (`("search-result-description__item search-result-description__item_primary"
+     NIL ,@rest)
+    rest))
+
 (make-transform (script-in-teaser)
   (`("script" NIL ,contents)
     `(:garbage (:script ,contents))))
@@ -1136,6 +1161,10 @@
        (transform-compensation)
        (transform-script-in-teaser)
        (transform-teaser-finalizer)
+       (transform-serp-primary)
+       (transform-serp-descr)
+       (transform-serp-premium)
+       (transform-serp-vacancy)
        (cddar)
        (mapcar #'(lambda (vacancy)
                    (if (not (tree-plist-p vacancy))
@@ -1363,34 +1392,30 @@
                         ;; (transform-skill-element)
                         ;; (transform-skills)
                         ;; (transform-joblocation)
-                        )))
-    ;; (if (not (tree-plist-p candidat))
-    ;;     (progn
-    ;;       (dbg "~A" (bprint candidat))
-    ;;       (error 'malformed-vacancy :text))
-    ;;     (let* ((non-compacted-vacancy candidat)
-    ;;            (compacted-vacancy (compactor candidat))
-    ;;            )
-    ;;       ;; non-compacted-vacancy
-    ;;       compacted-vacancy
-    ;;     ))
-    ;; (format t (bprint candidat))
-    ;; (print (compactor candidat))
-    `(:url ,(extract-url candidat)
-           :title ,(extract-title candidat)
-           :company ,(extract-company candidat)
-           :compensation ,(extract-compensation candidat)
-           :city ,(extract-city candidat)
-           :metro ,(extract-metro candidat)
-           :exp ,(extract-exp candidat)
-           :descr ,(extract-descr candidat)
-           :emptype ,(extract-jobtype candidat)
-           :contacts ,(extract-contacts candidat)
-           )
-    ;; candidat
-    ))
+                        ))
+         (vacancy `((:vacancy-place (:city  ,(extract-city candidat)))
+                    (:vacancy-place (:metro ,(extract-metro candidat)))
+                    (:vacancy-exp   (:exp   ,(extract-exp candidat)))
+                    (:vacancy-descr (:descr ,(cadar (extract-descr candidat))))
+                    (:vacancy-jobtype ,(extract-jobtype candidat))
+                    ;; :url ,(extract-url candidat)
+                    ;; :title ,(extract-title candidat)
+                    ;; :company ,(extract-company candidat)
+                    ;; :compensation ,(extract-compensation candidat)
+                    ;; :contacts ,(extract-contacts candidat))))
+                    )))
+    (if (not (tree-plist-p vacancy))
+        (progn
+          (dbg "~A" (bprint vacancy))
+          (error 'malformed-vacancy :text))
+        (let* ((non-compacted-vacancy vacancy)
+               (compacted-vacancy (compactor vacancy))
+               )
+          ;; non-compacted-vacancy
+          compacted-vacancy
+          ))))
 
-(print (hh-parse-vacancy *last-parse-data*))
+;; (print (hh-parse-vacancy *last-parse-data*))
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
   ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
@@ -1465,6 +1490,8 @@
 ;; moved (defparameter *saved-vacancy* nil)
 ;; moved 
 ;; moved (defmethod save-vacancy (vac)
+;; moved   (setf *saved-vacancy* vac)
+;; moved   (format t "~%->SAVE~%~A" (bprint vac))
 ;; moved   (let* ((src-id    (.> getf vac -> :teaser :id))
 ;; moved          (old-vac   (car (find-vacancy :src-id src-id)))
 ;; moved          (*new-vac*
@@ -1480,7 +1507,7 @@
 ;; moved            :emp-id      (aif (.> getf vac -> :teaser-emp :emp-id) it 0)
 ;; moved            :emp-name    (.> getf vac -> :teaser-emp :emp-name)
 ;; moved            :city        (trim (.> getf vac -> :vacancy-place :city))
-;; moved            :metro       ""
+;; moved            :metro       (trim (.> getf vac -> :vacancy-place :metro))
 ;; moved            :experience  (.> getf vac -> :vacancy-exp :exp)
 ;; moved            :archive     (.> getf vac -> :teaser :archived)
 ;; moved            :date        (aif (.> getf vac -> :teaser :date) it "")
@@ -1490,21 +1517,19 @@
 ;; moved            :notes       ""
 ;; moved            :tags        "" ;; (aif (getf vac :tags) it "")
 ;; moved            :response    ""
-;; moved 
 ;; moved            :emptype     (aif (.> getf vac -> :vacancy-jobtype :emptype) it "")
 ;; moved            :workhours   (aif (.> getf vac -> :vacancy-jobtype :workhours) it "")
-;; moved            :skills      (aif (.> getf vac -> :vacancy-skills :list-of-skilss) (bprint it) "")
-;; moved            :datetime    (aif (.> getf vac -> :vacancy-date :datetime) it "")
-;; moved            :date-text   (aif (.> getf vac -> :vacancy-date :datetext) it "")
-;; moved            :responsibility (aif (.> getf vac -> :teaser-descr :responsibility)
-;; moved                                 (if (stringp it) it "")
-;; moved                                 "")
-;; moved            :requirement    (aif (.> getf vac -> :teaser-descr :requirement)
-;; moved                                 (if (stringp it) it "")
-;; moved                                 "")
-;; moved            :addr        (aif (.> getf vac -> :addr :addr-with-map) it "")
-;; moved            :street-addr (aif (.> getf vac -> :addr :street-addr) it "")
-;; moved 
+;; moved            ;; :skills      (aif (.> getf vac -> :vacancy-skills :list-of-skilss) (bprint it) "") ;
+;; moved            ;; :datetime    (aif (.> getf vac -> :vacancy-date :datetime) it "")
+;; moved            ;; :date-text   (aif (.> getf vac -> :vacancy-date :datetext) it "")
+;; moved            ;; :responsibility (aif (.> getf vac -> :teaser-descr :responsibility)
+;; moved            ;;                      (if (stringp it) it "")
+;; moved            ;;                      "")
+;; moved            ;; :requirement    (aif (.> getf vac -> :teaser-descr :requirement)
+;; moved            ;;                      (if (stringp it) it "")
+;; moved            ;;                      "")
+;; moved            ;; :addr        (aif (.> getf vac -> :addr :addr-with-map) it "")
+;; moved            ;; :street-addr (aif (.> getf vac -> :addr :street-addr) it "")
 ;; moved            )))
 ;; moved     (declare (special *new-vac*))
 ;; moved     (if (null old-vac)
