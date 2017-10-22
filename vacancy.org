@@ -1,47 +1,43 @@
 #+STARTUP: showall indent hidestars
-#+HTML_HEAD: <!-- -*- fill-column: 87 -*- -->
-#+HTML_HEAD: <!-- org-toggle-inline-images -->
 
 #+TITLE: Модуль HeadHunter (Vacancy Operations)
 
-#+INFOJS_OPT: view:overview toc:nil
 
 #+NAME:css
 #+BEGIN_HTML
 <link rel="stylesheet" type="text/css" href="/css/css.css" />
 #+END_HTML
 
-* Как это работает?
-** Источник вакансий
+* Источник вакансий
 
-Пусть у нас есть источник вакансий, например, hh.ru. На нем можно сформулировать запрос и
-получить выборку в виде списка тизеров вакансий, каждый из которых ведет на полное
-описание вакансии.
+Пусть у нас есть источник вакансий, например, ~hh.ru~. На нем можно сформулировать
+запрос и получить выборку в виде списка ~тизеров вакансий~, каждый из которых ведет на
+полное описание вакансии.
 
 #+CAPTION: Это источник вакансий
 #+NAME: fig:vacancy_source
-./img/warehouse.jpg]]
+[[./img/warehouse.jpg]]
 
-** Фабрика генераторов вакансий
+* Фабрика генераторов вакансий
 
-Пусть у нас есть фабрика =генераторов= назовем её =factory=, которая принимает
-=источник вакансий= и параметры запроса (например: =профессиональную область=,
-=специализацию=, =город=) и возвращает =функцию-генератор= в замыкании.
+Пусть у нас есть фабрика ~генераторов~ назовем её ~factory~, которая принимает
+~источник вакансий~ и параметры запроса (например: ~профессиональную область~,
+~специализацию~, ~город~) и возвращает ~функцию-генератор~ в замыкании.
 
 #+CAPTION: Фабрика генераторов вакансий
 #+NAME: fig:factory
-./img/factory.jpg]]
+[[./img/factory.jpg]]
 
-Эта функция-генератор при каждом своем вызове вернет одну вакансию или =ложь= если все
-вакансии кончились (или сервер вернул 404-ую ошибку).
+Эта функция-генератор при каждом своем вызове вернет одну вакансию или ~ложь~ если все
+вакансии кончились (или если сервер вернул ошибку 404 или 500).
 
 #+CAPTION: Функция-генератор, произведенная фабрикой
 #+NAME: fig:generator
-./img/generator.jpg]]
+[[./img/generator.jpg]]
 
 Внутри себя эта функция по мере необходимости загружает и разбирает сначала тизеры
 вакансий, а потом и сами вакансии. При этом процесс превращения тизера в вакансию
-(=process-teaser=) вынесен из замыкания, т.к. не зависит от замкнутых переменных.
+(~process-teaser~) вынесен из замыкания, т.к. не зависит от замкнутых переменных.
 
 #+NAME: factory
 #+BEGIN_SRC lisp :exports code :padline no :comments link
@@ -125,23 +121,24 @@
 #+END_SRC
 
 Для работы этому генератору нужно уметь:
-- Собирать URL страницы, где лежат тизеры (краткие описания) вакансий из параметов запроса
-  (=make-hh-url=)
-- Скачивать HTML-страницы (=hh-get-page=)
-- Разбирать тизеры из html-кода (=hh-parse-vacancy-teasers=)
-- Обрабатывать разобранные тизеры (=hh-parse-vacancy=), чтобы получить по ним вакансии.
+- Собирать URL страницы, где лежат тизеры (краткие описания) вакансий из параметов
+  запроса (~make-hh-url~)
+- Скачивать HTML-страницы (~hh-get-page~)
+- Разбирать тизеры из html-кода (~hh-parse-vacancy-teasers~)
+- Обрабатывать разобранные тизеры (~hh-parse-vacancy~), чтобы получить по ним вакансии.
 
 Реализуем все эти вещи:
 
-*** Построение URL-ов для скачивания тизеров (=make-hh-url=)
+** Построение URL-ов для скачивания тизеров (~make-hh-url~)
 
 Тизеры вакансий размещаются постранично, по 20 штук на странице, и мы можем собрать все
 страницы, если будем получать страницу за страницей, пока не получим страницу, на которой
 вакансий нет.
 
-В качестве GET-параметров запросы указываются =специализации= и город. Значения =cluster=
-и =area= не меняются. Поэтому, единственная сложность построения URL - это правильно
-сформировать =специализации=.
+В качестве GET-параметров запросы указываются ~специализации~ и город. Значения
+~cluster~ и ~area~ не меняются. Поэтому, единственная сложность построения URL - это
+правильно сформировать ~специализации~. Но пока мы используем одну захардкоженную
+специализацию [TODO:gmm].
 
 #+NAME: make_hh_url
 #+BEGIN_SRC lisp
@@ -150,13 +147,14 @@
   <<!make_specialization_hh_url_string>>
 
   (defun make-hh-url (city prof-area &optional specs)
-    "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A")
+    ;; "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A"
+    "https://spb.hh.ru/search/vacancy?clusters=true&items_on_page=100&enable_snippets=true&specialization=1&area=2&page=~A")
 
   ;; test
   ;; (make-hh-url "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
 #+END_SRC
 
-**** TODO Построение специализаций
+*** TODO Построение специализаций
 
 Специализации задаются в формате "1.221", где цифра слева от точки представляет
 профессиональное направление, а справа - собственно специализацию. В интерфейсе
@@ -280,11 +278,11 @@
       ("Рабочий персонал" . ("29"))))
 #+END_SRC
 
-*** Получение страниц (=hh-get-page=)
+** Получение страниц (~hh-get-page~)
 
 Так как мы хотим получать информацию, которая находится за авторизацией, нам нужно
-обеспечить прозрачность авторизации, если ее в данный момент нет. =hh_recovery_login= решает эту
-проблему.
+обеспечить прозрачность авторизации, если ее в данный момент нет. ~hh_recovery_login~
+решает эту проблему.
 
 Вот так мы можем получать страницы, к примеру те, на который находятся тизеры:
 - Получаем страницу <-------------------------------------------+
@@ -293,12 +291,11 @@
   - Если не залогинены - логинимся и получаем страницу снова.---+
     - Если во время логина произошла ошибка - сигнализируем условие.
 
-Есть также одна особенность (типа баг) в результате которой drakma неправильно
-воспринимает сформированные в get-запросе параметры и говорит что URI malformed. Мы
-обходим это с помощью глобального флага =*need-start*=, что является временным
-решением.
+Есть также одна особенность (баг) в результате которой drakma неправильно воспринимает
+сформированные в get-запросе параметры и говорит что URI malformed. Мы обходим это с
+помощью глобального флага ~*need-start*~, что является временным решением.
 
-Если сервер возвращает 404 ошибку, функция сигнализирует condition =hh-404-error=.
+Если сервер возвращает 404 ошибку, функция сигнализирует condition ~hh-404-error~.
 
 #+NAME: hh_get_page
 #+BEGIN_SRC lisp
@@ -361,25 +358,25 @@
   ;;              "https://spb.hh.ru/")
 #+END_SRC
 
-**** Логин на источник (=recovery-login=)
+*** Логин на источник (~recovery-login~)
 
-Прежде чем мы получим возможность забирать авторизованную информацию с нашего источника,
-нам нужно иметь способ залогиниться на него. В дополнение к этому мы должны отслеживать
-момент потери авторизованной сесии и в каждый конкретный момент определять, залогинены ли
-мы. Обычно это можно определить по наличию формы для логина на любой загружаемой
-странице.
+Прежде чем мы получим возможность забирать авторизованную информацию с нашего
+источника, нам нужно иметь способ залогиниться на него. В дополнение к этому мы должны
+отслеживать момент потери авторизованной сесии и в каждый конкретный момент определять,
+залогинены ли мы. Обычно это можно определить по наличию формы для логина на любой
+загружаемой странице.
 
-Мы хотим в случае обрыва сессии перелогиниваться прозрачно для всего остального
-кода, поэтому процедура логина должна вызвываться по необходимости из процедуры
-загрузки любой страницы. Также важно обрабатывать ошибки, которые могут произойти
-при логине, например, если неверен пароль.
+Мы хотим в случае обрыва сессии перелогиниваться прозрачно для всего остального кода,
+поэтому процедура логина должна вызвываться по необходимости из процедуры загрузки
+любой страницы. Также важно обрабатывать ошибки, которые могут произойти при логине,
+например, если неверен пароль.
 
-Для всех этих целей мы передаем в =recovery-login= объект =src-account=, который
-содержит все необходимое, чтобы восстановить сессию: логин, пароль и ФИО
-пользователя, по которому мы определяем, что успешно залогинились.
+Для всех этих целей мы передаем в ~recovery-login~ объект ~src-account~, который
+содержит все необходимое, чтобы восстановить сессию: логин, пароль и ФИО пользователя,
+по которому мы определяем, что успешно залогинились.
 
-=recovery-login= вторым возвращаемым значением возвращает новый cookie-jar,
-который нужно использовать для работы внутри сессии.
+~recovery-login~ вторым возвращаемым значением возвращает новый ~cookie-jar~, который
+нужно использовать для работы внутри сессии.
 
 #+NAME: hh_recovery_login
 #+BEGIN_SRC lisp
@@ -407,7 +404,7 @@
        (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
   (defun recovery-login (src-account)
-    ;; Сначала заходим на главную как будто первый раз, без печенек
+    ;; Сначала заходим на главную как будто первый раз, без cookies
     (setf drakma:*header-stream* nil)
     (let* ((start-uri "https://spb.hh.ru/")
            (cookie-jar (make-instance 'drakma:cookie-jar))
@@ -426,7 +423,7 @@
            ;;         ;; )
            ;;         ))
            )
-      ;; Теперь попробуем использовать печеньки для логина
+      ;; Теперь попробуем использовать cookies для логина
       ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
       ;; И заходим с вот-таким гет-запросом:
       ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=https://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
@@ -465,7 +462,6 @@
         (err "login exception"))))
 #+END_SRC
 
-
 Теперь надо создать хотя бы один логин
 
 #+NAME: data_for_account
@@ -480,19 +476,19 @@
                                               :state ":ACTIVE"))
 #+END_SRC
 
-*** Разбор тизеров вакансий (=hh-parse-vacancy-teasers=)
+** Разбор тизеров вакансий (~hh-parse-vacancy-teasers~)
 
-Функция =hh-parse-vacancy-teasers= получает на вход html страницы поисковой выдачи
+Функция ~hh-parse-vacancy-teasers~ получает на вход html страницы поисковой выдачи
 и превращает его в список вакансий. Для этого она выполняет ряд операций, которые
 можно поделить не несколько классов:
 - Преобразование html-кода в дерево s-выражений
 - Извлечение из этого дерева части, которая содержит поисковую выдачу
-- Преобразование элементов форматирования, таких как div и span в "говорящие"
-  элементы дерева для повышения читаемости (названия для преобразования извлекаются
-  из атрибутов =class= и =data-qa=
-- Преобразование содержимого вакансий в plists, с отнесением отдельных элементов к
+- Преобразование элементов форматирования, таких как ~div~ и ~span~ в "говорящие"
+  элементы дерева для повышения читаемости (названия для преобразования извлекаются из
+  атрибутов ~class~ и ~data-qa~
+- Преобразование содержимого вакансий в ~plists~, с отнесением отдельных элементов к
   разным разделам информации о вакансии (sections)
-- Слияние разделов из разных plists и формирование вакансии, которая предавляет
+- Слияние разделов из разных ~plists~ и формирование вакансии, которая предавляет
   собой 2-х уровневое plist-дерево, в котором первый уровень - ключи разделов, а из
   значения представляют собой второй уровень и являются plist-ами
 
@@ -519,19 +515,19 @@
      :HREF "/employer/2959988"))
 #+END_SRC
 
-Технические подробности о трансформации дерева - далее в этом разделе:
-Трансформация дерева]]
+Технические подробности о трансформации дерева - далее в разделе: [[*Трансформация дерева][Трансформация дерева]]
 
 Если в вакансии указана зарплата, мы также получаем
 - Валюту зарплаты (3х-буквенный идентификатор)
 - Сумму
-- Текстовое выражение, содержащее "от" или "от и до"
+- Текстовое выражение, содержащее "от" или "от и до". Бывают также и варианты "от
+  100000 до 200000 до вычета НДФЛ".
 
 Иногда HeadHunter синдицирует вакансии с других платформ, к примеру с CAREER.RU, тогда в
 вакансии может отсутствовать работодатель.
 
-Вот код преобразования, все вещи, от которых он зависит будут раскрыты в
-подразделах этого раздела.
+Вот код преобразования, все зависимости которого будут раскрыты в подразделах этого
+раздела.
 
 #+NAME: hh_parse_vacancy_teasers
 #+BEGIN_SRC lisp
@@ -545,9 +541,15 @@
 
   <<maptreefilter>>
 
-  <<make_detect>>
+  <<make_transform>>
 
-  <<teaser_detectors>>
+  <<make_extract>>
+
+  <<parse_salary_text>>
+
+  <<parse_salary_currency>>
+
+  <<teaser_transformors>>
 
   <<plistp>>
 
@@ -569,19 +571,21 @@
     (->> (html-to-tree html)
          (extract-search-results)
          (maptreefilter)
-         (detect-responder)
-         (detect-rejecter)
-         (detect-title)
-         (detect-or-title-archived)
-         (detect-schedule)
-         (detect-responsibility)
-         (detect-requirement)
-         (detect-insider-teaser)
-         (detect-company)
-         (detect-company-anon)
-         (detect-addr)
-         (detect-compensation)
-         (detect-teaser-finalizer)
+         (transform-responder)
+         (transform-rejecter)
+         (transform-title)
+         (transform-or-title-archived)
+         (transform-schedule)
+         (transform-responsibility)
+         (transform-requirement)
+         (transform-insider-teaser)
+         (transform-company)
+         (transform-company-anon)
+         (transform-addr)
+         (transform-compensation)
+         (transform-script-in-teaser)
+         (transform-teaser-finalizer)
+         (cddar)
          (mapcar #'(lambda (vacancy)
                      (if (not (tree-plist-p vacancy))
                          (progn
@@ -606,10 +610,11 @@
   ;;         (find-vacancy :state ":UNINTERESTING"))
 #+END_SRC
 
-**** Парсер html-to-tree
+*** Парсер html-to-tree
 
-Чтобы получить вакансии со страниц поисковой выдачи - напишем парсер,
-который переведет полученный html в более удобное лисп-дерево (=html-to-tree=)
+Чтобы получить вакансии со страниц поисковой выдачи - напишем парсер, который переведет
+полученный html в более удобное лисп-дерево (~html-to-tree~). Тут же напишем и обратное
+преобразование - может пригодиться.
 
 #+NAME: html_to_tree
 #+BEGIN_SRC lisp
@@ -698,7 +703,7 @@
   ;; "
 #+END_SRC
 
-**** Экстрактор поисковых результатов extract_search_results
+*** Экстрактор поисковых результатов ~extract_search_results~
 
 Затем нам понадобится отделить собственно поисковые результаты, с которыми будем
 работать:
@@ -716,22 +721,23 @@
            tree)))
 #+END_SRC
 
-**** Фильтр-преобразователь дерева maptreefilter
+*** Фильтр-преобразователь дерева ~maptreefilter~
 
-Поисковые результаты представляют собой список деревьев, внутри которых много кода,
-относящегося к разметке. Из-за этого их сложно читать и анализировать. Но можно
-преобразовать эти деревья в более удобные для анализа, следуя следующему алгоритму:
+Поисковые результаты представляют собой список деревьев, внутри которых много
+html-кода, относящегося к разметке. Из-за этого их сложно читать и анализировать. Но
+можно преобразовать эти деревья в более удобные для анализа, следуя следующему
+алгоритму:
 
 - Проходя по каждому элементу дерева
   - Если элемент является списком
-    - Если элемент - это '("target" "_blank"), то удаляем его, записывая остаток
-      списка (cdr) на его место, потому что этот элемент не несет никакой нужной
-      нам информации.
-    - Если элемент начинается с "script" (т.е. мы обоснованно предполагаем, что это
-      тег <script>, потому что нигде не употребляется атрибут "script"), то
-      поступаем аналогично, удаляя его
-    - Если элемент начинается с "div" "span" или "a", то для начала отделим
-      атрибуты от его содержимого.
+    - Если элемент - это '("target" "_blank"), то удаляем его, записывая остаток списка
+      (cdr) на его место, потому что этот элемент не несет никакой нужной нам
+      информации.
+    - Если элемент начинается с "script" (т.е. мы обоснованно предполагаем, что это тег
+      <script>, потому что нигде не употребляется атрибут "script"), то поступаем
+      аналогично, удаляя его
+    - Если элемент начинается с "div" "span" или "a", то для начала отделим атрибуты от
+      его содержимого.
       - Если существует атрибут "data-qa", то он станет новым именем элемента, в
         противном случае
         - Если существует атрибут "class", то он будет новым именем элемента.
@@ -743,8 +749,8 @@
           - Запишем новое имя элемента на место "div" или "span"
           - Запишем обновленные атрибуты на место старых
 
-Реализуем этот алгоритм. Для поиска атрибутов будем использовать функцию
-=get-attr=, которая превращает атрибуты в plist и ищет в нем.
+Реализуем этот алгоритм. Для поиска атрибутов будем использовать функцию ~get-attr~,
+которая превращает атрибуты в plist и ищет в нем.
 
 #+NAME: maptreefilter
 #+BEGIN_SRC lisp
@@ -813,36 +819,120 @@
                (maptreefilter (cdr tree))))))
 #+END_SRC
 
-**** Макрос для создания шаблонных преобразователей make-detect
+*** Макрос для создания преобразователей ~make-transform~
 
-Этот макрос формирует функции вида detect-* которые осуществляют преобразование
-дерева в соответствии с шаблоном, переданным в body
+Этот макрос формирует функции вида ~transform-*~, которые осуществляют преобразование
+дерева в соответствии с шаблоном, переданным в ~body~. Функция в любом случае
+возвращает дерево, преобразованное или нет.
 
-#+NAME: make_detect
+#+NAME: make_transform
 #+BEGIN_SRC lisp
   (in-package #:moto)
 
-  (defmacro make-detect ((name) &body body)
+  (defmacro make-transform ((name) &body body)
     (let ((param   (gensym)))
-      `(defun ,(intern (format nil "DETECT-~A" (string-upcase (symbol-name name)))) (,param)
+      `(defun ,(intern (format nil "TRANSFORM-~A" (string-upcase (symbol-name name)))) (,param)
          (mtm ,@body
               ,param))))
 #+END_SRC
 
-**** Набор шаблонных макросов-преобразователей для тизеров
+*** Макрос для создания экстракторов ~make-extract~
 
-Эти макросы по шаблону преобразуют тизер вакансии в plist
+Этот макрос формирует функции вида ~extract-*~, которые извлекают из дерева ветвь,
+совпавшую с шаблоном, переданным в ~body~. Если такой ветви не нашлось, функция
+возвращает ~nil~.
 
-#+NAME: teaser_detectors
+#+NAME: make_extract
 #+BEGIN_SRC lisp
   (in-package #:moto)
 
-  (make-detect (responder)
+  (defmacro make-extract ((name retlist) &body body)
+    (let ((param   (gensym)))
+      `(defun ,(intern (format nil "EXTRACT-~A" (string-upcase (symbol-name name)))) (,param)
+         (block subtree-extract
+           (mtm (,@body
+                 (return-from subtree-extract ,retlist))
+                ,param)
+           nil))))
+
+  ;; (print
+  ;;  (macroexpand-1 '(make-extract (compensation `(:compensation ,compensation))
+  ;;                   `("vacancy-compensation" NIL ,compensation))))
+#+END_SRC
+
+*** Функция для разбора зарплаты ~parse-salary-text~
+
+Эта функция нужна преобразователям тизеров и вакансий. Она получает на вход текстовое
+описание зарплатного предложения и возвращает минимальное, максимальное значение и
+коммент (например для описания "от 100000 до 200000 до вычета НДФЛ" будет возвращено
+100000, 200000, "до вычета НДФЛ").
+
+#+NAME: parse_salary_text
+#+BEGIN_SRC lisp
+  (in-package #:moto)
+
+  (defun parse-salary-text (salary-text)
+    (let ((salary-min nil)
+          (salary-max nil)
+          (comment ""))
+      (multiple-value-bind  (match-p result)
+          (ppcre:scan-to-strings "(от (\\d+))(.*)" salary-text)
+        (when match-p
+          (setf salary-min  (parse-integer (aref result 1)))
+          (setf salary-text (string-left-trim '(#\Space) (aref result 2)))))
+      (multiple-value-bind  (match-p result)
+          (ppcre:scan-to-strings "(до (\\d+))(.*)" salary-text)
+        (when match-p
+          (setf salary-max  (parse-integer (aref result 1)))
+          (setf salary-text (string-left-trim '(#\Space) (aref result 2)))))
+      (setf comment salary-text)
+      (values salary-min salary-max comment)))
+#+END_SRC
+
+*** Функция для разбора валюты ~parse-salary-currency~
+
+Эта функция возвращает трехбуквенный код код валюты и измененное значение
+~salary-text~.
+
+#+NAME: parse_salary_currency
+#+BEGIN_SRC lisp
+  (in-package #:moto)
+
+  (defun parse-salary-currency (salary-text currency)
+    (cond ((equal currency "RUR")
+           (setf salary-text (ppcre:regex-replace-all " руб." salary-text "")))
+          ((equal currency "USD")
+           (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
+          ((equal currency "EUR")
+           (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
+          ((equal currency "UAH")
+           (setf salary-text (ppcre:regex-replace-all " грн." salary-text "")))
+          ((equal currency nil)
+           'nil)
+          (t (progn
+               (print currency)
+               (err 'unk-currency))))
+    (values currency salary-text))
+#+END_SRC
+
+*** Набор преобразователей для тизеров
+
+Эти макросы по шаблону преобразуют тизер вакансии в plist
+
+#+NAME: teaser_transformors
+#+BEGIN_SRC lisp
+  (in-package #:moto)
+
+  (make-transform (script-in-teaser)
+    (`("script" NIL ,contents)
+      `(:garbage (:script ,contents))))
+
+  (make-transform (responder)
     (`("vacancy-serp__vacancy_responded"
        (("href" ,_)) "Вы откликнулись")
       `(:teaser (:status "responded"))))
 
-  (make-detect (respond-topic)
+  (make-transform (respond-topic)
     (`("g-attention m-attention_good b-vacancy-message"
        NIL
        "Вы уже откликались на эту вакансию. "
@@ -850,12 +940,12 @@
             "Посмотреть отклики."))
       `(:respond (:respond-topic ,topic))))
 
-  (make-detect (rejecter)
+  (make-transform (rejecter)
     (`("vacancy-serp__vacancy_rejected"
        (("href" "/negotiations/gotopic?vacancy_id=20255184")) "Вам отказали")
       `(:teaser (:status "rejected"))))
 
-  (make-detect (title)
+  (make-transform (title)
     (`("search-result-item__head"
        NIL
        ("vacancy-serp__vacancy-title"
@@ -866,7 +956,7 @@
                       :name ,title
                       :archived nil))))
 
-  (make-detect (or-title-archived)
+  (make-transform (or-title-archived)
     (`("search-result-item__head"
        NIL
        ("vacancy-serp__vacancy-title"
@@ -881,30 +971,30 @@
                       :name ,title
                       :archived t))))
 
-  (make-detect (schedule)
+  (make-transform (schedule)
     (`("vacancy-serp__vacancy-work-schedule"
        NIL ,schedule)
       `(:teaser-conditions (:schedule schedule))))
 
-  (make-detect (responsibility)
+  (make-transform (responsibility)
     (`("vacancy-serp__vacancy_snippet_responsibility"
        NIL
        ,responsibility)
       `(:teaser-descr (:responsibility ,responsibility))))
 
-  (make-detect (requirement)
+  (make-transform (requirement)
     (`("vacancy-serp__vacancy_snippet_requirement"
        NIL
        ,requirement)
       `(:teaser-descr (:requirement ,requirement))))
 
-  (make-detect (insider-teaser)
+  (make-transform (insider-teaser)
     (`("vacancy-serp__vacancy-interview-insider"
        (("href" ,insider))
        "Посмотреть интервью о жизни в компании")
       `(:teaser-descr (:insider ,insider))))
 
-  (make-detect (company)
+  (make-transform (company)
     (`("search-result-item__company"
        NIL
        ("vacancy-serp__vacancy-employer"
@@ -917,14 +1007,14 @@
          :emp-id ,(parse-integer
                    (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t)))))
 
-  (make-detect (company-anon)
+  (make-transform (company-anon)
     (`("search-result-item__company"
        NIL
        ,anon
        ,@rest)
       `(:teaser-emp (:emp-name ,anon :anon t))))
 
-  (make-detect (addr)
+  (make-transform (addr)
     (`("search-result-item__info"
        NIL
        ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
@@ -933,7 +1023,7 @@
       `(:teaser-emp (:addr ,address)
         :teaser (:date ,date))))
 
-  (make-detect (compensation)
+  (make-transform (compensation)
     (`("vacancy-serp__vacancy-compensation"
        NIL
        ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
@@ -943,42 +1033,21 @@
             (salary-text (ppcre:regex-replace-all " " salary-text ""))
             (salary-min nil)
             (salary-max nil))
-        (cond ((equal currency "RUR")
-               (setf salary-text (ppcre:regex-replace-all " руб." salary-text "")))
-              ((equal currency "USD")
-               (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
-              ((equal currency "EUR")
-               (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
-              ((equal currency "UAH")
-               (setf salary-text (ppcre:regex-replace-all " грн." salary-text "")))
-              ((equal currency nil)
-               'nil)
-              (t (progn
-                   (print currency)
-                   (err 'unk-currency))))
-        (cond ((search "от " salary-text)
-               (setf salary-min (parse-integer (ppcre:regex-replace-all "от " salary-text ""))))
-              ((search "до " salary-text)
-               (setf salary-max (parse-integer (ppcre:regex-replace-all "до " salary-text ""))))
-              ((search "–" salary-text)
-               (let ((splt (ppcre:split "–" salary-text)))
-                 (setf salary-min (parse-integer (car splt)))
-                 (setf salary-max (parse-integer (cadr splt)))))
-              ((search "-" salary-text)
-               (let ((splt (ppcre:split "-" salary-text)))
-                 (setf salary-min (parse-integer (car splt)))
-                 (setf salary-max (parse-integer (cadr splt))))))
-        (when (null salary-min)
-          (setf salary-min salary-max))
-        (when (null salary-max)
-          (setf salary-max salary-min))
-        `(:teaser-compensation (:currency ,currency
-                                          :salary ,(parse-integer salary)
-                                          :salary-text ,salary-text
-                                          :salary-min ,salary-min
-                                          :salary-max ,salary-max)))))
+        (multiple-value-bind (currency salary-text)
+            (parse-salary-currency salary-text currency)
+          (multiple-value-bind (salary-min salary-max comment)
+              (parse-salary-text salary-text)
+            (when (null salary-min)
+              (setf salary-min salary-max))
+            (when (null salary-max)
+              (setf salary-max salary-min))
+            `(:teaser-compensation (:currency ,currency
+                                              :salary ,(parse-integer salary)
+                                              :salary-text ,salary-text
+                                              :salary-min ,salary-min
+                                              :salary-max ,salary-max)))))))
 
-  (make-detect (teaser-finalizer)
+  (make-transform (teaser-finalizer)
     (`(,_
        NIL
        ,_
@@ -992,10 +1061,10 @@
       contents))
 #+END_SRC
 
-**** Plistp
+*** Plistp
 
 Это функция-предикат, которая возвращает свой параметр, если он является
-правильным plist и NIL в противном случае.
+правильным plist и ~NIL~ в противном случае.
 
 #+NAME: plistp
 #+BEGIN_SRC lisp
@@ -1011,7 +1080,7 @@
          :finally (return param))))
 #+END_SRC
 
-**** my_merge_plist
+*** my_merge_plist
 
 Это функция, которая правильным образом сливает вместе два plist-а
 
@@ -1029,9 +1098,9 @@
     p2)
 #+END_SRC
 
-**** tree-plist-p
+*** tree-plist-p
 
-Это функция возвращает T если список, переданный в параметре является правильным
+Это функция возвращает ~T~ если список, переданный в параметре является правильным
 plist-деревом.
 
 #+NAME: tree_plist_p
@@ -1052,7 +1121,7 @@ plist-деревом.
                                        nil))))
 #+END_SRC
 
-**** compactor
+*** compactor
 
 Эта функция проходит по каждому элементу plist-tree, которое передано в
 параметре. Каждый элемент оценивается, и разделяется на имя секции и значение. Все
@@ -1083,329 +1152,26 @@ plist-деревом.
       (mapcan #'identity (reverse result-vacancy))))
 #+END_SRC
 
-**** Трансформация дерева
+*** Трансформация дерева
 
 Описание вакансии (или ее тизера), после преобразования из html, представляет из себя
 дерево, в котором нам важна структура, так как требования, обязанности и прочее
 описываются списком. В этом списке много лишнего форматирования, для удаления которого
 нам необходимо уметь преобразовывать (трансформировать) дерево.
 
-***** Match-tree
+**** Maptree-if
 
-Чтобы эффективнее (с точки зрения скорости написания кода) разбирать вакансии мы
-разберем всю полученную страницу в дерево, из которого будем извлекать необходимые нам
-элементы.
+Функция ~maptree-if~ - рекурсивный преобразователь, который возвращает новое дерево,
+рекурсивно вызывая аргумент ~transformer~ на ~sub-tree~, которые удовлетворяют
+аргументу ~predicate~.
 
-Чтобы делать это будем обходить дерево, сопоставляя каждый узел с предикатом, в
-который скомпилируется образец. Начнем с обхода дерева, для этого напишем рекурсивную
-функцию =match-tree=, которую определим с помощью =labels=, чтобы окружить ее формой
-=let= с аккумулятором.
+Аргумент ~predicate~ должен быть лямбда-функцией, которая принимает на вход ~subtree~ и
+возвращает ~T~ или ~NIL~
 
-Определим параметры этой функции:
-- =tree= - под-дерево, которое мы рекурсивно обходим
-- =predict= - функция-предикат, которая может совпасть с обходимым поддеревом
-- =if-match= - параметр чтобы иметь возможность передавать =стратегию=. Про стратегии
-  поговорим чуть позже.
-
-#+NAME: cond_tree
-#+BEGIN_SRC lisp
-  (labels ((match-tree (tree f-predict &optional (if-match :return-first-match))
-           (cond ((null tree) nil)
-                 ((atom tree) nil)
-                 (t
-                  <<cons>>))))
-    <<call>>)
-#+END_SRC
-
-Теперь переходим к рассмотрению плейсхолдера =cons=, который выполняет основную
-работу. В первую очередь нам следует сравнить текущий узел с параметром =predict= и в
-случае если =predict= вернул T - выполнить какие-то действия. В противном случае -
-обрабатываем поддеревья этого узла.
-
-#+NAME: cons
-#+BEGIN_SRC lisp
-  (if (funcall f-predict tree)
-      <<match_ok>>
-      <<sub_trees>>)
-#+END_SRC
-
-#+NAME: sub_trees
-#+BEGIN_SRC lisp
-  (cons
-   (funcall #'match-tree (car tree) f-predict if-match)
-   (funcall #'match-tree (cdr tree) f-predict if-match))
-#+END_SRC
-
-*Теперь о стратегиях*
-
-В случае, когда узел совпал с =predict= мы можем реализовать следующие стратегии:
-- Немедленно вернуть совпавший узел и более не обрабатывать никакие узлы.
-- Прекратить обработку всех подузлов совпавшего узла, запомнить его и перейти к
-  обработке следующего за ним.
-- Запомнить совпавший узел и продолжить обработку вглубь совпавшего узла, а затем и
-  всех остальных узлов.
-- Наиболее общий вариант - применить к сопавшему узлу переданную лямбда-функцию,
-  которая может с ним что-то сделать - например записать в какую-нибудь переменную на
-  более высоком уровне.
-Реализуем эти стратегии друг за другом.
-
-Реализуем выбор стратегии в общих чертах - будем использовать =cond= по параметру
-=if-match=. В случае, если в этом параметре не лежит keyword symbol с именем
-стратегии - считаем, что там функция, если это не так - сигнализируем ошибку
-=strategy-not-implemented= (которая пока нигде не определена - я считаю что ее имя
-говорит само за себя).
-
-#+NAME: match_ok
-#+BEGIN_SRC lisp
-  (cond ((equal if-match :return-first-match)
-         <<return_first_match>>)
-        ((equal if-match :return-first-level-match)
-         <<return_first_level_match>>)
-        ((equal if-match :return-all-match)
-         <<return_all_match>>)
-        ((equal 'function (type-of if-match))
-         (funcall if-match tree))
-        (t (error 'strategy-not-implemented)))
-#+END_SRC
-
-Теперь приступим к реализации (первой) стратегии: немедленного возврата совпавшего
-узла. Для этого нам понадобится определить внешнюю функцию =tree-match=, чтобы
-возвращаться из нее, а не из текущего рекурсивного вызова =match-tree=. Мы сделаем это
-несколько позже, а пока заполним плейсхолдер =return-first-match=:
-
-#+NAME: return_first_match
-#+BEGIN_SRC lisp
-  (return-from tree-match tree)
-#+END_SRC
-
-Теперь переходим ко второй стратегии - прекратить обработку всех подузлов сопавшего
-узла, запомнить его и перейти к обработке следующего за ним. Нам понадобится
-переменная =collect= чтобы хранить значения, запомним это и реализуем добавление узла
-в нее. После того, как узел сохранен, мы не проводим обработку его под-деревьев, а
-переходим в следующему узлу этого уровня.
-
-#+NAME: return_first_level_match
-#+BEGIN_SRC lisp
-  (setf collect
-        (append collect (list tree)))
-#+END_SRC
-
-И наконец, реализуем последнюю оставшуюся стратегию, которая представляет из себя
-расширение предыдущей, но с обработкой вложенных узлов. Так и запишем:
-
-#+NAME: return_all_match
-#+BEGIN_SRC lisp
-(progn
-    <<return_first_level_match>>
-    <<sub_trees>>)
-#+END_SRC
-
-Теперь нам осталось лишь правильно возвращать результат. Если используются
-аккумулирующие стратегии, то мы возвращаем содержимое переменной =collect=, в случае
-немедленного возврата совпавшего узла мы никогда не окажемся в этом месте, а в случае
-передачи в =if-match= лямбда-фукции - мы будем считать, что она как-нибудь сама
-заботится о передачи значений. Поэтому всегда будем возвращать =collect=.
-
-#+NAME: call
-#+BEGIN_SRC lisp
-  (match-tree tree predict if-match)
-  collect
-#+END_SRC
-
-Осталось обернуть это все во внешнюю функцию, с аккумулятором:
-
-#+NAME: tree_match
-#+BEGIN_SRC lisp
-  (defun tree-match (tree predict &optional (if-match :return-first-match))
-    (let ((collect))
-      <<cond_tree>>))
-#+END_SRC
-
-Но для удобной работы этого недостаточно, поэтому напишем компилер шаблона в
-соответствующий ему =predict=. Этот компилер будет принимать в качестве параметра
-форму, которая будет связываться с элементами шаблона с помощью
-=destructuring-bind=. Попытка связывания будет проводиться для каждого элемента
-дерева. Ошибки, которые возникают в случае невозможности связывания, игнорируются.
-
-#+NAME: with_predict
-#+BEGIN_SRC lisp
-  (in-package #:moto)
-
-  (defmacro with-predict (pattern &body body)
-    (let ((lambda-param (gensym)))
-      `#'(lambda (,lambda-param)
-           (handler-case
-               (destructuring-bind ,pattern
-                   ,lambda-param
-                 ,@body)
-             (sb-kernel::arg-count-error nil)
-             (sb-kernel::defmacro-bogus-sublist-error nil)))))
-
-  ;; (macroexpand-1 '
-  ;;  (with-predict (a ((b c)) d &rest e)
-  ;;    (aif (and (string= a "div")
-  ;;              (string= c "title b-vacancy-title"))
-  ;;         (prog1 it
-  ;;           (setf **a** a)
-  ;;           (setf **b** b)))))
-
-  ;; => #'(LAMBDA (LAMBDA-PARAM)
-  ;;        (HANDLER-CASE
-  ;;            (DESTRUCTURING-BIND
-  ;;                  (A ((B C)) D &REST E)
-  ;;                LAMBDA-PARAM
-  ;;              (AIF (AND (STRING= A "div") (STRING= C "title b-vacancy-title"))
-  ;;                   (PROG1 IT (SETF **A** A) (SETF **B** B))))
-  ;;          (SB-KERNEL::ARG-COUNT-ERROR NIL)
-  ;;          (SB-KERNEL::DEFMACRO-BOGUS-SUBLIST-ERROR NIL))), T
-#+END_SRC
-
-Вот так, к примеру, это можно совместить с поиском по дереву:
-
-#+BEGIN_SRC lisp
-  (in-package #:moto)
-
-  (tree-match '("div"
-                (("class" "b-vacancy-custom g-round"
-                  ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
-                  ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
-                  ("table" (("class" "l"))
-                           ("tr" NIL
-                                 ("td" (("colspan" "2") ("class" "l-cell")))
-                                 ("td" (("class" "l-cell")))))))
-                (("class" "g-round plus"))`
-                ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик"))))
-              (with-predict (a b &rest c)
-                (aif (and (stringp a)
-                          (string= a "class"))
-                     (prog1 it
-                       (setf **a** a)
-                       (setf **b** b))))
-              :return-all-match)
-#+END_SRC
-
-Для еще большей лаконичности мы можем определить оборачивающий макрос, который
-позволит нам не писать ничего, кроме условия в =aif=:
-
-#+NAME: with_predict_if
-#+BEGIN_SRC lisp
-  (in-package #:moto)
-
-  <<with_predict>>
-
-  (defmacro with-predict-if (pattern &body condition)
-    `(with-predict ,pattern
-       (aif ,@condition
-            (prog1 it
-              ,@(mapcar #'(lambda (x)
-                            `(setf ,(intern (format nil "**~A**" (symbol-name x))) ,x))
-                        (remove-if #'(lambda (x)
-                                       (or (equal x '&rest)
-                                           (equal x '&optional)
-                                           (equal x '&body)
-                                           (equal x '&key)
-                                           (equal x '&allow-other-keys)
-                                           (equal x '&environment)
-                                           (equal x '&aux)
-                                           (equal x '&whole)
-                                           (equal x '&allow-other-keys)))
-                                   (alexandria:flatten pattern)))))))
-
-  ;; (macroexpand-1 '
-  ;;  (with-predict-if (a b &rest c)
-  ;;    (and (stringp a)
-  ;;         (string= a "class"))))
-
-  ;; => (WITH-PREDICT (A B &REST C)
-  ;;      (AIF (AND (STRINGP A) (STRING= A "class"))
-  ;;           (PROG1 IT
-  ;;             (SETF **A** A)
-  ;;             (SETF **B** B)
-  ;;             (SETF **C** C))))
-#+END_SRC
-
-Таким образом мы инжектируем переменные шаблона в глобальную область видимости, если
-они не определены в более высокоуровневом =let=.
-
-Теперь мы можем использовать =tree-match= так:
-
-#+BEGIN_SRC lisp
-  (in-package #:moto)
-
-  (print
-   (tree-match '("div" (("class" "b-vacancy-custom g-round"))
-                 ("meta" (("itemprop" "title") ("content" "Ведущий android-разработчик")))
-                 ("h1" (("class" "title b-vacancy-title")) "Ведущий android-разработчик")
-                 ("table" (("class" "l"))
-                  ("tbody" NIL
-                   ("tr" NIL
-                         ("td" (("colspan" "2") ("class" "l-cell"))
-                               ("div" (("class" "employer-marks g-clearfix"))
-                                      ("div" (("class" "companyname"))
-                                             ("a" (("itemprop" "hiringOrganization") ("href" "/employer/1529644"))
-                                                  "ООО Нимбл"))))
-                         ("td" (("class" "l-cell")))))))
-               (with-predict-if (a b &rest c)
-                 (and (stringp a)
-                      (string= a "class")))
-               :return-all-match))
-
-  ;; => (("class" "b-vacancy-custom g-round") ("class" "title b-vacancy-title")
-  ;;     ("class" "l") ("class" "l-cell") ("class" "employer-marks g-clearfix")
-  ;;     ("class" "companyname") ("class" "l-cell"))
-
-  (print **b**)
-  ;; => "l-cell"
-#+END_SRC
-
-Тут оставим адаптацию =with-predict= для =maptree-if=, рассмотренного в следующем
-разделе
-
-#+NAME: drop_f_util_contents
-#+BEGIN_SRC lisp
-  (in-package #:moto)
-
-  (defmacro with-predict-maptree (pattern condition replace tree)
-    (let ((lambda-param (gensym)))
-      `(maptree-if #'(lambda (,lambda-param)
-                       (and (consp ,lambda-param)
-                          (funcall (with-predict-if ,pattern
-                                     ,condition)
-                                   ,lambda-param)))
-                   ,replace
-                   ,tree)))
-
-  ;; (macroexpand-1
-  ;;  '(with-predict-maptree (a b &rest c)
-  ;;    (and (equal b 'ping))
-  ;;    #'(lambda (x)
-  ;;        (values `(,**a** pong ,@(cddr x)) #'mapcar))
-  ;;    '(progn (ping (ping ping (ping 1))) ping)))
-
-  ;; (with-predict-maptree (a b &rest c)
-  ;;   (and (equal b 'ping))
-  ;;   #'(lambda (x)
-  ;;       (values `(,**a** pong ,@(cddr x)) #'mapcar))
-  ;;   '(progn (ping (ping ping (ping 1))) ping))
-#+END_SRC
-
-Ну и "всем дочитавшим до этого места" могу теперь сообщить, что применение
-pattern-matchinga из пакета =optima= делает вышеприведенный код существенно менее
-полезным :)
-
-***** Maptree-if
-
-Функция =maptree-if= - рекурсивный преобразователь, который возвращает новое дерево,
-рекурсивно вызывая аргумент =transformer= на =sub-tree=, которые удовлетворяют
-аргументу =predicate=.
-
-Аргумент =predicate= должен быть лямбда-функцией, которая принимает на вход =subtree= и
-возвращает T или NIL
-
-Аргумент =transformer= должен быть лямбда-функцией, которая принимает на вход =subtree=
-и возвращает =atom= или =subtree= в первом параметре, а во втором может возвратить
-функцию =control=. Если эта функция возвращена, тогда дерево возвращается с замененным
-=transformer=-ом узлами по следующему алгоритму:
+Аргумент ~transformer~ должен быть лямбда-функцией, которая принимает на вход ~subtree~
+и возвращает ~atom~ или ~subtree~ в первом параметре, а во втором может возвратить
+функцию ~control~. Если эта функция возвращена, тогда дерево возвращается с замененным
+~transformer~-ом узлами по следующему алгоритму:
 
 #+BEGIN_SRC lisp
   (funcall control
@@ -1416,7 +1182,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
 
 В противном случае оно возвращается как есть.
 
-Собственно функция =maptree-if=, которую мы помещаем в утилиты:
+Собственно функция ~maptree-if~, которую мы помещаем в утилиты:
 
 #+NAME: f_util_contents
 #+BEGIN_SRC lisp
@@ -1461,10 +1227,10 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;; => (PROGN (PONG (PONG (PONG 1))))
 #+END_SRC
 
-***** Maptree-transform
+**** Maptree-transform
 
-=maptree-transform= - это аналог maptree-if, но здесь одна функция
-(=predicate-transformer=) и ищет и трансформирует узел дерева:
+~maptree-transform~ - это аналог ~maptree-if~, но здесь одна функция
+(~predicate-transformer~) и ищет и трансформирует узел дерева:
 
 #+NAME: maptree_transform
 #+BEGIN_SRC lisp
@@ -1492,153 +1258,85 @@ pattern-matchinga из пакета =optima= делает вышеприведе
                           ,tree)))
 #+END_SRC
 
-*** Разбор вакансий (=hh-parse-vacancy=)
+** Разбор вакансий (=hh-parse-vacancy=)
 
-Функция =hh-parse-vacancy= обрабатывает вакансии примерно так же как
-=hh-parse-vacancy-teaser= обрабатывает тизеры вакансий: получает на вход html и
+Функция ~hh-parse-vacancy~ обрабатывает вакансии примерно так же как
+~hh-parse-vacancy-teaser~ обрабатывает тизеры вакансий: получает на вход html и
 превращает его в вакансию. Для этого она использует те же шаги и те же функции:
 - Преобразование html-кода в дерево s-выражений
 - Извлечение из этого дерева части, которая содержит вакансию
-- Преобразование элементов форматирования, таких как div и span в "говорящие"
-  элементы дерева для повышения читаемости (названия для преобразования извлекаются
-  из атрибутов =class= и =data-qa=
+- Преобразование элементов форматирования, таких как div и span в "говорящие" элементы
+  дерева для повышения читаемости (названия для преобразования извлекаются из атрибутов
+  ~class~ и ~data-qa~
 - Преобразование содержимого вакансии в plists, с отнесением отдельных элементов к
-  разным разделам информации о вакансии (sections)
-- Слияние разделов из разных plists и формирование вакансии, которая предавляет
-  собой 2-х уровневое plist-дерево, в котором первый уровень - ключи разделов, а из
-  значения представляют собой второй уровень и являются plist-ами
+  разным разделам информации о вакансии (sections). Для этого используются экстракторы,
+  описанные в предыдущих разделах.
+- Слияние разделов из разных plists и формирование вакансии, которая предавляет собой
+  2-х уровневое plist-дерево, в котором первый уровень - ключи разделов, а их значения
+  представляют собой второй уровень и являются plist-ами
 
 #+NAME: hh_parse_vacancy
 #+BEGIN_SRC lisp
   (in-package #:moto)
 
-  <<extract_vacancy>>
-
   <<transform_description>>
 
-  <<vacancy_detectors>>
+  <<vacancy_extractors>>
+
+  <<vacancy_transformers>>
 
   (defun hh-parse-vacancy (html)
     "Получение вакансии из html"
     (dbg ":hh-parse-vacancy:")
     (setf *last-parse-data* html)
-    (let ((candidat (->> (html-to-tree html)
-                         (extract-vacancy)
-                         (maptreefilter)
-                         (detect-script)
-                         (detect-insider-vacancy)
-                         (detect-branded)
-                         (detect-branded2)
-                         (detect-gap)
-                         (detect-vacancy-custom)
-                         (detect-l)
-                         (detect-emp)
-                         (detect-emp-anon)
-                         (detect-vacancy-info)
-                         (detect-vac-info-tr)
-                         (detect-or-vac-info-tr-no-salary)
-                         (detect-container)
-                         (detect-col-1)
-                         (detect-hypercontext)
-                         (detect-descr-outer-block)
-                         (detect-longdescr)
-                         (detect-respond-topic)
-                         (detect-vacancy-address)
-                         (detect-jobtype)
-                         (detect-closed-contacts)
-                         (detect-contacts-body)
-                         (detect-contacts-fio)
-                         (detect-contacts-list)
-                         (detect-contacts-tr)
-                         (detect-contacts-phone)
-                         (detect-contacts-mail)
-                         (detect-logo)
-                         (detect-date)
-                         (detect-or-date-with-disabled)
-                         (detect-vacancy-view-banners)
-                         (detect-column-2)
-                         (detect-response-block)
-                         (detect-skill-element)
-                         (detect-skills)
-                         (detect-joblocation)
-                         (detect-handicap)
-                         (detect-compact-l)
-                         (detect-compact-contacts)
-                         (detect-compact-info)
-                         (detect-columns)
-                         (detect-branded-hype)
-                         (detect-meta)
-                         (detect-compact-infoblock)
-                         )))
-      (if (not (tree-plist-p candidat))
-          (progn
-            (dbg "~A" (bprint candidat))
-            (error 'malformed-vacancy :text))
-          (let* ((non-compacted-vacancy candidat)
-                 (compacted-vacancy (compactor candidat))
-                 )
-            ;; non-compacted-vacancy
-            compacted-vacancy
-          ))
-      ;; (print candidat)
+    (let* ((onestring (cl-ppcre:regex-replace-all "(\\n|\\s*$)" html " "))
+           (candidat (->> (html-to-tree onestring)
+                          (extract-vacancy)
+                          (maptreefilter)
+                          (transform-script)
+                          (transform-vacancy-compensation)
+                          (transform-longdescr)
+                          (transform-contacts-body)
+                          (transform-contacts-fio)
+                          (transform-contacts-list)
+                          (transform-contacts-tr)
+                          (transform-contacts-phone)
+                          (transform-contacts-mail)
+                          ;; (transform-date)
+                          ;; (transform-skill-element)
+                          ;; (transform-skills)
+                          ;; (transform-joblocation)
+                          )))
+      ;; (if (not (tree-plist-p candidat))
+      ;;     (progn
+      ;;       (dbg "~A" (bprint candidat))
+      ;;       (error 'malformed-vacancy :text))
+      ;;     (let* ((non-compacted-vacancy candidat)
+      ;;            (compacted-vacancy (compactor candidat))
+      ;;            )
+      ;;       ;; non-compacted-vacancy
+      ;;       compacted-vacancy
+      ;;     ))
+      ;; (format t (bprint candidat))
       ;; (print (compactor candidat))
+      `(:url ,(extract-url candidat)
+             :title ,(extract-title candidat)
+             :company ,(extract-company candidat)
+             :compensation ,(extract-compensation candidat)
+             :city ,(extract-city candidat)
+             :metro ,(extract-metro candidat)
+             :exp ,(extract-exp candidat)
+             :descr ,(extract-descr candidat)
+             :emptype ,(extract-jobtype candidat)
+             :contacts ,(extract-contacts candidat)
+             )
       ;; candidat
       ))
 
-  ;; (print (hh-parse-vacancy *last-parse-data*))
-
-
-  ;; (defparameter *last-vacancy-html*
-  ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;;     (hh-get-page "https://spb.hh.ru/vacancy/17527227" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-  ;; (defparameter *last-vacancy-html*
-  ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;;     (hh-get-page "https://spb.hh.ru/vacancy/18108178" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-  ;; (defparameter *last-vacancy-html*
-  ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;;     (hh-get-page "https://spb.hh.ru/vacancy/17527227" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-  ;; (defparameter *last-vacancy-html*
-  ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;;     (hh-get-page "https://spb.hh.ru/vacancy/22262525" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-  ;; (defparameter *last-vacancy-html*
-  ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;;     (hh-get-page "https://spb.hh.ru/vacancy/22518184" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-
-
-  ;; (let ((sections (hh-parse-vacancy *last-vacancy-html*)))
-  ;;   (loop :for section-key :in sections by #'cddr  :do
-  ;;      (format t "~%_______~%~A" (bprint (list section-key (getf sections section-key))))))
-
-  ;; (print (hh-parse-vacancy *last-vacancy-html*))
-
-  ;; (print
-  ;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;;     (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/16606806" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
+  (print (hh-parse-vacancy *last-parse-data*))
 #+END_SRC
 
-**** Экстрактор вакансии extract-vacancy
-
-Затем нам понадобится выделить вакансию, с которыми будем работать:
-
-#+NAME: extract_vacancy
-#+BEGIN_SRC lisp
-  (in-package #:moto)
-
-  (defun extract-vacancy (tree)
-    (block subtree-extract
-      (mtm (`("div" (("class" "nopaddings") ("itemscope" "itemscope")
-                     ("itemtype" "http://schema.org/JobPosting"))
-                    ,@rest)
-             (return-from subtree-extract rest))
-           tree)))
-#+END_SRC
-
-**** Преобразователь описания вакансии
+*** Преобразователь описания вакансии
 
 Теперь, можно написать функцию, которая трансформирует описание, очищая его от всего
 лишнего:
@@ -1663,284 +1361,115 @@ pattern-matchinga из пакета =optima= делает вышеприведе
                                             (rem-space tree-descr))))))))))
 #+END_SRC
 
-**** Набор шаблонных макросов-преобразователей для вакансий
+*** Набор экстракторов для вакансий
+
+#+NAME: vacancy_extractors
+#+BEGIN_SRC lisp
+  (in-package :moto)
+
+  (make-extract (vacancy rest)
+    `("div" (("itemscope" "itemscope") ("itemtype" "http://schema.org/JobPosting")) ,@rest))
+
+  (make-extract (url url)
+    `("meta" (("itemprop" "url") ("content" ,url))))
+
+  (make-extract (title title)
+    `("h1" (("class" "header") ("data-qa" "vacancy-title")) ,title))
+
+  (make-extract (company `(:emp-name ,name :emp-href ,href))
+    `("a" (("itemprop" "hiringOrganization") ("href" ,href)) ,name))
+
+  (make-extract (compensation compensation)
+    `("vacancy-compensation" NIL ,compensation))
+
+  (make-extract (compensation rest)
+    `("vacancy-compensation" NIL ,@rest))
+
+  (make-extract (city city)
+    `("vacancy-region" NIL ,city ,@rest))
+
+  (make-extract (metro metro)
+    `("metro-station" NIL ,_ ,metro))
+
+  (make-extract (exp exp)
+    `("vacancy-experience" (("itemprop" "experienceRequirements")) ,exp))
+
+  (make-extract (descr rest)
+    `("vacancy-description" NIL ,@rest))
+
+  (make-extract (jobtype `(:emptype ,emptype :workhours ,workhours))
+    `("b-vacancy-employmentmode"
+      NIL
+      ("h3" (("class" "b-subtitle")) "Тип занятости")
+      ("div" NIL ("span" (("itemprop" "employmentType")) ,emptype)
+             ", " ("span" (("itemprop" "workHours")) ,workhours))))
+
+  (make-extract (contacts `(:fio ,fio :contacts ,rest))
+    `("vacancy-contacts__body" NIL (:FIO ,fio)
+                               (:CONTACTS-LIST ,@rest)))
+#+END_SRC
+
+*** Набор преобразователей для вакансий
 
 Эти макросы по шаблону преобразуют вакансии в plist
 
-#+NAME: vacancy_detectors
+#+NAME: vacancy_transformers
 #+BEGIN_SRC lisp
   (in-package #:moto)
 
-  (make-detect (script)
-    (`("script" (("data-name" ,name) ("data-params" ,params)))
-      `(:empty (:script ,name :params ,params))))
-
-  (make-detect (insider-vacancy)
-    (`("bloko-gap bloko-gap_left"
-       (("xmlns:b" "http://hhru.github.com/bloko/"))
-       ("b-insider-interview"
-        NIL
-        ("a" (("href" ,insider-href))
-             "Посмотреть интервью о жизни в компании")))
-      `(:empty (:insider ,insider-href))))
-
-  (make-detect (branded)
-    (`("vacancy-branded" NIL ,@data)
-      `(:branded ,(block subtree-extract
-                         (mtm (`("l-paddings b-vacancy-desc g-user-content" NIL ,payload)
-                                (return-from subtree-extract payload))
-                              data)))))
-
-  (make-detect (branded2)
-    (`("branded-vacancy"
-       NIL
-       ,content
-       ,@_)
-      `(:branded-vacancy ,content)))
-
-  (make-detect (gap)
-    (`("bloko-gap bloko-gap_bottom bloko-gap_left" NIL ,@_)
-      `(:empty (:gap "controls"))))
-
-  (make-detect (vacancy-custom)
-    (`("b-vacancy-custom g-round"
-       NIL
-       ("meta" (("itemprop" "title") ("content" ,_)))
-       ("h1" (("class" "title b-vacancy-title")) ,title)
-       ,@emp)
-      `(:vacancy (:title ,title) :emp ,emp)))
-
-  (make-detect (l)
-    (`("l"
-       NIL
-       ("tbody"
-        NIL ("tr"
-             NIL
-             ("l-cell"
-              (("colspan" "2"))
-              ,@l)
-             ("l-cell" ,@_))))
-      `(:l ,l)))
-
-  (make-detect (emp)
-    (`("employer-marks g-clearfix"
-       NIL
-       ("companyname" NIL
-                      ("a" (("itemprop" "hiringOrganization") ("href" ,emp-href)) ,emp-name)
-                      ,@_))
-      `(:emp-name ,emp-name :emp-href ,emp-href)))
-
-  (make-detect (emp-anon)
-    (`("employer-marks g-clearfix"
-       NIL
-       ("companyname" NIL
-                      ,emp-name
-                      ("bloko-link"
-                       (("href" ,emp-href))
-                       ,@_)))
-      `(:emp-name ,emp-name :emp-href ,emp-href)))
-
-  (make-detect (vacancy-info)
-    (`("b-vacancy-info"
-       NIL
-       ("l-content-3colums"
-        NIL
-        ("tbody"
-         NIL
-         ("tr"
-          NIL
-          ("l-content-colum-1 b-v-info-title" NIL ("l-paddings" NIL "Уровень зарплаты"))
-          ("l-content-colum-2 b-v-info-title" NIL ("l-paddings" NIL "Город"))
-          ("l-content-colum-3 b-v-info-title" NIL ("l-paddings" NIL "Требуемый опыт работы")))
-         ,info
-         )))
-      `(:vac-info ,info)))
-
-  (make-detect (vac-info-tr)
-    (`("tr"
-       NIL
-       ("l-content-colum-1 b-v-info-content"
-        NIL
-        ("l-paddings"
-         NIL
-         ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-         ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
-         ,salary-text))
-       ("l-content-colum-2 b-v-info-content"
-        NIL
-        ("l-paddings" NIL ,city ,@metro))
-       ("l-content-colum-3 b-v-info-content"
-        NIL
-        ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
-      `(:vacancy-compensation (:currency ,currency :base-salary ,base-salary :salary-text ,salary-text)
-                              :vacancy-place (:city ,city)
-                              :vacancy-exp (:exp ,exp)
-                              :vacancy-place (:metro ,(mapcar #'(lambda (x) (car (last x)))
-                                                              (remove-if-not #'listp metro))))))
-
-  (make-detect (or-vac-info-tr-no-salary)
-    (`("tr"
-       NIL
-       ("l-content-colum-1 b-v-info-content"
-        NIL
-        ("l-paddings" NIL " з/п не указана"))
-       ("l-content-colum-2 b-v-info-content" NIL ("l-paddings" NIL ,city ,@metro))
-       ("l-content-colum-3 b-v-info-content"
-        NIL
-        ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
-      `(:vacancy-place (:city ,city)
-                       :vacancy-exp (:exp ,exp)
-                       :vacancy-place (:metro ,(mapcar #'(lambda (x) (car (last x)))
-                                         (remove-if-not #'listp metro))))))
-
-  (make-detect (container)
-    (`("l-content-2colums b-vacancy-container"
-       NIL
-       ("tbody"
-        NIL
-        ("tr"
-         NIL
-         ,col-1
-         ,col-2)))
-      `(:cols (:col-1 ,col-1 :col-2 ,col-2))))
-
-  (make-detect (col-1)
-    (`("l-content-colum-1"
-       (("colspan" "2"))
-       ,hypercontext
-       ,_) ;; response-block
-      `(:hypercontext ,hypercontext)))
-
-  (make-detect (hypercontext)
-    (`("div"
-       (("id" "hypercontext"))
-       ("index" NIL ,@rest))
-      `(:hype ,rest)))
-
-  (make-detect (descr-outer-block)
-    (`("bloko-gap bloko-gap_bottom"
-       NIL
-       ("l-paddings b-vacancy-desc g-user-content"
-        NIL
-        ,descr))
-      `(:vacancy-descr ,descr)))
-
-  (make-detect (longdescr)
+  (make-transform (longdescr)
     (`("b-vacancy-desc-wrapper"
        (("itemprop" "description"))
        ,@descr)
       `(:long-descr ,(transform-description descr))))
 
-  (make-detect (vacancy-address)
-    (`(,(or "span" "b-vacancy-address l-paddings")
-        (("itemprop" "jobLocation") ("itemscope" "itemscope")
-         ("itemtype" "http://schema.org/Place"))
-        ("meta" (("itemprop" "name") ("content" ,_)))
-        ("h3" (("class" "b-subtitle")) "Адрес")
-        ("b-employer-office-address"
-         (("itemprop" "address") ("itemscope" "itemscope")
-          ("itemtype" "http://schema.org/PostalAddress"))
-         ("meta"
-          (("itemprop" "streetAddress") ("content" ,street-addr)))
-         ("div" NIL
-                ("vacancy-address-with-map" NIL ,addr-with-map)
-                ,@_)))
-      `(:addr (:street-addr ,street-addr :addr-with-map ,addr-with-map))))
+  (make-transform (script)
+    (`("script" (("data-name" ,name) ("data-params" ,_)))
+      `(:empty (:script ,name))))
 
-  (make-detect (jobtype)
-    (`("b-vacancy-employmentmode l-paddings"
-       NIL
-       ("h3" (("class" "b-subtitle")) "Тип занятости")
-       ("l-content-paddings"
-        NIL
-        ("span" (("itemprop" "employmentType")) ,emptype) ", "
-        ("span" (("itemprop" "workHours")) ,workhours)))
-      `(:vacancy-jobtype (:emptype ,emptype :workhours ,workhours))))
-
-  (make-detect (closed-contacts)
-    (`("l-paddings"
-       NIL
-       ("noindex"
-        NIL
-        ("vacancy-contacts vacancy-contacts_closed"
-         NIL
-         (:EMPTY ,_)
-         (:EMPTY ,_)
-         ("h3" (("id" "expand-vacancy-contacts"))
-               ("show-employer-contacts" (("data-toggle" ""))
-                                         ("bloko-link-switch" NIL "Показать контактную информацию"))
-               ("vacancy-contacts__title-opened" NIL "Контактная информация"))
-         ,contacts)))
-      `(:closed ,contacts)))
-
-  (make-detect (contacts-body)
+  (make-transform (contacts-body)
     (`("vacancy-contacts__body"
        NIL
        ("l-content-paddings" NIL ,@rest))
       `(:contacts ,@rest)))
 
-  (make-detect (contacts-fio)
+  (make-transform (contacts-fio)
     (`("vacancy-contacts__fio" NIL ,fio)
       `(:fio ,fio)))
 
-  (make-detect (contacts-list)
+  (make-transform (contacts-list)
     (`("vacancy-contacts__list"
        NIL
        ("tbody" NIL ,@rest))
       `(:contacts-list ,rest)))
 
-  (make-detect (contacts-tr)
+  (make-transform (contacts-tr)
     (`("tr" NIL
             ("vacancy-contacts__list-title" NIL ,_)
             ("td" NIL ,@contacts-data))
       `(:contacts-tr ,contacts-data)))
 
-  (make-detect (contacts-phone)
-    (`("vacancy-contacts__phone" NIL ,phone ("vacancy-contacts__comment" NIL ,phone-comment))
-      `(:phone ,phone :phone-comment ,phone-comment)))
+  (make-transform (contacts-phone)
+    (`("vacancy-contacts__phone" NIL ,phone ,@rest)
+      `(:phone ,phone :phone-comment ,rest)))
 
-  (make-detect (contacts-mail)
+  (make-transform (contacts-mail)
     (`("vacancy-contacts__email" (("href" ,mail-link) ("rel" "nofollow")) ,email)
       `(:mail-link ,mail-link :email ,email)))
 
-  (make-detect (contacts-tr)
+  (make-transform (contacts-tr)
     (`("tr" NIL
             ("vacancy-contacts__list-title" NIL ,_)
             ("td" NIL ,contacts-data))
       `(:contacts-tr ,contacts-data)))
 
-  (make-detect (contacts-list)
+  (make-transform (contacts-list)
     (`("vacancy-contacts__list"
        NIL
        ("tbody" NIL ,@rest))
       `(:contacts-list ,rest)))
 
-  (make-detect (closed-contacts)
-    (`("l-paddings"
-       NIL
-       ("noindex"
-        NIL
-        ("vacancy-contacts vacancy-contacts_closed"
-         NIL
-         (:EMPTY ,_)
-         (:EMPTY ,_)
-         ("h3" (("id" "expand-vacancy-contacts"))
-               ("show-employer-contacts" (("data-toggle" ""))
-                                         ("bloko-link-switch" NIL "Показать контактную информацию"))
-               ("vacancy-contacts__title-opened" NIL "Контактная информация"))
-         ,contacts)))
-      contacts))
-
-  (make-detect (logo)
-    (`("b-vacancy-companylogo"
-       NIL
-       ("a" (("href" ,logo-href))
-            ("img" (("src" ,logo-img) ("border" "0") ("alt" ,logo-alt)))))
-      `(:logo-href ,logo-href
-                   :logo-img ,logo-img
-                   :logo-alt ,logo-alt)))
-
-  (make-detect (date)
+  (make-transform (date)
     (`("l-content-paddings"
        NIL
        ("vacancy-sidebar"
@@ -1954,40 +1483,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
        ,@_)
       `(:datetime ,datetime :date-text ,date-text :disabled nil)))
 
-  (make-detect (or-date-with-disabled)
-    (`("l-content-paddings"
-       NIL
-       ("vacancy-sidebar"
-        NIL
-        "Дата публикации вакансии "
-        ("time"
-         (("class" "vacancy-sidebar__publication-date")
-          ("itemprop" "datePosted")
-          ("datetime" ,datetime))
-         ,date-text))
-       ("vacancy__print-info vacancy__print-info_noscreen"
-        NIL
-        "Вакансия доступна для соискателей с инвалидностью"))
-      `(:datetime ,datetime :date-text ,date-text :disabled t)))
-
-
-  (make-detect (response-block)
-    (`("vacancy-response-block HH-VacancyResponsePopup-ResponseBlock" NIL ,@_)
-      `(:response-block "empty")))
-
-  (make-detect (vacancy-view-banners)
-    (`("vacancy-view-banners" NIL ,@_)
-      `(:empty (:vacancy-view-banners "empty"))))
-
-  (make-detect (column-2)
-    (`("l-content-colum-2" NIL ,logo ,date ,@_)
-      `(:column-2 (:vacancy-logo ,logo :vacancy-date ,date))))
-
-  (make-detect (meta)
-    (`("meta" (("itemprop" ,prop) ("content" ,content)))
-      `(:meta (,(intern (string-upcase prop) :keyword) ,content))))
-
-  (make-detect (skill-element)
+  (make-transform (skill-element)
     (`("skills-element"
        (("data-tag-id" ,tag))
        ("bloko-tag__section bloko-tag__section_text"
@@ -1995,11 +1491,11 @@ pattern-matchinga из пакета =optima= делает вышеприведе
         ("bloko-tag__text" NIL ,tagtext)))
       `(:skill (:tag ,tag :title ,title :tagtext ,tagtext))))
 
-  (make-detect (skills)
+  (make-transform (skills)
     (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
       `(:vacancy-skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
 
-  (make-detect (joblocation)
+  (make-transform (joblocation)
     (`("span"
        (("itemprop" "jobLocation") ("itemscope" "itemscope")
         ("itemtype" "http://schema.org/Place"))
@@ -2010,73 +1506,56 @@ pattern-matchinga из пакета =optima= делает вышеприведе
         ("meta" (("itemprop" "addressLocality") ("content" ,addresslocality)))))
       `(:vacancy-address (:location ,name :addresslocality ,addresslocality))))
 
-  (make-detect (handicap)
-    (`("vacancy__info vacancy__info_handicapped vacancy__info_noprint"
+
+  (make-transform (vacancy-compensation)
+    (`("vacancy-compensation"
        NIL
-       ("bloko-link-switch bloko-link-switch_inherited" (("data-toggle" "")) ,handicap)
-       ("vacancy__info-expandable"
-        NIL
-        ("vacancy-info-tip" NIL"Это означает готовность компании рассматривать соискателей на равных на основании деловых качеств. Соискатель оценивает самостоятельно, насколько требования вакансии сопоставимы с его индивидуальными особенностями.")))
-      `(:vacancy-handicap (:msg ,handicap))))
+       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+       ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
+       ,salary-text)
+      (let ((currency currency)
+            (salary-text (ppcre:regex-replace-all " " salary-text ""))
+            (salary-min nil)
+            (salary-max nil))
+        (multiple-value-bind (currency salary-text)
+            (parse-salary-currency salary-text currency)
+          (multiple-value-bind (salary-min salary-max comment)
+              (parse-salary-text salary-text)
+            (when (null salary-min)
+              (setf salary-min salary-max))
+            (when (null salary-max)
+              (setf salary-max salary-min))
+            `("vacancy-compensation"
+              NIL
+              (:currency ,currency
+                         :salary ,(parse-integer salary)
+                         :salary-text ,salary-text
+                         :salary-min ,salary-min
+                         :salary-max ,salary-max
+                         :salary-comment ,comment)))))))
 
-
-  (make-detect (compact-l)
-    (`(:VACANCY (:TITLE ,title) :EMP ((:L ((:EMP-NAME ,emp-name :EMP-HREF ,emp-href)))))
-      `(:vacancy (:title ,title) :vacancy-emp (:EMP-NAME ,emp-name :EMP-HREF ,emp-href))))
-
-  (make-detect (compact-info)
-    (`(:VAC-INFO ,info)
-      `(,@info)))
-
-  (make-detect (compact-contacts)
-    (`(:CONTACTS (:FIO ,fio) (:CONTACTS-LIST ,contacts-trs))
-      `(:vacancy-contacts (:trs ,(append `((:CONTACTS-TR
-                                    ((:FIO ,fio)))) contacts-trs)))))
-
-  (make-detect (columns)
-    (`(:COLS
-       (:COL-1
-        (:HYPERCONTEXT
-         (:HYPE
-          (,@rest-1)))
-        :COL-2
-        (:COLUMN-2
-         ,col-2)))
-      `(:infoblock-1 ,rest-1 :infoblock-2 ,col-2)))
-
-  (make-detect (branded-hype)
-    (`(:BRANDED-VACANCY
-       (:HYPE
-        ((:BRANDED
-          ,descr)
-         ,@rest)))
-      (mapcan #'identity (append `((:vacancy-descr ,descr)) rest))))
-
-  (make-detect (compact-infoblock)
-    (`(:INFOBLOCK-1 ,infoblock-1 :INFOBLOCK-2 ,infoblock-2)
-      (mapcan #'identity (append infoblock-1 (list infoblock-2)))))
 #+END_SRC
 
-** Правила обработки тизеров и вакансий
+* Правила обработки тизеров и вакансий
 
-Пусть у нас есть возможность создавать именованные =правила=, которые получают на
-вход список, представляющий собой тизер или вакансию, анализируют его, и выполняют
-какие-то действия. В качестве примера, мы могли бы создать правило, которое
-увеличивает =ранг= вакансии если упомянуты какие-то технологии.
+Пусть у нас есть возможность создавать именованные ~правила~, которые получают на вход
+список, представляющий собой тизер или вакансию, анализируют его, и выполняют какие-то
+действия. В качестве примера, мы могли бы создать правило, которое увеличивает ~ранг~
+вакансии если упомянуты какие-то технологии.
 
 Создавая правило, нам необходимо передать конструктору правила:
-- условие срабатывания (назовем его =antecedent=)
-- код, который будет выполнен, в случае если условие на этой вакансии вернуло
-  =истину= (назоваем его =consequent=)
+- условие срабатывания (назовем его ~antecedent~)
+- код, который будет выполнен, в случае если условие на этой вакансии вернуло ~истину~
+  (назоваем его ~consequent~)
 
 Примем соглашение, что правило, если оно сработало, возвращает два значения:
-- первое - вакансию (=consequent= может вернуть модифицированную вакансию)
+- первое - вакансию (~consequent~ может вернуть модифицированную вакансию)
 - второе - указание процессору правил (например, прекратить обработку)
 
 Мы реализуем правило, как сущность, чтобы воспользоваться всеми возможностями по
 сохранению, извлечению и другим операциям с сущностями.
 
-*** Правила отсева тизеров
+** Правила отсева тизеров
 
 Какие же правила и действия можно составить для того чтобы отсеять неинтересные
 вакансии еще на стадии, когда мы видим только их тизеры?
@@ -2086,6 +1565,10 @@ pattern-matchinga из пакета =optima= делает вышеприведе
 
 К примеру, я не хочу даже смотреть на вакансии у которых не указана зарплата или
 она ниже минимально приемлимой:
+
+[TODO:ggm] Сейчас в целях отладки я отключу все правила отсева тизеров, чтобы
+убедиться, что разбор тизеров и вакансий справляется с вакансиями без указания зарплаты
+и тому подобными.
 
 #+NAME: rules_for_teasers
 #+BEGIN_SRC lisp
@@ -2165,10 +1648,10 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;;         (find-vacancy :state ":UNSORT"))
 #+END_SRC
 
-**** Макросы для определения правил отсева тизеров
+*** Макросы для определения правил отсева тизеров
 
 Для начала определим макрос, который создает правила отсева тизеров - эти правила
-отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
+отличаются тем, что всегда в первом параметре возвращают ~nil~, а во втором - ~:stop~
 
 #+NAME: sugar_for_teaser_rules
 #+BEGIN_SRC lisp
@@ -2210,7 +1693,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
 #+END_SRC
 
 Теперь определим расширение предыдущего макроса, которое создает правило, отсеивающее
-тизер, в случае, если в поле =:name= есть вхождение переданной строки
+тизер, в случае, если в поле ~:name~ есть вхождение переданной строки
 
 #+NAME: sugar_for_teaser_rules
 #+BEGIN_SRC lisp
@@ -2244,8 +1727,8 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;;             #<RULE {10045FE523}>)
 #+END_SRC
 
-Теперь в соответствии с принципом DRY определем макрос, который создаст список правил,
-отсеивающих тизеры по вхождению первой строки в поле =:name=
+Теперь в соответствии с принципом ~DRY~ определем макрос, который создаст список
+правил, отсеивающих тизеры по вхождению первой строки в поле ~:name~
 
 #+NAME: sugar_for_teaser_rules
 #+BEGIN_SRC lisp
@@ -2275,10 +1758,10 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;;   DROP-TEASER-IF-IF-NAME-CONTAINS-C++-CONSEQUENT))
 #+END_SRC
 
-*** TODO Правила анализа вакансий
+** TODO Правила анализа вакансий
 
 Для начала определим макрос, который создает правила отсева вакансий - эти правила
-отличаются тем, что всегда в первом параметре возвращают nil, а во втором - =:stop=
+отличаются тем, что всегда в первом параметре возвращают nil, а во втором - ~:stop~
 
 #+NAME: rules_for_vacancy
 #+BEGIN_SRC lisp
@@ -2311,7 +1794,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;;   :STOP)
 #+END_SRC
 
-**** TODO Я не хочу смотреть на вакансии, в компаниях где я уже работал.
+*** TODO Я не хочу смотреть на вакансии, в компаниях где я уже работал.
 
 #+NAME: rules_for_vacancy
 #+BEGIN_SRC lisp
@@ -2344,7 +1827,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;; (define-drop-all-vacancy-when-already-worked "Webdom" "Semrush" "Пулково-Сервис" "FBS")
 #+END_SRC
 
-**** TODO Если это уже существующая в базе вакансия (todo: и ничего не изменилось) игнорируем.
+*** TODO Если это уже существующая в базе вакансия (todo: и ничего не изменилось) игнорируем.
 
 #+NAME: rules_for_vacancy
 #+BEGIN_SRC lisp
@@ -2356,11 +1839,11 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;; ;; )
 #+END_SRC
 
-**** TODO Вычислить теги для любой вакансии
+*** TODO Вычислить теги для любой вакансии
 
-Я хочу проанализировать заголовок и текст вакансии, чтобы тэггировать ее -
-определить, под какой профиль работы она более всего подходит. В дальнейшем это
-станет основой для построения резюме под вакансию.
+Я хочу проанализировать заголовок и текст вакансии, чтобы тэггировать ее - определить,
+под какой профиль работы она более всего подходит. В дальнейшем это станет основой для
+построения резюме под вакансию.
 
 #+NAME: rules_for_vacancy
 #+BEGIN_SRC lisp
@@ -2421,7 +1904,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;;       ))
 #+END_SRC
 
-**** TODO Я хочу выделить из описания разделы
+*** TODO Я хочу выделить из описания разделы
 
 В описании есть списки, у списков есть заголовок, этот заголовок является
 вариацией на:
@@ -2494,7 +1977,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;;      ((:LI) "Свои спортивные команды, походы, корпоративы")))
 #+END_SRC
 
-**** Я хочу вывести вакансию в консоль.
+*** Я хочу вывести вакансию в консоль.
 
 #+NAME: rules_for_vacancy
 #+BEGIN_SRC lisp
@@ -2503,10 +1986,11 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   <<show_vacancy>>
 
   (define-rule (z-print t)
+    (dbg "rule:Z-PRINT - show-vacancy")
     (show-vacancy vacancy))
 #+END_SRC
 
-***** Печать вакансий (=show-vacancy=)
+**** Печать вакансий (=show-vacancy=)
 
 Создадим специальную функцию, которая будет выводить вакансии в консоль. Эта функция
 будет вызываться из правила, чтобы таким образом можно было реализовать отладочную
@@ -2557,7 +2041,7 @@ pattern-matchinga из пакета =optima= делает вышеприведе
     )
 #+END_SRC
 
-**** TODO Я хочу занести вакансию в базу.
+*** TODO Я хочу занести вакансию в базу.
 
 #+NAME: rules_for_vacancy
 #+BEGIN_SRC lisp
@@ -2566,11 +2050,12 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   <<save_vacancy>>
 
   (define-rule (z-save t)
+    (dbg "rule:Z-SAVE (save-vacancy)")
     (save-vacancy vacancy)
     :stop)
 #+END_SRC
 
-***** Сохранение вакансии (=save-vacancy=)
+**** Сохранение вакансии (=save-vacancy=)
 
 Структура данных вакансии описана в [[file:hh.org]]
 
@@ -2614,9 +2099,12 @@ pattern-matchinga из пакета =optima= делает вышеприведе
              :skills      (aif (.> getf vac -> :vacancy-skills :list-of-skilss) (bprint it) "")
              :datetime    (aif (.> getf vac -> :vacancy-date :datetime) it "")
              :date-text   (aif (.> getf vac -> :vacancy-date :datetext) it "")
-             :responsibility (let ((resp (aif (.> getf vac -> :teaser-descr :responsibility) it "")))
-                               (if (stringp resp) resp ""))
-             :requirement (aif (.> getf vac -> :teaser-descr :requirement) it "")
+             :responsibility (aif (.> getf vac -> :teaser-descr :responsibility)
+                                  (if (stringp it) it "")
+                                  "")
+             :requirement    (aif (.> getf vac -> :teaser-descr :requirement)
+                                  (if (stringp it) it "")
+                                  "")
              :addr        (aif (.> getf vac -> :addr :addr-with-map) it "")
              :street-addr (aif (.> getf vac -> :addr :street-addr) it "")
 
@@ -2627,10 +2115,11 @@ pattern-matchinga из пакета =optima= делает вышеприведе
             (eval `(make-vacancy ,@*new-vac*)))
           ;; else
           (progn
+            (print *new-vac*)
             (upd-vacancy old-vac *new-vac*)))))
 #+END_SRC
 
-**** TODO Я хочу отправить отклик на вакансию (=send-respond=)
+*** TODO Я хочу отправить отклик на вакансию (=send-respond=)
 
 Создадим функию, которая будет отправлять отклик на вакансию, чтобы мы могли сделать
 соответствующее правило для автоматизированной отправки отклика
@@ -2687,13 +2176,13 @@ pattern-matchinga из пакета =optima= делает вышеприведе
   ;;    (send-respond "15382394" cookie-jar "39357756" "letter")))
 #+END_SRC
 
-*** Извлечение правил
+** Извлечение правил
 
 Теперь можно удобным и компактным способом добавить все необходимые правила и
-обеспечить методы их обработки. Для удобства сделаем специальные функции для
-получения всех правил, правил для тизеров и правил для вакансий.
+обеспечить методы их обработки. Для удобства сделаем специальные функции для получения
+всех правил, правил для тизеров и правил для вакансий.
 
-Пока мы будем считать, что правила для отсева тизеров содержать в поле =name=
+Пока мы будем считать, что правила для отсева тизеров содержать в поле ~name~
 "DROP-TEASER-IF".
 
 #+NAME: rules
@@ -2725,50 +2214,49 @@ pattern-matchinga из пакета =optima= делает вышеприведе
                (get-all-rules)))
 #+END_SRC
 
-** Формирование правил
+* Формирование правил
 
-Поскольку множество правил обрабатывает одну и ту же вакансию,
-напрашивается вопрос: можно ли исполнять правила параллельно?
+Поскольку множество правил обрабатывает одну и ту же вакансию, напрашивается вопрос:
+можно ли исполнять правила параллельно?
 
-Некоторые правила могут зависить от предыдущих, что подводит к задаче
-топологической сортировки графа зависимостей.
+Некоторые правила могут зависить от предыдущих, что подводит к задаче топологической
+сортировки графа зависимостей.
 
-Результат параллельной работы правил требуется непротиворечиво
-скомпоновать. Эта задача похожа на задачу автоматического слияния в
-системах контроля версий - можно было бы взять за основу подход,
-примененный в GIT.
+Результат параллельной работы правил требуется непротиворечиво скомпоновать. Эта задача
+похожа на задачу автоматического слияния в системах контроля версий - можно было бы
+взять за основу подход, примененный в GIT.
 
-Также, поскольку правила являются функциями - мы можем осуществлять их
-композицию, а в идеале - суперкомпиляцию (рефал).
+Также, поскольку правила являются функциями - мы можем осуществлять их композицию, а в
+идеале - суперкомпиляцию (рефал).
 
-Поскольку правила могут осуществлять поиск с возвратами - пригодится
-механизм такого поиска из пролога.
+Поскольку правила могут осуществлять поиск с возвратами - пригодится механизм такого
+поиска из пролога.
 
-Для того чтобы отлаживать правила, когда что-то идет не так -
-понадобится возможность визуализации графа правил и выборочного
-отключения/подключения узлов, что в идеале приводит к идее отладчика
-внутри графовой структуры с визуализацией.
+Для того чтобы отлаживать правила, когда что-то идет не так - понадобится возможность
+визуализации графа правил и выборочного отключения/подключения узлов, что в идеале
+приводит к идее отладчика внутри графовой структуры с визуализацией.
 
-Чтобы дать возможность удобного создания правил непрофессиональному
-пользователю в интерфейсе, потребуется достаточно умный кодогенератор,
-способный из визуализации собрать код правила. В идеале он должен
-осуществить синтез правила имея его вход и выход.
+Чтобы дать возможность удобного создания правил непрофессиональному пользователю в
+интерфейсе, потребуется достаточно умный кодогенератор, способный из визуализации
+собрать код правила. В идеале он должен осуществить синтез правила имея его вход и
+выход.
 
-** Процессор правил (=process=)
+* Процессор правил (~process~)
 
-Теперь мы можем создать процессор правил =process=, который применяет к вакансии правила
-поочередно. По сути, это =машина Э.Поста=, а все вместе представляет собой =продукционную
-систему= с прямой цепочкой вывода. Подробнее про продукционные системы [[https://www.ngpedia.ru/id429603p1.html][тут]] и [[https://www.myshared.ru/slide/445840/][тут]].
+Теперь мы можем создать процессор правил ~process~, который применяет к вакансии
+правила поочередно. По сути, это ~машина Э.Поста~, а все вместе представляет собой
+=продукционную систему= с прямой цепочкой вывода. Подробнее про продукционные системы
+[[https://www.ngpedia.ru/id429603p1.html][тут]] и [[https://www.myshared.ru/slide/445840/][тут]].
 
 #+CAPTION: Продукционная система
 #+NAME: fig:production_system
-./img/production_system.gif]]
+[[./img/production_system.gif]]
 
 Процессор правил обрабатывает следущие особые случаи:
-- Если какое-то из правил возвращает во втором возвращаемом значении =:stop= -
+- Если какое-то из правил возвращает во втором возвращаемом значении ~:stop~ -
   обработка прекращается и возвращается текущий обработанный результат
-- Если какое-то из правил возвращает во втором параметре =:renew= - то обработка текущего
-  входного результата начинается с самого первого правила.
+- Если какое-то из правил возвращает во втором параметре ~:renew~ - то обработка
+  текущего входного результата начинается с самого первого правила.
 По окончании обработки возвращается результирующая вакансия, которая может быть
 модифицирована правилами
 
@@ -2806,11 +2294,8 @@ pattern-matchinga из пакета =optima= делает вышеприведе
      V
 #+END_SRC
 
-#+results:
-file:./img/process.png]]
-
 Поскольку мы извлекаем код правил из БД приходится оборачивать их в лямбду и
-применять =eval= и =read-from-string=.
+применять ~eval~ и ~read-from-string~.
 
 #+NAME: process
 #+BEGIN_SRC lisp :exports code :padline no :comments link
@@ -2853,14 +2338,14 @@ file:./img/process.png]]
        antecedent)))
 #+END_SRC
 
-** Декоратор для process-teaser (=process-teaser :around=)
+** Декоратор для process-teaser (~process-teaser :around~)
 
 Поскольку и вакансии, и их тизеры представлены у нас одинаково, мы можем применять
 правила и к тем, и к другим. Это позволит отфильтровать некоторые вакансии только
 анализируя их тизеры и не загружать лишнего.
 
 Для того, чтобы сделать это удобным образом, обернем (:around method)
-=process-teaser= так, чтобы перед запуском =process= отфильтровать те тизеры, на
+~process-teaser~ так, чтобы перед запуском ~process~ отфильтровать те тизеры, на
 которых сработали правила отсева тизеров.
 
 После того как оставшиеся тизеры будут обработаны методом =process= и тизер
@@ -2920,9 +2405,6 @@ file:./img/process.png]]
 
 #+END_SRC
 
-#+results:
-file:./img/around.png]]
-
 #+NAME: process_teaser_around
 #+BEGIN_SRC lisp :exports code :padline no :comments link
   (in-package #:moto)
@@ -2936,11 +2418,11 @@ file:./img/around.png]]
          nil))
 #+END_SRC
 
-** Получение и обработка вакансий правилами (=run=)
+* Получение и обработка вакансий правилами (~run~)
 
 Теперь мы можем получить генератор, и, вызывая его, забирать вакансии, пока они не
-закончатся. Все вакансии будут корректно обработаны правилами - сначала на этапе получения
-тизеров, а потом на этапе получения вакансий.
+закончатся. Все вакансии будут корректно обработаны правилами - сначала на этапе
+получения тизеров, а потом на этапе получения вакансий.
 
 #+NAME: run
 #+BEGIN_SRC lisp :exports code :padline no :comments link
@@ -2975,7 +2457,7 @@ file:./img/around.png]]
   ;; (run)
 #+END_SRC
 
-*** Создание правила
+** Создание правила
 
 Определим также макрос, который будет создавать правило
 
@@ -2984,6 +2466,7 @@ file:./img/around.png]]
   (in-package #:moto)
 
   (defmacro define-rule ((name antecedent) &body consequent)
+    (dbg "define-rule: ~A" name)
     `(progn
        (mapcar #'(lambda (rule)
                    ;; (when (string= "acitve" (state rule))
@@ -3045,8 +2528,6 @@ file:./img/around.png]]
 
   ;; special syntax for pattern-matching - ON
   (named-readtables:in-readtable :fare-quasiquote)
-
-  <<tree_match>>
 
   <<run>>
 #+END_SRC

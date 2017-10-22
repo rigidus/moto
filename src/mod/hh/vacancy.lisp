@@ -3,39 +3,12 @@
 ;; special syntax for pattern-matching - ON
 (named-readtables:in-readtable :fare-quasiquote)
 
-(defun tree-match (tree predict &optional (if-match :return-first-match))
-  (let ((collect))
-    (labels ((match-tree (tree f-predict &optional (if-match :return-first-match))
-             (cond ((null tree) nil)
-                   ((atom tree) nil)
-                   (t
-                    (if (funcall f-predict tree)
-                        (cond ((equal if-match :return-first-match)
-                               (return-from tree-match tree))
-                              ((equal if-match :return-first-level-match)
-                               (setf collect
-                                     (append collect (list tree))))
-                              ((equal if-match :return-all-match)
-                               (progn
-                                   (setf collect
-                                         (append collect (list tree)))
-                                   (cons
-                                    (funcall #'match-tree (car tree) f-predict if-match)
-                                    (funcall #'match-tree (cdr tree) f-predict if-match))))
-                              ((equal 'function (type-of if-match))
-                               (funcall if-match tree))
-                              (t (error 'strategy-not-implemented)))
-                        (cons
-                         (funcall #'match-tree (car tree) f-predict if-match)
-                         (funcall #'match-tree (cdr tree) f-predict if-match)))))))
-      (match-tree tree predict if-match)
-      collect)))
-
 (in-package #:moto)
 
 (in-package #:moto)
 
 (defmacro define-rule ((name antecedent) &body consequent)
+  (dbg "define-rule: ~A" name)
   `(progn
      (mapcar #'(lambda (rule)
                  ;; (when (string= "acitve" (state rule))
@@ -289,6 +262,7 @@
   )
 
 (define-rule (z-print t)
+  (dbg "rule:Z-PRINT - show-vacancy")
   (show-vacancy vacancy))
 (in-package #:moto)
 
@@ -328,9 +302,12 @@
            :skills      (aif (.> getf vac -> :vacancy-skills :list-of-skilss) (bprint it) "")
            :datetime    (aif (.> getf vac -> :vacancy-date :datetime) it "")
            :date-text   (aif (.> getf vac -> :vacancy-date :datetext) it "")
-           :responsibility (let ((resp (aif (.> getf vac -> :teaser-descr :responsibility) it "")))
-                             (if (stringp resp) resp ""))
-           :requirement (aif (.> getf vac -> :teaser-descr :requirement) it "")
+           :responsibility (aif (.> getf vac -> :teaser-descr :responsibility)
+                                (if (stringp it) it "")
+                                "")
+           :requirement    (aif (.> getf vac -> :teaser-descr :requirement)
+                                (if (stringp it) it "")
+                                "")
            :addr        (aif (.> getf vac -> :addr :addr-with-map) it "")
            :street-addr (aif (.> getf vac -> :addr :street-addr) it "")
 
@@ -341,9 +318,11 @@
           (eval `(make-vacancy ,@*new-vac*)))
         ;; else
         (progn
+          (print *new-vac*)
           (upd-vacancy old-vac *new-vac*)))))
 
 (define-rule (z-save t)
+  (dbg "rule:Z-SAVE (save-vacancy)")
   (save-vacancy vacancy)
   :stop)
 
@@ -541,7 +520,8 @@
 
 
 (defun make-hh-url (city prof-area &optional specs)
-  "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A")
+  ;; "https://spb.hh.ru/search/vacancy?text=&specialization=1&area=2&items_on_page=100&no_magic=true&page=~A"
+  "https://spb.hh.ru/search/vacancy?clusters=true&items_on_page=100&enable_snippets=true&specialization=1&area=2&page=~A")
 
 ;; test
 ;; (make-hh-url "spb" "Информационные технологии, интернет, телеком" "Программирование, Разработка")
@@ -579,7 +559,7 @@
      (list (cons (drakma:cookie-name cookie) (drakma:cookie-value cookie)))))
 
 (defun recovery-login (src-account)
-  ;; Сначала заходим на главную как будто первый раз, без печенек
+  ;; Сначала заходим на главную как будто первый раз, без cookies
   (setf drakma:*header-stream* nil)
   (let* ((start-uri "https://spb.hh.ru/")
          (cookie-jar (make-instance 'drakma:cookie-jar))
@@ -598,7 +578,7 @@
          ;;         ;; )
          ;;         ))
          )
-    ;; Теперь попробуем использовать печеньки для логина
+    ;; Теперь попробуем использовать cookies для логина
     ;; GMT=3 ;; _xsrf=  ;; hhrole=anonymous ;; hhtoken= ;; hhuid= ;; regions=2 ;; unique_banner_user=
     ;; И заходим с вот-таким гет-запросом:
     ;; username=avenger-f@ya.ru ;; password=jGwPswRAfU6sKEhVXX ;; backurl=https://spb.hh.ru/ ;; remember=yes ;; action="Войти" ;; _xsrf=
@@ -875,20 +855,76 @@
 
 (in-package #:moto)
 
-(defmacro make-detect ((name) &body body)
+(defmacro make-transform ((name) &body body)
   (let ((param   (gensym)))
-    `(defun ,(intern (format nil "DETECT-~A" (string-upcase (symbol-name name)))) (,param)
+    `(defun ,(intern (format nil "TRANSFORM-~A" (string-upcase (symbol-name name)))) (,param)
        (mtm ,@body
             ,param))))
 
 (in-package #:moto)
 
-(make-detect (responder)
+(defmacro make-extract ((name retlist) &body body)
+  (let ((param   (gensym)))
+    `(defun ,(intern (format nil "EXTRACT-~A" (string-upcase (symbol-name name)))) (,param)
+       (block subtree-extract
+         (mtm (,@body
+               (return-from subtree-extract ,retlist))
+              ,param)
+         nil))))
+
+;; (print
+;;  (macroexpand-1 '(make-extract (compensation `(:compensation ,compensation))
+;;                   `("vacancy-compensation" NIL ,compensation))))
+
+(in-package #:moto)
+
+(defun parse-salary-text (salary-text)
+  (let ((salary-min nil)
+        (salary-max nil)
+        (comment ""))
+    (multiple-value-bind  (match-p result)
+        (ppcre:scan-to-strings "(от (\\d+))(.*)" salary-text)
+      (when match-p
+        (setf salary-min  (parse-integer (aref result 1)))
+        (setf salary-text (string-left-trim '(#\Space) (aref result 2)))))
+    (multiple-value-bind  (match-p result)
+        (ppcre:scan-to-strings "(до (\\d+))(.*)" salary-text)
+      (when match-p
+        (setf salary-max  (parse-integer (aref result 1)))
+        (setf salary-text (string-left-trim '(#\Space) (aref result 2)))))
+    (setf comment salary-text)
+    (values salary-min salary-max comment)))
+
+(in-package #:moto)
+
+(defun parse-salary-currency (salary-text currency)
+  (cond ((equal currency "RUR")
+         (setf salary-text (ppcre:regex-replace-all " руб." salary-text "")))
+        ((equal currency "USD")
+         (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
+        ((equal currency "EUR")
+         (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
+        ((equal currency "UAH")
+         (setf salary-text (ppcre:regex-replace-all " грн." salary-text "")))
+        ((equal currency nil)
+         'nil)
+        (t (progn
+             (print currency)
+             (err 'unk-currency))))
+  (values currency salary-text))
+
+(in-package #:moto)
+
+(make-transform (script-in-teaser)
+  (`("script" NIL ,contents)
+    `(:garbage (:script ,contents))))
+
+(make-transform (responder)
   (`("vacancy-serp__vacancy_responded"
      (("href" ,_)) "Вы откликнулись")
     `(:teaser (:status "responded"))))
 
-(make-detect (respond-topic)
+(make-transform (respond-topic)
   (`("g-attention m-attention_good b-vacancy-message"
      NIL
      "Вы уже откликались на эту вакансию. "
@@ -896,12 +932,12 @@
           "Посмотреть отклики."))
     `(:respond (:respond-topic ,topic))))
 
-(make-detect (rejecter)
+(make-transform (rejecter)
   (`("vacancy-serp__vacancy_rejected"
      (("href" "/negotiations/gotopic?vacancy_id=20255184")) "Вам отказали")
     `(:teaser (:status "rejected"))))
 
-(make-detect (title)
+(make-transform (title)
   (`("search-result-item__head"
      NIL
      ("vacancy-serp__vacancy-title"
@@ -912,7 +948,7 @@
                     :name ,title
                     :archived nil))))
 
-(make-detect (or-title-archived)
+(make-transform (or-title-archived)
   (`("search-result-item__head"
      NIL
      ("vacancy-serp__vacancy-title"
@@ -927,30 +963,30 @@
                     :name ,title
                     :archived t))))
 
-(make-detect (schedule)
+(make-transform (schedule)
   (`("vacancy-serp__vacancy-work-schedule"
      NIL ,schedule)
     `(:teaser-conditions (:schedule schedule))))
 
-(make-detect (responsibility)
+(make-transform (responsibility)
   (`("vacancy-serp__vacancy_snippet_responsibility"
      NIL
      ,responsibility)
     `(:teaser-descr (:responsibility ,responsibility))))
 
-(make-detect (requirement)
+(make-transform (requirement)
   (`("vacancy-serp__vacancy_snippet_requirement"
      NIL
      ,requirement)
     `(:teaser-descr (:requirement ,requirement))))
 
-(make-detect (insider-teaser)
+(make-transform (insider-teaser)
   (`("vacancy-serp__vacancy-interview-insider"
      (("href" ,insider))
      "Посмотреть интервью о жизни в компании")
     `(:teaser-descr (:insider ,insider))))
 
-(make-detect (company)
+(make-transform (company)
   (`("search-result-item__company"
      NIL
      ("vacancy-serp__vacancy-employer"
@@ -963,14 +999,14 @@
        :emp-id ,(parse-integer
                  (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t)))))
 
-(make-detect (company-anon)
+(make-transform (company-anon)
   (`("search-result-item__company"
      NIL
      ,anon
      ,@rest)
     `(:teaser-emp (:emp-name ,anon :anon t))))
 
-(make-detect (addr)
+(make-transform (addr)
   (`("search-result-item__info"
      NIL
      ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
@@ -979,7 +1015,7 @@
     `(:teaser-emp (:addr ,address)
       :teaser (:date ,date))))
 
-(make-detect (compensation)
+(make-transform (compensation)
   (`("vacancy-serp__vacancy-compensation"
      NIL
      ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
@@ -989,42 +1025,21 @@
           (salary-text (ppcre:regex-replace-all " " salary-text ""))
           (salary-min nil)
           (salary-max nil))
-      (cond ((equal currency "RUR")
-             (setf salary-text (ppcre:regex-replace-all " руб." salary-text "")))
-            ((equal currency "USD")
-             (setf salary-text (ppcre:regex-replace-all " USD" salary-text "")))
-            ((equal currency "EUR")
-             (setf salary-text (ppcre:regex-replace-all " EUR" salary-text "")))
-            ((equal currency "UAH")
-             (setf salary-text (ppcre:regex-replace-all " грн." salary-text "")))
-            ((equal currency nil)
-             'nil)
-            (t (progn
-                 (print currency)
-                 (err 'unk-currency))))
-      (cond ((search "от " salary-text)
-             (setf salary-min (parse-integer (ppcre:regex-replace-all "от " salary-text ""))))
-            ((search "до " salary-text)
-             (setf salary-max (parse-integer (ppcre:regex-replace-all "до " salary-text ""))))
-            ((search "–" salary-text)
-             (let ((splt (ppcre:split "–" salary-text)))
-               (setf salary-min (parse-integer (car splt)))
-               (setf salary-max (parse-integer (cadr splt)))))
-            ((search "-" salary-text)
-             (let ((splt (ppcre:split "-" salary-text)))
-               (setf salary-min (parse-integer (car splt)))
-               (setf salary-max (parse-integer (cadr splt))))))
-      (when (null salary-min)
-        (setf salary-min salary-max))
-      (when (null salary-max)
-        (setf salary-max salary-min))
-      `(:teaser-compensation (:currency ,currency
-                                        :salary ,(parse-integer salary)
-                                        :salary-text ,salary-text
-                                        :salary-min ,salary-min
-                                        :salary-max ,salary-max)))))
+      (multiple-value-bind (currency salary-text)
+          (parse-salary-currency salary-text currency)
+        (multiple-value-bind (salary-min salary-max comment)
+            (parse-salary-text salary-text)
+          (when (null salary-min)
+            (setf salary-min salary-max))
+          (when (null salary-max)
+            (setf salary-max salary-min))
+          `(:teaser-compensation (:currency ,currency
+                                            :salary ,(parse-integer salary)
+                                            :salary-text ,salary-text
+                                            :salary-min ,salary-min
+                                            :salary-max ,salary-max)))))))
 
-(make-detect (teaser-finalizer)
+(make-transform (teaser-finalizer)
   (`(,_
      NIL
      ,_
@@ -1107,19 +1122,21 @@
   (->> (html-to-tree html)
        (extract-search-results)
        (maptreefilter)
-       (detect-responder)
-       (detect-rejecter)
-       (detect-title)
-       (detect-or-title-archived)
-       (detect-schedule)
-       (detect-responsibility)
-       (detect-requirement)
-       (detect-insider-teaser)
-       (detect-company)
-       (detect-company-anon)
-       (detect-addr)
-       (detect-compensation)
-       (detect-teaser-finalizer)
+       (transform-responder)
+       (transform-rejecter)
+       (transform-title)
+       (transform-or-title-archived)
+       (transform-schedule)
+       (transform-responsibility)
+       (transform-requirement)
+       (transform-insider-teaser)
+       (transform-company)
+       (transform-company-anon)
+       (transform-addr)
+       (transform-compensation)
+       (transform-script-in-teaser)
+       (transform-teaser-finalizer)
+       (cddar)
        (mapcar #'(lambda (vacancy)
                    (if (not (tree-plist-p vacancy))
                        (progn
@@ -1147,16 +1164,6 @@
 
 (in-package #:moto)
 
-(defun extract-vacancy (tree)
-  (block subtree-extract
-    (mtm (`("div" (("class" "nopaddings") ("itemscope" "itemscope")
-                   ("itemtype" "http://schema.org/JobPosting"))
-                  ,@rest)
-           (return-from subtree-extract rest))
-         tree)))
-
-(in-package #:moto)
-
 (defun transform-description (tree-descr)
   (labels ((rem-space (tree)
              (cond ((consp tree) (cons (rem-space (car tree))
@@ -1172,278 +1179,104 @@
                                      (mtm (`("br") `((:br)))
                                           (rem-space tree-descr))))))))))
 
+(in-package :moto)
+
+(make-extract (vacancy rest)
+  `("div" (("itemscope" "itemscope") ("itemtype" "http://schema.org/JobPosting")) ,@rest))
+
+(make-extract (url url)
+  `("meta" (("itemprop" "url") ("content" ,url))))
+
+(make-extract (title title)
+  `("h1" (("class" "header") ("data-qa" "vacancy-title")) ,title))
+
+(make-extract (company `(:emp-name ,name :emp-href ,href))
+  `("a" (("itemprop" "hiringOrganization") ("href" ,href)) ,name))
+
+(make-extract (compensation compensation)
+  `("vacancy-compensation" NIL ,compensation))
+
+(make-extract (compensation rest)
+  `("vacancy-compensation" NIL ,@rest))
+
+(make-extract (city city)
+  `("vacancy-region" NIL ,city ,@rest))
+
+(make-extract (metro metro)
+  `("metro-station" NIL ,_ ,metro))
+
+(make-extract (exp exp)
+  `("vacancy-experience" (("itemprop" "experienceRequirements")) ,exp))
+
+(make-extract (descr rest)
+  `("vacancy-description" NIL ,@rest))
+
+(make-extract (jobtype `(:emptype ,emptype :workhours ,workhours))
+  `("b-vacancy-employmentmode"
+    NIL
+    ("h3" (("class" "b-subtitle")) "Тип занятости")
+    ("div" NIL ("span" (("itemprop" "employmentType")) ,emptype)
+           ", " ("span" (("itemprop" "workHours")) ,workhours))))
+
+(make-extract (contacts `(:fio ,fio :contacts ,rest))
+  `("vacancy-contacts__body" NIL (:FIO ,fio)
+                             (:CONTACTS-LIST ,@rest)))
+
 (in-package #:moto)
 
-(make-detect (script)
-  (`("script" (("data-name" ,name) ("data-params" ,params)))
-    `(:empty (:script ,name :params ,params))))
-
-(make-detect (insider-vacancy)
-  (`("bloko-gap bloko-gap_left"
-     (("xmlns:b" "http://hhru.github.com/bloko/"))
-     ("b-insider-interview"
-      NIL
-      ("a" (("href" ,insider-href))
-           "Посмотреть интервью о жизни в компании")))
-    `(:empty (:insider ,insider-href))))
-
-(make-detect (branded)
-  (`("vacancy-branded" NIL ,@data)
-    `(:branded ,(block subtree-extract
-                       (mtm (`("l-paddings b-vacancy-desc g-user-content" NIL ,payload)
-                              (return-from subtree-extract payload))
-                            data)))))
-
-(make-detect (branded2)
-  (`("branded-vacancy"
-     NIL
-     ,content
-     ,@_)
-    `(:branded-vacancy ,content)))
-
-(make-detect (gap)
-  (`("bloko-gap bloko-gap_bottom bloko-gap_left" NIL ,@_)
-    `(:empty (:gap "controls"))))
-
-(make-detect (vacancy-custom)
-  (`("b-vacancy-custom g-round"
-     NIL
-     ("meta" (("itemprop" "title") ("content" ,_)))
-     ("h1" (("class" "title b-vacancy-title")) ,title)
-     ,@emp)
-    `(:vacancy (:title ,title) :emp ,emp)))
-
-(make-detect (l)
-  (`("l"
-     NIL
-     ("tbody"
-      NIL ("tr"
-           NIL
-           ("l-cell"
-            (("colspan" "2"))
-            ,@l)
-           ("l-cell" ,@_))))
-    `(:l ,l)))
-
-(make-detect (emp)
-  (`("employer-marks g-clearfix"
-     NIL
-     ("companyname" NIL
-                    ("a" (("itemprop" "hiringOrganization") ("href" ,emp-href)) ,emp-name)
-                    ,@_))
-    `(:emp-name ,emp-name :emp-href ,emp-href)))
-
-(make-detect (emp-anon)
-  (`("employer-marks g-clearfix"
-     NIL
-     ("companyname" NIL
-                    ,emp-name
-                    ("bloko-link"
-                     (("href" ,emp-href))
-                     ,@_)))
-    `(:emp-name ,emp-name :emp-href ,emp-href)))
-
-(make-detect (vacancy-info)
-  (`("b-vacancy-info"
-     NIL
-     ("l-content-3colums"
-      NIL
-      ("tbody"
-       NIL
-       ("tr"
-        NIL
-        ("l-content-colum-1 b-v-info-title" NIL ("l-paddings" NIL "Уровень зарплаты"))
-        ("l-content-colum-2 b-v-info-title" NIL ("l-paddings" NIL "Город"))
-        ("l-content-colum-3 b-v-info-title" NIL ("l-paddings" NIL "Требуемый опыт работы")))
-       ,info
-       )))
-    `(:vac-info ,info)))
-
-(make-detect (vac-info-tr)
-  (`("tr"
-     NIL
-     ("l-content-colum-1 b-v-info-content"
-      NIL
-      ("l-paddings"
-       NIL
-       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-       ("meta" (("itemprop" "baseSalary") ("content" ,base-salary)))
-       ,salary-text))
-     ("l-content-colum-2 b-v-info-content"
-      NIL
-      ("l-paddings" NIL ,city ,@metro))
-     ("l-content-colum-3 b-v-info-content"
-      NIL
-      ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
-    `(:vacancy-compensation (:currency ,currency :base-salary ,base-salary :salary-text ,salary-text)
-                            :vacancy-place (:city ,city)
-                            :vacancy-exp (:exp ,exp)
-                            :vacancy-place (:metro ,(mapcar #'(lambda (x) (car (last x)))
-                                                            (remove-if-not #'listp metro))))))
-
-(make-detect (or-vac-info-tr-no-salary)
-  (`("tr"
-     NIL
-     ("l-content-colum-1 b-v-info-content"
-      NIL
-      ("l-paddings" NIL " з/п не указана"))
-     ("l-content-colum-2 b-v-info-content" NIL ("l-paddings" NIL ,city ,@metro))
-     ("l-content-colum-3 b-v-info-content"
-      NIL
-      ("l-paddings" (("itemprop" "experienceRequirements")) ,exp)))
-    `(:vacancy-place (:city ,city)
-                     :vacancy-exp (:exp ,exp)
-                     :vacancy-place (:metro ,(mapcar #'(lambda (x) (car (last x)))
-                                       (remove-if-not #'listp metro))))))
-
-(make-detect (container)
-  (`("l-content-2colums b-vacancy-container"
-     NIL
-     ("tbody"
-      NIL
-      ("tr"
-       NIL
-       ,col-1
-       ,col-2)))
-    `(:cols (:col-1 ,col-1 :col-2 ,col-2))))
-
-(make-detect (col-1)
-  (`("l-content-colum-1"
-     (("colspan" "2"))
-     ,hypercontext
-     ,_) ;; response-block
-    `(:hypercontext ,hypercontext)))
-
-(make-detect (hypercontext)
-  (`("div"
-     (("id" "hypercontext"))
-     ("index" NIL ,@rest))
-    `(:hype ,rest)))
-
-(make-detect (descr-outer-block)
-  (`("bloko-gap bloko-gap_bottom"
-     NIL
-     ("l-paddings b-vacancy-desc g-user-content"
-      NIL
-      ,descr))
-    `(:vacancy-descr ,descr)))
-
-(make-detect (longdescr)
+(make-transform (longdescr)
   (`("b-vacancy-desc-wrapper"
      (("itemprop" "description"))
      ,@descr)
     `(:long-descr ,(transform-description descr))))
 
-(make-detect (vacancy-address)
-  (`(,(or "span" "b-vacancy-address l-paddings")
-      (("itemprop" "jobLocation") ("itemscope" "itemscope")
-       ("itemtype" "http://schema.org/Place"))
-      ("meta" (("itemprop" "name") ("content" ,_)))
-      ("h3" (("class" "b-subtitle")) "Адрес")
-      ("b-employer-office-address"
-       (("itemprop" "address") ("itemscope" "itemscope")
-        ("itemtype" "http://schema.org/PostalAddress"))
-       ("meta"
-        (("itemprop" "streetAddress") ("content" ,street-addr)))
-       ("div" NIL
-              ("vacancy-address-with-map" NIL ,addr-with-map)
-              ,@_)))
-    `(:addr (:street-addr ,street-addr :addr-with-map ,addr-with-map))))
+(make-transform (script)
+  (`("script" (("data-name" ,name) ("data-params" ,_)))
+    `(:empty (:script ,name))))
 
-(make-detect (jobtype)
-  (`("b-vacancy-employmentmode l-paddings"
-     NIL
-     ("h3" (("class" "b-subtitle")) "Тип занятости")
-     ("l-content-paddings"
-      NIL
-      ("span" (("itemprop" "employmentType")) ,emptype) ", "
-      ("span" (("itemprop" "workHours")) ,workhours)))
-    `(:vacancy-jobtype (:emptype ,emptype :workhours ,workhours))))
-
-(make-detect (closed-contacts)
-  (`("l-paddings"
-     NIL
-     ("noindex"
-      NIL
-      ("vacancy-contacts vacancy-contacts_closed"
-       NIL
-       (:EMPTY ,_)
-       (:EMPTY ,_)
-       ("h3" (("id" "expand-vacancy-contacts"))
-             ("show-employer-contacts" (("data-toggle" ""))
-                                       ("bloko-link-switch" NIL "Показать контактную информацию"))
-             ("vacancy-contacts__title-opened" NIL "Контактная информация"))
-       ,contacts)))
-    `(:closed ,contacts)))
-
-(make-detect (contacts-body)
+(make-transform (contacts-body)
   (`("vacancy-contacts__body"
      NIL
      ("l-content-paddings" NIL ,@rest))
     `(:contacts ,@rest)))
 
-(make-detect (contacts-fio)
+(make-transform (contacts-fio)
   (`("vacancy-contacts__fio" NIL ,fio)
     `(:fio ,fio)))
 
-(make-detect (contacts-list)
+(make-transform (contacts-list)
   (`("vacancy-contacts__list"
      NIL
      ("tbody" NIL ,@rest))
     `(:contacts-list ,rest)))
 
-(make-detect (contacts-tr)
+(make-transform (contacts-tr)
   (`("tr" NIL
           ("vacancy-contacts__list-title" NIL ,_)
           ("td" NIL ,@contacts-data))
     `(:contacts-tr ,contacts-data)))
 
-(make-detect (contacts-phone)
-  (`("vacancy-contacts__phone" NIL ,phone ("vacancy-contacts__comment" NIL ,phone-comment))
-    `(:phone ,phone :phone-comment ,phone-comment)))
+(make-transform (contacts-phone)
+  (`("vacancy-contacts__phone" NIL ,phone ,@rest)
+    `(:phone ,phone :phone-comment ,rest)))
 
-(make-detect (contacts-mail)
+(make-transform (contacts-mail)
   (`("vacancy-contacts__email" (("href" ,mail-link) ("rel" "nofollow")) ,email)
     `(:mail-link ,mail-link :email ,email)))
 
-(make-detect (contacts-tr)
+(make-transform (contacts-tr)
   (`("tr" NIL
           ("vacancy-contacts__list-title" NIL ,_)
           ("td" NIL ,contacts-data))
     `(:contacts-tr ,contacts-data)))
 
-(make-detect (contacts-list)
+(make-transform (contacts-list)
   (`("vacancy-contacts__list"
      NIL
      ("tbody" NIL ,@rest))
     `(:contacts-list ,rest)))
 
-(make-detect (closed-contacts)
-  (`("l-paddings"
-     NIL
-     ("noindex"
-      NIL
-      ("vacancy-contacts vacancy-contacts_closed"
-       NIL
-       (:EMPTY ,_)
-       (:EMPTY ,_)
-       ("h3" (("id" "expand-vacancy-contacts"))
-             ("show-employer-contacts" (("data-toggle" ""))
-                                       ("bloko-link-switch" NIL "Показать контактную информацию"))
-             ("vacancy-contacts__title-opened" NIL "Контактная информация"))
-       ,contacts)))
-    contacts))
-
-(make-detect (logo)
-  (`("b-vacancy-companylogo"
-     NIL
-     ("a" (("href" ,logo-href))
-          ("img" (("src" ,logo-img) ("border" "0") ("alt" ,logo-alt)))))
-    `(:logo-href ,logo-href
-                 :logo-img ,logo-img
-                 :logo-alt ,logo-alt)))
-
-(make-detect (date)
+(make-transform (date)
   (`("l-content-paddings"
      NIL
      ("vacancy-sidebar"
@@ -1457,40 +1290,7 @@
      ,@_)
     `(:datetime ,datetime :date-text ,date-text :disabled nil)))
 
-(make-detect (or-date-with-disabled)
-  (`("l-content-paddings"
-     NIL
-     ("vacancy-sidebar"
-      NIL
-      "Дата публикации вакансии "
-      ("time"
-       (("class" "vacancy-sidebar__publication-date")
-        ("itemprop" "datePosted")
-        ("datetime" ,datetime))
-       ,date-text))
-     ("vacancy__print-info vacancy__print-info_noscreen"
-      NIL
-      "Вакансия доступна для соискателей с инвалидностью"))
-    `(:datetime ,datetime :date-text ,date-text :disabled t)))
-
-
-(make-detect (response-block)
-  (`("vacancy-response-block HH-VacancyResponsePopup-ResponseBlock" NIL ,@_)
-    `(:response-block "empty")))
-
-(make-detect (vacancy-view-banners)
-  (`("vacancy-view-banners" NIL ,@_)
-    `(:empty (:vacancy-view-banners "empty"))))
-
-(make-detect (column-2)
-  (`("l-content-colum-2" NIL ,logo ,date ,@_)
-    `(:column-2 (:vacancy-logo ,logo :vacancy-date ,date))))
-
-(make-detect (meta)
-  (`("meta" (("itemprop" ,prop) ("content" ,content)))
-    `(:meta (,(intern (string-upcase prop) :keyword) ,content))))
-
-(make-detect (skill-element)
+(make-transform (skill-element)
   (`("skills-element"
      (("data-tag-id" ,tag))
      ("bloko-tag__section bloko-tag__section_text"
@@ -1498,11 +1298,11 @@
       ("bloko-tag__text" NIL ,tagtext)))
     `(:skill (:tag ,tag :title ,title :tagtext ,tagtext))))
 
-(make-detect (skills)
+(make-transform (skills)
   (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
     `(:vacancy-skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
 
-(make-detect (joblocation)
+(make-transform (joblocation)
   (`("span"
      (("itemprop" "jobLocation") ("itemscope" "itemscope")
       ("itemtype" "http://schema.org/Place"))
@@ -1513,153 +1313,84 @@
       ("meta" (("itemprop" "addressLocality") ("content" ,addresslocality)))))
     `(:vacancy-address (:location ,name :addresslocality ,addresslocality))))
 
-(make-detect (handicap)
-  (`("vacancy__info vacancy__info_handicapped vacancy__info_noprint"
+
+(make-transform (vacancy-compensation)
+  (`("vacancy-compensation"
      NIL
-     ("bloko-link-switch bloko-link-switch_inherited" (("data-toggle" "")) ,handicap)
-     ("vacancy__info-expandable"
-      NIL
-      ("vacancy-info-tip" NIL"Это означает готовность компании рассматривать соискателей на равных на основании деловых качеств. Соискатель оценивает самостоятельно, насколько требования вакансии сопоставимы с его индивидуальными особенностями.")))
-    `(:vacancy-handicap (:msg ,handicap))))
+     ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+     ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
+     ,salary-text)
+    (let ((currency currency)
+          (salary-text (ppcre:regex-replace-all " " salary-text ""))
+          (salary-min nil)
+          (salary-max nil))
+      (multiple-value-bind (currency salary-text)
+          (parse-salary-currency salary-text currency)
+        (multiple-value-bind (salary-min salary-max comment)
+            (parse-salary-text salary-text)
+          (when (null salary-min)
+            (setf salary-min salary-max))
+          (when (null salary-max)
+            (setf salary-max salary-min))
+          `("vacancy-compensation"
+            NIL
+            (:currency ,currency
+                       :salary ,(parse-integer salary)
+                       :salary-text ,salary-text
+                       :salary-min ,salary-min
+                       :salary-max ,salary-max
+                       :salary-comment ,comment)))))))
 
-
-(make-detect (compact-l)
-  (`(:VACANCY (:TITLE ,title) :EMP ((:L ((:EMP-NAME ,emp-name :EMP-HREF ,emp-href)))))
-    `(:vacancy (:title ,title) :vacancy-emp (:EMP-NAME ,emp-name :EMP-HREF ,emp-href))))
-
-(make-detect (compact-info)
-  (`(:VAC-INFO ,info)
-    `(,@info)))
-
-(make-detect (compact-contacts)
-  (`(:CONTACTS (:FIO ,fio) (:CONTACTS-LIST ,contacts-trs))
-    `(:vacancy-contacts (:trs ,(append `((:CONTACTS-TR
-                                  ((:FIO ,fio)))) contacts-trs)))))
-
-(make-detect (columns)
-  (`(:COLS
-     (:COL-1
-      (:HYPERCONTEXT
-       (:HYPE
-        (,@rest-1)))
-      :COL-2
-      (:COLUMN-2
-       ,col-2)))
-    `(:infoblock-1 ,rest-1 :infoblock-2 ,col-2)))
-
-(make-detect (branded-hype)
-  (`(:BRANDED-VACANCY
-     (:HYPE
-      ((:BRANDED
-        ,descr)
-       ,@rest)))
-    (mapcan #'identity (append `((:vacancy-descr ,descr)) rest))))
-
-(make-detect (compact-infoblock)
-  (`(:INFOBLOCK-1 ,infoblock-1 :INFOBLOCK-2 ,infoblock-2)
-    (mapcan #'identity (append infoblock-1 (list infoblock-2)))))
 
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
   (dbg ":hh-parse-vacancy:")
   (setf *last-parse-data* html)
-  (let ((candidat (->> (html-to-tree html)
-                       (extract-vacancy)
-                       (maptreefilter)
-                       (detect-script)
-                       (detect-insider-vacancy)
-                       (detect-branded)
-                       (detect-branded2)
-                       (detect-gap)
-                       (detect-vacancy-custom)
-                       (detect-l)
-                       (detect-emp)
-                       (detect-emp-anon)
-                       (detect-vacancy-info)
-                       (detect-vac-info-tr)
-                       (detect-or-vac-info-tr-no-salary)
-                       (detect-container)
-                       (detect-col-1)
-                       (detect-hypercontext)
-                       (detect-descr-outer-block)
-                       (detect-longdescr)
-                       (detect-respond-topic)
-                       (detect-vacancy-address)
-                       (detect-jobtype)
-                       (detect-closed-contacts)
-                       (detect-contacts-body)
-                       (detect-contacts-fio)
-                       (detect-contacts-list)
-                       (detect-contacts-tr)
-                       (detect-contacts-phone)
-                       (detect-contacts-mail)
-                       (detect-logo)
-                       (detect-date)
-                       (detect-or-date-with-disabled)
-                       (detect-vacancy-view-banners)
-                       (detect-column-2)
-                       (detect-response-block)
-                       (detect-skill-element)
-                       (detect-skills)
-                       (detect-joblocation)
-                       (detect-handicap)
-                       (detect-compact-l)
-                       (detect-compact-contacts)
-                       (detect-compact-info)
-                       (detect-columns)
-                       (detect-branded-hype)
-                       (detect-meta)
-                       (detect-compact-infoblock)
-                       )))
-    (if (not (tree-plist-p candidat))
-        (progn
-          (dbg "~A" (bprint candidat))
-          (error 'malformed-vacancy :text))
-        (let* ((non-compacted-vacancy candidat)
-               (compacted-vacancy (compactor candidat))
-               )
-          ;; non-compacted-vacancy
-          compacted-vacancy
-        ))
-    ;; (print candidat)
+  (let* ((onestring (cl-ppcre:regex-replace-all "(\\n|\\s*$)" html " "))
+         (candidat (->> (html-to-tree onestring)
+                        (extract-vacancy)
+                        (maptreefilter)
+                        (transform-script)
+                        (transform-vacancy-compensation)
+                        (transform-longdescr)
+                        (transform-contacts-body)
+                        (transform-contacts-fio)
+                        (transform-contacts-list)
+                        (transform-contacts-tr)
+                        (transform-contacts-phone)
+                        (transform-contacts-mail)
+                        ;; (transform-date)
+                        ;; (transform-skill-element)
+                        ;; (transform-skills)
+                        ;; (transform-joblocation)
+                        )))
+    ;; (if (not (tree-plist-p candidat))
+    ;;     (progn
+    ;;       (dbg "~A" (bprint candidat))
+    ;;       (error 'malformed-vacancy :text))
+    ;;     (let* ((non-compacted-vacancy candidat)
+    ;;            (compacted-vacancy (compactor candidat))
+    ;;            )
+    ;;       ;; non-compacted-vacancy
+    ;;       compacted-vacancy
+    ;;     ))
+    ;; (format t (bprint candidat))
     ;; (print (compactor candidat))
+    `(:url ,(extract-url candidat)
+           :title ,(extract-title candidat)
+           :company ,(extract-company candidat)
+           :compensation ,(extract-compensation candidat)
+           :city ,(extract-city candidat)
+           :metro ,(extract-metro candidat)
+           :exp ,(extract-exp candidat)
+           :descr ,(extract-descr candidat)
+           :emptype ,(extract-jobtype candidat)
+           :contacts ,(extract-contacts candidat)
+           )
     ;; candidat
     ))
 
-;; (print (hh-parse-vacancy *last-parse-data*))
-
-
-;; (defparameter *last-vacancy-html*
-;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;     (hh-get-page "https://spb.hh.ru/vacancy/17527227" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-;; (defparameter *last-vacancy-html*
-;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;     (hh-get-page "https://spb.hh.ru/vacancy/18108178" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-;; (defparameter *last-vacancy-html*
-;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;     (hh-get-page "https://spb.hh.ru/vacancy/17527227" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-;; (defparameter *last-vacancy-html*
-;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;     (hh-get-page "https://spb.hh.ru/vacancy/22262525" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-;; (defparameter *last-vacancy-html*
-;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;     (hh-get-page "https://spb.hh.ru/vacancy/22518184" temp-cookie-jar *hh_account* "https://spb.hh.ru/")))
-
-
-
-;; (let ((sections (hh-parse-vacancy *last-vacancy-html*)))
-;;   (loop :for section-key :in sections by #'cddr  :do
-;;      (format t "~%_______~%~A" (bprint (list section-key (getf sections section-key))))))
-
-;; (print (hh-parse-vacancy *last-vacancy-html*))
-
-;; (print
-;;   (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
-;;     (hh-parse-vacancy (hh-get-page "https://spb.hh.ru/vacancy/16606806" temp-cookie-jar *hh_account* "https://spb.hh.ru/"))))
+(print (hh-parse-vacancy *last-parse-data*))
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
   ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
@@ -1765,9 +1496,12 @@
 ;; moved            :skills      (aif (.> getf vac -> :vacancy-skills :list-of-skilss) (bprint it) "")
 ;; moved            :datetime    (aif (.> getf vac -> :vacancy-date :datetime) it "")
 ;; moved            :date-text   (aif (.> getf vac -> :vacancy-date :datetext) it "")
-;; moved            :responsibility (let ((resp (aif (.> getf vac -> :teaser-descr :responsibility) it "")))
-;; moved                              (if (stringp resp) resp ""))
-;; moved            :requirement (aif (.> getf vac -> :teaser-descr :requirement) it "")
+;; moved            :responsibility (aif (.> getf vac -> :teaser-descr :responsibility)
+;; moved                                 (if (stringp it) it "")
+;; moved                                 "")
+;; moved            :requirement    (aif (.> getf vac -> :teaser-descr :requirement)
+;; moved                                 (if (stringp it) it "")
+;; moved                                 "")
 ;; moved            :addr        (aif (.> getf vac -> :addr :addr-with-map) it "")
 ;; moved            :street-addr (aif (.> getf vac -> :addr :street-addr) it "")
 ;; moved 
@@ -1778,6 +1512,7 @@
 ;; moved           (eval `(make-vacancy ,@*new-vac*)))
 ;; moved         ;; else
 ;; moved         (progn
+;; moved           (print *new-vac*)
 ;; moved           (upd-vacancy old-vac *new-vac*)))))
 
 (in-package #:moto)

@@ -15,40 +15,40 @@
            (return-from subtree-extract rest))
          tree)))
 
-(make-detect (response-date)
+(make-transform (response-date)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
           ("span" (("class" "responses-date")) ,result))
     `(:response-date ,result)))
 
-(make-detect (response-date-dimmed)
+(make-transform (response-date-dimmed)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
           ("span" (("class" "responses-date responses-date_dimmed"))
                   ,result))
     `(response-date ,result)))
 
-(make-detect (result-date)
+(make-transform (result-date)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
           ("span" (("class" "responses-date")) ,result-date))
     `(:result-date, result-date)))
 
-(make-detect (result-deny)
+(make-transform (result-deny)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
           ("span" (("class" "negotiations__denial")) "Отказ")) `(:result "Отказ")))
 
-(make-detect (result-invite)
+(make-transform (result-invite)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))
           ("span" (("class" "negotiations__invitation")) "Приглашение")) `(:result "Приглашение")))
 
-(make-detect (result-no-view)
+(make-transform (result-no-view)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Не просмотрен") `(:result "Не просмотрен")))
 
-(make-detect (result-view)
+(make-transform (result-view)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "Просмотрен") `(:result "Просмотрен")))
 
-(make-detect (result-archive)
+(make-transform (result-archive)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap")) "В архиве") `(:archive t)))
 
-(make-detect (responses-vacancy)
+(make-transform (responses-vacancy)
   (`("td" (("class" "prosper-table__cell"))
           ("div" (("class" "responses-vacancy-wrapper"))
                  ("div" (("class" "responses-vacancy"))
@@ -58,30 +58,36 @@
                  ("div" (("class" "responses-company")) ,emp-name)))
     `(:vacancy-link ,vacancy-link :vacancy-name ,vacancy-name :emp-name ,emp-name)))
 
-(make-detect (responses-vacancy-disabled)
+(make-transform (responses-vacancy-disabled)
   (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-vacancy responses-vacancy_disabled")) ,vacancy-name)
           ("div" (("class" "responses-company")) ,emp-name))
     `(:vacancy-name ,vacancy-name :emp-name ,emp-name :disabled t)))
 
-(make-detect (topic)
+(make-transform (topic)
   (`("tr" (("data-hh-negotiations-responses-topic-id" ,topic-id) ("class" ,_)) ,@rest)
     `((:topic-id ,topic-id) ,rest)))
 
 
-(defparameter *detect-trash* '("responses-trash" "cell_nowrap" "responses-bubble" "prosper-table__cell"))
+(defparameter *transform-trash* '("responses-trash" "cell_nowrap" "responses-bubble" "prosper-table__cell" "cell_print_hidden"))
 
 
-(make-detect (responses-trash)
+(make-transform (responses-trash)
   (`("td" (("class" "prosper-table__cell")) ("div" (("class" "responses-trash")) ,@rest)) "responses-trash"))
 
-(make-detect (cell_nowrap)
+(make-transform (cell_nowrap)
   (`("td" (("class" "prosper-table__cell prosper-table__cell_nowrap"))) "cell_nowrap"))
 
-(make-detect (responses-bubble)
+(make-transform (responses-bubble)
   (`("td" (("class" "prosper-table__cell")) ("span" (("class" "responses-bubble HH-Responses-NotificationIcon")))) "responses-bubble"))
 
-(make-detect (prosper-table__cell)
+(make-transform (prosper-table__cell)
   (`("td" (("class" "prosper-table__cell")) ,@rest) "prosper-table__cell"))
+
+
+(make-transform (cell_print_hidden)
+  (`("td" (("class" "prosper-table__cell prosper-table__cell_print-hidden"))
+          ,@rest) "cell_print_hidden"))
+
 
 (defun hh-parse-responds (html)
   "Получение списка вакансий из html"
@@ -89,23 +95,24 @@
   (setf *last-parse-data* html)
   (->> (html-to-tree html)
        (extract-responds-results)
-       (detect-response-date)
-       (detect-response-date-dimmed)
-       ;; (detect-result-date)
-       (detect-result-deny)
-       (detect-result-invite)
-       (detect-result-no-view)
-       (detect-result-view)
-       (detect-result-archive)
-       ;; (detect-responses-vacancy)
-       ;; (detect-responses-vacancy-disabled)
-       (detect-topic)
-       (detect-responses-vacancy)
+       (transform-response-date)
+       (transform-response-date-dimmed)
+       ;; (transform-result-date)
+       (transform-result-deny)
+       (transform-result-invite)
+       (transform-result-no-view)
+       (transform-result-view)
+       (transform-result-archive)
+       ;; (transform-responses-vacancy)
+       ;; (transform-responses-vacancy-disabled)
+       (transform-topic)
+       (transform-responses-vacancy)
        ;; trash
-       (detect-responses-trash)
-       (detect-cell_nowrap)
-       (detect-responses-bubble)
-       (detect-prosper-table__cell)
+       (transform-responses-trash)
+       (transform-cell_nowrap)
+       (transform-responses-bubble)
+       (transform-prosper-table__cell)
+       (transform-cell_print_hidden)
        ;; filter trash data
        (maptree-if #'consp
                    #'(lambda (x)
@@ -114,7 +121,7 @@
                                        (when (stringp x)
                                          (or
                                           (string= x "div")
-                                          (find x *detect-trash* :test #'string=)
+                                          (find x *transform-trash* :test #'string=)
                                           )))
                                    x)
                         #'mapcar)))
