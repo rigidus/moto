@@ -8,7 +8,6 @@
 
 (define-page hh "/hh"
   (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-         (sorted-vacs (sort vacs #'(lambda (a b) (> (salary a) (salary b)))))
          (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
          (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
     (base-page (:breadcrumb breadcrumb)
@@ -30,30 +29,49 @@
          (progn nil)))
 (in-package #:moto)
 
+(defun sort-vacancy-by-salary (a b)
+  (let ((aa (salary-max a))
+        (bb (salary-max b)))
+    (unless (numberp aa) (setf aa 0))
+    (unless (numberp bb) (setf bb 0))
+    (> aa bb)))
+
+(defun canonicalize-salary (vac)
+  (when (null (currency vac))
+    (setf (currency vac) "NON"))
+  (when (null (salary-max vac))
+    (setf (salary-max vac) 0))
+  (when (null (salary-min vac))
+    (setf (salary-min vac) 0))
+  (when (null (notes vac))
+    (setf (notes vac) ""))
+  (when (equal :null (state vac))
+    (setf (state vac) ":UNSORT"))
+  vac)
+
+(defun make-ps-html-vac (x)
+  (ps-html ((:li :id (src-id x)
+                 :class (string-downcase (subseq (state x) 1))
+                 :title (notes x))
+            ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
+             (cond ((equal "USD" (currency x)) "$")
+                   ((equal "EUR" (currency x)) "€")
+                   ((equal "RUR" (currency x)) ""))
+             (salary-max x))
+            ((:a :href (format nil "/hh/vac/~A" (src-id x)))
+             (name x)))))
+
 (define-page vacs "/hh/vacs"
   (labels ((mrg (param)
              (if (null param)
                  ""
-                 (reduce #'(lambda (x y)
-                             (concatenate 'string x (string #\NewLine) y))
-                         (mapcar #'(lambda (x)
-                                     (ps-html ((:li :id (src-id x)
-                                                    :class (string-downcase (subseq (state x) 1))
-                                                    :title (notes x))
-                                               ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
-                                                (cond ((equal "USD" (currency x)) "$")
-                                                      ((equal "EUR" (currency x)) "€")
-                                                      ((equal "RUR" (currency x)) ""))
-                                                (salary-max x))
-                                               ((:a :href (format nil "/hh/vac/~A" (src-id x)))
-                                                (name x)))))
-                                 param)))))
+                 (reduce #'(lambda (x y) (concatenate 'string x (string #\NewLine) y))
+                         (mapcar #'make-ps-html-vac
+                                 (mapcar #'canonicalize-salary param))))))
     (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-           (sorted-vacs vacs ;; (sort vacs #'(lambda (a b) (> (salary-max a) (salary-max b))))
-             )
+           (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
            (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
-           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
-           )
+           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
       (base-page (:breadcrumb breadcrumb)
         ((:script)
          (ps
@@ -93,15 +111,19 @@
           %SAVE%
           ((:section :class "dnd-area")
            ((:ul :class "connected handles list" :id "not")
-            (mrg (remove-if-not #'(lambda (x)
+            (mrg
+            (remove-if-not #'(lambda (x)
                                     (equal ":UNINTERESTING" (state x)))
-                                sorted-vacs))
+                                sorted-vacs
+                                )
+                                )
             )
            ((:ul :class "connected handles list no2" :id "yep")
             (mrg (remove-if #'(lambda (x)
                                 (equal ":UNINTERESTING" (state x)))
                             sorted-vacs))
-            )))
+            ))
+          )
         (ps-html ((:span :class "clear"))))))
   (:SAVE (ps-html
           ((:input :type "hidden" :name "act" :value "SAVE"))
@@ -119,7 +141,6 @@
                            (takt vac :interesting))))
                    (split-sequence:split-sequence #\, (getf p :yep)))
            (error 'ajax :output "window.location.href='/hh/vacs'"))))
-
 
 
 (defun tgb (name on off &rest in)
@@ -167,10 +188,10 @@
               `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
           rest))
 
-(defun vac-col (col-class name &rest rest)
+(defun vac-col (col-class name id &rest rest)
   `(("div" (("class" ,(format nil "col ~A" col-class)))
            ("div" (("style" "text-align: center")) ,name)
-           ("ul"  (("class" "connected handles list no2") ("id" "yep"))
+           ("ul"  (("class" "connected handles list no2") ("id" ,id))
                   ,@(mapcar #'car rest)))))
 
 (defun vac-elt (id class title noteclass notes name)
@@ -180,11 +201,12 @@
      ("span" (("class" ,noteclass)) ,notes)
      ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
 
+
 (restas:define-route hhtest ("/hh/test")
   (concatenate
    'string
-   "<!DOCTYPE html>
-"
+   "<!DOCTYPE html>"
+   (format nil "~%")
    (tree-to-html
     `(("html"
        (("lang" "en"))
@@ -196,10 +218,20 @@
        ("body"
         ()
         ,@(link-css "bootstrap.min" "b" "s")
-        ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3"
-                     "modernizr"
-                     "jquery.sortable.original"
-                     "frp" "bootstrap.min" "b")
+        ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
+                     "jquery.sortable.original" "frp" "bootstrap.min" "b")
+        ("script"
+         (("type" "text/javascript"))
+         ,(ps
+           (defun get-child-ids (selector)
+             ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+           (defun save ()
+             ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
+              (lambda (data status)
+                (if (not (equal status "success"))
+                    (alert (concatenate 'string "err-ajax-fail: " status))
+                    (eval data))))
+             false)))
         ("div"
          (("class" "container-fluid"))
          ,@(legend)
@@ -209,34 +241,34 @@
          ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
          ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
          ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
+         ("div" (("class" ""))
+                 ("button"
+                  (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
+                  "SAVE"))
          ("div" (("class" "row no-gutters"))
-                ,@(vac-col "col-uninteresting" "uninteresting"
-                           (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
-                                    "Специалист по продажам (Amazon)")
-                           (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
-                                    "Team Lead C++/QT"))
+                ,@(apply
+                   #'vac-col
+                   (append (list "col-uninteresting" "uninteresting")
+                           (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+                                  (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
+                                  (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNINTERESTING")) sorted-vacs)))
+                             (mapcar #'(lambda (vac)
+                                         (vac-elt (src-id vac) "uninteresting" "" "emptynotes"
+                                                  (salary-max vac) (name vac)))
+                                     filtered-vacs))))
                 ,@(apply
                    #'vac-col
                    (append (list "col-unsort" "unsort")
                            (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-                                  (sorted-vacs
-                                   (sort vacs #'(lambda (a b)
-                                                  (let ((aa (salary-max a))
-                                                        (bb (salary-max b)))
-                                                    (unless (numberp aa) (setf aa 0))
-                                                    (unless (numberp bb) (setf bb 0))
-                                                    (> aa bb))))))
+                                  (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
+                                  (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNSORT")) sorted-vacs)))
                              (mapcar #'(lambda (vac)
-                                         (print vac)
                                          (vac-elt (src-id vac) "unsort" "" "emptynotes"
                                                   (salary-max vac) (name vac)))
-                                     sorted-vacs))))
-                ,@(vac-col "col-interesting" "interesting"
-                         (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
-                                  "Специалист по продажам (Amazon)")
+                                     filtered-vacs))))
+                ,@(vac-col "col-interesting" "interesting" "yep"
                          (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
                                   "Team Lead C++/QT"))))))))))
-
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"

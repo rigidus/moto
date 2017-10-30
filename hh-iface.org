@@ -279,18 +279,26 @@
                        (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
                        "SAVE"))
               ("div" (("class" "row no-gutters"))
-                     ,@(vac-col "col-uninteresting" "uninteresting" "not"
-                                (vac-elt 22616610 "unsort" "" "emptynotes" "NIL0"
-                                         "Специалист по продажам (Amazon)"))
+                     ,@(apply
+                        #'vac-col
+                        (append (list "col-uninteresting" "uninteresting")
+                                (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+                                       (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
+                                       (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNINTERESTING")) sorted-vacs)))
+                                  (mapcar #'(lambda (vac)
+                                              (vac-elt (src-id vac) "uninteresting" "" "emptynotes"
+                                                       (salary-max vac) (name vac)))
+                                          filtered-vacs))))
                      ,@(apply
                         #'vac-col
                         (append (list "col-unsort" "unsort")
                                 (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-                                       (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
+                                       (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
+                                       (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNSORT")) sorted-vacs)))
                                   (mapcar #'(lambda (vac)
                                               (vac-elt (src-id vac) "unsort" "" "emptynotes"
                                                        (salary-max vac) (name vac)))
-                                          sorted-vacs))))
+                                          filtered-vacs))))
                      ,@(vac-col "col-interesting" "interesting" "yep"
                               (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
                                        "Team Lead C++/QT"))))))))))
