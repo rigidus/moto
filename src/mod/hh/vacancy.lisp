@@ -915,47 +915,10 @@
 
 (in-package #:moto)
 
-(make-transform (serp-vacancy)
-  (`("vacancy-serp__vacancy"
-     NIL (:TEASER (:STATUS "responded"))
-     ,contents)
-    contents))
-
-(make-transform (serp-premium)
-  (`("vacancy-serp__vacancy vacancy-serp__vacancy_premium"
-     NIL
-     (:TEASER (:STATUS "responded"))
-     ,contents)
-    contents))
-
-(make-transform (serp-descr)
-  (`("search-result-description"
-     NIL
-     ,contents
-     ,@rest)
-    contents))
-
-(make-transform (serp-primary)
-  (`("search-result-description__item search-result-description__item_primary"
-     NIL ,@rest)
-    rest))
-
-(make-transform (script-in-teaser)
-  (`("script" NIL ,contents)
-    `(:garbage (:script ,contents))))
-
 (make-transform (responder)
   (`("vacancy-serp__vacancy_responded"
      (("href" ,_)) "Вы откликнулись")
     `(:teaser (:status "responded"))))
-
-(make-transform (respond-topic)
-  (`("g-attention m-attention_good b-vacancy-message"
-     NIL
-     "Вы уже откликались на эту вакансию. "
-     ("a" (("href" ,topic))
-          "Посмотреть отклики."))
-    `(:respond (:respond-topic ,topic))))
 
 (make-transform (rejecter)
   (`("vacancy-serp__vacancy_rejected"
@@ -963,18 +926,17 @@
     `(:teaser (:status "rejected"))))
 
 (make-transform (title)
-  (`("search-result-item__head"
-     NIL
-     ("vacancy-serp__vacancy-title"
+  (`("vacancy-serp__vacancy-title"
       (("href" ,href) ,@rest)
-      ,title))
+      ,title)
     `(:teaser (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
                     :href ,href
                     :name ,title
                     :archived nil))))
 
+;; not tested
 (make-transform (or-title-archived)
-  (`("search-result-item__head"
+  (`(,_
      NIL
      ("vacancy-serp__vacancy-title"
       (("href" ,href) ,@rest)
@@ -984,14 +946,14 @@
                "Вакансия была перенесена в архив")
      ")")
     `(:teaser (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
-                    :href ,href
-                    :name ,title
-                    :archived t))))
+                   :href ,href
+                   :name ,title
+                   :archived t))))
 
 (make-transform (schedule)
   (`("vacancy-serp__vacancy-work-schedule"
      NIL ,schedule)
-    `(:teaser-conditions (:schedule schedule))))
+    `(:teaser-conditions (:schedule ,schedule))))
 
 (make-transform (responsibility)
   (`("vacancy-serp__vacancy_snippet_responsibility"
@@ -1020,10 +982,11 @@
      ,@rest)
     `(:teaser-emp
       (:emp-name ,emp-name
-       :href ,href
-       :emp-id ,(parse-integer
-                 (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t)))))
+                 :href ,href
+                 :emp-id ,(parse-integer
+                           (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t)))))
 
+;; not tested
 (make-transform (company-anon)
   (`("search-result-item__company"
      NIL
@@ -1032,13 +995,16 @@
     `(:teaser-emp (:emp-name ,anon :anon t))))
 
 (make-transform (addr)
-  (`("search-result-item__info"
-     NIL
-     ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
-     ("vacancy-serp__vacancy-date" NIL ,date)
-     ,@rest)
-    `(:teaser-emp (:addr ,address)
-      :teaser (:date ,date))))
+  (`("vacancy-serp__vacancy-address" NIL ,address ,@restaddr)
+    `(:teaser-emp (:addr ,address))))
+
+(make-transform (date)
+  (`("vacancy-serp__vacancy-date" NIL ,date)
+    `(:teaser (:date ,date))))
+
+(make-transform (info)
+  (`("search-result-item__info" NIL ,addr "  •  " ,date ,@rest)
+    (append addr date)))
 
 (make-transform (compensation)
   (`("vacancy-serp__vacancy-compensation"
@@ -1064,7 +1030,12 @@
                                             :salary-min ,salary-min
                                             :salary-max ,salary-max)))))))
 
-(make-transform (teaser-finalizer)
+;; not tested
+(make-transform (script-in-teaser)
+  (`("script" NIL ,contents)
+    `(:garbage (:script ,contents))))
+
+(make-transform (teaser-descr-item-primary)
   (`(,_
      NIL
      ,_
@@ -1076,6 +1047,48 @@
        ,@contents)
       ,@rest))
     contents))
+
+;; not tested
+(make-transform (serp-primary)
+  (`("search-result-description__item search-result-description__item_primary"
+     NIL ,@rest)
+    rest))
+
+;; not tested
+(make-transform (serp-descr)
+  (`("search-result-description"
+     NIL
+     ,contents
+     ,@rest)
+    contents))
+
+;; not tested
+(make-transform (serp-premium)
+  (`("vacancy-serp__vacancy vacancy-serp__vacancy_premium"
+     NIL
+     (:TEASER (:STATUS "responded"))
+     ,contents)
+    contents))
+
+;; not tested
+(make-transform (serp-vacancy)
+  (`("vacancy-serp__vacancy"
+     NIL (:TEASER (:STATUS "responded"))
+     ,contents)
+    contents))
+
+;; not tested
+(make-transform (respond-topic)
+  (`("g-attention m-attention_good b-vacancy-message"
+     NIL
+     "Вы уже откликались на эту вакансию. "
+     ("a" (("href" ,topic))
+          "Посмотреть отклики."))
+    `(:respond (:respond-topic ,topic))))
+
+(make-transform (teaser-controls)
+  (`("vacancy-serp-item-controls" NIL ,@rest)
+    `(:garbage (:controls ""))))
 
 (in-package #:moto)
 
@@ -1150,21 +1163,24 @@
        (transform-responder)
        (transform-rejecter)
        (transform-title)
-       (transform-or-title-archived)
+       ;; (transform-or-title-archived)
        (transform-schedule)
        (transform-responsibility)
        (transform-requirement)
        (transform-insider-teaser)
        (transform-company)
-       (transform-company-anon)
+       ;; (transform-company-anon)
        (transform-addr)
+       (transform-date)
+       (transform-info)
        (transform-compensation)
-       (transform-script-in-teaser)
-       (transform-teaser-finalizer)
-       (transform-serp-primary)
-       (transform-serp-descr)
-       (transform-serp-premium)
-       (transform-serp-vacancy)
+       ;; (transform-script-in-teaser)
+       (transform-teaser-descr-item-primary)
+       ;; (transform-serp-primary)
+       ;; (transform-serp-descr)
+       ;; (transform-serp-premium)
+       ;; (transform-serp-vacancy)
+       (transform-teaser-controls)
        (cddar)
        (mapcar #'(lambda (vacancy)
                    (if (not (tree-plist-p vacancy))
@@ -1178,7 +1194,7 @@
                        )))
        ))
 
-;; (print (hh-parse-vacancy-teasers *last-parse-data*))
+(print (hh-parse-vacancy-teasers *last-parse-data*))
 
 ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (hh-parse-vacancy-teasers
