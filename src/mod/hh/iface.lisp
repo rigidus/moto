@@ -29,12 +29,27 @@
          (progn nil)))
 (in-package #:moto)
 
+(defparameter *USD* 57)
+(defparameter *EUR* 67)
+
+(defun salary-equivalent (vac)
+  (cond ((equal "USD" (currency vac)) (* *USD* (salary-max vac)))
+        ((equal "EUR" (currency vac)) (* *EUR* (salary-max vac)))
+        ((equal "RUR" (currency vac)) (* 1 (salary-max vac)))
+        (t 0)))
+
 (defun sort-vacancy-by-salary (a b)
-  (let ((aa (salary-max a))
-        (bb (salary-max b)))
-    (unless (numberp aa) (setf aa 0))
-    (unless (numberp bb) (setf bb 0))
+  (let ((aa (salary-equivalent a))
+        (bb (salary-equivalent b)))
     (> aa bb)))
+
+(defun pretty-salary (vac)
+  (format nil "~A ~A"
+          (salary-max vac)
+          (cond ((equal "USD" (currency vac)) "$")
+                ((equal "EUR" (currency vac)) "€")
+                ((equal "RUR" (currency vac)) "₽"))))
+
 
 (defun canonicalize-salary (vac)
   (when (null (currency vac))
@@ -254,7 +269,7 @@
                                   (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNINTERESTING")) sorted-vacs)))
                              (mapcar #'(lambda (vac)
                                          (vac-elt (src-id vac) "uninteresting" "" "emptynotes"
-                                                  (salary-max vac) (name vac)))
+                                                  (pretty-salary vac) (name vac)))
                                      filtered-vacs))))
                 ,@(apply
                    #'vac-col
@@ -264,7 +279,7 @@
                                   (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNSORT")) sorted-vacs)))
                              (mapcar #'(lambda (vac)
                                          (vac-elt (src-id vac) "unsort" "" "emptynotes"
-                                                  (salary-max vac) (name vac)))
+                                                  (pretty-salary vac) (name vac)))
                                      filtered-vacs))))
                 ,@(vac-col "col-interesting" "interesting" "yep"
                          (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
