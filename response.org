@@ -309,20 +309,22 @@
 #+BEGIN_SRC lisp
   (in-package :moto)
 
-  (mapcar #'(lambda (x)
-              (print (src-id x))
-              (upd-vacancy :state ":UNINTERESTING"))
-          (remove-if-not #'(lambda (x)
-                             (search "Вакансия в архиве"
-                                     (hh-get-page (format nil "https://hh.ru/vacancy/~A" (src-id x))
-                                                  (make-instance 'drakma:cookie-jar)
-                                                  ,*hh_account*
-                                                  "https://spb.hh.ru/")))
-                         (find-vacancy :state ":INTERESTING")))
+  ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+  ;;   (flet ((uninteresting-if-archive (vac)
+  ;;            (let* ((src-id (src-id vac))
+  ;;                   (vacancy-page (hh-get-page (format nil "https://hh.ru/vacancy/~A" src-id)
+  ;;                                              cookie-jar
+  ;;                                              *hh_account*
+  ;;                                              "https://spb.hh.ru/"))
+  ;;                   (archive-p (search "Вакансия в архиве" vacancy-page)))
+  ;;              (if archive-p
+  ;;                  (upd-vacancy vac (list :state  ":UNINTERESTING"))))))
+  ;;     (mapcar #'uninteresting-if-archive
+  ;;             (all-vacancy))))
 
-  ;;  (del-vacancy (id (car (find-vacancy :src-id "18564402"))))
+  ;; (length (all-vacancy))
 
-  ;; (mapcar #'(lambda (x)
-  ;;             (del-vacancy (id x)))
-  ;;         (find-vacancy :state ":----INTERESTING"))
+  ;; (print
+  ;;  (find-vacancy :state ":UNINTERESTING"))
+
 #+END_SRC

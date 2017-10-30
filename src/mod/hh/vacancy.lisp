@@ -986,25 +986,26 @@
                  :emp-id ,(parse-integer
                            (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t)))))
 
-;; not tested
 (make-transform (company-anon)
   (`("search-result-item__company"
      NIL
      ,anon
-     ,@rest)
+     ("bloko-link" (("href" ,_))
+                   ("bloko-icon bloko-icon_done bloko-icon_initial-action" NIL)))
     `(:teaser-emp (:emp-name ,anon :anon t))))
 
-(make-transform (addr)
-  (`("vacancy-serp__vacancy-address" NIL ,address ,@restaddr)
-    `(:teaser-emp (:addr ,address))))
 
-(make-transform (date)
-  (`("vacancy-serp__vacancy-date" NIL ,date)
-    `(:teaser (:date ,date))))
 
-(make-transform (info)
-  (`("search-result-item__info" NIL ,addr "  •  " ,date ,@rest)
-    (append addr date)))
+
+(make-transform (addr-and-date)
+  (`("search-result-item__info"
+     NIL
+     ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr)
+     "  •  "
+     ("vacancy-serp__vacancy-date" NIL ,date)
+     ,@rest)
+    `(:teaser-emp (:addr ,address)
+      :teaser (:date ,date))))
 
 (make-transform (compensation)
   (`("vacancy-serp__vacancy-compensation"
@@ -1169,10 +1170,8 @@
        (transform-requirement)
        (transform-insider-teaser)
        (transform-company)
-       ;; (transform-company-anon)
-       (transform-addr)
-       (transform-date)
-       (transform-info)
+       (transform-company-anon)
+       (transform-addr-and-date)
        (transform-compensation)
        ;; (transform-script-in-teaser)
        (transform-teaser-descr-item-primary)
@@ -1194,7 +1193,7 @@
                        )))
        ))
 
-(print (hh-parse-vacancy-teasers *last-parse-data*))
+;; (print (hh-parse-vacancy-teasers *last-parse-data*))
 
 ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (hh-parse-vacancy-teasers
