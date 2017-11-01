@@ -303,33 +303,34 @@
     (named-readtables:in-readtable :fare-quasiquote)
 
     <<run_response>>
+
+    <<drop_if_archive>>
   #+END_SRC
 
 * Убираем вакансии в архиве
 
+#+NAME: drop_if_archive
 #+BEGIN_SRC lisp
   (in-package :moto)
 
-  ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
-  ;;   (flet ((uninteresting-if-archive (vac)
-  ;;            (let* ((src-id (src-id vac))
-  ;;                   (vacancy-page (hh-get-page (format nil "https://hh.ru/vacancy/~A" src-id)
-  ;;                                              cookie-jar
-  ;;                                              *hh_account*
-  ;;                                              "https://spb.hh.ru/"))
-  ;;                   (archive-p (search "Вакансия в архиве" vacancy-page)))
-  ;;              (if archive-p
-  ;;                  (upd-vacancy vac (list :state  ":UNINTERESTING"))))))
-  ;;     (mapcar #'uninteresting-if-archive
-  ;;             (all-vacancy))))
+  (defun drop-if-archive (vacancyes)
+    (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+      (flet ((uninteresting-if-archive (vac)
+               (multiple-value-bind (vacancy-page new-cookies ref-url)
+                   (hh-get-page (format nil "https://hh.ru/vacancy/~A" (src-id vac))
+                                cookie-jar
+                                ,*hh_account*
+                                "https://spb.hh.ru/")
+                 (setf cookie-jar new-cookies)
+                 (if (search "Вакансия в архиве" vacancy-page)
+                     (upd-vacancy vac (list :state  ":UNINTERESTING"))))))
+        (mapcar #'uninteresting-if-archive vacancyes))))
 
-  ;; (length (all-vacancy))
+  ;; (drop-if-archive (all-vacancy))
 
   ;; (print
   ;;  (find-vacancy :state ":UNINTERESTING"))
 
   ;; (print
   ;;  (find-vacancy :state ":INTERESTING"))
-
-
 #+END_SRC

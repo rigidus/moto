@@ -231,3 +231,26 @@
       (return-from run-response 'loop))))
 
 ;; (run-response)
+
+(in-package :moto)
+
+(defun drop-if-archive (vacancyes)
+  (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
+    (flet ((uninteresting-if-archive (vac)
+             (multiple-value-bind (vacancy-page new-cookies ref-url)
+                 (hh-get-page (format nil "https://hh.ru/vacancy/~A" (src-id vac))
+                              cookie-jar
+                              *hh_account*
+                              "https://spb.hh.ru/")
+               (setf cookie-jar new-cookies)
+               (if (search "Вакансия в архиве" vacancy-page)
+                   (upd-vacancy vac (list :state  ":UNINTERESTING"))))))
+      (mapcar #'uninteresting-if-archive vacancyes))))
+
+;; (drop-if-archive (all-vacancy))
+
+;; (print
+;;  (find-vacancy :state ":UNINTERESTING"))
+
+;; (print
+;;  (find-vacancy :state ":INTERESTING"))
