@@ -250,8 +250,8 @@
 (defmethod show-vacancy (vacancy)
   ;; (format t "~%")
   ;; (format t (bprint vacancy))           ;
-  (loop :for section-key :in vacancy by #'cddr  :do
-     (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
+  ;; (loop :for section-key :in vacancy by #'cddr  :do
+  ;;    (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
   ;; (format t "~%~A :~A: ~A [~A]"
   ;;      (getf vacancy :salary-text)
   ;;      (getf vacancy :currency)
@@ -272,7 +272,7 @@
 
 (defmethod save-vacancy (vac)
   (setf *saved-vacancy* vac)
-  (format t "~%->SAVE~%~A" (bprint vac))
+  ;; (format t "~%->SAVE~%~A" (bprint vac))
   (let* ((src-id    (.> getf vac -> :teaser :id))
          (old-vac   (car (find-vacancy :src-id src-id)))
          (*new-vac*
@@ -929,10 +929,10 @@
   (`("vacancy-serp__vacancy-title"
       (("href" ,href) ,@rest)
       ,title)
-    `(:teaser (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
-                    :href ,href
-                    :name ,title
-                    :archived nil))))
+    (if (search "hhcdn.ru" href)
+        `(:teaser (:href ,href :name ,title :archived nil))
+        (let ((id (parse-integer (car (last (split-sequence:split-sequence #\/ href))))))
+          `(:teaser (:id ,id :href ,href :name ,title :archived nil))))))
 
 ;; not tested
 (make-transform (or-title-archived)
@@ -974,7 +974,7 @@
     `(:teaser-descr (:insider ,insider))))
 
 (make-transform (company)
-  (`("search-result-item__company"
+  (`(,container
      NIL
      ("vacancy-serp__vacancy-employer"
       (("href" ,href))
@@ -994,16 +994,11 @@
                    ("bloko-icon bloko-icon_done bloko-icon_initial-action" NIL)))
     `(:teaser-emp (:emp-name ,anon :anon t))))
 
-
-
-
 (make-transform (addr-and-date)
-  (`("search-result-item__info"
+  (`(,container
      NIL
-     ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr)
-     "  •  "
-     ("vacancy-serp__vacancy-date" NIL ,date)
-     ,@rest)
+     ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
+     ("vacancy-serp__vacancy-date" NIL ,date) ,@rest)
     `(:teaser-emp (:addr ,address)
       :teaser (:date ,date))))
 
@@ -1087,9 +1082,35 @@
           "Посмотреть отклики."))
     `(:respond (:respond-topic ,topic))))
 
+(make-transform (controls-vacancy-id)
+  (`("HH-VacancyResponseTrigger-Button"
+     NIL
+     ("vacancy-serp-item__controls-item"
+      NIL
+      ("vacancy-serp__vacancy_response"
+       (("href" ,href))
+       "Откликнуться")))
+    (let* ((vac-id-str (replace-all href "/applicant/vacancy_response?vacancyId=" ""))
+           (vac-id     (parse-integer vac-id-str)))
+      (if (numberp vac-id)
+          `(:teaser (:id ,vac-id))
+          (err "zzz")))))
+
+(make-transform (row-controls)
+  (`("vacancy-serp-item__row vacancy-serp-item__row_controls"
+     NIL
+     ,teaser-id
+     ,@rest)
+    teaser-id))
+
 (make-transform (teaser-controls)
   (`("vacancy-serp-item-controls" NIL ,@rest)
     `(:garbage (:controls ""))))
+
+(make-transform (teaser-controls-item)
+  (`("vacancy-serp-item__controls-item" NIL ,@rest)
+    `(:garbage (:controls-item ""))))
+
 
 (in-package #:moto)
 
@@ -1164,7 +1185,7 @@
        (transform-responder)
        (transform-rejecter)
        (transform-title)
-       ;; (transform-or-title-archived)
+       ;;;\ (transform-or-title-archived)
        (transform-schedule)
        (transform-responsibility)
        (transform-requirement)
@@ -1173,13 +1194,16 @@
        (transform-company-anon)
        (transform-addr-and-date)
        (transform-compensation)
-       ;; (transform-script-in-teaser)
+       ;;;\ (transform-script-in-teaser)
        (transform-teaser-descr-item-primary)
-       ;; (transform-serp-primary)
-       ;; (transform-serp-descr)
-       ;; (transform-serp-premium)
-       ;; (transform-serp-vacancy)
+       ;;;\ (transform-serp-primary)
+       ;;;\ (transform-serp-descr)
+       ;;;\ (transform-serp-premium)
+       ;;;\ (transform-serp-vacancy)
+       (transform-controls-vacancy-id)
+       (transform-row-controls)
        (transform-teaser-controls)
+       (transform-teaser-controls-item)
        (cddar)
        (mapcar #'(lambda (vacancy)
                    (if (not (tree-plist-p vacancy))
@@ -1194,6 +1218,8 @@
        ))
 
 ;; (print (hh-parse-vacancy-teasers *last-parse-data*))
+
+;; (print *last-parse-data*)
 
 ;; (let ((temp-cookie-jar (make-instance 'drakma:cookie-jar)))
 ;;   (hh-parse-vacancy-teasers
@@ -1506,7 +1532,7 @@
 ;; moved 
 ;; moved (defmethod save-vacancy (vac)
 ;; moved   (setf *saved-vacancy* vac)
-;; moved   (format t "~%->SAVE~%~A" (bprint vac))
+;; moved   ;; (format t "~%->SAVE~%~A" (bprint vac))
 ;; moved   (let* ((src-id    (.> getf vac -> :teaser :id))
 ;; moved          (old-vac   (car (find-vacancy :src-id src-id)))
 ;; moved          (*new-vac*
