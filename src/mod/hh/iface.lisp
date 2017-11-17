@@ -267,10 +267,13 @@
                            (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
                                   (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
                                   (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNINTERESTING")) sorted-vacs)))
-                             (mapcar #'(lambda (vac)
-                                         (vac-elt (src-id vac) "uninteresting" "" "emptynotes"
-                                                  (pretty-salary vac) (name vac)))
-                                     filtered-vacs))))
+                             (if filtered-vacs
+                                 (mapcar #'(lambda (vac)
+                                             (vac-elt (src-id vac) "uninteresting" "" "emptynotes"
+                                                      (pretty-salary vac) (name vac)))
+                                         filtered-vacs)
+                                 (list
+                                  (vac-elt 22604660 "uninteresting" "" "emptynotes" "emptynotes" "DYMMY"))))))
                 ,@(apply
                    #'vac-col
                    (append (list "col-unsort" "unsort")
@@ -283,7 +286,7 @@
                                      filtered-vacs))))
                 ,@(vac-col "col-interesting" "interesting" "yep"
                          (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
-                                  "Team Lead C++/QT"))))))))))
+                                  "DYMMY"))))))))))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"
