@@ -1112,6 +1112,10 @@
     `(:garbage (:controls-item ""))))
 
 
+(make-transform (teaser-advert)
+  (`("new-vacancy-search-widget" ,@rest)
+    `((:garbage (:advert "")))))
+
 (in-package #:moto)
 
 (defun plistp (param)
@@ -1175,6 +1179,9 @@
 
 (defparameter *last-parse-data* nil)
 
+(defun advertp (teaser)
+  (equal teaser '((:GARBAGE (:ADVERT "")))))
+
 (defun hh-parse-vacancy-teasers (html)
   "Получение списка вакансий из html"
   (dbg ":hh-parse-vacancy-teasers:")
@@ -1204,7 +1211,9 @@
        (transform-row-controls)
        (transform-teaser-controls)
        (transform-teaser-controls-item)
+       (transform-teaser-advert)
        (cddar)
+       (remove-if #'advertp)
        (mapcar #'(lambda (vacancy)
                    (if (not (tree-plist-p vacancy))
                        (progn
