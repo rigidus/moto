@@ -2167,7 +2167,7 @@ plist-деревом.
              :date        (aif (.> getf vac -> :teaser :date) it "")
              :respond     ""
              :state       (if nil ":RESPONDED" ":UNSORT")
-             :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
+             :descr       (bprint (.> getf vac -> :vacancy-descr :descr))
              :notes       ""
              :tags        "" ;; (aif (getf vac :tags) it "")
              :response    ""

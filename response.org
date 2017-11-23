@@ -1,5 +1,4 @@
-#+HTML_HEAD: <!-- -*- fill-column: 87 -*- -->
-#+HTML_HEAD: <!-- org-toggle-inline-images -->
+#+STARTUP: showall indent hidestars
 
 #+TITLE: Модуль HeadHunter (Respond Operations)
 
@@ -355,7 +354,44 @@
             (skip () nil))))))
 
   ;; (print (vacancy-get-test 23139841 *hh_account*))
+#+END_SRC
 
+* Получение всех вакансий, у который пустое описание
 
+#+BEGIN_SRC lisp
+  (defun vacancy-get-test (src-id src-account cookie-jar referer)
+    (let* ((vacancy-page (format nil "https://hh.ru/vacancy/~A" src-id)))
+      (multiple-value-bind (vacancy new-cookies ref-url)
+          (hh-get-page vacancy-page cookie-jar src-account referer)
+        (setf cookie-jar new-cookies)
+        (restart-case
+            (aif (hh-parse-vacancy vacancy)
+                 it
+                 nil)
+          (skip () nil)))))
 
+  ;; (print (vacancy-get-test 23139841 *hh_account*))
+
+  (defun massive-update-descr (cookie-jar referer)
+    (let ((affected-ids (mapcar #'src-id
+                                (remove-if-not #'(lambda (vac)
+                                                   (equal "NIL" (descr vac)))
+                                               (all-vacancy)))))
+      (flet ((upd-descr (src-id)
+               (handler-bind ((simple-error #'(lambda (c)
+                                                (invoke-restart 'skip))))
+                 (let* ((vac-list (funcall #'vacancy-get-test src-id
+                                           ,*hh_account* cookie-jar referer))
+                        (vacancy  (car (find-vacancy :src-id src-id))))
+                   (upd-vacancy vacancy
+                                `(:descr ,(bprint (.> getf vac-list -> :vacancy-descr :descr))))))))
+        (mapcar #'(lambda (id)
+                    (upd-descr id)
+                    (print id)
+                    (print (descr (car (find-vacancy :src-id id)))))
+                affected-ids))))
+
+  ;; (let ((cookie-jar (make-instance 'drakma:cookie-jar))
+  ;;       (referer "https://spb.hh.ru"))
+  ;;   (massive-update-descr cookie-jar referer))
 #+END_SRC
