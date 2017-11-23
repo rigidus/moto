@@ -309,6 +309,8 @@
 
 * Убираем вакансии в архиве
 
+[TODO:gmm] Возможно, не нужно проверять вакансии, которые уже в архиве
+
 #+NAME: drop_if_archive
 #+BEGIN_SRC lisp
   (in-package :moto)
@@ -333,4 +335,27 @@
 
   ;; (print
   ;;  (find-vacancy :state ":INTERESTING"))
+
+#+END_SRC
+
+* Получение вакансии для тестов
+
+#+BEGIN_SRC lisp
+  (defun vacancy-get-test (src-id src-account)
+    (let ((cookie-jar (make-instance 'drakma:cookie-jar))
+          (referer "https://spb.hh.ru"))
+      (let* ((vacancy-page (format nil "https://hh.ru/vacancy/~A" src-id)))
+        (multiple-value-bind (vacancy new-cookies ref-url)
+            (hh-get-page vacancy-page cookie-jar src-account referer)
+          (setf cookie-jar new-cookies)
+          (restart-case
+              (aif (hh-parse-vacancy vacancy)
+                   it
+                   nil)
+            (skip () nil))))))
+
+  ;; (print (vacancy-get-test 23139841 *hh_account*))
+
+
+
 #+END_SRC
