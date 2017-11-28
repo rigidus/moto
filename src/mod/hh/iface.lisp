@@ -204,9 +204,10 @@
           rest))
 
 (defun vac-col (col-class name id &rest rest)
+  (print id)
   `(("div" (("class" ,(format nil "col ~A" col-class)))
            ("div" (("style" "text-align: center")) ,name)
-           ("ul"  (("class" "connected handles list no2") ("id" ,id))
+           ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
                   ,@(mapcar #'car rest)))))
 
 (defun vac-elt (id class title noteclass notes name)
@@ -217,7 +218,7 @@
      ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
 
 
-(restas:define-route hhtest ("/hh/test")
+(defun html-page (&rest in-body)
   (concatenate
    'string
    "<!DOCTYPE html>"
@@ -230,63 +231,62 @@
         ("meta" (("charset" "utf-8")))
         ("meta" (("name" "viewport")
                  ("content" "width=device-width, initial-scale=1, shrink-to-fit=no"))))
-       ("body"
-        ()
-        ,@(link-css "bootstrap.min" "b" "s")
-        ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
-                     "jquery.sortable.original" "frp" "bootstrap.min" "b")
-        ("script"
-         (("type" "text/javascript"))
-         ,(ps
-           (defun get-child-ids (selector)
-             ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
-           (defun save ()
-             ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
-              (lambda (data status)
-                (if (not (equal status "success"))
-                    (alert (concatenate 'string "err-ajax-fail: " status))
-                    (eval data))))
-             false)))
-        ("div"
-         (("class" "container-fluid"))
-         ,@(legend)
-         ,@(tgb "graph" "graph-on" "graph-off"
-                `(("div" (("style" "text-align: center; overflow: auto;"))
-                         ("img" (("src" "/img/vacancy-state.png"))))))
-         ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
-         ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
-         ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
-         ("div" (("class" ""))
-                 ("button"
-                  (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
-                  "SAVE"))
-         ("div" (("class" "row no-gutters"))
-                ,@(apply
-                   #'vac-col
-                   (append (list "col-uninteresting" "uninteresting")
-                           (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-                                  (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
-                                  (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNINTERESTING")) sorted-vacs)))
-                             (if filtered-vacs
-                                 (mapcar #'(lambda (vac)
-                                             (vac-elt (src-id vac) "uninteresting" "" "emptynotes"
-                                                      (pretty-salary vac) (name vac)))
-                                         filtered-vacs)
-                                 (list
-                                  (vac-elt 22604660 "uninteresting" "" "emptynotes" "emptynotes" "DYMMY"))))))
-                ,@(apply
-                   #'vac-col
-                   (append (list "col-unsort" "unsort")
-                           (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-                                  (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
-                                  (filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) ":UNSORT")) sorted-vacs)))
-                             (mapcar #'(lambda (vac)
-                                         (vac-elt (src-id vac) "unsort" "" "emptynotes"
-                                                  (pretty-salary vac) (name vac)))
-                                     filtered-vacs))))
-                ,@(vac-col "col-interesting" "interesting" "yep"
-                         (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL"
-                                  "DYMMY"))))))))))
+       ,@in-body)))))
+
+
+(defun in-page-script ()
+  `("script"
+    (("type" "text/javascript"))
+    ,(ps
+      (defun get-child-ids (selector)
+        ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+      (defun save ()
+        ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
+         (lambda (data status)
+           (if (not (equal status "success"))
+               (alert (concatenate 'string "err-ajax-fail: " status))
+               (eval data))))
+        false))))
+
+(defun show-vac-elt (vac class title noteclass)
+  (vac-elt (src-id vac) class "" "emptynotes" (pretty-salary vac) (name vac)))
+
+(defun vac-col-tree (sorted-vacs vac-type)
+  (let ((target-state (format nil ":~A" (string-upcase vac-type))))
+    (append (list (format nil "col-~A" vac-type) vac-type)
+            (let ((filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) target-state)) sorted-vacs)))
+              (if filtered-vacs
+                  (mapcar #'(lambda (vac) (show-vac-elt vac vac-type "" "emptynotes")) filtered-vacs)
+                  (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY")))))))
+
+(restas:define-route hhtest ("/hh/test")
+  (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+         (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
+    (html-page
+     `("body"
+       ()
+       ,@(link-css "bootstrap.min" "b" "s")
+       ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr" "jquery.sortable.original" "frp" "bootstrap.min" "b")
+       ,(in-page-script)
+       ("div"
+        (("class" "container-fluid"))
+        ,@(legend)
+        ,@(tgb "graph" "graph-on" "graph-off"
+               `(("div" (("style" "text-align: center; overflow: auto;"))
+                        ("img" (("src" "/img/vacancy-state.png"))))))
+        ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
+        ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
+        ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
+        ("div" (("class" ""))
+               ("button"
+                (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
+                "SAVE"))
+        ("div" (("class" "row no-gutters"))
+               ,@(apply #'vac-col (vac-col-tree sorted-vacs "uninteresting"))
+               ,@(apply #'vac-col (vac-col-tree sorted-vacs "unsort"))
+               ,@(vac-col "col-interesting" "interesting" "yep"
+                          (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY"))))))))
+
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"
