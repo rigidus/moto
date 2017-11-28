@@ -29,6 +29,8 @@
          (progn nil)))
 (in-package #:moto)
 
+(in-package #:moto)
+
 (defparameter *USD* 57)
 (defparameter *EUR* 67)
 
@@ -76,94 +78,6 @@
             ((:a :href (format nil "/hh/vac/~A" (src-id x)))
              (name x)))))
 
-(define-page vacs "/hh/vacs"
-  (labels ((mrg (param)
-             (if (null param)
-                 ""
-                 (reduce #'(lambda (x y) (concatenate 'string x (string #\NewLine) y))
-                         (mapcar #'make-ps-html-vac
-                                 (mapcar #'canonicalize-salary param))))))
-    (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-           (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
-           (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
-           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-      (base-page (:breadcrumb breadcrumb)
-        ((:script)
-         (ps
-           (defun get-child-ids (selector)
-             ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
-           (defun save ()
-             ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
-              (lambda (data status)
-                (if (not (equal status "success"))
-                    (alert (concatenate 'string "err-ajax-fail: " status))
-                    (eval data))))
-             false)))
-        (content-box ()
-          (heading ("Модуль HeadHunter")
-            "В правой колонке - интересные вакансии, в левой - неинтересные. "
-            ((:br))((:br))
-            ((:span :class "unsort") "&nbsp;Желтым&nbsp;")
-            " выделены вакансии, которые появились в момент последнего сбора данных. "
-            "По умолчанию они помещаются в правый столбик - к интересующим вакансиям. "
-            "После сортировки следует сохранить состояния вакансий и тогда выделение исчезнет. "
-            ((:br))
-            ((:span :class "responded") "&nbsp;Голубым&nbsp;") " выделены вакансии, на которые отправлен отзыв. "
-            ((:br))
-            ((:span :class "beenviewed") "&nbsp;Фиолетовым&nbsp;") " выделены вакансии, отзыв на которые был просмотрен. "
-            ((:br))
-            ((:span :class "reject") "&nbsp;Красным&nbsp;") " - если работодатель отказал. "
-            "Можно попробовать откликнуться другим резюме или забить на вакансию и перенести ее в 'неинтересные' "
-            ((:br))
-            ((:span :class "invite") "&nbsp;Зеленым&nbsp;") " - если работодатель пригласил на собеседование. "
-            ((:br))
-            ((:span :class "interview") "&nbsp;Серым&nbsp;") " - если собеседование было пройдено. "
-            ((:br))((:br))
-            "Вакансии, к которым есть заметки, выделяются зарплатой на "
-            ((:span :class "notes") "&nbsp;черном&nbsp;") " фоне. "
-            "При наведении на такую вакансию можно увидеть текст заметки."))
-        (content-box ()
-          %SAVE%
-          ((:section :class "dnd-area")
-           ((:ul :class "connected handles list" :id "not")
-            (mrg
-            (remove-if-not #'(lambda (x)
-                                    (equal ":UNINTERESTING" (state x)))
-                                sorted-vacs
-                                )
-                                )
-            )
-           ((:ul :class "connected handles list no2" :id "yep")
-            (mrg (remove-if #'(lambda (x)
-                                (equal ":UNINTERESTING" (state x)))
-                            sorted-vacs))
-            ))
-          )
-        (ps-html ((:span :class "clear"))))))
-  (:SAVE (ps-html
-          ((:input :type "hidden" :name "act" :value "SAVE"))
-          (submit "SAVE" :onclick "save();return false;"))
-         (progn
-           (setf *tmp1* (split-sequence:split-sequence #\, (getf p :not)))
-           (setf *tmp2* (split-sequence:split-sequence #\, (getf p :yep)))
-           (mapcar #'(lambda (x)
-                       (takt (car (find-vacancy :src-id (parse-integer x))) :uninteresting))
-                   (split-sequence:split-sequence #\, (getf p :not)))
-           (mapcar #'(lambda (x)
-                       (let ((vac (car (find-vacancy :src-id (parse-integer x)))))
-                         (when (or (equal (state vac) ":UNSORT")
-                                   (equal (state vac) ":UNINTERESTING"))
-                           (takt vac :interesting))))
-                   (split-sequence:split-sequence #\, (getf p :yep)))
-           (error 'ajax :output "window.location.href='/hh/vacs'"))))
-
-
-(defun tgb (name on off &rest in)
-  `(("button" (("type" "button") ("class" ,(format nil "btn btn-primary btn-~A" name))
-               ("onclick" ,(format nil "tggl('~A', '~A', '.~A', '.btn-~A');"
-                                   on off name name)))
-              ,on)
-    ("div" (("class" ,name)) ,@(mapcan #'identity in))))
 
 
 (defun txt (text &optional (class ""))
@@ -183,6 +97,28 @@
           `(("div" (("class" "txt")) ,@in))
           ))))
 
+(in-package #:moto)
+
+(defmacro html-page (&rest in-body)
+  `(concatenate
+   'string
+   ,(format nil "<!DOCTYPE html>~%")
+   (tree-to-html
+    `(("html" (("lang" "en"))
+              ("head" ()
+                      ("meta" (("charset" "utf-8")))
+                      ("meta" (("name" "viewport")
+                               ("content" "width=device-width, initial-scale=1, shrink-to-fit=no"))))
+              ("body" ()
+                      ,@(link-css "bootstrap.min" "b" "s")
+                      ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
+                                   "jquery.sortable.original" "frp" "bootstrap.min" "b")
+                      ,(in-page-script)
+                      ("div" (("class" "container-fluid"))
+                             ,@,@in-body)))))))
+
+(in-package #:moto)
+
 (defun legend ()
   (tgb "legend" "legend-on" "legend-off"
        (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
@@ -192,6 +128,24 @@
        (txt "<Зеленым> - если работодатель пригласил на собеседование." "invite")
        (txt "<Серым> - если собеседование было пройдено." "interview")
        (txt  "Вакансии, к которым есть заметки, выделяются зарплатой на <черном> фоне. При наведении на такую вакансию можно увидеть текст заметки." "notes")))
+
+(in-package #:moto)
+
+(defun graph ()
+  (tgb "graph" "graph-on" "graph-off"
+       `(("div" (("style" "text-align: center; overflow: auto;"))
+                ("img" (("src" "/img/vacancy-state.png")))))))
+
+(in-package #:moto)
+
+(defun tgb (name on off &rest in)
+  `(("button" (("type" "button") ("class" ,(format nil "btn btn-primary btn-~A" name))
+               ("onclick" ,(format nil "tggl('~A', '~A', '.~A', '.btn-~A');"
+                                   on off name name)))
+              ,on)
+    ("div" (("class" ,name)) ,@(mapcan #'identity in))))
+
+(in-package #:moto)
 
 (defun link-css (&rest rest)
   (mapcar #'(lambda (x)
@@ -203,36 +157,7 @@
               `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
           rest))
 
-(defun vac-col (col-class name id &rest rest)
-  (print id)
-  `(("div" (("class" ,(format nil "col ~A" col-class)))
-           ("div" (("style" "text-align: center")) ,name)
-           ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
-                  ,@(mapcar #'car rest)))))
-
-(defun vac-elt (id class title noteclass notes name)
-  `(("li"
-     (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
-      ("style" "display: list-item;"))
-     ("span" (("class" ,noteclass)) ,notes)
-     ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
-
-
-(defun html-page (&rest in-body)
-  (concatenate
-   'string
-   "<!DOCTYPE html>"
-   (format nil "~%")
-   (tree-to-html
-    `(("html"
-       (("lang" "en"))
-       ("head"
-        ()
-        ("meta" (("charset" "utf-8")))
-        ("meta" (("name" "viewport")
-                 ("content" "width=device-width, initial-scale=1, shrink-to-fit=no"))))
-       ,@in-body)))))
-
+(in-package #:moto)
 
 (defun in-page-script ()
   `("script"
@@ -248,6 +173,22 @@
                (eval data))))
         false))))
 
+(in-package #:moto)
+
+(defun vac-col (col-class name id &rest rest)
+  `(("div" (("class" ,(format nil "col ~A" col-class)))
+           ("div" (("style" "text-align: center")) ,name)
+           ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
+                  ,@(mapcar #'car rest)))))
+
+(defun vac-elt (id class title noteclass notes name)
+  `(("li"
+     (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
+      ("style" "display: list-item;"))
+     ("span" (("class" ,noteclass)) ,notes)
+     ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
+
+
 (defun show-vac-elt (vac class title noteclass)
   (vac-elt (src-id vac) class "" "emptynotes" (pretty-salary vac) (name vac)))
 
@@ -259,34 +200,26 @@
                   (mapcar #'(lambda (vac) (show-vac-elt vac vac-type "" "emptynotes")) filtered-vacs)
                   (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY")))))))
 
+(in-package #:moto)
+
 (restas:define-route hhtest ("/hh/test")
   (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
          (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
     (html-page
-     `("body"
-       ()
-       ,@(link-css "bootstrap.min" "b" "s")
-       ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr" "jquery.sortable.original" "frp" "bootstrap.min" "b")
-       ,(in-page-script)
-       ("div"
-        (("class" "container-fluid"))
-        ,@(legend)
-        ,@(tgb "graph" "graph-on" "graph-off"
-               `(("div" (("style" "text-align: center; overflow: auto;"))
-                        ("img" (("src" "/img/vacancy-state.png"))))))
-        ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
-        ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
-        ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
-        ("div" (("class" ""))
-               ("button"
-                (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
-                "SAVE"))
-        ("div" (("class" "row no-gutters"))
-               ,@(apply #'vac-col (vac-col-tree sorted-vacs "uninteresting"))
-               ,@(apply #'vac-col (vac-col-tree sorted-vacs "unsort"))
-               ,@(vac-col "col-interesting" "interesting" "yep"
-                          (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY"))))))))
-
+     `(,@(legend)
+         ,@(graph)
+         ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
+         ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
+         ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
+         ("div" (("class" ""))
+                ("button"
+                 (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
+                 "SAVE"))
+         ("div" (("class" "row no-gutters"))
+                ,@(apply #'vac-col (vac-col-tree sorted-vacs "uninteresting"))
+                ,@(apply #'vac-col (vac-col-tree sorted-vacs "unsort"))
+                ,@(vac-col "col-interesting" "interesting" "yep"
+                           (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")))))))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"

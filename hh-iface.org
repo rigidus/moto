@@ -50,56 +50,11 @@
    https://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
    https://romka.eu/blog/jquery-table-drag-and-drop
 
-   #+NAME: iface_contents
+   Тут лежит старый вариант страницы списка вакансий
+
+   #+NAME: old_variant
    #+BEGIN_SRC lisp
      (in-package #:moto)
-
-     (defparameter *USD* 57)
-     (defparameter *EUR* 67)
-
-     (defun salary-equivalent (vac)
-       (cond ((equal "USD" (currency vac)) (* *USD* (salary-max vac)))
-             ((equal "EUR" (currency vac)) (* *EUR* (salary-max vac)))
-             ((equal "RUR" (currency vac)) (* 1 (salary-max vac)))
-             (t 0)))
-
-     (defun sort-vacancy-by-salary (a b)
-       (let ((aa (salary-equivalent a))
-             (bb (salary-equivalent b)))
-         (> aa bb)))
-
-     (defun pretty-salary (vac)
-       (format nil "~A ~A"
-               (salary-max vac)
-               (cond ((equal "USD" (currency vac)) "$")
-                     ((equal "EUR" (currency vac)) "€")
-                     ((equal "RUR" (currency vac)) "₽"))))
-
-
-     (defun canonicalize-salary (vac)
-       (when (null (currency vac))
-         (setf (currency vac) "NON"))
-       (when (null (salary-max vac))
-         (setf (salary-max vac) 0))
-       (when (null (salary-min vac))
-         (setf (salary-min vac) 0))
-       (when (null (notes vac))
-         (setf (notes vac) ""))
-       (when (equal :null (state vac))
-         (setf (state vac) ":UNSORT"))
-       vac)
-
-     (defun make-ps-html-vac (x)
-       (ps-html ((:li :id (src-id x)
-                      :class (string-downcase (subseq (state x) 1))
-                      :title (notes x))
-                 ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
-                  (cond ((equal "USD" (currency x)) "$")
-                        ((equal "EUR" (currency x)) "€")
-                        ((equal "RUR" (currency x)) ""))
-                  (salary-max x))
-                 ((:a :href (format nil "/hh/vac/~A" (src-id x)))
-                  (name x)))))
 
      (define-page vacs "/hh/vacs"
        (labels ((mrg (param)
@@ -198,67 +153,7 @@
                                      ,(subseq text (+ 1 end))))))
                `(("div" (("class" "txt")) ,@in))
                ))))
-
-     (defun vac-col (col-class name id &rest rest)
-       `(("div" (("class" ,(format nil "col ~A" col-class)))
-                ("div" (("style" "text-align: center")) ,name)
-                ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
-                       ,@(mapcar #'car rest)))))
-
-     (defun vac-elt (id class title noteclass notes name)
-       `(("li"
-          (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
-           ("style" "display: list-item;"))
-          ("span" (("class" ,noteclass)) ,notes)
-          ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
-
-     (defun in-page-script ()
-       `("script"
-         (("type" "text/javascript"))
-         ,(ps
-           (defun get-child-ids (selector)
-             ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
-           (defun save ()
-             ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
-              (lambda (data status)
-                (if (not (equal status "success"))
-                    (alert (concatenate 'string "err-ajax-fail: " status))
-                    (eval data))))
-             false))))
-
-     (defun show-vac-elt (vac class title noteclass)
-       (vac-elt (src-id vac) class "" "emptynotes" (pretty-salary vac) (name vac)))
-
-     (defun vac-col-tree (sorted-vacs vac-type)
-       (let ((target-state (format nil ":~A" (string-upcase vac-type))))
-         (append (list (format nil "col-~A" vac-type) vac-type)
-                 (let ((filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) target-state)) sorted-vacs)))
-                   (if filtered-vacs
-                       (mapcar #'(lambda (vac) (show-vac-elt vac vac-type "" "emptynotes")) filtered-vacs)
-                       (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY")))))))
-
-
-
-     (restas:define-route hhtest ("/hh/test")
-       (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-              (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
-         (html-page
-          `(,@(legend)
-              ,@(graph)
-              ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
-              ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
-              ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
-              ("div" (("class" ""))
-                     ("button"
-                      (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
-                      "SAVE"))
-              ("div" (("class" "row no-gutters"))
-                     ,@(apply #'vac-col (vac-col-tree sorted-vacs "uninteresting"))
-                     ,@(apply #'vac-col (vac-col-tree sorted-vacs "unsort"))
-                     ,@(vac-col "col-interesting" "interesting" "yep"
-                                (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")))))))
    #+END_SRC
-
 
    Каждая вакансия, которая у нас есть имеет состояние, эквивалентное одному из
    состояний конечного автомата. Наиболее интересный способ визуализации всего этого -
@@ -338,7 +233,7 @@
    Я также хотел бы видеть граф состяния вакансий. Для этого мы можем пока просто
    показать картинку:
 
-   #+NAME: legend
+   #+NAME: graph
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -365,7 +260,6 @@
 
    Она опирается на javascript-функцию tggl, которая определена в файле ~b.js~:
 
-   #+NAME: tgb
    #+BEGIN_SRC lisp
      function tggl (on, off, ctrl, me) {
        if ($(ctrl).is(":hidden")) {
@@ -391,7 +285,7 @@
    Эти файлы умеет подключать функция html-page (описанная ранее). Для этого она
    использует две маленькие фукнции, формирующие список подключаемых файлов:
 
-   #+NAME: tgb
+   #+NAME: inline_file
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -404,6 +298,186 @@
        (mapcar #'(lambda (x)
                    `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
                rest))
+   #+END_SRC
+
+   Кроме того, инлайновые скрипты могут быть определены с использованием parenscript
+   вот так:
+
+   #+NAME: in_page_script
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun in-page-script ()
+       `("script"
+         (("type" "text/javascript"))
+         ,(ps
+           (defun get-child-ids (selector)
+             ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+           (defun save ()
+             ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
+              (lambda (data status)
+                (if (not (equal status "success"))
+                    (alert (concatenate 'string "err-ajax-fail: " status))
+                    (eval data))))
+             false))))
+   #+END_SRC
+
+   Со всем этим, наша страница со списком вакансий формируется из DSL-определения:
+
+   #+NAME: hh_test
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route hhtest ("/hh/test")
+       (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+              (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
+         (html-page
+          `(,@(legend)
+              ,@(graph)
+              ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
+              ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
+              ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
+              ("div" (("class" ""))
+                     ("button"
+                      (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
+                      "SAVE"))
+              ("div" (("class" "row no-gutters"))
+                     ,@(apply #'vac-col (vac-col-tree sorted-vacs "uninteresting"))
+                     ,@(apply #'vac-col (vac-col-tree sorted-vacs "unsort"))
+                     ,@(vac-col "col-interesting" "interesting" "yep"
+                                (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")))))))
+   #+END_SRC
+
+   Здесь нам не хватает функций, которые формируют html-предаставления вакансий. Вот
+   они:
+
+   #+NAME: vac_helpers
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun vac-col (col-class name id &rest rest)
+       `(("div" (("class" ,(format nil "col ~A" col-class)))
+                ("div" (("style" "text-align: center")) ,name)
+                ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
+                       ,@(mapcar #'car rest)))))
+
+     (defun vac-elt (id class title noteclass notes name)
+       `(("li"
+          (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
+           ("style" "display: list-item;"))
+          ("span" (("class" ,noteclass)) ,notes)
+          ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
+
+
+     (defun show-vac-elt (vac class title noteclass)
+       (vac-elt (src-id vac) class "" "emptynotes" (pretty-salary vac) (name vac)))
+
+     (defun vac-col-tree (sorted-vacs vac-type)
+       (let ((target-state (format nil ":~A" (string-upcase vac-type))))
+         (append (list (format nil "col-~A" vac-type) vac-type)
+                 (let ((filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) target-state)) sorted-vacs)))
+                   (if filtered-vacs
+                       (mapcar #'(lambda (vac) (show-vac-elt vac vac-type "" "emptynotes")) filtered-vacs)
+                       (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY")))))))
+   #+END_SRC
+
+   Для того чтобы правильно сортировать вакансии вне зависимости от валюты, надо
+   определить еще пару функций
+
+   #+NAME: vac_sorts
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defparameter *USD* 57)
+     (defparameter *EUR* 67)
+
+     (defun salary-equivalent (vac)
+       (cond ((equal "USD" (currency vac)) (* *USD* (salary-max vac)))
+             ((equal "EUR" (currency vac)) (* *EUR* (salary-max vac)))
+             ((equal "RUR" (currency vac)) (* 1 (salary-max vac)))
+             (t 0)))
+
+     (defun sort-vacancy-by-salary (a b)
+       (let ((aa (salary-equivalent a))
+             (bb (salary-equivalent b)))
+         (> aa bb)))
+
+     (defun pretty-salary (vac)
+       (format nil "~A ~A"
+               (salary-max vac)
+               (cond ((equal "USD" (currency vac)) "$")
+                     ((equal "EUR" (currency vac)) "€")
+                     ((equal "RUR" (currency vac)) "₽"))))
+
+
+     (defun canonicalize-salary (vac)
+       (when (null (currency vac))
+         (setf (currency vac) "NON"))
+       (when (null (salary-max vac))
+         (setf (salary-max vac) 0))
+       (when (null (salary-min vac))
+         (setf (salary-min vac) 0))
+       (when (null (notes vac))
+         (setf (notes vac) ""))
+       (when (equal :null (state vac))
+         (setf (state vac) ":UNSORT"))
+       vac)
+
+     (defun make-ps-html-vac (x)
+       (ps-html ((:li :id (src-id x)
+                      :class (string-downcase (subseq (state x) 1))
+                      :title (notes x))
+                 ((:span :class (if (empty (notes x)) "emptynotes" "notes"))
+                  (cond ((equal "USD" (currency x)) "$")
+                        ((equal "EUR" (currency x)) "€")
+                        ((equal "RUR" (currency x)) ""))
+                  (salary-max x))
+                 ((:a :href (format nil "/hh/vac/~A" (src-id x)))
+                  (name x)))))
+
+
+
+     (defun txt (text &optional (class ""))
+       (let* ((start (position #\< text :test #'equal))
+              (end   (position #\> text :test #'equal)))
+         (if (or (null start)
+                 (null end))
+             text
+             ;; else
+             (let ((in (remove-if #'(lambda (x) (equal x ""))
+                                  `(,(subseq text 0 start)
+                                     ("span" (("class" ,class))
+                                             "&nbsp;"
+                                             ,(subseq text (+ 1 start) end)
+                                             "&nbsp;")
+                                     ,(subseq text (+ 1 end))))))
+               `(("div" (("class" "txt")) ,@in))
+               ))))
+   #+END_SRC
+
+   Осталось собрать все это в единый блок
+
+   #+NAME: iface_contents
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     <<vac_sorts>>
+
+     <<html_page>>
+
+     <<legend>>
+
+     <<graph>>
+
+     <<tgb>>
+
+     <<inline_file>>
+
+     <<in_page_script>>
+
+     <<vac_helpers>>
+
+     <<hh_test>>
    #+END_SRC
 
 ** Страница вакансии
