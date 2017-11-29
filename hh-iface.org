@@ -45,7 +45,7 @@
               (progn nil)))
    #+END_SRC
 
-** COMMENT Страница списка вакансий
+** Страница списка вакансий
 
    https://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
    https://romka.eu/blog/jquery-table-drag-and-drop
@@ -456,20 +456,6 @@
      ;;                    ("a" (("href" "/hh/vac/23567086")) "Project manager"))))
    #+END_SRC
 
-   И теперь мы можем фильтровать вакансии в соответствии с их типом:
-
-   #+NAME: vac_elt_list_block_fltr
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defun vac-elt-list-block-fltr (vacs vac-type)
-       (let* ((target-state (format nil ":~A" (string-upcase vac-type)))
-              (filtered-vacs (remove-if-not #'(lambda (vac)
-                                                (equal (state vac) target-state))
-                                            vacs)))
-         (vac-elt-list-block filtered-vacs vac-type)))
-   #+END_SRC
-
    Для того чтобы правильно сортировать вакансии вне зависимости от валюты, надо
    определить еще пару функций
 
@@ -552,7 +538,13 @@
 
      (restas:define-route hhtest ("/hh/test")
        (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-              (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
+              (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
+              (uninteresting-vacs (remove-if-not #'(lambda (vac)
+                                                (equal (state vac) ":UNINTERESTING"))
+                                                 sorted-vacs))
+              (unsort-vacs (remove-if-not #'(lambda (vac)
+                                              (equal (state vac) ":UNSORT"))
+                                          sorted-vacs)))
          (html-page
           `(,@(legend)
               ,@(graph)
@@ -564,10 +556,29 @@
                       (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
                       "SAVE"))
               ("div" (("class" "row no-gutters"))
-                     ,@(apply #'vac-col (vac-elt-list-block-fltr sorted-vacs "uninteresting"))
-                     ,@(apply #'vac-col (vac-elt-list-block-fltr sorted-vacs "unsort"))
+                     ,@(apply #'vac-col (vac-elt-list-block uninteresting-vacs "uninteresting"))
+                     ;; ,@(apply #'vac-col (vac-elt-list-block unsort-vacs "unsort"))
+                     ,@(vac-col "col-unsort" "unsort"  (vac-elt-list unsort-vacs "unsort"))
                      ,@(vac-col "col-interesting" "interesting" "yep"
                                 (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")))))))
+
+     (defun vac-col (col-class name id &rest rest)
+       `(("div" (("class" ,(format nil "col ~A" col-class)))
+                ("div" (("style" "text-align: center")) ,name)
+                ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
+                       ,@(mapcar #'car rest)))))
+
+     (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+            (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
+            (uninteresting-vacs (remove-if-not #'(lambda (vac)
+                                                   (equal (state vac) ":UNINTERESTING"))
+                                               sorted-vacs))
+            (unsort-vacs (remove-if-not #'(lambda (vac)
+                                            (equal (state vac) ":UNSORT"))
+                                        sorted-vacs)))
+       (print
+        ;; (apply #'vac-col (vac-elt-list-block unsort-vacs "unsort"))))
+        (vac-elt-list-block unsort-vacs "unsort")))
 
    #+END_SRC
 
