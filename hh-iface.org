@@ -45,7 +45,7 @@
               (progn nil)))
    #+END_SRC
 
-** Страница списка вакансий
+** COMMENT Страница списка вакансий
 
    https://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
    https://romka.eu/blog/jquery-table-drag-and-drop
@@ -244,7 +244,14 @@
    #+END_SRC
 
    Чтобы все вышеперечисленные вещи можно было сворачивать и разворачивать, я написал
-   функцию ~tgb~, которая означаете "toggle button":
+   функцию ~tgb~, которая означаете "toggle button".
+
+   Эта функция формирует списочное представление двух блоков, первый из которых
+   представляет собой кнопку, снабженную необходимыми классами и обработчиками, а
+   второй - собственно блок, отображением которого эта кнопка управляет.
+
+   Это списочное представление может быть передано в функцию ~tree-to-html~, которая
+   сгенерирует соответствующий html.
 
    #+NAME: tgb
    #+BEGIN_SRC lisp
@@ -256,11 +263,60 @@
                                         on off name name)))
                    ,on)
          ("div" (("class" ,name)) ,@(mapcan #'identity in))))
+
+     `(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
+
+
+     ;; (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off"
+     ;;      '(("div" (("class" "somecontent")) "content")))
+
+     ;; =>
+     ;; (("button"
+     ;;   (("type" "button") ("class" "btn btn-primary btn-col-uninteresting")
+     ;;    ("onclick"
+     ;;     "tggl('uninteresting-on', 'uninteresting-off', '.col-uninteresting', '.btn-col-uninteresting');"))
+     ;;   "uninteresting-on")
+     ;;  ("div" (("class" "col-uninteresting"))
+     ;;         ("div" (("class" "somecontent")) "content")))
+
+
+     ;; (tree-to-html
+     ;;  (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off"
+     ;;       '(("div" (("class" "somecontent")) "content"))))
+
+     ;; =>
+     ;; <button type="button"
+     ;;         class="btn btn-primary btn-col-uninteresting"
+     ;;         onclick="tggl('uninteresting-on', 'uninteresting-off', '.col-uninteresting', '.btn-col-uninteresting');">
+     ;;    uninteresting-on
+     ;; </button>
+     ;; <div class="col-uninteresting">
+     ;;    <div class="somecontent">
+     ;;       content
+     ;;    </div>
+     ;; </div>
    #+END_SRC
 
-   Она опирается на javascript-функцию tggl, которая определена в файле ~b.js~:
+   Если необходимо получить только кнопку, без управляемого блока - можно просто
+   сделать ~car~ от возвращаемого функцией ~tgb~ результата. Это делает макрос
+   ~col-btn~:
 
+   #+NAME: col_btn
    #+BEGIN_SRC lisp
+     (defmacro col-btn (name)
+       `(list (car (tgb ,(format nil "col-~A" name)
+                        ,(format nil "~A-on" name)
+                        ,(format nil "~A-off" name)))))
+
+     ;; (macroexpand-1 '(col-btn "uninteresting"))
+
+     ;; => (LIST (CAR (TGB "col-uninteresting" "uninteresting-on" "uninteresting-off"))),
+   #+END_SRC
+
+   Переключение видимости блоков опирается на javascript-функцию ~tggl~, которая
+   определена в файле ~b.js~:
+
+   #+BEGIN_SRC js
      function tggl (on, off, ctrl, me) {
        if ($(ctrl).is(":hidden")) {
          setTimeout(function(){
@@ -322,44 +378,12 @@
              false))))
    #+END_SRC
 
-   Со всем этим, наша страница со списком вакансий формируется из DSL-определения:
+   Сейчас нам не хватает функций, которые формируют html-представления вакансий. Начнем
+   с той, которая возвращает html-tree-представление вакансии:
 
-   #+NAME: hh_test
+   #+NAME: vac_elt
    #+BEGIN_SRC lisp
      (in-package #:moto)
-
-     (restas:define-route hhtest ("/hh/test")
-       (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-              (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
-         (html-page
-          `(,@(legend)
-              ,@(graph)
-              ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
-              ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
-              ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
-              ("div" (("class" ""))
-                     ("button"
-                      (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
-                      "SAVE"))
-              ("div" (("class" "row no-gutters"))
-                     ,@(apply #'vac-col (vac-col-tree sorted-vacs "uninteresting"))
-                     ,@(apply #'vac-col (vac-col-tree sorted-vacs "unsort"))
-                     ,@(vac-col "col-interesting" "interesting" "yep"
-                                (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")))))))
-   #+END_SRC
-
-   Здесь нам не хватает функций, которые формируют html-предаставления вакансий. Вот
-   они:
-
-   #+NAME: vac_helpers
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defun vac-col (col-class name id &rest rest)
-       `(("div" (("class" ,(format nil "col ~A" col-class)))
-                ("div" (("style" "text-align: center")) ,name)
-                ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
-                       ,@(mapcar #'car rest)))))
 
      (defun vac-elt (id class title noteclass notes name)
        `(("li"
@@ -368,17 +392,82 @@
           ("span" (("class" ,noteclass)) ,notes)
           ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
 
+     ;; (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")
 
-     (defun show-vac-elt (vac class title noteclass)
-       (vac-elt (src-id vac) class "" "emptynotes" (pretty-salary vac) (name vac)))
+     ;; => (("li"
+     ;;      (("id" "22604660") ("class" "unsort") ("title" "NULL")
+     ;;       ("draggable" "true") ("style" "display: list-item;"))
+     ;;      ("span" (("class" "emptynotes")) "NILNULL")
+     ;;      ("a" (("href" "/hh/vac/22604660")) "DYMMY")))
+   #+END_SRC
 
-     (defun vac-col-tree (sorted-vacs vac-type)
-       (let ((target-state (format nil ":~A" (string-upcase vac-type))))
-         (append (list (format nil "col-~A" vac-type) vac-type)
-                 (let ((filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) target-state)) sorted-vacs)))
-                   (if filtered-vacs
-                       (mapcar #'(lambda (vac) (show-vac-elt vac vac-type "" "emptynotes")) filtered-vacs)
-                       (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY")))))))
+   Теперь мы можем получить список таких представлений вакансий
+
+   #+NAME: vac_elt_list
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun vac-elt-list (vacs vac-type)
+       (if vacs
+           (mapcar #'(lambda (vac)
+                       (vac-elt (src-id vac) vac-type "" "emptynotes" (pretty-salary vac) (name vac)))
+                   vacs)
+           (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY"))))
+
+     ;; (vac-elt-list (last (all-vacancy) 2) "unsort")
+
+     ;; => ((("li"
+     ;;       (("id" "18251915") ("class" "unsort") ("title" "") ("draggable" "true")
+     ;;        ("style" "display: list-item;"))
+     ;;       ("span" (("class" "emptynotes")) "0 NIL")
+     ;;       ("a" (("href" "/hh/vac/18251915"))
+     ;;            "Начальник отдела информационных технологий")))
+     ;;     (("li"
+     ;;       (("id" "23567086") ("class" "unsort") ("title" "") ("draggable" "true")
+     ;;        ("style" "display: list-item;"))
+     ;;       ("span" (("class" "emptynotes")) "150000 ₽")
+     ;;       ("a" (("href" "/hh/vac/23567086")) "Project manager"))))
+   #+END_SRC
+
+   Теперь нам необходим оборачивающий блок, который поместит список вакансий в
+   соответствующий ему блок:
+
+   #+NAME: vac_elt_list_block
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun vac-elt-list-block (vacs vac-type)
+       (append (list (format nil "col-~A" vac-type) vac-type)
+               (vac-elt-list vacs vac-type)))
+
+     ;; (vac-elt-list-block (last (all-vacancy) 2) "unsort")
+
+     ;; => ("col-unsort" "unsort"
+     ;;                  (("li"
+     ;;                    (("id" "18251915") ("class" "unsort") ("title" "") ("draggable" "true")
+     ;;                     ("style" "display: list-item;"))
+     ;;                    ("span" (("class" "emptynotes")) "0 NIL")
+     ;;                    ("a" (("href" "/hh/vac/18251915"))
+     ;;                         "Начальник отдела информационных технологий")))
+     ;;                  (("li"
+     ;;                    (("id" "23567086") ("class" "unsort") ("title" "") ("draggable" "true")
+     ;;                     ("style" "display: list-item;"))
+     ;;                    ("span" (("class" "emptynotes")) "150000 ₽")
+     ;;                    ("a" (("href" "/hh/vac/23567086")) "Project manager"))))
+   #+END_SRC
+
+   И теперь мы можем фильтровать вакансии в соответствии с их типом:
+
+   #+NAME: vac_elt_list_block_fltr
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun vac-elt-list-block-fltr (vacs vac-type)
+       (let* ((target-state (format nil ":~A" (string-upcase vac-type)))
+              (filtered-vacs (remove-if-not #'(lambda (vac)
+                                                (equal (state vac) target-state))
+                                            vacs)))
+         (vac-elt-list-block filtered-vacs vac-type)))
    #+END_SRC
 
    Для того чтобы правильно сортировать вакансии вне зависимости от валюты, надо
@@ -455,6 +544,33 @@
                ))))
    #+END_SRC
 
+   Со всем этим, наша страница со списком вакансий формируется из DSL-определения:
+
+   #+NAME: hh_test
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (restas:define-route hhtest ("/hh/test")
+       (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+              (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
+         (html-page
+          `(,@(legend)
+              ,@(graph)
+              ,@(col-btn "uninteresting")
+              ,@(col-btn "unsort")
+              ,@(col-btn "interesting")
+              ("div" (("class" ""))
+                     ("button"
+                      (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
+                      "SAVE"))
+              ("div" (("class" "row no-gutters"))
+                     ,@(apply #'vac-col (vac-elt-list-block-fltr sorted-vacs "uninteresting"))
+                     ,@(apply #'vac-col (vac-elt-list-block-fltr sorted-vacs "unsort"))
+                     ,@(vac-col "col-interesting" "interesting" "yep"
+                                (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")))))))
+
+   #+END_SRC
+
    Осталось собрать все это в единый блок
 
    #+NAME: iface_contents
@@ -470,6 +586,8 @@
      <<graph>>
 
      <<tgb>>
+
+     <<col-btn>>
 
      <<inline_file>>
 
