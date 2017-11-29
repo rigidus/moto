@@ -284,7 +284,7 @@
 
 (defun vac-elt-list-col (vacs vac-type)
   (apply #'vac-col (append (list (format nil "col-~A" vac-type) vac-type "yep")
-                           (vac-elt-list vacs "unsort"))))
+                           (vac-elt-list vacs vac-type))))
 
 (in-package #:moto)
 
@@ -308,10 +308,10 @@
                  (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
                  "SAVE"))
          ("div" (("class" "row no-gutters"))
-                ,@(vac-elt-list-col uninteresting-vacs "uninteresting"))
-         ,@(vac-elt-list-col unsort-vacs "unsort")
-         ,@(vac-col "col-interesting" "interesting" "yep"
-                    (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY"))))))
+                ,@(vac-elt-list-col uninteresting-vacs "uninteresting")
+                ,@(vac-elt-list-col unsort-vacs "unsort")
+                ,@(vac-col "col-interesting" "interesting" "yep"
+                           (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NULL" "D")))))))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"
