@@ -145,6 +145,47 @@
               ,on)
     ("div" (("class" ,name)) ,@(mapcan #'identity in))))
 
+`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
+
+
+;; (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off"
+;;      '(("div" (("class" "somecontent")) "content")))
+
+;; =>
+;; (("button"
+;;   (("type" "button") ("class" "btn btn-primary btn-col-uninteresting")
+;;    ("onclick"
+;;     "tggl('uninteresting-on', 'uninteresting-off', '.col-uninteresting', '.btn-col-uninteresting');"))
+;;   "uninteresting-on")
+;;  ("div" (("class" "col-uninteresting"))
+;;         ("div" (("class" "somecontent")) "content")))
+
+
+;; (tree-to-html
+;;  (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off"
+;;       '(("div" (("class" "somecontent")) "content"))))
+
+;; =>
+;; <button type="button"
+;;         class="btn btn-primary btn-col-uninteresting"
+;;         onclick="tggl('uninteresting-on', 'uninteresting-off', '.col-uninteresting', '.btn-col-uninteresting');">
+;;    uninteresting-on
+;; </button>
+;; <div class="col-uninteresting">
+;;    <div class="somecontent">
+;;       content
+;;    </div>
+;; </div>
+
+(defmacro col-btn (name)
+  `(list (car (tgb ,(format nil "col-~A" name)
+                   ,(format nil "~A-on" name)
+                   ,(format nil "~A-off" name)))))
+
+;; (macroexpand-1 '(col-btn "uninteresting"))
+
+;; => (LIST (CAR (TGB "col-uninteresting" "uninteresting-on" "uninteresting-off"))),
+
 (in-package #:moto)
 
 (defun link-css (&rest rest)
@@ -175,12 +216,6 @@
 
 (in-package #:moto)
 
-(defun vac-col (col-class name id &rest rest)
-  `(("div" (("class" ,(format nil "col ~A" col-class)))
-           ("div" (("style" "text-align: center")) ,name)
-           ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
-                  ,@(mapcar #'car rest)))))
-
 (defun vac-elt (id class title noteclass notes name)
   `(("li"
      (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
@@ -188,38 +223,95 @@
      ("span" (("class" ,noteclass)) ,notes)
      ("a" (("href" ,(format nil "/hh/vac/~A" id))) ,name))))
 
+;; (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")
 
-(defun show-vac-elt (vac class title noteclass)
-  (vac-elt (src-id vac) class "" "emptynotes" (pretty-salary vac) (name vac)))
+;; => (("li"
+;;      (("id" "22604660") ("class" "unsort") ("title" "NULL")
+;;       ("draggable" "true") ("style" "display: list-item;"))
+;;      ("span" (("class" "emptynotes")) "NILNULL")
+;;      ("a" (("href" "/hh/vac/22604660")) "DYMMY")))
 
-(defun vac-col-tree (sorted-vacs vac-type)
-  (let ((target-state (format nil ":~A" (string-upcase vac-type))))
-    (append (list (format nil "col-~A" vac-type) vac-type)
-            (let ((filtered-vacs (remove-if-not #'(lambda (vac) (equal (state vac) target-state)) sorted-vacs)))
-              (if filtered-vacs
-                  (mapcar #'(lambda (vac) (show-vac-elt vac vac-type "" "emptynotes")) filtered-vacs)
-                  (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY")))))))
+(in-package #:moto)
+
+(defun vac-elt-list (vacs vac-type)
+  (if vacs
+      (mapcar #'(lambda (vac)
+                  (vac-elt (src-id vac) vac-type "" "emptynotes" (pretty-salary vac) (name vac)))
+              vacs)
+      (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY"))))
+
+;; (vac-elt-list (last (all-vacancy) 2) "unsort")
+
+;; => ((("li"
+;;       (("id" "18251915") ("class" "unsort") ("title" "") ("draggable" "true")
+;;        ("style" "display: list-item;"))
+;;       ("span" (("class" "emptynotes")) "0 NIL")
+;;       ("a" (("href" "/hh/vac/18251915"))
+;;            "Начальник отдела информационных технологий")))
+;;     (("li"
+;;       (("id" "23567086") ("class" "unsort") ("title" "") ("draggable" "true")
+;;        ("style" "display: list-item;"))
+;;       ("span" (("class" "emptynotes")) "150000 ₽")
+;;       ("a" (("href" "/hh/vac/23567086")) "Project manager"))))
+
+(in-package #:moto)
+
+(defun vac-col (col-class name id &rest rest)
+  `(("div" (("class" ,(format nil "col ~A" col-class)))
+           ("div" (("style" "text-align: center")) ,name)
+           ("ul"  (("class" "connected handles list no2") ("id" ,id)) ;; error here
+                  ,@(mapcar #'car rest)))))
+
+;; (vac-col "col-interesting" "interesting" "yep"
+;;          (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")
+;;          (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY"))
+
+;; => (("div" (("class" "col col-interesting"))
+;;            ("div" (("style" "text-align: center")) "interesting")
+;;            ("ul" (("class" "connected handles list no2") ("id" "yep"))
+;;                  ("li"
+;;                   (("id" "22604660") ("class" "unsort") ("title" "NULL")
+;;                    ("draggable" "true") ("style" "display: list-item;"))
+;;                   ("span" (("class" "emptynotes")) "NILNULL")
+;;                   ("a" (("href" "/hh/vac/22604660")) "DYMMY"))
+;;                  ("li"
+;;                   (("id" "22604660") ("class" "unsort") ("title" "NULL")
+;;                    ("draggable" "true") ("style" "display: list-item;"))
+;;                   ("span" (("class" "emptynotes")) "NILNULL")
+;;                   ("a" (("href" "/hh/vac/22604660")) "DYMMY")))))
+
+(in-package #:moto)
+
+(defun vac-elt-list-col (vacs vac-type)
+  (apply #'vac-col (append (list (format nil "col-~A" vac-type) vac-type "yep")
+                           (vac-elt-list vacs "unsort"))))
 
 (in-package #:moto)
 
 (restas:define-route hhtest ("/hh/test")
   (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-         (sorted-vacs (sort vacs #'sort-vacancy-by-salary)))
+         (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
+         (uninteresting-vacs (remove-if-not #'(lambda (vac)
+                                                (equal (state vac) ":UNINTERESTING"))
+                                            sorted-vacs))
+         (unsort-vacs (remove-if-not #'(lambda (vac)
+                                         (equal (state vac) ":UNSORT"))
+                                     sorted-vacs)))
     (html-page
      `(,@(legend)
          ,@(graph)
-         ,@`(,(car (tgb "col-uninteresting" "uninteresting-on" "uninteresting-off")))
-         ,@`(,(car (tgb "col-unsort" "unsort-in" "unsort-off" `(()))))
-         ,@`(,(car (tgb "col-interesting" "interesting-in" "interesting-off" `(()))))
+         ,@(col-btn "uninteresting")
+         ,@(col-btn "unsort")
+         ,@(col-btn "interesting")
          ("div" (("class" ""))
                 ("button"
                  (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
                  "SAVE"))
          ("div" (("class" "row no-gutters"))
-                ,@(apply #'vac-col (vac-col-tree sorted-vacs "uninteresting"))
-                ,@(apply #'vac-col (vac-col-tree sorted-vacs "unsort"))
-                ,@(vac-col "col-interesting" "interesting" "yep"
-                           (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY")))))))
+                ,@(vac-elt-list-col uninteresting-vacs "uninteresting"))
+         ,@(vac-elt-list-col unsort-vacs "unsort")
+         ,@(vac-col "col-interesting" "interesting" "yep"
+                    (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NILNULL" "DYMMY"))))))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"
