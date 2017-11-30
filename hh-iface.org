@@ -47,7 +47,7 @@
               (progn nil)))
    #+END_SRC
 
-** COMMENT Страница списка вакансий
+** Страница списка вакансий
 
    https://isocra.com/2008/02/table-drag-and-drop-jquery-plugin/
    https://romka.eu/blog/jquery-table-drag-and-drop
@@ -630,7 +630,7 @@
                             (push (list (src-id vac) key) res)
                             )))
                     val))
-         ""))
+         (format nil "/* ~A */" (bprint res))))
    #+END_SRC
 
    Осталось собрать все это в единый блок
