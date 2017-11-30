@@ -90,7 +90,6 @@
                       ,@(link-css "bootstrap.min" "b" "s")
                       ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
                                    "jquery.sortable.original" "frp" "bootstrap.min" "b")
-                      ,(in-page-script)
                       ("div" (("class" "container-fluid"))
                              ,@,@in-body)))))))
 
@@ -218,7 +217,7 @@
       (mapcar #'(lambda (vac)
                   (vac-elt (src-id vac) vac-type "" "emptynotes" (pretty-salary vac) (name vac)))
               vacs)
-      (list (vac-elt 22604660 vac-type "" "emptynotes" "emptynotes" "DYMMY"))))
+      (list (vac-elt -1 vac-type "" " " " " " "))))
 
 ;; (vac-elt-list (last (all-vacancy) 2) "unsort")
 
@@ -274,28 +273,64 @@
          (uninteresting-vacs (remove-if-not #'(lambda (vac)
                                                 (equal (state vac) ":UNINTERESTING"))
                                             sorted-vacs))
+         (interesting-vacs (remove-if-not #'(lambda (vac)
+                                              (equal (state vac) ":INTERESTING"))
+                                          sorted-vacs))
          (unsort-vacs (remove-if-not #'(lambda (vac)
                                          (equal (state vac) ":UNSORT"))
                                      sorted-vacs)))
     (html-page
-     `(,@(legend)
-         ,@(graph)
-         ,@(col-btn "uninteresting")
-         ,@(col-btn "unsort")
-         ,@(col-btn "interesting")
-         ("div" (("class" ""))
-                ("button"
-                 (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
-                 "SAVE"))
-         ("div" (("class" "row no-gutters"))
-                ,@(vac-elt-list-col uninteresting-vacs "uninteresting")
-                ,@(vac-elt-list-col unsort-vacs "unsort")
-                ,@(vac-col "col-interesting" "interesting" "interesting"
-                           (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NULL" "D")))))))
+     `(,(in-page-script)
+        ,@(legend)
+        ,@(graph)
+        ,@(col-btn "uninteresting")
+        ,@(col-btn "unsort")
+        ,@(col-btn "interesting")
+        ("div" (("class" ""))
+               ("button"
+                (("type" "submit") ("class" "button") ("onclick" "save();return false;"))
+                "SAVE"))
+        ("div" (("class" "row no-gutters"))
+               ,@(vac-elt-list-col uninteresting-vacs "uninteresting")
+               ,@(vac-elt-list-col unsort-vacs "unsort")
+               ,@(vac-elt-list-col interesting-vacs "interesting"))))))
 
 (restas:define-route hhtest/post ("/hh/test" :method :post)
   (format nil "document.write('~A')"
           (hunchentoot:post-parameters*)))
+
+(in-package #:moto)
+
+(defparameter *p* nil)
+
+(restas:define-route hhtest/post ("/hh/test" :method :post)
+  (let* ((lists (remove-if #'(lambda (x)
+                               (and (equal "act" (car x))
+                                    (equal "SAVE" (cdr x))))
+                           *p*))
+         (split (mapcar #'(lambda (lst)
+                            (let ((key (car lst))
+                                  (val (split-sequence:split-sequence #\, (cdr lst))))
+                              (cons (intern (string-upcase key) :keyword)
+                                    (list (mapcar #'parse-integer val)))))
+                        lists))
+         (filter (mapcan #'(lambda (lst)
+                             (cons (car lst)
+                                   (mapcar #'(lambda (x)
+                                               (remove-if #'(lambda (y)
+                                                              (> 0 y))
+                                                          x))
+                                           (cdr lst))))
+                         split)))
+    (loop :for key :in filter :by #'cddr :append
+       (list key
+             (let ((val (getf filter key)))
+               (mapcar #'(lambda (x)
+                           (let ((vac (car (find-vacancy :src-id x))))
+                             (unless (equal (state vac) (format nil ":~A" key))
+                               (upd-vacancy vac (list :state (format nil ":~A" key))))))
+                       val)))))
+  "1")
 
 (in-package #:moto)
 
