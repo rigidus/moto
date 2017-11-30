@@ -90,6 +90,7 @@
                       ,@(link-css "bootstrap.min" "b" "s")
                       ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
                                    "jquery.sortable.original" "frp" "bootstrap.min" "b")
+                      ,(in-page-script)
                       ("div" (("class" "container-fluid"))
                              ,@,@in-body)))))))
 
@@ -173,6 +174,25 @@
   (mapcar #'(lambda (x)
               `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
           rest))
+
+(in-package #:moto)
+
+(defun in-page-script ()
+  `("script"
+    (("type" "text/javascript"))
+    ,(ps
+      (defun get-child-ids (selector)
+        ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+      (defun save ()
+        ((@ $ post) "#" (create :act "SAVE"
+                                :unsort ((@ (get-child-ids "#unsort") join))
+                                :uninteresting ((@ (get-child-ids "#uninteresting") join))
+                                :interesting ((@ (get-child-ids "#interesting") join)))
+         (lambda (data status)
+           (if (not (equal status "success"))
+               (alert (concatenate 'string "err-ajax-fail: " status))
+               (eval data))))
+        false))))
 
 (in-package #:moto)
 
@@ -270,7 +290,7 @@
          ("div" (("class" "row no-gutters"))
                 ,@(vac-elt-list-col uninteresting-vacs "uninteresting")
                 ,@(vac-elt-list-col unsort-vacs "unsort")
-                ,@(vac-col "col-interesting" "interesting" "yep"
+                ,@(vac-col "col-interesting" "interesting" "interesting"
                            (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NULL" "D")))))))
 
 (restas:define-route hhtest/post ("/hh/test" :method :post)

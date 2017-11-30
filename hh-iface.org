@@ -207,6 +207,7 @@
                            ,@(link-css "bootstrap.min" "b" "s")
                            ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
                                         "jquery.sortable.original" "frp" "bootstrap.min" "b")
+                           ,(in-page-script)
                            ("div" (("class" "container-fluid"))
                                   ,@,@in-body)))))))
    #+END_SRC
@@ -337,22 +338,6 @@
        }
        return false;
      }
-
-     function getChildIds(selector) {
-         return $(selector).children().map(function (i, elt) {
-             return [$(elt).attr("id")];
-         }).get();
-     };
-     function save() {
-         $.post("#", { "act" : "SAVE",
-                       "not" : getChildIds("#unsort").join(),
-                       "yep" : getChildIds("#uninteresting").join()
-                     }, function (data, status) {
-                         return status != "success" ? alert("err-ajax-fail: " + status) : eval(data);
-                     });
-         return false;
-     };
-
    #+END_SRC
 
    Эти файлы умеет подключать функция html-page (описанная ранее). Для этого она
@@ -371,6 +356,31 @@
        (mapcar #'(lambda (x)
                    `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
                rest))
+   #+END_SRC
+
+   Кроме того, инлайновые скрипты могут быть определены с использованием parenscript
+   вот так:
+
+   #+NAME: in_page_script
+   #+BEGIN_SRC lisp
+     (in-package #:moto)
+
+     (defun in-page-script ()
+       `("script"
+         (("type" "text/javascript"))
+         ,(ps
+           (defun get-child-ids (selector)
+             ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
+           (defun save ()
+             ((@ $ post) "#" (create :act "SAVE"
+                                     :unsort ((@ (get-child-ids "#unsort") join))
+                                     :uninteresting ((@ (get-child-ids "#uninteresting") join))
+                                     :interesting ((@ (get-child-ids "#interesting") join)))
+              (lambda (data status)
+                (if (not (equal status "success"))
+                    (alert (concatenate 'string "err-ajax-fail: " status))
+                    (eval data))))
+             false))))
    #+END_SRC
 
    Сейчас нам не хватает функций, которые формируют html-представления вакансий. Начнем
@@ -574,7 +584,7 @@
               ("div" (("class" "row no-gutters"))
                      ,@(vac-elt-list-col uninteresting-vacs "uninteresting")
                      ,@(vac-elt-list-col unsort-vacs "unsort")
-                     ,@(vac-col "col-interesting" "interesting" "yep"
+                     ,@(vac-col "col-interesting" "interesting" "interesting"
                                 (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NULL" "D")))))))
 
      (restas:define-route hhtest/post ("/hh/test" :method :post)
@@ -601,6 +611,8 @@
      <<col_btn>>
 
      <<inline_file>>
+
+     <<in_page_script>>
 
      <<vac_elt>>
 

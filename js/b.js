@@ -17,18 +17,3 @@ function tggl (on, off, ctrl, me) {
   }
   return false;
 }
-
-function getChildIds(selector) {
-    return $(selector).children().map(function (i, elt) {
-        return [$(elt).attr("id")];
-    }).get();
-};
-function save() {
-    $.post("#", { "act" : "SAVE",
-                  "not" : getChildIds("#unsort").join(),
-                  "yep" : getChildIds("#uninteresting").join()
-                }, function (data, status) {
-                    return status != "success" ? alert("err-ajax-fail: " + status) : eval(data);
-                });
-    return false;
-};
