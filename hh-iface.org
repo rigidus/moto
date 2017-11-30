@@ -13,6 +13,8 @@
     (in-package #:moto)
 
     ;; Страницы
+    <<vacancy_list_page>>
+
     <<iface_contents>>
   #+END_SRC
 
@@ -205,7 +207,6 @@
                            ,@(link-css "bootstrap.min" "b" "s")
                            ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
                                         "jquery.sortable.original" "frp" "bootstrap.min" "b")
-                           ,(in-page-script)
                            ("div" (("class" "container-fluid"))
                                   ,@,@in-body)))))))
    #+END_SRC
@@ -316,7 +317,7 @@
    Переключение видимости блоков опирается на javascript-функцию ~tggl~, которая
    определена в файле ~b.js~:
 
-   #+BEGIN_SRC js
+   #+BEGIN_SRC js :tangle js/b.js :noweb tangle :padline no :comments none
      function tggl (on, off, ctrl, me) {
        if ($(ctrl).is(":hidden")) {
          setTimeout(function(){
@@ -336,6 +337,22 @@
        }
        return false;
      }
+
+     function getChildIds(selector) {
+         return $(selector).children().map(function (i, elt) {
+             return [$(elt).attr("id")];
+         }).get();
+     };
+     function save() {
+         $.post("#", { "act" : "SAVE",
+                       "not" : getChildIds("#unsort").join(),
+                       "yep" : getChildIds("#uninteresting").join()
+                     }, function (data, status) {
+                         return status != "success" ? alert("err-ajax-fail: " + status) : eval(data);
+                     });
+         return false;
+     };
+
    #+END_SRC
 
    Эти файлы умеет подключать функция html-page (описанная ранее). Для этого она
@@ -354,28 +371,6 @@
        (mapcar #'(lambda (x)
                    `("script" (("type" "text/javascript") ("src" ,(format nil "/js/~A.js" x)))))
                rest))
-   #+END_SRC
-
-   Кроме того, инлайновые скрипты могут быть определены с использованием parenscript
-   вот так:
-
-   #+NAME: in_page_script
-   #+BEGIN_SRC lisp
-     (in-package #:moto)
-
-     (defun in-page-script ()
-       `("script"
-         (("type" "text/javascript"))
-         ,(ps
-           (defun get-child-ids (selector)
-             ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
-           (defun save ()
-             ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
-              (lambda (data status)
-                (if (not (equal status "success"))
-                    (alert (concatenate 'string "err-ajax-fail: " status))
-                    (eval data))))
-             false))))
    #+END_SRC
 
    Сейчас нам не хватает функций, которые формируют html-представления вакансий. Начнем
@@ -473,7 +468,7 @@
      (in-package #:moto)
 
      (defun vac-elt-list-col (vacs vac-type)
-       (apply #'vac-col (append (list (format nil "col-~A" vac-type) vac-type "yep")
+       (apply #'vac-col (append (list (format nil "col-~A" vac-type) vac-type vac-type)
                                 (vac-elt-list vacs vac-type))))
    #+END_SRC
 
@@ -581,11 +576,15 @@
                      ,@(vac-elt-list-col unsort-vacs "unsort")
                      ,@(vac-col "col-interesting" "interesting" "yep"
                                 (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NULL" "D")))))))
+
+     (restas:define-route hhtest/post ("/hh/test" :method :post)
+       (format nil "document.write('~A')"
+               (hunchentoot:post-parameters*)))
    #+END_SRC
 
    Осталось собрать все это в единый блок
 
-   #+NAME: iface_contents
+   #+NAME: vacancy_list_page
    #+BEGIN_SRC lisp
      (in-package #:moto)
 
@@ -602,8 +601,6 @@
      <<col_btn>>
 
      <<inline_file>>
-
-     <<in_page_script>>
 
      <<vac_elt>>
 

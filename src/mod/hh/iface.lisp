@@ -6,29 +6,6 @@
 ;; Страницы
 (in-package #:moto)
 
-(define-page hh "/hh"
-  (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
-         (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
-         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-    (base-page (:breadcrumb breadcrumb)
-      (content-box ()
-        (heading ("Модуль HeadHunter") "Меню модуля"))
-      (content-box ()
-        ((:section :class "dnd-area")
-         ((:ul :class "connected handles list" :id "not")
-          ((:li)
-           ((:a :href "/hh/vacs") "Отобранные вакансии") "")
-          ((:li)
-           ((:a :href "/hh/rules") "Правила обработки") "")
-          ((:li)
-           ((:a :href "/hh-doc") "Документация") ""))))
-      (ps-html ((:span :class "clear")))))
-  (:SAVE (ps-html
-          ((:input :type "hidden" :name "act" :value "SAVE"))
-          (submit "SAVE" :onclick "save();return false;"))
-         (progn nil)))
-(in-package #:moto)
-
 (in-package #:moto)
 
 (defparameter *USD* 57)
@@ -113,7 +90,6 @@
                       ,@(link-css "bootstrap.min" "b" "s")
                       ,@(script-js "jquery-v-1.10.2" "jquery-ui-v-1.10.3" "modernizr"
                                    "jquery.sortable.original" "frp" "bootstrap.min" "b")
-                      ,(in-page-script)
                       ("div" (("class" "container-fluid"))
                              ,@,@in-body)))))))
 
@@ -200,22 +176,6 @@
 
 (in-package #:moto)
 
-(defun in-page-script ()
-  `("script"
-    (("type" "text/javascript"))
-    ,(ps
-      (defun get-child-ids (selector)
-        ((@ ((@ ((@ ($ selector) children)) map) (lambda (i elt) (array ((@ ((@ $) elt) attr) "id")))) get)))
-      (defun save ()
-        ((@ $ post) "#" (create :act "SAVE" :not ((@ (get-child-ids "#not") join)) :yep ((@ (get-child-ids "#yep") join)))
-         (lambda (data status)
-           (if (not (equal status "success"))
-               (alert (concatenate 'string "err-ajax-fail: " status))
-               (eval data))))
-        false))))
-
-(in-package #:moto)
-
 (defun vac-elt (id class title noteclass notes name)
   `(("li"
      (("id" ,(format nil "~A" id)) ("class" ,class) ("title" ,title) ("draggable" "true")
@@ -283,7 +243,7 @@
 (in-package #:moto)
 
 (defun vac-elt-list-col (vacs vac-type)
-  (apply #'vac-col (append (list (format nil "col-~A" vac-type) vac-type "yep")
+  (apply #'vac-col (append (list (format nil "col-~A" vac-type) vac-type vac-type)
                            (vac-elt-list vacs vac-type))))
 
 (in-package #:moto)
@@ -312,6 +272,34 @@
                 ,@(vac-elt-list-col unsort-vacs "unsort")
                 ,@(vac-col "col-interesting" "interesting" "yep"
                            (vac-elt 22604660 "unsort" "NULL" "emptynotes" "NULL" "D")))))))
+
+(restas:define-route hhtest/post ("/hh/test" :method :post)
+  (format nil "document.write('~A')"
+          (hunchentoot:post-parameters*)))
+
+(in-package #:moto)
+
+(define-page hh "/hh"
+  (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
+         (breadcrumb (breadcrumb "Вакансии" ("/hh" . "HeadHunter")))
+         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+    (base-page (:breadcrumb breadcrumb)
+      (content-box ()
+        (heading ("Модуль HeadHunter") "Меню модуля"))
+      (content-box ()
+        ((:section :class "dnd-area")
+         ((:ul :class "connected handles list" :id "not")
+          ((:li)
+           ((:a :href "/hh/vacs") "Отобранные вакансии") "")
+          ((:li)
+           ((:a :href "/hh/rules") "Правила обработки") "")
+          ((:li)
+           ((:a :href "/hh-doc") "Документация") ""))))
+      (ps-html ((:span :class "clear")))))
+  (:SAVE (ps-html
+          ((:input :type "hidden" :name "act" :value "SAVE"))
+          (submit "SAVE" :onclick "save();return false;"))
+         (progn nil)))
 (in-package #:moto)
 
 (define-page vacancy "/hh/vac/:src-id"
