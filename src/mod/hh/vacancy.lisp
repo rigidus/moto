@@ -1252,7 +1252,7 @@
                        )))
        ))
 
-(print (hh-parse-vacancy-teasers *last-parse-data*))
+;; (print (hh-parse-vacancy-teasers *last-parse-data*))
 
 ;; (print *last-parse-data*)
 
