@@ -294,7 +294,7 @@
            :date        (aif (.> getf vac -> :teaser :date) it "")
            :respond     ""
            :state       (if nil ":RESPONDED" ":UNSORT")
-           :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
+           :descr       (bprint (.> getf vac -> :vacancy-descr :descr))
            :notes       ""
            :tags        "" ;; (aif (getf vac :tags) it "")
            :response    ""
@@ -1044,19 +1044,42 @@
       ,@rest))
     contents))
 
-;; not tested
 (make-transform (serp-primary)
   (`("search-result-description__item search-result-description__item_primary"
      NIL ,@rest)
     rest))
 
-;; not tested
 (make-transform (serp-descr)
   (`("search-result-description"
      NIL
      ,contents
      ,@rest)
     contents))
+
+(make-transform (serp-item-row)
+  (`("vacancy-serp-item__row"
+     NIL
+     ,contents
+     ,@rest)
+    contents))
+
+(make-transform (serp-item-title)
+  (`("vacancy-serp-item__title"
+     NIL
+     ,contents)
+    contents))
+
+(make-transform (serp-item-info)
+  (`("vacancy-serp-item__info"
+     NIL
+     ,@rest)
+    (mapcan #'identity rest)))
+
+(make-transform (serp-item-meta-info-addr)
+  (`("vacancy-serp-item__meta-info"
+     NIL
+     ("vacancy-serp__vacancy-address" NIL ,address))
+    `(:teaser-emp (:addr ,address))))
 
 ;; not tested
 (make-transform (serp-premium)
@@ -1066,7 +1089,6 @@
      ,contents)
     contents))
 
-;; not tested
 (make-transform (serp-vacancy)
   (`("vacancy-serp__vacancy"
      NIL (:TEASER (:STATUS "responded"))
@@ -1203,10 +1225,14 @@
        (transform-compensation)
        ;;;\ (transform-script-in-teaser)
        (transform-teaser-descr-item-primary)
-       ;;;\ (transform-serp-primary)
-       ;;;\ (transform-serp-descr)
-       ;;;\ (transform-serp-premium)
-       ;;;\ (transform-serp-vacancy)
+       (transform-serp-primary)
+       (transform-serp-descr)
+       (transform-serp-item-row)
+       (transform-serp-item-title)
+       (transform-serp-item-meta-info-addr)
+       ;; (transform-serp-item-info) ;; mapcan!
+       (transform-serp-premium)
+       (transform-serp-vacancy)
        (transform-controls-vacancy-id)
        (transform-row-controls)
        (transform-teaser-controls)
@@ -1226,7 +1252,7 @@
                        )))
        ))
 
-;; (print (hh-parse-vacancy-teasers *last-parse-data*))
+(print (hh-parse-vacancy-teasers *last-parse-data*))
 
 ;; (print *last-parse-data*)
 
@@ -1465,6 +1491,7 @@
           compacted-vacancy
           ))))
 
+
 ;; (print (hh-parse-vacancy *last-parse-data*))
 
 (let ((cookie-jar (make-instance 'drakma:cookie-jar)))
@@ -1563,7 +1590,7 @@
 ;; moved            :date        (aif (.> getf vac -> :teaser :date) it "")
 ;; moved            :respond     ""
 ;; moved            :state       (if nil ":RESPONDED" ":UNSORT")
-;; moved            :descr       (bprint (.> getf vac -> :vacancy-descr :long-descr))
+;; moved            :descr       (bprint (.> getf vac -> :vacancy-descr :descr))
 ;; moved            :notes       ""
 ;; moved            :tags        "" ;; (aif (getf vac :tags) it "")
 ;; moved            :response    ""
