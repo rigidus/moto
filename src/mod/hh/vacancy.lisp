@@ -1000,7 +1000,21 @@
      ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
      ("vacancy-serp__vacancy-date" NIL ,date) ,@rest)
     `(:teaser-emp (:addr ,address)
-      :teaser (:date ,date))))
+                  :teaser (:date ,date))))
+
+
+(make-transform (meta-info)
+  (`("vacancy-serp-item__meta-info"
+     NIL
+     ("vacancy-serp__vacancy-address"
+      NIL ,address ("br" NIL)
+      ,@metro
+      ;; ("metro-station" NIL ("metro-point" (("style" "color: #0078C9"))) "Горьковская")
+      ;; " и еще 1 "
+      ;; ("metro-station" NIL ("metro-point" (("style" "color: #702785"))))
+      ))
+    `(:teaser-emp (:addr ,address))))
+
 
 (make-transform (compensation)
   (`("vacancy-serp__vacancy-compensation"
@@ -1073,13 +1087,15 @@
   (`("vacancy-serp-item__info"
      NIL
      ,@rest)
-    (mapcan #'identity rest)))
+    ;; (mapcan #'identity rest)
+    `(:info ,@rest)
+    ))
 
 (make-transform (serp-item-meta-info-addr)
   (`("vacancy-serp-item__meta-info"
      NIL
-     ("vacancy-serp__vacancy-address" NIL ,address))
-    `(:teaser-emp (:addr ,address))))
+     ,@rest)
+    `(:garbage (:meta "info"))))
 
 ;; not tested
 (make-transform (serp-premium)
@@ -1136,6 +1152,15 @@
 
 (make-transform (teaser-advert)
   (`("new-vacancy-search-widget" ,@rest)
+    `((:garbage (:advert "")))))
+
+(make-transform (mapcan-info)
+  (`(:INFO ,@rest)
+    (mapcan #'identity rest)))
+
+(make-transform (special)
+  ((or `("vacancy-serp-special vacancy-serp-special_wide" NIL)
+       `("vacancy-serp-special vacancy-serp-special_medium" NIL))
     `((:garbage (:advert "")))))
 
 (in-package #:moto)
@@ -1222,6 +1247,7 @@
        (transform-company)
        (transform-company-anon)
        (transform-addr-and-date)
+       (transform-meta-info)
        (transform-compensation)
        ;;;\ (transform-script-in-teaser)
        (transform-teaser-descr-item-primary)
@@ -1230,7 +1256,7 @@
        (transform-serp-item-row)
        (transform-serp-item-title)
        (transform-serp-item-meta-info-addr)
-       ;; (transform-serp-item-info) ;; mapcan!
+       (transform-serp-item-info)
        (transform-serp-premium)
        (transform-serp-vacancy)
        (transform-controls-vacancy-id)
@@ -1238,6 +1264,8 @@
        (transform-teaser-controls)
        (transform-teaser-controls-item)
        (transform-teaser-advert)
+       (transform-special)
+       (transform-mapcan-info)
        (cddar)
        (remove-if #'advertp)
        (mapcar #'(lambda (vacancy)
