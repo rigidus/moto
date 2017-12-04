@@ -67,7 +67,7 @@ https://romka.eu/blog/jquery-table-drag-and-drop
 страницы выглядит как-то так:
 
 #+BEGIN_SRC lisp
-  (restas:define-route hhtest ("/url")
+  (restas:define-route hh-vacs ("/url")
     (html-page
      `(,(col-unsort)
        ,(col-unintresting)
@@ -469,11 +469,11 @@ https://romka.eu/blog/jquery-table-drag-and-drop
 
 Со всем этим, наша страница со списком вакансий формируется из DSL-определения:
 
-#+NAME: hh_test
+#+NAME: hh_vacs
 #+BEGIN_SRC lisp
   (in-package #:moto)
 
-  (restas:define-route hhtest ("/hh/test")
+  (restas:define-route hh-vacs ("/hh/vacs")
     (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
            (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
            (uninteresting-vacs (remove-if-not #'(lambda (vac)
@@ -500,10 +500,6 @@ https://romka.eu/blog/jquery-table-drag-and-drop
                  ,@(vac-elt-list-col uninteresting-vacs "uninteresting")
                  ,@(vac-elt-list-col unsort-vacs "unsort")
                  ,@(vac-elt-list-col interesting-vacs "interesting"))))))
-
-  (restas:define-route hhtest/post ("/hh/test" :method :post)
-    (format nil "document.write('~A')"
-            (hunchentoot:post-parameters*)))
 #+END_SRC
 
 Когда пользователь нажимает на кнопку ~SAVE~ запускается функция, сформированная
@@ -511,11 +507,11 @@ https://romka.eu/blog/jquery-table-drag-and-drop
 содержащие идентификаторы из каждого списка вакансий. Получив эти строки, сервер
 должен найти эти вакансии и обновить их состояния.
 
-#+NAME: hh_test_post
+#+NAME: hh_vacs_post
 #+BEGIN_SRC lisp
   (in-package #:moto)
 
-  (restas:define-route hhtest/post ("/hh/test" :method :post)
+  (restas:define-route hh-vacs/post ("/hh/vacs" :method :post)
     (let* ((lists (remove-if #'(lambda (x) (and (equal "act" (car x)) (equal "SAVE" (cdr x))))
                              (hunchentoot:post-parameters*)))
            (split (mapcar #'(lambda (lst)
@@ -581,12 +577,60 @@ https://romka.eu/blog/jquery-table-drag-and-drop
 
   <<vac_elt_list_col>>
 
-  <<hh_test>>
+  <<hh_vacs>>
 
-  <<hh_test_post>>
+  <<hh_vacs_post>>
 #+END_SRC
 
 ** Страница вакансии
+
+Таблица атрибутов вакансии
+
+#+NAME: iface_contents
+#+BEGIN_SRC lisp
+  (in-package #:moto)
+
+  (defun vac-attr-tr (rest)
+    `(("tr" NIL ,@(mapcar #'(lambda (x) `("td" () ,x))
+                         rest))))
+
+  (vac-attr-tr `("a" "b" "c"))
+  ;; => (("tr" NIL ("td" NIL "a") ("td" NIL "b") ("td" NIL "c")))
+
+
+  (defun vac-attr-tbl (vac)
+    `(("table"
+       (("border" 0) ("style" "font-size: small;"))
+        ,@(vac-attr-tr `("id:" ,(id vac) "&nbsp;&nbsp;&nbsp;" "src-id:"
+                               ("a" (("href" ,(format nil "https://hh.ru/vacancy/~A" (src-id vac))))
+                                    ,(src-id vac))
+                               "&nbsp;&nbsp;&nbsp;" "archive:" ,(archive vac) "&nbsp;&nbsp;&nbsp;"))
+        ,@(vac-attr-tr `("emp-id:" ,(emp-id vac) "&nbsp;&nbsp;&nbsp;" "emp-name:"
+                                   ("span" (("style" "color:red")) ,(emp-name vac))
+                                   "&nbsp;&nbsp;&nbsp;" "state:" ,(state vac) "&nbsp;&nbsp;&nbsp;"))
+        ,@(vac-attr-tr `("city:" ,(city vac) "&nbsp;&nbsp;&nbsp;" "metro:" ,(metro vac)
+                                 "&nbsp;&nbsp;&nbsp;" "state:"
+                                 ,(vac-state-selector vac) "&nbsp;&nbsp;&nbsp;"))
+        ,@(vac-attr-tr `("experience:" ,(experience vac) "&nbsp;&nbsp;&nbsp;"
+                                       "date:" ,(date vac) "&nbsp;&nbsp;&nbsp;"
+                                       "state:" "%CHSTATE%" "&nbsp;&nbsp;&nbsp;")))))
+
+  ;; (print
+  ;;  (tree-to-html
+  ;;   (vac-attr-tbl (car (all-vacancy)))))
+
+  (defun vac-state-selector (vac)
+    (fieldset ""
+      (eval
+       (macroexpand
+        (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
+                (list
+                 (mapcar #'(lambda (x)
+                             (cons (symbol-name x) (symbol-name x)))
+                         (possible-trans vac))))))))
+#+END_SRC
+
+Страница вакансии:
 
 #+NAME: iface_contents
 #+BEGIN_SRC lisp
@@ -649,7 +693,7 @@ https://romka.eu/blog/jquery-table-drag-and-drop
             ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
           (content-box ()
             (form ("tagform" nil :class "form-section-container")
-              ((:div :class "form-section")
+с              ((:div :class "form-section")
                (fieldset "Тэги"
                  (textarea ("tags" "Тэги") (tags vac))
                  (ps-html ((:span :class "clear")))))))

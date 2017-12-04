@@ -284,7 +284,7 @@
 
 (in-package #:moto)
 
-(restas:define-route hhtest ("/hh/test")
+(restas:define-route hh-vacs ("/hh/vacs")
   (let* ((vacs (aif (all-vacancy) it (err "null vacancy")))
          (sorted-vacs (sort vacs #'sort-vacancy-by-salary))
          (uninteresting-vacs (remove-if-not #'(lambda (vac)
@@ -312,13 +312,9 @@
                ,@(vac-elt-list-col unsort-vacs "unsort")
                ,@(vac-elt-list-col interesting-vacs "interesting"))))))
 
-(restas:define-route hhtest/post ("/hh/test" :method :post)
-  (format nil "document.write('~A')"
-          (hunchentoot:post-parameters*)))
-
 (in-package #:moto)
 
-(restas:define-route hhtest/post ("/hh/test" :method :post)
+(restas:define-route hh-vacs/post ("/hh/vacs" :method :post)
   (let* ((lists (remove-if #'(lambda (x) (and (equal "act" (car x)) (equal "SAVE" (cdr x))))
                            (hunchentoot:post-parameters*)))
          (split (mapcar #'(lambda (lst)
@@ -378,108 +374,148 @@
          (progn nil)))
 (in-package #:moto)
 
-(define-page vacancy "/hh/vac/:src-id"
-  (let ((vac (car (find-vacancy :src-id src-id))))
-    (when (null vac)
-      (return-from vacancy 404))
-    (let* ((breadcrumb (if (null vac)
-                           (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))
-                           (breadcrumb (name vac) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))))
-           (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
-           (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
-      (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-        (content-box ()
-          (heading ((format nil "~A ~A" (name vac) (ps-html ((:span :style "color:red") (salary-text vac)))))
-            (form ("chvacstateform" "")
-              ((:table :border 0 :style "font-size: small;")
-               ((:tr)
-                ((:td) "id:")
-                ((:td) (id vac))
-                ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "src-id:")
-                ((:td) ((:a :href (format nil "https://hh.ru/vacancy/~A" (src-id vac))) (src-id vac)))
-                ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "archive:")
-                ((:td) (archive vac))
-                ((:td) "&nbsp;&nbsp;&nbsp;"))
-               ((:tr)
-                ((:td) "emp-id:")
-                ((:td) (emp-id vac))
-                ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "emp-name:")
-                ((:td) ((:span :style "color:red") (emp-name vac)))
-                ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "state:")
-                ((:td) (state vac))
-                ((:td) "&nbsp;&nbsp;&nbsp;"))
-               ((:tr)
-                ((:td) "city:")       ((:td) (city vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "metro:")      ((:td) (metro vac))                                   ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "state:")
-                ((:td)
-                 (fieldset ""
-                   (eval
-                    (macroexpand
-                     (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
-                             (list
-                              (mapcar #'(lambda (x)
-                                          (cons (symbol-name x) (symbol-name x)))
-                                      (possible-trans vac))))))))
-                ((:td) "&nbsp;&nbsp;&nbsp;"))
-               ((:tr)
-                ((:td) "experience:") ((:td) (experience vac))                              ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "date:")       ((:td) (date vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
-                ((:td) "state:")      ((:td) %CHSTATE%)                                     ((:td) "&nbsp;&nbsp;&nbsp;"))
-               ))))
-        (content-box ()
-          ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
-        (content-box ()
-          (form ("tagform" nil :class "form-section-container")
-            ((:div :class "form-section")
-             (fieldset "Тэги"
-               (textarea ("tags" "Тэги") (tags vac))
-               (ps-html ((:span :class "clear")))))))
-        (content-box ()
-          (form ("vacform" nil :class "form-section-container")
-            ((:div :class "form-section")
-             (fieldset "Заметки"
-               (textarea ("notes" "Заметки") (notes vac))
-               (textarea ("response" "Сопроводительное письмо") (response vac))
-               (ps-html ((:span :class "clear")))))
-            %RESPOND% %SAVE%))
-        (ps-html ((:span :class "clear"))))))
-  (:chstate (ps-html ((:div :class "form-send-container")
-                      (submit "Изменить" :name "act" :value "CHSTATE")))
-            (progn
-              ;; (id (upd-vacancy (car (find-vacancy :src-id src-id))
-              ;;                  (list :notes (getf p :notes) :response (getf p :response))))
-              (takt (car (find-vacancy :src-id src-id))
-                    (intern (getf p :newstate) :keyword))
-              (redirect (format nil "/hh/vac/~A" src-id))
-              ))
-  (:save (ps-html ((:div :class "form-send-container")
-                   (submit "Сохранить вакансию" :name "act" :value "SAVE")))
-         (progn
-           (id (upd-vacancy (car (find-vacancy :src-id src-id))
-                            (list :notes (getf p :notes) :response (getf p :response))))
-           (redirect (format nil "/hh/vac/~A" src-id))))
-  (:respond (ps-html
-             ((:div :class "form-send-container")
-              (eval
-               (macroexpand
-                (append '(select ("resume" "Выбрать резюме для отправки отклика:"))
-                        (list
-                         (mapcar #'(lambda (x) (cons (id x) (title x)))
-                                 (sort (all-resume) #'(lambda (a b) (< (id a) (id b)))))))))
-              (submit "Отправить отклик" :name "act" :value "RESPOND")))
-            (progn
-              (id (upd-vacancy (car (find-vacancy :src-id src-id))
-                               (list :notes (getf p :notes) :response (getf p :response))))
-              (dbg (send-respond
-                    src-id
-                    (res-id (get-resume (parse-integer (getf p :resume))))
-                    (getf p :response)))
-              (dbg (takt (car (find-vacancy :src-id src-id)) :responded)))))
+(defun vac-attr-tr (rest)
+  `(("tr" NIL ,@(mapcar #'(lambda (x) `("td" () ,x))
+                       rest))))
+
+(vac-attr-tr `("a" "b" "c"))
+;; => (("tr" NIL ("td" NIL "a") ("td" NIL "b") ("td" NIL "c")))
+
+
+(defun vac-attr-tbl (vac)
+  `(("table"
+     (("border" 0) ("style" "font-size: small;"))
+      ,@(vac-attr-tr `("id:" ,(id vac) "&nbsp;&nbsp;&nbsp;" "src-id:"
+                             ("a" (("href" ,(format nil "https://hh.ru/vacancy/~A" (src-id vac))))
+                                  ,(src-id vac))
+                             "&nbsp;&nbsp;&nbsp;" "archive:" ,(archive vac) "&nbsp;&nbsp;&nbsp;"))
+      ,@(vac-attr-tr `("emp-id:" ,(emp-id vac) "&nbsp;&nbsp;&nbsp;" "emp-name:"
+                                 ("span" (("style" "color:red")) ,(emp-name vac))
+                                 "&nbsp;&nbsp;&nbsp;" "state:" ,(state vac) "&nbsp;&nbsp;&nbsp;"))
+      ,@(vac-attr-tr `("city:" ,(city vac) "&nbsp;&nbsp;&nbsp;" "metro:" ,(metro vac)
+                               "&nbsp;&nbsp;&nbsp;" "state:"
+                               ,(vac-state-selector vac) "&nbsp;&nbsp;&nbsp;"))
+      ,@(vac-attr-tr `("experience:" ,(experience vac) "&nbsp;&nbsp;&nbsp;"
+                                     "date:" ,(date vac) "&nbsp;&nbsp;&nbsp;"
+                                     "state:" "%CHSTATE%" "&nbsp;&nbsp;&nbsp;")))))
+
+;; (print
+;;  (tree-to-html
+;;   (vac-attr-tbl (car (all-vacancy)))))
+
+(defun vac-state-selector (vac)
+  (fieldset ""
+    (eval
+     (macroexpand
+      (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
+              (list
+               (mapcar #'(lambda (x)
+                           (cons (symbol-name x) (symbol-name x)))
+                       (possible-trans vac))))))))
+  (in-package #:moto)
+
+  (define-page vacancy "/hh/vac/:src-id"
+    (let ((vac (car (find-vacancy :src-id src-id))))
+      (when (null vac)
+        (return-from vacancy 404))
+      (let* ((breadcrumb (if (null vac)
+                             (breadcrumb "Не найдено" ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))
+                             (breadcrumb (name vac) ("/" . "Главная") ("/hh" . "HeadHunter") ("/hh/vacs" . "Вакансии"))))
+             (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
+             (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
+        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+          (content-box ()
+            (heading ((format nil "~A ~A" (name vac) (ps-html ((:span :style "color:red") (salary-text vac)))))
+              (form ("chvacstateform" "")
+                ((:table :border 0 :style "font-size: small;")
+                 ((:tr)
+                  ((:td) "id:")
+                  ((:td) (id vac))
+                  ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "src-id:")
+                  ((:td) ((:a :href (format nil "https://hh.ru/vacancy/~A" (src-id vac))) (src-id vac)))
+                  ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "archive:")
+                  ((:td) (archive vac))
+                  ((:td) "&nbsp;&nbsp;&nbsp;"))
+                 ((:tr)
+                  ((:td) "emp-id:")
+                  ((:td) (emp-id vac))
+                  ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "emp-name:")
+                  ((:td) ((:span :style "color:red") (emp-name vac)))
+                  ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "state:")
+                  ((:td) (state vac))
+                  ((:td) "&nbsp;&nbsp;&nbsp;"))
+                 ((:tr)
+                  ((:td) "city:")       ((:td) (city vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "metro:")      ((:td) (metro vac))                                   ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "state:")
+                  ((:td)
+                   (fieldset ""
+                     (eval
+                      (macroexpand
+                       (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
+                               (list
+                                (mapcar #'(lambda (x)
+                                            (cons (symbol-name x) (symbol-name x)))
+                                        (possible-trans vac))))))))
+                  ((:td) "&nbsp;&nbsp;&nbsp;"))
+                 ((:tr)
+                  ((:td) "experience:") ((:td) (experience vac))                              ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "date:")       ((:td) (date vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
+                  ((:td) "state:")      ((:td) %CHSTATE%)                                     ((:td) "&nbsp;&nbsp;&nbsp;"))
+                 ))))
+          (content-box ()
+            ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
+          (content-box ()
+            (form ("tagform" nil :class "form-section-container")
+с              ((:div :class "form-section")
+               (fieldset "Тэги"
+                 (textarea ("tags" "Тэги") (tags vac))
+                 (ps-html ((:span :class "clear")))))))
+          (content-box ()
+            (form ("vacform" nil :class "form-section-container")
+              ((:div :class "form-section")
+               (fieldset "Заметки"
+                 (textarea ("notes" "Заметки") (notes vac))
+                 (textarea ("response" "Сопроводительное письмо") (response vac))
+                 (ps-html ((:span :class "clear")))))
+              %RESPOND% %SAVE%))
+          (ps-html ((:span :class "clear"))))))
+    (:chstate (ps-html ((:div :class "form-send-container")
+                        (submit "Изменить" :name "act" :value "CHSTATE")))
+              (progn
+                ;; (id (upd-vacancy (car (find-vacancy :src-id src-id))
+                ;;                  (list :notes (getf p :notes) :response (getf p :response))))
+                (takt (car (find-vacancy :src-id src-id))
+                      (intern (getf p :newstate) :keyword))
+                (redirect (format nil "/hh/vac/~A" src-id))
+                ))
+    (:save (ps-html ((:div :class "form-send-container")
+                     (submit "Сохранить вакансию" :name "act" :value "SAVE")))
+           (progn
+             (id (upd-vacancy (car (find-vacancy :src-id src-id))
+                              (list :notes (getf p :notes) :response (getf p :response))))
+             (redirect (format nil "/hh/vac/~A" src-id))))
+    (:respond (ps-html
+               ((:div :class "form-send-container")
+                (eval
+                 (macroexpand
+                  (append '(select ("resume" "Выбрать резюме для отправки отклика:"))
+                          (list
+                           (mapcar #'(lambda (x) (cons (id x) (title x)))
+                                   (sort (all-resume) #'(lambda (a b) (< (id a) (id b)))))))))
+                (submit "Отправить отклик" :name "act" :value "RESPOND")))
+              (progn
+                (id (upd-vacancy (car (find-vacancy :src-id src-id))
+                                 (list :notes (getf p :notes) :response (getf p :response))))
+                (dbg (send-respond
+                      src-id
+                      (res-id (get-resume (parse-integer (getf p :resume))))
+                      (getf p :response)))
+                (dbg (takt (car (find-vacancy :src-id src-id)) :responded)))))
 (in-package #:moto)
 
 (define-page rules "/hh/rules"
