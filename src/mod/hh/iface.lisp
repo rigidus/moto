@@ -95,6 +95,23 @@
 
 (in-package #:moto)
 
+(defun txt (text &optional (class ""))
+  (let* ((start (position #\< text :test #'equal))
+         (end   (position #\> text :test #'equal)))
+    (if (or (null start)
+            (null end))
+        text
+        ;; else
+        (let ((in (remove-if #'(lambda (x) (equal x ""))
+                             `(,(subseq text 0 start)
+                                ("span" (("class" ,class))
+                                        "&nbsp;"
+                                        ,(subseq text (+ 1 start) end)
+                                        "&nbsp;")
+                                ,(subseq text (+ 1 end))))))
+          `(("div" (("class" "txt")) ,@in))
+          ))))
+
 (defun legend ()
   (tgb "legend" "legend-on" "legend-off"
        (txt "<Желтым> выделены неотсортированные вакансии, которые появились в момент последнего сбора данных." "unsort")
@@ -324,11 +341,17 @@
        (mapcar #'(lambda (x)
                    (let ((vac (car (find-vacancy :src-id x))))
                      (unless (equal (state vac) (format nil ":~A" key))
-                       (upd-vacancy vac (list :state (format nil ":~A" key)))
+                       (format t "~A |~A>~A| ~A~%"
+                               (src-id vac)
+                               (state vac)
+                               (bprint key)
+                               (bprint (name vac)))
+                       (takt vac key)
+                       ;; (upd-vacancy vac (list :state (format nil ":~A" key)))
                        (push (list (src-id vac) key) res)
                        )))
                val))
-    ""))
+    (format nil "/* ~A */" (bprint res))))
 
 (in-package #:moto)
 

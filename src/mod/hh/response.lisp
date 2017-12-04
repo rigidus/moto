@@ -247,7 +247,7 @@
                    (upd-vacancy vac (list :state  ":UNINTERESTING"))))))
       (mapcar #'uninteresting-if-archive vacancyes))))
 
-;; (drop-if-archive (all-vacancy))
+;; (drop-if-archive (find-vacancy :state ":UNSORT"))
 
 ;; (print
 ;;  (find-vacancy :state ":UNINTERESTING"))

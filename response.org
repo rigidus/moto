@@ -308,8 +308,6 @@
 
 * Убираем вакансии в архиве
 
-[TODO:gmm] Возможно, не нужно проверять вакансии, которые уже в архиве
-
 #+NAME: drop_if_archive
 #+BEGIN_SRC lisp
   (in-package :moto)
@@ -327,7 +325,7 @@
                      (upd-vacancy vac (list :state  ":UNINTERESTING"))))))
         (mapcar #'uninteresting-if-archive vacancyes))))
 
-  ;; (drop-if-archive (all-vacancy))
+  ;; (drop-if-archive (find-vacancy :state ":UNSORT"))
 
   ;; (print
   ;;  (find-vacancy :state ":UNINTERESTING"))
