@@ -693,7 +693,7 @@ https://romka.eu/blog/jquery-table-drag-and-drop
             ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
           (content-box ()
             (form ("tagform" nil :class "form-section-container")
-с              ((:div :class "form-section")
+              ((:div :class "form-section")
                (fieldset "Тэги"
                  (textarea ("tags" "Тэги") (tags vac))
                  (ps-html ((:span :class "clear")))))))
