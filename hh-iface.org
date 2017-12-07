@@ -582,7 +582,7 @@ https://romka.eu/blog/jquery-table-drag-and-drop
   <<hh_vacs_post>>
 #+END_SRC
 
-** Страница вакансии
+** COMMENT Страница вакансии
 
 Таблица атрибутов вакансии
 
@@ -678,7 +678,6 @@ https://romka.eu/blog/jquery-table-drag-and-drop
   ;;   (form ("chvacstateform" "")
   ;;     (car (vac-attr-tbl (car (all-vacancy)))))))
 
-
   (restas:define-route hh/vac3/src-id ("/hh/vac3/:src-id")
     (tree-to-html
        (form ("chvacstateform" "")
@@ -695,64 +694,36 @@ https://romka.eu/blog/jquery-table-drag-and-drop
              (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
           (content-box ()
-            (heading ((format nil "~A ~A" (name vac) (ps-html ((:span :style "color:red") (salary-text vac)))))
-              (form ("chvacstateform" "")
-                ((:table :border 0 :style "font-size: small;")
-                 ((:tr)
-                  ((:td) "id:")
-                  ((:td) (id vac))
-                  ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "src-id:")
-                  ((:td) ((:a :href (format nil "https://hh.ru/vacancy/~A" (src-id vac))) (src-id vac)))
-                  ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "archive:")
-                  ((:td) (archive vac))
-                  ((:td) "&nbsp;&nbsp;&nbsp;"))
-                 ((:tr)
-                  ((:td) "emp-id:")
-                  ((:td) (emp-id vac))
-                  ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "emp-name:")
-                  ((:td) ((:span :style "color:red") (emp-name vac)))
-                  ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "state:")
-                  ((:td) (state vac))
-                  ((:td) "&nbsp;&nbsp;&nbsp;"))
-                 ((:tr)
-                  ((:td) "city:")       ((:td) (city vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "metro:")      ((:td) (metro vac))                                   ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "state:")
-                  ((:td)
-                   (fieldset ""
-                     (eval
-                      (macroexpand
-                       (append `(select ("newstate" "" :default ,(subseq (state vac) 1)))
-                               (list
-                                (mapcar #'(lambda (x)
-                                            (cons (symbol-name x) (symbol-name x)))
-                                        (possible-trans vac))))))))
-                  ((:td) "&nbsp;&nbsp;&nbsp;"))
-                 ((:tr)
-                  ((:td) "experience:") ((:td) (experience vac))                              ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "date:")       ((:td) (date vac))                                    ((:td) "&nbsp;&nbsp;&nbsp;")
-                  ((:td) "state:")      ((:td) %CHSTATE%)                                     ((:td) "&nbsp;&nbsp;&nbsp;"))
-                 ))))
+
+            (let ((vac (car (find-vacancy :src-id 23375729))))
+              (tree-to-html
+               `(("div" (("class" "heading"))
+                        ("div" (("class" "heading__inner"))
+                               ("div" (("class" "heading__headline"))
+                                      ("h1" (("class" "heading__headline--h1"))
+                                            ,(name vac) "!!!"
+                                            ("span" (("style" "color:red"))
+                                                    ,(salary-text vac)))))
+                        ("div" (("class" "heading__text"))
+                               ,(car (form ("chvacstateform" "")
+                                       (car (vac-attr-tbl (car (all-vacancy)))))))))))
+            )
           (content-box ()
             ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
-          (content-box ()
-            (form ("tagform" nil :class "form-section-container")
-              ((:div :class "form-section")
-               (fieldset "Тэги"
-                 (textarea ("tags" "Тэги") (tags vac))
-                 (ps-html ((:span :class "clear")))))))
-          (content-box ()
-            (form ("vacform" nil :class "form-section-container")
-              ((:div :class "form-section")
-               (fieldset "Заметки"
-                 (textarea ("notes" "Заметки") (notes vac))
-                 (textarea ("response" "Сопроводительное письмо") (response vac))
-                 (ps-html ((:span :class "clear")))))
-              %RESPOND% %SAVE%))
+          ;; (content-box ()
+          ;;   (form ("tagform" nil :class "form-section-container")
+          ;;     ((:div :class "form-section")
+          ;;      (fieldset "Тэги"
+          ;;        (textarea ("tags" "Тэги") (tags vac))
+          ;;        (ps-html ((:span :class "clear")))))))
+          ;; (content-box ()
+          ;;   (form ("vacform" nil :class "form-section-container")
+          ;;     ((:div :class "form-section")
+          ;;      (fieldset "Заметки"
+          ;;        (textarea ("notes" "Заметки") (notes vac))
+          ;;        (textarea ("response" "Сопроводительное письмо") (response vac))
+          ;;        (ps-html ((:span :class "clear")))))
+          ;;     %RESPOND% %SAVE%))
           (ps-html ((:span :class "clear"))))))
     (:chstate (ps-html ((:div :class "form-send-container")
                         (submit "Изменить" :name "act" :value "CHSTATE")))
@@ -781,10 +752,10 @@ https://romka.eu/blog/jquery-table-drag-and-drop
               (progn
                 (id (upd-vacancy (car (find-vacancy :src-id src-id))
                                  (list :notes (getf p :notes) :response (getf p :response))))
-                (dbg (send-respond
-                      src-id
-                      (res-id (get-resume (parse-integer (getf p :resume))))
-                      (getf p :response)))
+                ;; (dbg (send-respond
+                ;;       src-id
+                ;;       (res-id (get-resume (parse-integer (getf p :resume))))
+                ;;       (getf p :response)))
                 (dbg (takt (car (find-vacancy :src-id src-id)) :responded)))))
 #+END_SRC
 
