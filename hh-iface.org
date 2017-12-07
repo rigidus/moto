@@ -582,7 +582,7 @@ https://romka.eu/blog/jquery-table-drag-and-drop
   <<hh_vacs_post>>
 #+END_SRC
 
-** COMMENT Страница вакансии
+** Страница вакансии
 
 Таблица атрибутов вакансии
 
@@ -599,21 +599,21 @@ https://romka.eu/blog/jquery-table-drag-and-drop
 
 
   (defun vac-attr-tbl (vac)
-    `(("table"
-       (("border" 0) ("style" "font-size: small;"))
-        ,@(vac-attr-tr `("id:" ,(id vac) "&nbsp;&nbsp;&nbsp;" "src-id:"
-                               ("a" (("href" ,(format nil "https://hh.ru/vacancy/~A" (src-id vac))))
-                                    ,(src-id vac))
-                               "&nbsp;&nbsp;&nbsp;" "archive:" ,(archive vac) "&nbsp;&nbsp;&nbsp;"))
-        ,@(vac-attr-tr `("emp-id:" ,(emp-id vac) "&nbsp;&nbsp;&nbsp;" "emp-name:"
-                                   ("span" (("style" "color:red")) ,(emp-name vac))
-                                   "&nbsp;&nbsp;&nbsp;" "state:" ,(state vac) "&nbsp;&nbsp;&nbsp;"))
-        ,@(vac-attr-tr `("city:" ,(city vac) "&nbsp;&nbsp;&nbsp;" "metro:" ,(metro vac)
-                                 "&nbsp;&nbsp;&nbsp;" "state:"
-                                 ,(vac-state-selector vac) "&nbsp;&nbsp;&nbsp;"))
-        ,@(vac-attr-tr `("experience:" ,(experience vac) "&nbsp;&nbsp;&nbsp;"
-                                       "date:" ,(date vac) "&nbsp;&nbsp;&nbsp;"
-                                       "state:" "%CHSTATE%" "&nbsp;&nbsp;&nbsp;")))))
+    `("table"
+      (("border" 0) ("style" "font-size: small;"))
+      ,@(vac-attr-tr `("id:" ,(id vac) "&nbsp;&nbsp;&nbsp;" "src-id:"
+                             ("a" (("href" ,(format nil "https://hh.ru/vacancy/~A" (src-id vac))))
+                                  ,(src-id vac))
+                             "&nbsp;&nbsp;&nbsp;" "archive:" ,(archive vac) "&nbsp;&nbsp;&nbsp;"))
+      ,@(vac-attr-tr `("emp-id:" ,(emp-id vac) "&nbsp;&nbsp;&nbsp;" "emp-name:"
+                                 ("span" (("style" "color:red")) ,(emp-name vac))
+                                 "&nbsp;&nbsp;&nbsp;" "state:" ,(state vac) "&nbsp;&nbsp;&nbsp;"))
+      ,@(vac-attr-tr `("city:" ,(city vac) "&nbsp;&nbsp;&nbsp;" "metro:" ,(metro vac)
+                               "&nbsp;&nbsp;&nbsp;" "state:"
+                               ,(vac-state-selector vac) "&nbsp;&nbsp;&nbsp;"))
+      ,@(vac-attr-tr `("experience:" ,(experience vac) "&nbsp;&nbsp;&nbsp;"
+                                     "date:" ,(date vac) "&nbsp;&nbsp;&nbsp;"
+                                     "state:" "%CHSTATE%" "&nbsp;&nbsp;&nbsp;"))))
 
   ;; (print
   ;;  (tree-to-html
@@ -649,18 +649,18 @@ https://romka.eu/blog/jquery-table-drag-and-drop
       (setf rest (loop :for key :in rest :by #'cddr :collect
                     `(list ',(string-downcase (symbol-name key))
                            ,(getf rest key))))
-      ``(("form" (("action" ,,action)
+      ``("form" (("action" ,,action)
                   ("method" ,,method)
                   ("id" ,,name)
                   ("class" ,,result-class)
                   ,,@rest)
                  ("input" (("type" "hidden")
                            ("name" ,,(format nil "CSRF-~A" name) :value "todo")))
-                 ,,@body))))
+                 ,,@body)))
 
   ;; (tree-to-html
-  ;;  (form ("chvacstateform" "" :alfa "beta" :gamma "teta")
-  ;;    `("p" (("class" "b")) "aaa")))
+  ;;  `(,(form ("chvacstateform" "" :alfa "beta" :gamma "teta")
+  ;;           `("p" (("class" "b")) "aaa"))))
 
   ;; =>
   ;; "<form action=\"#\" method=\"POST\" id=\"chvacstateform\" class=\"\" alfa=\"beta\" gamma=\"teta\">
@@ -680,8 +680,24 @@ https://romka.eu/blog/jquery-table-drag-and-drop
 
   (restas:define-route hh/vac3/src-id ("/hh/vac3/:src-id")
     (tree-to-html
-       (form ("chvacstateform" "")
-         (car (vac-attr-tbl (car (all-vacancy)))))))
+     `(,(form ("chvacstateform" "")
+              (vac-attr-tbl (car (all-vacancy)))))))
+
+
+  (defun heading (name salary-text heading-text)
+    `("div" (("class" "heading"))
+            ("div" (("class" "heading__inner"))
+                   ("div" (("class" "heading__headline"))
+                          ("h1" (("class" "heading__headline--h1"))
+                                ,name
+                                ("span" (("style" "color:red"))
+                                        ,salary-text))))
+            ("div" (("class" "heading__text"))
+                   ,heading-text)))
+
+  (defun content-box (class body)
+    `("div" (("class" ,(format nil "content-box ~A" class)))
+            ,body))
 
   (define-page vacancy "/hh/vac/:src-id"
     (let ((vac (car (find-vacancy :src-id src-id))))
@@ -693,23 +709,15 @@ https://romka.eu/blog/jquery-table-drag-and-drop
              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*))))
              (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-          (content-box ()
-
-            (let ((vac (car (find-vacancy :src-id 23375729))))
-              (tree-to-html
-               `(("div" (("class" "heading"))
-                        ("div" (("class" "heading__inner"))
-                               ("div" (("class" "heading__headline"))
-                                      ("h1" (("class" "heading__headline--h1"))
-                                            ,(name vac) "!!!"
-                                            ("span" (("style" "color:red"))
-                                                    ,(salary-text vac)))))
-                        ("div" (("class" "heading__text"))
-                               ,(car (form ("chvacstateform" "")
-                                       (car (vac-attr-tbl (car (all-vacancy)))))))))))
-            )
-          (content-box ()
-            ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
+          (tree-to-html
+           `(,(content-box ""
+                           (heading (name vac)
+                                     (salary-text vac)
+                                     (form ("chvacstateform" "")
+                                       (vac-attr-tbl (car (all-vacancy)))))))
+           )
+          ;; (content-box ()
+          ;;   ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
           ;; (content-box ()
           ;;   (form ("tagform" nil :class "form-section-container")
           ;;     ((:div :class "form-section")

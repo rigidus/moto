@@ -447,6 +447,8 @@
 
 * Заголовок страницы
 
+  deprecated; replaced in hh-iface
+
   #+NAME: heading
   #+BEGIN_SRC lisp
     (in-package #:moto)
@@ -548,6 +550,18 @@
           (unless (null rest)
             (setf box (append box rest)))
           `(ps-html (,box ,@body)))))
+
+    ;; (macroexpand-1 '
+    ;;  (content-box ()
+    ;;    ((:div :class "vacancy-descr") (format nil "~{~A~}" text))
+    ;;    "wfew"))
+
+
+    (macroexpand-1 '
+     (content-box (:class "size-3-5 switch-content-container")
+       ((:div :class "vacancy-descr") (format nil "~{~A~}" text))
+       "wfew"))
+
   #+END_SRC
 
 * Системное сообщение
