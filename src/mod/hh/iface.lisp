@@ -477,6 +477,24 @@
   `("div" (("class" ,(format nil "content-box ~A" class)))
           ,body))
 
+(tree-to-html
+ `(,(content-box ""
+                 (form ("tagform" nil :class "form-section-container")
+                   `(("div" (("class" "form-section"))
+                            "wfweff"
+                            ;; ,(fieldset "Тэги"
+                            ;;           (textarea ("tags" "Тэги") (tags vac))
+                            ;;           (ps-html ((:span :class "clear"))))
+                            ))))
+    ,(content-box ""
+                  (form ("tagform" nil :class "form-section-container")
+                    `(("div" (("class" "form-section"))
+                             "wfweff"
+                             ;; ,(fieldset "Тэги"
+                             ;;           (textarea ("tags" "Тэги") (tags vac))
+                             ;;           (ps-html ((:span :class "clear"))))
+                             ))))))
+
 (define-page vacancy "/hh/vac/:src-id"
   (let ((vac (car (find-vacancy :src-id src-id))))
     (when (null vac)
@@ -492,16 +510,27 @@
                          (heading (name vac)
                                    (salary-text vac)
                                    (form ("chvacstateform" "")
-                                     (vac-attr-tbl (car (all-vacancy)))))))
-         )
-        ;; (content-box ()
-        ;;   ((:div :class "vacancy-descr") (format nil "~{~A~}" text)))
-        ;; (content-box ()
-        ;;   (form ("tagform" nil :class "form-section-container")
-        ;;     ((:div :class "form-section")
-        ;;      (fieldset "Тэги"
-        ;;        (textarea ("tags" "Тэги") (tags vac))
-        ;;        (ps-html ((:span :class "clear")))))))
+                                     (vac-attr-tbl (car (all-vacancy))))))
+            ,(content-box ""
+                          `("div" (("class" "vacancy-desc"))
+                                  ,(format nil "~{~A~}" text)))
+            ,(content-box ""
+                          (form ("tagform" nil :class "form-section-container")
+                            `("div" (("class" "form-section"))
+                                     ,(fieldset "Тэги"
+                                               (textarea ("tags" "Тэги") (tags vac))
+                                               (ps-html ((:span :class "clear"))))
+                                     )))
+            ,(content-box ""
+                          (form ("vacform" nil :class "form-section-container")
+                            `("div" (("class" "form-section"))
+                                    ,(fieldset "Заметки"
+                                               (textarea ("notes" "Заметки") (notes vac))
+                                               (textarea ("response" "Сопроводительное письмо") (response vac))
+                                               (ps-html ((:span :class "clear"))))
+                                    %RESPOND% %SAVE%)))
+            ;; )
+            ))
         ;; (content-box ()
         ;;   (form ("vacform" nil :class "form-section-container")
         ;;     ((:div :class "form-section")
