@@ -320,79 +320,37 @@
       (let ((result-class ""))
         (unless action (setf action "#"))
         (unless method (setf method "POST"))
-        (when class (setf result-class (concatenate 'string result-class " " class)))
+        (when class
+          (setf result-class (concatenate 'string result-class " " class)))
         ;; (remf rest :title)
         (remf rest :action)
         (remf rest :method)
         (remf rest :class)
-        (let ((form `(:form :action ,action :method ,method  :id ,name :name ,name :class ,result-class)))
-          (setf form (append form rest))
-          (setf form (append `(,form)
-                             `(((:input :type "hidden" :name ,(format nil "CSRF-~A" name) :value "todo")))))
-          (when title
-            (setf form (append form
-                               `(((:h2 :class "form-headline heading__headline--h2") ,title)))))
-          (setf form (append form `(,@body)))
-          `(ps-html ,form))))
+        (setf rest (loop :for key :in rest :by #'cddr :collect
+                      `(list ',(string-downcase (symbol-name key))
+                             ,(getf rest key))))
+        ``("form" (("action" ,,action)
+                   ("method" ,,method)
+                   ("id" ,,name)
+                   ("class" ,,result-class)
+                   ,,@rest)
+                  ("input" (("type" "hidden")
+                            ("name" ,,(format nil "CSRF-~A" name) :value "todo")))
+                  ,,@body)))
 
-    ;; (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
-    ;;   (let ((result-class "form-section-container"))
-    ;;     (unless action (setf action "#"))
-    ;;     (unless method (setf method "POST"))
-    ;;     (when class (setf result-class (concatenate 'string result-class " " class)))
-    ;;     (remf rest :action)
-    ;;     (remf rest :method)
-    ;;     (remf rest :class)
-    ;;     (let ((form `(:form :action ,action :method ,method  :id ,name :name ,name :class ,result-class)))
-    ;;       (setf form (append form rest))
-    ;;       `(ps-html (,form
-    ;;                     ((:input :type "hidden" :name ,(format nil "CSRF-~A" name) :value "d34d75644abf8f1f0b9ee7bbaeb8c178-61d7aa05b65801c3185523a93438a225"))
-    ;;                   ((:h2 :class "form-headline heading__headline--h2") ,title)
-    ;;                   (format nil "~{~A~}"
-    ;;                           (list ,@body)))))))
+    ;; (tree-to-html
+    ;;  `(,(form ("chvacstateform" "" :alfa "beta" :gamma "teta")
+    ;;           `("p" (("class" "b")) "aaa"))))
 
-
-
-    ;; (print
-    ;; (macroexpand-1 '(form ("regform" "Регистрационные данные")
-    ;;                  (fieldset "Обязательные поля"
-    ;;                    (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
-    ;;                  (fieldset "Необязательные поля"
-    ;;                    (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
-    ;;                  )))
-
-    ;; (PS-HTML
-    ;;  ((:FORM :ACTION "#" :METHOD "POST" :ID "regform" :NAME "regform" :CLASS
-    ;;          "form-section-container")
-    ;;   ((:INPUT :TYPE "hidden" :NAME "CSRF-regform" :VALUE "todo"))
-    ;;   ((:H2 :CLASS "form-headline heading__headline--h2") "Регистрационные данные")
-    ;;   (FIELDSET "Обязательные поля"
-    ;;     (INPUT ("email" "Email" :REQUIRED T :CLASS "my-super-class" :TYPE "email"
-    ;;                     :MAXLENGTH "50")
-    ;;       "Please enter a valid email address."))))
-
-    ;; (PS-HTML
-    ;;  ((:FORM :ACTION "#" :METHOD "POST" :ID "regform" :NAME "regform" :CLASS
-    ;;          "form-section-container")
-    ;;   ((:INPUT :TYPE "hidden" :NAME "CSRF-regform" :VALUE  "d34d75644abf8f1f0b9ee7bbaeb8c178-61d7aa05b65801c3185523a93438a225"))
-    ;;   ((:H2 :CLASS "form-headline heading__headline--h2") "Регистрационные данные")
-    ;;   ;; (FORMAT NIL "~{~A~}"
-    ;;   ;;         (LIST
-    ;;            (FIELDSET "Обязательные поля"
-    ;;              (INPUT ("email" "Email" :REQUIRED T :CLASS "my-super-class" :TYPE
-    ;;                              "email" :MAXLENGTH "50")
-    ;;                "Please enter a valid email address."))
-    ;;            (FIELDSET "Необязательные поля"
-    ;;              (INPUT ("email" "Email" :REQUIRED T :CLASS "my-super-class" :TYPE
-    ;;                              "email" :MAXLENGTH "50")
-    ;;                "Please enter a valid email address."))))
-    ;; ))
-
-    ;; (form ("regform" "Регистрационные данные")
-    ;;   (fieldset "Обязательные поля"
-    ;;     (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
-    ;;   (fieldset "Необязательные поля"
-    ;;     (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address.")))
+    ;; =>
+    ;; "<form action=\"#\" method=\"POST\" id=\"chvacstateform\" class=\"\" alfa=\"beta\" gamma=\"teta\">
+    ;;    <input type=\"hidden\" name=\"CSRF-chvacstateform\">
+    ;;    </input>
+    ;;    <p class=\"b\">
+    ;;       aaa
+    ;;    </p>
+    ;; </form>
+    ;; "
   #+END_SRC
 
 * Тизеры

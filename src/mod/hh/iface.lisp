@@ -414,54 +414,10 @@
                        (possible-trans vac))))))))
 (in-package #:moto)
 
-(defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
-  (let ((result-class ""))
-    (unless action (setf action "#"))
-    (unless method (setf method "POST"))
-    (when class
-      (setf result-class (concatenate 'string result-class " " class)))
-    ;; (remf rest :title)
-    (remf rest :action)
-    (remf rest :method)
-    (remf rest :class)
-    (setf rest (loop :for key :in rest :by #'cddr :collect
-                  `(list ',(string-downcase (symbol-name key))
-                         ,(getf rest key))))
-    ``("form" (("action" ,,action)
-                ("method" ,,method)
-                ("id" ,,name)
-                ("class" ,,result-class)
-                ,,@rest)
-               ("input" (("type" "hidden")
-                         ("name" ,,(format nil "CSRF-~A" name) :value "todo")))
-               ,,@body)))
-
-;; (tree-to-html
-;;  `(,(form ("chvacstateform" "" :alfa "beta" :gamma "teta")
-;;           `("p" (("class" "b")) "aaa"))))
-
-;; =>
-;; "<form action=\"#\" method=\"POST\" id=\"chvacstateform\" class=\"\" alfa=\"beta\" gamma=\"teta\">
-;;    <input type=\"hidden\" name=\"CSRF-chvacstateform\">
-;;    </input>
-;;    <p class=\"b\">
-;;       aaa
-;;    </p>
-;; </form>
-;; "
-
-
-;; (print
-;;  (tree-to-html
-;;   (form ("chvacstateform" "")
-;;     (car (vac-attr-tbl (car (all-vacancy)))))))
-
 (restas:define-route hh/vac3/src-id ("/hh/vac3/:src-id")
   (tree-to-html
    `(,(form ("chvacstateform" "")
             (vac-attr-tbl (car (all-vacancy)))))))
-
-
 
 (define-page vacancy "/hh/vac/:src-id"
   (let ((vac (car (find-vacancy :src-id src-id))))
