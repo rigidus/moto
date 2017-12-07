@@ -73,35 +73,24 @@
 ;; (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ))
 (in-package #:moto)
 
-(defmacro textarea ((name title &rest rest &key container-class class required type &allow-other-keys) &body text)
-  (let ((result-container-class "input-container")
-        (label `(:label :for ,name)))
-    (when container-class
-      (setf result-container-class (concatenate 'string result-container-class " " container-class)))
-    (when required
-      (setf label (append label `(:required "required"))))
-    (let ((result-class "form-element textarea-text"))
-      (when required
-        (setf result-class (concatenate 'string result-class " required")))
-      (when class
-        (setf result-class (concatenate 'string result-class " " class)))
-      (unless type
-        (setf type "text"))
-      (remf rest :container-class)
-      (remf rest :class)
-      (remf rest :required)
-      (remf rest :type)
-      (let ((textarea `(:textarea :type ,type :name ,name :id ,name :class ,result-class)))
-        (unless (null rest)
-          (setf textarea (append textarea rest)))
-        (let ((textarea-container `((:div :class ,result-container-class)
-                                 (,label ,title)
-                                 ((:div :class "input-bg")
-                                  (,textarea ,@text)))))
-          `(ps-html ,textarea-container))))))
+(defun textarea (name title content)
+  `("div" (("class" "input-container"))
+          ("label" (("for" ,name)) ,title)
+          ("div" (("CLASS" "input-bg"))
+                 ("textarea" (("type" "text")
+                              ("name" ,name)
+                              ("id" ,name)
+                              ("class" "form-element textarea-text"))
+                             ,content))))
 
-;; (macroexpand-1 '(textarea ("notes" "Заметки") "zzz"))
+;; (textarea "notes" "Заметки" "aaaa")
 
+;; => ("div" (("class" "input-container")) ("label" (("for" "notes")) "Заметки")
+;;           ("div" (("CLASS" "input-bg"))
+;;                  ("textarea"
+;;                   (("type" "text") ("name" "notes") ("id" "notes")
+;;                    ("class" "form-element textarea-text"))
+;;                   "aaaa")))
 (in-package #:moto)
 
 (defmacro select ((name title &rest rest &key container-class class required default &allow-other-keys) &body options)
@@ -141,29 +130,99 @@
 ;;    ("female" . "Женский")))
 (in-package #:moto)
 
-(defmacro fieldset (legend &body body)
-  `(ps-html ((:fieldset)
-             ((:legend) ,legend)
-             (format nil "~{~A~}"
-                     (list ,@body)))))
+(defun fieldset (legend &rest content)
+  `("fieldset"
+    ()
+    ("legend" () ,legend)
+    ,@content))
 
-;; (fieldset "Обязательные поля"
-;;   (input ("email" "Email" :required t :class "my-super-class" :type "email" :maxlength "50" ) "Please enter a valid email address."))
+;; `(,(fieldset "Заметки"
+;;              `("p" () "Lorem ipsum 1")
+;;              `("p" () "Lorem ipsum 2")))
+
+;; => (("fieldset" ()
+;;      ("legend" () "Заметки")
+;;      ("p" () "Lorem ipsum 1")
+;;      ("p" () "Lorem ipsum 2")))
+
+
+;; (tree-to-html
+;;  `(,(fieldset "Заметки"
+;;               `("p" () "Lorem ipsum 1")
+;;               `("p" () "Lorem ipsum 2"))))
+
+;; => "<fieldset>
+;;    <legend>
+;;       Заметки
+;;    </legend>
+;;    <p>
+;;       Lorem ipsum 1
+;;    </p>
+;;    <p>
+;;       Lorem ipsum 2
+;;    </p>
+;; </fieldset>
+;; "
 (in-package #:moto)
 
 (defmacro submit (title &rest rest &key class container-class &allow-other-keys)
   (let ((result-container-class "")
         (result-class "button"))
-    (when container-class (setf result-container-class (concatenate 'string result-container-class " " container-class)))
+    (when container-class
+      (setf result-container-class
+            (concatenate 'string result-container-class " " container-class)))
     (remf rest :container-class)
-    (when class (setf result-class (concatenate 'string result-class " " class)))
+    (when class
+      (setf result-class
+            (concatenate 'string result-class " " class)))
     (remf rest :class)
-    (let ((button `(:button :type "submit" :class ,result-class)))
-      (setf button (append button rest))
-      `(ps-html ((:div :class ,result-container-class)
-                 (,button ,title))))))
+    (let ((rested (loop :for key :in rest :by #'cddr :collect
+                     `(list ',(list (string-downcase (symbol-name key))
+                                    (getf rest key))))))
+      ``("div" (("class" ,,result-container-class))
+               ("button" (("type" "submit")
+                          ("class" ,,result-class)
+                          ,@,@rested
+                          )
+                         ,,title)))))
 
-;; (macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);"))
+;; (macroexpand-1 '(submit "Зарегистрироваться" :onclick "alert(1);" :ondblclick "alert(2);"))
+
+;; => (LIST (QUOTE "div")
+;;          (LIST
+;;           (LIST
+;;            (QUOTE "class") ""))
+;;          (LIST
+;;           (QUOTE "button")
+;;           (LIST*
+;;            (QUOTE ("type" "submit"))
+;;            (LIST
+;;             (QUOTE "class") "button")
+;;            (APPEND
+;;             (LIST '("onclick" "alert(1);"))
+;;             (LIST '("ondblclick" "alert(2);"))))
+;;           "Зарегистрироваться")), T
+
+;; (submit "Зарегистрироваться" :onclick "alert(1);" :ondblclick "alert(2);")
+
+;; => ("div" (("class" ""))
+;;           ("button"
+;;            (("type" "submit") ("class" "button") ("onclick" "alert(1);")
+;;             ("ondblclick" "alert(2);"))
+;;            "Зарегистрироваться"))
+
+;; (tree-to-html
+;;  `(,(submit "Зарегистрироваться" :onclick "alert(1);" :ondblclick "alert(2);")))
+
+;; =>
+;; "
+;; <div class=\"\">
+;;    <button type=\"submit\" class=\"button\" onclick=\"alert(1);\" ondblclick=\"alert(2);\">
+;;       Зарегистрироваться
+;;    </button>
+;; </div>
+;; "
+
 (in-package #:moto)
 
 (defmacro form ((name title &rest rest &key action method class &allow-other-keys) &body body)
@@ -342,22 +401,32 @@
 ;;                  ((:p) "Your order data are transmitted to us using 128-bit SSL (Secure Socket Layer) encryption.")))
 (in-package #:moto)
 
-(defmacro heading ((title &rest rest &key class &allow-other-keys) &body body)
-  (let ((result-box-class "heading"))
-    (when class
-      (setf result-box-class (concatenate 'string result-box-class " " class)))
-    (remf rest :class)
-    (let ((box `(:div :class ,result-box-class)))
-      (unless (null rest)
-        (setf box (append box rest)))
-      (setf box (append `(,box) `(((:div :class "heading__inner")
-                                   ((:div :class "heading__headline")
-                                    ((:h1 :class "heading__headline--h1") ,title))))))
-      (unless (null body)
-        (setf box (append box `(((:div :class "heading__text") ,@body)))))
-      `(ps-html ,box))))
+(defun heading (name salary-text heading-text)
+  `("div" (("class" "heading"))
+          ("div" (("class" "heading__inner"))
+                 ("div" (("class" "heading__headline"))
+                        ("h1" (("class" "heading__headline--h1"))
+                              ,name
+                              ("span" (("style" "color:red"))
+                                      ,salary-text))))
+          ("div" (("class" "heading__text"))
+                 ,heading-text)))
 
-;; (macroexpand-1 '(heading ("title") "text"))
+;; `(,(heading
+;;     "Product Owner"
+;;     "250000"
+;;     `("div" (("class" "vacancy-desc"))
+;;             ("p" () "Lorem ipsum 1")
+;;             ("p" () "Lorem ipsum 2"))))
+
+;; => (("div" (("class" "heading"))
+;;            ("div" (("class" "heading__inner"))
+;;                   ("div" (("class" "heading__headline"))
+;;                          ("h1" (("class" "heading__headline--h1")) "Product Owner"
+;;                                ("span" (("style" "color:red")) "250000"))))
+;;            ("div" (("class" "heading__text"))
+;;                   ("div" (("class" "vacancy-desc")) ("p" NIL "Lorem ipsum 1")
+;;                          ("p" NIL "Lorem ipsum 2")))))
 (in-package #:moto)
 
 (defmacro breadcrumb (last &rest prevs)
@@ -412,15 +481,38 @@
   ;; "<a href=\"/find\">Простой поиск</a>"
 (in-package #:moto)
 
-(defmacro content-box ((&rest rest &key class &allow-other-keys) &body body)
-  (let ((result-box-class "content-box"))
-    (when class
-      (setf result-box-class (concatenate 'string result-box-class " " class)))
-    (remf rest :class)
-    (let ((box `(:div :class ,result-box-class)))
-      (unless (null rest)
-        (setf box (append box rest)))
-      `(ps-html (,box ,@body)))))
+(defun content-box (&rest content)
+  `("div" (("class" "content-box"))
+          ,@content))
+
+;; `(,(content-box
+;;     `("div" (("class" "vacancy-desc"))
+;;             ("p" () "Lorem ipsum 1")
+;;             ("p" () "Lorem ipsum 2"))))
+
+;; => (("div" (("class" "content-box"))
+;;            ("div" (("class" "vacancy-desc"))
+;;                   ("p" NIL "Lorem ipsum 1")
+;;                   ("p" NIL "Lorem ipsum 2"))))
+
+;; (tree-to-html
+;;  `(,(content-box
+;;      `("div" (("class" "vacancy-desc"))
+;;              ("p" () "Lorem ipsum 1")
+;;              ("p" () "Lorem ipsum 2")))))
+
+;; =>
+;; "<div class=\"content-box\">
+;;    <div class=\"vacancy-desc\">
+;;       <p>
+;;          Lorem ipsum 1
+;;       </p>
+;;       <p>
+;;          Lorem ipsum 2
+;;       </p>
+;;    </div>
+;; </div>
+;; "
 (in-package #:moto)
 
 (defmacro system-msg ((msg-type &rest rest &key class &allow-other-keys) &body body)

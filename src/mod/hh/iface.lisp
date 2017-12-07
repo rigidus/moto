@@ -462,38 +462,6 @@
             (vac-attr-tbl (car (all-vacancy)))))))
 
 
-(defun heading (name salary-text heading-text)
-  `("div" (("class" "heading"))
-          ("div" (("class" "heading__inner"))
-                 ("div" (("class" "heading__headline"))
-                        ("h1" (("class" "heading__headline--h1"))
-                              ,name
-                              ("span" (("style" "color:red"))
-                                      ,salary-text))))
-          ("div" (("class" "heading__text"))
-                 ,heading-text)))
-
-(defun content-box (class body)
-  `("div" (("class" ,(format nil "content-box ~A" class)))
-          ,body))
-
-(tree-to-html
- `(,(content-box ""
-                 (form ("tagform" nil :class "form-section-container")
-                   `(("div" (("class" "form-section"))
-                            "wfweff"
-                            ;; ,(fieldset "Тэги"
-                            ;;           (textarea ("tags" "Тэги") (tags vac))
-                            ;;           (ps-html ((:span :class "clear"))))
-                            ))))
-    ,(content-box ""
-                  (form ("tagform" nil :class "form-section-container")
-                    `(("div" (("class" "form-section"))
-                             "wfweff"
-                             ;; ,(fieldset "Тэги"
-                             ;;           (textarea ("tags" "Тэги") (tags vac))
-                             ;;           (ps-html ((:span :class "clear"))))
-                             ))))))
 
 (define-page vacancy "/hh/vac/:src-id"
   (let ((vac (car (find-vacancy :src-id src-id))))
@@ -506,42 +474,32 @@
            (text (parenscript::process-html-forms-lhtml (read-from-string (descr vac)))))
       (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
         (tree-to-html
-         `(,(content-box ""
-                         (heading (name vac)
-                                   (salary-text vac)
-                                   (form ("chvacstateform" "")
-                                     (vac-attr-tbl (car (all-vacancy))))))
-            ,(content-box ""
-                          `("div" (("class" "vacancy-desc"))
-                                  ,(format nil "~{~A~}" text)))
-            ,(content-box ""
-                          (form ("tagform" nil :class "form-section-container")
-                            `("div" (("class" "form-section"))
-                                     ,(fieldset "Тэги"
-                                               (textarea ("tags" "Тэги") (tags vac))
-                                               (ps-html ((:span :class "clear"))))
-                                     )))
-            ,(content-box ""
-                          (form ("vacform" nil :class "form-section-container")
-                            `("div" (("class" "form-section"))
-                                    ,(fieldset "Заметки"
-                                               (textarea ("notes" "Заметки") (notes vac))
-                                               (textarea ("response" "Сопроводительное письмо") (response vac))
-                                               (ps-html ((:span :class "clear"))))
-                                    %RESPOND% %SAVE%)))
-            ;; )
-            ))
-        ;; (content-box ()
-        ;;   (form ("vacform" nil :class "form-section-container")
-        ;;     ((:div :class "form-section")
-        ;;      (fieldset "Заметки"
-        ;;        (textarea ("notes" "Заметки") (notes vac))
-        ;;        (textarea ("response" "Сопроводительное письмо") (response vac))
-        ;;        (ps-html ((:span :class "clear")))))
-        ;;     %RESPOND% %SAVE%))
-        (ps-html ((:span :class "clear"))))))
-  (:chstate (ps-html ((:div :class "form-send-container")
-                      (submit "Изменить" :name "act" :value "CHSTATE")))
+         `(,(content-box
+             (heading (name vac)
+               (salary-text vac)
+               (form ("chvacstateform" "")
+                 (vac-attr-tbl (car (all-vacancy))))))
+            ,(content-box
+              `("div" (("class" "vacancy-desc"))
+                      ,(format nil "~{~A~}" text)))
+            ,(content-box
+              (form ("tagform" nil :class "form-section-container")
+                `("div" (("class" "form-section"))
+                        ,(fieldset "Тэги"
+                                   (textarea "tags" "Тэги" (tags vac))
+                                   (ps-html ((:span :class "clear")))))))
+            ,(content-box
+              (form ("vacform" nil :class "form-section-container")
+                `("div" (("class" "form-section"))
+                        ,(fieldset "Заметки"
+                                   (textarea "notes" "Заметки" (notes vac))
+                                   (textarea "response" "Сопроводительное письмо" (response vac))
+                                   (ps-html ((:span :class "clear"))))
+                        ,(tree-to-html %RESPOND%)
+                        ,(tree-to-html %SAVE%))))
+            (ps-html ((:span :class "clear"))))))))
+  (:chstate (tree-to-html `(("div" (("class" "form-send-container"))
+                                   ,(submit "Изменить" :name "act" :value "CHSTATE"))))
             (progn
               ;; (id (upd-vacancy (car (find-vacancy :src-id src-id))
               ;;                  (list :notes (getf p :notes) :response (getf p :response))))
@@ -549,21 +507,20 @@
                     (intern (getf p :newstate) :keyword))
               (redirect (format nil "/hh/vac/~A" src-id))
               ))
-  (:save (ps-html ((:div :class "form-send-container")
-                   (submit "Сохранить вакансию" :name "act" :value "SAVE")))
+  (:save `(("div" (("class" "form-send-container")))
+           ,(submit "Сохранить вакансию" :name "act" :value "SAVE"))
          (progn
            (id (upd-vacancy (car (find-vacancy :src-id src-id))
                             (list :notes (getf p :notes) :response (getf p :response))))
            (redirect (format nil "/hh/vac/~A" src-id))))
-  (:respond (ps-html
-             ((:div :class "form-send-container")
-              (eval
-               (macroexpand
-                (append '(select ("resume" "Выбрать резюме для отправки отклика:"))
-                        (list
-                         (mapcar #'(lambda (x) (cons (id x) (title x)))
-                                 (sort (all-resume) #'(lambda (a b) (< (id a) (id b)))))))))
-              (submit "Отправить отклик" :name "act" :value "RESPOND")))
+  (:respond `(("div" (("class" "form-send-container"))
+                     ,(eval
+                       (macroexpand
+                        (append '(select ("resume" "Выбрать резюме для отправки отклика:"))
+                                (list
+                                 (mapcar #'(lambda (x) (cons (id x) (title x)))
+                                         (sort (all-resume) #'(lambda (a b) (< (id a) (id b)))))))))
+                     ,(submit "Отправить отклик" :name "act" :value "RESPOND")))
             (progn
               (id (upd-vacancy (car (find-vacancy :src-id src-id))
                                (list :notes (getf p :notes) :response (getf p :response))))
