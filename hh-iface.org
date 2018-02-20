@@ -695,7 +695,7 @@ https://romka.eu/blog/jquery-table-drag-and-drop
                        ,(eval
                          (macroexpand
                           (append '(select ("resume" "Выбрать резюме для отправки отклика:"))
-                                  (list
+                                  (list   ;
                                    (mapcar #'(lambda (x) (cons (id x) (title x)))
                                            (sort (all-resume) #'(lambda (a b) (< (id a) (id b)))))))))
                        ,(submit "Отправить отклик" :name "act" :value "RESPOND")))

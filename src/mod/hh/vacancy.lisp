@@ -1273,7 +1273,7 @@
                        (progn
                          (dbg "[~A]" (bprint vacancy))
                          ;; error if malformed plist
-                         (error 'malformed-vacancy :text))
+                         (error 'malformed-vacancy :text "malf-vac"))
                        ;; else
                        (compactor vacancy)
                        ;; vacancy
