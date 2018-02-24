@@ -583,6 +583,7 @@
          (transform-employer-anon)
          (transform-career)
          (transform-metro)
+         (transform-metro-empty)
          (transform-address)
          (transform-meta-info)
          (transform-insider-teaser)
@@ -605,6 +606,7 @@
          (transform-vacancy-serp)
          (car)
          (remove-if #'advertp)
+         (transform-reform-meta-info)
          ;; (mapcar #'(lambda (vacancy)
          ;;             (if (not (tree-plist-p vacancy))
          ;;                 (progn
@@ -1025,6 +1027,10 @@ html-кода, относящегося к разметке. Из-за этог�
     (`("metro-station" NIL ("metro-point" (("style" ,color))) ,metro)
       `(:metro ,metro :color ,color)))
 
+  (make-transform (metro-empty)
+    (`("metro-station" NIL ("metro-point" (("style" ,color))))
+      `(:garbage "metro-empty")))
+
   (make-transform (address)
     (`("vacancy-serp__vacancy-address" NIL ,address ,@rest)
       `((:addres ,address) ,@rest)))
@@ -1106,6 +1112,18 @@ html-кода, относящегося к разметке. Из-за этог�
   (make-transform (vacancy-serp)
     (`("vacancy-serp" NIL ,@rest)
       rest))
+
+  ;; reforming
+
+  (make-transform (reform-meta-info)
+    (`(:META-INFO ,@rest)
+      `(:meta-info ,(->> (car rest)
+                         (mapcar #'(lambda (x)
+                                     (if (not (listp x))
+                                         `(:garbage "и еще metro")
+                                         x)))
+                         (remove-if (lambda (x)
+                                      (equal (car x) :garbage)))))))
 #+END_SRC
 
 *** Plistp
