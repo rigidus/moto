@@ -918,103 +918,95 @@
 (make-transform (responder)
   (`("vacancy-serp__vacancy_responded"
      (("href" ,_)) "Вы откликнулись")
-    `(:teaser (:status "responded"))))
+    `(:status "responded")))
 
 (make-transform (rejecter)
   (`("vacancy-serp__vacancy_rejected"
-     (("href" "/negotiations/gotopic?vacancy_id=20255184")) "Вам отказали")
-    `(:teaser (:status "rejected"))))
+     (("href" ,_)) "Вам отказали")
+    `(:status "rejected")))
 
-(make-transform (title)
+(make-transform (vacancy-title)
   (`("vacancy-serp__vacancy-title"
       (("href" ,href) ,@rest)
       ,title)
     (if (search "hhcdn.ru" href)
-        `(:teaser (:href ,href :name ,title :archived nil))
+        `(:href ,href :name ,title :archived nil)
         (let ((id (parse-integer (car (last (split-sequence:split-sequence #\/ href))))))
-          `(:teaser (:id ,id :href ,href :name ,title :archived nil))))))
-
-;; not tested
-(make-transform (or-title-archived)
-  (`(,_
-     NIL
-     ("vacancy-serp__vacancy-title"
-      (("href" ,href) ,@rest)
-      ,title)
-     " ("
-     ("strong" (("data-qa" "vacancy-serp__vacancy_archived"))
-               "Вакансия была перенесена в архив")
-     ")")
-    `(:teaser (:id ,(parse-integer (car (last (split-sequence:split-sequence #\/ href))))
-                   :href ,href
-                   :name ,title
-                   :archived t))))
+          `(:id ,id :href ,href :name ,title :archived nil)))))
 
 (make-transform (schedule)
   (`("vacancy-serp__vacancy-work-schedule"
      NIL ,schedule)
-    `(:teaser-conditions (:schedule ,schedule))))
+    `(:schedule ,schedule)))
 
 (make-transform (responsibility)
   (`("vacancy-serp__vacancy_snippet_responsibility"
      NIL
      ,responsibility)
-    `(:teaser-descr (:responsibility ,responsibility))))
+    `(:responsibility ,responsibility)))
 
 (make-transform (requirement)
   (`("vacancy-serp__vacancy_snippet_requirement"
      NIL
      ,requirement)
-    `(:teaser-descr (:requirement ,requirement))))
+    `(:requirement ,requirement)))
 
 (make-transform (insider-teaser)
   (`("vacancy-serp__vacancy-interview-insider"
      (("href" ,insider))
      "Посмотреть интервью о жизни в компании")
-    `(:teaser-descr (:insider ,insider))))
+    `(:insider ,insider)))
 
-(make-transform (company)
+(make-transform (serp-item-info)
+  (`("vacancy-serp-item__info" NIL ,@rest)
+    `(:item-info ,@rest)))
+
+(make-transform (serp-item-row)
+  (`("vacancy-serp-item__row" NIL ,@rest)
+    `(:row ,@rest)))
+
+(make-transform (employer)
   (`(,container
      NIL
      ("vacancy-serp__vacancy-employer"
       (("href" ,href))
       ,emp-name)
      ,@rest)
-    `(:teaser-emp
-      (:emp-name ,emp-name
-                 :href ,href
-                 :emp-id ,(parse-integer
-                           (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t)))))
+    `(:emp-name ,emp-name :emp-href ,href
+                :emp-id ,(parse-integer
+                          (car (last (split-sequence:split-sequence #\/ href))) :junk-allowed t))))
 
-(make-transform (company-anon)
+(make-transform (employer-anon)
   (`("search-result-item__company"
      NIL
      ,anon
      ("bloko-link" (("href" ,_))
                    ("bloko-icon bloko-icon_done bloko-icon_initial-action" NIL)))
-    `(:teaser-emp (:emp-name ,anon :anon t))))
+    `(:emp-name ,anon :anon t)))
 
-(make-transform (addr-and-date)
-  (`(,container
-     NIL
-     ("vacancy-serp__vacancy-address" NIL ,address ,@restaddr) "  •  "
-     ("vacancy-serp__vacancy-date" NIL ,date) ,@rest)
-    `(:teaser-emp (:addr ,address)
-                  :teaser (:date ,date))))
+(make-transform (date)
+  (`("vacancy-serp__vacancy-date" NIL ("vacancy-serp-item__publication-date" NIL ,date))
+    `(:date ,date)))
 
+(make-transform (career)
+  (`("vacancy-serp__vacancy_career" NIL "  •  CAREER.RU")
+    `(:garbage "career")))
+
+(make-transform (metro)
+  (`("metro-station" NIL ("metro-point" (("style" ,color))) ,metro)
+    `(:metro ,metro :color ,color)))
+
+(make-transform (metro-empty)
+  (`("metro-station" NIL ("metro-point" (("style" ,color))))
+    `(:garbage "metro-empty")))
+
+(make-transform (address)
+  (`("vacancy-serp__vacancy-address" NIL ,address ,@rest)
+    `((:address ,address) ,@rest)))
 
 (make-transform (meta-info)
-  (`("vacancy-serp-item__meta-info"
-     NIL
-     ("vacancy-serp__vacancy-address"
-      NIL ,address ("br" NIL)
-      ,@metro
-      ;; ("metro-station" NIL ("metro-point" (("style" "color: #0078C9"))) "Горьковская")
-      ;; " и еще 1 "
-      ;; ("metro-station" NIL ("metro-point" (("style" "color: #702785"))))
-      ))
-    `(:teaser-emp (:addr ,address))))
-
+  (`("vacancy-serp-item__meta-info" NIL ,@rest)
+    `(:meta-info ,@rest)))
 
 (make-transform (compensation)
   (`("vacancy-serp__vacancy-compensation"
@@ -1034,134 +1026,78 @@
             (setf salary-min salary-max))
           (when (null salary-max)
             (setf salary-max salary-min))
-          `(:teaser-compensation (:currency ,currency
-                                            :salary ,(parse-integer salary)
-                                            :salary-text ,salary-text
-                                            :salary-min ,salary-min
-                                            :salary-max ,salary-max)))))))
+          `(:currency ,currency
+                      :salary ,(parse-integer salary)
+                      :salary-text ,salary-text
+                      :salary-min ,salary-min
+                      :salary-max ,salary-max))))))
 
-;; not tested
-(make-transform (script-in-teaser)
-  (`("script" NIL ,contents)
-    `(:garbage (:script ,contents))))
+(make-transform (logo)
+  (`("vacancy-serp__vacancy-employer-logo"
+     (("href" ,_))
+     ("img"
+      (("src" ,logo)
+       ("alt" ,_)
+       ("class" "vacancy-serp-item__logo"))))
+    `(:logo ,logo)))
 
-(make-transform (teaser-descr-item-primary)
-  (`(,_
-     NIL
-     ,_
-     ("search-result-description"
-      NIL
-      "search-result-description__item"
-      ("search-result-description__item search-result-description__item_primary"
-       NIL
-       ,@contents)
-      ,@rest))
-    contents))
+(make-transform (item-sidebar-separator)
+  ((or `("vacancy-serp-item__sidebar" NIL)
+       `("vacancy-serp-item__sidebar" NIL " "))
+    `(:garbage "sidebar-separator")))
 
-(make-transform (serp-primary)
-  (`("search-result-description__item search-result-description__item_primary"
-     NIL ,@rest)
-    rest))
-
-(make-transform (serp-descr)
-  (`("search-result-description"
-     NIL
-     ,contents
-     ,@rest)
-    contents))
-
-(make-transform (serp-item-row)
-  (`("vacancy-serp-item__row"
-     NIL
-     ,contents
-     ,@rest)
-    contents))
+(make-transform (item-sidebar)
+  (`("vacancy-serp-item__sidebar" NIL ,@rest)
+    `(:item-sidebar ,@rest)))
 
 (make-transform (serp-item-title)
-  (`("vacancy-serp-item__title"
-     NIL
-     ,contents)
-    contents))
+  (`("vacancy-serp-item__title" NIL ,contents)
+    `(:item-title ,contents)))
 
-(make-transform (serp-item-info)
-  (`("vacancy-serp-item__info"
-     NIL
-     ,@rest)
-    ;; (mapcan #'identity rest)
-    `(:info ,@rest)
-    ))
+(make-transform (controls-item)
+  (`("vacancy-serp-item__controls-item" NIL ,@rest)
+    `(:garbage "controls-item")))
 
-(make-transform (serp-item-meta-info-addr)
-  (`("vacancy-serp-item__meta-info"
-     NIL
-     ,@rest)
-    `(:garbage (:meta "info"))))
+(make-transform (controls-last)
+  (`("vacancy-serp-item__controls-item vacancy-serp-item__controls-item_last" NIL ,@rest)
+    `(:garbage "controls-last")))
 
-;; not tested
-(make-transform (serp-premium)
-  (`("vacancy-serp__vacancy vacancy-serp__vacancy_premium"
-     NIL
-     (:TEASER (:STATUS "responded"))
-     ,contents)
-    contents))
-
-(make-transform (serp-vacancy)
-  (`("vacancy-serp__vacancy"
-     NIL (:TEASER (:STATUS "responded"))
-     ,contents)
-    contents))
-
-;; not tested
-(make-transform (respond-topic)
-  (`("g-attention m-attention_good b-vacancy-message"
-     NIL
-     "Вы уже откликались на эту вакансию. "
-     ("a" (("href" ,topic))
-          "Посмотреть отклики."))
-    `(:respond (:respond-topic ,topic))))
-
-(make-transform (controls-vacancy-id)
-  (`("HH-VacancyResponseTrigger-Button"
-     NIL
-     ("vacancy-serp-item__controls-item"
-      NIL
-      ("vacancy-serp__vacancy_response"
-       (("href" ,href))
-       "Откликнуться")))
-    (let* ((vac-id-str (replace-all href "/applicant/vacancy_response?vacancyId=" ""))
-           (vac-id     (parse-integer vac-id-str)))
-      (if (numberp vac-id)
-          `(:teaser (:id ,vac-id))
-          (err "zzz")))))
+(make-transform (trigger-button)
+  (`("HH-VacancyResponseTrigger-Button" NIL ,@rest)
+    `(:garbage "trigger-button")))
 
 (make-transform (row-controls)
-  (`("vacancy-serp-item__row vacancy-serp-item__row_controls"
-     NIL
-     ,teaser-id
-     ,@rest)
-    teaser-id))
+  (`("vacancy-serp-item__row vacancy-serp-item__row_controls" NIL ,@rest)
+    `(:row-controls ,@rest)))
 
-(make-transform (teaser-controls)
-  (`("vacancy-serp-item-controls" NIL ,@rest)
-    `(:garbage (:controls ""))))
+(make-transform (serp-premium)
+  (`("vacancy-serp__vacancy vacancy-serp__vacancy_premium" NIL ,@rest)
+    `(:premium ,@rest)))
 
-(make-transform (teaser-controls-item)
-  (`("vacancy-serp-item__controls-item" NIL ,@rest)
-    `(:garbage (:controls-item ""))))
-
-
-(make-transform (teaser-advert)
-  (`("new-vacancy-search-widget" ,@rest)
-    `((:garbage (:advert "")))))
-
-(make-transform (mapcan-info)
-  (`(:INFO ,@rest)
-    (mapcan #'identity rest)))
+(make-transform (serp-vacancy)
+  (`("vacancy-serp__vacancy" NIL ,@rest)
+    `(:vacancy ,@rest)))
 
 (make-transform (special)
   ((or `("vacancy-serp-special vacancy-serp-special_wide" NIL)
        `("vacancy-serp-special vacancy-serp-special_medium" NIL))
-    `((:garbage (:advert "")))))
+   `(:garbage "advert")))
+
+(make-transform (vacancy-serp)
+  (`("vacancy-serp" NIL ,@rest)
+    rest))
+
+;; reforming
+
+(make-transform (reform-meta-info)
+  (`(:META-INFO ,@rest)
+    `(:meta-info ,@(->> (car rest)
+                        (mapcar #'(lambda (x)
+                                    (if (not (listp x))
+                                        `(:garbage "и еще metro")
+                                        x)))
+                        (remove-if (lambda (x)
+                                     (equal (car x) :garbage)))))))
 
 (in-package #:moto)
 
@@ -1226,8 +1162,25 @@
 
 (defparameter *last-parse-data* nil)
 
+(defun linearize-vacancy (vacancy)
+  (cond ((not (listp vacancy))
+         (err (format nil "Wrong vacancy: ~A" vacancy)))
+        ((not (keywordp (car vacancy)))
+         (mapcar #'linearize-vacancy (cdr vacancy)))
+        ((member (car vacancy)
+                 '(:status :date :garbage :id :href :emp-name :address :metro :currency
+                   :responsibility :requirement :logo :schedule :insider))
+         vacancy)
+        ((member (car vacancy)
+                 '(:premium :vacancy :row-controls :row :item-info :item-title :meta-info
+                   :item-sidebar))
+         (mapcan #'linearize-vacancy (remove-if #'(lambda (x)
+                                                    (equal (car x) :garbage))
+                                                (cdr vacancy))))
+        (t (err (format nil "Unknown vacancy key: ~A" (car vacancy))))))
+
 (defun advertp (teaser)
-  (equal teaser '((:GARBAGE (:ADVERT "")))))
+  (equal teaser '(:GARBAGE "advert")))
 
 (defun hh-parse-vacancy-teasers (html)
   "Получение списка вакансий из html"
@@ -1238,49 +1191,52 @@
        (maptreefilter)
        (transform-responder)
        (transform-rejecter)
-       (transform-title)
-       ;;;\ (transform-or-title-archived)
+       (transform-vacancy-title)
+       (transform-serp-item-title)
        (transform-schedule)
+       (transform-employer)
+       (transform-employer-anon)
+       (transform-career)
+       (transform-metro)
+       (transform-metro-empty)
+       (transform-address)
+       (transform-meta-info)
+       (transform-insider-teaser)
        (transform-responsibility)
        (transform-requirement)
-       (transform-insider-teaser)
-       (transform-company)
-       (transform-company-anon)
-       (transform-addr-and-date)
-       (transform-meta-info)
-       (transform-compensation)
-       ;;;\ (transform-script-in-teaser)
-       (transform-teaser-descr-item-primary)
-       (transform-serp-primary)
-       (transform-serp-descr)
-       (transform-serp-item-row)
-       (transform-serp-item-title)
-       (transform-serp-item-meta-info-addr)
        (transform-serp-item-info)
+       (transform-compensation)
+       (transform-logo)
+       (transform-item-sidebar-separator)
+       (transform-item-sidebar)
+       (transform-item-sidebar) ;; sidebar in sidebar
+       (transform-serp-item-row)
+       (transform-controls-item)
+       (transform-date)
+       (transform-controls-last)
+       (transform-trigger-button)
+       (transform-row-controls)
        (transform-serp-premium)
        (transform-serp-vacancy)
-       (transform-controls-vacancy-id)
-       (transform-row-controls)
-       (transform-teaser-controls)
-       (transform-teaser-controls-item)
-       (transform-teaser-advert)
        (transform-special)
-       (transform-mapcan-info)
-       (cddar)
+       (transform-vacancy-serp)
+       (car)
        (remove-if #'advertp)
-       (mapcar #'(lambda (vacancy)
-                   (if (not (tree-plist-p vacancy))
-                       (progn
-                         (dbg "[~A]" (bprint vacancy))
-                         ;; error if malformed plist
-                         (error 'malformed-vacancy :text "malf-vac"))
-                       ;; else
-                       (compactor vacancy)
-                       ;; vacancy
-                       )))
+       (transform-reform-meta-info)
+       (mapcar #'linearize-vacancy)
+       ;; (mapcar #'(lambda (vacancy)
+       ;;             (if (not (tree-plist-p vacancy))
+       ;;                 (progn
+       ;;                   (dbg "[~A]" (bprint vacancy))
+       ;;                   ;; error if malformed plist
+       ;;                   (error 'malformed-vacancy :text "malf-vac"))
+       ;;                 ;; else
+       ;;                 (compactor vacancy)
+       ;;                 ;; vacancy
+       ;;                 )))
        ))
 
-;; (print (hh-parse-vacancy-teasers *last-parse-data*))
+(print (hh-parse-vacancy-teasers *last-parse-data*))
 
 ;; (print *last-parse-data*)
 

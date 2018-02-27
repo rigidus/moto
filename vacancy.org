@@ -55,14 +55,11 @@
     ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
     (defmethod process-teaser (current-teaser src-account referer)
       (dbg ":process-teaser:")
-      (let* ((vac-plist (plistp current-teaser))
-             ;; (none (print vac-plist))
-             (vac-id (if vac-plist
-                         (getf (getf current-teaser :teaser) :id)
-                         (getf (getf (car current-teaser) :vacancy) :id)))
-             (vacancy-page (format nil "https://spb.hh.ru/vacancy/~A" vac-id)))
+      (unless (getf current-teaser :src-id)
+        (return-from process-teaser nil))
+      (let ((vac-uri (format nil "https://spb.hh.ru/vacancy/~A" (getf current-teaser :src-id))))
         (multiple-value-bind (vacancy new-cookies ref-url)
-            (hh-get-page vacancy-page cookie-jar src-account referer)
+            (hh-get-page vac-uri cookie-jar src-account referer)
           (setf cookie-jar new-cookies)
           (restart-case
               (aif (hh-parse-vacancy vacancy)
@@ -570,7 +567,7 @@
           ((not (keywordp (car vacancy)))
            (mapcar #'linearize-vacancy (cdr vacancy)))
           ((member (car vacancy)
-                   '(:status :date :garbage :id :href :emp-name :address :metro :currency
+                   '(:status :date :garbage :src-id :href :emp-name :address :metro :currency
                      :responsibility :requirement :logo :schedule :insider))
            vacancy)
           ((member (car vacancy)
@@ -982,7 +979,7 @@ html-кода, относящегося к разметке. Из-за этог�
       (if (search "hhcdn.ru" href)
           `(:href ,href :name ,title :archived nil)
           (let ((id (parse-integer (car (last (split-sequence:split-sequence #\/ href))))))
-            `(:id ,id :href ,href :name ,title :archived nil)))))
+            `(:src-id ,id :href ,href :name ,title :archived nil)))))
 
   (make-transform (schedule)
     (`("vacancy-serp__vacancy-work-schedule"
@@ -1141,13 +1138,15 @@ html-кода, относящегося к разметке. Из-за этог�
 
   (make-transform (reform-meta-info)
     (`(:META-INFO ,@rest)
-      `(:meta-info ,@(->> (car rest)
-                          (mapcar #'(lambda (x)
-                                      (if (not (listp x))
-                                          `(:garbage "и еще metro")
-                                          x)))
-                          (remove-if (lambda (x)
-                                       (equal (car x) :garbage)))))))
+      (if (not (listp (car rest)))
+          `(:garbage "bad-meta-info")
+          `(:meta-info ,@(->> (car rest)
+                              (mapcar #'(lambda (x)
+                                          (if (not (listp x))
+                                              `(:garbage "и еще metro")
+                                              x)))
+                              (remove-if (lambda (x)
+                                           (equal (car x) :garbage))))))))
 #+END_SRC
 
 *** Plistp
@@ -1383,17 +1382,19 @@ plist-деревом.
                           (extract-vacancy)
                           (maptreefilter)
                           (transform-script)
-                          (transform-vacancy-compensation)
+                          ;; (transform-vacancy-compensation)
                           (transform-longdescr)
-                          (transform-contacts-body)
-                          (transform-contacts-fio)
-                          (transform-contacts-list)
-                          (transform-contacts-tr)
-                          (transform-contacts-phone)
-                          (transform-contacts-mail)
-                          ;; (transform-date)
-                          ;; (transform-skill-element)
-                          ;; (transform-skills)
+
+                          ;; (transform-contacts-body)
+                          ;; (transform-contacts-fio)
+                          ;; (transform-contacts-list)
+                          ;; (transform-contacts-tr)
+                          ;; (transform-contacts-phone)
+                          ;; (transform-contacts-mail)
+
+                          ;; (transform-date) ;; Уже есть в тизерах!!!
+                          (transform-skill-element)
+                          (transform-skills)
                           ;; (transform-joblocation)
                           ))
            (vacancy `((:vacancy-place (:city  ,(extract-city candidat)))
@@ -1407,17 +1408,19 @@ plist-деревом.
                       ;; :compensation ,(extract-compensation candidat)
                       ;; :contacts ,(extract-contacts candidat))))
                       )))
-      (if (not (tree-plist-p vacancy))
-          (progn
-            (dbg "~A" (bprint vacancy))
-            (error 'malformed-vacancy :text))
-          (let* ((non-compacted-vacancy vacancy)
-                 (compacted-vacancy (compactor vacancy))
-                 )
-            ;; non-compacted-vacancy
-            compacted-vacancy
-            ))))
-
+      ;; (if (not (tree-plist-p vacancy))
+      ;;     (progn
+      ;;       (dbg "~A" (bprint vacancy))
+      ;;       (error 'malformed-vacancy :text))
+      ;;     (let* ((non-compacted-vacancy vacancy)
+      ;;            (compacted-vacancy (compactor vacancy))
+      ;;            )
+      ;;       ;; non-compacted-vacancy
+      ;;       compacted-vacancy
+      ;;       ))
+      candidat
+      ;; vacancy
+      ))
 
   ;; (print (hh-parse-vacancy *last-parse-data*))
 #+END_SRC
@@ -1503,15 +1506,42 @@ plist-деревом.
 #+BEGIN_SRC lisp
   (in-package #:moto)
 
+  (make-transform (script)
+    (`("script" (("data-name" ,name) ("data-params" ,_)))
+      `(:garbage "script")))
+
+  (make-transform (vacancy-compensation)
+    (`("vacancy-serp__vacancy-compensation"
+       NIL
+       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
+       ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
+       ,salary-text)
+      (let ((currency currency)
+            (salary-text (ppcre:regex-replace-all " " salary-text ""))
+            (salary-min nil)
+            (salary-max nil))
+        (multiple-value-bind (currency salary-text)
+            (parse-salary-currency salary-text currency)
+          (multiple-value-bind (salary-min salary-max comment)
+              (parse-salary-text salary-text)
+            (when (null salary-min)
+              (setf salary-min salary-max))
+            (when (null salary-max)
+              (setf salary-max salary-min))
+            `(:COMPENSATION
+              (:currency ,currency
+               :salary ,(parse-integer salary)
+               :salary-text ,salary-text
+               :salary-min ,salary-min
+               :salary-max ,salary-max
+               :salary-comment ,comment)))))))
+
   (make-transform (longdescr)
-    (`("b-vacancy-desc-wrapper"
+    (`("vacancy-description"
        (("itemprop" "description"))
        ,@descr)
       `(:long-descr ,(transform-description descr))))
 
-  (make-transform (script)
-    (`("script" (("data-name" ,name) ("data-params" ,_)))
-      `(:empty (:script ,name))))
 
   (make-transform (contacts-body)
     (`("vacancy-contacts__body"
@@ -1555,19 +1585,20 @@ plist-деревом.
        ("tbody" NIL ,@rest))
       `(:contacts-list ,rest)))
 
-  (make-transform (date)
-    (`("l-content-paddings"
-       NIL
-       ("vacancy-sidebar"
-        NIL
-        "Дата публикации вакансии "
-        ("time"
-         (("class" "vacancy-sidebar__publication-date")
-          ("itemprop" "datePosted")
-          ("datetime" ,datetime))
-         ,date-text))
-       ,@_)
-      `(:datetime ,datetime :date-text ,date-text :disabled nil)))
+  ;;;; NB: Уже есть такой для преобразования тизеров!!!
+  ;; (make-transform (date)
+  ;;   (`("l-content-paddings"
+  ;;      NIL
+  ;;      ("vacancy-sidebar"
+  ;;       NIL
+  ;;       "Дата публикации вакансии "
+  ;;       ("time"
+  ;;        (("class" "vacancy-sidebar__publication-date")
+  ;;         ("itemprop" "datePosted")
+  ;;         ("datetime" ,datetime))
+  ;;        ,date-text))
+  ;;      ,@_)
+  ;;     `(:datetime ,datetime :date-text ,date-text :disabled nil)))
 
   (make-transform (skill-element)
     (`("skills-element"
@@ -1593,32 +1624,7 @@ plist-деревом.
       `(:vacancy-address (:location ,name :addresslocality ,addresslocality))))
 
 
-  (make-transform (vacancy-compensation)
-    (`("vacancy-compensation"
-       NIL
-       ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
-       ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
-       ,salary-text)
-      (let ((currency currency)
-            (salary-text (ppcre:regex-replace-all " " salary-text ""))
-            (salary-min nil)
-            (salary-max nil))
-        (multiple-value-bind (currency salary-text)
-            (parse-salary-currency salary-text currency)
-          (multiple-value-bind (salary-min salary-max comment)
-              (parse-salary-text salary-text)
-            (when (null salary-min)
-              (setf salary-min salary-max))
-            (when (null salary-max)
-              (setf salary-max salary-min))
-            `("vacancy-compensation"
-              NIL
-              (:currency ,currency
-                         :salary ,(parse-integer salary)
-                         :salary-text ,salary-text
-                         :salary-min ,salary-min
-                         :salary-max ,salary-max
-                         :salary-comment ,comment)))))))
+
 
 #+END_SRC
 
@@ -2113,8 +2119,6 @@ plist-деревом.
       (get-output-stream-string output)))
 
   (defmethod show-vacancy (vacancy)
-    ;; (format t "~%")
-    ;; (format t (bprint vacancy))           ;
     ;; (loop :for section-key :in vacancy by #'cddr  :do
     ;;    (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
     ;; (format t "~%~A :~A: ~A [~A]"
@@ -2137,7 +2141,7 @@ plist-деревом.
 
   (define-rule (z-save t)
     (dbg "rule:Z-SAVE (save-vacancy)")
-    (save-vacancy vacancy)
+    ;; (save-vacancy vacancy)
     :stop)
 #+END_SRC
 
