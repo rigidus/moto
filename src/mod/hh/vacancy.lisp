@@ -248,8 +248,7 @@
     (get-output-stream-string output)))
 
 (defmethod show-vacancy (vacancy)
-  ;; (format t "~%")
-  ;; (format t (bprint vacancy))           ;
+  (format t "~%~A" (bprint vacancy))
   ;; (loop :for section-key :in vacancy by #'cddr  :do
   ;;    (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
   ;; (format t "~%~A :~A: ~A [~A]"
@@ -323,7 +322,7 @@
 
 (define-rule (z-save t)
   (dbg "rule:Z-SAVE (save-vacancy)")
-  (save-vacancy vacancy)
+  ;; (save-vacancy vacancy)
   :stop)
 
 (in-package #:moto)
@@ -932,7 +931,7 @@
     (if (search "hhcdn.ru" href)
         `(:href ,href :name ,title :archived nil)
         (let ((id (parse-integer (car (last (split-sequence:split-sequence #\/ href))))))
-          `(:id ,id :href ,href :name ,title :archived nil)))))
+          `(:src-id ,id :href ,href :name ,title :archived nil)))))
 
 (make-transform (schedule)
   (`("vacancy-serp__vacancy-work-schedule"
@@ -1091,13 +1090,15 @@
 
 (make-transform (reform-meta-info)
   (`(:META-INFO ,@rest)
-    `(:meta-info ,@(->> (car rest)
-                        (mapcar #'(lambda (x)
-                                    (if (not (listp x))
-                                        `(:garbage "и еще metro")
-                                        x)))
-                        (remove-if (lambda (x)
-                                     (equal (car x) :garbage)))))))
+    (if (not (listp (car rest)))
+        `(:garbage "bad-meta-info")
+        `(:meta-info ,@(->> (car rest)
+                            (mapcar #'(lambda (x)
+                                        (if (not (listp x))
+                                            `(:garbage "и еще metro")
+                                            x)))
+                            (remove-if (lambda (x)
+                                         (equal (car x) :garbage))))))))
 
 (in-package #:moto)
 
@@ -1162,13 +1163,13 @@
 
 (defparameter *last-parse-data* nil)
 
-(defun linearize-vacancy (vacancy)
+(defun linearize-teaser (vacancy)
   (cond ((not (listp vacancy))
          (err (format nil "Wrong vacancy: ~A" vacancy)))
         ((not (keywordp (car vacancy)))
          (mapcar #'linearize-vacancy (cdr vacancy)))
         ((member (car vacancy)
-                 '(:status :date :garbage :id :href :emp-name :address :metro :currency
+                 '(:status :date :garbage :src-id :href :emp-name :address :metro :currency
                    :responsibility :requirement :logo :schedule :insider))
          vacancy)
         ((member (car vacancy)
@@ -1223,7 +1224,7 @@
        (car)
        (remove-if #'advertp)
        (transform-reform-meta-info)
-       (mapcar #'linearize-vacancy)
+       (mapcar #'linearize-teaser)
        ;; (mapcar #'(lambda (vacancy)
        ;;             (if (not (tree-plist-p vacancy))
        ;;                 (progn
@@ -1274,137 +1275,74 @@
   `("div" (("itemscope" "itemscope") ("itemtype" "http://schema.org/JobPosting")) ,@rest))
 
 (make-extract (url url)
-  `("meta" (("itemprop" "url") ("content" ,url))))
+  `(:url ,url))
 
 (make-extract (title title)
-  `("h1" (("class" "header") ("data-qa" "vacancy-title")) ,title))
+  `(:title ,title))
 
-(make-extract (company `(:emp-name ,name :emp-href ,href))
-  `("a" (("itemprop" "hiringOrganization") ("href" ,href)) ,name))
+(make-extract (company `(:company-name ,name :company-href ,href))
+  `(:company-name ,name :company-href ,href))
 
 (make-extract (compensation compensation)
-  `("vacancy-compensation" NIL ,compensation))
+  `(:compensation ,compensation))
 
-(make-extract (compensation rest)
-  `("vacancy-compensation" NIL ,@rest))
-
-(make-extract (city city)
-  `("vacancy-region" NIL ,city ,@rest))
-
-(make-extract (metro metro)
-  `("metro-station" NIL ,_ ,metro))
+;; (make-extract (metro metro)
+;;   `("metro-station" NIL ,_ ,metro))
 
 (make-extract (exp exp)
-  `("vacancy-experience" (("itemprop" "experienceRequirements")) ,exp))
+  `(:exp ,exp))
 
 (make-extract (descr rest)
-  `("vacancy-description" NIL ,@rest))
+  `(:long-descr ,@rest))
 
 (make-extract (jobtype `(:emptype ,emptype :workhours ,workhours))
-  `("b-vacancy-employmentmode"
-    NIL
-    ("h3" (("class" "b-subtitle")) "Тип занятости")
-    ("div" NIL ("span" (("itemprop" "employmentType")) ,emptype)
-           ", " ("span" (("itemprop" "workHours")) ,workhours))))
+  `(:emptype ,emptype :workhours ,workhours))
 
-(make-extract (contacts `(:fio ,fio :contacts ,rest))
-  `("vacancy-contacts__body" NIL (:FIO ,fio)
-                             (:CONTACTS-LIST ,@rest)))
+(make-extract (street-address street-address)
+  `(:street-address ,street-address))
+
+(make-extract (skills skills)
+  `(:skills ,skills))
+
+
+;; (make-extract (contacts `(:fio ,fio :contacts ,rest))
+;;   `("vacancy-contacts__body" NIL (:FIO ,fio)
+;;                              (:CONTACTS-LIST ,@rest)))
 
 (in-package #:moto)
 
-(make-transform (longdescr)
-  (`("b-vacancy-desc-wrapper"
-     (("itemprop" "description"))
-     ,@descr)
-    `(:long-descr ,(transform-description descr))))
-
 (make-transform (script)
   (`("script" (("data-name" ,name) ("data-params" ,_)))
-    `(:empty (:script ,name))))
+    `(:garbage "script")))
 
-(make-transform (contacts-body)
-  (`("vacancy-contacts__body"
-     NIL
-     ("l-content-paddings" NIL ,@rest))
-    `(:contacts ,@rest)))
+(make-transform (noprint)
+  (`("vacancy-noprint" NIL ,_)
+    `(:garbage "noprint")))
 
-(make-transform (contacts-fio)
-  (`("vacancy-contacts__fio" NIL ,fio)
-    `(:fio ,fio)))
+(make-transform (black-list)
+  (`("vacancy-serp-item__controls-item" NIL ,@rest)
+    `(:garbage "black-list")))
 
-(make-transform (contacts-list)
-  (`("vacancy-contacts__list"
-     NIL
-     ("tbody" NIL ,@rest))
-    `(:contacts-list ,rest)))
+(make-transform (related)
+  (`("vacancy-view-vacancies-from-search" NIL ,@rest)
+    `(:garbage "related")))
 
-(make-transform (contacts-tr)
-  (`("tr" NIL
-          ("vacancy-contacts__list-title" NIL ,_)
-          ("td" NIL ,@contacts-data))
-    `(:contacts-tr ,contacts-data)))
+(make-transform (url)
+  (`("meta" (("itemprop" "url") ("content" ,url)))
+    `(:url ,url)))
 
-(make-transform (contacts-phone)
-  (`("vacancy-contacts__phone" NIL ,phone ,@rest)
-    `(:phone ,phone :phone-comment ,rest)))
+(make-transform (title)
+  (`("h1" (("class" "header") ("data-qa" "vacancy-title")) ,title)
+    `(:title ,title)))
 
-(make-transform (contacts-mail)
-  (`("vacancy-contacts__email" (("href" ,mail-link) ("rel" "nofollow")) ,email)
-    `(:mail-link ,mail-link :email ,email)))
-
-(make-transform (contacts-tr)
-  (`("tr" NIL
-          ("vacancy-contacts__list-title" NIL ,_)
-          ("td" NIL ,contacts-data))
-    `(:contacts-tr ,contacts-data)))
-
-(make-transform (contacts-list)
-  (`("vacancy-contacts__list"
-     NIL
-     ("tbody" NIL ,@rest))
-    `(:contacts-list ,rest)))
-
-(make-transform (date)
-  (`("l-content-paddings"
-     NIL
-     ("vacancy-sidebar"
-      NIL
-      "Дата публикации вакансии "
-      ("time"
-       (("class" "vacancy-sidebar__publication-date")
-        ("itemprop" "datePosted")
-        ("datetime" ,datetime))
-       ,date-text))
-     ,@_)
-    `(:datetime ,datetime :date-text ,date-text :disabled nil)))
-
-(make-transform (skill-element)
-  (`("skills-element"
-     (("data-tag-id" ,tag))
-     ("bloko-tag__section bloko-tag__section_text"
-      (("title" ,title))
-      ("bloko-tag__text" NIL ,tagtext)))
-    `(:skill (:tag ,tag :title ,title :tagtext ,tagtext))))
-
-(make-transform (skills)
-  (`("l-paddings" NIL ("h3" (("class" "b-subtitle")) "Ключевые навыки") ,@rest)
-    `(:vacancy-skills (:list-of-skilss ,(mapcar #'cadadr rest)))))
-
-(make-transform (joblocation)
-  (`("span"
-     (("itemprop" "jobLocation") ("itemscope" "itemscope")
-      ("itemtype" "http://schema.org/Place"))
-     ("meta" (("itemprop" "name") ("content" ,name)))
-     ("span"
-      (("itemprop" "address") ("itemscope" "itemscope")
-       ("itemtype" "http://schema.org/PostalAddress"))
-      ("meta" (("itemprop" "addressLocality") ("content" ,addresslocality)))))
-    `(:vacancy-address (:location ,name :addresslocality ,addresslocality))))
-
+(make-transform (company-name)
+  (`("vacancy-company-name"
+     (("itemprop" "hiringOrganization") ("href" ,company-href))
+     ,company-name)
+    `(:company-name ,company-name :company-href ,company-href)))
 
 (make-transform (vacancy-compensation)
-  (`("vacancy-compensation"
+  (`("vacancy-serp__vacancy-compensation"
      NIL
      ("meta" (("itemprop" "salaryCurrency") ("content" ,currency)))
      ("meta" (("itemprop" "baseSalary") ("content" ,salary)))
@@ -1421,15 +1359,95 @@
             (setf salary-min salary-max))
           (when (null salary-max)
             (setf salary-max salary-min))
-          `("vacancy-compensation"
-            NIL
+          `(:COMPENSATION
             (:currency ,currency
-                       :salary ,(parse-integer salary)
-                       :salary-text ,salary-text
-                       :salary-min ,salary-min
-                       :salary-max ,salary-max
-                       :salary-comment ,comment)))))))
+             :salary ,(parse-integer salary)
+             :salary-text ,salary-text
+             :salary-min ,salary-min
+             :salary-max ,salary-max
+             :salary-comment ,comment)))))))
 
+(make-transform (longdescr)
+  (`("vacancy-description"
+     (("itemprop" "description"))
+     ,@descr)
+    `(:long-descr ,(transform-description descr))))
+
+(make-transform (skill-element)
+  (`("skills-element"
+     (("data-tag-id" ,tag))
+     ("bloko-tag__section bloko-tag__section_text"
+      (("title" ,title))
+      ("bloko-tag__text" NIL ,tagtext)))
+    `(:skill (:tag ,tag :title ,title :tagtext ,tagtext))))
+
+(make-transform (skills)
+  (`("vacancy-section" NIL ("h2" (("class" "header header_level-2")) "Ключевые навыки") ,@rest)
+    `(:skills ,(mapcar #'cadadr rest))))
+
+(make-transform (street-address)
+  (`("meta"
+     (("itemprop" "streetAddress")
+      ("content" ,street-address)))
+    `(:street-address ,street-address)))
+
+(make-transform (exp)
+  (`("vacancy-experience" NIL ,exp)
+    `(:exp ,exp)))
+
+(make-transform (jobtype)
+  (`("p" (("data-qa" "vacancy-view-employment-mode"))
+         ("span" (("itemprop" "employmentType")) ,emptype) ", "
+         ("span" (("itemprop" "workHours")) ,workhours))
+    `(:emptype ,emptype :workhours ,workhours)))
+
+(make-transform (metro)
+  (`("metro-station" NIL ("metro-point" (("style" ,color))) ,metro)
+    `(:metro ,metro :color ,color)))
+
+;; contacts not tested
+
+;; (make-transform (contacts-body)
+;;   (`("vacancy-contacts__body"
+;;      NIL
+;;      ("l-content-paddings" NIL ,@rest))
+;;     `(:contacts ,@rest)))
+
+;; (make-transform (contacts-fio)
+;;   (`("vacancy-contacts__fio" NIL ,fio)
+;;     `(:fio ,fio)))
+
+;; (make-transform (contacts-list)
+;;   (`("vacancy-contacts__list"
+;;      NIL
+;;      ("tbody" NIL ,@rest))
+;;     `(:contacts-list ,rest)))
+
+;; (make-transform (contacts-tr)
+;;   (`("tr" NIL
+;;           ("vacancy-contacts__list-title" NIL ,_)
+;;           ("td" NIL ,@contacts-data))
+;;     `(:contacts-tr ,contacts-data)))
+
+;; (make-transform (contacts-phone)
+;;   (`("vacancy-contacts__phone" NIL ,phone ,@rest)
+;;     `(:phone ,phone :phone-comment ,rest)))
+
+;; (make-transform (contacts-mail)
+;;   (`("vacancy-contacts__email" (("href" ,mail-link) ("rel" "nofollow")) ,email)
+;;     `(:mail-link ,mail-link :email ,email)))
+
+;; (make-transform (contacts-tr)
+;;   (`("tr" NIL
+;;           ("vacancy-contacts__list-title" NIL ,_)
+;;           ("td" NIL ,contacts-data))
+;;     `(:contacts-tr ,contacts-data)))
+
+;; (make-transform (contacts-list)
+;;   (`("vacancy-contacts__list"
+;;      NIL
+;;      ("tbody" NIL ,@rest))
+;;     `(:contacts-list ,rest)))
 
 (defun hh-parse-vacancy (html)
   "Получение вакансии из html"
@@ -1440,41 +1458,53 @@
                         (extract-vacancy)
                         (maptreefilter)
                         (transform-script)
+                        (transform-noprint)
+                        (transform-black-list)
+                        (transform-related)
+                        (transform-url)
+                        (transform-title)
+                        (transform-company-name)
                         (transform-vacancy-compensation)
                         (transform-longdescr)
-                        (transform-contacts-body)
-                        (transform-contacts-fio)
-                        (transform-contacts-list)
-                        (transform-contacts-tr)
-                        (transform-contacts-phone)
-                        (transform-contacts-mail)
-                        ;; (transform-date)
-                        ;; (transform-skill-element)
-                        ;; (transform-skills)
-                        ;; (transform-joblocation)
+                        (transform-exp)
+                        (transform-jobtype)
+                        (transform-metro)
+                        ;; (transform-contacts-body)
+                        ;; (transform-contacts-fio)
+                        ;; (transform-contacts-list)
+                        ;; (transform-contacts-tr)
+                        ;; (transform-contacts-phone)
+                        ;; (transform-contacts-mail)
+                        (transform-skill-element)
+                        (transform-skills)
+                        (transform-street-address)
                         ))
-         (vacancy `((:vacancy-place (:city  ,(extract-city candidat)))
-                    (:vacancy-place (:metro ,(extract-metro candidat)))
-                    (:vacancy-exp   (:exp   ,(extract-exp candidat)))
-                    (:vacancy-descr (:descr ,(cadar (extract-descr candidat))))
-                    (:vacancy-jobtype ,(extract-jobtype candidat))
-                    ;; :url ,(extract-url candidat)
-                    ;; :title ,(extract-title candidat)
-                    ;; :company ,(extract-company candidat)
-                    ;; :compensation ,(extract-compensation candidat)
+         (vacancy `(:url ,(extract-url candidat)
+                    :title ,(extract-title candidat)
+                    :company ,(extract-company candidat)
+                    ;; :city  ,(extract-city candidat)
+                    ;; :metro ,(extract-metro candidat)
+                    :exp   ,(extract-exp candidat)
+                    ;; :long-descr ,(extract-descr candidat)
+                    :job-type ,(extract-jobtype candidat)
+                    :street-address ,(extract-street-address candidat)
+                    :skills ,(extract-skills candidat)
+                    :compensation ,(extract-compensation candidat)
                     ;; :contacts ,(extract-contacts candidat))))
                     )))
-    (if (not (tree-plist-p vacancy))
-        (progn
-          (dbg "~A" (bprint vacancy))
-          (error 'malformed-vacancy :text))
-        (let* ((non-compacted-vacancy vacancy)
-               (compacted-vacancy (compactor vacancy))
-               )
-          ;; non-compacted-vacancy
-          compacted-vacancy
-          ))))
-
+    ;; (if (not (tree-plist-p vacancy))
+    ;;     (progn
+    ;;       (dbg "~A" (bprint vacancy))
+    ;;       (error 'malformed-vacancy :text))
+    ;;     (let* ((non-compacted-vacancy vacancy)
+    ;;            (compacted-vacancy (compactor vacancy))
+    ;;            )
+    ;;       ;; non-compacted-vacancy
+    ;;       compacted-vacancy
+    ;;       ))
+    candidat
+    vacancy
+    ))
 
 ;; (print (hh-parse-vacancy *last-parse-data*))
 
@@ -1482,14 +1512,11 @@
   ;; ------- эта функция вызывается из get-vacancy, которую возвращает factory
   (defmethod process-teaser (current-teaser src-account referer)
     (dbg ":process-teaser:")
-    (let* ((vac-plist (plistp current-teaser))
-           ;; (none (print vac-plist))
-           (vac-id (if vac-plist
-                       (getf (getf current-teaser :teaser) :id)
-                       (getf (getf (car current-teaser) :vacancy) :id)))
-           (vacancy-page (format nil "https://spb.hh.ru/vacancy/~A" vac-id)))
+    (unless (getf current-teaser :src-id)
+      (return-from process-teaser nil))
+    (let ((vac-uri (format nil "https://spb.hh.ru/vacancy/~A" (getf current-teaser :src-id))))
       (multiple-value-bind (vacancy new-cookies ref-url)
-          (hh-get-page vacancy-page cookie-jar src-account referer)
+          (hh-get-page vac-uri cookie-jar src-account referer)
         (setf cookie-jar new-cookies)
         (restart-case
             (aif (hh-parse-vacancy vacancy)
