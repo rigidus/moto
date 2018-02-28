@@ -561,7 +561,7 @@
 
   (defparameter *last-parse-data* nil)
 
-  (defun linearize-vacancy (vacancy)
+  (defun linearize-teaser (vacancy)
     (cond ((not (listp vacancy))
            (err (format nil "Wrong vacancy: ~A" vacancy)))
           ((not (keywordp (car vacancy)))
@@ -622,7 +622,7 @@
          (car)
          (remove-if #'advertp)
          (transform-reform-meta-info)
-         (mapcar #'linearize-vacancy)
+         (mapcar #'linearize-teaser)
          ;; (mapcar #'(lambda (vacancy)
          ;;             (if (not (tree-plist-p vacancy))
          ;;                 (progn
@@ -1383,9 +1383,16 @@ plist-деревом.
                           (maptreefilter)
                           (transform-script)
                           (transform-noprint)
+                          (transform-black-list)
+                          (transform-related)
+                          (transform-url)
+                          (transform-title)
                           (transform-company-name)
-                          ;; (transform-vacancy-compensation)
+                          (transform-vacancy-compensation)
                           (transform-longdescr)
+                          (transform-exp)
+                          (transform-jobtype)
+                          (transform-metro)
                           ;; (transform-contacts-body)
                           ;; (transform-contacts-fio)
                           ;; (transform-contacts-list)
@@ -1396,7 +1403,8 @@ plist-деревом.
                           (transform-skills)
                           (transform-street-address)
                           ))
-           (vacancy `(:title ,(extract-title candidat)
+           (vacancy `(:url ,(extract-url candidat)
+                      :title ,(extract-title candidat)
                       :company ,(extract-company candidat)
                       ;; :city  ,(extract-city candidat)
                       ;; :metro ,(extract-metro candidat)
@@ -1405,8 +1413,7 @@ plist-деревом.
                       :job-type ,(extract-jobtype candidat)
                       :street-address ,(extract-street-address candidat)
                       :skills ,(extract-skills candidat)
-                      ;; :url ,(extract-url candidat)
-                      ;; :compensation ,(extract-compensation candidat)
+                      :compensation ,(extract-compensation candidat)
                       ;; :contacts ,(extract-contacts candidat))))
                       )))
       ;; (if (not (tree-plist-p vacancy))
@@ -1419,8 +1426,8 @@ plist-деревом.
       ;;       ;; non-compacted-vacancy
       ;;       compacted-vacancy
       ;;       ))
-      ;; candidat
-      vacancy
+      candidat
+      ;; vacancy
       ))
 
   (print (hh-parse-vacancy *last-parse-data*))
@@ -1455,44 +1462,45 @@ plist-деревом.
 
 #+NAME: vacancy_extractors
 #+BEGIN_SRC lisp
-    (in-package :moto)
+  (in-package :moto)
 
-    (make-extract (vacancy rest)
-      `("div" (("itemscope" "itemscope") ("itemtype" "http://schema.org/JobPosting")) ,@rest))
+  (make-extract (vacancy rest)
+    `("div" (("itemscope" "itemscope") ("itemtype" "http://schema.org/JobPosting")) ,@rest))
 
-    (make-extract (title title)
-      `("h1" (("class" "header") ("data-qa" "vacancy-title")) ,title))
+  (make-extract (url url)
+    `(:url ,url))
 
-    (make-extract (company `(:company-name ,name :company-href ,href))
-      `(:company-name ,name :company-href ,href))
+  (make-extract (title title)
+    `(:title ,title))
 
-    ;; (make-extract (compensation compensation)
-    ;;   `(:compensation ,compensation))
+  (make-extract (company `(:company-name ,name :company-href ,href))
+    `(:company-name ,name :company-href ,href))
 
-    ;; (make-extract (metro metro)
-    ;;   `("metro-station" NIL ,_ ,metro))
+  (make-extract (compensation compensation)
+    `(:compensation ,compensation))
 
-    (make-extract (exp exp)
-      `("vacancy-experience" NIL ,exp))
+  ;; (make-extract (metro metro)
+  ;;   `("metro-station" NIL ,_ ,metro))
 
-    (make-extract (descr rest)
-      `(:long-descr ,@rest))
+  (make-extract (exp exp)
+    `(:exp ,exp))
 
-    (make-extract (jobtype `(:emptype ,emptype :workhours ,workhours))
-      `("p" (("data-qa" "vacancy-view-employment-mode"))
-         ("span" (("itemprop" "employmentType")) ,emptype) ", "
-         ("span" (("itemprop" "workHours")) ,workhours)))
+  (make-extract (descr rest)
+    `(:long-descr ,@rest))
 
-    (make-extract (street-address street-address)
-      `(:street-address ,street-address))
+  (make-extract (jobtype `(:emptype ,emptype :workhours ,workhours))
+    `(:emptype ,emptype :workhours ,workhours))
 
-    (make-extract (skills skills)
-      `(:skills ,skills))
+  (make-extract (street-address street-address)
+    `(:street-address ,street-address))
+
+  (make-extract (skills skills)
+    `(:skills ,skills))
 
 
-    ;; (make-extract (contacts `(:fio ,fio :contacts ,rest))
-    ;;   `("vacancy-contacts__body" NIL (:FIO ,fio)
-    ;;                              (:CONTACTS-LIST ,@rest)))
+  ;; (make-extract (contacts `(:fio ,fio :contacts ,rest))
+  ;;   `("vacancy-contacts__body" NIL (:FIO ,fio)
+  ;;                              (:CONTACTS-LIST ,@rest)))
 #+END_SRC
 
 *** Набор преобразователей для вакансий
@@ -1510,6 +1518,22 @@ plist-деревом.
   (make-transform (noprint)
     (`("vacancy-noprint" NIL ,_)
       `(:garbage "noprint")))
+
+  (make-transform (black-list)
+    (`("vacancy-serp-item__controls-item" NIL ,@rest)
+      `(:garbage "black-list")))
+
+  (make-transform (related)
+    (`("vacancy-view-vacancies-from-search" NIL ,@rest)
+      `(:garbage "related")))
+
+  (make-transform (url)
+    (`("meta" (("itemprop" "url") ("content" ,url)))
+      `(:url ,url)))
+
+  (make-transform (title)
+    (`("h1" (("class" "header") ("data-qa" "vacancy-title")) ,title)
+      `(:title ,title)))
 
   (make-transform (company-name)
     (`("vacancy-company-name"
@@ -1566,6 +1590,20 @@ plist-деревом.
        (("itemprop" "streetAddress")
         ("content" ,street-address)))
       `(:street-address ,street-address)))
+
+  (make-transform (exp)
+    (`("vacancy-experience" NIL ,exp)
+      `(:exp ,exp)))
+
+  (make-transform (jobtype)
+    (`("p" (("data-qa" "vacancy-view-employment-mode"))
+           ("span" (("itemprop" "employmentType")) ,emptype) ", "
+           ("span" (("itemprop" "workHours")) ,workhours))
+      `(:emptype ,emptype :workhours ,workhours)))
+
+  (make-transform (metro)
+    (`("metro-station" NIL ("metro-point" (("style" ,color))) ,metro)
+      `(:metro ,metro :color ,color)))
 
   ;; contacts not tested
 
@@ -2103,6 +2141,7 @@ plist-деревом.
       (get-output-stream-string output)))
 
   (defmethod show-vacancy (vacancy)
+    (format t "~%~A" (bprint vacancy))
     ;; (loop :for section-key :in vacancy by #'cddr  :do
     ;;    (format t "~%_______~%~A" (bprint (list section-key (getf vacancy section-key)))))
     ;; (format t "~%~A :~A: ~A [~A]"
